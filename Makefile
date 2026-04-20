@@ -32,7 +32,7 @@ migrate-redo:
 	DATABASE_URL="$(DATABASE_URL)" MIGRATIONS_DIR="$(MIGRATIONS_DIR)" go run ./cmd/migrate redo
 
 seed:
-	@echo "Phase 0 has deterministic fixtures under testdata/. Runtime seeding is implemented in a later phase."
+	$(DOCKER_COMPOSE) exec -T postgres psql -U postgres -d open_transit_rt < scripts/seed-dev.sql
 
 dev bootstrap:
 	./scripts/bootstrap-dev.sh
@@ -41,7 +41,7 @@ run-agency-config:
 	PORT=8081 go run ./cmd/agency-config
 
 run-telemetry-ingest:
-	PORT=8082 go run ./cmd/telemetry-ingest
+	DATABASE_URL="$(DATABASE_URL)" PORT=8082 go run ./cmd/telemetry-ingest
 
 run-feed-vehicle-positions:
 	PORT=8083 go run ./cmd/feed-vehicle-positions
@@ -53,17 +53,19 @@ test:
 	go test ./...
 
 test-integration: migrate-status
-	@echo "Phase 0 integration smoke: database is reachable and migrations are visible. No DB-backed integration test files exist yet."
+	@echo "Phase 1 integration: database is reachable; DB-backed telemetry tests use an isolated temporary database when supported."
 	INTEGRATION_TESTS=1 TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...
 
 lint:
 	@if command -v golangci-lint >/dev/null 2>&1; then golangci-lint run ./...; else echo "optional lint skipped: golangci-lint is not installed; future CI should make this required once configured"; fi
 
 validate:
-	@echo "Phase 0 validation smoke: checking scaffold files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
+	@echo "Phase 1 validation smoke: checking scaffold and durable telemetry files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
 	@test -f db/migrations/000001_initial_schema.sql
+	@test -f db/migrations/000002_telemetry_ingest_foundation.sql
 	@test -d testdata/gtfs/valid-small
 	@test -d testdata/gtfs/after-midnight
 	@test -d testdata/gtfs/frequency-based
 	@test -d testdata/gtfs/malformed
+	@test -d testdata/telemetry
 	@echo "Validation smoke passed. Future phases must wire canonical validators before any compliance claim."

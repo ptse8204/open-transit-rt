@@ -36,7 +36,7 @@ tasks:
 
   seed:
     cmds:
-      - echo "Phase 0 has deterministic fixtures under testdata/. Runtime seeding is implemented in a later phase."
+      - docker compose -f deploy/docker-compose.yml exec -T postgres psql -U postgres -d open_transit_rt < scripts/seed-dev.sql
 
   dev:
     cmds:
@@ -46,6 +46,10 @@ tasks:
     cmds:
       - go build ./...
 
+  run:telemetry-ingest:
+    cmds:
+      - DATABASE_URL="{{.DATABASE_URL}}" PORT=8082 go run ./cmd/telemetry-ingest
+
   test:
     cmds:
       - go test ./...
@@ -53,7 +57,7 @@ tasks:
   test:integration:
     cmds:
       - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate status
-      - echo "Phase 0 integration smoke: database is reachable and migrations are visible. No DB-backed integration test files exist yet."
+      - echo "Phase 1 integration: database is reachable; DB-backed telemetry tests use an isolated temporary database when supported."
       - INTEGRATION_TESTS=1 TEST_DATABASE_URL="{{.TEST_DATABASE_URL}}" go test ./...
 
   fmt:
@@ -71,10 +75,12 @@ tasks:
 
   validate:
     cmds:
-      - echo "Phase 0 validation smoke: checking scaffold files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
+      - echo "Phase 1 validation smoke: checking scaffold and durable telemetry files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
       - test -f db/migrations/000001_initial_schema.sql
+      - test -f db/migrations/000002_telemetry_ingest_foundation.sql
       - test -d testdata/gtfs/valid-small
       - test -d testdata/gtfs/after-midnight
       - test -d testdata/gtfs/frequency-based
       - test -d testdata/gtfs/malformed
+      - test -d testdata/telemetry
       - echo "Validation smoke passed. Future phases must wire canonical validators before any compliance claim."

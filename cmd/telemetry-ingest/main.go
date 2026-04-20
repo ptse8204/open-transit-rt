@@ -1,39 +1,76 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"sync"
+	"strconv"
 	"time"
 
+	appdb "open-transit-rt/internal/db"
 	"open-transit-rt/internal/server"
 	"open-transit-rt/internal/telemetry"
 )
 
-var (
-	mu     sync.Mutex
-	events []telemetry.Event
-)
+const maxTelemetryPayloadBytes = 1 << 20
+
+type pinger interface {
+	Ping(ctx context.Context) error
+}
 
 type ingestResponse struct {
-	Accepted   bool      `json:"accepted"`
-	VehicleID  string    `json:"vehicle_id"`
-	ReceivedAt time.Time `json:"received_at"`
+	Accepted     bool                   `json:"accepted"`
+	IngestStatus telemetry.IngestStatus `json:"ingest_status"`
+	AgencyID     string                 `json:"agency_id"`
+	VehicleID    string                 `json:"vehicle_id"`
+	ObservedAt   time.Time              `json:"observed_at"`
+	ReceivedAt   time.Time              `json:"received_at"`
 }
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pool, err := appdb.Connect(ctx, appdb.LoadConfigFromEnv())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pool.Close()
+
+	repo := telemetry.NewPostgresRepository(pool)
+	if err := server.Run("telemetry-ingest", newHandler(repo, pool)); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func newHandler(repo telemetry.Repository, ready pinger) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		mu.Lock()
-		count := len(events)
-		mu.Unlock()
-		_ = json.NewEncoder(w).Encode(map[string]any{
+		writeJSON(w, http.StatusOK, map[string]any{
 			"service": "telemetry-ingest",
 			"status":  "ok",
-			"count":   count,
+		})
+	})
+
+	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		if err := ready.Ping(ctx); err != nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+				"service": "telemetry-ingest",
+				"status":  "unavailable",
+				"error":   "database unavailable",
+			})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"service": "telemetry-ingest",
+			"status":  "ready",
 		})
 	})
 
@@ -43,37 +80,97 @@ func main() {
 			return
 		}
 
-		var evt telemetry.Event
-		if err := json.NewDecoder(r.Body).Decode(&evt); err != nil {
-			http.Error(w, "invalid json", http.StatusBadRequest)
-			return
-		}
-		if !evt.Valid() {
-			http.Error(w, "invalid telemetry payload", http.StatusBadRequest)
+		evt, payload, err := decodeTelemetryPayload(w, r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		mu.Lock()
-		events = append(events, evt)
-		mu.Unlock()
+		result, err := repo.Store(r.Context(), evt, payload)
+		if errors.Is(err, telemetry.ErrUnknownAgency) {
+			http.Error(w, "unknown agency", http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			http.Error(w, "store telemetry event", http.StatusInternalServerError)
+			return
+		}
 
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(ingestResponse{
-			Accepted:   true,
-			VehicleID:  evt.VehicleID,
-			ReceivedAt: time.Now().UTC(),
+		statusCode := http.StatusAccepted
+		if result.IngestStatus == telemetry.IngestStatusAccepted {
+			statusCode = http.StatusCreated
+		}
+		writeJSON(w, statusCode, ingestResponse{
+			Accepted:     result.IngestStatus == telemetry.IngestStatusAccepted,
+			IngestStatus: result.IngestStatus,
+			AgencyID:     result.AgencyID,
+			VehicleID:    result.VehicleID,
+			ObservedAt:   result.Timestamp,
+			ReceivedAt:   result.ReceivedAt,
 		})
 	})
 
-	mux.HandleFunc("/v1/events", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		mu.Lock()
-		copyEvents := append([]telemetry.Event(nil), events...)
-		mu.Unlock()
-		_ = json.NewEncoder(w).Encode(copyEvents)
+	mux.HandleFunc("/v1/events", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		agencyID := r.URL.Query().Get("agency_id")
+		if agencyID == "" {
+			http.Error(w, "agency_id is required", http.StatusBadRequest)
+			return
+		}
+		limit, err := parseRequiredLimit(r.URL.Query().Get("limit"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		events, err := repo.ListEvents(r.Context(), agencyID, limit)
+		if err != nil {
+			http.Error(w, "list telemetry events", http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, http.StatusOK, events)
 	})
 
-	if err := server.Run("telemetry-ingest", mux); err != nil {
-		log.Fatal(err)
+	return mux
+}
+
+func decodeTelemetryPayload(w http.ResponseWriter, r *http.Request) (telemetry.Event, json.RawMessage, error) {
+	raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxTelemetryPayloadBytes))
+	if err != nil {
+		return telemetry.Event{}, nil, fmt.Errorf("invalid json")
 	}
+
+	var parsed any
+	if err := json.Unmarshal(raw, &parsed); err != nil {
+		return telemetry.Event{}, nil, fmt.Errorf("invalid json")
+	}
+
+	var evt telemetry.Event
+	if err := json.Unmarshal(raw, &evt); err != nil {
+		return telemetry.Event{}, nil, fmt.Errorf("invalid telemetry payload")
+	}
+	if !evt.Valid() {
+		return telemetry.Event{}, nil, fmt.Errorf("invalid telemetry payload")
+	}
+	return evt, append(json.RawMessage(nil), raw...), nil
+}
+
+func parseRequiredLimit(raw string) (int, error) {
+	if raw == "" {
+		return 0, fmt.Errorf("limit is required")
+	}
+	limit, err := strconv.Atoi(raw)
+	if err != nil || limit < 1 || limit > 500 {
+		return 0, fmt.Errorf("limit must be between 1 and 500")
+	}
+	return limit, nil
+}
+
+func writeJSON(w http.ResponseWriter, status int, payload any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(payload)
 }

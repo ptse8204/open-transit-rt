@@ -11,6 +11,7 @@ These questions do not block Phase 0.
 
 - Which auth provider should be used when admin/operator login is implemented?
 - Should device credentials use opaque bearer tokens only, or support signed device JWTs later?
+- Should Phase 1's local debug `/v1/events` endpoint be removed, protected behind admin auth, or moved under a separate admin route before production deployment?
 
 ## Validation Tooling
 

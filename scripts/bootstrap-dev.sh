@@ -41,6 +41,9 @@ done
 echo "Applying migrations..."
 DATABASE_URL="$DATABASE_URL" MIGRATIONS_DIR="$MIGRATIONS_DIR" go run ./cmd/migrate up
 
+echo "Seeding development agencies..."
+docker compose -f deploy/docker-compose.yml exec -T postgres psql -U postgres -d open_transit_rt < scripts/seed-dev.sql
+
 cat <<URLS
 
 Open Transit RT local bootstrap complete.

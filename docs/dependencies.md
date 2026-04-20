@@ -126,7 +126,7 @@ Go PostgreSQL driver and connection pooling layer for repository implementations
 
 ### Startup / provisioning
 - linked through Go modules
-- used by application services in later phases
+- used by `cmd/telemetry-ingest` and repository implementations
 
 ### Integration boundary
 - database access should go through repository packages
@@ -140,6 +140,7 @@ Go PostgreSQL driver and connection pooling layer for repository implementations
 ### Output contract
 - context-aware query results mapped into internal domain models
 - explicit errors returned to callers
+- telemetry ingest readiness checks through `pgxpool.Ping`
 
 ### Failure behavior
 - connection failures should fail startup for DB-required services

@@ -4,28 +4,29 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 1 — Durable telemetry foundation
+Phase 2 — Deterministic trip matching
 
 ## Phase Status
 
-- Phase 0 scaffolding is implemented.
-- Phase 0 operational closure audit passed.
-- Phase 0 closure-polish pass completed; no remaining Phase 0 cleanup items are known.
-- Phase 1 is ready to start.
+- Phase 0 scaffolding is implemented and operationally closed.
+- Phase 1 durable telemetry foundation is implemented and operationally closed.
+- Phase 2 is ready to start.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/phase-plan.md`
 3. `docs/current-status.md`
-4. `docs/handoffs/phase-00.md`
-5. `docs/dependencies.md`
-6. `docs/decisions.md`
-7. `docs/codex-task.md`
+4. `docs/handoffs/phase-01.md`
+5. `docs/requirements-2a-2f.md`
+6. `docs/requirements-trip-updates.md`
+7. `docs/dependencies.md`
+8. `docs/decisions.md`
+9. `docs/codex-task.md`
 
 ## Current Objective
 
-Replace in-memory telemetry with durable Postgres persistence and create the core DB/repository foundation.
+Begin Phase 2 deterministic trip matching using persisted telemetry from Phase 1. Do not start protobuf Vehicle Positions, GTFS import, GTFS Studio, Trip Updates, or Alerts yet.
 
 ## Exact First Commands
 
@@ -37,6 +38,7 @@ make test
 docker compose -f deploy/docker-compose.yml config
 make db-up
 make migrate-status
+make test-integration
 ```
 
 If Task is installed, optional equivalents may be run:
@@ -45,38 +47,42 @@ If Task is installed, optional equivalents may be run:
 task fmt
 task test
 task migrate:status
+task test:integration
 ```
 
 ## Known Blockers
 
-- No active Phase 0 blockers remain.
 - Task is not installed, but Task is optional and Makefile is independently usable.
 - Docker must be running before DB-backed checks.
+- GTFS import is not implemented yet, so Phase 2 should use fixtures or narrow schedule-query test doubles rather than starting Phase 4.
 
 ## First Files Likely To Edit
 
-- `internal/db/`
+- `internal/state/`
 - `internal/telemetry/`
-- `cmd/telemetry-ingest/main.go`
+- a narrow schedule-query package under `internal/gtfs/` or equivalent
+- `db/migrations/`
+- `testdata/`
 - `docs/current-status.md`
-- `docs/handoffs/phase-01.md`
+- `docs/handoffs/phase-02.md`
 - `docs/handoffs/latest.md`
 
-## Phase 1 Entry Recommendation
+## Phase 2 Entry Recommendation
 
-Start Phase 1 durable telemetry by making telemetry persistence real without changing matcher or feed behavior:
+Start deterministic matching without changing feed publication behavior:
 
-1. Add `internal/db` with config loading and `pgxpool` connection setup.
-2. Add telemetry repository interfaces in `internal/telemetry`.
-3. Add a Postgres telemetry repository that inserts `telemetry_event` rows and queries latest events by agency/vehicle.
-4. Update `cmd/telemetry-ingest` to use the repository instead of global process memory.
-5. Add readiness behavior that reports DB connectivity.
-6. Add DB-backed tests for valid insert/query, duplicate telemetry, and out-of-order telemetry using `testdata/telemetry`.
-7. Update Phase 1 handoff docs with checks and any schema adjustments.
+1. Define the minimal GTFS schedule query boundary needed by the matcher.
+2. Add agency-local service-day resolution.
+3. Use latest accepted telemetry from the Phase 1 repository.
+4. Preserve conservative `unknown` behavior for missing, ambiguous, or low-confidence matches.
+5. Keep manual override precedence in the data model and tests, but do not build the full operator UI yet.
+6. Add tests using after-midnight, frequency-based, stale, unmatched, matched, swapped, and block-transition fixtures.
+7. Do not implement protobuf Vehicle Positions until Phase 3.
 
 ## Constraints To Preserve
 
 - Mostly Go.
+- Postgres/PostGIS source of truth.
 - Vehicle Positions first.
 - Trip Updates pluggable.
 - Draft GTFS separate from published GTFS.

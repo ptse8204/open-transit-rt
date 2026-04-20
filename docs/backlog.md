@@ -4,13 +4,7 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 1 — Durable Telemetry Foundation
 
-- Add shared DB package using `pgxpool`.
-- Implement telemetry repository interfaces.
-- Persist `/v1/telemetry` events to Postgres.
-- Add readiness checks for DB connectivity.
-- Handle duplicate and out-of-order telemetry without corrupting latest vehicle state.
-- Capture raw payload JSON.
-- Add DB-backed tests using `testdata/telemetry`.
+- Complete. Durable telemetry ingest, DB readiness, duplicate/out-of-order handling, parsed payload JSONB storage, agency-scoped debug listing, and DB-backed tests are implemented.
 
 ## Phase 2 — Deterministic Trip Matching
 
