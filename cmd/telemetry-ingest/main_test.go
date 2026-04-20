@@ -195,6 +195,18 @@ func TestReadyzReportsDBUnavailable(t *testing.T) {
 	}
 }
 
+func TestReadyzReportsReady(t *testing.T) {
+	handler := newHandler(fakeRepo{}, fakePinger{})
+
+	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status code = %d, want 200", rec.Code)
+	}
+}
+
 func validTelemetryPayload() string {
 	return `{
 		"agency_id":"demo-agency",

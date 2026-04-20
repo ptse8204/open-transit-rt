@@ -12,7 +12,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 This repository is an early-stage starter for **Open Transit RT**.
 
-Phase 0 scaffolding and Phase 1 durable telemetry foundation are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, and run DB-backed telemetry integration tests.
+Phase 0 scaffolding and Phase 1 durable telemetry foundation are complete. Phase 1 closure-polish is complete, and no remaining Phase 1 cleanup items are known. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, and run DB-backed telemetry integration tests.
 
 ## What Exists Now
 
@@ -91,7 +91,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 **Active phase:** Phase 2 — Deterministic trip matching
 
-Phase 1 is operationally closed. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 1 is operationally closed with no known remaining cleanup items. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -137,8 +137,11 @@ Checked during Phase 1 closure:
 - `make migrate-up`: passed and applied `000002_telemetry_ingest_foundation.sql`.
 - `make migrate-status`: passed and reports migration versions 1 and 2 applied.
 - `make test-integration`: passed with DB-backed telemetry tests using an isolated temporary database.
+- migration down/up smoke for `000002_telemetry_ingest_foundation.sql`: passed via `make migrate-down`, `make migrate-up`, and `make migrate-status`.
 - `scripts/bootstrap-dev.sh`: passed and seeds `demo-agency`, `overnight-agency`, and `freq-agency`.
-- `make validate`: passed scaffold validation. Canonical GTFS and GTFS-RT validators remain documented but not wired.
+- `/readyz` behavior: covered by handler tests for both DB-ready and DB-unavailable responses.
+- advisory-lock behavior: lock-key derivation is covered by deterministic unit tests; repository integration tests exercise classification through the locked `Store` path, but there is no separate concurrent-ingest stress test yet.
+- `make validate`: passed scaffold and durable telemetry file validation only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
 - `git diff --check`: passed.
 - Optional Task equivalents were not run because `task` is not installed.
 

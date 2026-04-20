@@ -10,6 +10,7 @@ Phase 2 — Deterministic trip matching
 
 - Phase 0 scaffolding is implemented and operationally closed.
 - Phase 1 durable telemetry foundation is implemented and operationally closed.
+- Phase 1 closure-polish pass completed; no remaining Phase 1 cleanup items are known.
 - Phase 2 is ready to start.
 
 ## Read These Files First

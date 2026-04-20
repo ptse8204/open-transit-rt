@@ -91,7 +91,7 @@ make build
 make test
 ```
 
-Useful Phase 0 commands:
+Useful local commands:
 ```bash
 make migrate-status
 make test-integration
@@ -99,6 +99,8 @@ make validate
 ```
 
 `make test-integration` runs DB-backed telemetry tests. The tests prefer creating an isolated temporary database from `TEST_DATABASE_URL`; if that is not permitted, they fall back to an isolated temporary schema in the configured test database.
+
+`make validate` is currently a scaffold and Phase 1 telemetry-file smoke check only. It verifies required migration and fixture paths exist; canonical GTFS and GTFS-Realtime validators are documented but not wired yet.
 
 ## Recommended next build order
 

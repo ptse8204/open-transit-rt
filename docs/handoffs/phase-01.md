@@ -7,6 +7,7 @@ Phase 1 — Durable telemetry foundation
 ## Status
 
 - Complete.
+- Closure-polish pass complete; no remaining Phase 1 cleanup items are known.
 - Active phase after this handoff: Phase 2 — Deterministic trip matching.
 
 ## What Was Implemented
@@ -72,6 +73,8 @@ Migration behavior:
 - Integration tests prefer creating an isolated temporary database from `TEST_DATABASE_URL`.
 - If database creation is not available, tests fall back to an isolated temporary schema in the configured test database.
 - Tests seed known agencies: `demo-agency`, `overnight-agency`, and `freq-agency`.
+- `/readyz` handler behavior is covered for both DB-ready and DB-unavailable responses.
+- Advisory-lock key derivation is covered by deterministic unit tests. Repository integration tests exercise telemetry classification through the locked `Store` path; no separate concurrent-ingest stress test was added in Phase 1.
 
 Test results:
 - `make test`: passed.
@@ -87,10 +90,11 @@ Test results:
 | `docker compose -f deploy/docker-compose.yml config` | Passed | Compose file renders successfully. |
 | `make db-up` | Passed | PostGIS container running on host port `55432`. |
 | `make migrate-up` | Passed | Applied `000002_telemetry_ingest_foundation.sql`. |
+| `make migrate-down && make migrate-up && make migrate-status` | Passed | Smoke-tested rollback and re-application of migration `000002`. |
 | `make migrate-status` | Passed | Reports migrations 1 and 2 applied. |
 | `make test-integration` | Passed | DB-backed telemetry tests passed using isolated temporary DB setup. |
 | `scripts/bootstrap-dev.sh` | Passed | Applies migrations and seeds development agencies. |
-| `make validate` | Passed | Scaffold validation only; canonical validators are still not wired. |
+| `make validate` | Passed | Scaffold and durable telemetry file validation only; canonical validators are still not wired. |
 | `git diff --check` | Passed | No whitespace errors. |
 | Task equivalents | Not run | `task` is not installed; Makefile remains independently usable. |
 
@@ -101,7 +105,7 @@ Intermediate note: one `make test-integration` run failed while developing migra
 - `/v1/events` has no auth in Phase 1. It is bounded and agency-scoped, but should be disabled or protected before production deployment.
 - Invalid JSON and invalid telemetry payloads are rejected without persistence. A later ingest-audit phase can use the reserved `rejected` status.
 - `feed-vehicle-positions` still serves placeholder JSON from sample data and does not read persisted telemetry.
-- `make validate` is still scaffold validation only; GTFS and GTFS-RT validators are documented but not wired.
+- `make validate` is still scaffold and durable telemetry file validation only; GTFS and GTFS-RT validators are documented but not wired.
 
 ## Exact Next-Step Recommendation
 
