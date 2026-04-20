@@ -1,0 +1,61 @@
+# Backlog
+
+This backlog is organized by phase. `docs/phase-plan.md` remains the phase contract.
+
+## Phase 1 — Durable Telemetry Foundation
+
+- Add shared DB package using `pgxpool`.
+- Implement telemetry repository interfaces.
+- Persist `/v1/telemetry` events to Postgres.
+- Add readiness checks for DB connectivity.
+- Handle duplicate and out-of-order telemetry without corrupting latest vehicle state.
+- Capture raw payload JSON.
+- Add DB-backed tests using `testdata/telemetry`.
+
+## Phase 2 — Deterministic Trip Matching
+
+- Add service-day resolver using agency timezone.
+- Support after-midnight times and repeated trip instances.
+- Support `frequencies.txt` exact and non-exact trips.
+- Add conservative candidate scoring and confidence reasons.
+- Respect manual overrides.
+- Persist assignments and incidents.
+
+## Phase 3 — Vehicle Positions Production Feed
+
+- Add GTFS-RT protobuf bindings.
+- Publish `/public/gtfsrt/vehicle_positions.pb` from persisted data.
+- Keep JSON debug endpoint.
+- Add stale/unmatched behavior and validation tests.
+
+## Phase 4 — GTFS Import And Publish
+
+- Import `gtfs.zip`.
+- Validate required files and references.
+- Stage imported data and atomically activate feed versions.
+- Store import and validation reports.
+
+## Phase 5 — GTFS Studio
+
+- Add draft GTFS CRUD model.
+- Add minimal server-rendered admin UI.
+- Publish drafts through the same pipeline as ZIP import.
+
+## Phase 6 — Trip Updates And Alerts Architecture
+
+- Define `PredictionAdapter` input/output contracts.
+- Add no-op adapter and diagnostics plumbing.
+- Add stable endpoint shape for Trip Updates and Alerts.
+
+## Phase 7 — Prediction Quality And Operations
+
+- Add stop-level ETA model and quality metrics.
+- Add incident queue workflows.
+- Add cancellation, added trip, detour, short turn, and vehicle swap operations.
+
+## Phase 8 — Compliance And Consumer Workflow
+
+- Add compliance dashboard and scorecard.
+- Add public metadata and license pages.
+- Add consumer ingestion workflow records and export packet generation.
+- Track marketplace-vendor-equivalence gaps.

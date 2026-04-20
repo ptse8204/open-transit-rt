@@ -86,7 +86,12 @@ Phase 0 is done when:
 - local bootstrap flow exists
 - migration flow exists
 - fixture directory exists
-- status and handoff docs exist
+- status and handoff docs exist under `docs/handoffs/`
+- all docs reference `docs/handoffs/latest.md` as the handoff source of truth
+- `docs/handoffs/template.md` is the default required structure for future handoffs unless a phase documents a reason to diverge
+- the foundation schema creates only tables, constraints, and indexes for later phases without implementing later runtime behavior
+- Makefile workflows remain independently usable even if Task is not installed
+- Phase 0 handoff includes exact Phase 1 entry files, commands, blockers, and first implementation slice
 - baseline checks can be run or blocked reasons are explicitly documented
 
 ---
@@ -316,6 +321,8 @@ At the end of every phase:
 - update `docs/open-questions.md`
 - update the phase-specific handoff file
 - update `docs/handoffs/latest.md`
+
+All phase handoff files should use `docs/handoffs/template.md` unless the phase handoff explicitly documents why it diverges.
 
 A fresh Codex instance should be able to continue by reading:
 - `AGENTS.md`

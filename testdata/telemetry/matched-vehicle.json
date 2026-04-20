@@ -1,0 +1,26 @@
+[
+  {
+    "agency_id": "demo-agency",
+    "device_id": "android-tablet-01",
+    "vehicle_id": "bus-10",
+    "timestamp": "2026-04-20T15:02:00Z",
+    "lat": 49.2827,
+    "lon": -123.1207,
+    "bearing": 120.0,
+    "speed_mps": 8.4,
+    "accuracy_m": 7.5,
+    "trip_hint": "trip-10-0800"
+  },
+  {
+    "agency_id": "demo-agency",
+    "device_id": "android-tablet-01",
+    "vehicle_id": "bus-10",
+    "timestamp": "2026-04-20T15:12:00Z",
+    "lat": 49.2760,
+    "lon": -123.1150,
+    "bearing": 120.0,
+    "speed_mps": 7.9,
+    "accuracy_m": 8.0,
+    "trip_hint": "trip-10-0800"
+  }
+]

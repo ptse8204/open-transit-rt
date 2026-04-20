@@ -1,0 +1,2 @@
+stop_id,stop_name,stop_lat,stop_lon
+bad-stop-1,Bad Stop,49.282700,-123.120700

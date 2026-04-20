@@ -1,0 +1,4 @@
+stop_id,stop_name,stop_lat,stop_lon
+stop-1,Downtown,49.282700,-123.120700
+stop-2,Central,49.276000,-123.115000
+stop-3,Uptown,49.270000,-123.100000

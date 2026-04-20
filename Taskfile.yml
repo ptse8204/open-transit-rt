@@ -1,0 +1,72 @@
+version: '3'
+
+vars:
+  DATABASE_URL: '{{.DATABASE_URL | default "postgres://postgres:postgres@localhost:5432/open_transit_rt?sslmode=disable"}}'
+  TEST_DATABASE_URL: '{{.TEST_DATABASE_URL | default "postgres://postgres:postgres@localhost:5432/open_transit_rt_test?sslmode=disable"}}'
+  MIGRATIONS_DIR: '{{.MIGRATIONS_DIR | default "db/migrations"}}'
+
+tasks:
+  deps:
+    cmds:
+      - go mod download
+
+  db:up:
+    cmds:
+      - docker compose -f deploy/docker-compose.yml up -d postgres
+
+  db:down:
+    cmds:
+      - docker compose -f deploy/docker-compose.yml down
+
+  migrate:up:
+    cmds:
+      - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate up
+
+  migrate:down:
+    cmds:
+      - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate down
+
+  migrate:status:
+    cmds:
+      - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate status
+
+  migrate:redo:
+    cmds:
+      - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate redo
+
+  seed:
+    cmds:
+      - echo "Phase 0 has deterministic fixtures under testdata/. Runtime seeding is implemented in a later phase."
+
+  dev:
+    cmds:
+      - ./scripts/bootstrap-dev.sh
+
+  build:
+    cmds:
+      - go build ./...
+
+  test:
+    cmds:
+      - go test ./...
+
+  test:integration:
+    cmds:
+      - INTEGRATION_TESTS=1 TEST_DATABASE_URL="{{.TEST_DATABASE_URL}}" go test ./...
+
+  fmt:
+    cmds:
+      - gofmt -w ./cmd ./internal
+
+  lint:
+    cmds:
+      - |
+        if command -v golangci-lint >/dev/null 2>&1; then
+          golangci-lint run ./...
+        else
+          echo "golangci-lint not installed; skipping lint"
+        fi
+
+  validate:
+    cmds:
+      - echo "Static GTFS and GTFS-RT validators are documented but not wired in Phase 0."

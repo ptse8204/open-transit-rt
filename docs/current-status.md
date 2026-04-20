@@ -12,12 +12,12 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 This repository is an early-stage starter for **Open Transit RT**.
 
-The current codebase is not yet a production implementation. It is a scaffold plus requirements/docs.
+The current codebase is not yet a production implementation. Phase 0 scaffolding is complete enough for the next implementation phase to begin once the Go toolchain is available.
 
 ## What exists now
 
 ### Repo guidance and architecture docs
-The repo now has:
+The repo has:
 - `AGENTS.md`
 - `docs/codex-task.md`
 - `docs/architecture.md`
@@ -28,6 +28,22 @@ The repo now has:
 - `docs/repo-gaps.md`
 - `docs/dependencies.md`
 - `docs/phase-plan.md`
+- `docs/decisions.md`
+- `docs/backlog.md`
+- `docs/open-questions.md`
+- `docs/handoffs/latest.md`
+
+### Phase 0 scaffolding
+The repo now has:
+- `.env.example`
+- `Taskfile.yml`
+- independently usable `Makefile`
+- `cmd/migrate`
+- versioned migrations under `db/migrations`
+- PostGIS-backed Docker Compose configuration
+- `scripts/bootstrap-dev.sh`
+- deterministic fixtures under `testdata/`
+- handoff template and Phase 0 handoff under `docs/handoffs/`
 
 ### Starter code
 The repo includes starter Go services for:
@@ -37,21 +53,12 @@ The repo includes starter Go services for:
 
 These services are scaffolds, not complete implementations.
 
-### Starter database schema
-The repo includes an initial SQL schema, but it is not yet a full migration-based production schema.
-
-### Example data
-The repo includes basic sample telemetry input and a basic docker-compose setup.
-
 ## What does not exist yet
 
 The following are still missing or incomplete unless a later handoff says otherwise:
 
-- durable DB-backed telemetry implementation
-- migration command and versioned migrations
-- `.env.example`
-- one-command bootstrap flow
-- integration fixtures under `testdata/`
+- durable DB-backed telemetry runtime implementation
+- repository interfaces and DB connection package
 - complete GTFS import pipeline
 - complete GTFS Studio draft/publish workflow
 - deterministic trip matcher with real edge-case handling
@@ -66,20 +73,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current phase
 
-**Active phase:** Phase 0 — Scaffolding and repo hardening
+**Active phase:** Phase 1 — Durable telemetry foundation
 
-## Current objective
-
-The immediate goal is to make the repo runnable, testable, and properly documented before major feature work begins.
-
-This includes:
-- scaffolding
-- migration flow
-- fixtures
-- bootstrap flow
-- env template
-- task/build flows
-- status/handoff docs
+Phase 0 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture posture
 
@@ -91,35 +87,37 @@ The codebase must preserve these long-term rules:
 - draft GTFS separate from published GTFS
 - conservative matching
 - external dependencies isolated behind adapters
-- no rider app / payments / dispatcher CAD scope
+- no rider apps, payments, passenger accounts, or dispatcher CAD scope
 
 ## Known blocking environment constraints
 
-At the time of the current plan:
-- `go` may not be on `PATH` in the execution shell
-- `task` may not be on `PATH`
+Checked during Phase 0:
+- `go` is not on `PATH`
+- `gofmt` is not on `PATH`
+- `task` is not on `PATH`
 - Docker Compose is available
-- the folder may not be a git repo
+- Docker Compose config validates
 
-These constraints must be re-checked by the active Codex instance before running commands.
+Install or expose the Go toolchain before Phase 1 implementation checks can pass.
 
 ## Next recommended step
 
-Complete Phase 0 before implementing substantive feature work.
+Begin Phase 1 with the exact entry recommendation in `docs/handoffs/latest.md` and `docs/handoffs/phase-00.md`.
 
-That means:
-1. add repo scaffolding from `docs/repo-gaps.md`
-2. align build/bootstrap/test flows
-3. create migration infrastructure
-4. add fixtures and status docs
-5. run baseline checks and record blocked commands
+The first implementation slice should be:
+1. add a shared DB package using `pgxpool`
+2. add telemetry repository interfaces and Postgres implementation
+3. wire `cmd/telemetry-ingest` to persist telemetry
+4. update health/readiness behavior
+5. add DB-backed tests using `testdata/telemetry`
 
 ## What not to do next
 
 Do not:
 - jump straight into Trip Updates implementation
 - add rider-facing functionality
+- add payments, passenger accounts, or dispatcher CAD
 - add a heavy frontend stack
 - tightly couple to an external predictor
 - merge draft GTFS and published GTFS into one model
-- leave placeholder sample feed data in production paths
+- leave placeholder sample feed data in production paths once real feed generation starts

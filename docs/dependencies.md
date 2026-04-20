@@ -112,6 +112,79 @@ Spatial extension for:
 
 ---
 
+## 2A. pgx
+
+### Classification
+Core runtime infrastructure
+
+### Purpose
+Go PostgreSQL driver and connection pooling layer for repository implementations.
+
+### Expected version
+- `github.com/jackc/pgx/v5` v5.x
+
+### Startup / provisioning
+- linked through Go modules
+- used by application services in later phases
+
+### Integration boundary
+- database access should go through repository packages
+- handlers and feed publishers should not embed SQL directly
+- core domain structs should not depend on pgx-specific types
+
+### Input contract
+- SQL queries and commands from repository implementations
+- `DATABASE_URL` or test database connection strings from configuration
+
+### Output contract
+- context-aware query results mapped into internal domain models
+- explicit errors returned to callers
+
+### Failure behavior
+- connection failures should fail startup for DB-required services
+- transient query failures should be surfaced; services must not serve fake data
+
+### Replacement strategy
+- another Go PostgreSQL driver may replace pgx if repository interfaces remain stable
+
+---
+
+## 2B. Goose
+
+### Classification
+Validation and developer tooling
+
+### Purpose
+Versioned SQL migration runner for local dev, CI, and production deployment workflows.
+
+### Expected version
+- `github.com/pressly/goose/v3` v3.x
+
+### Startup / provisioning
+- invoked through `cmd/migrate`
+- driven by `DATABASE_URL` and `MIGRATIONS_DIR`
+
+### Integration boundary
+- only migration commands should import Goose
+- application services should not depend on Goose APIs at runtime
+
+### Input contract
+- SQL migration files under `db/migrations`
+- command: `up`, `down`, `status`, or `redo`
+
+### Output contract
+- migration application status in the Goose schema table
+- process exit code indicating success or failure
+
+### Failure behavior
+- failed migration commands must exit non-zero and leave the DB transactionally consistent where supported
+- bootstrap must stop if migrations fail
+
+### Replacement strategy
+- another migration tool may replace Goose if `cmd/migrate` command behavior remains compatible
+
+---
+
 ## 3. GTFS static validator
 
 ### Classification
@@ -315,6 +388,77 @@ Local bootstrapping for:
 ### Replacement strategy
 - could be replaced by another local dev orchestration method
 - keep service env vars and startup assumptions documented
+
+---
+
+## 9A. Task
+
+### Classification
+Developer tooling
+
+### Purpose
+Optional task runner for local workflows.
+
+### Expected version
+- Task v3 compatible syntax
+
+### Startup / provisioning
+- optional local install
+- `Taskfile.yml` mirrors Makefile workflows
+
+### Integration boundary
+- Task is not required for production runtime
+- Makefile must remain independently usable when Task is absent
+
+### Input contract
+- task names such as `db:up`, `migrate:up`, `test`, and `validate`
+
+### Output contract
+- shell commands with the same semantics as the corresponding Makefile targets
+
+### Failure behavior
+- if Task is missing, use Makefile targets directly
+
+### Replacement strategy
+- Makefile is the fallback and can become the only workflow surface if Task is removed
+
+---
+
+## 9B. GTFS / GTFS-Realtime protobuf and validation tooling
+
+### Classification
+Validation and developer tooling; GTFS-RT protobuf serialization is later core runtime.
+
+### Purpose
+Future phases will use official GTFS-Realtime protobuf bindings and canonical validators for feed generation and compliance checks.
+
+### Expected version
+- official GTFS-Realtime protobuf definitions compatible with the current GTFS Realtime reference
+- MobilityData validators or equivalent canonical validators
+
+### Startup / provisioning
+- not wired in Phase 0
+- future phases should add explicit install/start instructions here before use
+
+### Integration boundary
+- protobuf types may appear in feed boundary packages only
+- validators run behind validation adapters and store normalized reports
+- validators do not own internal schedule, assignment, or prediction state
+
+### Input contract
+- static GTFS ZIP or generated GTFS-RT protobuf payloads
+
+### Output contract
+- serialized protobuf feeds from feed publisher packages
+- normalized validation reports with errors, warnings, and info counts
+
+### Failure behavior
+- serialization failure should fail feed generation clearly
+- validation failures should mark feeds unhealthy or block publish when configured
+
+### Replacement strategy
+- protobuf version changes should be isolated to feed mapping packages
+- validator implementations may change if normalized report contracts remain stable
 
 ---
 

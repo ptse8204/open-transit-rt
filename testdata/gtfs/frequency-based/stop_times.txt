@@ -1,0 +1,7 @@
+trip_id,arrival_time,departure_time,stop_id,stop_sequence,shape_dist_traveled
+trip-loop,08:00:00,08:00:00,freq-1,1,0
+trip-loop,08:08:00,08:08:00,freq-2,2,900
+trip-loop,08:16:00,08:16:00,freq-3,3,1800
+trip-loop-exact,09:00:00,09:00:00,freq-1,1,0
+trip-loop-exact,09:08:00,09:08:00,freq-2,2,900
+trip-loop-exact,09:16:00,09:16:00,freq-3,3,1800

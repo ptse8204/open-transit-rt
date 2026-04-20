@@ -1,0 +1,26 @@
+[
+  {
+    "agency_id": "overnight-agency",
+    "device_id": "night-device-01",
+    "vehicle_id": "night-bus-1",
+    "timestamp": "2026-04-21T07:30:00Z",
+    "lat": 49.2827,
+    "lon": -123.1207,
+    "bearing": 45.0,
+    "speed_mps": 8.0,
+    "accuracy_m": 8.0,
+    "trip_hint": "trip-night-2430"
+  },
+  {
+    "agency_id": "overnight-agency",
+    "device_id": "night-device-01",
+    "vehicle_id": "night-bus-1",
+    "timestamp": "2026-04-21T08:15:00Z",
+    "lat": 49.2900,
+    "lon": -123.1100,
+    "bearing": 45.0,
+    "speed_mps": 8.0,
+    "accuracy_m": 8.0,
+    "trip_hint": "trip-night-2430"
+  }
+]

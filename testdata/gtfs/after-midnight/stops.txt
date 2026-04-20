@@ -1,0 +1,4 @@
+stop_id,stop_name,stop_lat,stop_lon
+night-1,Night Terminal,49.282700,-123.120700
+night-2,Night Central,49.290000,-123.110000
+night-3,Night End,49.300000,-123.100000

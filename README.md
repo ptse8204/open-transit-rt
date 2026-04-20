@@ -8,7 +8,7 @@ Open Transit RT is a starter monorepo for a small-agency transit data stack:
 - a pluggable Trip Updates engine
 - alerts and monitoring later
 
-This repo is a buildable starter, not a finished product. It focuses on the wedge we discussed: **BYOD or low-cost GPS -> public realtime feeds**, with **Trip Updates** treated as a replaceable module.
+This repo is a phased starter, not a finished product. It focuses on the wedge we discussed: **BYOD or low-cost GPS -> public realtime feeds**, with **Trip Updates** treated as a replaceable module.
 
 ## Current status
 
@@ -17,12 +17,12 @@ Implemented now:
 - simple `telemetry-ingest` HTTP service
 - simple `feed-vehicle-positions` HTTP service
 - shared domain models
-- starter SQL schema
+- Phase 0 scaffolding for migrations, bootstrap, fixtures, and handoffs
 - architecture and Codex handoff docs
 
 Not yet implemented:
 - protobuf GTFS-RT encoding
-- Postgres persistence
+- Postgres persistence runtime behavior
 - Android client
 - trip matching engine
 - TheTransitClock integration
@@ -58,9 +58,35 @@ Current endpoints:
 - `GET /public/gtfsrt/vehicle_positions.json`
 
 ## Local development
+
+Copy local defaults if needed:
+```bash
+cp .env.example .env
+```
+
+Bring up Postgres/PostGIS and apply migrations:
+```bash
+make db-up
+make migrate-up
+```
+
+One-command bootstrap:
+```bash
+make dev
+```
+
+Task is optional. The Makefile remains independently usable when `task` is not installed.
+
 ```bash
 make build
 make test
+```
+
+Useful Phase 0 commands:
+```bash
+make migrate-status
+make test-integration
+make validate
 ```
 
 ## Recommended next build order

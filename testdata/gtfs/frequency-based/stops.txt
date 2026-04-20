@@ -1,0 +1,4 @@
+stop_id,stop_name,stop_lat,stop_lon
+freq-1,Loop Start,49.282700,-123.120700
+freq-2,Loop Middle,49.280000,-123.110000
+freq-3,Loop End,49.282700,-123.120700

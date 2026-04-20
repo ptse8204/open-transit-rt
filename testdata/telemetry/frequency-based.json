@@ -1,0 +1,14 @@
+[
+  {
+    "agency_id": "freq-agency",
+    "device_id": "freq-device-01",
+    "vehicle_id": "freq-bus-1",
+    "timestamp": "2026-04-20T16:10:00Z",
+    "lat": 49.2800,
+    "lon": -123.1100,
+    "bearing": 180.0,
+    "speed_mps": 5.5,
+    "accuracy_m": 6.0,
+    "trip_hint": "trip-loop"
+  }
+]
