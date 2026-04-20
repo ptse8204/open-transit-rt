@@ -57,7 +57,7 @@ These services are scaffolds, not complete implementations.
 
 Migrations under `db/migrations` are the source of truth for executable schema changes and are applied through `cmd/migrate`.
 
-`db/schema.sql` is deprecated as an executable schema. It remains only as a compatibility pointer to the migrations directory and must not be edited independently.
+`db/schema.sql` is deprecated as an executable schema. It is intentionally a comment-only pointer to the migrations directory and must not be edited independently.
 
 ## What Does Not Exist Yet
 
@@ -107,12 +107,13 @@ Checked during Phase 0 closure:
 - `make db-up`: passed after changing local PostGIS host port to `55432`.
 - `make migrate-up`: passed and applied `000001_initial_schema.sql`.
 - `make migrate-status`: passed and reports migration version 1 applied.
-- `make test-integration`: passed; there are no integration test files yet.
+- `make test-integration`: passed; this is currently a Phase 0 integration smoke path that verifies database reachability, migration visibility, and package compilation. There are no DB-backed integration test files yet.
 - `scripts/bootstrap-dev.sh`: passed and reports no pending migrations.
 - `docker compose -f deploy/docker-compose.yml config`: passed.
-- `make validate`: passed as a Phase 0 placeholder; validators are documented but not wired.
-- `make lint`: passed as a no-op fallback; `golangci-lint` is not installed.
+- `make validate`: passed Phase 0 scaffold validation. It checks required migration and fixture scaffolding only; canonical GTFS and GTFS-RT validators are documented but not wired.
+- `make lint`: passed optional fallback. `golangci-lint` is not installed, and future CI should make lint required once configured.
 - `git diff --check`: passed.
+- handoff path audit: passed; repo docs use `docs/handoffs/latest.md` and the retired singular path has been removed.
 - Task equivalents were not run because `task` is not installed; Task remains optional because Makefile is independently usable.
 
 ## Next Recommended Step

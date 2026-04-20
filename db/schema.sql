@@ -1,7 +1,8 @@
--- Legacy schema reference.
+-- DEPRECATED: legacy schema reference only.
 --
 -- The executable database schema now lives in versioned migrations under
 -- db/migrations and is applied through cmd/migrate. Keep this file as a short
 -- pointer for older docs or tooling that still expect db/schema.sql to exist.
+-- Do not add CREATE/ALTER/DROP statements here.
 --
 -- See: db/migrations/000001_initial_schema.sql

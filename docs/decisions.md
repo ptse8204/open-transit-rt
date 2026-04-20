@@ -14,7 +14,7 @@ Postgres stores agency configuration, GTFS feed versions, telemetry, assignments
 
 Schema changes live under `db/migrations` and are applied through `cmd/migrate`. Migrations are the source of truth for the executable database schema.
 
-`db/schema.sql` is deprecated as an executable schema file. It remains only as a short compatibility pointer for readers or tools that still expect the path to exist. It must not be edited as an independent schema definition, and it must not be used to apply database changes. If a future phase wants a full schema snapshot, it should generate it from migrations and document that workflow before replacing the pointer file.
+`db/schema.sql` is deprecated as an executable schema file. It remains only as a short comment-only pointer for readers or tools that still expect the path to exist. It must not contain `CREATE`, `ALTER`, or `DROP` statements, must not be edited as an independent schema definition, and must not be used to apply database changes. If a future phase wants a full schema snapshot, it should generate it from migrations and document that workflow before replacing the pointer file.
 
 ## ADR-0004 — Keep Trip Updates pluggable
 

@@ -52,6 +52,8 @@ tasks:
 
   test:integration:
     cmds:
+      - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate status
+      - echo "Phase 0 integration smoke: database is reachable and migrations are visible. No DB-backed integration test files exist yet."
       - INTEGRATION_TESTS=1 TEST_DATABASE_URL="{{.TEST_DATABASE_URL}}" go test ./...
 
   fmt:
@@ -64,9 +66,15 @@ tasks:
         if command -v golangci-lint >/dev/null 2>&1; then
           golangci-lint run ./...
         else
-          echo "golangci-lint not installed; skipping lint"
+          echo "optional lint skipped: golangci-lint is not installed; future CI should make this required once configured"
         fi
 
   validate:
     cmds:
-      - echo "Static GTFS and GTFS-RT validators are documented but not wired in Phase 0."
+      - echo "Phase 0 validation smoke: checking scaffold files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
+      - test -f db/migrations/000001_initial_schema.sql
+      - test -d testdata/gtfs/valid-small
+      - test -d testdata/gtfs/after-midnight
+      - test -d testdata/gtfs/frequency-based
+      - test -d testdata/gtfs/malformed
+      - echo "Validation smoke passed. Future phases must wire canonical validators before any compliance claim."

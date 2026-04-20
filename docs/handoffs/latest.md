@@ -10,6 +10,7 @@ Phase 1 — Durable telemetry foundation
 
 - Phase 0 scaffolding is implemented.
 - Phase 0 operational closure audit passed.
+- Phase 0 closure-polish pass completed; no remaining Phase 0 cleanup items are known.
 - Phase 1 is ready to start.
 
 ## Read These Files First

@@ -23,7 +23,7 @@ Phase 0 — Scaffolding and repo hardening
 - Added deterministic fixture structure under `testdata/`.
 - Added `docs/decisions.md`, `docs/backlog.md`, and `docs/open-questions.md`.
 - Added plural handoff source of truth under `docs/handoffs/`.
-- Retired `docs/handoff/latest.md` as a source of truth; it now only points to `docs/handoffs/latest.md`.
+- Removed the retired singular handoff path so `docs/handoffs/latest.md` is the only handoff source of truth.
 - Installed Go through Homebrew for this environment.
 
 ## Exact Files Changed
@@ -78,7 +78,6 @@ Phase 0 — Scaffolding and repo hardening
 - `docs/current-status.md`
 - `docs/decisions.md`
 - `docs/dependencies.md`
-- `docs/handoff/latest.md`
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-00.md`
 - `docs/handoffs/template.md`
@@ -102,7 +101,7 @@ Phase 0 intentionally created schemas, contracts, docs, and fixtures so those la
 ## Schema And Interface Changes
 
 - Migrations under `db/migrations` are the schema source of truth.
-- `db/schema.sql` is deprecated as an executable schema and remains only as a compatibility pointer.
+- `db/schema.sql` is deprecated as an executable schema and remains only as a comment-only compatibility pointer.
 - Added foundation tables for:
   - agency, users, role bindings, device credentials, feed config
   - feed versions and published feed metadata
@@ -157,7 +156,7 @@ Migration execution was verified with:
   - `testdata/expected/`
 - No Go test files were added in Phase 0 because runtime behavior is intentionally not implemented yet.
 - `make test`: passed.
-- `make test-integration`: passed; there are no integration test files yet.
+- `make test-integration`: passed; this is currently a Phase 0 integration smoke path that verifies database reachability, migration visibility, and package compilation. There are no DB-backed integration test files yet.
 
 ## Checks Run And Blocked Checks
 
@@ -174,7 +173,7 @@ Required closure commands:
 | `make db-up` | Passed | Docker daemon is running; PostGIS container starts on host port `55432`. |
 | `make migrate-up` | Passed | Applied `000001_initial_schema.sql`. |
 | `make migrate-status` | Passed | Reports migration version 1 applied. |
-| `make test-integration` | Passed | All packages compile with `INTEGRATION_TESTS=1`; no integration tests yet. |
+| `make test-integration` | Passed | Verifies database reachability, migration visibility, and package compilation; no DB-backed integration test files yet. |
 | `scripts/bootstrap-dev.sh` | Passed | Starts DB, confirms readiness, and reports no pending migrations. |
 | Task equivalents | Not run | `task` is not installed; optional because Makefile is independently usable. |
 
@@ -184,10 +183,10 @@ Additional checks:
 |---|---|---|
 | `docker compose -f deploy/docker-compose.yml version` | Passed | Docker Compose v2.40.3 is available. |
 | `docker compose -f deploy/docker-compose.yml config` | Passed | Compose file renders successfully. |
-| `make validate` | Passed placeholder | Validators are documented but not wired in Phase 0. |
-| `make lint` | Passed fallback | `golangci-lint` not installed; Makefile skips it. |
+| `make validate` | Passed scaffold validation | Checks required migration and fixture scaffolding only; canonical GTFS and GTFS-RT validators are documented but not wired. |
+| `make lint` | Passed optional fallback | `golangci-lint` not installed; future CI should make lint required once configured. |
 | `git diff --check` | Passed | No whitespace errors. |
-| `rg "docs/handoff/latest\.md\|docs/handoff/"` | Passed with expected compatibility pointer references only | Singular path remains only as retired compatibility pointer and Phase 0 audit note. |
+| handoff path audit | Passed | No repo docs reference the retired singular handoff path. |
 
 ## Makefile Independent Usability Audit
 
@@ -209,8 +208,7 @@ Operational result:
 ## Known Issues
 
 - Runtime services still use starter in-memory/sample behavior.
-- `docs/handoff/latest.md` still exists only as a retired-path pointer for compatibility; it must not be treated as source of truth.
-- `golangci-lint` is not installed; `make lint` skips linting.
+- `golangci-lint` is not installed; `make lint` clearly reports an optional fallback.
 - Static GTFS and GTFS-RT validators are documented but not wired in Phase 0.
 - Docker must be running before `make db-up`, migrations, or bootstrap.
 
