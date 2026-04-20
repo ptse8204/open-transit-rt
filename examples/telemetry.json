@@ -1,0 +1,12 @@
+{
+  "agency_id": "demo-agency",
+  "device_id": "android-tablet-01",
+  "vehicle_id": "bus-22",
+  "driver_id": "driver-9",
+  "timestamp": "2026-04-19T18:22:01Z",
+  "lat": 49.2827,
+  "lon": -123.1207,
+  "bearing": 92.0,
+  "speed_mps": 9.6,
+  "accuracy_m": 8.0
+}

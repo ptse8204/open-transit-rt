@@ -1,0 +1,421 @@
+# docs/dependencies.md
+
+This document defines the external tools, libraries, and codebases that Open Transit RT may rely on, what role each one plays, how it integrates with the repository, and what to do if it fails or does not fit.
+
+The purpose of this file is to stop the codebase from developing hidden or accidental coupling to outside systems.
+
+---
+
+## Dependency policy
+
+For every external dependency or codebase:
+
+- document its purpose
+- pin or declare expected version range when possible
+- document how it is started or provisioned
+- define the integration boundary
+- define failure behavior
+- define how to replace or disable it
+- do not let its internal types leak into core domain packages unless explicitly required
+
+External integrations must be isolated behind adapters wherever practical.
+
+---
+
+## Dependency classification
+
+Dependencies fall into four groups:
+
+1. **Core runtime infrastructure**
+   - required for the application to function normally
+
+2. **Validation and developer tooling**
+   - used to validate or build feeds and code, but not part of the runtime request path
+
+3. **Optional prediction backends**
+   - not required for Vehicle Positions
+   - may be required later for Trip Updates quality
+
+4. **Future optional integrations**
+   - planned or possible, but not required for initial implementation
+
+---
+
+## 1. Postgres
+
+### Classification
+Core runtime infrastructure
+
+### Purpose
+Primary relational datastore for:
+- agency metadata
+- GTFS published feed versions
+- GTFS draft data
+- telemetry
+- assignments
+- audit logs
+- incidents
+- feed metadata
+
+### Expected version
+- PostgreSQL 16 preferred
+
+### Integration boundary
+- Accessed through Go repository interfaces
+- No handler or public-feed code should query SQL directly without going through the data layer
+- All schema evolution should go through migrations
+
+### Startup / provisioning
+- local dev: Docker or docker-compose
+- CI: disposable service container
+- production: managed or self-hosted PostgreSQL
+
+### Failure behavior
+- services that require DB access should fail fast on startup if DB is unavailable
+- health endpoints should clearly indicate DB unavailability
+- public feed generation should not silently serve fake or stale demo data because DB is down
+
+### Replacement strategy
+- no replacement planned
+- if changed in future, preserve repository interface contracts
+
+---
+
+## 2. PostGIS
+
+### Classification
+Core runtime infrastructure
+
+### Purpose
+Spatial extension for:
+- stop point indexing
+- shape point and shape-line storage
+- nearest-shape matching
+- geometry projections
+- efficient spatial queries for trip matching
+
+### Expected version
+- compatible with PostgreSQL 16 deployment
+
+### Integration boundary
+- accessed only from repository / matching packages
+- do not allow PostGIS-specific SQL to spread across unrelated packages
+- keep geometry operations encapsulated behind matching or data-layer helpers
+
+### Failure behavior
+- if PostGIS is unavailable or not installed, spatial matching features should fail clearly
+- application should not silently downgrade to broken or misleading shape matching
+
+### Replacement strategy
+- possible future replacement with non-DB spatial indexing, but not planned
+- preserve matching interfaces so internal storage can evolve later
+
+---
+
+## 3. GTFS static validator
+
+### Classification
+Validation and developer tooling
+
+### Purpose
+Validate static GTFS before publish and during compliance checks.
+
+### Preferred tooling
+- MobilityData GTFS Validator or equivalent canonical validator
+
+### Integration boundary
+- invoked by import/publish workflows or CI checks
+- validation results stored as reports
+- validator output should not dictate internal schema design
+
+### Failure behavior
+- failed validation should block publish or mark the import unhealthy based on configured strictness
+- validation reports must remain visible to operators
+
+### Replacement strategy
+- validator implementation can change
+- validation report schema and publish gating behavior should remain stable
+
+---
+
+## 4. GTFS Realtime validator
+
+### Classification
+Validation and developer tooling
+
+### Purpose
+Validate GTFS-RT feeds:
+- Vehicle Positions
+- Trip Updates
+- Alerts
+
+### Preferred tooling
+- MobilityData GTFS Realtime validator or equivalent
+
+### Integration boundary
+- invoked during CI, smoke tests, and scheduled runtime validation
+- output stored as feed validation reports
+- does not own business logic; it verifies it
+
+### Failure behavior
+- validation failure should mark a feed unhealthy
+- unhealthy state must be visible in monitoring and admin views
+
+### Replacement strategy
+- validator engine may be swapped
+- internal compliance dashboard should not depend on a specific validator output format
+
+---
+
+## 5. GTFS Realtime protobuf tooling
+
+### Classification
+Core runtime + developer tooling
+
+### Purpose
+Generate and serialize official GTFS Realtime `FeedMessage` protobuf payloads.
+
+### Preferred implementation
+- official GTFS Realtime protobuf definitions with Go bindings
+
+### Integration boundary
+- protobuf types should be used at the feed boundary
+- internal domain models should remain separate from raw protobuf types where practical
+- mapping from internal models to protobuf should happen in feed publisher packages
+
+### Failure behavior
+- serialization errors must fail request generation clearly
+- do not fall back to placeholder feed data
+
+### Replacement strategy
+- protobuf schema version changes should be isolated to feed-mapping packages
+
+---
+
+## 6. TheTransitClock
+
+### Classification
+Optional prediction backend
+
+### Purpose
+Potential external backend for Trip Updates generation and ETA prediction.
+
+### Important architectural rule
+TheTransitClock is **not** the source of truth for:
+- telemetry ingestion
+- agency configuration
+- GTFS source management
+- vehicle-trip assignment persistence
+
+If used, it is an optional **prediction engine** behind the prediction adapter.
+
+### Expected role
+- consume GTFS and/or Vehicle Positions input from Open Transit RT
+- produce Trip Updates output or prediction diagnostics
+
+### Integration boundary
+Define a narrow adapter contract:
+
+#### Input
+- active published GTFS feed version
+- current vehicle assignments
+- current telemetry-derived vehicle positions
+- canonical Vehicle Positions feed URL or equivalent feed data
+
+#### Output
+- Trip Updates feed
+- optional diagnostics or health metadata
+
+### Required adapter rules
+- no core domain package may depend directly on TheTransitClock internal classes or internal data model
+- all integration goes through `prediction-adapter`
+- TheTransitClock-specific configuration must live in dependency/config docs and adapter packages only
+
+### Failure behavior
+If TheTransitClock is unavailable:
+- Vehicle Positions publishing must continue
+- telemetry ingest must continue
+- assignment persistence must continue
+- Trip Updates endpoint may degrade or report unavailable
+- admin and monitoring must show degraded prediction status
+- no corruption of core internal state is allowed
+
+### Replacement strategy
+The codebase must be able to replace TheTransitClock with:
+- internal deterministic ETA engine
+- another external predictor
+- future ML-based ETA predictor
+
+The public Trip Updates endpoint and internal prediction adapter interface must remain stable across replacement.
+
+---
+
+## 7. Other future prediction engines
+
+### Classification
+Optional prediction backend
+
+### Purpose
+Allow future support for:
+- internal ETA engine
+- ML-assisted ETA engine
+- alternate open-source predictor
+
+### Integration boundary
+Same adapter boundary as TheTransitClock.
+
+### Rule
+Do not design internal telemetry, matching, or GTFS storage around one predictor’s assumptions unless the repository docs are updated and the architectural decision is explicitly recorded.
+
+---
+
+## 8. Go toolchain
+
+### Classification
+Validation and developer tooling
+
+### Purpose
+Compile, format, test, and run the repository.
+
+### Expected version
+- match `go.mod`
+
+### Integration boundary
+- standard build/test pipeline
+- commands documented in README, Makefile, or Taskfile
+
+### Failure behavior
+- if Go is missing from PATH in a shell or CI context, the failure should be explicit
+- do not assume environment setup that is undocumented
+
+### Replacement strategy
+- none planned
+
+---
+
+## 9. Docker / docker-compose
+
+### Classification
+Developer tooling / optional runtime support
+
+### Purpose
+Local bootstrapping for:
+- Postgres
+- PostGIS-enabled DB image if used
+- optional validation tools
+- optional prediction backend in local development
+
+### Integration boundary
+- local orchestration only
+- should not become the only documented deployment path
+
+### Failure behavior
+- bootstrap scripts should clearly report if required services did not start
+
+### Replacement strategy
+- could be replaced by another local dev orchestration method
+- keep service env vars and startup assumptions documented
+
+---
+
+## 10. Prometheus / Grafana
+
+### Classification
+Future optional integrations
+
+### Purpose
+Observability stack for:
+- feed freshness
+- assignment quality
+- endpoint availability
+- validation trends
+
+### Integration boundary
+- metrics exposed from services via HTTP
+- dashboards optional and external
+
+### Failure behavior
+- app should continue if metrics backend is absent
+- loss of metrics sink must not break request-path behavior
+
+### Replacement strategy
+- any metrics backend is acceptable if service-level metrics contracts remain stable
+
+---
+
+## 11. Consumer submission targets
+
+### Classification
+Future optional integrations
+
+### Purpose
+Operational workflows for:
+- Google Maps
+- Apple Maps
+- Transit App
+- Bing Maps
+- Moovit
+- Mobility Database
+- transit.land
+
+### Integration boundary
+- these are not runtime dependencies
+- they are workflow and compliance dependencies
+- the app should track submission status and export feed metadata packets
+
+### Failure behavior
+- failed submission or rejection must not break feed generation
+- status must remain visible to operators
+
+### Replacement strategy
+- none needed; this is workflow metadata rather than runtime coupling
+
+---
+
+## External codebase compatibility rule
+
+If an external codebase does not fit cleanly with Open Transit RT:
+
+1. do not force its internal assumptions into the core model
+2. isolate it behind an adapter
+3. document the mismatch
+4. preserve Open Transit RT’s internal source-of-truth boundaries
+5. prefer disabling the integration over introducing hidden coupling
+
+---
+
+## Current required additions to the repo
+
+The following repo artifacts should exist to make dependency handling explicit:
+
+- `.env.example`
+- `docs/decisions.md`
+- `docs/dependencies.md`
+- migration command
+- local bootstrap workflow
+- integration fixtures under `testdata/`
+
+---
+
+## Source-of-truth summary
+
+### Open Transit RT owns
+- GTFS import and GTFS Studio draft/publish model
+- telemetry ingest
+- vehicle state and assignment persistence
+- public Vehicle Positions feed
+- operator workflows
+- audit logs
+- compliance tracking
+
+### External predictors may own
+- ETA generation
+- Trip Updates generation logic, if configured behind the adapter
+
+### Validators own
+- validation checks only
+
+### Database owns
+- durable storage only
+
+This separation must be preserved as the repository evolves.
