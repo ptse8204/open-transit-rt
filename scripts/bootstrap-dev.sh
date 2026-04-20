@@ -11,7 +11,7 @@ if [ -f ".env" ]; then
   set +a
 fi
 
-DATABASE_URL="${DATABASE_URL:-postgres://postgres:postgres@localhost:5432/open_transit_rt?sslmode=disable}"
+DATABASE_URL="${DATABASE_URL:-postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable}"
 MIGRATIONS_DIR="${MIGRATIONS_DIR:-db/migrations}"
 
 need() {

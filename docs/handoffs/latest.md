@@ -8,8 +8,9 @@ Phase 1 — Durable telemetry foundation
 
 ## Phase Status
 
-- Phase 0 is complete.
-- Phase 1 is ready to start once the Go toolchain is available.
+- Phase 0 scaffolding is implemented.
+- Phase 0 operational closure audit passed.
+- Phase 1 is ready to start.
 
 ## Read These Files First
 
@@ -25,34 +26,34 @@ Phase 1 — Durable telemetry foundation
 
 Replace in-memory telemetry with durable Postgres persistence and create the core DB/repository foundation.
 
-## Highest-Priority Tasks
-
-- Install or expose Go on `PATH`.
-- Run `go mod tidy` to generate `go.sum`.
-- Validate and apply Phase 0 migrations.
-- Add shared DB connection package using `pgxpool`.
-- Add telemetry repository interfaces and Postgres implementation.
-- Wire `cmd/telemetry-ingest` to persist telemetry.
-- Add DB-backed tests for insert/query, duplicate telemetry, and out-of-order telemetry.
-
 ## Exact First Commands
 
 ```bash
 command -v go
 go version
-go mod tidy
 make fmt
 make test
 docker compose -f deploy/docker-compose.yml config
 make db-up
-make migrate-up
 make migrate-status
 ```
 
+If Task is installed, optional equivalents may be run:
+
+```bash
+task fmt
+task test
+task migrate:status
+```
+
+## Known Blockers
+
+- No active Phase 0 blockers remain.
+- Task is not installed, but Task is optional and Makefile is independently usable.
+- Docker must be running before DB-backed checks.
+
 ## First Files Likely To Edit
 
-- `go.mod`
-- `go.sum`
 - `internal/db/`
 - `internal/telemetry/`
 - `cmd/telemetry-ingest/main.go`
@@ -60,12 +61,17 @@ make migrate-status
 - `docs/handoffs/phase-01.md`
 - `docs/handoffs/latest.md`
 
-## Known Blockers
+## Phase 1 Entry Recommendation
 
-- `go` is not on `PATH`.
-- `gofmt` is not on `PATH`.
-- `task` is not on `PATH`, but Makefile is independently usable.
-- Migration execution and tests are blocked until Go is available.
+Start Phase 1 durable telemetry by making telemetry persistence real without changing matcher or feed behavior:
+
+1. Add `internal/db` with config loading and `pgxpool` connection setup.
+2. Add telemetry repository interfaces in `internal/telemetry`.
+3. Add a Postgres telemetry repository that inserts `telemetry_event` rows and queries latest events by agency/vehicle.
+4. Update `cmd/telemetry-ingest` to use the repository instead of global process memory.
+5. Add readiness behavior that reports DB connectivity.
+6. Add DB-backed tests for valid insert/query, duplicate telemetry, and out-of-order telemetry using `testdata/telemetry`.
+7. Update Phase 1 handoff docs with checks and any schema adjustments.
 
 ## Constraints To Preserve
 

@@ -67,6 +67,7 @@ Primary relational datastore for:
 
 ### Startup / provisioning
 - local dev: Docker or docker-compose
+- default local Docker host port: `55432`, mapped to container port `5432`
 - CI: disposable service container
 - production: managed or self-hosted PostgreSQL
 
@@ -381,6 +382,7 @@ Local bootstrapping for:
 ### Integration boundary
 - local orchestration only
 - should not become the only documented deployment path
+- current local compose file maps PostGIS to host port `55432`
 
 ### Failure behavior
 - bootstrap scripts should clearly report if required services did not start

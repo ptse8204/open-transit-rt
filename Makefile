@@ -1,7 +1,7 @@
 SHELL := /bin/sh
 
-DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/open_transit_rt?sslmode=disable
-TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/open_transit_rt_test?sslmode=disable
+DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable
+TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_rt_test?sslmode=disable
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 

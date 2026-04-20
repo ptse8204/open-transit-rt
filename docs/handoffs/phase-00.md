@@ -6,8 +6,9 @@ Phase 0 — Scaffolding and repo hardening
 
 ## Status
 
-- Complete
-- Active phase after this handoff: Phase 1 — Durable telemetry foundation
+- Complete.
+- Operational closure audit passed.
+- Active phase after this handoff: Phase 1 — Durable telemetry foundation.
 
 ## What Was Implemented
 
@@ -17,11 +18,72 @@ Phase 0 — Scaffolding and repo hardening
 - Added `cmd/migrate` as a Goose-backed migration command.
 - Added `db/migrations/000001_initial_schema.sql` with a Postgres/PostGIS foundation schema.
 - Changed Docker Compose to use `postgis/postgis:16-3.4` with a healthcheck and named volume.
+- Mapped local PostGIS to host port `55432` because `5432` was already occupied on this machine.
 - Added `scripts/bootstrap-dev.sh`.
 - Added deterministic fixture structure under `testdata/`.
 - Added `docs/decisions.md`, `docs/backlog.md`, and `docs/open-questions.md`.
 - Added plural handoff source of truth under `docs/handoffs/`.
-- Retired `docs/handoff/latest.md` as a source of truth; it now points to `docs/handoffs/latest.md`.
+- Retired `docs/handoff/latest.md` as a source of truth; it now only points to `docs/handoffs/latest.md`.
+- Installed Go through Homebrew for this environment.
+
+## Exact Files Changed
+
+- `.env.example`
+- `Taskfile.yml`
+- `Makefile`
+- `README.md`
+- `go.mod`
+- `go.sum`
+- `cmd/migrate/main.go`
+- `db/schema.sql`
+- `db/migrations/000001_initial_schema.sql`
+- `deploy/docker-compose.yml`
+- `scripts/bootstrap-dev.sh`
+- `testdata/README.md`
+- `testdata/expected/README.md`
+- `testdata/gtfs/valid-small/agency.txt`
+- `testdata/gtfs/valid-small/calendar.txt`
+- `testdata/gtfs/valid-small/routes.txt`
+- `testdata/gtfs/valid-small/shapes.txt`
+- `testdata/gtfs/valid-small/stop_times.txt`
+- `testdata/gtfs/valid-small/stops.txt`
+- `testdata/gtfs/valid-small/trips.txt`
+- `testdata/gtfs/after-midnight/agency.txt`
+- `testdata/gtfs/after-midnight/calendar.txt`
+- `testdata/gtfs/after-midnight/routes.txt`
+- `testdata/gtfs/after-midnight/shapes.txt`
+- `testdata/gtfs/after-midnight/stop_times.txt`
+- `testdata/gtfs/after-midnight/stops.txt`
+- `testdata/gtfs/after-midnight/trips.txt`
+- `testdata/gtfs/frequency-based/agency.txt`
+- `testdata/gtfs/frequency-based/calendar.txt`
+- `testdata/gtfs/frequency-based/frequencies.txt`
+- `testdata/gtfs/frequency-based/routes.txt`
+- `testdata/gtfs/frequency-based/shapes.txt`
+- `testdata/gtfs/frequency-based/stop_times.txt`
+- `testdata/gtfs/frequency-based/stops.txt`
+- `testdata/gtfs/frequency-based/trips.txt`
+- `testdata/gtfs/malformed/README.md`
+- `testdata/gtfs/malformed/agency.txt`
+- `testdata/gtfs/malformed/routes.txt`
+- `testdata/gtfs/malformed/stop_times.txt`
+- `testdata/gtfs/malformed/stops.txt`
+- `testdata/telemetry/after-midnight.json`
+- `testdata/telemetry/frequency-based.json`
+- `testdata/telemetry/matched-vehicle.json`
+- `testdata/telemetry/stale-vehicle.json`
+- `testdata/telemetry/swapped-vehicle.json`
+- `testdata/telemetry/unmatched-vehicle.json`
+- `docs/backlog.md`
+- `docs/current-status.md`
+- `docs/decisions.md`
+- `docs/dependencies.md`
+- `docs/handoff/latest.md`
+- `docs/handoffs/latest.md`
+- `docs/handoffs/phase-00.md`
+- `docs/handoffs/template.md`
+- `docs/open-questions.md`
+- `docs/phase-plan.md`
 
 ## What Was Designed But Intentionally Not Implemented Yet
 
@@ -39,7 +101,8 @@ Phase 0 intentionally created schemas, contracts, docs, and fixtures so those la
 
 ## Schema And Interface Changes
 
-- `db/schema.sql` is now a legacy pointer. The executable schema is under `db/migrations`.
+- Migrations under `db/migrations` are the schema source of truth.
+- `db/schema.sql` is deprecated as an executable schema and remains only as a compatibility pointer.
 - Added foundation tables for:
   - agency, users, role bindings, device credentials, feed config
   - feed versions and published feed metadata
@@ -63,9 +126,12 @@ Phase 0 intentionally created schemas, contracts, docs, and fixtures so those la
 
 ## Dependency Changes
 
+- Installed Go with Homebrew:
+  - `go version go1.26.2 darwin/amd64`
 - Added Go module requirements:
   - `github.com/jackc/pgx/v5`
   - `github.com/pressly/goose/v3`
+- Added `go.sum` from `go mod tidy`.
 - Documented `pgx`, Goose, Task, PostGIS, future protobuf/validator tooling, and external adapter boundaries in `docs/dependencies.md`.
 - Task is optional. Makefile is the required fallback workflow.
 
@@ -74,6 +140,11 @@ Phase 0 intentionally created schemas, contracts, docs, and fixtures so those la
 - `db/migrations/000001_initial_schema.sql`
 
 The migration creates PostGIS and foundation-only tables/constraints for later phases.
+
+Migration execution was verified with:
+- `make migrate-up`
+- `make migrate-status`
+- `scripts/bootstrap-dev.sh`
 
 ## Tests Added And Results
 
@@ -85,30 +156,63 @@ The migration creates PostGIS and foundation-only tables/constraints for later p
   - `testdata/telemetry/`
   - `testdata/expected/`
 - No Go test files were added in Phase 0 because runtime behavior is intentionally not implemented yet.
+- `make test`: passed.
+- `make test-integration`: passed; there are no integration test files yet.
 
 ## Checks Run And Blocked Checks
 
-- `command -v go`: failed; `go` is not on `PATH`.
-- `command -v gofmt`: failed; `gofmt` is not on `PATH`.
-- `command -v task`: failed; Task is not on `PATH`.
-- `docker compose -f deploy/docker-compose.yml version`: passed; Docker Compose v2.40.3 is available.
-- `docker compose -f deploy/docker-compose.yml config`: passed.
-- `make fmt`: blocked because `gofmt` is missing.
-- `make test`: blocked because `go` is missing.
-- `make test-integration`: blocked because `go` is missing.
-- `make migrate-status`: blocked because `go` is missing.
-- `make migrate-up`: blocked because `go` is missing.
-- `make validate`: passed as a Phase 0 placeholder; validators are documented but not wired yet.
-- `make lint`: passed as a no-op fallback; `golangci-lint` is not installed.
-- `./scripts/bootstrap-dev.sh`: blocked because `go` is missing.
-- `git diff --check`: passed.
+Required closure commands:
+
+| Command | Result | Notes |
+|---|---|---|
+| `command -v go` | Passed | `/usr/local/bin/go` |
+| `command -v gofmt` | Passed | `/usr/local/bin/gofmt` |
+| `go version` | Passed | `go version go1.26.2 darwin/amd64` |
+| `go mod tidy` | Passed | Generated `go.sum`; resolved pgx to v5.7.4. |
+| `make fmt` | Passed | Ran `gofmt -w ./cmd ./internal`. |
+| `make test` | Passed | All packages compile; no test files yet. |
+| `make db-up` | Passed | Docker daemon is running; PostGIS container starts on host port `55432`. |
+| `make migrate-up` | Passed | Applied `000001_initial_schema.sql`. |
+| `make migrate-status` | Passed | Reports migration version 1 applied. |
+| `make test-integration` | Passed | All packages compile with `INTEGRATION_TESTS=1`; no integration tests yet. |
+| `scripts/bootstrap-dev.sh` | Passed | Starts DB, confirms readiness, and reports no pending migrations. |
+| Task equivalents | Not run | `task` is not installed; optional because Makefile is independently usable. |
+
+Additional checks:
+
+| Command | Result | Notes |
+|---|---|---|
+| `docker compose -f deploy/docker-compose.yml version` | Passed | Docker Compose v2.40.3 is available. |
+| `docker compose -f deploy/docker-compose.yml config` | Passed | Compose file renders successfully. |
+| `make validate` | Passed placeholder | Validators are documented but not wired in Phase 0. |
+| `make lint` | Passed fallback | `golangci-lint` not installed; Makefile skips it. |
+| `git diff --check` | Passed | No whitespace errors. |
+| `rg "docs/handoff/latest\.md\|docs/handoff/"` | Passed with expected compatibility pointer references only | Singular path remains only as retired compatibility pointer and Phase 0 audit note. |
+
+## Makefile Independent Usability Audit
+
+The Makefile does not require Task and has direct targets for:
+- `fmt`
+- `test`
+- `test-integration`
+- `migrate-status`
+- `migrate-up`
+- `dev` / `bootstrap`
+- `db-up`
+- `db-down`
+- `validate`
+
+Operational result:
+- `fmt`, `test`, `test-integration`, `migrate-status`, `migrate-up`, and `bootstrap` all run through Makefile or direct script entrypoints without Task.
+- Task remains optional and unavailable in this environment.
 
 ## Known Issues
 
-- `go.sum` was not generated because the Go toolchain is unavailable.
-- Phase 0 migration syntax has not been executed against Postgres because `cmd/migrate` could not run without Go.
 - Runtime services still use starter in-memory/sample behavior.
 - `docs/handoff/latest.md` still exists only as a retired-path pointer for compatibility; it must not be treated as source of truth.
+- `golangci-lint` is not installed; `make lint` skips linting.
+- Static GTFS and GTFS-RT validators are documented but not wired in Phase 0.
+- Docker must be running before `make db-up`, migrations, or bootstrap.
 
 ## Exact Next-Step Recommendation
 
@@ -122,39 +226,33 @@ The migration creates PostGIS and foundation-only tables/constraints for later p
 6. `docs/decisions.md`
 7. `docs/repo-gaps.md`
 
-### First files likely to edit
+### First files likely to edit for Phase 1
 
-1. `go.mod` and generated `go.sum`
-2. `internal/db/` new package for `pgxpool` setup
-3. `internal/telemetry/` repository interfaces and Postgres implementation
-4. `cmd/telemetry-ingest/main.go`
-5. `cmd/migrate/main.go` only if Phase 1 finds migration command issues after Go is available
-6. `docs/current-status.md`
-7. `docs/handoffs/phase-01.md`
-8. `docs/handoffs/latest.md`
+1. `internal/db/`
+2. `internal/telemetry/`
+3. `cmd/telemetry-ingest/main.go`
+4. `docs/current-status.md`
+5. `docs/handoffs/phase-01.md`
+6. `docs/handoffs/latest.md`
 
-### Commands to run before coding
+### Commands to run before Phase 1 coding
 
 ```bash
 command -v go
 go version
-go mod tidy
 make fmt
 make test
 docker compose -f deploy/docker-compose.yml config
 make db-up
-make migrate-up
 make migrate-status
 ```
 
-If Task is installed, the equivalent Task commands may also be run, but Makefile commands must remain supported.
+If Task is installed, optional equivalents may also be run, but Makefile commands must remain supported.
 
 ### Known blockers
 
-- Go is currently missing from `PATH`.
-- gofmt is currently missing from `PATH`.
-- Task is currently missing from `PATH`, but Task is optional.
-- Migration execution and Go tests are blocked until Go is available.
+- No active Phase 0 blockers remain.
+- Task is not installed, but Task is optional.
 
 ### Recommended first implementation slice
 
