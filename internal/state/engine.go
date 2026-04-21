@@ -41,10 +41,33 @@ type Engine struct {
 }
 
 func NewEngine(schedules gtfs.Repository, assignments Repository, config Config) *Engine {
+	return &Engine{schedules: schedules, assignments: assignments, config: mergeConfig(config)}
+}
+
+func mergeConfig(config Config) Config {
+	defaults := DefaultConfig()
 	if config.StaleThreshold == 0 {
-		config = DefaultConfig()
+		config.StaleThreshold = defaults.StaleThreshold
 	}
-	return &Engine{schedules: schedules, assignments: assignments, config: config}
+	if config.MinConfidence == 0 {
+		config.MinConfidence = defaults.MinConfidence
+	}
+	if config.AmbiguityGap == 0 {
+		config.AmbiguityGap = defaults.AmbiguityGap
+	}
+	if config.ScheduleFitWindow == 0 {
+		config.ScheduleFitWindow = defaults.ScheduleFitWindow
+	}
+	if config.ShapeDistanceMeters == 0 {
+		config.ShapeDistanceMeters = defaults.ShapeDistanceMeters
+	}
+	if config.ContinuityWindow == 0 {
+		config.ContinuityWindow = defaults.ContinuityWindow
+	}
+	if config.BlockTransitionWindow == 0 {
+		config.BlockTransitionWindow = defaults.BlockTransitionWindow
+	}
+	return config
 }
 
 func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, now time.Time) (Assignment, error) {
@@ -54,22 +77,31 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 		serviceDays, serviceErr = gtfs.ResolveServiceDays(event.Timestamp, agency.Timezone)
 	}
 	defaultServiceDate := ""
+	defaultObservedLocalSeconds := any(nil)
 	if len(serviceDays) > 0 {
 		defaultServiceDate = serviceDays[0].Date
+		defaultObservedLocalSeconds = serviceDays[0].ObservedLocalSeconds
 	}
 
-	if agencyErr != nil || serviceErr != nil {
-		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedUnknown, []string{ReasonNoScheduleCandidates}, IncidentMissingScheduleData, map[string]any{
-			"agency_error":       errorString(agencyErr),
-			"service_day_error":  errorString(serviceErr),
-			"score_schema":       "loose_debug_v1",
-			"service_date_known": defaultServiceDate != "",
+	if agencyErr != nil {
+		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedUnknown, []string{ReasonAgencyLookupFailed}, IncidentMatcherSystemFailure, map[string]any{
+			"agency_error":           errorString(agencyErr),
+			"service_date_known":     defaultServiceDate != "",
+			"observed_local_seconds": defaultObservedLocalSeconds,
+		})
+	}
+	if serviceErr != nil {
+		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedUnknown, []string{ReasonServiceDayFailed}, IncidentMatcherSystemFailure, map[string]any{
+			"service_day_error":      errorString(serviceErr),
+			"service_date_known":     defaultServiceDate != "",
+			"observed_local_seconds": defaultObservedLocalSeconds,
 		})
 	}
 
 	if now.Sub(event.Timestamp) > e.config.StaleThreshold {
 		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedStale, []string{ReasonStaleTelemetry}, IncidentStaleTelemetry, map[string]any{
 			"observed_at":             event.Timestamp,
+			"observed_local_seconds":  defaultObservedLocalSeconds,
 			"now":                     now,
 			"stale_threshold_seconds": e.config.StaleThreshold.Seconds(),
 			"score_schema":            "loose_debug_v1",
@@ -88,9 +120,9 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 
 	feed, err := e.schedules.ActiveFeedVersion(ctx, event.AgencyID)
 	if err != nil {
-		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedMissingScheduleData, []string{ReasonNoScheduleCandidates}, IncidentMissingScheduleData, map[string]any{
-			"active_feed_error": errorString(err),
-			"score_schema":      "loose_debug_v1",
+		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedMissingScheduleData, []string{ReasonActiveFeedUnavailable}, IncidentMatcherSystemFailure, map[string]any{
+			"active_feed_error":      errorString(err),
+			"observed_local_seconds": defaultObservedLocalSeconds,
 		})
 	}
 
@@ -106,7 +138,11 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 	for _, day := range serviceDays {
 		trips, err := e.schedules.ListTripCandidates(ctx, event.AgencyID, feed.ID, day.Date)
 		if err != nil {
-			return Assignment{}, err
+			return e.saveUnknown(ctx, event, day.Date, DegradedMissingScheduleData, []string{ReasonScheduleQueryFailed}, IncidentMatcherSystemFailure, map[string]any{
+				"feed_version_id":        feed.ID,
+				"schedule_query_error":   errorString(err),
+				"observed_local_seconds": day.ObservedLocalSeconds,
+			})
 		}
 		for _, trip := range trips {
 			instances := expandInstances(trip, day.ObservedLocalSeconds, e.config.ScheduleFitWindow)
@@ -118,8 +154,8 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 
 	if len(scored) == 0 {
 		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedMissingScheduleData, []string{ReasonNoScheduleCandidates}, IncidentMissingScheduleData, map[string]any{
-			"feed_version_id": feed.ID,
-			"score_schema":    "loose_debug_v1",
+			"feed_version_id":        feed.ID,
+			"observed_local_seconds": defaultObservedLocalSeconds,
 		})
 	}
 
@@ -129,23 +165,27 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 	best := scored[0]
 	if len(scored) > 1 && best.assignment.Confidence-scored[1].assignment.Confidence < e.config.AmbiguityGap {
 		return e.saveUnknown(ctx, event, best.assignment.ServiceDate, DegradedAmbiguous, []string{ReasonAmbiguousCandidates}, IncidentAssignmentAmbiguous, map[string]any{
-			"best_trip_id":      best.assignment.TripID,
-			"best_start_time":   best.assignment.StartTime,
-			"best_confidence":   best.assignment.Confidence,
-			"second_trip_id":    scored[1].assignment.TripID,
-			"second_start_time": scored[1].assignment.StartTime,
-			"second_confidence": scored[1].assignment.Confidence,
-			"ambiguity_gap":     e.config.AmbiguityGap,
-			"score_schema":      "loose_debug_v1",
+			"trip_id":                best.assignment.TripID,
+			"start_time":             best.assignment.StartTime,
+			"observed_local_seconds": best.assignment.ScoreDetails["observed_local_seconds"],
+			"best_trip_id":           best.assignment.TripID,
+			"best_start_time":        best.assignment.StartTime,
+			"best_confidence":        best.assignment.Confidence,
+			"second_trip_id":         scored[1].assignment.TripID,
+			"second_start_time":      scored[1].assignment.StartTime,
+			"second_confidence":      scored[1].assignment.Confidence,
+			"ambiguity_gap":          e.config.AmbiguityGap,
 		})
 	}
 	if best.assignment.Confidence < e.config.MinConfidence {
 		return e.saveUnknown(ctx, event, best.assignment.ServiceDate, DegradedLowConfidence, append(best.assignment.ReasonCodes, ReasonLowConfidence), IncidentLowConfidenceAssignment, map[string]any{
-			"best_trip_id":       best.assignment.TripID,
-			"best_start_time":    best.assignment.StartTime,
-			"best_confidence":    best.assignment.Confidence,
-			"minimum_confidence": e.config.MinConfidence,
-			"score_schema":       "loose_debug_v1",
+			"trip_id":                best.assignment.TripID,
+			"start_time":             best.assignment.StartTime,
+			"observed_local_seconds": best.assignment.ScoreDetails["observed_local_seconds"],
+			"best_trip_id":           best.assignment.TripID,
+			"best_start_time":        best.assignment.StartTime,
+			"best_confidence":        best.assignment.Confidence,
+			"minimum_confidence":     e.config.MinConfidence,
 		})
 	}
 
@@ -236,10 +276,12 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 	reasons := make([]string, 0, 8)
 	score := 0.0
 	scoreDetails := map[string]any{
-		"score_schema":           "loose_debug_v1",
-		"observed_local_seconds": day.ObservedLocalSeconds,
-		"trip_id":                instance.trip.TripID,
-		"start_time":             instance.startTime,
+		"score_schema":             "loose_debug_v1",
+		"observed_local_seconds":   day.ObservedLocalSeconds,
+		"trip_id":                  instance.trip.TripID,
+		"start_time":               instance.startTime,
+		"frequency_identity_type":  "scheduled_trip",
+		"exact_scheduled_instance": true,
 	}
 	degraded := DegradedNone
 
@@ -293,17 +335,21 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 	} else {
 		score -= 0.10
 		reasons = append(reasons, ReasonMissingShape)
-		degraded = DegradedMissingScheduleData
+		degraded = DegradedMissingShape
 	}
 
 	if previous != nil {
 		sameInstance := previous.TripID == instance.trip.TripID &&
 			previous.StartDate == day.Date &&
 			previous.StartTime == instance.startTime
-		if sameInstance {
+		continuityAge := event.Timestamp.Sub(previous.ActiveFrom)
+		temporalContinuity := !previous.ActiveFrom.IsZero() && continuityAge >= 0 && continuityAge <= e.config.ContinuityWindow
+		temporalBlockTransition := !previous.ActiveFrom.IsZero() && continuityAge >= 0 && continuityAge <= e.config.BlockTransitionWindow
+		scoreDetails["previous_assignment_age_seconds"] = continuityAge.Seconds()
+		if sameInstance && temporalContinuity {
 			score += 0.20
 			reasons = append(reasons, ReasonContinuityMatch)
-		} else if previous.BlockID != "" && previous.BlockID == instance.trip.BlockID {
+		} else if previous.BlockID != "" && previous.BlockID == instance.trip.BlockID && !sameInstance && temporalBlockTransition {
 			score += 0.15
 			reasons = append(reasons, ReasonBlockTransitionMatch)
 		}
@@ -311,10 +357,15 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 
 	if instance.exactFrequency {
 		reasons = append(reasons, ReasonFrequencyExactInstance)
+		scoreDetails["frequency_identity_type"] = "exact_generated_instance"
+		scoreDetails["exact_scheduled_instance"] = true
 	}
 	if instance.nonExactFrequency {
 		reasons = append(reasons, ReasonFrequencyNonExact)
 		score += 0.05
+		scoreDetails["frequency_identity_type"] = "non_exact_window"
+		scoreDetails["exact_scheduled_instance"] = false
+		scoreDetails["non_exact_frequency_window_start_time"] = instance.startTime
 	}
 
 	if score < 0 {

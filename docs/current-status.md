@@ -72,15 +72,19 @@ The repo now has:
 - GTFS time parsing for times beyond `24:00:00`
 - deterministic matcher engine in `internal/state`
 - conservative candidate scoring using trip hints, shape proximity, movement direction, stop progress, schedule fit, continuity, and block continuity
+- time-aware continuity and block-transition scoring using configured windows
 - exact frequency candidate generation for `exact_times=1`
 - conservative frequency-window identity behavior for `exact_times=0`
+- non-exact frequency matches are marked as conservative window identities in score details so they are not mistaken for exact scheduled instances
 - explicit unknown assignment persistence for stale, ambiguous, low-confidence, or missing-schedule cases
+- distinct matcher system-failure reasons for agency lookup, service-day resolution, active-feed lookup, and schedule-query failures
 - manual override precedence in matcher logic
 - Postgres assignment repository that closes prior active rows and persists assignment confidence, reasons, degraded state, score details, and incident linkage
+- batched GTFS schedule detail loading for stop times, shape points, and frequencies under the existing schedule-query boundary
 - a small reason-code, degraded-state, and incident taxonomy
 - unit and DB-backed integration tests for matcher edge cases
 
-`vehicle_trip_assignment.score_details_json` is intentionally loose debug JSON in Phase 2, not a stable public schema. Unknown assignment rows carry `service_date` whenever agency timezone and observed timestamp can be resolved; `service_date` is nullable only for truly unresolved cases.
+`vehicle_trip_assignment.score_details_json` is intentionally loose debug JSON in Phase 2, not a stable public schema. Matcher-generated score details include `score_schema`; candidate-based details also include `trip_id`, `start_time`, and `observed_local_seconds` when resolvable. Unknown assignment rows carry `service_date` whenever agency timezone and observed timestamp can be resolved; `service_date` is nullable only for truly unresolved cases. Missing shape data uses reason code `missing_shape` and degraded state `missing_shape`. Route-hint matching is reserved for a future input expansion and is not active in Phase 2 because telemetry does not currently carry a route hint.
 
 ## Schema Source Of Truth
 
@@ -178,6 +182,15 @@ Checked during Phase 2 closure:
 - `make validate`: passed Phase 2 scaffold, telemetry, and matcher-file validation only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
 - `git diff --check`: passed.
 - Optional Task equivalents were not run because `task` is not installed.
+
+Phase 2 quality-hardening pass results:
+- preserved Phase 2 scope only; no Phase 3 runtime work was added.
+- made continuity and block-transition scoring require temporal plausibility through configured windows.
+- fixed partial matcher config merging so zero fields fall back individually instead of replacing the whole config.
+- separated repository/config/resolution failures from true no-schedule-candidate outcomes.
+- replaced per-trip GTFS detail queries with batched stop-time, shape-point, and frequency fetches.
+- strengthened non-exact frequency score details.
+- added DB-backed integration coverage for after-midnight, exact and non-exact frequencies, ambiguous candidates, block transition, and unknown-row replacement.
 
 ## Next Recommended Step
 

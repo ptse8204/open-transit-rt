@@ -16,14 +16,19 @@ Phase 2 — Deterministic trip matching
 - Added GTFS time parsing and formatting for values beyond `24:00:00`.
 - Replaced the placeholder-only matcher internals with a deterministic matcher engine in `internal/state`.
 - Added candidate scoring for trip hint, shape proximity, movement direction, stop progress, schedule fit, previous-assignment continuity, and block continuity.
+- Made continuity and block-transition scoring time-aware through `ContinuityWindow` and `BlockTransitionWindow`.
+- Fixed matcher config merging so partial custom configs preserve explicitly set values and fill only missing fields from defaults.
 - Added exact frequency instance generation for `exact_times=1`.
 - Added conservative non-exact frequency-window identity behavior for `exact_times=0`.
+- Marked non-exact frequency matches with conservative window identity score details so later phases cannot mistake them for exact scheduled instances.
 - Preserved repeated trip instances with the same `trip_id` but different `start_time`; they are not collapsed into one logical instance.
 - Added manual override precedence in matcher logic.
 - Added explicit unknown assignment persistence for stale, ambiguous, low-confidence, and missing-schedule cases.
+- Separated true no-schedule-candidate outcomes from agency lookup, service-day resolution, active-feed lookup, and schedule-query failures.
 - Added a Postgres assignment repository that closes prior active rows and inserts the new assignment in one transaction.
 - Added incident insertion linked to the persisted assignment row.
 - Added a small reason-code, degraded-state, and incident taxonomy.
+- Replaced the GTFS repository's per-trip detail query pattern with batched stop-time, shape-point, and frequency fetches while keeping the same repository boundary.
 - Updated validation smoke targets to include Phase 2 migration coverage.
 
 ## What Was Designed But Intentionally Not Implemented Yet
@@ -56,6 +61,9 @@ Phase 2 — Deterministic trip matching
   - `CurrentAssignment(ctx, agencyID, vehicleID)`
   - `SaveAssignment(ctx, assignment, incidents)`
 - `score_details_json` is intentionally loose debug JSON for Phase 2, not a stable structured public schema.
+- Matcher-generated `score_details_json` follows a small internal convention: always include `score_schema`; candidate-based details include `trip_id`, `start_time`, and `observed_local_seconds` when resolvable.
+- Missing shape data uses reason `missing_shape` and degraded state `missing_shape`.
+- Route-hint matching is reserved for future input expansion and is not active in Phase 2 because the telemetry event model has no route hint.
 
 ## Dependency Changes
 
@@ -83,6 +91,9 @@ Migration behavior:
   - missing-shape degradation without automatic match rejection
   - manual override precedence
   - block-transition reason recording
+  - time-window gating for continuity and block-transition credit
+  - partial custom matcher config merging
+  - distinct reasons for agency lookup, active-feed, and schedule-query failures
   - ambiguous candidates
   - no-schedule unknown behavior
 - Added DB-backed matcher integration tests under `internal/state` for:
@@ -90,6 +101,12 @@ Migration behavior:
   - stale telemetry unknown assignment plus incident
   - manual override precedence
   - missing-shape degraded match
+  - after-midnight matching
+  - repeated same-`trip_id` exact frequency instances with different `start_time`
+  - non-exact frequency conservative window identity
+  - ambiguous candidates
+  - block-transition matching
+  - persisted unknown-row replacement of a previous active assignment
 
 Test results:
 - `make test`: passed.
@@ -118,6 +135,7 @@ Test results:
 
 - `cmd/feed-vehicle-positions` still serves placeholder JSON from sample data. Phase 3 must replace this with DB-backed latest telemetry and persisted assignments.
 - `score_details_json` is loose debug JSON and must not be consumed as a stable public contract.
+- Route-hint matching is reserved for future input expansion and is not active in Phase 2.
 - GTFS import is still not implemented. Matcher integration tests seed schedule rows directly through test helpers; this must not evolve into runtime import logic.
 - Operator UI for manual overrides is not implemented, although matcher precedence and persistence behavior exist.
 - Canonical GTFS and GTFS-RT validators remain documented but not wired.

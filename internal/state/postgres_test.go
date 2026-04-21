@@ -129,6 +129,20 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		if staleIncidents != 1 {
 			t.Fatalf("stale incident count = %d, want 1", staleIncidents)
 		}
+		var activeTripCount int
+		if err := pool.QueryRow(ctx, `
+			SELECT count(*)
+			FROM vehicle_trip_assignment
+			WHERE agency_id = 'demo-agency'
+			  AND vehicle_id = 'bus-stale'
+			  AND active_to IS NULL
+			  AND state = 'in_service'
+		`).Scan(&activeTripCount); err != nil {
+			t.Fatalf("count active trip assignments: %v", err)
+		}
+		if activeTripCount != 0 {
+			t.Fatalf("active in-service assignments = %d, want previous row closed", activeTripCount)
+		}
 	})
 
 	t.Run("manual override wins over automatic matching", func(t *testing.T) {
@@ -205,6 +219,138 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		}
 		if assignment.State != StateInService || !hasReason(assignment, ReasonMissingShape) {
 			t.Fatalf("assignment = %+v, want degraded in-service match with missing_shape reason", assignment)
+		}
+	})
+
+	t.Run("after-midnight matching", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedAfterMidnightSchedule(t, ctx, pool)
+		event := telemetry.Event{
+			AgencyID:  "overnight-agency",
+			DeviceID:  "device-night",
+			VehicleID: "night-bus-1",
+			Timestamp: time.Date(2026, 4, 21, 7, 30, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+			TripHint:  "trip-night-2430",
+		}
+		stored := storeTelemetry(t, ctx, telemetryRepo, event)
+		assignment, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match after-midnight event: %v", err)
+		}
+		if assignment.TripID != "trip-night-2430" || assignment.StartDate != "20260420" || assignment.StartTime != "24:30:00" {
+			t.Fatalf("assignment = %+v, want previous service day after-midnight trip", assignment)
+		}
+	})
+
+	t.Run("exact frequency repeated instances keep same trip id distinct by start time", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedFrequencySchedule(t, ctx, pool, "trip-loop-exact", 1)
+		event := telemetry.Event{
+			AgencyID:  "freq-agency",
+			DeviceID:  "device-freq-exact",
+			VehicleID: "freq-bus-exact",
+			Timestamp: time.Date(2026, 4, 20, 16, 10, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+			TripHint:  "trip-loop-exact",
+		}
+		stored := storeTelemetry(t, ctx, telemetryRepo, event)
+		assignment, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match exact frequency event: %v", err)
+		}
+		if assignment.TripID != "trip-loop-exact" || assignment.StartTime != "09:10:00" || !hasReason(assignment, ReasonFrequencyExactInstance) {
+			t.Fatalf("assignment = %+v, want exact generated repeated instance", assignment)
+		}
+	})
+
+	t.Run("non-exact frequency uses conservative window identity", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedFrequencySchedule(t, ctx, pool, "trip-loop", 0)
+		event := telemetry.Event{
+			AgencyID:  "freq-agency",
+			DeviceID:  "device-freq-window",
+			VehicleID: "freq-bus-window",
+			Timestamp: time.Date(2026, 4, 20, 15, 10, 0, 0, time.UTC),
+			Lat:       49.2760,
+			Lon:       -123.1150,
+			TripHint:  "trip-loop",
+		}
+		stored := storeTelemetry(t, ctx, telemetryRepo, event)
+		assignment, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match non-exact frequency event: %v", err)
+		}
+		if assignment.TripID != "trip-loop" || assignment.StartTime != "08:00:00" || !hasReason(assignment, ReasonFrequencyNonExact) {
+			t.Fatalf("assignment = %+v, want conservative frequency window identity", assignment)
+		}
+		if assignment.ScoreDetails["frequency_identity_type"] != "non_exact_window" {
+			t.Fatalf("score_details = %+v, want non_exact_window identity", assignment.ScoreDetails)
+		}
+	})
+
+	t.Run("ambiguous candidates persist unknown and incident", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedAmbiguousSchedule(t, ctx, pool)
+		event := telemetry.Event{
+			AgencyID:  "demo-agency",
+			DeviceID:  "device-ambiguous",
+			VehicleID: "bus-ambiguous",
+			Timestamp: time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+		}
+		stored := storeTelemetry(t, ctx, telemetryRepo, event)
+		assignment, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match ambiguous event: %v", err)
+		}
+		if assignment.State != StateUnknown || assignment.DegradedState != DegradedAmbiguous {
+			t.Fatalf("assignment = %+v, want ambiguous unknown", assignment)
+		}
+	})
+
+	t.Run("block transition matching is persisted", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedBlockTransitionSchedule(t, ctx, pool)
+		_, err := assignments.SaveAssignment(ctx, Assignment{
+			AgencyID:         "demo-agency",
+			VehicleID:        "bus-block",
+			State:            StateInService,
+			ServiceDate:      "20260420",
+			RouteID:          "route-10",
+			TripID:           "trip-10-0800",
+			BlockID:          "block-10",
+			StartDate:        "20260420",
+			StartTime:        "08:00:00",
+			Confidence:       0.9,
+			AssignmentSource: AssignmentSourceAutomatic,
+			ReasonCodes:      []string{ReasonTripHintMatch},
+			DegradedState:    DegradedNone,
+			ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1"},
+			ActiveFrom:       time.Date(2026, 4, 20, 15, 20, 0, 0, time.UTC),
+		}, nil)
+		if err != nil {
+			t.Fatalf("seed previous assignment: %v", err)
+		}
+		event := telemetry.Event{
+			AgencyID:  "demo-agency",
+			DeviceID:  "device-block",
+			VehicleID: "bus-block",
+			Timestamp: time.Date(2026, 4, 20, 15, 30, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+			TripHint:  "trip-block-b",
+		}
+		stored := storeTelemetry(t, ctx, telemetryRepo, event)
+		assignment, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match block event: %v", err)
+		}
+		if assignment.TripID != "trip-block-b" || !hasReason(assignment, ReasonBlockTransitionMatch) {
+			t.Fatalf("assignment = %+v, want block transition reason", assignment)
 		}
 	})
 }
@@ -377,12 +523,130 @@ func resetMatcherData(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	}
 	_, err = pool.Exec(ctx, `
 		INSERT INTO agency (id, name, timezone, contact_email, public_url)
-		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver', 'dev@example.com', 'http://localhost')
+		VALUES
+			('demo-agency', 'Demo Agency', 'America/Vancouver', 'dev@example.com', 'http://localhost'),
+			('overnight-agency', 'Overnight Agency', 'America/Vancouver', 'dev@example.com', 'http://localhost'),
+			('freq-agency', 'Frequency Agency', 'America/Vancouver', 'dev@example.com', 'http://localhost')
 		ON CONFLICT (id) DO UPDATE
 		SET timezone = EXCLUDED.timezone
 	`)
 	if err != nil {
 		t.Fatalf("seed agency: %v", err)
+	}
+}
+
+func seedAfterMidnightSchedule(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
+	t.Helper()
+	_, err := pool.Exec(ctx, `
+		INSERT INTO feed_version (id, agency_id, source_type, lifecycle_state, is_active, activated_at)
+		VALUES ('feed-night', 'overnight-agency', 'seed', 'active', true, now());
+		INSERT INTO gtfs_route (id, feed_version_id, agency_id, short_name, route_type)
+		VALUES ('night-owl', 'feed-night', 'overnight-agency', 'N', 3);
+		INSERT INTO gtfs_stop (id, feed_version_id, agency_id, name, lat, lon, geom)
+		VALUES
+			('night-1', 'feed-night', 'overnight-agency', 'Night 1', 49.2827, -123.1207, ST_SetSRID(ST_MakePoint(-123.1207, 49.2827), 4326)),
+			('night-2', 'feed-night', 'overnight-agency', 'Night 2', 49.2900, -123.1100, ST_SetSRID(ST_MakePoint(-123.1100, 49.2900), 4326));
+		INSERT INTO gtfs_calendar (service_id, feed_version_id, agency_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date)
+		VALUES ('night-service', 'feed-night', 'overnight-agency', true, true, true, true, true, true, true, '20260401', '20261231');
+		INSERT INTO gtfs_trip (id, feed_version_id, agency_id, route_id, service_id, block_id, shape_id, direction_id)
+		VALUES ('trip-night-2430', 'feed-night', 'overnight-agency', 'night-owl', 'night-service', 'block-night', 'shape-night', 0);
+		INSERT INTO gtfs_stop_time (trip_id, feed_version_id, agency_id, arrival_time, departure_time, stop_id, stop_sequence, shape_dist_traveled)
+		VALUES
+			('trip-night-2430', 'feed-night', 'overnight-agency', '24:30:00', '24:30:00', 'night-1', 1, 0),
+			('trip-night-2430', 'feed-night', 'overnight-agency', '25:15:00', '25:15:00', 'night-2', 2, 1500);
+		INSERT INTO gtfs_shape_point (shape_id, feed_version_id, agency_id, lat, lon, sequence, dist_traveled, geom)
+		VALUES
+			('shape-night', 'feed-night', 'overnight-agency', 49.2827, -123.1207, 1, 0, ST_SetSRID(ST_MakePoint(-123.1207, 49.2827), 4326)),
+			('shape-night', 'feed-night', 'overnight-agency', 49.2900, -123.1100, 2, 1500, ST_SetSRID(ST_MakePoint(-123.1100, 49.2900), 4326));
+	`)
+	if err != nil {
+		t.Fatalf("seed after-midnight schedule: %v", err)
+	}
+}
+
+func seedFrequencySchedule(t *testing.T, ctx context.Context, pool *pgxpool.Pool, tripID string, exactTimes int) {
+	t.Helper()
+	startTime := "09:00:00"
+	endTime := "10:00:00"
+	secondStopTime := "09:08:00"
+	if exactTimes == 0 {
+		startTime = "08:00:00"
+		endTime = "09:00:00"
+		secondStopTime = "08:08:00"
+	}
+	_, err := pool.Exec(ctx, `
+		INSERT INTO feed_version (id, agency_id, source_type, lifecycle_state, is_active, activated_at)
+		VALUES ('feed-freq', 'freq-agency', 'seed', 'active', true, now());
+		INSERT INTO gtfs_route (id, feed_version_id, agency_id, short_name, route_type)
+		VALUES ('loop', 'feed-freq', 'freq-agency', 'L', 3);
+		INSERT INTO gtfs_stop (id, feed_version_id, agency_id, name, lat, lon, geom)
+		VALUES
+			('freq-1', 'feed-freq', 'freq-agency', 'Freq 1', 49.2827, -123.1207, ST_SetSRID(ST_MakePoint(-123.1207, 49.2827), 4326)),
+			('freq-2', 'feed-freq', 'freq-agency', 'Freq 2', 49.2760, -123.1150, ST_SetSRID(ST_MakePoint(-123.1150, 49.2760), 4326));
+		INSERT INTO gtfs_calendar (service_id, feed_version_id, agency_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date)
+		VALUES ('weekday', 'feed-freq', 'freq-agency', true, true, true, true, true, false, false, '20260401', '20261231');
+		INSERT INTO gtfs_shape_point (shape_id, feed_version_id, agency_id, lat, lon, sequence, dist_traveled, geom)
+		VALUES
+			('shape-loop', 'feed-freq', 'freq-agency', 49.2827, -123.1207, 1, 0, ST_SetSRID(ST_MakePoint(-123.1207, 49.2827), 4326)),
+			('shape-loop', 'feed-freq', 'freq-agency', 49.2760, -123.1150, 2, 900, ST_SetSRID(ST_MakePoint(-123.1150, 49.2760), 4326));
+	`)
+	if err != nil {
+		t.Fatalf("seed frequency static tables: %v", err)
+	}
+	_, err = pool.Exec(ctx, `
+		INSERT INTO gtfs_trip (id, feed_version_id, agency_id, route_id, service_id, block_id, shape_id, direction_id)
+		VALUES ($1, 'feed-freq', 'freq-agency', 'loop', 'weekday', 'block-loop', 'shape-loop', 0);
+	`, tripID)
+	if err != nil {
+		t.Fatalf("seed frequency trip: %v", err)
+	}
+	_, err = pool.Exec(ctx, `
+		INSERT INTO gtfs_stop_time (trip_id, feed_version_id, agency_id, arrival_time, departure_time, stop_id, stop_sequence, shape_dist_traveled)
+		VALUES
+			($1, 'feed-freq', 'freq-agency', $2, $2, 'freq-1', 1, 0),
+			($1, 'feed-freq', 'freq-agency', $3, $3, 'freq-2', 2, 900);
+	`, tripID, startTime, secondStopTime)
+	if err != nil {
+		t.Fatalf("seed frequency stop times: %v", err)
+	}
+	_, err = pool.Exec(ctx, `
+		INSERT INTO gtfs_frequency (trip_id, feed_version_id, agency_id, start_time, end_time, headway_secs, exact_times)
+		VALUES ($1, 'feed-freq', 'freq-agency', $2, $3, 600, $4);
+	`, tripID, startTime, endTime, exactTimes)
+	if err != nil {
+		t.Fatalf("seed frequency row: %v", err)
+	}
+}
+
+func seedAmbiguousSchedule(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
+	t.Helper()
+	seedDemoSchedule(t, ctx, pool, true)
+	_, err := pool.Exec(ctx, `
+		INSERT INTO gtfs_trip (id, feed_version_id, agency_id, route_id, service_id, block_id, shape_id, direction_id)
+		VALUES ('trip-ambiguous', 'feed-demo', 'demo-agency', 'route-10', 'weekday', 'block-ambiguous', 'shape-10', 0);
+		INSERT INTO gtfs_stop_time (trip_id, feed_version_id, agency_id, arrival_time, departure_time, stop_id, stop_sequence, shape_dist_traveled)
+		VALUES
+			('trip-ambiguous', 'feed-demo', 'demo-agency', '08:00:00', '08:00:00', 'stop-1', 1, 0),
+			('trip-ambiguous', 'feed-demo', 'demo-agency', '08:10:00', '08:10:00', 'stop-2', 2, 1200);
+	`)
+	if err != nil {
+		t.Fatalf("seed ambiguous schedule: %v", err)
+	}
+}
+
+func seedBlockTransitionSchedule(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
+	t.Helper()
+	seedDemoSchedule(t, ctx, pool, true)
+	_, err := pool.Exec(ctx, `
+		INSERT INTO gtfs_trip (id, feed_version_id, agency_id, route_id, service_id, block_id, shape_id, direction_id)
+		VALUES ('trip-block-b', 'feed-demo', 'demo-agency', 'route-10', 'weekday', 'block-10', 'shape-10', 0);
+		INSERT INTO gtfs_stop_time (trip_id, feed_version_id, agency_id, arrival_time, departure_time, stop_id, stop_sequence, shape_dist_traveled)
+		VALUES
+			('trip-block-b', 'feed-demo', 'demo-agency', '08:30:00', '08:30:00', 'stop-1', 1, 0),
+			('trip-block-b', 'feed-demo', 'demo-agency', '08:40:00', '08:40:00', 'stop-2', 2, 1200);
+	`)
+	if err != nil {
+		t.Fatalf("seed block transition schedule: %v", err)
 	}
 }
 

@@ -33,13 +33,13 @@ const (
 	DegradedStale               DegradedState = "stale"
 	DegradedAmbiguous           DegradedState = "ambiguous"
 	DegradedMissingScheduleData DegradedState = "missing_schedule_data"
+	DegradedMissingShape        DegradedState = "missing_shape"
 	DegradedLowConfidence       DegradedState = "low_confidence"
 )
 
 const (
 	ReasonManualOverrideActive   = "manual_override_active"
 	ReasonTripHintMatch          = "trip_hint_match"
-	ReasonRouteHintMatch         = "route_hint_match"
 	ReasonShapeProximityMatch    = "shape_proximity_match"
 	ReasonMovementDirectionMatch = "movement_direction_match"
 	ReasonStopProgressMatch      = "stop_progress_match"
@@ -55,6 +55,10 @@ const (
 	ReasonOffShape               = "off_shape"
 	ReasonMissingShape           = "missing_shape"
 	ReasonMissingStopTimes       = "missing_stop_times"
+	ReasonAgencyLookupFailed     = "agency_lookup_failed"
+	ReasonServiceDayFailed       = "service_day_resolution_failed"
+	ReasonActiveFeedUnavailable  = "active_feed_unavailable"
+	ReasonScheduleQueryFailed    = "schedule_query_failed"
 )
 
 const (
@@ -64,6 +68,7 @@ const (
 	IncidentMissingScheduleData      = "missing_schedule_data"
 	IncidentLowConfidenceAssignment  = "low_confidence_assignment"
 	IncidentBlockTransitionAmbiguous = "block_transition_ambiguous"
+	IncidentMatcherSystemFailure     = "matcher_system_failure"
 )
 
 type Assignment struct {
@@ -137,7 +142,7 @@ func (m *RuleBasedMatcher) Assign(event telemetry.Event) Assignment {
 		AssignmentSource: AssignmentSourceUnknown,
 		ReasonCodes:      []string{ReasonNoScheduleCandidates},
 		DegradedState:    DegradedUnknown,
-		ScoreDetails:     map[string]any{"note": "placeholder matcher path; persisted deterministic matching uses Engine"},
+		ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1", "note": "placeholder matcher path; persisted deterministic matching uses Engine"},
 		TelemetryEventID: 0,
 	}
 }

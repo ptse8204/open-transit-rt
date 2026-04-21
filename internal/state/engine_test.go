@@ -74,6 +74,9 @@ func TestEngineNonExactFrequencyUsesConservativeIdentity(t *testing.T) {
 	if !hasReason(assignment, ReasonFrequencyNonExact) {
 		t.Fatalf("reason_codes = %+v, want %s", assignment.ReasonCodes, ReasonFrequencyNonExact)
 	}
+	if assignment.ScoreDetails["frequency_identity_type"] != "non_exact_window" || assignment.ScoreDetails["exact_scheduled_instance"] != false {
+		t.Fatalf("score_details = %+v, want conservative non-exact window identity", assignment.ScoreDetails)
+	}
 }
 
 func TestEngineUnknownPersistsExplicitRowAndIncident(t *testing.T) {
@@ -126,6 +129,7 @@ func TestEngineMissingShapeReducesConfidenceButDoesNotBlockStrongEvidence(t *tes
 		AssignmentSource: AssignmentSourceAutomatic,
 		BlockID:          "block-10",
 		DegradedState:    DegradedNone,
+		ActiveFrom:       time.Date(2026, 4, 20, 14, 59, 0, 0, time.UTC),
 	}
 	trip := dayTrip("trip-10-0800", "block-10", "")
 	trip.ShapeID = ""
@@ -143,8 +147,8 @@ func TestEngineMissingShapeReducesConfidenceButDoesNotBlockStrongEvidence(t *tes
 	if !hasReason(assignment, ReasonMissingShape) {
 		t.Fatalf("reason_codes = %+v, want missing_shape", assignment.ReasonCodes)
 	}
-	if assignment.DegradedState != DegradedMissingScheduleData {
-		t.Fatalf("degraded_state = %s, want missing_schedule_data", assignment.DegradedState)
+	if assignment.DegradedState != DegradedMissingShape {
+		t.Fatalf("degraded_state = %s, want missing_shape", assignment.DegradedState)
 	}
 }
 
@@ -190,6 +194,7 @@ func TestEngineBlockTransitionReason(t *testing.T) {
 		StartTime:        "08:00:00",
 		AssignmentSource: AssignmentSourceAutomatic,
 		DegradedState:    DegradedNone,
+		ActiveFrom:       time.Date(2026, 4, 20, 15, 20, 0, 0, time.UTC),
 	}
 	next := dayTrip("trip-10-0830", "block-10", "shape-10")
 	next.StopTimes[0].ArrivalSeconds = 8*3600 + 30*60
@@ -246,10 +251,157 @@ func TestEngineNoScheduleCandidatesPersistsUnknown(t *testing.T) {
 	}
 }
 
+func TestEngineContinuityRequiresTemporalPlausibility(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	assignments.current = &Assignment{
+		AgencyID:         "demo-agency",
+		VehicleID:        "bus-10",
+		State:            StateInService,
+		TripID:           "trip-10-0800",
+		StartDate:        "20260420",
+		StartTime:        "08:00:00",
+		AssignmentSource: AssignmentSourceAutomatic,
+		DegradedState:    DegradedNone,
+		ActiveFrom:       time.Date(2026, 4, 20, 12, 0, 0, 0, time.UTC),
+	}
+	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
+		dayTrip("trip-10-0800", "block-10", "shape-10"),
+	}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-10", "trip-10-0800", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match event: %v", err)
+	}
+	if hasReason(assignment, ReasonContinuityMatch) {
+		t.Fatalf("reason_codes = %+v, did not expect continuity outside window", assignment.ReasonCodes)
+	}
+}
+
+func TestEngineBlockTransitionRequiresTemporalPlausibility(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	assignments.current = &Assignment{
+		AgencyID:         "demo-agency",
+		VehicleID:        "bus-10",
+		State:            StateInService,
+		TripID:           "trip-10-0800",
+		BlockID:          "block-10",
+		StartDate:        "20260420",
+		StartTime:        "08:00:00",
+		AssignmentSource: AssignmentSourceAutomatic,
+		DegradedState:    DegradedNone,
+		ActiveFrom:       time.Date(2026, 4, 20, 12, 0, 0, 0, time.UTC),
+	}
+	next := dayTrip("trip-10-0830", "block-10", "shape-10")
+	next.StopTimes[0].ArrivalSeconds = 8*3600 + 30*60
+	next.StopTimes[0].DepartureSeconds = 8*3600 + 30*60
+	next.StopTimes[1].ArrivalSeconds = 8*3600 + 40*60
+	next.StopTimes[1].DepartureSeconds = 8*3600 + 40*60
+	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{next}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-10", "trip-10-0830", time.Date(2026, 4, 20, 15, 30, 0, 0, time.UTC), 49.2827, -123.1207)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match event: %v", err)
+	}
+	if hasReason(assignment, ReasonBlockTransitionMatch) {
+		t.Fatalf("reason_codes = %+v, did not expect block transition outside window", assignment.ReasonCodes)
+	}
+}
+
+func TestEngineConfigMergesPartialCustomValues(t *testing.T) {
+	engine := NewEngine(nil, nil, Config{MinConfidence: 0.8})
+	if engine.config.MinConfidence != 0.8 {
+		t.Fatalf("min confidence = %f, want custom 0.8", engine.config.MinConfidence)
+	}
+	if engine.config.StaleThreshold != DefaultConfig().StaleThreshold {
+		t.Fatalf("stale threshold = %s, want default %s", engine.config.StaleThreshold, DefaultConfig().StaleThreshold)
+	}
+	if engine.config.ContinuityWindow != DefaultConfig().ContinuityWindow {
+		t.Fatalf("continuity window = %s, want default %s", engine.config.ContinuityWindow, DefaultConfig().ContinuityWindow)
+	}
+}
+
+func TestEngineSystemFailuresUseDistinctReasons(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+
+	t.Run("agency lookup failure", func(t *testing.T) {
+		engine := NewEngine(&failingSchedule{agencyErr: errors.New("database unavailable")}, assignments, DefaultConfig())
+		event := storedEvent("demo-agency", "bus-10", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+		assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match event: %v", err)
+		}
+		if !hasReason(assignment, ReasonAgencyLookupFailed) || hasReason(assignment, ReasonNoScheduleCandidates) {
+			t.Fatalf("reason_codes = %+v, want agency failure without no_schedule", assignment.ReasonCodes)
+		}
+	})
+
+	t.Run("active feed failure", func(t *testing.T) {
+		engine := NewEngine(&failingSchedule{agency: gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"}, feedErr: errors.New("no active feed")}, assignments, DefaultConfig())
+		event := storedEvent("demo-agency", "bus-10", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+		assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match event: %v", err)
+		}
+		if !hasReason(assignment, ReasonActiveFeedUnavailable) || hasReason(assignment, ReasonNoScheduleCandidates) {
+			t.Fatalf("reason_codes = %+v, want active feed failure without no_schedule", assignment.ReasonCodes)
+		}
+	})
+
+	t.Run("schedule query failure", func(t *testing.T) {
+		engine := NewEngine(&failingSchedule{
+			agency:   gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"},
+			feed:     gtfs.FeedVersion{ID: "feed-demo", AgencyID: "demo-agency"},
+			queryErr: errors.New("query timeout"),
+		}, assignments, DefaultConfig())
+		event := storedEvent("demo-agency", "bus-10", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+		assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match event: %v", err)
+		}
+		if !hasReason(assignment, ReasonScheduleQueryFailed) || hasReason(assignment, ReasonNoScheduleCandidates) {
+			t.Fatalf("reason_codes = %+v, want query failure without no_schedule", assignment.ReasonCodes)
+		}
+	})
+}
+
 type fakeSchedule struct {
 	agency gtfs.Agency
 	feed   gtfs.FeedVersion
 	trips  []gtfs.TripCandidate
+}
+
+type failingSchedule struct {
+	agency    gtfs.Agency
+	feed      gtfs.FeedVersion
+	agencyErr error
+	feedErr   error
+	queryErr  error
+}
+
+func (f *failingSchedule) Agency(_ context.Context, _ string) (gtfs.Agency, error) {
+	if f.agencyErr != nil {
+		return gtfs.Agency{}, f.agencyErr
+	}
+	return f.agency, nil
+}
+
+func (f *failingSchedule) ActiveFeedVersion(_ context.Context, _ string) (gtfs.FeedVersion, error) {
+	if f.feedErr != nil {
+		return gtfs.FeedVersion{}, f.feedErr
+	}
+	return f.feed, nil
+}
+
+func (f *failingSchedule) ListTripCandidates(_ context.Context, _ string, _ string, _ string) ([]gtfs.TripCandidate, error) {
+	if f.queryErr != nil {
+		return nil, f.queryErr
+	}
+	return nil, nil
 }
 
 func fakeScheduleWithTrips(agencyID string, timezone string, feedVersionID string, trips []gtfs.TripCandidate) *fakeSchedule {

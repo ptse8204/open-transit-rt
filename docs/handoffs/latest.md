@@ -100,7 +100,11 @@ Start Vehicle Positions production feed without changing Trip Updates or GTFS im
 - Unknown assignment rows are explicit and close previous active rows.
 - Unknown rows carry `service_date` whenever agency timezone and observed timestamp are resolvable; the column is nullable for truly unresolved cases.
 - Repeated trip instances with the same `trip_id` but different `start_time` must remain distinct.
-- Missing shape data reduces confidence and records reasons/degraded state but does not automatically block a match when other strong evidence exists.
+- Continuity and block-transition scoring are time-aware and require configured-window plausibility, not just same trip or same block identity.
+- Missing shape data uses reason `missing_shape` plus degraded state `missing_shape`; it reduces confidence but does not automatically block a match when other strong evidence exists.
+- Non-exact frequency matches use conservative window identity details and must not be treated as exact scheduled instances.
+- `no_schedule_candidates` is reserved for successful schedule queries that return no trips. Repository/config/resolution failures use distinct matcher-system-failure reasons.
+- Route-hint matching is reserved for future input expansion and is not active in Phase 2 because telemetry does not carry a route hint.
 
 ## Handoff Template Requirement
 

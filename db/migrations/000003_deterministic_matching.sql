@@ -4,7 +4,7 @@ ALTER TABLE vehicle_trip_assignment
   ADD COLUMN block_id TEXT,
   ADD COLUMN telemetry_event_id BIGINT REFERENCES telemetry_event(id) ON DELETE SET NULL,
   ADD COLUMN degraded_state TEXT NOT NULL DEFAULT 'none'
-    CHECK (degraded_state IN ('none', 'unknown', 'stale', 'ambiguous', 'missing_schedule_data', 'low_confidence')),
+    CHECK (degraded_state IN ('none', 'unknown', 'stale', 'ambiguous', 'missing_schedule_data', 'missing_shape', 'low_confidence')),
   ADD COLUMN score_details_json JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 ALTER TABLE incident

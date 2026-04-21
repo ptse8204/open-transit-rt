@@ -117,42 +117,65 @@ func (r *PostgresRepository) ListTripCandidates(ctx context.Context, agencyID st
 		return nil, fmt.Errorf("iterate trip candidates: %w", err)
 	}
 
+	if len(trips) == 0 {
+		return trips, nil
+	}
+
+	tripIDs := make([]string, 0, len(trips))
+	shapeIDs := make([]string, 0, len(trips))
+	seenTripIDs := make(map[string]bool, len(trips))
+	seenShapeIDs := make(map[string]bool, len(trips))
+	for _, trip := range trips {
+		if !seenTripIDs[trip.TripID] {
+			seenTripIDs[trip.TripID] = true
+			tripIDs = append(tripIDs, trip.TripID)
+		}
+		if trip.ShapeID != "" && !seenShapeIDs[trip.ShapeID] {
+			seenShapeIDs[trip.ShapeID] = true
+			shapeIDs = append(shapeIDs, trip.ShapeID)
+		}
+	}
+
+	stopTimesByTrip, err := r.stopTimesByTrip(ctx, agencyID, feedVersionID, tripIDs)
+	if err != nil {
+		return nil, err
+	}
+	shapePointsByShape, err := r.shapePointsByShape(ctx, agencyID, feedVersionID, shapeIDs)
+	if err != nil {
+		return nil, err
+	}
+	frequenciesByTrip, err := r.frequenciesByTrip(ctx, agencyID, feedVersionID, tripIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := range trips {
-		stopTimes, err := r.stopTimes(ctx, agencyID, feedVersionID, trips[i].TripID)
-		if err != nil {
-			return nil, err
-		}
-		shapePoints, err := r.shapePoints(ctx, agencyID, feedVersionID, trips[i].ShapeID)
-		if err != nil {
-			return nil, err
-		}
-		frequencies, err := r.frequencies(ctx, agencyID, feedVersionID, trips[i].TripID)
-		if err != nil {
-			return nil, err
-		}
-		trips[i].StopTimes = stopTimes
-		trips[i].ShapePoints = shapePoints
-		trips[i].Frequencies = frequencies
+		trips[i].StopTimes = stopTimesByTrip[trips[i].TripID]
+		trips[i].ShapePoints = shapePointsByShape[trips[i].ShapeID]
+		trips[i].Frequencies = frequenciesByTrip[trips[i].TripID]
 	}
 
 	return trips, nil
 }
 
-func (r *PostgresRepository) stopTimes(ctx context.Context, agencyID string, feedVersionID string, tripID string) ([]StopTime, error) {
+func (r *PostgresRepository) stopTimesByTrip(ctx context.Context, agencyID string, feedVersionID string, tripIDs []string) (map[string][]StopTime, error) {
+	stopTimesByTrip := make(map[string][]StopTime, len(tripIDs))
+	if len(tripIDs) == 0 {
+		return stopTimesByTrip, nil
+	}
 	rows, err := r.pool.Query(ctx, `
 		SELECT trip_id, stop_id, COALESCE(arrival_time, departure_time), COALESCE(departure_time, arrival_time), stop_sequence, COALESCE(shape_dist_traveled, 0)
 		FROM gtfs_stop_time
 		WHERE agency_id = $1
 		  AND feed_version_id = $2
-		  AND trip_id = $3
-		ORDER BY stop_sequence
-	`, agencyID, feedVersionID, tripID)
+		  AND trip_id = ANY($3::text[])
+		ORDER BY trip_id, stop_sequence
+	`, agencyID, feedVersionID, tripIDs)
 	if err != nil {
 		return nil, fmt.Errorf("query stop times: %w", err)
 	}
 	defer rows.Close()
 
-	var stopTimes []StopTime
 	for rows.Next() {
 		var st StopTime
 		var arrival, departure string
@@ -169,32 +192,32 @@ func (r *PostgresRepository) stopTimes(ctx context.Context, agencyID string, fee
 		}
 		st.ArrivalSeconds = arrivalSeconds
 		st.DepartureSeconds = departureSeconds
-		stopTimes = append(stopTimes, st)
+		stopTimesByTrip[st.TripID] = append(stopTimesByTrip[st.TripID], st)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate stop times: %w", err)
 	}
-	return stopTimes, nil
+	return stopTimesByTrip, nil
 }
 
-func (r *PostgresRepository) shapePoints(ctx context.Context, agencyID string, feedVersionID string, shapeID string) ([]ShapePoint, error) {
-	if shapeID == "" {
-		return nil, nil
+func (r *PostgresRepository) shapePointsByShape(ctx context.Context, agencyID string, feedVersionID string, shapeIDs []string) (map[string][]ShapePoint, error) {
+	pointsByShape := make(map[string][]ShapePoint, len(shapeIDs))
+	if len(shapeIDs) == 0 {
+		return pointsByShape, nil
 	}
 	rows, err := r.pool.Query(ctx, `
 		SELECT shape_id, lat, lon, sequence, dist_traveled
 		FROM gtfs_shape_point
 		WHERE agency_id = $1
 		  AND feed_version_id = $2
-		  AND shape_id = $3
-		ORDER BY sequence
-	`, agencyID, feedVersionID, shapeID)
+		  AND shape_id = ANY($3::text[])
+		ORDER BY shape_id, sequence
+	`, agencyID, feedVersionID, shapeIDs)
 	if err != nil {
 		return nil, fmt.Errorf("query shape points: %w", err)
 	}
 	defer rows.Close()
 
-	var points []ShapePoint
 	for rows.Next() {
 		var point ShapePoint
 		var dist *float64
@@ -205,29 +228,32 @@ func (r *PostgresRepository) shapePoints(ctx context.Context, agencyID string, f
 			point.DistTraveled = *dist
 			point.HasDistance = true
 		}
-		points = append(points, point)
+		pointsByShape[point.ShapeID] = append(pointsByShape[point.ShapeID], point)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate shape points: %w", err)
 	}
-	return points, nil
+	return pointsByShape, nil
 }
 
-func (r *PostgresRepository) frequencies(ctx context.Context, agencyID string, feedVersionID string, tripID string) ([]Frequency, error) {
+func (r *PostgresRepository) frequenciesByTrip(ctx context.Context, agencyID string, feedVersionID string, tripIDs []string) (map[string][]Frequency, error) {
+	frequenciesByTrip := make(map[string][]Frequency, len(tripIDs))
+	if len(tripIDs) == 0 {
+		return frequenciesByTrip, nil
+	}
 	rows, err := r.pool.Query(ctx, `
 		SELECT trip_id, start_time, end_time, headway_secs, exact_times
 		FROM gtfs_frequency
 		WHERE agency_id = $1
 		  AND feed_version_id = $2
-		  AND trip_id = $3
-		ORDER BY start_time
-	`, agencyID, feedVersionID, tripID)
+		  AND trip_id = ANY($3::text[])
+		ORDER BY trip_id, start_time
+	`, agencyID, feedVersionID, tripIDs)
 	if err != nil {
 		return nil, fmt.Errorf("query frequencies: %w", err)
 	}
 	defer rows.Close()
 
-	var frequencies []Frequency
 	for rows.Next() {
 		var f Frequency
 		if err := rows.Scan(&f.TripID, &f.StartTime, &f.EndTime, &f.HeadwaySecs, &f.ExactTimes); err != nil {
@@ -243,12 +269,12 @@ func (r *PostgresRepository) frequencies(ctx context.Context, agencyID string, f
 		}
 		f.StartSeconds = startSeconds
 		f.EndSeconds = endSeconds
-		frequencies = append(frequencies, f)
+		frequenciesByTrip[f.TripID] = append(frequenciesByTrip[f.TripID], f)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate frequencies: %w", err)
 	}
-	return frequencies, nil
+	return frequenciesByTrip, nil
 }
 
 func IsNoRows(err error) bool {
