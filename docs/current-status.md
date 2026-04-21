@@ -18,6 +18,8 @@ Phase 6 Trip Updates and Alerts architecture is complete. The repo has a pluggab
 
 Phase 7 prediction quality and operations workflows are complete for the first conservative production-directed scope. The Trip Updates service now defaults to an internal deterministic predictor behind `internal/prediction.Adapter`, emits non-empty Trip Updates for defensible matched inputs, withholds weak/degraded/deadhead/layover/disrupted cases, persists prediction review items, records audit-backed override workflow operations, emits cancellation Trip Updates with missing-alert linkage signals, and exposes first-class coverage metrics.
 
+Phase 8 compliance and consumer workflow is complete for the first production-directed publication layer. The repo now has persisted Service Alerts authoring/lifecycle state, real GTFS-RT Alerts publication, Alerts-owned canceled-trip reconciliation, stable on-demand public static GTFS ZIP publication, `/public/feeds.json` discoverability metadata, publication/license/contact metadata workflows, consumer ingestion records, marketplace-gap records, compliance scorecard snapshots, and canonical-validator command adapters that record `not_run` when tooling is missing.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -64,7 +66,9 @@ The repo includes starter Go services for:
 
 `cmd/feed-trip-updates` serves stable Trip Updates endpoints backed by the Phase 7 deterministic prediction adapter by default, with the Phase 6 no-op adapter still selectable as a fallback. It returns valid GTFS-RT Trip Updates protobuf output, JSON diagnostics, prediction metrics, and persisted Trip Updates traceability through `feed_health_snapshot`.
 
-`cmd/feed-alerts` serves Phase 6 architecture endpoints for Alerts. It returns valid empty GTFS-RT Alerts protobuf output and JSON-only deferred diagnostics; alert authoring and alert persistence are intentionally deferred.
+`cmd/feed-alerts` serves DB-backed GTFS-RT Alerts protobuf and JSON output from persisted published Service Alerts. It also exposes minimal JSON admin operations for alert authoring, publish/archive lifecycle, and canceled-trip alert reconciliation.
+
+`cmd/agency-config` now serves publication/compliance workflows: `/public/gtfs/schedule.zip`, `/public/feeds.json`, publication metadata bootstrap, compliance scorecard snapshots, consumer ingestion workflow records, and validator run records.
 
 ### Phase 1 telemetry foundation
 The repo now has:
@@ -172,16 +176,14 @@ Migrations under `db/migrations` are the source of truth for executable schema c
 The following are still missing or incomplete unless a later handoff says otherwise:
 
 - production-grade learned ETA/prediction quality and backtesting
-- Alerts authoring and alert persistence
-- compliance dashboard
-- consumer ingestion workflow
-- robust auth and role handling
+- production auth and role enforcement for admin/operator endpoints
+- canonical validator binaries/commands pinned into local/CI environments
 - manual override workflows
 - production observability and SLO reporting
 
 ## Current Phase
 
-**Active phase:** Phase 8 — Compliance and consumer workflow
+**Active phase:** Phase 8 — Compliance and consumer workflow is complete. No Phase 9 is defined in `docs/phase-plan.md`; next work should be a focused hardening slice.
 
 Phase 7 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -401,16 +403,42 @@ Phase 7 implementation results:
 - exposed first-class prediction metrics in diagnostics and `feed_health_snapshot.details_json`.
 - preserved Phase 3 Vehicle Positions, Phase 4 GTFS import, Phase 5 GTFS Studio, and Phase 6 public endpoint/non-coupling contracts.
 
+## Phase 8 Closure Audit Results
+
+Checked during Phase 8 closure:
+- `command -v go`: passed, `/usr/local/bin/go`.
+- `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed; PostGIS container running on host port `55432`.
+- `make migrate-up`: passed and applied `000007_phase_8_alerts_compliance.sql`.
+- `make migrate-status`: passed and reports migration versions 1 through 7 applied.
+- `make test-integration`: passed with DB-backed tests using isolated temporary database setup where supported.
+- `make validate`: passed Phase 8 file smoke.
+- `git diff --check`: passed.
+
+Phase 8 implementation results:
+- added persisted `service_alert`, `service_alert_informed_entity`, and `compliance_scorecard_snapshot` schema.
+- added `feed_config.publication_environment` to distinguish dev from production scorecard behavior.
+- added DB-backed Alerts authoring, lifecycle, audit logging, and public GTFS-RT Alerts publication.
+- added Alerts-owned canceled-trip reconciliation from active canceled-trip overrides and Phase 7 missing-alert review signals.
+- added on-demand public GTFS schedule ZIP publication from the active published feed version with deterministic ZIP bytes and stable `Last-Modified`.
+- added `/public/feeds.json` with explicit feed metadata, validation, health, license, contact, and readiness fields.
+- added publication metadata bootstrap that writes `feed_config`, `published_feed`, `consumer_ingestion`, and `marketplace_gap` records.
+- added compliance scorecard snapshot persistence and validator command adapters for static GTFS and GTFS-RT validation.
+- kept realtime `published_feed.revision_timestamp` as publication/bootstrap metadata revision; realtime feed generation does not update it.
+- kept schedule `published_feed.revision_timestamp` tied to active schedule publication/bootstrap metadata, not request time.
+
 ## Next Recommended Step
 
-Begin Phase 8 using the exact recommendation in `docs/handoffs/latest.md`.
+Begin a post-Phase-8 hardening slice using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. inspect Phase 7 Trip Updates metrics, review queue, cancellation linkage, and deterministic adapter behavior
-2. choose the first compliance workflow slice, likely canonical validation/reporting and public feed metadata
-3. wire GTFS and GTFS-RT validator execution behind documented validation boundaries
-4. add public discoverability metadata and stable feed status reporting
-5. keep compliance workflow separate from prediction internals
+1. pin canonical validator distributions for local/CI/prod environments
+2. add production auth/role enforcement around admin mutation endpoints
+3. add a richer operator UI only after the JSON workflows remain stable
+4. keep Trip Updates, Vehicle Positions, GTFS import, and GTFS Studio behavior stable
 
 ## What Not To Do Next
 

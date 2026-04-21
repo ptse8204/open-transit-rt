@@ -33,7 +33,5 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 8 — Compliance And Consumer Workflow
 
-- Add compliance dashboard and scorecard.
-- Add public metadata and license pages.
-- Add consumer ingestion workflow records and export packet generation.
-- Track marketplace-vendor-equivalence gaps.
+- Complete for the first publication/compliance layer. Persisted Alerts, public Alerts feeds, canceled-trip alert reconciliation, public schedule ZIP publication, public feed metadata, license/contact workflows, consumer ingestion records, marketplace-gap records, validator report execution/recording, and compliance scorecard snapshots are implemented.
+- Remaining later work: pin canonical validator distributions in local/CI/prod, production auth/roles for admin endpoints, richer operator UI, production observability/SLO rollups, and service-packaging documentation beyond software workflow metadata.

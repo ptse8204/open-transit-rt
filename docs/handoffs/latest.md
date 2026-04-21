@@ -4,7 +4,7 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 8 — Compliance and consumer workflow
+Phase 8 — Compliance and consumer workflow is complete. No Phase 9 is defined in `docs/phase-plan.md`.
 
 ## Phase Status
 
@@ -16,13 +16,13 @@ Phase 8 — Compliance and consumer workflow
 - Phase 5 GTFS Studio draft/publish model is implemented and complete.
 - Phase 6 Trip Updates and Alerts architecture is implemented and complete.
 - Phase 7 prediction quality and operations workflows are implemented and complete.
-- Phase 8 is ready to start.
+- Phase 8 publication/compliance workflow is implemented and complete for the first production-directed layer.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-07.md`
+3. `docs/handoffs/phase-08.md`
 4. `docs/phase-plan.md`
 5. `docs/codex-task.md`
 6. `docs/requirements-2a-2f.md`
@@ -33,7 +33,7 @@ Phase 8 — Compliance and consumer workflow
 
 ## Current Objective
 
-Begin Phase 8 compliance and consumer workflow. Preserve the Phase 7 prediction adapter, metrics, override, review queue, and cancellation-linkage boundaries. Do not bypass canonical feed boundaries, do not couple validators into core prediction or matching internals, and do not start rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
+Begin a focused post-Phase-8 hardening slice. Preserve stable feed URLs, public schedule ZIP behavior, persisted Alerts, Phase 7 prediction boundaries, Vehicle Positions behavior, GTFS import, and GTFS Studio draft/publish behavior.
 
 ## Exact First Commands
 
@@ -61,40 +61,36 @@ task test:integration
 
 - Task is optional and may not be installed; Makefile remains independently usable.
 - Docker must be running before DB-backed checks.
-- Canonical GTFS and GTFS-Realtime validators are documented but not wired yet.
-- Alerts authoring and persistence remain deferred.
-- Phase 7 predictions are conservative schedule-deviation predictions, not production-grade learned ETAs.
-- Prediction review workflow has repository behavior but no full operator UI.
-- GTFS Studio auth is minimal/dev-only and not production-grade.
+- Canonical validator command adapters exist, but exact validator distributions are not pinned or installed by repo automation.
+- Production admin auth and role enforcement are not implemented.
+- Consumer ingestion workflow records exist, but external consumer submission APIs are not integrated.
 
 ## First Files Likely To Edit
 
-- `internal/gtfs/`
-- `internal/feed/tripupdates/`
-- `internal/feed/alerts/`
-- `internal/prediction/` only if compliance metrics need prediction diagnostics
-- `db/migrations/` if validation/report/compliance persistence changes are required
-- `docs/current-status.md`
-- `docs/handoffs/phase-08.md`
-- `docs/handoffs/latest.md`
-- `docs/dependencies.md`
-- `docs/decisions.md` if architecture-significant compliance decisions are made
+- `.env.example`
+- `Makefile`
+- `internal/compliance/`
+- `cmd/agency-config/`
+- deployment/CI docs or scripts for validator installation
+- auth/admin docs if production auth is the next slice
 
-## Phase 8 Entry Recommendation
+## Phase 8 Notes For Future Work
 
-Start compliance work behind stable validation and publication boundaries:
-
-1. Inspect Phase 7 Trip Updates metrics, review queue, cancellation linkage, and deterministic adapter behavior.
-2. Choose the first compliance slice, likely canonical validation/reporting and public feed metadata.
-3. Wire GTFS and GTFS-RT validator execution behind documented validation interfaces.
-4. Add public discoverability metadata and stable feed status reporting.
-5. Keep compliance workflow separate from prediction internals.
-6. Preserve Vehicle Positions, telemetry ingest, GTFS import, GTFS Studio, and Trip Updates endpoint behavior.
+- `/public/gtfs/schedule.zip` is generated on demand from active published GTFS tables.
+- Schedule ZIP bytes are deterministic for unchanged active feed data; ZIP entry modified times and HTTP `Last-Modified` use the active feed revision time.
+- Realtime `published_feed.revision_timestamp` is a publication/bootstrap metadata revision and must not change on every feed generation.
+- Realtime freshness and generation health belong in `feed_health_snapshot`.
+- `/public/feeds.json` reads per-feed data from `published_feed`; license/contact fields resolve from `feed_config` only when per-feed values are empty.
+- `feed_config.publication_environment = 'production'` makes missing canonical validator execution red in scorecards. In `dev`, missing validators are yellow/not-run.
+- Alerts authoring/persistence is owned by `internal/alerts`; GTFS-RT protobuf rendering is owned by `internal/feed/alerts`.
+- Prediction packages must not import Alerts packages. Canceled-trip missing-alert review signals are satisfied by the Alerts-owned reconciler.
+- Validator adapters store normalized `validation_report` rows. Missing validator configuration is recorded as `status='not_run'`.
 
 ## Constraints To Preserve
 
 - Mostly Go.
 - Postgres/PostGIS source of truth.
+- Stable public URLs for schedule, Vehicle Positions, Trip Updates, and Alerts.
 - Vehicle Positions first.
 - Trip Updates pluggable.
 - Draft GTFS separate from published GTFS.
@@ -105,23 +101,7 @@ Start compliance work behind stable validation and publication boundaries:
 - Runtime GTFS import input is ZIP; directory parsing is test-fixture setup only.
 - GTFS Studio publishes typed draft rows through the shared validation/activation helper directly, not through synthetic ZIP import.
 - GTFS times beyond `24:00:00` remain stored as imported text in canonical published GTFS tables.
-- Trip Updates packages must not become dependencies of telemetry ingest, Vehicle Positions, or GTFS Studio.
-- Canceled trips are excluded from ETA coverage denominator and tracked separately.
-- Prediction review items use `open`, `resolved`, and `deferred` lifecycle states.
-
-## Phase 7 Notes For Phase 8
-
-- `internal/prediction.Adapter` remains the only Trip Updates prediction boundary.
-- `prediction.DeterministicAdapter` is the default runtime adapter.
-- `prediction.NoopAdapter` remains available through `TRIP_UPDATES_ADAPTER=noop`.
-- Trip Updates diagnostics persist to `feed_health_snapshot` with Phase 6 fields plus prediction metrics and adapter details.
-- Prediction review items persist as `incident` rows with `incident_type = 'prediction_review'`.
-- Override create, replace, clear, and review status updates write audit rows.
-- Canceled trips emit conservative `CANCELED` Trip Updates and persist missing-alert linkage signals until Alerts authoring/persistence is implemented.
-- Added trips, short turns, detours, deadhead, layover, weak, stale, degraded, and ambiguous cases are withheld with explicit reasons.
-- `cmd/feed-trip-updates` still exposes `/public/gtfsrt/trip_updates.pb` and `/public/gtfsrt/trip_updates.json`.
-- `cmd/feed-alerts` still exposes valid empty Alerts endpoints; public Alerts authoring/persistence is not implemented.
-- No external prediction dependency was added.
+- Trip Updates packages must not become dependencies of telemetry ingest, Vehicle Positions, GTFS Studio, or Alerts.
 
 ## Handoff Template Requirement
 

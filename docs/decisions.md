@@ -125,3 +125,33 @@ Canceled trips are not part of the ETA coverage denominator. They are emitted as
 Prediction review workflow uses the existing `incident` table with `incident_type = 'prediction_review'` and a minimal lifecycle of `open`, `resolved`, and `deferred`. Phase 7 extends the incident status check constraint to support `deferred`. Override create, replace, clear, and review-status changes write `audit_log` rows.
 
 The matcher continues to consume only assignment/service-state overrides from `manual_override` (`trip_assignment` and `service_state`). Prediction-only disruption overrides such as canceled trips, added trips, detours, and short turns are consumed through `prediction.OperationsRepository` so they cannot force invalid assignment states into `vehicle_trip_assignment`.
+
+## ADR-0018 — Publish static GTFS ZIPs on demand from active published tables
+
+Phase 8 adds `/public/gtfs/schedule.zip` as the stable public static GTFS URL. The schedule ZIP is generated on demand from the active published `feed_version` tables, not from GTFS Studio draft rows and not from placeholder sample files.
+
+ZIP entries and CSV rows are written in deterministic order. ZIP entry modified times use the active feed revision time, so identical active GTFS data produces stable bytes across requests. The endpoint `Last-Modified` header uses the same active feed revision time. The endpoint does not materialize or cache ZIP bytes in Postgres in Phase 8; a future cache may be added only if it preserves deterministic bytes and stable `Last-Modified` semantics.
+
+For `published_feed`, schedule `revision_timestamp` changes when schedule publication/bootstrap metadata changes or when GTFS import/Studio publish activates a new schedule feed. It does not change merely because `/public/gtfs/schedule.zip` was requested.
+
+## ADR-0019 — Persist Service Alerts separately from feed serialization
+
+Phase 8 stores public Service Alerts in `service_alert` and `service_alert_informed_entity`. `internal/alerts` owns authoring, persistence, lifecycle, audit logging, and canceled-trip reconciliation. `internal/feed/alerts` owns only GTFS-RT protobuf/JSON feed rendering from persisted published alerts.
+
+Canceled-trip Trip Updates from Phase 7 remain prediction-owned, but alert satisfaction is Alerts-owned. The reconciler reads active canceled-trip overrides and open prediction-review incidents with `expected_alert_missing=true`, creates or updates a published cancellation Service Alert, and links the review incident to `service_alert.id`. Prediction packages do not import Alerts packages.
+
+## ADR-0020 — Use feed_config and published_feed as the license/contact contract
+
+Phase 8 makes the metadata contract explicit:
+- `feed_config` stores agency-level defaults: `public_base_url`, `feed_base_url`, `technical_contact_email`, `license_name`, `license_url`, `validator_strictness`, and `publication_environment`.
+- `published_feed` stores per-feed resolved publication state: `canonical_public_url`, `license_name`, `license_url`, `contact_email`, `revision_timestamp`, `activation_status`, and `active_feed_version_id`.
+
+`/public/feeds.json` reads per-feed values from `published_feed` first. It may resolve empty license/contact fields from `feed_config`, but scorecard readiness still evaluates whether all required values are complete. Response timestamps are RFC3339 UTC JSON timestamps or `null`.
+
+Realtime `published_feed.revision_timestamp` is a publication/bootstrap metadata revision. Vehicle Positions, Trip Updates, and Alerts feed generation must not update it on every request. Feed freshness belongs in `feed_health_snapshot`, not in `published_feed.revision_timestamp`.
+
+## ADR-0021 — Validator-backed scorecards distinguish dev from production
+
+Phase 8 adds canonical validator command adapters for static GTFS and GTFS-RT. Validator results are normalized into `validation_report`. If validator tooling is absent, the system stores `status='not_run'` instead of pretending validation passed.
+
+Production mode is agency-scoped and stored as `feed_config.publication_environment = 'production'`. In production mode, missing canonical validator execution makes scorecard validation red. In dev mode, missing validators are yellow/not-run. `validator_strictness` controls failure handling, but it does not define production mode by itself.

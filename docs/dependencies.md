@@ -199,14 +199,17 @@ Validate static GTFS before publish and during compliance checks.
 - MobilityData GTFS Validator or equivalent canonical validator
 
 ### Integration boundary
-- invoked by import/publish workflows or CI checks
-- validation results stored as reports
+- invoked by import/publish workflows, admin validation runs, or CI checks
+- Phase 8 adds a command adapter driven by `GTFS_VALIDATOR_PATH`
+- validation results stored as normalized `validation_report` rows
 - validator output should not dictate internal schema design
 - Phase 4 implements an internal GTFS import validator/report contract for required files, supported route type ranges, numeric ranges, core references, usable service sources, shape ordering, stop_times references, times beyond `24:00:00`, frequencies, and block preservation. This internal validator is not a substitute for canonical compliance validation.
+- Phase 8 canonical validation is executed only when `GTFS_VALIDATOR_PATH` is configured. If the path ends with `.jar`, the adapter runs `java -jar`; otherwise it executes the path directly.
 
 ### Failure behavior
 - failed validation should block publish or mark the import unhealthy based on configured strictness
 - validation reports must remain visible to operators
+- missing validator configuration stores `status='not_run'`; in production scorecards this is red, and in dev scorecards this is yellow
 - Phase 4 internal validation failures block activation, store `gtfs_import` and `validation_report` rows when the report write succeeds, and leave `gtfs_import.feed_version_id` `NULL`.
 - Phase 4 publish/database failures roll back staged rows, update `gtfs_import.report_json`, and store a failed `validation_report` outside the rolled-back publish transaction when possible.
 - If the best-effort failed-import report write also fails, the importer/CLI returns a clear error and must not claim that failure metadata was stored.
@@ -232,13 +235,16 @@ Validate GTFS-RT feeds:
 - MobilityData GTFS Realtime validator or equivalent
 
 ### Integration boundary
-- invoked during CI, smoke tests, and scheduled runtime validation
-- output stored as feed validation reports
+- invoked during CI, smoke tests, scheduled runtime validation, or admin validation runs
+- Phase 8 adds a command-template adapter driven by `GTFS_RT_VALIDATOR_COMMAND`
+- the command template supports `{schedule_zip}`, `{realtime_pb}`, `{feed_type}`, and `{output_dir}` placeholders
+- output stored as normalized `validation_report` rows
 - does not own business logic; it verifies it
 
 ### Failure behavior
 - validation failure should mark a feed unhealthy
 - unhealthy state must be visible in monitoring and admin views
+- missing validator command configuration stores `status='not_run'`; in production scorecards this is red, and in dev scorecards this is yellow
 
 ### Replacement strategy
 - validator engine may be swapped
@@ -506,7 +512,7 @@ Optional task runner for local workflows.
 Validation and developer tooling; GTFS-RT Vehicle Positions protobuf serialization is core runtime as of Phase 3.
 
 ### Purpose
-Phase 3 uses official GTFS-Realtime protobuf bindings for Vehicle Positions feed generation. Future phases should wire canonical validators for feed validation and compliance checks.
+Phase 3 uses official GTFS-Realtime protobuf bindings for Vehicle Positions feed generation. Phase 8 adds canonical validator command adapters for feed validation and compliance checks.
 
 ### Expected version
 - `github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs` v1.0.0
@@ -515,7 +521,8 @@ Phase 3 uses official GTFS-Realtime protobuf bindings for Vehicle Positions feed
 
 ### Startup / provisioning
 - protobuf bindings are pulled through Go modules
-- canonical GTFS and GTFS-Realtime validators remain documented but not wired
+- canonical validator execution runs when `GTFS_VALIDATOR_PATH` or `GTFS_RT_VALIDATOR_COMMAND` is configured
+- exact validator distributions are not pinned by repo automation yet
 
 ### Integration boundary
 - protobuf types may appear in feed boundary packages only
@@ -597,7 +604,7 @@ Observability stack for:
 ## 11. Consumer submission targets
 
 ### Classification
-Future optional integrations
+Workflow and compliance metadata
 
 ### Purpose
 Operational workflows for:
@@ -612,7 +619,8 @@ Operational workflows for:
 ### Integration boundary
 - these are not runtime dependencies
 - they are workflow and compliance dependencies
-- the app should track submission status and export feed metadata packets
+- Phase 8 tracks submission status and packet JSON in `consumer_ingestion`
+- no external submission API is called directly by the app
 
 ### Failure behavior
 - failed submission or rejection must not break feed generation

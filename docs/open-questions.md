@@ -17,11 +17,11 @@ These questions do not block the next phase.
 
 - Which exact GTFS static validator distribution should be pinned first?
 - Which GTFS-Realtime validator should be used for CI versus scheduled production checks?
-- Phase 4 defined and stores an internal GTFS import validation report contract but did not wire canonical validator install/download steps; which static validator distribution should be pinned for Phase 8 compliance?
+- Phase 8 added canonical validator command adapters and `validation_report` persistence, but did not pin validator binary download/install steps. Which distributions should local dev, CI, and production standardize on?
 
 ## Static GTFS Publication
 
-- Should later public schedule-feed serving store original uploaded ZIP bytes, regenerate ZIPs from published tables, or support both with checksum comparison?
+- Phase 8 serves `/public/gtfs/schedule.zip` on demand from active published GTFS tables with deterministic bytes. Should a later phase add materialized ZIP caching or checksum comparison against original uploaded ZIP bytes?
 
 ## Prediction Backends
 
@@ -31,8 +31,7 @@ These questions do not block the next phase.
 
 ## Alerts
 
-- Phase 7 persists cancellation-to-alert linkage signals with `expected_alert_missing=true`, but public Alerts authoring/persistence remains deferred. Should Alerts be operator-authored, incident-derived, or both?
-- What minimal Alerts authoring workflow should clear or satisfy a canceled-trip `expected_alert_missing` review signal?
+- Phase 8 chose both operator-authored and system-derived Alerts for canceled-trip reconciliation. Should later alert workflows include richer affected-route/stop/time selectors, multilingual text, and full operator UI review before publication?
 
 ## GTFS Studio
 
