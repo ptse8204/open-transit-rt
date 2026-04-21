@@ -20,9 +20,7 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 5 — GTFS Studio
 
-- Add draft GTFS CRUD model.
-- Add minimal server-rendered admin UI.
-- Publish drafts through the same pipeline as ZIP import.
+- Complete. Typed GTFS draft tables, draft CRUD, minimal server-rendered Studio UI, soft discard, cloned-draft provenance, draft publish traceability, and direct shared validation/activation publishing are implemented.
 
 ## Phase 6 — Trip Updates And Alerts Architecture
 

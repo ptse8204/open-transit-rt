@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -32,6 +33,26 @@ const (
 type ImportService struct {
 	pool *pgxpool.Pool
 	now  func() time.Time
+}
+
+type validationReportLinks struct {
+	ImportID       int64
+	DraftPublishID int64
+}
+
+type publishFeedOptions struct {
+	AgencyID      string
+	FeedVersionID string
+	SourceType    string
+	ActorID       string
+	Notes         string
+	AuditAction   string
+	EntityType    string
+	EntityID      string
+	Feed          parsedFeed
+	Report        ImportReport
+	Links         validationReportLinks
+	AfterPublish  func(ctx context.Context, tx pgx.Tx, publishedAt time.Time, report ImportReport, reportJSON []byte) error
 }
 
 type ImportOptions struct {
@@ -230,6 +251,23 @@ func (s *ImportService) upsertAgency(ctx context.Context, agency importAgency) e
 	return err
 }
 
+func upsertAgencyTx(ctx context.Context, tx pgx.Tx, agency importAgency) error {
+	_, err := tx.Exec(ctx, `
+		INSERT INTO agency (id, name, timezone, contact_email, public_url)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (id) DO UPDATE
+		SET name = EXCLUDED.name,
+		    timezone = EXCLUDED.timezone,
+		    contact_email = COALESCE(EXCLUDED.contact_email, agency.contact_email),
+		    public_url = EXCLUDED.public_url,
+		    updated_at = now()
+	`, agency.ID, agency.Name, agency.Timezone, nullString(agency.Email), agency.URL)
+	if err != nil {
+		return fmt.Errorf("upsert agency in publish transaction: %w", err)
+	}
+	return nil
+}
+
 func (s *ImportService) agencyExists(ctx context.Context, agencyID string) bool {
 	var exists bool
 	err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM agency WHERE id = $1)`, agencyID).Scan(&exists)
@@ -278,7 +316,45 @@ func (s *ImportService) markImportFailed(ctx context.Context, importID int64, re
 }
 
 func (s *ImportService) publish(ctx context.Context, opts ImportOptions, importID int64, feedVersionID string, feed parsedFeed, report ImportReport) error {
-	tx, err := s.pool.Begin(ctx)
+	return publishFeed(ctx, s.pool, s.now, publishFeedOptions{
+		AgencyID:      opts.AgencyID,
+		FeedVersionID: feedVersionID,
+		SourceType:    "gtfs_import",
+		ActorID:       opts.ActorID,
+		Notes:         opts.Notes,
+		AuditAction:   "gtfs_import_publish",
+		EntityType:    "feed_version",
+		EntityID:      feedVersionID,
+		Feed:          feed,
+		Report:        report,
+		Links:         validationReportLinks{ImportID: importID},
+		AfterPublish: func(ctx context.Context, tx pgx.Tx, publishedAt time.Time, report ImportReport, reportJSON []byte) error {
+			if _, err := tx.Exec(ctx, `
+				UPDATE gtfs_import
+				SET status = $2,
+				    feed_version_id = $3,
+				    error_count = $4,
+				    warning_count = $5,
+				    info_count = $6,
+				    report_json = $7,
+				    completed_at = $8
+				WHERE id = $1
+			`, importID, ImportStatusPublished, feedVersionID, len(report.Errors), len(report.Warnings), len(report.Info), reportJSON, publishedAt); err != nil {
+				return fmt.Errorf("mark import published: %w", err)
+			}
+			return nil
+		},
+	})
+}
+
+func publishFeed(ctx context.Context, pool *pgxpool.Pool, nowFunc func() time.Time, opts publishFeedOptions) error {
+	if pool == nil {
+		return fmt.Errorf("publish feed requires a database pool")
+	}
+	if nowFunc == nil {
+		nowFunc = func() time.Time { return time.Now().UTC() }
+	}
+	tx, err := pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
@@ -286,22 +362,28 @@ func (s *ImportService) publish(ctx context.Context, opts ImportOptions, importI
 		_ = tx.Rollback(ctx)
 	}()
 
+	if agency, ok := opts.Feed.selectedAgency(); ok {
+		if err := upsertAgencyTx(ctx, tx, agency); err != nil {
+			return err
+		}
+	}
+
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO feed_version (id, agency_id, source_type, lifecycle_state, is_active, validation_status, notes, created_at)
-		VALUES ($1, $2, 'gtfs_import', 'staged', false, $3, $4, $5)
-	`, feedVersionID, opts.AgencyID, report.validationStatus(), nullString(opts.Notes), s.now()); err != nil {
+		VALUES ($1, $2, $3, 'staged', false, $4, $5, $6)
+	`, opts.FeedVersionID, opts.AgencyID, opts.SourceType, opts.Report.validationStatus(), nullString(opts.Notes), nowFunc()); err != nil {
 		return fmt.Errorf("insert staged feed version: %w", err)
 	}
 
-	if err := insertFeedRows(ctx, tx, opts.AgencyID, feedVersionID, feed); err != nil {
+	if err := insertFeedRows(ctx, tx, opts.AgencyID, opts.FeedVersionID, opts.Feed); err != nil {
 		return err
 	}
 
-	if err := s.insertValidationReport(ctx, tx, importID, opts.AgencyID, feedVersionID, report); err != nil {
+	if err := insertValidationReport(ctx, tx, opts.AgencyID, opts.FeedVersionID, opts.Report, opts.Links); err != nil {
 		return err
 	}
 
-	now := s.now()
+	now := nowFunc()
 	if _, err := tx.Exec(ctx, `
 		UPDATE feed_version
 		SET is_active = false,
@@ -310,7 +392,7 @@ func (s *ImportService) publish(ctx context.Context, opts ImportOptions, importI
 		WHERE agency_id = $1
 		  AND is_active
 		  AND id <> $2
-	`, opts.AgencyID, feedVersionID, now); err != nil {
+	`, opts.AgencyID, opts.FeedVersionID, now); err != nil {
 		return fmt.Errorf("retire prior active feed version: %w", err)
 	}
 
@@ -322,7 +404,7 @@ func (s *ImportService) publish(ctx context.Context, opts ImportOptions, importI
 		    activated_at = $3
 		WHERE agency_id = $1
 		  AND id = $2
-	`, opts.AgencyID, feedVersionID, now); err != nil {
+	`, opts.AgencyID, opts.FeedVersionID, now); err != nil {
 		return fmt.Errorf("activate feed version: %w", err)
 	}
 
@@ -334,43 +416,53 @@ func (s *ImportService) publish(ctx context.Context, opts ImportOptions, importI
 		    updated_at = $3
 		WHERE agency_id = $1
 		  AND feed_type = 'schedule'
-	`, opts.AgencyID, feedVersionID, now); err != nil {
+	`, opts.AgencyID, opts.FeedVersionID, now); err != nil {
 		return fmt.Errorf("update published feed metadata: %w", err)
 	}
 
-	report.Status = ImportStatusPublished
-	reportJSON, err := json.Marshal(report)
+	opts.Report.Status = ImportStatusPublished
+	reportJSON, err := json.Marshal(opts.Report)
 	if err != nil {
-		return fmt.Errorf("marshal published import report: %w", err)
+		return fmt.Errorf("marshal published report: %w", err)
 	}
-	if _, err := tx.Exec(ctx, `
-		UPDATE gtfs_import
-		SET status = $2,
-		    feed_version_id = $3,
-		    error_count = $4,
-		    warning_count = $5,
-		    info_count = $6,
-		    report_json = $7,
-		    completed_at = $8
-		WHERE id = $1
-	`, importID, ImportStatusPublished, feedVersionID, len(report.Errors), len(report.Warnings), len(report.Info), reportJSON, now); err != nil {
-		return fmt.Errorf("mark import published: %w", err)
+	if opts.AfterPublish != nil {
+		if err := opts.AfterPublish(ctx, tx, now, opts.Report, reportJSON); err != nil {
+			return err
+		}
 	}
 
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO audit_log (agency_id, actor_id, action, entity_type, entity_id, new_value_json, reason)
-		VALUES ($1, $2, 'gtfs_import_publish', 'feed_version', $3, $4, $5)
-	`, opts.AgencyID, defaultString(opts.ActorID, "system"), feedVersionID, reportJSON, nullString(opts.Notes)); err != nil {
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, opts.AgencyID, defaultString(opts.ActorID, "system"), opts.AuditAction, opts.EntityType, opts.EntityID, reportJSON, nullString(opts.Notes)); err != nil {
 		return fmt.Errorf("insert audit log: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit gtfs import publish: %w", err)
+		return fmt.Errorf("commit feed publish: %w", err)
 	}
 	return nil
 }
 
 func (s *ImportService) insertValidationReport(ctx context.Context, tx pgx.Tx, importID int64, agencyID string, feedVersionID string, report ImportReport) error {
+	return insertValidationReport(ctx, txOrPool{s.pool, tx}, agencyID, feedVersionID, report, validationReportLinks{ImportID: importID})
+}
+
+type txOrPool struct {
+	pool *pgxpool.Pool
+	tx   pgx.Tx
+}
+
+func (e txOrPool) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
+	if e.tx != nil {
+		return e.tx.Exec(ctx, sql, arguments...)
+	}
+	return e.pool.Exec(ctx, sql, arguments...)
+}
+
+func insertValidationReport(ctx context.Context, exec interface {
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+}, agencyID string, feedVersionID string, report ImportReport, links validationReportLinks) error {
 	reportJSON, err := json.Marshal(report)
 	if err != nil {
 		return fmt.Errorf("marshal validation report: %w", err)
@@ -386,20 +478,17 @@ func (s *ImportService) insertValidationReport(ctx context.Context, tx pgx.Tx, i
 		len(report.Warnings),
 		len(report.Info),
 		reportJSON,
-		nullInt64(importID),
+		nullInt64(links.ImportID),
+		nullInt64(links.DraftPublishID),
 	}
 	query := `
 		INSERT INTO validation_report (
 			agency_id, feed_version_id, feed_type, validator_name, validator_version, status,
-			error_count, warning_count, info_count, report_json, gtfs_import_id
+			error_count, warning_count, info_count, report_json, gtfs_import_id, gtfs_draft_publish_id
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	`
-	if tx != nil {
-		_, err = tx.Exec(ctx, query, args...)
-	} else {
-		_, err = s.pool.Exec(ctx, query, args...)
-	}
+	_, err = exec.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("insert validation report: %w", err)
 	}

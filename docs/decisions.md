@@ -86,4 +86,18 @@ Phase 4 GTFS ZIP import stages schedule rows by inserting them under a new inact
 
 The internal validator intentionally enforces the Phase 4 contract before activation: required GTFS files, supported `route_type` values (`0`-`7` and extended `100`-`1702`), numeric ranges, usable service sources, references, shape ordering, stop_times references, optional `block_id` preservation, optional shapes/frequencies, and GTFS times beyond `24:00:00` without normalizing away imported time text. A service source is usable only when a calendar row has at least one active weekday or a calendar_dates row adds service with `exception_type=1`.
 
-This staging model is for GTFS ZIP imports only. `gtfs_draft` and `gtfs_draft_record` remain reserved for Phase 5 GTFS Studio and must not be used as runtime import staging tables.
+This staging model began as the GTFS ZIP import publish path. Phase 5 refactored the activation logic into a shared internal publisher used by both ZIP imports and GTFS Studio drafts.
+
+## ADR-0015 — Use typed GTFS Studio draft tables and direct shared publishing
+
+Phase 5 stores GTFS Studio draft data in typed draft tables for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies. The generic `gtfs_draft_record` table remains unused legacy scaffold and is not part of runtime Studio editing.
+
+`gtfs_draft` owns draft metadata and traceability. It records status, cloned-source `base_feed_version_id`, `last_publish_attempt_id`, `last_published_feed_version_id`, and soft-discard fields. Drafts cloned from an active feed capture the active `feed_version` as provenance; explicit blank drafts and drafts created when no active feed exists have no base feed version.
+
+Draft-level discard is soft discard. Discarded drafts retain metadata and typed rows for auditability, are hidden from the default list view, and become read-only and not publishable. Drafts in `published` status also become read-only by default after successful publish. Entity remove operations only delete rows inside the current editable draft and never delete previously published GTFS rows, feed versions, publish attempts, validation reports, or audit history.
+
+Draft agency editing is one row scoped to the draft's agency. On successful draft publish, that draft agency row maps into the canonical `agency` table inside the same publish transaction before the new `feed_version` is activated. Draft agency edits do not mutate published agency metadata before publish.
+
+Studio publish converts typed draft rows into the same internal feed model used by ZIP import, then calls the shared validation and activation helper directly. It does not generate or re-import a synthetic ZIP. Non-editable draft statuses are rejected before draft-to-feed conversion, validation, or shared publish activation begins.
+
+The first Studio UI is intentionally minimal server-rendered HTML from Go stdlib packages. It provides operational row forms, not map editing, timetable design, or a heavy frontend application.

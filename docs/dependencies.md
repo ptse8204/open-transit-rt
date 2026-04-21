@@ -471,6 +471,36 @@ Phase 3 uses official GTFS-Realtime protobuf bindings for Vehicle Positions feed
 - protobuf version changes should be isolated to feed mapping packages
 - validator implementations may change if normalized report contracts remain stable
 
+## 9C. GTFS Studio server-rendered UI
+
+### Classification
+Core admin/runtime surface
+
+### Purpose
+Phase 5 adds a minimal operator/admin UI for GTFS Studio draft editing and draft publish.
+
+### Expected version
+- Go standard library `net/http` and `html/template`
+
+### Startup / provisioning
+- command: `go run ./cmd/gtfs-studio`
+- Makefile target: `make run-gtfs-studio`
+- default local port: `8086` when `PORT=8086`
+
+### Integration boundary
+- uses `internal/gtfs.DraftService`
+- reads and writes typed draft GTFS tables only for editing
+- publishes by converting draft rows into the internal GTFS feed model and calling the shared Phase 4 validation/activation helper directly
+- does not introduce a frontend build pipeline
+
+### Failure behavior
+- DB unavailability is reported through `/readyz`
+- non-editable drafts are rejected before draft-to-feed conversion or publish activation
+- validation failures create no active feed version and keep editable drafts editable
+
+### Replacement strategy
+- a richer admin frontend can replace the HTML surface later if it preserves `DraftService` and publish contracts
+
 ---
 
 ## 10. Prometheus / Grafana

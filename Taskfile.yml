@@ -50,6 +50,10 @@ tasks:
     cmds:
       - DATABASE_URL="{{.DATABASE_URL}}" PORT=8082 go run ./cmd/telemetry-ingest
 
+  run:gtfs-studio:
+    cmds:
+      - DATABASE_URL="{{.DATABASE_URL}}" PORT=8086 go run ./cmd/gtfs-studio
+
   test:
     cmds:
       - go test ./...
@@ -75,15 +79,18 @@ tasks:
 
   validate:
     cmds:
-      - echo "Phase 4 validation smoke: checking scaffold, telemetry, matcher, Vehicle Positions, and GTFS import files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
+      - echo "Phase 5 validation smoke: checking scaffold, telemetry, matcher, Vehicle Positions, GTFS import, and GTFS Studio files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
       - test -f db/migrations/000001_initial_schema.sql
       - test -f db/migrations/000002_telemetry_ingest_foundation.sql
       - test -f db/migrations/000003_deterministic_matching.sql
       - test -f db/migrations/000004_gtfs_import_pipeline.sql
+      - test -f db/migrations/000005_gtfs_studio_drafts.sql
       - test -f internal/feed/vehicle_positions.go
       - test -f internal/gtfs/importer.go
+      - test -f internal/gtfs/draft.go
       - test -f cmd/feed-vehicle-positions/main.go
       - test -f cmd/gtfs-import/main.go
+      - test -f cmd/gtfs-studio/main.go
       - test -d testdata/gtfs/valid-small
       - test -d testdata/gtfs/after-midnight
       - test -d testdata/gtfs/frequency-based

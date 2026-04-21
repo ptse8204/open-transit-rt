@@ -12,7 +12,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 This repository is an early-stage starter for **Open Transit RT**.
 
-Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, and Phase 4 GTFS import/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, and run DB-backed telemetry, matcher, Vehicle Positions, and GTFS import tests.
+Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, and GTFS Studio tests.
 
 ## What Exists Now
 
@@ -50,8 +50,11 @@ The repo includes starter Go services for:
 - `agency-config`
 - `telemetry-ingest`
 - `feed-vehicle-positions`
+- `gtfs-studio`
 
 `cmd/telemetry-ingest` persists valid telemetry to Postgres through a telemetry repository. `cmd/feed-vehicle-positions` now serves DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug output from persisted latest accepted telemetry plus persisted current assignments. `agency-config` remains starter scaffolding.
+
+`cmd/gtfs-studio` serves a minimal server-rendered admin surface for typed GTFS draft editing and draft publishing. It is operational row editing, not a map editor or timetable designer.
 
 ### Phase 1 telemetry foundation
 The repo now has:
@@ -130,6 +133,24 @@ The repo now has:
 - failed publish rollback behavior that leaves no partial GTFS rows and keeps `gtfs_import.feed_version_id` `NULL`
 - tests for valid import, invalid import, rollback safety, active feed switching, block visibility to downstream GTFS consumers, shape-line creation, and CLI wrapper behavior
 
+### Phase 5 GTFS Studio draft/publish model
+The repo now has:
+- `cmd/gtfs-studio` with `/healthz`, `/readyz`, and `/admin/gtfs-studio` routes
+- typed draft GTFS tables for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies
+- explicit draft traceability fields: status, base feed version, latest publish attempt, latest published feed version, and soft-discard metadata
+- `gtfs_draft_publish` attempts linked to schedule `validation_report` rows
+- `internal/gtfs.DraftService` for blank draft creation, active-feed cloning, typed entity upsert/remove, soft discard, list/read behavior, and draft publish
+- cloned-draft provenance through `gtfs_draft.base_feed_version_id`
+- blank draft creation when no active feed exists and explicit blank draft creation when one does exist
+- soft discard semantics: discarded drafts keep typed rows and history, are hidden by default, and are read-only/not publishable
+- published drafts become read-only by default after successful publish
+- entity remove operations affect only rows in the current editable draft and never delete previously published GTFS rows, feed versions, publish attempts, validation reports, or audit history
+- draft agency metadata is one row scoped to the draft agency; on successful publish it upserts the canonical `agency` row in the publish transaction
+- shared feed-version publishing used directly by both ZIP import and Studio publish; Studio does not generate or re-import a synthetic ZIP
+- non-editable draft statuses are rejected before draft-to-feed conversion, validation, or shared publish activation
+- minimal server-rendered forms for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies
+- tests for draft CRUD, blank/clone behavior, draft/published separation, publish traceability, read-only published/discarded drafts, discarded list filtering, and summary version visibility
+
 ## Schema Source Of Truth
 
 Migrations under `db/migrations` are the source of truth for executable schema changes and are applied through `cmd/migrate`.
@@ -140,7 +161,6 @@ Migrations under `db/migrations` are the source of truth for executable schema c
 
 The following are still missing or incomplete unless a later handoff says otherwise:
 
-- complete GTFS Studio draft/publish workflow
 - Trip Updates adapter implementation
 - Alerts feed implementation
 - compliance dashboard
@@ -151,9 +171,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 5 — GTFS Studio draft/publish model
+**Active phase:** Phase 6 — Trip Updates and Alerts architecture
 
-Phase 4 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 5 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -289,16 +309,45 @@ Phase 4 implementation results:
 - failed validation creates no staged `feed_version`; publish failures roll back partial rows, leave `gtfs_import.feed_version_id` `NULL`, and persist a failed `validation_report` outside the publish transaction when possible.
 - did not add GTFS Studio runtime editing, Trip Updates, Alerts, rider apps, payments, passenger accounts, CAD, or marketplace workflows.
 
+## Phase 5 Closure Audit Results
+
+Checked during Phase 5 closure:
+- `command -v go`: passed, `/usr/local/bin/go`.
+- `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed; PostGIS container running on host port `55432`.
+- `make migrate-up`: passed and applied `000005_gtfs_studio_drafts.sql`.
+- `make migrate-status`: passed and reports migration versions 1, 2, 3, 4, and 5 applied.
+- migration down/up smoke for `000005_gtfs_studio_drafts.sql`: passed via `make migrate-down`, `make migrate-up`, and `make migrate-status`.
+- `make test-integration`: passed with DB-backed telemetry, matcher, Vehicle Positions, GTFS import, and GTFS Studio tests using isolated temporary database setup.
+- `make validate`: passed Phase 5 scaffold, telemetry, matcher, Vehicle Positions, GTFS import, and GTFS Studio file validation only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
+- `git diff --check`: passed.
+
+Phase 5 implementation results:
+- added typed GTFS Studio draft storage in migration `000005_gtfs_studio_drafts.sql`.
+- added `internal/gtfs.DraftService` for blank drafts, active-feed clones, typed draft CRUD, soft discard, list filtering, and draft publish.
+- made cloned drafts capture `base_feed_version_id`; blank drafts keep it empty.
+- made discarded and published drafts read-only by default.
+- made non-editable draft statuses fail before draft-to-feed conversion, validation, or shared publish activation.
+- made entity remove operations delete only current editable draft rows, never published GTFS rows or publish history.
+- refactored the Phase 4 publish activation into a shared helper used directly by both ZIP import and Studio publish.
+- added `cmd/gtfs-studio` as a minimal server-rendered UI with draft summary version visibility and operational row forms for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies.
+- added DB-backed tests for blank/clone behavior, draft/published separation, direct Studio publish, traceability, read-only status behavior, and discarded-draft publish rejection.
+- added handler tests for draft list filtering and draft summary version visibility.
+- did not add Trip Updates, Alerts, rider apps, payments, passenger accounts, CAD, marketplace workflows, canonical validators, map editing, or timetable designer behavior.
+
 ## Next Recommended Step
 
-Begin Phase 5 using the exact recommendation in `docs/handoffs/latest.md`.
+Begin Phase 6 using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. inspect the Phase 4 import service and published GTFS tables
-2. design GTFS Studio draft tables/records without collapsing them into published feed versions
-3. add minimal draft CRUD for core static GTFS entities
-4. publish drafts through the same validated import/publish pipeline shape
-5. preserve Vehicle Positions and importer behavior while adding tests for draft/publish separation
+1. inspect the Phase 5 draft/publish service and the Phase 3 Vehicle Positions publisher
+2. define the Trip Updates prediction adapter boundary without coupling it to telemetry ingest or Vehicle Positions
+3. add a documented no-op or minimal adapter plus diagnostics plumbing
+4. add Alerts endpoint/model shape only within the Phase 6 architecture scope
+5. preserve Vehicle Positions, published GTFS, and GTFS Studio behavior
 
 ## What Not To Do Next
 

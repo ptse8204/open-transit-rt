@@ -30,5 +30,6 @@ These questions do not block the next phase.
 
 ## GTFS Studio
 
-- Which draft entities should the first UI expose before full table coverage?
-- Should draft publish require validator success in all environments or only production-like environments?
+- Phase 5 resolved the first UI entity scope: minimal operational forms for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies.
+- Should a later Studio UI add map editing for shape points and timetable-design interactions for stop_times, or keep those as row editors?
+- Should draft publish require canonical MobilityData validator success in all environments once canonical validation is wired, or only production-like environments?

@@ -16,11 +16,14 @@ Implemented now:
 - simple `agency-config` HTTP service
 - DB-backed `telemetry-ingest` HTTP service
 - simple `feed-vehicle-positions` HTTP service
+- minimal `gtfs-studio` HTTP service
 - shared domain models
 - Phase 0 scaffolding for migrations, bootstrap, fixtures, and handoffs
 - Phase 1 durable telemetry persistence foundation
 - Phase 2 deterministic trip matching foundation
 - Phase 3 DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug feed
+- Phase 4 GTFS ZIP import/publish pipeline
+- Phase 5 GTFS Studio typed draft/publish model
 - architecture and Codex handoff docs
 
 Not yet implemented:
@@ -70,6 +73,18 @@ Current endpoints:
 
 `feed-vehicle-positions` requires `DATABASE_URL` and `AGENCY_ID`. The protobuf endpoint returns a valid empty `FeedMessage` with normal success headers when no telemetry is available or all vehicles are suppressed as stale.
 
+### gtfs-studio
+```bash
+DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" PORT=8086 go run ./cmd/gtfs-studio
+```
+
+Current endpoints:
+- `GET /healthz`
+- `GET /readyz`
+- `GET /admin/gtfs-studio?agency_id=demo-agency`
+
+GTFS Studio is a minimal server-rendered admin surface for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies. Draft edits are stored separately from published GTFS rows. Published and discarded drafts are read-only by default.
+
 ## Local development
 
 Copy local defaults if needed:
@@ -108,7 +123,6 @@ make validate
 
 ## Recommended next build order
 
-1. add GTFS import and publish pipeline
-2. add GTFS Studio with draft/publish workflow
-3. define Trip Updates and Alerts architecture
-4. integrate TheTransitClock or another predictor behind a prediction adapter
+1. define Trip Updates and Alerts architecture
+2. integrate TheTransitClock or another predictor behind a prediction adapter
+3. add compliance and consumer workflow surfaces
