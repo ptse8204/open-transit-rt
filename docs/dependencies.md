@@ -202,10 +202,13 @@ Validate static GTFS before publish and during compliance checks.
 - invoked by import/publish workflows or CI checks
 - validation results stored as reports
 - validator output should not dictate internal schema design
+- Phase 4 implements an internal GTFS import validator/report contract for required files, core references, service usability, shape ordering, stop_times references, times beyond `24:00:00`, frequencies, and block preservation. This internal validator is not a substitute for canonical compliance validation.
 
 ### Failure behavior
 - failed validation should block publish or mark the import unhealthy based on configured strictness
 - validation reports must remain visible to operators
+- Phase 4 internal validation failures block activation, store `gtfs_import` and `validation_report` rows when the report write succeeds, and leave `gtfs_import.feed_version_id` `NULL`.
+- If the best-effort failed-import report write also fails, the importer/CLI returns a clear error and must not claim that failure metadata was stored.
 
 ### Replacement strategy
 - validator implementation can change

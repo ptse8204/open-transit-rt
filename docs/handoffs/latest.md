@@ -4,7 +4,7 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 4 — GTFS import and publish pipeline
+Phase 5 — GTFS Studio draft/publish model
 
 ## Phase Status
 
@@ -12,13 +12,14 @@ Phase 4 — GTFS import and publish pipeline
 - Phase 1 durable telemetry foundation is implemented and operationally closed.
 - Phase 2 deterministic trip matching is implemented and semantically closed.
 - Phase 3 Vehicle Positions production feed is implemented and complete.
-- Phase 4 is ready to start.
+- Phase 4 GTFS import and publish pipeline is implemented and complete.
+- Phase 5 is ready to start.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-03.md`
+3. `docs/handoffs/phase-04.md`
 4. `docs/phase-plan.md`
 5. `docs/codex-task.md`
 6. `docs/requirements-2a-2f.md`
@@ -29,7 +30,7 @@ Phase 4 — GTFS import and publish pipeline
 
 ## Current Objective
 
-Begin Phase 4 GTFS import and publish pipeline. Do not start GTFS Studio, Trip Updates, Alerts, rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
+Begin Phase 5 GTFS Studio draft/publish model. Do not start Trip Updates, Alerts, rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
 
 ## Exact First Commands
 
@@ -58,31 +59,30 @@ task test:integration
 - Task is optional and may not be installed; Makefile remains independently usable.
 - Docker must be running before DB-backed checks.
 - Canonical GTFS and GTFS-RT validators are documented but not wired yet.
-- Existing GTFS repository and matcher tests seed schedule rows directly; Phase 4 must build real import/publish runtime behavior rather than promoting test-only seed helpers.
+- GTFS Studio runtime editing flows are not implemented yet.
 
 ## First Files Likely To Edit
 
 - `internal/gtfs/`
 - `db/migrations/`
-- `cmd/migrate/` only if migration behavior needs extension
+- `cmd/*` only for minimal admin/Studio entrypoints if needed
 - `testdata/gtfs/`
-- `testdata/expected/`
 - `docs/current-status.md`
-- `docs/handoffs/phase-04.md`
+- `docs/handoffs/phase-05.md`
 - `docs/handoffs/latest.md`
 - `docs/dependencies.md`
-- `docs/decisions.md` if architecture-significant import/publish decisions are made
+- `docs/decisions.md` if architecture-significant draft/publish decisions are made
 
-## Phase 4 Entry Recommendation
+## Phase 5 Entry Recommendation
 
-Start GTFS import and publish pipeline without changing Vehicle Positions semantics:
+Start GTFS Studio draft/publish work without changing Vehicle Positions semantics or weakening the Phase 4 import pipeline:
 
-1. Inspect the existing published GTFS tables and schedule-query boundary.
-2. Add a staging model for GTFS ZIP imports while keeping draft GTFS separate from published active feed versions.
-3. Parse and validate required GTFS files into staged records.
-4. Atomically activate a published feed version without changing stable public feed URLs.
-5. Add rollback-safe integration tests using `testdata/gtfs/valid-small`, `after-midnight`, `frequency-based`, and `malformed`.
-6. Do not implement GTFS Studio, Trip Updates, or Alerts in Phase 4.
+1. Inspect the existing `gtfs_draft` / `gtfs_draft_record` scaffolding and the Phase 4 import service.
+2. Add draft storage and editing boundaries that remain separate from published `feed_version` tables.
+3. Add minimal draft CRUD for core GTFS entities needed by the first Studio slice.
+4. Publish drafts through the same validation and activation semantics used by GTFS ZIP import.
+5. Add tests proving draft data does not leak into active published GTFS until publish.
+6. Do not implement Trip Updates, Alerts, rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows in Phase 5.
 
 ## Constraints To Preserve
 
@@ -95,21 +95,19 @@ Start GTFS import and publish pipeline without changing Vehicle Positions semant
 - Manual overrides take precedence over matching.
 - No rider apps, payments, passenger accounts, or dispatcher CAD.
 - External integrations stay behind documented adapters.
+- Runtime GTFS import input is ZIP; directory parsing is test-fixture setup only.
+- GTFS times beyond `24:00:00` remain stored as imported text in canonical published GTFS tables.
 
-## Phase 3 Notes For Phase 4
+## Phase 4 Notes For Phase 5
 
-- `cmd/feed-vehicle-positions` now requires `AGENCY_ID` and DB access at startup.
-- `/public/gtfsrt/vehicle_positions.pb` is DB-backed and returns valid GTFS-RT protobuf `FeedMessage` responses.
-- `/public/gtfsrt/vehicle_positions.json` is diagnostic JSON generated from the same snapshot as protobuf.
-- Empty telemetry or all-suppressed snapshots return normal successful empty protobuf feeds with populated headers.
-- `Last-Modified` is derived from snapshot `generated_at`.
-- Vehicle Positions use `internal/feed.VehiclePositionsSnapshot`; do not duplicate publication business logic in handlers.
-- `telemetry.Repository.ListLatestByAgency` ordering is now a hard contract: one latest accepted row per vehicle ordered by `observed_at DESC, id DESC`.
-- `state.Repository.ListCurrentAssignments` is the bulk current-assignment read boundary.
-- Automatic assignments publish trip descriptors only when linked to the latest telemetry event.
-- Non-exact frequency assignments map Vehicle Positions trip descriptors to `UNSCHEDULED`; exact and normal scheduled assignments use `SCHEDULED`.
-- JSON debug fields are diagnostic, not a stable public API.
-- Canonical GTFS-RT validator tooling remains unwired.
+- `cmd/gtfs-import` is a thin CLI wrapper over `internal/gtfs.ImportService`.
+- `gtfs_import.feed_version_id` is set only after successful publish and remains `NULL` for failed imports.
+- Validation failures create no `feed_version`; publish failures roll back staged rows.
+- `validation_report.gtfs_import_id` links schedule validation reports to import attempts.
+- `block_id` from `trips.txt` is imported when present and visible through `gtfs.PostgresRepository.ListTripCandidates`.
+- `gtfs_shape_line` is built from ordered shape points when a shape has at least two points.
+- Optional `shapes.txt` and `frequencies.txt` are accepted.
+- Canonical validator tooling remains unwired; internal validation is not a compliance claim.
 
 ## Handoff Template Requirement
 

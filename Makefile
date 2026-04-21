@@ -53,19 +53,22 @@ test:
 	go test ./...
 
 test-integration: migrate-status
-	@echo "Phase 3 integration: database is reachable; DB-backed telemetry, matcher, and Vehicle Positions tests use isolated temporary databases when supported."
+	@echo "Phase 4 integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, and GTFS import tests use isolated temporary databases when supported."
 	INTEGRATION_TESTS=1 TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...
 
 lint:
 	@if command -v golangci-lint >/dev/null 2>&1; then golangci-lint run ./...; else echo "optional lint skipped: golangci-lint is not installed; future CI should make this required once configured"; fi
 
 validate:
-	@echo "Phase 3 validation smoke: checking scaffold, telemetry, matcher, and Vehicle Positions feed files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
+	@echo "Phase 4 validation smoke: checking scaffold, telemetry, matcher, Vehicle Positions, and GTFS import files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
 	@test -f db/migrations/000001_initial_schema.sql
 	@test -f db/migrations/000002_telemetry_ingest_foundation.sql
 	@test -f db/migrations/000003_deterministic_matching.sql
+	@test -f db/migrations/000004_gtfs_import_pipeline.sql
 	@test -f internal/feed/vehicle_positions.go
+	@test -f internal/gtfs/importer.go
 	@test -f cmd/feed-vehicle-positions/main.go
+	@test -f cmd/gtfs-import/main.go
 	@test -d testdata/gtfs/valid-small
 	@test -d testdata/gtfs/after-midnight
 	@test -d testdata/gtfs/frequency-based

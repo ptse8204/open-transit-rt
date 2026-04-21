@@ -12,7 +12,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 This repository is an early-stage starter for **Open Transit RT**.
 
-Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, and Phase 3 Vehicle Positions production feed are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, and run DB-backed telemetry, matcher, and Vehicle Positions tests.
+Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, and Phase 4 GTFS import/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, and run DB-backed telemetry, matcher, Vehicle Positions, and GTFS import tests.
 
 ## What Exists Now
 
@@ -112,6 +112,21 @@ The repo now has:
 - JSON debug publication decisions for every snapshot vehicle, including telemetry age, assignment publishability, assignment/telemetry mismatch, trip descriptor publication, and the winning omission reason
 - tests for protobuf validity, entity content, no telemetry, no assignments, stale/suppressed behavior, truncation, non-exact frequency mapping, true-north bearing preservation, telemetry mismatch, repository ordering, bulk assignment lookup, and handler headers/status
 
+### Phase 4 GTFS import and publish pipeline
+The repo now has:
+- `cmd/gtfs-import` as a thin runtime GTFS ZIP import CLI
+- `internal/gtfs.ImportService` for GTFS ZIP import, validation, report persistence, staging, and atomic activation
+- internal GTFS validation for required files, service source availability, core references, service usability, shapes ordering, stop_times references, trips/routes/services consistency, frequencies, blocks, and times beyond `24:00:00`
+- exact required runtime input rule: `agency.txt`, `routes.txt`, `stops.txt`, `trips.txt`, `stop_times.txt`, and at least one usable service source from `calendar.txt` or `calendar_dates.txt`
+- optional `shapes.txt` and `frequencies.txt` handling
+- preservation of imported GTFS time text, including values beyond `24:00:00`
+- preservation of `block_id` from `trips.txt` when present
+- PostGIS point construction for stops and shape points, plus `gtfs_shape_line` construction from ordered shape points when a shape has at least two points
+- transactional publish behavior that inserts a new staged `feed_version`, loads published GTFS rows, retires the previous active feed, and activates the new feed atomically
+- failed validation behavior that stores `gtfs_import` and `validation_report` rows when possible and creates no staged `feed_version`
+- failed publish rollback behavior that leaves no partial GTFS rows and keeps `gtfs_import.feed_version_id` `NULL`
+- tests for valid import, invalid import, rollback safety, active feed switching, block visibility to downstream GTFS consumers, shape-line creation, and CLI wrapper behavior
+
 ## Schema Source Of Truth
 
 Migrations under `db/migrations` are the source of truth for executable schema changes and are applied through `cmd/migrate`.
@@ -122,7 +137,6 @@ Migrations under `db/migrations` are the source of truth for executable schema c
 
 The following are still missing or incomplete unless a later handoff says otherwise:
 
-- complete GTFS import pipeline
 - complete GTFS Studio draft/publish workflow
 - Trip Updates adapter implementation
 - Alerts feed implementation
@@ -134,9 +148,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 4 — GTFS import and publish pipeline
+**Active phase:** Phase 5 — GTFS Studio draft/publish model
 
-Phase 3 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 4 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -243,16 +257,44 @@ Phase 3 implementation results:
 - added official GTFS-RT protobuf Go bindings while keeping protobuf mapping inside `internal/feed`.
 - did not add Trip Updates, Alerts, GTFS import, GTFS Studio, rider apps, payments, passenger accounts, CAD, or marketplace workflows.
 
+## Phase 4 Closure Audit Results
+
+Checked during Phase 4 closure:
+- `command -v go`: passed, `/usr/local/bin/go`.
+- `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed; PostGIS container running on host port `55432`.
+- `make migrate-up`: passed and applied `000004_gtfs_import_pipeline.sql`.
+- `make migrate-status`: passed and reports migration versions 1, 2, 3, and 4 applied.
+- migration down/up smoke for `000004_gtfs_import_pipeline.sql`: passed via `make migrate-down`, `make migrate-up`, and `make migrate-status`.
+- `make test-integration`: passed with DB-backed telemetry, matcher, Vehicle Positions, and GTFS import tests using isolated temporary database setup.
+- `make validate`: passed Phase 4 scaffold, telemetry, matcher, Vehicle Positions, and GTFS import file validation only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
+- `git diff --check`: passed.
+
+Phase 4 implementation results:
+- added real GTFS ZIP import path through `cmd/gtfs-import` and `internal/gtfs.ImportService`.
+- added durable import reports in `gtfs_import` and linked schedule validation reports.
+- kept runtime import input as GTFS ZIP; directory handling exists only as test fixture setup that creates ZIPs before invoking importer behavior.
+- validates required files and service source availability, core references, service usability, shapes ordering, stop_times references, trips/routes/services consistency, frequencies, agency scoping, and GTFS times beyond `24:00:00`.
+- preserves canonical imported GTFS time text in published tables while using parsed seconds only for validation and query logic.
+- imports optional `block_id` from `trips.txt` and proves it remains visible through the downstream GTFS repository boundary.
+- creates `gtfs_shape_line` rows from ordered shape points when a shape has at least two points.
+- publishes atomically by activating a new `feed_version` and retiring the previous active version in one transaction.
+- failed validation creates no staged `feed_version`; publish failures roll back partial rows and leave `gtfs_import.feed_version_id` `NULL`.
+- did not add GTFS Studio runtime editing, Trip Updates, Alerts, rider apps, payments, passenger accounts, CAD, or marketplace workflows.
+
 ## Next Recommended Step
 
-Begin Phase 4 using the exact recommendation in `docs/handoffs/latest.md`.
+Begin Phase 5 using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. inspect the existing published GTFS tables and test fixture shape
-2. add a staging model for GTFS ZIP imports without collapsing draft and published data
-3. parse and validate required GTFS files into staged records
-4. atomically activate a published feed version
-5. add rollback-safe integration tests using the existing GTFS fixtures
+1. inspect the Phase 4 import service and published GTFS tables
+2. design GTFS Studio draft tables/records without collapsing them into published feed versions
+3. add minimal draft CRUD for core static GTFS entities
+4. publish drafts through the same validated import/publish pipeline shape
+5. preserve Vehicle Positions and importer behavior while adding tests for draft/publish separation
 
 ## What Not To Do Next
 

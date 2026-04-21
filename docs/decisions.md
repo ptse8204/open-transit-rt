@@ -77,3 +77,11 @@ Phase 3 Vehicle Positions publishing uses latest accepted telemetry plus current
 The snapshot caps latest telemetry before assignment lookup and stale/publication evaluation. `ListLatestByAgency` therefore has a hard ordering contract: one latest accepted row per vehicle, ordered by `observed_at DESC, id DESC`. Automatic assignments are only publishable as trip descriptors when linked to the latest telemetry event, which prevents read-committed cross-table timing from producing false trip certainty.
 
 GTFS-RT protobuf types remain isolated to `internal/feed`. Public Vehicle Positions responses set `gtfs_realtime_version = "2.0"` and return normal successful empty `FeedMessage` responses when there is no telemetry or all vehicles are suppressed. JSON debug output carries per-vehicle publication decisions and telemetry age for inspectability, but it is diagnostic rather than a stable public integration contract.
+
+## ADR-0014 — Use transactional feed-version staging for GTFS ZIP import
+
+Phase 4 GTFS ZIP import stages schedule rows by inserting them under a new inactive `feed_version` inside the publish transaction, then retiring the previous active version and activating the new version before commit. Failed validation creates no `feed_version`; publish failures roll back the transaction so no inactive staged version or partial GTFS rows remain. `gtfs_import.feed_version_id` is set only after a successful publish and remains `NULL` for failed imports.
+
+`gtfs_import` and `validation_report` store the normalized internal import report. Phase 4 intentionally does not store original ZIP bytes in Postgres and does not wire MobilityData GTFS Validator; canonical validator integration remains a later compliance task.
+
+This staging model is for GTFS ZIP imports only. `gtfs_draft` and `gtfs_draft_record` remain reserved for Phase 5 GTFS Studio and must not be used as runtime import staging tables.

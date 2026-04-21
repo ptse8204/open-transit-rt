@@ -16,10 +16,7 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 4 — GTFS Import And Publish
 
-- Import `gtfs.zip`.
-- Validate required files and references.
-- Stage imported data and atomically activate feed versions.
-- Store import and validation reports.
+- Complete. GTFS ZIP import, internal validation, transactional feed-version publish, failed-import report storage, rollback-safe activation, block preservation, shape-line construction, and active feed switching tests are implemented.
 
 ## Phase 5 — GTFS Studio
 

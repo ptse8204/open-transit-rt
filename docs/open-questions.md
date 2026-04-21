@@ -17,7 +17,11 @@ These questions do not block the next phase.
 
 - Which exact GTFS static validator distribution should be pinned first?
 - Which GTFS-Realtime validator should be used for CI versus scheduled production checks?
-- Should Phase 4 wire validator install/download steps, or only define the adapter/report contract first?
+- Phase 4 defined and stores an internal GTFS import validation report contract but did not wire canonical validator install/download steps; which static validator distribution should be pinned for Phase 8 compliance?
+
+## Static GTFS Publication
+
+- Should later public schedule-feed serving store original uploaded ZIP bytes, regenerate ZIPs from published tables, or support both with checksum comparison?
 
 ## Prediction Backends
 
