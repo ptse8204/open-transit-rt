@@ -182,6 +182,21 @@ func TestVehiclePositionsSnapshotPublicationDecisions(t *testing.T) {
 			wantTrip:   true,
 		},
 		{
+			name:  "manual override in service without trip",
+			event: feedStoredEvent(10, "bus-manual-no-trip", generatedAt.Add(-30*time.Second), `{}`),
+			assignment: ptrAssignment(state.Assignment{
+				AgencyID:         "demo-agency",
+				VehicleID:        "bus-manual-no-trip",
+				TelemetryEventID: 10,
+				State:            state.StateInService,
+				Confidence:       1,
+				AssignmentSource: state.AssignmentSourceManualOverride,
+				DegradedState:    state.DegradedNone,
+			}),
+			wantReason: TripDescriptorOmissionManualStateWithoutTrip,
+			wantEntity: true,
+		},
+		{
 			name:  "matched",
 			event: feedStoredEvent(9, "bus-match", generatedAt.Add(-30*time.Second), `{}`),
 			assignment: ptrAssignment(state.Assignment{

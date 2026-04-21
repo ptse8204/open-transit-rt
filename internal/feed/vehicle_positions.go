@@ -18,7 +18,6 @@ const GTFSRealtimeVersion = "2.0"
 
 const (
 	TripDescriptorOmissionNone                        = "none"
-	TripDescriptorOmissionVehicleNotIncluded          = "vehicle_not_included"
 	TripDescriptorOmissionSuppressedStaleTelemetry    = "suppressed_stale_telemetry"
 	TripDescriptorOmissionStaleTelemetry              = "stale_telemetry"
 	TripDescriptorOmissionNoAssignment                = "no_assignment"
@@ -167,12 +166,12 @@ func (b *VehiclePositionsBuilder) vehicleSnapshot(event telemetry.StoredEvent, a
 		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionNotInService
 		return vehicle
 	}
-	if assignment.TripID == "" {
-		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionMissingTripID
-		return vehicle
-	}
 	if assignment.AssignmentSource == state.AssignmentSourceManualOverride && assignment.TripID == "" {
 		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionManualStateWithoutTrip
+		return vehicle
+	}
+	if assignment.TripID == "" {
+		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionMissingTripID
 		return vehicle
 	}
 	if degradedAssignmentBlocksTripDescriptor(assignment.DegradedState) {

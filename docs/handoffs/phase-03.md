@@ -59,7 +59,7 @@ Phase 3 — Vehicle Positions production feed
 
 ## Tests Added And Results
 
-- Added `internal/feed` tests for protobuf validity, header fields, matched entity content, no telemetry, all-suppressed empty feeds, no assignments, stale/suppressed behavior, truncation-before-publication behavior, non-exact frequency `UNSCHEDULED`, explicit true-north `bearing: 0`, malformed/omitted optional telemetry fields, assignment/telemetry mismatch, telemetry age debug output, and deterministic protobuf bytes.
+- Added `internal/feed` tests for protobuf validity, header fields, matched entity content, no telemetry, all-suppressed empty feeds, no assignments, stale/suppressed behavior, manual override publication and no-trip omission behavior, truncation-before-publication behavior, non-exact frequency `UNSCHEDULED`, explicit true-north `bearing: 0`, malformed/omitted optional telemetry fields, assignment/telemetry mismatch, telemetry age debug output, and deterministic protobuf bytes.
 - Added `cmd/feed-vehicle-positions` handler tests for protobuf headers, JSON debug output, missing config, method handling, readiness, no-telemetry success, and repository errors.
 - Added `internal/state` DB-backed coverage for `ListCurrentAssignments`, including active-only behavior, missing vehicles, and agency scoping.
 - Added `internal/telemetry` DB-backed coverage for `ListLatestByAgency` ordering by `observed_at DESC, id DESC`.
