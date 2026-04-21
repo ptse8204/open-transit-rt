@@ -85,6 +85,43 @@ func (r *PostgresRepository) CurrentAssignment(ctx context.Context, agencyID str
 	return &assignment, nil
 }
 
+func (r *PostgresRepository) ListCurrentAssignments(ctx context.Context, agencyID string, vehicleIDs []string) (map[string]Assignment, error) {
+	assignments := make(map[string]Assignment, len(vehicleIDs))
+	if len(vehicleIDs) == 0 {
+		return assignments, nil
+	}
+
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, agency_id, vehicle_id, feed_version_id, telemetry_event_id, service_date, route_id, trip_id, block_id, start_date, start_time,
+		       current_stop_sequence, shape_dist_traveled, state, confidence, assignment_source, reason_codes, degraded_state, score_details_json,
+		       manual_override_id, active_from
+		FROM vehicle_trip_assignment
+		WHERE agency_id = $1
+		  AND vehicle_id = ANY($2::text[])
+		  AND active_to IS NULL
+		ORDER BY vehicle_id, active_from DESC, id DESC
+	`, agencyID, vehicleIDs)
+	if err != nil {
+		return nil, fmt.Errorf("query current assignments: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		assignment, err := scanAssignment(rows)
+		if err != nil {
+			return nil, fmt.Errorf("scan current assignment: %w", err)
+		}
+		if _, exists := assignments[assignment.VehicleID]; exists {
+			continue
+		}
+		assignments[assignment.VehicleID] = assignment
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate current assignments: %w", err)
+	}
+	return assignments, nil
+}
+
 func (r *PostgresRepository) SaveAssignment(ctx context.Context, assignment Assignment, incidents []Incident) (Assignment, error) {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {

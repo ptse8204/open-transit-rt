@@ -20,10 +20,10 @@ Implemented now:
 - Phase 0 scaffolding for migrations, bootstrap, fixtures, and handoffs
 - Phase 1 durable telemetry persistence foundation
 - Phase 2 deterministic trip matching foundation
+- Phase 3 DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug feed
 - architecture and Codex handoff docs
 
 Not yet implemented:
-- protobuf GTFS-RT encoding
 - Android client
 - TheTransitClock integration
 - alerts authoring UI
@@ -64,7 +64,11 @@ PORT=8083 go run ./cmd/feed-vehicle-positions
 
 Current endpoints:
 - `GET /healthz`
+- `GET /readyz`
+- `GET /public/gtfsrt/vehicle_positions.pb`
 - `GET /public/gtfsrt/vehicle_positions.json`
+
+`feed-vehicle-positions` requires `DATABASE_URL` and `AGENCY_ID`. The protobuf endpoint returns a valid empty `FeedMessage` with normal success headers when no telemetry is available or all vehicles are suppressed as stale.
 
 ## Local development
 
@@ -100,12 +104,11 @@ make validate
 
 `make test-integration` runs DB-backed telemetry tests. The tests prefer creating an isolated temporary database from `TEST_DATABASE_URL`; if that is not permitted, they fall back to an isolated temporary schema in the configured test database.
 
-`make validate` is currently a scaffold and Phase 1 telemetry-file smoke check only. It verifies required migration and fixture paths exist; canonical GTFS and GTFS-Realtime validators are documented but not wired yet.
+`make validate` is currently a scaffold, telemetry, matcher, and Vehicle Positions file smoke check only. It verifies required migration and fixture paths exist; canonical GTFS and GTFS-Realtime validators are documented but not wired yet.
 
 ## Recommended next build order
 
-1. build deterministic trip matcher
-2. publish true GTFS-RT protobuf Vehicle Positions
-3. integrate TheTransitClock behind a prediction adapter
-4. add GTFS import and publish pipeline
-5. add GTFS Studio with draft/publish workflow
+1. add GTFS import and publish pipeline
+2. add GTFS Studio with draft/publish workflow
+3. define Trip Updates and Alerts architecture
+4. integrate TheTransitClock or another predictor behind a prediction adapter

@@ -718,6 +718,19 @@ func (f *fakeAssignments) CurrentAssignment(_ context.Context, _ string, _ strin
 	return f.current, nil
 }
 
+func (f *fakeAssignments) ListCurrentAssignments(_ context.Context, _ string, vehicleIDs []string) (map[string]Assignment, error) {
+	assignments := make(map[string]Assignment, len(vehicleIDs))
+	if f.current == nil {
+		return assignments, nil
+	}
+	for _, vehicleID := range vehicleIDs {
+		if vehicleID == f.current.VehicleID {
+			assignments[vehicleID] = *f.current
+		}
+	}
+	return assignments, nil
+}
+
 func (f *fakeAssignments) SaveAssignment(_ context.Context, assignment Assignment, incidents []Incident) (Assignment, error) {
 	if f.current != nil {
 		f.closedCount++

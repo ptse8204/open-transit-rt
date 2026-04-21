@@ -251,16 +251,19 @@ Core runtime + developer tooling
 Generate and serialize official GTFS Realtime `FeedMessage` protobuf payloads.
 
 ### Preferred implementation
-- official GTFS Realtime protobuf definitions with Go bindings
+- `github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs` v1.0.0
+- `google.golang.org/protobuf` v1.36.11
 
 ### Integration boundary
 - protobuf types should be used at the feed boundary
 - internal domain models should remain separate from raw protobuf types where practical
 - mapping from internal models to protobuf should happen in feed publisher packages
+- Phase 3 keeps protobuf types inside `internal/feed`; telemetry and matcher/domain packages do not expose GTFS-RT types
 
 ### Failure behavior
 - serialization errors must fail request generation clearly
 - do not fall back to placeholder feed data
+- empty Vehicle Positions feeds must still return valid protobuf `FeedMessage` responses with populated headers
 
 ### Replacement strategy
 - protobuf schema version changes should be isolated to feed-mapping packages
@@ -430,18 +433,19 @@ Optional task runner for local workflows.
 ## 9B. GTFS / GTFS-Realtime protobuf and validation tooling
 
 ### Classification
-Validation and developer tooling; GTFS-RT protobuf serialization is later core runtime.
+Validation and developer tooling; GTFS-RT Vehicle Positions protobuf serialization is core runtime as of Phase 3.
 
 ### Purpose
-Future phases will use official GTFS-Realtime protobuf bindings and canonical validators for feed generation and compliance checks.
+Phase 3 uses official GTFS-Realtime protobuf bindings for Vehicle Positions feed generation. Future phases should wire canonical validators for feed validation and compliance checks.
 
 ### Expected version
-- official GTFS-Realtime protobuf definitions compatible with the current GTFS Realtime reference
+- `github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs` v1.0.0
+- `google.golang.org/protobuf` v1.36.11
 - MobilityData validators or equivalent canonical validators
 
 ### Startup / provisioning
-- not wired in Phase 0
-- future phases should add explicit install/start instructions here before use
+- protobuf bindings are pulled through Go modules
+- canonical GTFS and GTFS-Realtime validators remain documented but not wired
 
 ### Integration boundary
 - protobuf types may appear in feed boundary packages only

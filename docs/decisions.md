@@ -69,3 +69,11 @@ Block-transition scoring requires same block, temporal plausibility, and the nea
 Repeated identical degraded unknown states reuse the active degraded assignment only when degraded state, reason codes, service date, and telemetry evidence match. Telemetry evidence means matching `telemetry_event_id` when either row has one, with exact `active_from` equality used only as the no-telemetry fallback. Materially new telemetry evidence or a service-day change creates a replacement unknown row and must not leave a previous confident row active.
 
 The Phase 2 handoff is expected to describe actual implemented matcher behavior, not aspirational behavior. After the semantic-closure pass, the handoff and implementation are aligned on constructor behavior, override precedence, degraded-state handling, system-failure taxonomy, batching, block-transition successor rules, bearing validity, and post-midnight service-day limits.
+
+## ADR-0013 — Build Vehicle Positions from one DB-backed snapshot model
+
+Phase 3 Vehicle Positions publishing uses latest accepted telemetry plus current persisted Phase 2 assignments as the source of truth. The protobuf endpoint and JSON debug endpoint both render from the same immutable in-memory snapshot per request, so HTTP handlers do not duplicate publication decisions.
+
+The snapshot caps latest telemetry before assignment lookup and stale/publication evaluation. `ListLatestByAgency` therefore has a hard ordering contract: one latest accepted row per vehicle, ordered by `observed_at DESC, id DESC`. Automatic assignments are only publishable as trip descriptors when linked to the latest telemetry event, which prevents read-committed cross-table timing from producing false trip certainty.
+
+GTFS-RT protobuf types remain isolated to `internal/feed`. Public Vehicle Positions responses set `gtfs_realtime_version = "2.0"` and return normal successful empty `FeedMessage` responses when there is no telemetry or all vehicles are suppressed. JSON debug output carries per-vehicle publication decisions and telemetry age for inspectability, but it is diagnostic rather than a stable public integration contract.

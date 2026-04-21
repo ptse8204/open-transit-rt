@@ -12,7 +12,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 This repository is an early-stage starter for **Open Transit RT**.
 
-Phase 0 scaffolding, Phase 1 durable telemetry foundation, and Phase 2 deterministic trip matching are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, and run DB-backed telemetry plus matcher integration tests.
+Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, and Phase 3 Vehicle Positions production feed are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, and run DB-backed telemetry, matcher, and Vehicle Positions tests.
 
 ## What Exists Now
 
@@ -51,7 +51,7 @@ The repo includes starter Go services for:
 - `telemetry-ingest`
 - `feed-vehicle-positions`
 
-`cmd/telemetry-ingest` now persists valid telemetry to Postgres through a telemetry repository. `agency-config` and `feed-vehicle-positions` remain starter scaffolds; `feed-vehicle-positions` still serves placeholder JSON from sample data and does not read persisted telemetry yet.
+`cmd/telemetry-ingest` persists valid telemetry to Postgres through a telemetry repository. `cmd/feed-vehicle-positions` now serves DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug output from persisted latest accepted telemetry plus persisted current assignments. `agency-config` remains starter scaffolding.
 
 ### Phase 1 telemetry foundation
 The repo now has:
@@ -96,6 +96,22 @@ The repo now has:
 
 Phase 2 service-day resolution considers the observed agency-local date and the immediately previous local date. That supports normal same-day service and practical after-midnight GTFS times through the prior service day, but it is not a generalized multi-day lookback for very long service patterns beyond that two-service-day window.
 
+### Phase 3 Vehicle Positions production feed
+The repo now has:
+- official GTFS-RT protobuf serialization through `github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs`
+- `/public/gtfsrt/vehicle_positions.pb` as a stable DB-backed protobuf endpoint
+- `/public/gtfsrt/vehicle_positions.json` as DB-backed JSON debug output
+- `FeedHeader.gtfs_realtime_version = "2.0"`, `FULL_DATASET`, and snapshot-generated timestamps
+- `Last-Modified` derived from the snapshot `generated_at` timestamp
+- a single `internal/feed.VehiclePositionsSnapshot` model used by both protobuf and JSON rendering
+- a hard `telemetry.Repository.ListLatestByAgency` ordering contract: latest accepted row per vehicle ordered by `observed_at DESC, id DESC`
+- `state.Repository.ListCurrentAssignments` for narrow bulk active-assignment reads behind the state repository interface
+- configurable vehicle cap, stale TTL, stale suppression TTL, and Vehicle Positions trip publication confidence threshold
+- deterministic stale behavior: stale-but-unsuppressed vehicles remain in protobuf without trip descriptors; suppressed vehicles remain visible only in JSON debug
+- normal successful empty protobuf feeds when there is no telemetry or all vehicles are suppressed
+- JSON debug publication decisions for every snapshot vehicle, including telemetry age, assignment publishability, assignment/telemetry mismatch, trip descriptor publication, and the winning omission reason
+- tests for protobuf validity, entity content, no telemetry, no assignments, stale/suppressed behavior, truncation, non-exact frequency mapping, true-north bearing preservation, telemetry mismatch, repository ordering, bulk assignment lookup, and handler headers/status
+
 ## Schema Source Of Truth
 
 Migrations under `db/migrations` are the source of truth for executable schema changes and are applied through `cmd/migrate`.
@@ -108,7 +124,6 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 - complete GTFS import pipeline
 - complete GTFS Studio draft/publish workflow
-- real GTFS-RT Vehicle Positions protobuf feed from persisted data
 - Trip Updates adapter implementation
 - Alerts feed implementation
 - compliance dashboard
@@ -119,9 +134,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 3 — Vehicle Positions production feed
+**Active phase:** Phase 4 — GTFS import and publish pipeline
 
-Phase 2 is semantically closed, not just feature-complete. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 3 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -206,16 +221,38 @@ Phase 2 quality-hardening pass results:
 - tightened the final semantic edge cases: degraded dedupe now includes service date and telemetry evidence, block-transition credit is limited to the nearest plausible successor, manual overrides persist feed/block context when resolvable, malformed/null bearings are invalid, and tests cover the two-day service-day boundary plus unknown replacement invariants.
 - verified after the semantic-closure pass that the Phase 2 handoff matches the actual implementation.
 
+## Phase 3 Closure Audit Results
+
+Checked during Phase 3 closure:
+- `go mod tidy`: passed and added GTFS-RT protobuf dependencies.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed.
+- `make migrate-status`: passed and reports migration versions 1, 2, and 3 applied.
+- `make test-integration`: passed with DB-backed telemetry and matcher tests using isolated temporary database setup.
+- `make validate`: passed Phase 3 scaffold, telemetry, matcher, and Vehicle Positions file validation only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
+- `git diff --check`: passed.
+
+Phase 3 implementation results:
+- removed placeholder sample Vehicle Positions output from production paths.
+- added DB-backed GTFS-RT protobuf Vehicle Positions output.
+- added DB-backed JSON debug output from the same snapshot model.
+- added snapshot-level cap/truncation behavior and per-vehicle publication decisions.
+- preserved stale, suppressed, unknown, no-assignment, no-telemetry, manual override, non-exact frequency, and telemetry-mismatch behavior in tests.
+- added official GTFS-RT protobuf Go bindings while keeping protobuf mapping inside `internal/feed`.
+- did not add Trip Updates, Alerts, GTFS import, GTFS Studio, rider apps, payments, passenger accounts, CAD, or marketplace workflows.
+
 ## Next Recommended Step
 
-Begin Phase 3 using the exact recommendation in `docs/handoffs/latest.md` and `docs/handoffs/phase-02.md`.
+Begin Phase 4 using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. replace placeholder Vehicle Positions behavior with output from persisted latest telemetry and persisted assignments
-2. add GTFS-RT protobuf Vehicle Positions serialization
-3. expose a stable public protobuf endpoint while keeping JSON debug output
-4. preserve stale and unmatched behavior from Phase 2 assignments
-5. add feed validation-oriented tests without implementing Trip Updates
+1. inspect the existing published GTFS tables and test fixture shape
+2. add a staging model for GTFS ZIP imports without collapsing draft and published data
+3. parse and validate required GTFS files into staged records
+4. atomically activate a published feed version
+5. add rollback-safe integration tests using the existing GTFS fixtures
 
 ## What Not To Do Next
 

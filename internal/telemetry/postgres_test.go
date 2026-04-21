@@ -151,6 +151,58 @@ func TestPostgresRepositoryIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("latest listing is ordered by most recent accepted observation", func(t *testing.T) {
+		resetTelemetry(t, ctx, pool)
+		old := Event{
+			AgencyID:  "demo-agency",
+			DeviceID:  "device-old",
+			VehicleID: "bus-old",
+			Timestamp: time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+		}
+		firstSameTime := Event{
+			AgencyID:  "demo-agency",
+			DeviceID:  "device-first",
+			VehicleID: "bus-first",
+			Timestamp: time.Date(2026, 4, 20, 15, 1, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+		}
+		secondSameTime := Event{
+			AgencyID:  "demo-agency",
+			DeviceID:  "device-second",
+			VehicleID: "bus-second",
+			Timestamp: time.Date(2026, 4, 20, 15, 1, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+		}
+		storeFixtureEvent(t, ctx, repo, old)
+		firstStored := storeFixtureEvent(t, ctx, repo, firstSameTime)
+		secondStored := storeFixtureEvent(t, ctx, repo, secondSameTime)
+		if secondStored.ID <= firstStored.ID {
+			t.Fatalf("test setup expected second same-time row to have larger id: %d <= %d", secondStored.ID, firstStored.ID)
+		}
+
+		latest, err := repo.ListLatestByAgency(ctx, "demo-agency", 10)
+		if err != nil {
+			t.Fatalf("list latest: %v", err)
+		}
+		if len(latest) != 3 {
+			t.Fatalf("latest count = %d, want 3", len(latest))
+		}
+		got := []string{latest[0].VehicleID, latest[1].VehicleID, latest[2].VehicleID}
+		want := []string{"bus-second", "bus-first", "bus-old"}
+		for i := range want {
+			if got[i] != want[i] {
+				t.Fatalf("latest vehicle order = %+v, want %+v", got, want)
+			}
+			if latest[i].IngestStatus != IngestStatusAccepted {
+				t.Fatalf("latest included non-accepted status: %+v", latest[i])
+			}
+		}
+	})
+
 	t.Run("agency scoped debug events include persisted statuses", func(t *testing.T) {
 		resetTelemetry(t, ctx, pool)
 		events := loadFixture(t, "../../testdata/telemetry/matched-vehicle.json")

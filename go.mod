@@ -3,8 +3,10 @@ module open-transit-rt
 go 1.23.2
 
 require (
+	github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs v1.0.0
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/pressly/goose/v3 v3.24.3
+	google.golang.org/protobuf v1.36.11
 )
 
 require (

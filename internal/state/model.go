@@ -120,5 +120,6 @@ type ManualOverride struct {
 type Repository interface {
 	ActiveManualOverride(ctx context.Context, agencyID string, vehicleID string, at time.Time) (*ManualOverride, error)
 	CurrentAssignment(ctx context.Context, agencyID string, vehicleID string) (*Assignment, error)
+	ListCurrentAssignments(ctx context.Context, agencyID string, vehicleIDs []string) (map[string]Assignment, error)
 	SaveAssignment(ctx context.Context, assignment Assignment, incidents []Incident) (Assignment, error)
 }

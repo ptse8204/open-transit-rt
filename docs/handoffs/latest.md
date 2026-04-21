@@ -4,30 +4,32 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 3 — Vehicle Positions production feed
+Phase 4 — GTFS import and publish pipeline
 
 ## Phase Status
 
 - Phase 0 scaffolding is implemented and operationally closed.
 - Phase 1 durable telemetry foundation is implemented and operationally closed.
 - Phase 2 deterministic trip matching is implemented and semantically closed.
-- Phase 3 is ready to start.
+- Phase 3 Vehicle Positions production feed is implemented and complete.
+- Phase 4 is ready to start.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-02.md`
+3. `docs/handoffs/phase-03.md`
 4. `docs/phase-plan.md`
 5. `docs/codex-task.md`
 6. `docs/requirements-2a-2f.md`
 7. `docs/requirements-trip-updates.md`
-8. `docs/dependencies.md`
-9. `docs/decisions.md`
+8. `docs/requirements-calitp-compliance.md`
+9. `docs/dependencies.md`
+10. `docs/decisions.md`
 
 ## Current Objective
 
-Begin Phase 3 Vehicle Positions production feed using persisted latest telemetry and persisted Phase 2 assignments. Do not start GTFS import, GTFS Studio, Trip Updates, or Alerts.
+Begin Phase 4 GTFS import and publish pipeline. Do not start GTFS Studio, Trip Updates, Alerts, rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
 
 ## Exact First Commands
 
@@ -53,34 +55,34 @@ task test:integration
 
 ## Known Blockers
 
-- Task is not installed, but Task is optional and Makefile is independently usable.
+- Task is optional and may not be installed; Makefile remains independently usable.
 - Docker must be running before DB-backed checks.
-- GTFS import is not implemented yet, so Phase 3 should use existing published GTFS tables and test fixtures rather than starting Phase 4.
 - Canonical GTFS and GTFS-RT validators are documented but not wired yet.
+- Existing GTFS repository and matcher tests seed schedule rows directly; Phase 4 must build real import/publish runtime behavior rather than promoting test-only seed helpers.
 
 ## First Files Likely To Edit
 
-- `cmd/feed-vehicle-positions/`
-- `internal/feed/`
-- `internal/state/`
-- `internal/telemetry/` only for narrow read/query additions if existing latest-telemetry methods are insufficient
-- `db/migrations/` only if Phase 3 needs feed-publication metadata changes
+- `internal/gtfs/`
+- `db/migrations/`
+- `cmd/migrate/` only if migration behavior needs extension
+- `testdata/gtfs/`
 - `testdata/expected/`
 - `docs/current-status.md`
-- `docs/handoffs/phase-03.md`
+- `docs/handoffs/phase-04.md`
 - `docs/handoffs/latest.md`
+- `docs/dependencies.md`
+- `docs/decisions.md` if architecture-significant import/publish decisions are made
 
-## Phase 3 Entry Recommendation
+## Phase 4 Entry Recommendation
 
-Start Vehicle Positions production feed without changing Trip Updates or GTFS import behavior:
+Start GTFS import and publish pipeline without changing Vehicle Positions semantics:
 
-1. Replace placeholder sample data in `cmd/feed-vehicle-positions` with DB-backed latest accepted telemetry.
-2. Read persisted current assignments from `internal/state`.
-3. Generate valid GTFS-RT Vehicle Positions protobuf output at a stable public endpoint.
-4. Keep a JSON debug endpoint for inspection.
-5. Preserve Phase 2 conservative behavior: unmatched and stale vehicles must not emit false trip certainty.
-6. Add tests for matched, unknown, stale, and assignment-aware Vehicle Positions output.
-7. Do not implement Trip Updates, Alerts, GTFS import, or GTFS Studio.
+1. Inspect the existing published GTFS tables and schedule-query boundary.
+2. Add a staging model for GTFS ZIP imports while keeping draft GTFS separate from published active feed versions.
+3. Parse and validate required GTFS files into staged records.
+4. Atomically activate a published feed version without changing stable public feed URLs.
+5. Add rollback-safe integration tests using `testdata/gtfs/valid-small`, `after-midnight`, `frequency-based`, and `malformed`.
+6. Do not implement GTFS Studio, Trip Updates, or Alerts in Phase 4.
 
 ## Constraints To Preserve
 
@@ -94,26 +96,20 @@ Start Vehicle Positions production feed without changing Trip Updates or GTFS im
 - No rider apps, payments, passenger accounts, or dispatcher CAD.
 - External integrations stay behind documented adapters.
 
-## Phase 2 Notes For Phase 3
+## Phase 3 Notes For Phase 4
 
-- `vehicle_trip_assignment.score_details_json` is loose debug JSON, not a stable integration schema.
-- Unknown assignment rows are explicit and close previous active rows.
-- Unknown rows carry `service_date` whenever agency timezone and observed timestamp are resolvable; the column is nullable for truly unresolved cases.
-- Repeated trip instances with the same `trip_id` but different `start_time` must remain distinct.
-- `internal/state.Engine` is the only valid production matcher entry point; `NewEngine` returns an error if schedule or assignment repositories are missing, and `MustNewEngine` is reserved for test/bootstrap callers.
-- Active manual overrides are absolute and are evaluated before stale-telemetry fallback.
-- Continuity and block-transition scoring are time-aware and require configured-window plausibility, not just same trip or same block identity.
-- Block-transition scoring also verifies nearest plausible next-trip sequencing within the block when start-time identity is available; later same-block trips do not receive credit solely because they are later.
-- Numeric explicit `bearing: 0` is valid true north and can receive movement-direction credit only when the stored payload explicitly contains a numeric `bearing` field; null, malformed, or payload-missing zero values are treated as missing.
-- `shape_dist_traveled = 0` is preserved as a valid persisted value.
-- Repeated identical degraded unknown states reuse the active degraded assignment only when degraded state, reason codes, service date, and telemetry evidence match. The implementation compares `telemetry_event_id` when present and falls back to exact `active_from` equality only when both rows lack telemetry evidence; materially new evidence or service-day changes replace the unknown row and keep prior confident rows closed.
-- Manual override assignments populate active feed and block context when resolvable, so they are not thinner persisted rows than automatic matches.
-- Missing shape data uses reason `missing_shape` plus degraded state `missing_shape`; it reduces confidence but does not automatically block a match when other strong evidence exists.
-- Non-exact frequency matches use conservative window identity details and must not be treated as exact scheduled instances.
-- `no_schedule_candidates` is reserved for successful schedule queries that return no trips. Repository/config/resolution failures use distinct matcher-system-failure reasons.
-- Route-hint matching is reserved for future input expansion and is not active in Phase 2 because telemetry does not carry a route hint.
-- Service-day resolution checks the observed agency-local date and immediately previous local date only; do not assume broader multi-day post-midnight coverage without extending the resolver.
-- The Phase 2 handoff matches the actual implementation after the semantic-closure pass.
+- `cmd/feed-vehicle-positions` now requires `AGENCY_ID` and DB access at startup.
+- `/public/gtfsrt/vehicle_positions.pb` is DB-backed and returns valid GTFS-RT protobuf `FeedMessage` responses.
+- `/public/gtfsrt/vehicle_positions.json` is diagnostic JSON generated from the same snapshot as protobuf.
+- Empty telemetry or all-suppressed snapshots return normal successful empty protobuf feeds with populated headers.
+- `Last-Modified` is derived from snapshot `generated_at`.
+- Vehicle Positions use `internal/feed.VehiclePositionsSnapshot`; do not duplicate publication business logic in handlers.
+- `telemetry.Repository.ListLatestByAgency` ordering is now a hard contract: one latest accepted row per vehicle ordered by `observed_at DESC, id DESC`.
+- `state.Repository.ListCurrentAssignments` is the bulk current-assignment read boundary.
+- Automatic assignments publish trip descriptors only when linked to the latest telemetry event.
+- Non-exact frequency assignments map Vehicle Positions trip descriptors to `UNSCHEDULED`; exact and normal scheduled assignments use `SCHEDULED`.
+- JSON debug fields are diagnostic, not a stable public API.
+- Canonical GTFS-RT validator tooling remains unwired.
 
 ## Handoff Template Requirement
 

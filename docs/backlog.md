@@ -12,10 +12,7 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 3 — Vehicle Positions Production Feed
 
-- Add GTFS-RT protobuf bindings.
-- Publish `/public/gtfsrt/vehicle_positions.pb` from persisted data.
-- Keep JSON debug endpoint.
-- Add stale/unmatched behavior and validation tests.
+- Complete. Vehicle Positions protobuf and JSON debug output are DB-backed, generated from the same snapshot model, preserve unknown/stale behavior, and have unit plus DB-backed tests.
 
 ## Phase 4 — GTFS Import And Publish
 

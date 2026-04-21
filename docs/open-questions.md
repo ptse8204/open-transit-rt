@@ -1,6 +1,6 @@
 # Open Questions
 
-These questions do not block Phase 0.
+These questions do not block the next phase.
 
 ## Deployment
 
@@ -17,6 +17,7 @@ These questions do not block Phase 0.
 
 - Which exact GTFS static validator distribution should be pinned first?
 - Which GTFS-Realtime validator should be used for CI versus scheduled production checks?
+- Should Phase 4 wire validator install/download steps, or only define the adapter/report contract first?
 
 ## Prediction Backends
 

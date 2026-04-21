@@ -487,6 +487,85 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 			t.Fatalf("assignment = %+v, want block transition reason", assignment)
 		}
 	})
+
+	t.Run("bulk current assignments are active and agency scoped", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		oldAssignment, err := assignments.SaveAssignment(ctx, Assignment{
+			AgencyID:         "demo-agency",
+			VehicleID:        "bus-current",
+			State:            StateInService,
+			ServiceDate:      "20260420",
+			RouteID:          "route-old",
+			TripID:           "trip-old",
+			StartDate:        "20260420",
+			StartTime:        "07:00:00",
+			Confidence:       0.9,
+			AssignmentSource: AssignmentSourceAutomatic,
+			ReasonCodes:      []string{ReasonTripHintMatch},
+			DegradedState:    DegradedNone,
+			ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1"},
+			ActiveFrom:       time.Date(2026, 4, 20, 14, 0, 0, 0, time.UTC),
+		}, nil)
+		if err != nil {
+			t.Fatalf("seed old assignment: %v", err)
+		}
+		newAssignment, err := assignments.SaveAssignment(ctx, Assignment{
+			AgencyID:         "demo-agency",
+			VehicleID:        "bus-current",
+			State:            StateInService,
+			ServiceDate:      "20260420",
+			RouteID:          "route-new",
+			TripID:           "trip-new",
+			StartDate:        "20260420",
+			StartTime:        "08:00:00",
+			Confidence:       0.9,
+			AssignmentSource: AssignmentSourceAutomatic,
+			ReasonCodes:      []string{ReasonTripHintMatch},
+			DegradedState:    DegradedNone,
+			ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1"},
+			ActiveFrom:       time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC),
+		}, nil)
+		if err != nil {
+			t.Fatalf("seed new assignment: %v", err)
+		}
+		_, err = assignments.SaveAssignment(ctx, Assignment{
+			AgencyID:         "overnight-agency",
+			VehicleID:        "bus-current",
+			State:            StateInService,
+			ServiceDate:      "20260420",
+			RouteID:          "night-route",
+			TripID:           "night-trip",
+			StartDate:        "20260420",
+			StartTime:        "24:30:00",
+			Confidence:       0.9,
+			AssignmentSource: AssignmentSourceAutomatic,
+			ReasonCodes:      []string{ReasonTripHintMatch},
+			DegradedState:    DegradedNone,
+			ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1"},
+			ActiveFrom:       time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC),
+		}, nil)
+		if err != nil {
+			t.Fatalf("seed other agency assignment: %v", err)
+		}
+
+		current, err := assignments.ListCurrentAssignments(ctx, "demo-agency", []string{"bus-current", "missing"})
+		if err != nil {
+			t.Fatalf("list current assignments: %v", err)
+		}
+		if len(current) != 1 {
+			t.Fatalf("assignment count = %d, want only bus-current", len(current))
+		}
+		got, ok := current["bus-current"]
+		if !ok {
+			t.Fatalf("bus-current assignment missing from result")
+		}
+		if got.ID != newAssignment.ID || got.ID == oldAssignment.ID || got.TripID != "trip-new" {
+			t.Fatalf("bulk current assignment = %+v, want latest active row %d", got, newAssignment.ID)
+		}
+		if _, ok := current["missing"]; ok {
+			t.Fatalf("missing vehicle unexpectedly returned: %+v", current["missing"])
+		}
+	})
 }
 
 func setupStateIntegrationDB(t *testing.T) (*pgxpool.Pool, func()) {
