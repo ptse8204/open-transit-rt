@@ -12,7 +12,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 This repository is an early-stage starter for **Open Transit RT**.
 
-Phase 0 scaffolding and Phase 1 durable telemetry foundation are complete. Phase 1 closure-polish is complete, and no remaining Phase 1 cleanup items are known. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, and run DB-backed telemetry integration tests.
+Phase 0 scaffolding, Phase 1 durable telemetry foundation, and Phase 2 deterministic trip matching are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, and run DB-backed telemetry plus matcher integration tests.
 
 ## What Exists Now
 
@@ -65,6 +65,23 @@ The repo now has:
 - DB-backed integration tests using `testdata/telemetry`
 - development agency seeding through `scripts/seed-dev.sql`
 
+### Phase 2 deterministic trip matching
+The repo now has:
+- `internal/gtfs` schedule-query boundary over existing published GTFS tables
+- agency-local service-day resolution using agency timezone
+- GTFS time parsing for times beyond `24:00:00`
+- deterministic matcher engine in `internal/state`
+- conservative candidate scoring using trip hints, shape proximity, movement direction, stop progress, schedule fit, continuity, and block continuity
+- exact frequency candidate generation for `exact_times=1`
+- conservative frequency-window identity behavior for `exact_times=0`
+- explicit unknown assignment persistence for stale, ambiguous, low-confidence, or missing-schedule cases
+- manual override precedence in matcher logic
+- Postgres assignment repository that closes prior active rows and persists assignment confidence, reasons, degraded state, score details, and incident linkage
+- a small reason-code, degraded-state, and incident taxonomy
+- unit and DB-backed integration tests for matcher edge cases
+
+`vehicle_trip_assignment.score_details_json` is intentionally loose debug JSON in Phase 2, not a stable public schema. Unknown assignment rows carry `service_date` whenever agency timezone and observed timestamp can be resolved; `service_date` is nullable only for truly unresolved cases.
+
 ## Schema Source Of Truth
 
 Migrations under `db/migrations` are the source of truth for executable schema changes and are applied through `cmd/migrate`.
@@ -77,7 +94,6 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 - complete GTFS import pipeline
 - complete GTFS Studio draft/publish workflow
-- deterministic trip matcher with real edge-case handling
 - real GTFS-RT Vehicle Positions protobuf feed from persisted data
 - Trip Updates adapter implementation
 - Alerts feed implementation
@@ -89,9 +105,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 2 — Deterministic trip matching
+**Active phase:** Phase 3 — Vehicle Positions production feed
 
-Phase 1 is operationally closed with no known remaining cleanup items. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 2 is operationally closed with no known remaining cleanup items. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -145,16 +161,34 @@ Checked during Phase 1 closure:
 - `git diff --check`: passed.
 - Optional Task equivalents were not run because `task` is not installed.
 
+## Phase 2 Closure Audit Results
+
+Checked during Phase 2 closure:
+- `command -v go`: passed, `/usr/local/bin/go`.
+- `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- Initial pre-coding `make fmt`: blocked while Plan Mode was active because it runs `gofmt -w ./cmd ./internal`; it was run successfully after implementation.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed.
+- `make migrate-up`: passed and applied `000003_deterministic_matching.sql`.
+- `make migrate-status`: passed and reports migration versions 1, 2, and 3 applied.
+- migration down/up smoke for `000003_deterministic_matching.sql`: passed via `make migrate-down`, `make migrate-up`, and `make migrate-status`.
+- `make test-integration`: passed with DB-backed telemetry and matcher tests using isolated temporary database setup.
+- `make validate`: passed Phase 2 scaffold, telemetry, and matcher-file validation only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
+- `git diff --check`: passed.
+- Optional Task equivalents were not run because `task` is not installed.
+
 ## Next Recommended Step
 
-Begin Phase 2 using the exact recommendation in `docs/handoffs/latest.md` and `docs/handoffs/phase-01.md`.
+Begin Phase 3 using the exact recommendation in `docs/handoffs/latest.md` and `docs/handoffs/phase-02.md`.
 
 The first implementation slice should be:
-1. define the GTFS schedule query surface needed by deterministic matching without implementing GTFS import yet
-2. add agency-local service-day resolution
-3. use persisted latest telemetry from the Phase 1 repository
-4. keep low-confidence matches as `unknown`
-5. add tests for after-midnight, frequency-based, stale, unmatched, and block-transition fixtures
+1. replace placeholder Vehicle Positions behavior with output from persisted latest telemetry and persisted assignments
+2. add GTFS-RT protobuf Vehicle Positions serialization
+3. expose a stable public protobuf endpoint while keeping JSON debug output
+4. preserve stale and unmatched behavior from Phase 2 assignments
+5. add feed validation-oriented tests without implementing Trip Updates
 
 ## What Not To Do Next
 

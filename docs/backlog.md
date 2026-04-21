@@ -8,12 +8,7 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 2 — Deterministic Trip Matching
 
-- Add service-day resolver using agency timezone.
-- Support after-midnight times and repeated trip instances.
-- Support `frequencies.txt` exact and non-exact trips.
-- Add conservative candidate scoring and confidence reasons.
-- Respect manual overrides.
-- Persist assignments and incidents.
+- Complete. The matcher resolves agency-local service days, handles after-midnight and frequency cases, persists explicit unknown rows, respects manual overrides, records reasons/degraded state/incidents, and has unit plus DB-backed tests.
 
 ## Phase 3 — Vehicle Positions Production Feed
 

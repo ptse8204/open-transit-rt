@@ -19,12 +19,12 @@ Implemented now:
 - shared domain models
 - Phase 0 scaffolding for migrations, bootstrap, fixtures, and handoffs
 - Phase 1 durable telemetry persistence foundation
+- Phase 2 deterministic trip matching foundation
 - architecture and Codex handoff docs
 
 Not yet implemented:
 - protobuf GTFS-RT encoding
 - Android client
-- trip matching engine
 - TheTransitClock integration
 - alerts authoring UI
 - GTFS Studio interactive editor
