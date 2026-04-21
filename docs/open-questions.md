@@ -26,7 +26,11 @@ These questions do not block the next phase.
 ## Prediction Backends
 
 - Should the first real Trip Updates adapter be an internal deterministic ETA engine or TheTransitClock?
-- What is the minimum diagnostic output required from each predictor backend?
+- Phase 6 resolved the minimum no-op diagnostics trace: adapter name, diagnostics status/reason, active feed version, input counts, Vehicle Positions URL, and persistence outcome. What additional diagnostics are required for the first real predictor backend?
+
+## Alerts
+
+- Should Phase 7 store operator-authored alerts in a dedicated alert table, derive some alerts from incidents/manual overrides, or support both paths?
 
 ## GTFS Studio
 

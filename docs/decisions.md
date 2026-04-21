@@ -101,3 +101,15 @@ Draft agency editing is one row scoped to the draft's agency. On successful draf
 Studio publish converts typed draft rows into the same internal feed model used by ZIP import, then calls the shared validation and activation helper directly. It does not generate or re-import a synthetic ZIP. Non-editable draft statuses are rejected before draft-to-feed conversion, validation, or shared publish activation begins.
 
 The first Studio UI is intentionally minimal server-rendered HTML from Go stdlib packages. It provides operational row forms, not map editing, timetable design, or a heavy frontend application.
+
+## ADR-0016 — Define Phase 6 Trip Updates and Alerts as pluggable empty-feed architecture
+
+Phase 6 establishes Trip Updates and Alerts feed boundaries without implementing ETA quality or alert authoring. Trip Updates use a narrow `internal/prediction.Adapter` contract that accepts the active published GTFS feed version, persisted latest telemetry, persisted current assignments, and the Vehicle Positions feed URL. The default adapter is an explicit no-op that returns no Trip Updates plus diagnostics; it is not a placeholder prediction algorithm.
+
+Trip Updates diagnostics are persisted to `feed_health_snapshot` with `feed_type = 'trip_updates'` and a normalized `details_json` trace containing adapter name, diagnostics status and reason, active feed version ID, input counts, Vehicle Positions URL, and persistence outcome. This reuses the existing health/traceability schema rather than adding a Phase 6 migration.
+
+Trip Updates and Alerts protobuf endpoints return valid empty GTFS-Realtime `FeedMessage` payloads with `gtfs_realtime_version = "2.0"`, `FULL_DATASET`, and `FeedHeader.timestamp` derived from the same snapshot `GeneratedAt` timestamp used for `Last-Modified`. Non-empty Trip Updates output must use deterministic feed entity ordering and ordered `stop_time_update` entries.
+
+Alerts are architecture-only in Phase 6. The Alerts endpoint returns valid empty protobuf and JSON debug output with deferred status, but it does not write `feed_health_snapshot` rows, persist alert records, or derive public alerts from incidents/manual overrides yet. Alert authoring and operational alert workflows belong to Phase 7.
+
+The Trip Updates packages are intentionally not dependencies of telemetry ingest, Vehicle Positions, or GTFS Studio. A non-coupling test guards that boundary.

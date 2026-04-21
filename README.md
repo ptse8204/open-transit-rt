@@ -24,13 +24,15 @@ Implemented now:
 - Phase 3 DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug feed
 - Phase 4 GTFS ZIP import/publish pipeline
 - Phase 5 GTFS Studio typed draft/publish model
+- Phase 6 Trip Updates and Alerts architecture with no-op/default feeds
 - architecture and Codex handoff docs
 
 Not yet implemented:
 - Android client
-- TheTransitClock integration
+- production Trip Updates prediction quality
+- TheTransitClock integration or another real predictor
 - alerts authoring UI
-- GTFS Studio interactive editor
+- GTFS Studio rich map/timetable editor
 
 ## Services
 
@@ -85,6 +87,32 @@ Current endpoints:
 
 GTFS Studio is a minimal server-rendered admin surface for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies. Draft edits are stored separately from published GTFS rows. Published and discarded drafts are read-only by default.
 
+### feed-trip-updates
+```bash
+DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" AGENCY_ID=demo-agency FEED_BASE_URL=http://localhost:8083/public PORT=8084 go run ./cmd/feed-trip-updates
+```
+
+Current endpoints:
+- `GET /healthz`
+- `GET /readyz`
+- `GET /public/gtfsrt/trip_updates.pb`
+- `GET /public/gtfsrt/trip_updates.json`
+
+Phase 6 Trip Updates use an explicit no-op prediction adapter by default. The protobuf endpoint returns a valid empty `FeedMessage`; the JSON endpoint exposes diagnostics and traceability.
+
+### feed-alerts
+```bash
+DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" AGENCY_ID=demo-agency PORT=8085 go run ./cmd/feed-alerts
+```
+
+Current endpoints:
+- `GET /healthz`
+- `GET /readyz`
+- `GET /public/gtfsrt/alerts.pb`
+- `GET /public/gtfsrt/alerts.json`
+
+Phase 6 Alerts return a valid empty `FeedMessage` plus JSON-only deferred diagnostics. Alert authoring and persistence are not implemented yet.
+
 ## Local development
 
 Copy local defaults if needed:
@@ -123,6 +151,6 @@ make validate
 
 ## Recommended next build order
 
-1. define Trip Updates and Alerts architecture
-2. integrate TheTransitClock or another predictor behind a prediction adapter
+1. add stop-level Trip Updates prediction behind the Phase 6 adapter
+2. add operations workflows for prediction repair, cancellations, detours, and alerts
 3. add compliance and consumer workflow surfaces

@@ -4,7 +4,7 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 6 — Trip Updates and Alerts architecture
+Phase 7 — Prediction quality and operations workflows
 
 ## Phase Status
 
@@ -14,13 +14,14 @@ Phase 6 — Trip Updates and Alerts architecture
 - Phase 3 Vehicle Positions production feed is implemented and complete.
 - Phase 4 GTFS import and publish pipeline is implemented and complete.
 - Phase 5 GTFS Studio draft/publish model is implemented and complete.
-- Phase 6 is ready to start.
+- Phase 6 Trip Updates and Alerts architecture is implemented and complete.
+- Phase 7 is ready to start.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-05.md`
+3. `docs/handoffs/phase-06.md`
 4. `docs/phase-plan.md`
 5. `docs/codex-task.md`
 6. `docs/requirements-2a-2f.md`
@@ -31,7 +32,7 @@ Phase 6 — Trip Updates and Alerts architecture
 
 ## Current Objective
 
-Begin Phase 6 Trip Updates and Alerts architecture. Do not start rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
+Begin Phase 7 prediction quality and operations workflows. Do not bypass the Phase 6 prediction adapter boundary, do not couple predictor internals into telemetry ingest, Vehicle Positions, or GTFS Studio, and do not start rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
 
 ## Exact First Commands
 
@@ -60,32 +61,36 @@ task test:integration
 - Task is optional and may not be installed; Makefile remains independently usable.
 - Docker must be running before DB-backed checks.
 - Canonical GTFS and GTFS-RT validators are documented but not wired yet.
-- Trip Updates and Alerts are not implemented yet.
+- Trip Updates currently use a no-op adapter; no ETA-quality predictor is implemented yet.
+- Alerts endpoints exist but alert authoring and persistence are intentionally deferred.
 - GTFS Studio auth is minimal/dev-only and not production-grade.
 
 ## First Files Likely To Edit
 
-- `internal/feed/`
-- `internal/state/`
-- `internal/gtfs/`
-- `cmd/*` only for minimal Phase 6 entrypoints if needed
-- `db/migrations/` only if adapter/diagnostics persistence is needed
+- `internal/prediction/`
+- `internal/feed/tripupdates/`
+- `internal/feed/alerts/`
+- `internal/state/` only for operation-state inputs needed by prediction
+- `internal/gtfs/` only if additional schedule-query contracts are needed
+- `db/migrations/` only if Phase 7 adds alert/prediction persistence beyond existing health snapshots
 - `docs/current-status.md`
-- `docs/handoffs/phase-06.md`
+- `docs/handoffs/phase-07.md`
 - `docs/handoffs/latest.md`
 - `docs/dependencies.md`
 - `docs/decisions.md` if architecture-significant prediction/alerts decisions are made
 
-## Phase 6 Entry Recommendation
+## Phase 7 Entry Recommendation
 
-Start Trip Updates and Alerts architecture without changing Vehicle Positions semantics, weakening GTFS import/Studio publish behavior, or coupling predictor internals into core state:
+Start prediction quality and operations work behind the Phase 6 contracts:
 
-1. Inspect `internal/feed`, `internal/state`, and `internal/gtfs`.
-2. Define a narrow prediction adapter boundary for Trip Updates inputs and outputs.
-3. Add a documented no-op or minimal adapter plus diagnostics plumbing.
-4. Add Alerts feed model and stable endpoint shape only within Phase 6 scope.
-5. Keep Vehicle Positions, telemetry ingest, matching, GTFS import, and GTFS Studio behavior stable.
-6. Do not implement rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
+1. Inspect `internal/prediction`, `internal/feed/tripupdates`, `internal/feed/alerts`, `internal/state`, and `internal/gtfs`.
+2. Choose the first real prediction strategy: internal deterministic ETA logic or an external adapter such as TheTransitClock.
+3. Keep public Trip Updates endpoint shape stable while replacing the no-op adapter behavior.
+4. Add stop-level predictions only from active published GTFS, persisted latest telemetry, and persisted assignments.
+5. Preserve deterministic entity ordering and ordered `stop_time_update` entries.
+6. Preserve `FeedHeader.timestamp` and `Last-Modified` alignment from snapshot `GeneratedAt`.
+7. Add alert authoring/persistence only after deciding whether alerts are operator-authored, incident-derived, or both.
+8. Keep Vehicle Positions, telemetry ingest, GTFS import, and GTFS Studio behavior stable.
 
 ## Constraints To Preserve
 
@@ -101,21 +106,19 @@ Start Trip Updates and Alerts architecture without changing Vehicle Positions se
 - Runtime GTFS import input is ZIP; directory parsing is test-fixture setup only.
 - GTFS Studio publishes typed draft rows through the shared validation/activation helper directly, not through synthetic ZIP import.
 - GTFS times beyond `24:00:00` remain stored as imported text in canonical published GTFS tables.
+- Phase 6 Trip Updates packages must not become dependencies of telemetry ingest, Vehicle Positions, or GTFS Studio.
 
-## Phase 5 Notes For Phase 6
+## Phase 6 Notes For Phase 7
 
-- `cmd/gtfs-studio` is a minimal server-rendered admin UI.
-- `internal/gtfs.DraftService` owns draft creation, editing, discard, and publish.
-- Typed draft tables cover agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies.
-- `gtfs_draft_record` remains unused legacy scaffold.
-- Drafts cloned from active published GTFS capture `base_feed_version_id`.
-- Drafts in `published` or `discarded` status are read-only by default.
-- Entity remove operations only affect rows in the current editable draft and never delete published GTFS rows or publish history.
-- Discarded drafts are hidden from the default Studio list and included only with an explicit filter.
-- Studio publish uses `feed_version.source_type = 'gtfs_studio'`.
-- `gtfs_draft_publish` and `validation_report.gtfs_draft_publish_id` preserve publish traceability.
-- Non-editable draft statuses are rejected before draft-to-feed conversion, validation, or shared publish activation.
-- Canonical validator tooling remains unwired; internal validation is not a compliance claim.
+- `internal/prediction.Adapter` is the only Trip Updates prediction boundary.
+- `prediction.NoopAdapter` is the default adapter and returns explicit no-op diagnostics.
+- Trip Updates diagnostics persist to `feed_health_snapshot` with required fields in `details_json`.
+- `cmd/feed-trip-updates` exposes `/public/gtfsrt/trip_updates.pb` and `/public/gtfsrt/trip_updates.json`.
+- `cmd/feed-alerts` exposes `/public/gtfsrt/alerts.pb` and `/public/gtfsrt/alerts.json`.
+- `VEHICLE_POSITIONS_FEED_URL` is an exact full Phase 3 protobuf URL. If unset, `FEED_BASE_URL` must include `/public` and derives `/public/gtfsrt/vehicle_positions.pb`.
+- Trip Updates and Alerts responses derive `Last-Modified` from the same snapshot `GeneratedAt` used for `FeedHeader.timestamp`.
+- Alerts do not write `feed_health_snapshot` rows in Phase 6; deferred status is JSON-only.
+- No database migration was added in Phase 6.
 
 ## Handoff Template Requirement
 

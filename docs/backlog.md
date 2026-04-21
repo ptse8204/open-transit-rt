@@ -24,15 +24,14 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 6 — Trip Updates And Alerts Architecture
 
-- Define `PredictionAdapter` input/output contracts.
-- Add no-op adapter and diagnostics plumbing.
-- Add stable endpoint shape for Trip Updates and Alerts.
+- Complete. Trip Updates adapter contracts, no-op adapter, diagnostics persistence, stable empty Trip Updates endpoints, stable empty Alerts endpoints, and non-coupling tests are implemented.
 
 ## Phase 7 — Prediction Quality And Operations
 
 - Add stop-level ETA model and quality metrics.
 - Add incident queue workflows.
 - Add cancellation, added trip, detour, short turn, and vehicle swap operations.
+- Add Alerts authoring/persistence and incident-to-alert workflows.
 
 ## Phase 8 — Compliance And Consumer Workflow
 

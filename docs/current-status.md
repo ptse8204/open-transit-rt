@@ -12,7 +12,9 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 This repository is an early-stage starter for **Open Transit RT**.
 
-Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, and GTFS Studio tests.
+Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
+
+Phase 6 Trip Updates and Alerts architecture is complete. The repo now has a pluggable Trip Updates adapter boundary, default no-op adapter, Trip Updates diagnostics persistence, valid empty Trip Updates protobuf/JSON endpoints, valid empty Alerts protobuf/JSON endpoints, and non-coupling tests that keep prediction packages out of telemetry ingest, Vehicle Positions, and GTFS Studio.
 
 ## What Exists Now
 
@@ -50,11 +52,17 @@ The repo includes starter Go services for:
 - `agency-config`
 - `telemetry-ingest`
 - `feed-vehicle-positions`
+- `feed-trip-updates`
+- `feed-alerts`
 - `gtfs-studio`
 
 `cmd/telemetry-ingest` persists valid telemetry to Postgres through a telemetry repository. `cmd/feed-vehicle-positions` now serves DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug output from persisted latest accepted telemetry plus persisted current assignments. `agency-config` remains starter scaffolding.
 
 `cmd/gtfs-studio` serves a minimal server-rendered admin surface for typed GTFS draft editing and draft publishing. It is operational row editing, not a map editor or timetable designer.
+
+`cmd/feed-trip-updates` serves Phase 6 architecture endpoints backed by a no-op prediction adapter. It returns valid empty GTFS-RT Trip Updates protobuf output and JSON diagnostics while persisting Trip Updates traceability to `feed_health_snapshot`.
+
+`cmd/feed-alerts` serves Phase 6 architecture endpoints for Alerts. It returns valid empty GTFS-RT Alerts protobuf output and JSON-only deferred diagnostics; alert authoring and alert persistence are intentionally deferred.
 
 ### Phase 1 telemetry foundation
 The repo now has:
@@ -161,8 +169,9 @@ Migrations under `db/migrations` are the source of truth for executable schema c
 
 The following are still missing or incomplete unless a later handoff says otherwise:
 
-- Trip Updates adapter implementation
-- Alerts feed implementation
+- production Trip Updates ETA/prediction quality
+- real predictor adapter implementation beyond the default no-op
+- Alerts authoring and alert persistence
 - compliance dashboard
 - consumer ingestion workflow
 - robust auth and role handling
@@ -171,9 +180,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 6 — Trip Updates and Alerts architecture
+**Active phase:** Phase 7 — Prediction quality and operations workflows
 
-Phase 5 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 6 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -338,21 +347,46 @@ Phase 5 implementation results:
 - added handler tests for draft list filtering and draft summary version visibility.
 - did not add Trip Updates, Alerts, rider apps, payments, passenger accounts, CAD, marketplace workflows, canonical validators, map editing, or timetable designer behavior.
 
+## Phase 6 Closure Audit Results
+
+Checked during Phase 6 closure:
+- `command -v go`: passed, `/usr/local/bin/go`.
+- `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed; PostGIS container running on host port `55432`.
+- `make migrate-status`: passed and reports migration versions 1, 2, 3, 4, and 5 applied.
+- `make test-integration`: passed with DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests using isolated temporary database setup.
+- `make validate`: passed Phase 6 file smoke only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
+- `git diff --check`: passed.
+
+Phase 6 implementation results:
+- added `internal/prediction.Adapter` as the narrow Trip Updates prediction boundary.
+- added a default no-op Trip Updates adapter that returns no Trip Updates with explicit diagnostics.
+- added Trip Updates diagnostics persistence to existing `feed_health_snapshot` rows with required traceability fields.
+- added `internal/feed/tripupdates` with valid empty GTFS-RT Trip Updates protobuf output by default, JSON debug output, explicit `FeedHeader.timestamp`, deterministic entity ordering, and ordered `stop_time_update` entries.
+- added `cmd/feed-trip-updates` with `/healthz`, `/readyz`, `/public/gtfsrt/trip_updates.pb`, and `/public/gtfsrt/trip_updates.json`.
+- added exact Vehicle Positions URL derivation: `VEHICLE_POSITIONS_FEED_URL` is an exact full URL, otherwise `FEED_BASE_URL` must include `/public` and derives `/public/gtfsrt/vehicle_positions.pb`.
+- added `internal/feed/alerts` and `cmd/feed-alerts` with valid empty GTFS-RT Alerts protobuf output and JSON-only deferred diagnostics.
+- added non-coupling tests proving telemetry ingest, Vehicle Positions, and GTFS Studio do not depend on prediction or Trip Updates packages.
+- did not add ETA-quality logic, production predictor behavior, alert authoring, alert persistence, incident-to-alert conversion, rider apps, payments, passenger accounts, CAD, marketplace workflows, or canonical validators.
+
 ## Next Recommended Step
 
-Begin Phase 6 using the exact recommendation in `docs/handoffs/latest.md`.
+Begin Phase 7 using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. inspect the Phase 5 draft/publish service and the Phase 3 Vehicle Positions publisher
-2. define the Trip Updates prediction adapter boundary without coupling it to telemetry ingest or Vehicle Positions
-3. add a documented no-op or minimal adapter plus diagnostics plumbing
-4. add Alerts endpoint/model shape only within the Phase 6 architecture scope
-5. preserve Vehicle Positions, published GTFS, and GTFS Studio behavior
+1. inspect the Phase 6 Trip Updates adapter/no-op implementation and diagnostics persistence
+2. choose the first real prediction backend strategy or keep building an internal deterministic predictor
+3. add stop-level ETA prediction quality behind the existing adapter contract
+4. add operator workflows for cancellations, added trips, detours, short turns, and missing predictions
+5. add Alerts authoring/persistence without changing the Phase 6 public endpoint shape
 
 ## What Not To Do Next
 
 Do not:
-- jump straight into Trip Updates implementation
+- bypass the Phase 6 prediction adapter boundary
 - add rider-facing functionality
 - add payments, passenger accounts, or dispatcher CAD
 - add a heavy frontend stack

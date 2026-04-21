@@ -351,6 +351,32 @@ Do not design internal telemetry, matching, or GTFS storage around one predictor
 
 ---
 
+## 7A. Phase 6 no-op Trip Updates adapter
+
+### Classification
+Core architecture boundary / default runtime behavior
+
+### Purpose
+Provide an explicit, safe default Trip Updates adapter while the first real prediction backend remains undecided.
+
+### Integration boundary
+- implemented through `internal/prediction.Adapter`
+- consumed only by the Trip Updates feed service
+- accepts active published GTFS, persisted latest telemetry, persisted current assignments, and the Vehicle Positions feed URL
+- returns Trip Updates plus diagnostics
+- does not own telemetry ingest, matching, Vehicle Positions, GTFS import, or GTFS Studio state
+
+### Failure behavior
+- the no-op adapter returns a valid empty Trip Updates feed with diagnostics status `noop`
+- missing active GTFS produces a valid empty Trip Updates feed with explicit diagnostics
+- adapter errors produce valid empty Trip Updates feeds with error diagnostics
+- Vehicle Positions, telemetry ingest, assignment persistence, and Studio continue independently
+
+### Replacement strategy
+Replace the no-op adapter with an internal deterministic predictor, TheTransitClock adapter, or another predictor behind the same `internal/prediction.Adapter` contract.
+
+---
+
 ## 8. Go toolchain
 
 ### Classification
