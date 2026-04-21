@@ -176,6 +176,60 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		if staleRows != 1 {
 			t.Fatalf("stale assignment rows = %d, want 1 for repeated identical degraded state", staleRows)
 		}
+
+		newEvent := event
+		newEvent.Timestamp = time.Date(2026, 4, 20, 15, 0, 30, 0, time.UTC)
+		newStored := storeTelemetry(t, ctx, telemetryRepo, newEvent)
+		replacement, err := engine.MatchEvent(ctx, newStored, newStored.Timestamp.Add(2*time.Minute))
+		if err != nil {
+			t.Fatalf("replacement stale match: %v", err)
+		}
+		if replacement.ID == assignment.ID {
+			t.Fatalf("replacement degraded assignment reused id %d despite new telemetry evidence", replacement.ID)
+		}
+		if replacement.ServiceDate != assignment.ServiceDate {
+			t.Fatalf("replacement service_date = %s, want %s", replacement.ServiceDate, assignment.ServiceDate)
+		}
+		if err := pool.QueryRow(ctx, `
+			SELECT count(*)
+			FROM vehicle_trip_assignment
+			WHERE agency_id = 'demo-agency'
+			  AND vehicle_id = 'bus-stale'
+			  AND state = 'unknown'
+			  AND degraded_state = 'stale'
+		`).Scan(&staleRows); err != nil {
+			t.Fatalf("count stale assignment rows after replacement: %v", err)
+		}
+		if staleRows != 2 {
+			t.Fatalf("stale assignment rows = %d, want 2 after materially new evidence", staleRows)
+		}
+		var activeUnknownID int64
+		if err := pool.QueryRow(ctx, `
+			SELECT id
+			FROM vehicle_trip_assignment
+			WHERE agency_id = 'demo-agency'
+			  AND vehicle_id = 'bus-stale'
+			  AND active_to IS NULL
+			  AND state = 'unknown'
+		`).Scan(&activeUnknownID); err != nil {
+			t.Fatalf("query active unknown assignment: %v", err)
+		}
+		if activeUnknownID != replacement.ID {
+			t.Fatalf("active unknown id = %d, want replacement id %d", activeUnknownID, replacement.ID)
+		}
+		if err := pool.QueryRow(ctx, `
+			SELECT count(*)
+			FROM vehicle_trip_assignment
+			WHERE agency_id = 'demo-agency'
+			  AND vehicle_id = 'bus-stale'
+			  AND active_to IS NULL
+			  AND state = 'in_service'
+		`).Scan(&activeTripCount); err != nil {
+			t.Fatalf("count active trip assignments after replacement: %v", err)
+		}
+		if activeTripCount != 0 {
+			t.Fatalf("active in-service assignments = %d, want unknown replacement to keep previous confident row closed", activeTripCount)
+		}
 	})
 
 	t.Run("manual override wins over automatic matching", func(t *testing.T) {
@@ -186,7 +240,7 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 				agency_id, vehicle_id, override_type, route_id, trip_id, start_date, start_time, state, reason, created_by, created_at
 			)
 			VALUES (
-				'demo-agency', 'bus-override', 'trip_assignment', 'route-10', 'trip-manual', '20260420', '08:30:00', 'in_service', 'test override', 'test', now()
+				'demo-agency', 'bus-override', 'trip_assignment', 'route-10', 'trip-10-0800', '20260420', '08:00:00', 'in_service', 'test override', 'test', now()
 			)
 		`)
 		if err != nil {
@@ -207,8 +261,11 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("match override event: %v", err)
 		}
-		if assignment.AssignmentSource != AssignmentSourceManualOverride || assignment.TripID != "trip-manual" {
+		if assignment.AssignmentSource != AssignmentSourceManualOverride || assignment.TripID != "trip-10-0800" {
 			t.Fatalf("assignment = %+v, want manual override", assignment)
+		}
+		if assignment.FeedVersionID != "feed-demo" || assignment.BlockID != "block-10" {
+			t.Fatalf("assignment = %+v, want manual override persisted with feed_version_id and block_id", assignment)
 		}
 	})
 

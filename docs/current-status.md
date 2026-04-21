@@ -75,8 +75,8 @@ The repo now has:
 - `NewEngine` returns an error when schedule or assignment repositories are missing; `MustNewEngine` is available only for tests/bootstrap paths that intentionally want panic-on-error behavior
 - conservative candidate scoring using trip hints, shape proximity, movement direction, stop progress, schedule fit, continuity, and block continuity
 - time-aware continuity and block-transition scoring using configured windows
-- block-transition scoring also requires plausible next-trip sequencing within the block when start-time identity is available
-- explicit telemetry bearing presence is respected, including `bearing: 0` for true north
+- block-transition scoring also requires the nearest plausible next-trip sequencing within the block when start-time identity is available; later same-block trips do not receive block-transition credit just for being later in the block
+- explicit telemetry bearing validity is respected, including numeric `bearing: 0` for true north; malformed or null bearing payload values do not receive movement-direction credit
 - exact frequency candidate generation for `exact_times=1`
 - conservative frequency-window identity behavior for `exact_times=0`
 - non-exact frequency matches are marked as conservative window identities in score details so they are not mistaken for exact scheduled instances
@@ -84,9 +84,10 @@ The repo now has:
 - distinct matcher system-failure reasons for agency lookup, service-day resolution, active-feed lookup, and schedule-query failures
 - manual override precedence in matcher logic
 - active manual overrides are evaluated before stale-telemetry fallback, so operator state is absolute until cleared or expired
+- resolvable manual override assignments populate active `feed_version_id` and trip `block_id`, making override rows first-class persisted assignments alongside automatic matches
 - Postgres assignment repository that closes prior active rows and persists assignment confidence, reasons, degraded state, score details, and incident linkage
 - `shape_dist_traveled = 0` is preserved as a valid persisted value, not collapsed to NULL
-- repeated identical degraded unknown states reuse the active degraded assignment instead of creating redundant unknown rows and incidents
+- repeated identical degraded unknown states reuse the active degraded assignment only when service date and telemetry evidence match; materially new telemetry evidence or service-day changes create a replacement unknown row and keep prior confident rows closed
 - batched GTFS schedule detail loading for stop times, shape points, and frequencies under the existing schedule-query boundary
 - a small reason-code, degraded-state, and incident taxonomy
 - unit and DB-backed integration tests for matcher edge cases
@@ -120,7 +121,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 **Active phase:** Phase 3 — Vehicle Positions production feed
 
-Phase 2 is operationally closed with no known remaining cleanup items. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 2 is semantically closed, not just feature-complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -202,7 +203,8 @@ Phase 2 quality-hardening pass results:
 - added DB-backed integration coverage for after-midnight, exact and non-exact frequencies, ambiguous candidates, block transition, and unknown-row replacement.
 - removed the legacy placeholder matcher path so the handoff now matches the actual production matcher implementation.
 - added the final priority fixes for absolute manual override precedence, true-north bearing validity, zero shape-distance persistence, cleaner `NewEngine` construction, block-transition sequencing, and degraded-state deduplication.
-- verified after the priority-fix pass that the Phase 2 handoff matches the actual implementation.
+- tightened the final semantic edge cases: degraded dedupe now includes service date and telemetry evidence, block-transition credit is limited to the nearest plausible successor, manual overrides persist feed/block context when resolvable, malformed/null bearings are invalid, and tests cover the two-day service-day boundary plus unknown replacement invariants.
+- verified after the semantic-closure pass that the Phase 2 handoff matches the actual implementation.
 
 ## Next Recommended Step
 

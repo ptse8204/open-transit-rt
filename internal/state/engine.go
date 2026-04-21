@@ -151,7 +151,7 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 		}
 	}
 
-	var scored []scoredCandidate
+	var candidates []candidateInstance
 	for _, day := range serviceDays {
 		trips, err := e.schedules.ListTripCandidates(ctx, event.AgencyID, feed.ID, day.Date)
 		if err != nil {
@@ -164,9 +164,16 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 		for _, trip := range trips {
 			instances := expandInstances(trip, day.ObservedLocalSeconds, e.config.ScheduleFitWindow)
 			for _, instance := range instances {
-				scored = append(scored, e.scoreCandidate(event, feed.ID, day, instance, previous))
+				candidates = append(candidates, candidateInstance{day: day, instance: instance})
 			}
 		}
+	}
+
+	blockTransitionKey := nearestBlockSuccessorKey(previous, candidates)
+	var scored []scoredCandidate
+	for _, candidate := range candidates {
+		allowBlockTransition := blockTransitionKey != "" && candidate.blockTransitionKey() == blockTransitionKey
+		scored = append(scored, e.scoreCandidate(event, feed.ID, candidate.day, candidate.instance, previous, allowBlockTransition))
 	}
 
 	if len(scored) == 0 {
@@ -216,6 +223,15 @@ type tripInstance struct {
 	stopTimes         []gtfs.StopTime
 	exactFrequency    bool
 	nonExactFrequency bool
+}
+
+type candidateInstance struct {
+	day      gtfs.ServiceDay
+	instance tripInstance
+}
+
+func (c candidateInstance) blockTransitionKey() string {
+	return c.day.Date + "\x00" + c.instance.trip.TripID + "\x00" + c.instance.startTime
 }
 
 type scoredCandidate struct {
@@ -289,7 +305,7 @@ func cloneShiftedStopTimes(stopTimes []gtfs.StopTime, shift int) []gtfs.StopTime
 	return shifted
 }
 
-func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID string, day gtfs.ServiceDay, instance tripInstance, previous *Assignment) scoredCandidate {
+func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID string, day gtfs.ServiceDay, instance tripInstance, previous *Assignment, allowBlockTransition bool) scoredCandidate {
 	reasons := make([]string, 0, 8)
 	score := 0.0
 	scoreDetails := map[string]any{
@@ -330,7 +346,7 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 			}
 			score += shapeScore
 			reasons = append(reasons, ReasonShapeProximityMatch)
-			if hasBearing(event) && bearingDelta(event.Bearing, proj.Bearing) <= 60 {
+			if hasValidBearing(event) && bearingDelta(event.Bearing, proj.Bearing) <= 60 {
 				score += 0.10
 				reasons = append(reasons, ReasonMovementDirectionMatch)
 			}
@@ -366,7 +382,7 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 		if sameInstance && temporalContinuity {
 			score += 0.20
 			reasons = append(reasons, ReasonContinuityMatch)
-		} else if blockTransitionPlausible(previous, instance, day, temporalBlockTransition) {
+		} else if blockTransitionPlausible(previous, instance, day, temporalBlockTransition, allowBlockTransition) {
 			score += 0.15
 			reasons = append(reasons, ReasonBlockTransitionMatch)
 		}
@@ -416,8 +432,43 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 	return scoredCandidate{assignment: assignment}
 }
 
-func blockTransitionPlausible(previous *Assignment, instance tripInstance, day gtfs.ServiceDay, temporalBlockTransition bool) bool {
-	if previous == nil || !temporalBlockTransition {
+func nearestBlockSuccessorKey(previous *Assignment, candidates []candidateInstance) string {
+	if previous == nil || previous.BlockID == "" || previous.StartDate == "" || previous.StartTime == "" {
+		return ""
+	}
+	previousStart, err := gtfs.ParseGTFSTime(previous.StartTime)
+	if err != nil {
+		return ""
+	}
+
+	bestKey := ""
+	bestDate := ""
+	bestStart := 0
+	for _, candidate := range candidates {
+		instance := candidate.instance
+		if instance.trip.BlockID == "" || instance.trip.BlockID != previous.BlockID || instance.startTime == "" {
+			continue
+		}
+		if previous.TripID == instance.trip.TripID && previous.StartDate == candidate.day.Date && previous.StartTime == instance.startTime {
+			continue
+		}
+		switch {
+		case candidate.day.Date < previous.StartDate:
+			continue
+		case candidate.day.Date == previous.StartDate && instance.startSeconds <= previousStart:
+			continue
+		}
+		if bestKey == "" || candidate.day.Date < bestDate || (candidate.day.Date == bestDate && instance.startSeconds < bestStart) {
+			bestKey = candidate.blockTransitionKey()
+			bestDate = candidate.day.Date
+			bestStart = instance.startSeconds
+		}
+	}
+	return bestKey
+}
+
+func blockTransitionPlausible(previous *Assignment, instance tripInstance, day gtfs.ServiceDay, temporalBlockTransition bool, allowBlockTransition bool) bool {
+	if previous == nil || !temporalBlockTransition || !allowBlockTransition {
 		return false
 	}
 	if previous.BlockID == "" || previous.BlockID != instance.trip.BlockID {
@@ -443,19 +494,21 @@ func blockTransitionPlausible(previous *Assignment, instance tripInstance, day g
 	}
 }
 
-func hasBearing(event telemetry.StoredEvent) bool {
-	if event.Bearing != 0 {
-		return true
-	}
-	if len(event.PayloadJSON) == 0 {
-		return false
-	}
+func hasValidBearing(event telemetry.StoredEvent) bool {
 	var payload map[string]json.RawMessage
-	if err := json.Unmarshal(event.PayloadJSON, &payload); err != nil {
-		return false
+	if len(event.PayloadJSON) > 0 {
+		if err := json.Unmarshal(event.PayloadJSON, &payload); err != nil {
+			return false
+		}
+		if raw, ok := payload["bearing"]; ok {
+			var bearing *float64
+			if err := json.Unmarshal(raw, &bearing); err != nil || bearing == nil {
+				return false
+			}
+			return *bearing >= 0 && *bearing <= 360
+		}
 	}
-	_, ok := payload["bearing"]
-	return ok
+	return event.Bearing != 0 && event.Bearing >= 0 && event.Bearing <= 360
 }
 
 func scheduleFit(stopTimes []gtfs.StopTime, observedSeconds int, window time.Duration) (int, float64, int) {
@@ -502,21 +555,24 @@ func (e *Engine) saveManualOverride(ctx context.Context, event telemetry.StoredE
 	if override.StartDate != "" {
 		serviceDate = override.StartDate
 	}
+	feedVersionID, blockID := e.resolveManualOverrideSchedule(ctx, event.AgencyID, override, serviceDate)
 	assignment := Assignment{
 		AgencyID:         event.AgencyID,
 		VehicleID:        event.VehicleID,
+		FeedVersionID:    feedVersionID,
 		TelemetryEventID: event.ID,
 		State:            override.State,
 		ServiceDate:      serviceDate,
 		RouteID:          override.RouteID,
 		TripID:           override.TripID,
+		BlockID:          blockID,
 		StartDate:        override.StartDate,
 		StartTime:        override.StartTime,
 		Confidence:       1,
 		AssignmentSource: AssignmentSourceManualOverride,
 		ReasonCodes:      []string{ReasonManualOverrideActive},
 		DegradedState:    DegradedNone,
-		ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1", "override_type": override.Type, "reason": override.Reason},
+		ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1", "override_type": override.Type, "reason": override.Reason, "feed_version_id": feedVersionID},
 		ManualOverrideID: override.ID,
 		ActiveFrom:       event.Timestamp,
 	}
@@ -524,6 +580,60 @@ func (e *Engine) saveManualOverride(ctx context.Context, event telemetry.StoredE
 		assignment.State = StateInService
 	}
 	return e.saveAssignment(ctx, assignment, nil)
+}
+
+func (e *Engine) resolveManualOverrideSchedule(ctx context.Context, agencyID string, override ManualOverride, serviceDate string) (string, string) {
+	feed, err := e.schedules.ActiveFeedVersion(ctx, agencyID)
+	if err != nil {
+		return "", ""
+	}
+	if override.TripID == "" {
+		return feed.ID, ""
+	}
+	queryDate := firstNonEmpty(override.StartDate, serviceDate)
+	if queryDate == "" {
+		return feed.ID, ""
+	}
+	trips, err := e.schedules.ListTripCandidates(ctx, agencyID, feed.ID, queryDate)
+	if err != nil {
+		return feed.ID, ""
+	}
+	for _, trip := range trips {
+		if trip.TripID != override.TripID || !manualOverrideStartMatchesTrip(override.StartTime, trip) {
+			continue
+		}
+		return feed.ID, trip.BlockID
+	}
+	return feed.ID, ""
+}
+
+func manualOverrideStartMatchesTrip(startTime string, trip gtfs.TripCandidate) bool {
+	if startTime == "" {
+		return true
+	}
+	if len(trip.StopTimes) == 0 {
+		return false
+	}
+	if len(trip.Frequencies) == 0 {
+		return gtfs.FormatGTFSTime(trip.StopTimes[0].DepartureSeconds) == startTime
+	}
+	for _, frequency := range trip.Frequencies {
+		if frequency.ExactTimes == 1 {
+			if frequency.HeadwaySecs <= 0 {
+				continue
+			}
+			for start := frequency.StartSeconds; start < frequency.EndSeconds; start += frequency.HeadwaySecs {
+				if gtfs.FormatGTFSTime(start) == startTime {
+					return true
+				}
+			}
+			continue
+		}
+		if frequency.StartTime == startTime {
+			return true
+		}
+	}
+	return false
 }
 
 func (e *Engine) saveUnknown(ctx context.Context, event telemetry.StoredEvent, serviceDate string, degraded DegradedState, reasons []string, incidentType string, details map[string]any) (Assignment, error) {

@@ -10,7 +10,7 @@ Phase 3 — Vehicle Positions production feed
 
 - Phase 0 scaffolding is implemented and operationally closed.
 - Phase 1 durable telemetry foundation is implemented and operationally closed.
-- Phase 2 deterministic trip matching is implemented and operationally closed.
+- Phase 2 deterministic trip matching is implemented and semantically closed.
 - Phase 3 is ready to start.
 
 ## Read These Files First
@@ -103,16 +103,17 @@ Start Vehicle Positions production feed without changing Trip Updates or GTFS im
 - `internal/state.Engine` is the only valid production matcher entry point; `NewEngine` returns an error if schedule or assignment repositories are missing, and `MustNewEngine` is reserved for test/bootstrap callers.
 - Active manual overrides are absolute and are evaluated before stale-telemetry fallback.
 - Continuity and block-transition scoring are time-aware and require configured-window plausibility, not just same trip or same block identity.
-- Block-transition scoring also verifies plausible next-trip sequencing within the block when start-time identity is available.
-- Explicit `bearing: 0` is valid true north and can receive movement-direction credit.
+- Block-transition scoring also verifies nearest plausible next-trip sequencing within the block when start-time identity is available; later same-block trips do not receive credit solely because they are later.
+- Numeric explicit `bearing: 0` is valid true north and can receive movement-direction credit; null or malformed bearing payload values are not valid.
 - `shape_dist_traveled = 0` is preserved as a valid persisted value.
-- Repeated identical degraded unknown states reuse the active degraded assignment rather than adding redundant rows/incidents.
+- Repeated identical degraded unknown states reuse the active degraded assignment only when service date and telemetry evidence match; materially new evidence or service-day changes replace the unknown row and keep prior confident rows closed.
+- Manual override assignments populate active feed and block context when resolvable, so they are not thinner persisted rows than automatic matches.
 - Missing shape data uses reason `missing_shape` plus degraded state `missing_shape`; it reduces confidence but does not automatically block a match when other strong evidence exists.
 - Non-exact frequency matches use conservative window identity details and must not be treated as exact scheduled instances.
 - `no_schedule_candidates` is reserved for successful schedule queries that return no trips. Repository/config/resolution failures use distinct matcher-system-failure reasons.
 - Route-hint matching is reserved for future input expansion and is not active in Phase 2 because telemetry does not carry a route hint.
 - Service-day resolution checks the observed agency-local date and immediately previous local date only; do not assume broader multi-day post-midnight coverage without extending the resolver.
-- The Phase 2 handoff matches the actual implementation after the priority-fix pass.
+- The Phase 2 handoff matches the actual implementation after the semantic-closure pass.
 
 ## Handoff Template Requirement
 

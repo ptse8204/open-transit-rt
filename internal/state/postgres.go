@@ -255,7 +255,16 @@ func repeatedDegradedAssignment(current Assignment, next Assignment) bool {
 	if current.DegradedState != next.DegradedState {
 		return false
 	}
-	return equalStringSlices(current.ReasonCodes, next.ReasonCodes)
+	if current.ServiceDate != next.ServiceDate {
+		return false
+	}
+	if !equalStringSlices(current.ReasonCodes, next.ReasonCodes) {
+		return false
+	}
+	if current.TelemetryEventID != 0 || next.TelemetryEventID != 0 {
+		return current.TelemetryEventID == next.TelemetryEventID
+	}
+	return current.ActiveFrom.Equal(next.ActiveFrom)
 }
 
 func equalStringSlices(left []string, right []string) bool {

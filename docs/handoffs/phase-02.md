@@ -6,7 +6,7 @@ Phase 2 — Deterministic trip matching
 
 ## Status
 
-- Complete.
+- Semantically closed.
 - Active phase after this handoff: Phase 3 — Vehicle Positions production feed.
 
 ## What Was Implemented
@@ -20,7 +20,7 @@ Phase 2 — Deterministic trip matching
 - Replaced panic-style matcher construction with `NewEngine(...)(*Engine, error)` plus `MustNewEngine` for tests/bootstrap callers.
 - Added candidate scoring for trip hint, shape proximity, movement direction, stop progress, schedule fit, previous-assignment continuity, and block continuity.
 - Made continuity and block-transition scoring time-aware through `ContinuityWindow` and `BlockTransitionWindow`.
-- Made block-transition credit require plausible next-trip sequencing within the block when start-time identity is available.
+- Made block-transition credit require the nearest plausible next-trip sequencing within the block when start-time identity is available; later same-block trips do not receive credit solely because they are later in the block.
 - Fixed matcher config merging so partial custom configs preserve explicitly set values and fill only missing fields from defaults.
 - Added exact frequency instance generation for `exact_times=1`.
 - Added conservative non-exact frequency-window identity behavior for `exact_times=0`.
@@ -28,13 +28,15 @@ Phase 2 — Deterministic trip matching
 - Preserved repeated trip instances with the same `trip_id` but different `start_time`; they are not collapsed into one logical instance.
 - Added manual override precedence in matcher logic.
 - Moved manual override evaluation before stale-telemetry fallback; active manual overrides are absolute until cleared or expired.
+- Enriched resolvable manual override assignments with active `feed_version_id` and trip `block_id` so persisted override rows are first-class assignments.
 - Added explicit unknown assignment persistence for stale, ambiguous, low-confidence, and missing-schedule cases.
-- Deduped repeated identical degraded unknown outcomes to avoid redundant unknown rows and incidents.
+- Deduped repeated identical degraded unknown outcomes to avoid redundant unknown rows and incidents only when degraded state, reason codes, service date, and telemetry evidence match.
+- Preserved unknown replacement semantics when telemetry evidence or service day changes, including closing any prior confident active row.
 - Separated true no-schedule-candidate outcomes from agency lookup, service-day resolution, active-feed lookup, and schedule-query failures.
 - Added a Postgres assignment repository that closes prior active rows and inserts the new assignment in one transaction.
 - Added incident insertion linked to the persisted assignment row.
 - Preserved `shape_dist_traveled = 0` as a valid persisted value.
-- Treated explicit `bearing: 0` as valid true north for movement-direction scoring.
+- Treated numeric explicit `bearing: 0` as valid true north for movement-direction scoring while rejecting null or malformed bearing payload values.
 - Added a small reason-code, degraded-state, and incident taxonomy.
 - Replaced the GTFS repository's per-trip detail query pattern with batched stop-time, shape-point, and frequency fetches while keeping the same repository boundary.
 - Updated validation smoke targets to include Phase 2 migration coverage.
@@ -106,7 +108,11 @@ Migration behavior:
   - invalid matcher construction through clean non-panicking `NewEngine` errors
   - manual override precedence over stale telemetry
   - true-north `bearing: 0` movement-direction scoring
+  - null and malformed bearing payloads not receiving movement-direction credit
   - block-transition next-trip sequencing
+  - block-transition credit only for the nearest plausible successor
+  - resolvable manual override feed/block enrichment
+  - explicit service-day support boundary of observed local date plus previous local date
   - distinct reasons for agency lookup, active-feed, and schedule-query failures
   - ambiguous candidates
   - no-schedule unknown behavior
@@ -122,8 +128,10 @@ Migration behavior:
   - block-transition matching
   - persisted unknown-row replacement of a previous active assignment
   - manual override precedence over stale telemetry
+  - manual override feed/block enrichment when schedule context is resolvable
   - zero shape-distance persistence
-  - degraded unknown deduplication
+  - degraded unknown deduplication keyed by service date and telemetry evidence
+  - unknown replacement keeping previous confident assignments inactive even across dedupe logic
 
 Test results:
 - `make test`: passed.
@@ -148,13 +156,27 @@ Test results:
 | `git diff --check` | Passed | No whitespace errors. |
 | Task equivalents | Not run | `task` is not installed; Makefile remains independently usable. |
 
+Final semantic-closure pass:
+- `command -v go`: passed, `/usr/local/bin/go`.
+- `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed.
+- `make migrate-status`: passed with migrations 1, 2, and 3 applied.
+- `make migrate-down && make migrate-up && make migrate-status`: passed and re-applied `000003_deterministic_matching.sql`.
+- `make test-integration`: passed with DB-backed telemetry and matcher tests.
+- `make validate`: passed.
+- `git diff --check`: passed.
+- `command -v task`: not installed; optional Task equivalents were not run.
+
 ## Known Issues
 
 - `cmd/feed-vehicle-positions` still serves placeholder JSON from sample data. Phase 3 must replace this with DB-backed latest telemetry and persisted assignments.
 - `score_details_json` is loose debug JSON and must not be consumed as a stable public contract.
 - Route-hint matching is reserved for future input expansion and is not active in Phase 2.
 - Phase 2 after-midnight matching is limited to the observed local date and immediately previous local date.
-- This handoff now matches the actual Phase 2 matcher implementation after the priority-fix pass.
+- This handoff now matches the actual Phase 2 matcher implementation after the semantic-closure pass.
 - GTFS import is still not implemented. Matcher integration tests seed schedule rows directly through test helpers; this must not evolve into runtime import logic.
 - Operator UI for manual overrides is not implemented, although matcher precedence and persistence behavior exist.
 - Canonical GTFS and GTFS-RT validators remain documented but not wired.

@@ -199,6 +199,37 @@ func TestEngineTrueNorthBearingCanScoreMovementDirection(t *testing.T) {
 	}
 }
 
+func TestEngineMalformedBearingDoesNotScoreMovementDirection(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	trip := dayTrip("trip-north", "block-north", "shape-north")
+	trip.ShapePoints = []gtfs.ShapePoint{
+		{ShapeID: "shape-north", Lat: 49.0000, Lon: -123.0000, Sequence: 1, DistTraveled: 0, HasDistance: true},
+		{ShapeID: "shape-north", Lat: 49.0100, Lon: -123.0000, Sequence: 2, DistTraveled: 1000, HasDistance: true},
+	}
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{trip}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-north", "trip-north", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.0000, -123.0000)
+	event.Bearing = 0
+	event.PayloadJSON = []byte(`{"bearing":null}`)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match null-bearing event: %v", err)
+	}
+	if hasReason(assignment, ReasonMovementDirectionMatch) {
+		t.Fatalf("reason_codes = %+v, did not expect movement direction for null bearing", assignment.ReasonCodes)
+	}
+
+	event.PayloadJSON = []byte(`{"bearing":"north"}`)
+	assignment, err = engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match malformed-bearing event: %v", err)
+	}
+	if hasReason(assignment, ReasonMovementDirectionMatch) {
+		t.Fatalf("reason_codes = %+v, did not expect movement direction for malformed bearing", assignment.ReasonCodes)
+	}
+}
+
 func TestEngineManualOverridePrecedence(t *testing.T) {
 	ctx := context.Background()
 	assignments := newFakeAssignments()
@@ -225,6 +256,35 @@ func TestEngineManualOverridePrecedence(t *testing.T) {
 	}
 	if assignment.AssignmentSource != AssignmentSourceManualOverride || assignment.TripID != "trip-override" {
 		t.Fatalf("assignment = %+v, want manual override trip", assignment)
+	}
+}
+
+func TestEngineManualOverridePersistsScheduleContextWhenResolvable(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	assignments.override = &ManualOverride{
+		ID:        8,
+		AgencyID:  "demo-agency",
+		VehicleID: "bus-10",
+		Type:      "trip_assignment",
+		RouteID:   "route-10",
+		TripID:    "trip-10-0800",
+		StartDate: "20260420",
+		StartTime: "08:00:00",
+		State:     StateInService,
+		Reason:    "dispatcher correction",
+	}
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
+		dayTrip("trip-10-0800", "block-10", "shape-10"),
+	}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-10", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match manual override event: %v", err)
+	}
+	if assignment.FeedVersionID != "feed-demo" || assignment.BlockID != "block-10" {
+		t.Fatalf("assignment = %+v, want manual override enriched with feed and block", assignment)
 	}
 }
 
@@ -260,6 +320,46 @@ func TestEngineBlockTransitionReason(t *testing.T) {
 	}
 }
 
+func TestEngineBlockTransitionCreditRequiresNearestSuccessor(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	assignments.current = &Assignment{
+		AgencyID:         "demo-agency",
+		VehicleID:        "bus-10",
+		State:            StateInService,
+		TripID:           "trip-10-0800",
+		BlockID:          "block-10",
+		StartDate:        "20260420",
+		StartTime:        "08:00:00",
+		AssignmentSource: AssignmentSourceAutomatic,
+		DegradedState:    DegradedNone,
+		ActiveFrom:       time.Date(2026, 4, 20, 15, 55, 0, 0, time.UTC),
+	}
+	next := dayTrip("trip-10-0830", "block-10", "shape-10")
+	next.StopTimes[0].ArrivalSeconds = 8*3600 + 30*60
+	next.StopTimes[0].DepartureSeconds = 8*3600 + 30*60
+	next.StopTimes[1].ArrivalSeconds = 8*3600 + 40*60
+	next.StopTimes[1].DepartureSeconds = 8*3600 + 40*60
+	later := dayTrip("trip-10-0900", "block-10", "shape-10")
+	later.StopTimes[0].ArrivalSeconds = 9 * 3600
+	later.StopTimes[0].DepartureSeconds = 9 * 3600
+	later.StopTimes[1].ArrivalSeconds = 9*3600 + 10*60
+	later.StopTimes[1].DepartureSeconds = 9*3600 + 10*60
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{next, later}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-10", "trip-10-0900", time.Date(2026, 4, 20, 16, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match event: %v", err)
+	}
+	if assignment.TripID != "trip-10-0900" {
+		t.Fatalf("trip_id = %s, want later hinted trip", assignment.TripID)
+	}
+	if hasReason(assignment, ReasonBlockTransitionMatch) {
+		t.Fatalf("reason_codes = %+v, did not expect block transition credit for non-nearest successor", assignment.ReasonCodes)
+	}
+}
+
 func TestEngineAmbiguousCandidatesPersistUnknownIncident(t *testing.T) {
 	ctx := context.Background()
 	assignments := newFakeAssignments()
@@ -277,6 +377,42 @@ func TestEngineAmbiguousCandidatesPersistUnknownIncident(t *testing.T) {
 	}
 	if len(assignments.incidents) != 1 || assignments.incidents[0].Type != IncidentAssignmentAmbiguous {
 		t.Fatalf("incidents = %+v, want ambiguous incident", assignments.incidents)
+	}
+}
+
+func TestEngineServiceDaySupportBoundaryUsesLocalDateAndPreviousDateOnly(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	longTrip := dayTrip("trip-long-spillover", "block-long", "shape-10")
+	longTrip.StopTimes[0].ArrivalSeconds = 50 * 3600
+	longTrip.StopTimes[0].DepartureSeconds = 50 * 3600
+	longTrip.StopTimes[1].ArrivalSeconds = 50*3600 + 10*60
+	longTrip.StopTimes[1].DepartureSeconds = 50*3600 + 10*60
+	schedules := &dateScopedSchedule{
+		agency: gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"},
+		feed:   gtfs.FeedVersion{ID: "feed-demo", AgencyID: "demo-agency"},
+		tripsByDate: map[string][]gtfs.TripCandidate{
+			"20260420": {longTrip},
+		},
+	}
+	engine := MustNewEngine(schedules, assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-long", "trip-long-spillover", time.Date(2026, 4, 22, 9, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match long-spillover event: %v", err)
+	}
+	if assignment.State != StateUnknown || !hasReason(assignment, ReasonNoScheduleCandidates) {
+		t.Fatalf("assignment = %+v, want no match outside local-date/previous-date boundary", assignment)
+	}
+	wantDates := []string{"20260422", "20260421"}
+	if len(schedules.queriedDates) != len(wantDates) {
+		t.Fatalf("queried service dates = %+v, want %+v", schedules.queriedDates, wantDates)
+	}
+	for i := range wantDates {
+		if schedules.queriedDates[i] != wantDates[i] {
+			t.Fatalf("queried service dates = %+v, want %+v", schedules.queriedDates, wantDates)
+		}
 	}
 }
 
@@ -460,6 +596,13 @@ type fakeSchedule struct {
 	trips  []gtfs.TripCandidate
 }
 
+type dateScopedSchedule struct {
+	agency       gtfs.Agency
+	feed         gtfs.FeedVersion
+	tripsByDate  map[string][]gtfs.TripCandidate
+	queriedDates []string
+}
+
 type failingSchedule struct {
 	agency    gtfs.Agency
 	feed      gtfs.FeedVersion
@@ -517,6 +660,36 @@ func (f *fakeSchedule) ListTripCandidates(_ context.Context, agencyID string, fe
 	}
 	trips := make([]gtfs.TripCandidate, len(f.trips))
 	for i, trip := range f.trips {
+		trip.AgencyID = agencyID
+		trip.FeedVersionID = feedVersionID
+		trip.ServiceDate = serviceDate
+		trips[i] = trip
+	}
+	return trips, nil
+}
+
+func (f *dateScopedSchedule) Agency(_ context.Context, agencyID string) (gtfs.Agency, error) {
+	if agencyID != f.agency.ID {
+		return gtfs.Agency{}, errors.New("missing agency")
+	}
+	return f.agency, nil
+}
+
+func (f *dateScopedSchedule) ActiveFeedVersion(_ context.Context, agencyID string) (gtfs.FeedVersion, error) {
+	if agencyID != f.feed.AgencyID {
+		return gtfs.FeedVersion{}, errors.New("missing active feed")
+	}
+	return f.feed, nil
+}
+
+func (f *dateScopedSchedule) ListTripCandidates(_ context.Context, agencyID string, feedVersionID string, serviceDate string) ([]gtfs.TripCandidate, error) {
+	f.queriedDates = append(f.queriedDates, serviceDate)
+	if agencyID != f.feed.AgencyID || feedVersionID != f.feed.ID {
+		return nil, nil
+	}
+	source := f.tripsByDate[serviceDate]
+	trips := make([]gtfs.TripCandidate, len(source))
+	for i, trip := range source {
 		trip.AgencyID = agencyID
 		trip.FeedVersionID = feedVersionID
 		trip.ServiceDate = serviceDate
