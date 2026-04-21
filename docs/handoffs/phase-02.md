@@ -13,8 +13,11 @@ Phase 2 — Deterministic trip matching
 
 - Added `internal/gtfs` as a narrow schedule-query boundary over the existing published GTFS tables.
 - Added agency-local service-day resolution using agency timezone, including previous-local-date candidate evaluation for after-midnight trips.
+- Documented the Phase 2 service-day support boundary: observed local date plus immediately previous local date only.
 - Added GTFS time parsing and formatting for values beyond `24:00:00`.
 - Replaced the placeholder-only matcher internals with a deterministic matcher engine in `internal/state`.
+- Removed the legacy placeholder `RuleBasedMatcher` path; `internal/state.Engine` is the only valid production matcher entry point.
+- Made matcher construction fail fast when required repositories are missing.
 - Added candidate scoring for trip hint, shape proximity, movement direction, stop progress, schedule fit, previous-assignment continuity, and block continuity.
 - Made continuity and block-transition scoring time-aware through `ContinuityWindow` and `BlockTransitionWindow`.
 - Fixed matcher config merging so partial custom configs preserve explicitly set values and fill only missing fields from defaults.
@@ -64,6 +67,7 @@ Phase 2 — Deterministic trip matching
 - Matcher-generated `score_details_json` follows a small internal convention: always include `score_schema`; candidate-based details include `trip_id`, `start_time`, and `observed_local_seconds` when resolvable.
 - Missing shape data uses reason `missing_shape` and degraded state `missing_shape`.
 - Route-hint matching is reserved for future input expansion and is not active in Phase 2 because the telemetry event model has no route hint.
+- Service-day resolution covers the observed agency-local date and immediately previous local date. Later phases must extend this deliberately before relying on broader multi-day post-midnight matching.
 
 ## Dependency Changes
 
@@ -93,6 +97,7 @@ Migration behavior:
   - block-transition reason recording
   - time-window gating for continuity and block-transition credit
   - partial custom matcher config merging
+  - fail-fast invalid matcher construction
   - distinct reasons for agency lookup, active-feed, and schedule-query failures
   - ambiguous candidates
   - no-schedule unknown behavior
@@ -136,6 +141,7 @@ Test results:
 - `cmd/feed-vehicle-positions` still serves placeholder JSON from sample data. Phase 3 must replace this with DB-backed latest telemetry and persisted assignments.
 - `score_details_json` is loose debug JSON and must not be consumed as a stable public contract.
 - Route-hint matching is reserved for future input expansion and is not active in Phase 2.
+- Phase 2 after-midnight matching is limited to the observed local date and immediately previous local date.
 - GTFS import is still not implemented. Matcher integration tests seed schedule rows directly through test helpers; this must not evolve into runtime import logic.
 - Operator UI for manual overrides is not implemented, although matcher precedence and persistence behavior exist.
 - Canonical GTFS and GTFS-RT validators remain documented but not wired.

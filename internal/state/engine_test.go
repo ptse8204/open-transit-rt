@@ -312,7 +312,7 @@ func TestEngineBlockTransitionRequiresTemporalPlausibility(t *testing.T) {
 }
 
 func TestEngineConfigMergesPartialCustomValues(t *testing.T) {
-	engine := NewEngine(nil, nil, Config{MinConfidence: 0.8})
+	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", nil), newFakeAssignments(), Config{MinConfidence: 0.8})
 	if engine.config.MinConfidence != 0.8 {
 		t.Fatalf("min confidence = %f, want custom 0.8", engine.config.MinConfidence)
 	}
@@ -322,6 +322,15 @@ func TestEngineConfigMergesPartialCustomValues(t *testing.T) {
 	if engine.config.ContinuityWindow != DefaultConfig().ContinuityWindow {
 		t.Fatalf("continuity window = %s, want default %s", engine.config.ContinuityWindow, DefaultConfig().ContinuityWindow)
 	}
+}
+
+func TestNewEnginePanicsOnInvalidConstruction(t *testing.T) {
+	defer func() {
+		if recover() == nil {
+			t.Fatalf("NewEngine did not panic for missing repositories")
+		}
+	}()
+	_ = NewEngine(nil, nil, DefaultConfig())
 }
 
 func TestEngineSystemFailuresUseDistinctReasons(t *testing.T) {

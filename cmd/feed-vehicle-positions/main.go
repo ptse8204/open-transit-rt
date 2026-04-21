@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	matcher := state.NewRuleBasedMatcher()
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -31,7 +30,18 @@ func main() {
 			Bearing:   90,
 			SpeedMPS:  8.2,
 		}
-		assignment := matcher.Assign(sample)
+		assignment := state.Assignment{
+			AgencyID:         sample.AgencyID,
+			VehicleID:        sample.VehicleID,
+			State:            state.StateUnknown,
+			Confidence:       0,
+			AssignmentSource: state.AssignmentSourceUnknown,
+			DegradedState:    state.DegradedUnknown,
+			ScoreDetails: map[string]any{
+				"score_schema": "loose_debug_v1",
+				"note":         "sample placeholder only; production matching uses internal/state.Engine",
+			},
+		}
 		payload, err := feed.BuildVehiclePositionsJSON([]telemetry.Event{sample}, map[string]state.Assignment{
 			sample.VehicleID: assignment,
 		})

@@ -3,8 +3,6 @@ package state
 import (
 	"context"
 	"time"
-
-	"open-transit-rt/internal/telemetry"
 )
 
 type VehicleServiceState string
@@ -123,26 +121,4 @@ type Repository interface {
 	ActiveManualOverride(ctx context.Context, agencyID string, vehicleID string, at time.Time) (*ManualOverride, error)
 	CurrentAssignment(ctx context.Context, agencyID string, vehicleID string) (*Assignment, error)
 	SaveAssignment(ctx context.Context, assignment Assignment, incidents []Incident) (Assignment, error)
-}
-
-type Matcher interface {
-	Assign(event telemetry.Event) Assignment
-}
-
-type RuleBasedMatcher struct{}
-
-func NewRuleBasedMatcher() *RuleBasedMatcher { return &RuleBasedMatcher{} }
-
-func (m *RuleBasedMatcher) Assign(event telemetry.Event) Assignment {
-	return Assignment{
-		AgencyID:         event.AgencyID,
-		VehicleID:        event.VehicleID,
-		State:            StateUnknown,
-		Confidence:       0.10,
-		AssignmentSource: AssignmentSourceUnknown,
-		ReasonCodes:      []string{ReasonNoScheduleCandidates},
-		DegradedState:    DegradedUnknown,
-		ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1", "note": "placeholder matcher path; persisted deterministic matching uses Engine"},
-		TelemetryEventID: 0,
-	}
 }

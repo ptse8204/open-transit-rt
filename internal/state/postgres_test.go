@@ -220,6 +220,16 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		if assignment.State != StateInService || !hasReason(assignment, ReasonMissingShape) {
 			t.Fatalf("assignment = %+v, want degraded in-service match with missing_shape reason", assignment)
 		}
+		if assignment.DegradedState != DegradedMissingShape {
+			t.Fatalf("degraded_state = %s, want missing_shape", assignment.DegradedState)
+		}
+		current, err := assignments.CurrentAssignment(ctx, "demo-agency", "bus-no-shape")
+		if err != nil {
+			t.Fatalf("current assignment: %v", err)
+		}
+		if current == nil || current.DegradedState != DegradedMissingShape || !hasReason(*current, ReasonMissingShape) {
+			t.Fatalf("persisted current = %+v, want missing_shape degraded assignment", current)
+		}
 	})
 
 	t.Run("after-midnight matching", func(t *testing.T) {

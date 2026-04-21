@@ -71,6 +71,8 @@ The repo now has:
 - agency-local service-day resolution using agency timezone
 - GTFS time parsing for times beyond `24:00:00`
 - deterministic matcher engine in `internal/state`
+- `internal/state.Engine` is the only valid production matcher entry point; legacy placeholder `RuleBasedMatcher` was removed
+- matcher construction fails fast when schedule or assignment repositories are missing
 - conservative candidate scoring using trip hints, shape proximity, movement direction, stop progress, schedule fit, continuity, and block continuity
 - time-aware continuity and block-transition scoring using configured windows
 - exact frequency candidate generation for `exact_times=1`
@@ -85,6 +87,8 @@ The repo now has:
 - unit and DB-backed integration tests for matcher edge cases
 
 `vehicle_trip_assignment.score_details_json` is intentionally loose debug JSON in Phase 2, not a stable public schema. Matcher-generated score details include `score_schema`; candidate-based details also include `trip_id`, `start_time`, and `observed_local_seconds` when resolvable. Unknown assignment rows carry `service_date` whenever agency timezone and observed timestamp can be resolved; `service_date` is nullable only for truly unresolved cases. Missing shape data uses reason code `missing_shape` and degraded state `missing_shape`. Route-hint matching is reserved for a future input expansion and is not active in Phase 2 because telemetry does not currently carry a route hint.
+
+Phase 2 service-day resolution considers the observed agency-local date and the immediately previous local date. That supports normal same-day service and practical after-midnight GTFS times through the prior service day, but it is not a generalized multi-day lookback for very long service patterns beyond that two-service-day window.
 
 ## Schema Source Of Truth
 
@@ -191,6 +195,7 @@ Phase 2 quality-hardening pass results:
 - replaced per-trip GTFS detail queries with batched stop-time, shape-point, and frequency fetches.
 - strengthened non-exact frequency score details.
 - added DB-backed integration coverage for after-midnight, exact and non-exact frequencies, ambiguous candidates, block transition, and unknown-row replacement.
+- removed the legacy placeholder matcher path so the handoff now matches the actual production matcher implementation.
 
 ## Next Recommended Step
 

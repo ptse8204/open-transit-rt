@@ -41,7 +41,11 @@ type Engine struct {
 }
 
 func NewEngine(schedules gtfs.Repository, assignments Repository, config Config) *Engine {
-	return &Engine{schedules: schedules, assignments: assignments, config: mergeConfig(config)}
+	engine := &Engine{schedules: schedules, assignments: assignments, config: mergeConfig(config)}
+	if err := engine.Validate(); err != nil {
+		panic(err)
+	}
+	return engine
 }
 
 func mergeConfig(config Config) Config {
@@ -71,6 +75,10 @@ func mergeConfig(config Config) Config {
 }
 
 func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, now time.Time) (Assignment, error) {
+	if err := e.Validate(); err != nil {
+		return Assignment{}, err
+	}
+
 	agency, agencyErr := e.schedules.Agency(ctx, event.AgencyID)
 	serviceDays, serviceErr := []gtfs.ServiceDay(nil), error(nil)
 	if agencyErr == nil {
