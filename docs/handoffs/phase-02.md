@@ -17,19 +17,24 @@ Phase 2 — Deterministic trip matching
 - Added GTFS time parsing and formatting for values beyond `24:00:00`.
 - Replaced the placeholder-only matcher internals with a deterministic matcher engine in `internal/state`.
 - Removed the legacy placeholder `RuleBasedMatcher` path; `internal/state.Engine` is the only valid production matcher entry point.
-- Made matcher construction fail fast when required repositories are missing.
+- Replaced panic-style matcher construction with `NewEngine(...)(*Engine, error)` plus `MustNewEngine` for tests/bootstrap callers.
 - Added candidate scoring for trip hint, shape proximity, movement direction, stop progress, schedule fit, previous-assignment continuity, and block continuity.
 - Made continuity and block-transition scoring time-aware through `ContinuityWindow` and `BlockTransitionWindow`.
+- Made block-transition credit require plausible next-trip sequencing within the block when start-time identity is available.
 - Fixed matcher config merging so partial custom configs preserve explicitly set values and fill only missing fields from defaults.
 - Added exact frequency instance generation for `exact_times=1`.
 - Added conservative non-exact frequency-window identity behavior for `exact_times=0`.
 - Marked non-exact frequency matches with conservative window identity score details so later phases cannot mistake them for exact scheduled instances.
 - Preserved repeated trip instances with the same `trip_id` but different `start_time`; they are not collapsed into one logical instance.
 - Added manual override precedence in matcher logic.
+- Moved manual override evaluation before stale-telemetry fallback; active manual overrides are absolute until cleared or expired.
 - Added explicit unknown assignment persistence for stale, ambiguous, low-confidence, and missing-schedule cases.
+- Deduped repeated identical degraded unknown outcomes to avoid redundant unknown rows and incidents.
 - Separated true no-schedule-candidate outcomes from agency lookup, service-day resolution, active-feed lookup, and schedule-query failures.
 - Added a Postgres assignment repository that closes prior active rows and inserts the new assignment in one transaction.
 - Added incident insertion linked to the persisted assignment row.
+- Preserved `shape_dist_traveled = 0` as a valid persisted value.
+- Treated explicit `bearing: 0` as valid true north for movement-direction scoring.
 - Added a small reason-code, degraded-state, and incident taxonomy.
 - Replaced the GTFS repository's per-trip detail query pattern with batched stop-time, shape-point, and frequency fetches while keeping the same repository boundary.
 - Updated validation smoke targets to include Phase 2 migration coverage.
@@ -59,6 +64,7 @@ Phase 2 — Deterministic trip matching
   - `ActiveFeedVersion(ctx, agencyID)`
   - `ListTripCandidates(ctx, agencyID, feedVersionID, serviceDate)`
 - Added `internal/state.Engine` with `MatchEvent(ctx, telemetry.StoredEvent, now)`.
+- Added `NewEngine(...)(*Engine, error)` and `MustNewEngine(...)`.
 - Added `internal/state.Repository` with:
   - `ActiveManualOverride(ctx, agencyID, vehicleID, at)`
   - `CurrentAssignment(ctx, agencyID, vehicleID)`
@@ -97,7 +103,10 @@ Migration behavior:
   - block-transition reason recording
   - time-window gating for continuity and block-transition credit
   - partial custom matcher config merging
-  - fail-fast invalid matcher construction
+  - invalid matcher construction through clean non-panicking `NewEngine` errors
+  - manual override precedence over stale telemetry
+  - true-north `bearing: 0` movement-direction scoring
+  - block-transition next-trip sequencing
   - distinct reasons for agency lookup, active-feed, and schedule-query failures
   - ambiguous candidates
   - no-schedule unknown behavior
@@ -112,6 +121,9 @@ Migration behavior:
   - ambiguous candidates
   - block-transition matching
   - persisted unknown-row replacement of a previous active assignment
+  - manual override precedence over stale telemetry
+  - zero shape-distance persistence
+  - degraded unknown deduplication
 
 Test results:
 - `make test`: passed.
@@ -142,6 +154,7 @@ Test results:
 - `score_details_json` is loose debug JSON and must not be consumed as a stable public contract.
 - Route-hint matching is reserved for future input expansion and is not active in Phase 2.
 - Phase 2 after-midnight matching is limited to the observed local date and immediately previous local date.
+- This handoff now matches the actual Phase 2 matcher implementation after the priority-fix pass.
 - GTFS import is still not implemented. Matcher integration tests seed schedule rows directly through test helpers; this must not evolve into runtime import logic.
 - Operator UI for manual overrides is not implemented, although matcher precedence and persistence behavior exist.
 - Canonical GTFS and GTFS-RT validators remain documented but not wired.

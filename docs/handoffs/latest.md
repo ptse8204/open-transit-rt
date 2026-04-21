@@ -100,13 +100,19 @@ Start Vehicle Positions production feed without changing Trip Updates or GTFS im
 - Unknown assignment rows are explicit and close previous active rows.
 - Unknown rows carry `service_date` whenever agency timezone and observed timestamp are resolvable; the column is nullable for truly unresolved cases.
 - Repeated trip instances with the same `trip_id` but different `start_time` must remain distinct.
-- `internal/state.Engine` is the only valid production matcher entry point; construction fails fast if schedule or assignment repositories are missing.
+- `internal/state.Engine` is the only valid production matcher entry point; `NewEngine` returns an error if schedule or assignment repositories are missing, and `MustNewEngine` is reserved for test/bootstrap callers.
+- Active manual overrides are absolute and are evaluated before stale-telemetry fallback.
 - Continuity and block-transition scoring are time-aware and require configured-window plausibility, not just same trip or same block identity.
+- Block-transition scoring also verifies plausible next-trip sequencing within the block when start-time identity is available.
+- Explicit `bearing: 0` is valid true north and can receive movement-direction credit.
+- `shape_dist_traveled = 0` is preserved as a valid persisted value.
+- Repeated identical degraded unknown states reuse the active degraded assignment rather than adding redundant rows/incidents.
 - Missing shape data uses reason `missing_shape` plus degraded state `missing_shape`; it reduces confidence but does not automatically block a match when other strong evidence exists.
 - Non-exact frequency matches use conservative window identity details and must not be treated as exact scheduled instances.
 - `no_schedule_candidates` is reserved for successful schedule queries that return no trips. Repository/config/resolution failures use distinct matcher-system-failure reasons.
 - Route-hint matching is reserved for future input expansion and is not active in Phase 2 because telemetry does not carry a route hint.
 - Service-day resolution checks the observed agency-local date and immediately previous local date only; do not assume broader multi-day post-midnight coverage without extending the resolver.
+- The Phase 2 handoff matches the actual implementation after the priority-fix pass.
 
 ## Handoff Template Requirement
 

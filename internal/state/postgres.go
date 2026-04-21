@@ -105,6 +105,14 @@ func (r *PostgresRepository) SaveAssignment(ctx context.Context, assignment Assi
 		assignment.ScoreDetails = map[string]any{"score_schema": "loose_debug_v1"}
 	}
 
+	current, err := currentAssignmentInTx(ctx, tx, assignment.AgencyID, assignment.VehicleID)
+	if err != nil {
+		return Assignment{}, err
+	}
+	if current != nil && repeatedDegradedAssignment(*current, assignment) {
+		return *current, nil
+	}
+
 	if _, err := tx.Exec(ctx, `
 		UPDATE vehicle_trip_assignment
 		SET active_to = $3
@@ -160,7 +168,7 @@ func (r *PostgresRepository) SaveAssignment(ctx context.Context, assignment Assi
 		nilIfEmpty(assignment.StartDate),
 		nilIfEmpty(assignment.StartTime),
 		nilIfZeroInt(assignment.CurrentStopSequence),
-		nilIfZeroFloat(assignment.ShapeDistTraveled),
+		assignment.ShapeDistTraveled,
 		assignment.State,
 		assignment.Confidence,
 		assignment.AssignmentSource,
@@ -216,6 +224,50 @@ func (r *PostgresRepository) SaveAssignment(ctx context.Context, assignment Assi
 		return Assignment{}, fmt.Errorf("commit assignment transaction: %w", err)
 	}
 	return assignment, nil
+}
+
+func currentAssignmentInTx(ctx context.Context, tx pgx.Tx, agencyID string, vehicleID string) (*Assignment, error) {
+	row := tx.QueryRow(ctx, `
+		SELECT id, agency_id, vehicle_id, feed_version_id, telemetry_event_id, service_date, route_id, trip_id, block_id, start_date, start_time,
+		       current_stop_sequence, shape_dist_traveled, state, confidence, assignment_source, reason_codes, degraded_state, score_details_json,
+		       manual_override_id, active_from
+		FROM vehicle_trip_assignment
+		WHERE agency_id = $1
+		  AND vehicle_id = $2
+		  AND active_to IS NULL
+		ORDER BY active_from DESC, id DESC
+		LIMIT 1
+	`, agencyID, vehicleID)
+	assignment, err := scanAssignment(row)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("query current assignment for save: %w", err)
+	}
+	return &assignment, nil
+}
+
+func repeatedDegradedAssignment(current Assignment, next Assignment) bool {
+	if current.State != StateUnknown || next.State != StateUnknown {
+		return false
+	}
+	if current.DegradedState != next.DegradedState {
+		return false
+	}
+	return equalStringSlices(current.ReasonCodes, next.ReasonCodes)
+}
+
+func equalStringSlices(left []string, right []string) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for i := range left {
+		if left[i] != right[i] {
+			return false
+		}
+	}
+	return true
 }
 
 type assignmentScanner interface {
@@ -293,13 +345,6 @@ func nilIfZero(value int64) any {
 }
 
 func nilIfZeroInt(value int) any {
-	if value == 0 {
-		return nil
-	}
-	return value
-}
-
-func nilIfZeroFloat(value float64) any {
 	if value == 0 {
 		return nil
 	}

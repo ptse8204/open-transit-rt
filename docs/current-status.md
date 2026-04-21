@@ -72,16 +72,21 @@ The repo now has:
 - GTFS time parsing for times beyond `24:00:00`
 - deterministic matcher engine in `internal/state`
 - `internal/state.Engine` is the only valid production matcher entry point; legacy placeholder `RuleBasedMatcher` was removed
-- matcher construction fails fast when schedule or assignment repositories are missing
+- `NewEngine` returns an error when schedule or assignment repositories are missing; `MustNewEngine` is available only for tests/bootstrap paths that intentionally want panic-on-error behavior
 - conservative candidate scoring using trip hints, shape proximity, movement direction, stop progress, schedule fit, continuity, and block continuity
 - time-aware continuity and block-transition scoring using configured windows
+- block-transition scoring also requires plausible next-trip sequencing within the block when start-time identity is available
+- explicit telemetry bearing presence is respected, including `bearing: 0` for true north
 - exact frequency candidate generation for `exact_times=1`
 - conservative frequency-window identity behavior for `exact_times=0`
 - non-exact frequency matches are marked as conservative window identities in score details so they are not mistaken for exact scheduled instances
 - explicit unknown assignment persistence for stale, ambiguous, low-confidence, or missing-schedule cases
 - distinct matcher system-failure reasons for agency lookup, service-day resolution, active-feed lookup, and schedule-query failures
 - manual override precedence in matcher logic
+- active manual overrides are evaluated before stale-telemetry fallback, so operator state is absolute until cleared or expired
 - Postgres assignment repository that closes prior active rows and persists assignment confidence, reasons, degraded state, score details, and incident linkage
+- `shape_dist_traveled = 0` is preserved as a valid persisted value, not collapsed to NULL
+- repeated identical degraded unknown states reuse the active degraded assignment instead of creating redundant unknown rows and incidents
 - batched GTFS schedule detail loading for stop times, shape points, and frequencies under the existing schedule-query boundary
 - a small reason-code, degraded-state, and incident taxonomy
 - unit and DB-backed integration tests for matcher edge cases
@@ -196,6 +201,8 @@ Phase 2 quality-hardening pass results:
 - strengthened non-exact frequency score details.
 - added DB-backed integration coverage for after-midnight, exact and non-exact frequencies, ambiguous candidates, block transition, and unknown-row replacement.
 - removed the legacy placeholder matcher path so the handoff now matches the actual production matcher implementation.
+- added the final priority fixes for absolute manual override precedence, true-north bearing validity, zero shape-distance persistence, cleaner `NewEngine` construction, block-transition sequencing, and degraded-state deduplication.
+- verified after the priority-fix pass that the Phase 2 handoff matches the actual implementation.
 
 ## Next Recommended Step
 

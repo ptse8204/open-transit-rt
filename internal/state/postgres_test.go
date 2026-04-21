@@ -28,7 +28,7 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 	schedules := appgtfs.NewPostgresRepository(pool)
 	assignments := NewPostgresRepository(pool)
 	telemetryRepo := telemetry.NewPostgresRepository(pool)
-	engine := NewEngine(schedules, assignments, DefaultConfig())
+	engine := MustNewEngine(schedules, assignments, DefaultConfig())
 
 	t.Run("matches persisted latest telemetry", func(t *testing.T) {
 		resetMatcherData(t, ctx, pool)
@@ -69,6 +69,17 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		}
 		if current == nil || current.TripID != "trip-10-0800" || current.DegradedState != DegradedNone {
 			t.Fatalf("persisted current = %+v, want healthy matched assignment", current)
+		}
+		var shapeDistIsNull bool
+		if err := pool.QueryRow(ctx, `
+			SELECT shape_dist_traveled IS NULL
+			FROM vehicle_trip_assignment
+			WHERE id = $1
+		`, assignment.ID).Scan(&shapeDistIsNull); err != nil {
+			t.Fatalf("query shape distance nullness: %v", err)
+		}
+		if shapeDistIsNull {
+			t.Fatalf("shape_dist_traveled was persisted as NULL, want valid zero preserved")
 		}
 	})
 
@@ -143,6 +154,28 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		if activeTripCount != 0 {
 			t.Fatalf("active in-service assignments = %d, want previous row closed", activeTripCount)
 		}
+
+		repeated, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(3*time.Minute))
+		if err != nil {
+			t.Fatalf("repeat stale match: %v", err)
+		}
+		if repeated.ID != assignment.ID {
+			t.Fatalf("repeated degraded assignment id = %d, want existing id %d", repeated.ID, assignment.ID)
+		}
+		var staleRows int
+		if err := pool.QueryRow(ctx, `
+			SELECT count(*)
+			FROM vehicle_trip_assignment
+			WHERE agency_id = 'demo-agency'
+			  AND vehicle_id = 'bus-stale'
+			  AND state = 'unknown'
+			  AND degraded_state = 'stale'
+		`).Scan(&staleRows); err != nil {
+			t.Fatalf("count stale assignment rows: %v", err)
+		}
+		if staleRows != 1 {
+			t.Fatalf("stale assignment rows = %d, want 1 for repeated identical degraded state", staleRows)
+		}
 	})
 
 	t.Run("manual override wins over automatic matching", func(t *testing.T) {
@@ -176,6 +209,40 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		}
 		if assignment.AssignmentSource != AssignmentSourceManualOverride || assignment.TripID != "trip-manual" {
 			t.Fatalf("assignment = %+v, want manual override", assignment)
+		}
+	})
+
+	t.Run("manual override wins over stale telemetry", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedDemoSchedule(t, ctx, pool, true)
+		_, err := pool.Exec(ctx, `
+			INSERT INTO manual_override (
+				agency_id, vehicle_id, override_type, state, reason, created_by, created_at
+			)
+			VALUES (
+				'demo-agency', 'bus-stale-override', 'service_state', 'deadhead', 'stale override', 'test', now()
+			)
+		`)
+		if err != nil {
+			t.Fatalf("insert manual override: %v", err)
+		}
+
+		event := telemetry.Event{
+			AgencyID:  "demo-agency",
+			DeviceID:  "device-bus-stale-override",
+			VehicleID: "bus-stale-override",
+			Timestamp: time.Date(2026, 4, 20, 15, 2, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+			TripHint:  "trip-10-0800",
+		}
+		stored := storeTelemetry(t, ctx, telemetryRepo, event)
+		assignment, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(2*time.Minute))
+		if err != nil {
+			t.Fatalf("match stale override event: %v", err)
+		}
+		if assignment.AssignmentSource != AssignmentSourceManualOverride || assignment.State != StateDeadhead {
+			t.Fatalf("assignment = %+v, want stale telemetry to respect manual override", assignment)
 		}
 	})
 

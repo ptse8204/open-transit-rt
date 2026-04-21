@@ -13,7 +13,7 @@ import (
 func TestEngineAfterMidnightUsesPreviousServiceDate(t *testing.T) {
 	ctx := context.Background()
 	assignments := newFakeAssignments()
-	engine := NewEngine(fakeScheduleWithTrips("overnight-agency", "America/Vancouver", "feed-night", []gtfs.TripCandidate{
+	engine := MustNewEngine(fakeScheduleWithTrips("overnight-agency", "America/Vancouver", "feed-night", []gtfs.TripCandidate{
 		nightTrip(),
 	}), assignments, DefaultConfig())
 
@@ -36,7 +36,7 @@ func TestEngineAfterMidnightUsesPreviousServiceDate(t *testing.T) {
 func TestEngineExactFrequencyInstancesAreNotCollapsed(t *testing.T) {
 	ctx := context.Background()
 	assignments := newFakeAssignments()
-	engine := NewEngine(fakeScheduleWithTrips("freq-agency", "America/Vancouver", "feed-freq", []gtfs.TripCandidate{
+	engine := MustNewEngine(fakeScheduleWithTrips("freq-agency", "America/Vancouver", "feed-freq", []gtfs.TripCandidate{
 		frequencyTrip("trip-loop-exact", 1),
 	}), assignments, DefaultConfig())
 
@@ -59,7 +59,7 @@ func TestEngineExactFrequencyInstancesAreNotCollapsed(t *testing.T) {
 func TestEngineNonExactFrequencyUsesConservativeIdentity(t *testing.T) {
 	ctx := context.Background()
 	assignments := newFakeAssignments()
-	engine := NewEngine(fakeScheduleWithTrips("freq-agency", "America/Vancouver", "feed-freq", []gtfs.TripCandidate{
+	engine := MustNewEngine(fakeScheduleWithTrips("freq-agency", "America/Vancouver", "feed-freq", []gtfs.TripCandidate{
 		frequencyTrip("trip-loop", 0),
 	}), assignments, DefaultConfig())
 
@@ -93,7 +93,7 @@ func TestEngineUnknownPersistsExplicitRowAndIncident(t *testing.T) {
 		DegradedState:    DegradedNone,
 		ActiveFrom:       time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC),
 	}
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
 		dayTrip("trip-10-0800", "block-10", "shape-10"),
 	}), assignments, DefaultConfig())
 
@@ -116,6 +116,31 @@ func TestEngineUnknownPersistsExplicitRowAndIncident(t *testing.T) {
 	}
 }
 
+func TestEngineManualOverrideTakesPrecedenceOverStaleTelemetry(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	assignments.override = &ManualOverride{
+		ID:        9,
+		AgencyID:  "demo-agency",
+		VehicleID: "bus-10",
+		Type:      "service_state",
+		State:     StateDeadhead,
+		Reason:    "operator override beats stale telemetry",
+	}
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
+		dayTrip("trip-10-0800", "block-10", "shape-10"),
+	}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-10", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(2*time.Minute))
+	if err != nil {
+		t.Fatalf("match stale override event: %v", err)
+	}
+	if assignment.AssignmentSource != AssignmentSourceManualOverride || assignment.State != StateDeadhead {
+		t.Fatalf("assignment = %+v, want manual override before stale fallback", assignment)
+	}
+}
+
 func TestEngineMissingShapeReducesConfidenceButDoesNotBlockStrongEvidence(t *testing.T) {
 	ctx := context.Background()
 	assignments := newFakeAssignments()
@@ -134,7 +159,7 @@ func TestEngineMissingShapeReducesConfidenceButDoesNotBlockStrongEvidence(t *tes
 	trip := dayTrip("trip-10-0800", "block-10", "")
 	trip.ShapeID = ""
 	trip.ShapePoints = nil
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{trip}), assignments, DefaultConfig())
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{trip}), assignments, DefaultConfig())
 
 	event := storedEvent("demo-agency", "bus-10", "trip-10-0800", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
 	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
@@ -149,6 +174,28 @@ func TestEngineMissingShapeReducesConfidenceButDoesNotBlockStrongEvidence(t *tes
 	}
 	if assignment.DegradedState != DegradedMissingShape {
 		t.Fatalf("degraded_state = %s, want missing_shape", assignment.DegradedState)
+	}
+}
+
+func TestEngineTrueNorthBearingCanScoreMovementDirection(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	trip := dayTrip("trip-north", "block-north", "shape-north")
+	trip.ShapePoints = []gtfs.ShapePoint{
+		{ShapeID: "shape-north", Lat: 49.0000, Lon: -123.0000, Sequence: 1, DistTraveled: 0, HasDistance: true},
+		{ShapeID: "shape-north", Lat: 49.0100, Lon: -123.0000, Sequence: 2, DistTraveled: 1000, HasDistance: true},
+	}
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{trip}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-north", "trip-north", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.0000, -123.0000)
+	event.Bearing = 0
+	event.PayloadJSON = []byte(`{"bearing":0}`)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match true-north event: %v", err)
+	}
+	if !hasReason(assignment, ReasonMovementDirectionMatch) {
+		t.Fatalf("reason_codes = %+v, want movement direction for explicit true-north bearing", assignment.ReasonCodes)
 	}
 }
 
@@ -167,7 +214,7 @@ func TestEngineManualOverridePrecedence(t *testing.T) {
 		State:     StateInService,
 		Reason:    "dispatcher correction",
 	}
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
 		dayTrip("trip-10-0800", "block-10", "shape-10"),
 	}), assignments, DefaultConfig())
 
@@ -201,7 +248,7 @@ func TestEngineBlockTransitionReason(t *testing.T) {
 	next.StopTimes[0].DepartureSeconds = 8*3600 + 30*60
 	next.StopTimes[1].ArrivalSeconds = 8*3600 + 40*60
 	next.StopTimes[1].DepartureSeconds = 8*3600 + 40*60
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{next}), assignments, DefaultConfig())
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{next}), assignments, DefaultConfig())
 
 	event := storedEvent("demo-agency", "bus-10", "trip-10-0830", time.Date(2026, 4, 20, 15, 30, 0, 0, time.UTC), 49.2827, -123.1207)
 	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
@@ -218,7 +265,7 @@ func TestEngineAmbiguousCandidatesPersistUnknownIncident(t *testing.T) {
 	assignments := newFakeAssignments()
 	first := dayTrip("trip-a", "block-a", "shape-10")
 	second := dayTrip("trip-b", "block-b", "shape-10")
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{first, second}), assignments, DefaultConfig())
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{first, second}), assignments, DefaultConfig())
 
 	event := storedEvent("demo-agency", "bus-ambiguous", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
 	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
@@ -236,7 +283,7 @@ func TestEngineAmbiguousCandidatesPersistUnknownIncident(t *testing.T) {
 func TestEngineNoScheduleCandidatesPersistsUnknown(t *testing.T) {
 	ctx := context.Background()
 	assignments := newFakeAssignments()
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", nil), assignments, DefaultConfig())
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", nil), assignments, DefaultConfig())
 
 	event := storedEvent("demo-agency", "bus-no-schedule", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.4000, -123.3000)
 	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
@@ -265,7 +312,7 @@ func TestEngineContinuityRequiresTemporalPlausibility(t *testing.T) {
 		DegradedState:    DegradedNone,
 		ActiveFrom:       time.Date(2026, 4, 20, 12, 0, 0, 0, time.UTC),
 	}
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{
 		dayTrip("trip-10-0800", "block-10", "shape-10"),
 	}), assignments, DefaultConfig())
 
@@ -299,7 +346,7 @@ func TestEngineBlockTransitionRequiresTemporalPlausibility(t *testing.T) {
 	next.StopTimes[0].DepartureSeconds = 8*3600 + 30*60
 	next.StopTimes[1].ArrivalSeconds = 8*3600 + 40*60
 	next.StopTimes[1].DepartureSeconds = 8*3600 + 40*60
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{next}), assignments, DefaultConfig())
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{next}), assignments, DefaultConfig())
 
 	event := storedEvent("demo-agency", "bus-10", "trip-10-0830", time.Date(2026, 4, 20, 15, 30, 0, 0, time.UTC), 49.2827, -123.1207)
 	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
@@ -311,8 +358,36 @@ func TestEngineBlockTransitionRequiresTemporalPlausibility(t *testing.T) {
 	}
 }
 
+func TestEngineBlockTransitionRequiresNextTripSequenceWhenKnown(t *testing.T) {
+	ctx := context.Background()
+	assignments := newFakeAssignments()
+	assignments.current = &Assignment{
+		AgencyID:         "demo-agency",
+		VehicleID:        "bus-10",
+		State:            StateInService,
+		TripID:           "trip-10-0830",
+		BlockID:          "block-10",
+		StartDate:        "20260420",
+		StartTime:        "08:30:00",
+		AssignmentSource: AssignmentSourceAutomatic,
+		DegradedState:    DegradedNone,
+		ActiveFrom:       time.Date(2026, 4, 20, 15, 35, 0, 0, time.UTC),
+	}
+	earlier := dayTrip("trip-10-0800", "block-10", "shape-10")
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", []gtfs.TripCandidate{earlier}), assignments, DefaultConfig())
+
+	event := storedEvent("demo-agency", "bus-10", "trip-10-0800", time.Date(2026, 4, 20, 15, 40, 0, 0, time.UTC), 49.2827, -123.1207)
+	assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
+	if err != nil {
+		t.Fatalf("match event: %v", err)
+	}
+	if hasReason(assignment, ReasonBlockTransitionMatch) {
+		t.Fatalf("reason_codes = %+v, did not expect block transition to earlier trip", assignment.ReasonCodes)
+	}
+}
+
 func TestEngineConfigMergesPartialCustomValues(t *testing.T) {
-	engine := NewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", nil), newFakeAssignments(), Config{MinConfidence: 0.8})
+	engine := MustNewEngine(fakeScheduleWithTrips("demo-agency", "America/Vancouver", "feed-demo", nil), newFakeAssignments(), Config{MinConfidence: 0.8})
 	if engine.config.MinConfidence != 0.8 {
 		t.Fatalf("min confidence = %f, want custom 0.8", engine.config.MinConfidence)
 	}
@@ -324,13 +399,14 @@ func TestEngineConfigMergesPartialCustomValues(t *testing.T) {
 	}
 }
 
-func TestNewEnginePanicsOnInvalidConstruction(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatalf("NewEngine did not panic for missing repositories")
-		}
-	}()
-	_ = NewEngine(nil, nil, DefaultConfig())
+func TestNewEngineReturnsErrorOnInvalidConstruction(t *testing.T) {
+	engine, err := NewEngine(nil, nil, DefaultConfig())
+	if err == nil {
+		t.Fatalf("err = nil, want construction error")
+	}
+	if engine != nil {
+		t.Fatalf("engine = %+v, want nil on construction error", engine)
+	}
 }
 
 func TestEngineSystemFailuresUseDistinctReasons(t *testing.T) {
@@ -338,7 +414,7 @@ func TestEngineSystemFailuresUseDistinctReasons(t *testing.T) {
 	assignments := newFakeAssignments()
 
 	t.Run("agency lookup failure", func(t *testing.T) {
-		engine := NewEngine(&failingSchedule{agencyErr: errors.New("database unavailable")}, assignments, DefaultConfig())
+		engine := MustNewEngine(&failingSchedule{agencyErr: errors.New("database unavailable")}, assignments, DefaultConfig())
 		event := storedEvent("demo-agency", "bus-10", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
 		assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
 		if err != nil {
@@ -350,7 +426,7 @@ func TestEngineSystemFailuresUseDistinctReasons(t *testing.T) {
 	})
 
 	t.Run("active feed failure", func(t *testing.T) {
-		engine := NewEngine(&failingSchedule{agency: gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"}, feedErr: errors.New("no active feed")}, assignments, DefaultConfig())
+		engine := MustNewEngine(&failingSchedule{agency: gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"}, feedErr: errors.New("no active feed")}, assignments, DefaultConfig())
 		event := storedEvent("demo-agency", "bus-10", "", time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC), 49.2827, -123.1207)
 		assignment, err := engine.MatchEvent(ctx, event, event.Timestamp.Add(30*time.Second))
 		if err != nil {
@@ -362,7 +438,7 @@ func TestEngineSystemFailuresUseDistinctReasons(t *testing.T) {
 	})
 
 	t.Run("schedule query failure", func(t *testing.T) {
-		engine := NewEngine(&failingSchedule{
+		engine := MustNewEngine(&failingSchedule{
 			agency:   gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"},
 			feed:     gtfs.FeedVersion{ID: "feed-demo", AgencyID: "demo-agency"},
 			queryErr: errors.New("query timeout"),

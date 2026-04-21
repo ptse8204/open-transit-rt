@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -40,9 +41,17 @@ type Engine struct {
 	config      Config
 }
 
-func NewEngine(schedules gtfs.Repository, assignments Repository, config Config) *Engine {
+func NewEngine(schedules gtfs.Repository, assignments Repository, config Config) (*Engine, error) {
 	engine := &Engine{schedules: schedules, assignments: assignments, config: mergeConfig(config)}
 	if err := engine.Validate(); err != nil {
+		return nil, err
+	}
+	return engine, nil
+}
+
+func MustNewEngine(schedules gtfs.Repository, assignments Repository, config Config) *Engine {
+	engine, err := NewEngine(schedules, assignments, config)
+	if err != nil {
 		panic(err)
 	}
 	return engine
@@ -106,16 +115,6 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 		})
 	}
 
-	if now.Sub(event.Timestamp) > e.config.StaleThreshold {
-		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedStale, []string{ReasonStaleTelemetry}, IncidentStaleTelemetry, map[string]any{
-			"observed_at":             event.Timestamp,
-			"observed_local_seconds":  defaultObservedLocalSeconds,
-			"now":                     now,
-			"stale_threshold_seconds": e.config.StaleThreshold.Seconds(),
-			"score_schema":            "loose_debug_v1",
-		})
-	}
-
 	if e.assignments != nil {
 		override, err := e.assignments.ActiveManualOverride(ctx, event.AgencyID, event.VehicleID, event.Timestamp)
 		if err != nil {
@@ -124,6 +123,16 @@ func (e *Engine) MatchEvent(ctx context.Context, event telemetry.StoredEvent, no
 		if override != nil {
 			return e.saveManualOverride(ctx, event, *override, defaultServiceDate)
 		}
+	}
+
+	if now.Sub(event.Timestamp) > e.config.StaleThreshold {
+		return e.saveUnknown(ctx, event, defaultServiceDate, DegradedStale, []string{ReasonStaleTelemetry}, IncidentStaleTelemetry, map[string]any{
+			"observed_at":             event.Timestamp,
+			"observed_local_seconds":  defaultObservedLocalSeconds,
+			"now":                     now,
+			"stale_threshold_seconds": e.config.StaleThreshold.Seconds(),
+			"score_schema":            "loose_debug_v1",
+		})
 	}
 
 	feed, err := e.schedules.ActiveFeedVersion(ctx, event.AgencyID)
@@ -321,7 +330,7 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 			}
 			score += shapeScore
 			reasons = append(reasons, ReasonShapeProximityMatch)
-			if event.Bearing != 0 && bearingDelta(event.Bearing, proj.Bearing) <= 60 {
+			if hasBearing(event) && bearingDelta(event.Bearing, proj.Bearing) <= 60 {
 				score += 0.10
 				reasons = append(reasons, ReasonMovementDirectionMatch)
 			}
@@ -357,7 +366,7 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 		if sameInstance && temporalContinuity {
 			score += 0.20
 			reasons = append(reasons, ReasonContinuityMatch)
-		} else if previous.BlockID != "" && previous.BlockID == instance.trip.BlockID && !sameInstance && temporalBlockTransition {
+		} else if blockTransitionPlausible(previous, instance, day, temporalBlockTransition) {
 			score += 0.15
 			reasons = append(reasons, ReasonBlockTransitionMatch)
 		}
@@ -405,6 +414,48 @@ func (e *Engine) scoreCandidate(event telemetry.StoredEvent, feedVersionID strin
 		ActiveFrom:          event.Timestamp,
 	}
 	return scoredCandidate{assignment: assignment}
+}
+
+func blockTransitionPlausible(previous *Assignment, instance tripInstance, day gtfs.ServiceDay, temporalBlockTransition bool) bool {
+	if previous == nil || !temporalBlockTransition {
+		return false
+	}
+	if previous.BlockID == "" || previous.BlockID != instance.trip.BlockID {
+		return false
+	}
+	if previous.TripID == instance.trip.TripID && previous.StartDate == day.Date && previous.StartTime == instance.startTime {
+		return false
+	}
+	if previous.StartDate == "" || previous.StartTime == "" || instance.startTime == "" {
+		return false
+	}
+	previousStart, err := gtfs.ParseGTFSTime(previous.StartTime)
+	if err != nil {
+		return false
+	}
+	switch {
+	case day.Date > previous.StartDate:
+		return true
+	case day.Date == previous.StartDate:
+		return instance.startSeconds > previousStart
+	default:
+		return false
+	}
+}
+
+func hasBearing(event telemetry.StoredEvent) bool {
+	if event.Bearing != 0 {
+		return true
+	}
+	if len(event.PayloadJSON) == 0 {
+		return false
+	}
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(event.PayloadJSON, &payload); err != nil {
+		return false
+	}
+	_, ok := payload["bearing"]
+	return ok
 }
 
 func scheduleFit(stopTimes []gtfs.StopTime, observedSeconds int, window time.Duration) (int, float64, int) {
