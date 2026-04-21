@@ -30,13 +30,13 @@ Phase 2 — Deterministic trip matching
 - Moved manual override evaluation before stale-telemetry fallback; active manual overrides are absolute until cleared or expired.
 - Enriched resolvable manual override assignments with active `feed_version_id` and trip `block_id` so persisted override rows are first-class assignments.
 - Added explicit unknown assignment persistence for stale, ambiguous, low-confidence, and missing-schedule cases.
-- Deduped repeated identical degraded unknown outcomes to avoid redundant unknown rows and incidents only when degraded state, reason codes, service date, and telemetry evidence match.
+- Deduped repeated identical degraded unknown outcomes to avoid redundant unknown rows and incidents only when degraded state, reason codes, service date, and telemetry evidence match. The repository predicate compares `telemetry_event_id` when either row has one and falls back to exact `active_from` equality only when neither row has telemetry evidence.
 - Preserved unknown replacement semantics when telemetry evidence or service day changes, including closing any prior confident active row.
 - Separated true no-schedule-candidate outcomes from agency lookup, service-day resolution, active-feed lookup, and schedule-query failures.
 - Added a Postgres assignment repository that closes prior active rows and inserts the new assignment in one transaction.
 - Added incident insertion linked to the persisted assignment row.
 - Preserved `shape_dist_traveled = 0` as a valid persisted value.
-- Treated numeric explicit `bearing: 0` as valid true north for movement-direction scoring while rejecting null or malformed bearing payload values.
+- Treated numeric explicit `bearing: 0` as valid true north for movement-direction scoring while rejecting null or malformed bearing payload values. For non-DB callers that pass no raw payload, zero bearing is treated as missing because payload evidence is the only safe way to distinguish true north from an omitted numeric zero.
 - Added a small reason-code, degraded-state, and incident taxonomy.
 - Replaced the GTFS repository's per-trip detail query pattern with batched stop-time, shape-point, and frequency fetches while keeping the same repository boundary.
 - Updated validation smoke targets to include Phase 2 migration coverage.

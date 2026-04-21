@@ -76,7 +76,7 @@ The repo now has:
 - conservative candidate scoring using trip hints, shape proximity, movement direction, stop progress, schedule fit, continuity, and block continuity
 - time-aware continuity and block-transition scoring using configured windows
 - block-transition scoring also requires the nearest plausible next-trip sequencing within the block when start-time identity is available; later same-block trips do not receive block-transition credit just for being later in the block
-- explicit telemetry bearing validity is respected, including numeric `bearing: 0` for true north; malformed or null bearing payload values do not receive movement-direction credit
+- explicit telemetry bearing validity is respected, including numeric `bearing: 0` for true north when the stored payload explicitly contains a numeric `bearing` field; malformed or null bearing payload values do not receive movement-direction credit, and non-DB callers without payload evidence treat zero as missing
 - exact frequency candidate generation for `exact_times=1`
 - conservative frequency-window identity behavior for `exact_times=0`
 - non-exact frequency matches are marked as conservative window identities in score details so they are not mistaken for exact scheduled instances
@@ -87,7 +87,7 @@ The repo now has:
 - resolvable manual override assignments populate active `feed_version_id` and trip `block_id`, making override rows first-class persisted assignments alongside automatic matches
 - Postgres assignment repository that closes prior active rows and persists assignment confidence, reasons, degraded state, score details, and incident linkage
 - `shape_dist_traveled = 0` is preserved as a valid persisted value, not collapsed to NULL
-- repeated identical degraded unknown states reuse the active degraded assignment only when service date and telemetry evidence match; materially new telemetry evidence or service-day changes create a replacement unknown row and keep prior confident rows closed
+- repeated identical degraded unknown states reuse the active degraded assignment only when degraded state, reason codes, service date, and telemetry evidence match; telemetry evidence means matching `telemetry_event_id` when present, with `active_from` equality only as the no-telemetry fallback
 - batched GTFS schedule detail loading for stop times, shape points, and frequencies under the existing schedule-query boundary
 - a small reason-code, degraded-state, and incident taxonomy
 - unit and DB-backed integration tests for matcher edge cases

@@ -104,9 +104,9 @@ Start Vehicle Positions production feed without changing Trip Updates or GTFS im
 - Active manual overrides are absolute and are evaluated before stale-telemetry fallback.
 - Continuity and block-transition scoring are time-aware and require configured-window plausibility, not just same trip or same block identity.
 - Block-transition scoring also verifies nearest plausible next-trip sequencing within the block when start-time identity is available; later same-block trips do not receive credit solely because they are later.
-- Numeric explicit `bearing: 0` is valid true north and can receive movement-direction credit; null or malformed bearing payload values are not valid.
+- Numeric explicit `bearing: 0` is valid true north and can receive movement-direction credit only when the stored payload explicitly contains a numeric `bearing` field; null, malformed, or payload-missing zero values are treated as missing.
 - `shape_dist_traveled = 0` is preserved as a valid persisted value.
-- Repeated identical degraded unknown states reuse the active degraded assignment only when service date and telemetry evidence match; materially new evidence or service-day changes replace the unknown row and keep prior confident rows closed.
+- Repeated identical degraded unknown states reuse the active degraded assignment only when degraded state, reason codes, service date, and telemetry evidence match. The implementation compares `telemetry_event_id` when present and falls back to exact `active_from` equality only when both rows lack telemetry evidence; materially new evidence or service-day changes replace the unknown row and keep prior confident rows closed.
 - Manual override assignments populate active feed and block context when resolvable, so they are not thinner persisted rows than automatic matches.
 - Missing shape data uses reason `missing_shape` plus degraded state `missing_shape`; it reduces confidence but does not automatically block a match when other strong evidence exists.
 - Non-exact frequency matches use conservative window identity details and must not be treated as exact scheduled instances.
