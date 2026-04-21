@@ -178,6 +178,8 @@ func (b *Builder) persistDiagnostics(ctx context.Context, snapshot *Snapshot) {
 			AssignmentRows:    snapshot.AssignmentRows,
 			TripUpdatesOutput: len(snapshot.TripUpdates),
 		},
+		Metrics:                     snapshot.Diagnostics.Metrics,
+		AdapterDetails:              snapshot.Diagnostics.Details,
 		VehiclePositionsURL:         snapshot.VehiclePositionsURL,
 		DiagnosticsPersistenceState: DiagnosticsPersistenceStored,
 	}
@@ -255,6 +257,8 @@ func (s Snapshot) MarshalDebugJSON() ([]byte, error) {
 		VehiclePositionsURL:           s.VehiclePositionsURL,
 		DiagnosticsStatus:             s.Diagnostics.Status,
 		DiagnosticsReason:             s.Diagnostics.Reason,
+		PredictionMetrics:             s.Diagnostics.Metrics,
+		DiagnosticsDetails:            s.Diagnostics.Details,
 		DiagnosticsPersistenceOutcome: s.DiagnosticsPersistenceOutcome,
 		DiagnosticsPersistenceError:   s.DiagnosticsPersistenceError,
 	}, "", "  ")
@@ -265,21 +269,23 @@ func (s Snapshot) MarshalDebugJSON() ([]byte, error) {
 }
 
 type Debug struct {
-	AgencyID                      string    `json:"agency_id"`
-	GeneratedAt                   time.Time `json:"generated_at"`
-	ActiveFeedVersionID           string    `json:"active_feed_version_id"`
-	AdapterName                   string    `json:"adapter_name"`
-	VehicleLimit                  int       `json:"vehicle_limit"`
-	LatestTelemetryRows           int       `json:"latest_telemetry_rows"`
-	AssignmentRows                int       `json:"assignment_rows"`
-	TripUpdatesOutput             int       `json:"trip_updates_output"`
-	Truncated                     bool      `json:"truncated"`
-	TruncatedVehicleCountMin      int       `json:"truncated_vehicle_count_min"`
-	VehiclePositionsURL           string    `json:"vehicle_positions_url"`
-	DiagnosticsStatus             string    `json:"diagnostics_status"`
-	DiagnosticsReason             string    `json:"diagnostics_reason"`
-	DiagnosticsPersistenceOutcome string    `json:"diagnostics_persistence_outcome"`
-	DiagnosticsPersistenceError   string    `json:"diagnostics_persistence_error,omitempty"`
+	AgencyID                      string             `json:"agency_id"`
+	GeneratedAt                   time.Time          `json:"generated_at"`
+	ActiveFeedVersionID           string             `json:"active_feed_version_id"`
+	AdapterName                   string             `json:"adapter_name"`
+	VehicleLimit                  int                `json:"vehicle_limit"`
+	LatestTelemetryRows           int                `json:"latest_telemetry_rows"`
+	AssignmentRows                int                `json:"assignment_rows"`
+	TripUpdatesOutput             int                `json:"trip_updates_output"`
+	Truncated                     bool               `json:"truncated"`
+	TruncatedVehicleCountMin      int                `json:"truncated_vehicle_count_min"`
+	VehiclePositionsURL           string             `json:"vehicle_positions_url"`
+	DiagnosticsStatus             string             `json:"diagnostics_status"`
+	DiagnosticsReason             string             `json:"diagnostics_reason"`
+	PredictionMetrics             prediction.Metrics `json:"prediction_metrics"`
+	DiagnosticsDetails            map[string]any     `json:"diagnostics_details,omitempty"`
+	DiagnosticsPersistenceOutcome string             `json:"diagnostics_persistence_outcome"`
+	DiagnosticsPersistenceError   string             `json:"diagnostics_persistence_error,omitempty"`
 }
 
 func buildEntity(update prediction.TripUpdate) (*gtfsrt.FeedEntity, error) {

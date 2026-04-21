@@ -23,8 +23,12 @@ func (r *PostgresDiagnosticsRepository) SaveTripUpdatesDiagnostics(ctx context.C
 		"diagnostics_reason":              record.Reason,
 		"active_feed_version_id":          record.ActiveFeedVersionID,
 		"input_counts":                    record.InputCounts,
+		"prediction_metrics":              record.Metrics,
 		"vehicle_positions_url":           record.VehiclePositionsURL,
 		"diagnostics_persistence_outcome": record.DiagnosticsPersistenceState,
+	}
+	if len(record.AdapterDetails) > 0 {
+		details["adapter_details"] = record.AdapterDetails
 	}
 	payload, err := json.Marshal(details)
 	if err != nil {
@@ -40,17 +44,20 @@ func (r *PostgresDiagnosticsRepository) SaveTripUpdatesDiagnostics(ctx context.C
 			details_json
 		)
 		VALUES ($1, 'trip_updates', $2, true, $3, $4::jsonb)
-	`, record.AgencyID, record.SnapshotAt, coveragePercent(record.InputCounts), string(payload))
+	`, record.AgencyID, record.SnapshotAt, coveragePercent(record), string(payload))
 	if err != nil {
 		return DiagnosticsPersistenceResult{}, fmt.Errorf("insert trip updates diagnostics: %w", err)
 	}
 	return DiagnosticsPersistenceResult{Stored: true}, nil
 }
 
-func coveragePercent(counts InputCounts) *float64 {
-	if counts.AssignmentRows <= 0 {
+func coveragePercent(record DiagnosticsRecord) *float64 {
+	if record.Metrics.CoveragePercent != nil {
+		return record.Metrics.CoveragePercent
+	}
+	if record.InputCounts.AssignmentRows <= 0 {
 		return nil
 	}
-	value := float64(counts.TripUpdatesOutput) / float64(counts.AssignmentRows) * 100
+	value := float64(record.InputCounts.TripUpdatesOutput) / float64(record.InputCounts.AssignmentRows) * 100
 	return &value
 }

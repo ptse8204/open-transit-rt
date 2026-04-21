@@ -110,6 +110,18 @@ Trip Updates diagnostics are persisted to `feed_health_snapshot` with `feed_type
 
 Trip Updates and Alerts protobuf endpoints return valid empty GTFS-Realtime `FeedMessage` payloads with `gtfs_realtime_version = "2.0"`, `FULL_DATASET`, and `FeedHeader.timestamp` derived from the same snapshot `GeneratedAt` timestamp used for `Last-Modified`. Non-empty Trip Updates output must use deterministic feed entity ordering and ordered `stop_time_update` entries.
 
-Alerts are architecture-only in Phase 6. The Alerts endpoint returns valid empty protobuf and JSON debug output with deferred status, but it does not write `feed_health_snapshot` rows, persist alert records, or derive public alerts from incidents/manual overrides yet. Alert authoring and operational alert workflows belong to Phase 7.
+Alerts are architecture-only in Phase 6. The Alerts endpoint returns valid empty protobuf and JSON debug output with deferred status, but it does not write `feed_health_snapshot` rows, persist alert records, or derive public alerts from incidents/manual overrides yet. Phase 7 added canceled-trip missing-alert linkage signals; public Alerts authoring and persistence remain future work.
 
 The Trip Updates packages are intentionally not dependencies of telemetry ingest, Vehicle Positions, or GTFS Studio. A non-coupling test guards that boundary.
+
+## ADR-0017 — Use an internal conservative deterministic predictor for Phase 7
+
+Phase 7 replaces the default Trip Updates no-op runtime path with an internal deterministic adapter behind `internal/prediction.Adapter`. The adapter uses only the active published GTFS feed, latest accepted telemetry, current persisted assignments, and prediction-operation repository interfaces. It does not move matching ownership into the predictor and does not couple predictor internals into telemetry ingest, Vehicle Positions, GTFS import, or GTFS Studio.
+
+The first predictor emits stop-level Trip Updates only when the assignment is in service, current, linked to the active feed, linked to the latest telemetry where required, above the publication confidence threshold, and resolvable to a GTFS trip instance. Prediction times are schedule-deviation projections from the current assigned stop, not production-grade learned ETAs. Weak, stale, degraded, deadhead, layover, ambiguous, added-trip, short-turn, and detour cases are withheld and recorded as prediction review items instead of fabricating Trip Updates.
+
+Canceled trips are not part of the ETA coverage denominator. They are emitted as conservative `CANCELED` Trip Updates when represented by active prediction overrides, and they are tracked by separate cancellation and cancellation-alert-linkage metrics. Because public Alerts authoring remains deferred, canceled-trip review details persist `expected_alert_missing=true` and `cancellation_alert_linkage_status="missing_alert_authoring_deferred"`.
+
+Prediction review workflow uses the existing `incident` table with `incident_type = 'prediction_review'` and a minimal lifecycle of `open`, `resolved`, and `deferred`. Phase 7 extends the incident status check constraint to support `deferred`. Override create, replace, clear, and review-status changes write `audit_log` rows.
+
+The matcher continues to consume only assignment/service-state overrides from `manual_override` (`trip_assignment` and `service_state`). Prediction-only disruption overrides such as canceled trips, added trips, detours, and short turns are consumed through `prediction.OperationsRepository` so they cannot force invalid assignment states into `vehicle_trip_assignment`.

@@ -28,10 +28,8 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 ## Phase 7 — Prediction Quality And Operations
 
-- Add stop-level ETA model and quality metrics.
-- Add incident queue workflows.
-- Add cancellation, added trip, detour, short turn, and vehicle swap operations.
-- Add Alerts authoring/persistence and incident-to-alert workflows.
+- Complete for the first conservative operations scope. The deterministic Trip Updates adapter, override lifecycle repository, audit logging, prediction review queue, cancellation linkage signal, deadhead/layover suppression, disruption withholds, and coverage metrics are implemented.
+- Remaining later work: production-grade ETA quality, backtesting, full operator UI, canonical realtime validation, public Alerts authoring/persistence, vehicle swap UI/workflow, and richer detour/short-turn prediction behavior.
 
 ## Phase 8 — Compliance And Consumer Workflow
 

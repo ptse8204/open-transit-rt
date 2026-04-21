@@ -303,6 +303,40 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("disruption override is reserved for prediction and ignored by matcher", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedDemoSchedule(t, ctx, pool, true)
+		_, err := pool.Exec(ctx, `
+			INSERT INTO manual_override (
+				agency_id, vehicle_id, override_type, route_id, trip_id, start_date, start_time, state, reason, created_by, created_at
+			)
+			VALUES (
+				'demo-agency', 'bus-canceled', 'canceled_trip', 'route-10', 'trip-10-0800', '20260420', '08:00:00', 'canceled', 'prediction cancellation', 'test', now()
+			)
+		`)
+		if err != nil {
+			t.Fatalf("insert disruption override: %v", err)
+		}
+
+		event := telemetry.Event{
+			AgencyID:  "demo-agency",
+			DeviceID:  "device-bus-canceled",
+			VehicleID: "bus-canceled",
+			Timestamp: time.Date(2026, 4, 20, 15, 2, 0, 0, time.UTC),
+			Lat:       49.2827,
+			Lon:       -123.1207,
+			TripHint:  "trip-10-0800",
+		}
+		stored := storeTelemetry(t, ctx, telemetryRepo, event)
+		assignment, err := engine.MatchEvent(ctx, stored, stored.Timestamp.Add(30*time.Second))
+		if err != nil {
+			t.Fatalf("match event with prediction disruption override: %v", err)
+		}
+		if assignment.AssignmentSource == AssignmentSourceManualOverride || assignment.State != StateInService {
+			t.Fatalf("assignment = %+v, want matcher to ignore prediction-only disruption override", assignment)
+		}
+	})
+
 	t.Run("missing shape degrades but can still match", func(t *testing.T) {
 		resetMatcherData(t, ctx, pool)
 		seedDemoSchedule(t, ctx, pool, false)

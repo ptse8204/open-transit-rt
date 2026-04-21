@@ -14,7 +14,9 @@ This repository is an early-stage starter for **Open Transit RT**.
 
 Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
 
-Phase 6 Trip Updates and Alerts architecture is complete. The repo now has a pluggable Trip Updates adapter boundary, default no-op adapter, Trip Updates diagnostics persistence, valid empty Trip Updates protobuf/JSON endpoints, valid empty Alerts protobuf/JSON endpoints, and non-coupling tests that keep prediction packages out of telemetry ingest, Vehicle Positions, and GTFS Studio.
+Phase 6 Trip Updates and Alerts architecture is complete. The repo has a pluggable Trip Updates adapter boundary, default no-op adapter, Trip Updates diagnostics persistence, valid empty Trip Updates protobuf/JSON endpoints, valid empty Alerts protobuf/JSON endpoints, and non-coupling tests that keep prediction packages out of telemetry ingest, Vehicle Positions, and GTFS Studio.
+
+Phase 7 prediction quality and operations workflows are complete for the first conservative production-directed scope. The Trip Updates service now defaults to an internal deterministic predictor behind `internal/prediction.Adapter`, emits non-empty Trip Updates for defensible matched inputs, withholds weak/degraded/deadhead/layover/disrupted cases, persists prediction review items, records audit-backed override workflow operations, emits cancellation Trip Updates with missing-alert linkage signals, and exposes first-class coverage metrics.
 
 ## What Exists Now
 
@@ -60,7 +62,7 @@ The repo includes starter Go services for:
 
 `cmd/gtfs-studio` serves a minimal server-rendered admin surface for typed GTFS draft editing and draft publishing. It is operational row editing, not a map editor or timetable designer.
 
-`cmd/feed-trip-updates` serves Phase 6 architecture endpoints backed by a no-op prediction adapter. It returns valid empty GTFS-RT Trip Updates protobuf output and JSON diagnostics while persisting Trip Updates traceability to `feed_health_snapshot`.
+`cmd/feed-trip-updates` serves stable Trip Updates endpoints backed by the Phase 7 deterministic prediction adapter by default, with the Phase 6 no-op adapter still selectable as a fallback. It returns valid GTFS-RT Trip Updates protobuf output, JSON diagnostics, prediction metrics, and persisted Trip Updates traceability through `feed_health_snapshot`.
 
 `cmd/feed-alerts` serves Phase 6 architecture endpoints for Alerts. It returns valid empty GTFS-RT Alerts protobuf output and JSON-only deferred diagnostics; alert authoring and alert persistence are intentionally deferred.
 
@@ -169,8 +171,7 @@ Migrations under `db/migrations` are the source of truth for executable schema c
 
 The following are still missing or incomplete unless a later handoff says otherwise:
 
-- production Trip Updates ETA/prediction quality
-- real predictor adapter implementation beyond the default no-op
+- production-grade learned ETA/prediction quality and backtesting
 - Alerts authoring and alert persistence
 - compliance dashboard
 - consumer ingestion workflow
@@ -180,9 +181,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 7 — Prediction quality and operations workflows
+**Active phase:** Phase 8 — Compliance and consumer workflow
 
-Phase 6 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
+Phase 7 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -372,21 +373,49 @@ Phase 6 implementation results:
 - added non-coupling tests proving telemetry ingest, Vehicle Positions, and GTFS Studio do not depend on prediction or Trip Updates packages.
 - did not add ETA-quality logic, production predictor behavior, alert authoring, alert persistence, incident-to-alert conversion, rider apps, payments, passenger accounts, CAD, marketplace workflows, or canonical validators.
 
+## Phase 7 Closure Audit Results
+
+Checked during Phase 7 closure:
+- `command -v go`: passed, `/usr/local/bin/go`.
+- `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- `make fmt`: passed.
+- `make test`: passed.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make db-up`: passed; PostGIS container running on host port `55432`.
+- `make migrate-up`: passed and applied `000006_prediction_operations.sql`.
+- `make migrate-status`: passed and reports migration versions 1 through 6 applied.
+- `make test-integration`: passed with DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, and prediction operations tests using isolated temporary database setup.
+- `make validate`: passed Phase 7 file smoke only. Canonical GTFS and GTFS-RT validators remain documented but not wired.
+- `git diff --check`: passed.
+
+Phase 7 implementation results:
+- added `prediction.DeterministicAdapter` as the first real internal Trip Updates predictor behind `internal/prediction.Adapter`.
+- made `cmd/feed-trip-updates` default to the deterministic adapter through `TRIP_UPDATES_ADAPTER=deterministic`, while preserving `TRIP_UPDATES_ADAPTER=noop`.
+- generated non-empty Trip Updates for defensible in-service assignments using active published GTFS, latest telemetry, and current assignments.
+- kept canceled trips outside the ETA coverage denominator and tracked them separately through canceled-trip and cancellation-alert-linkage metrics.
+- persisted canceled-trip missing-alert linkage in prediction review details with `expected_alert_missing=true`.
+- added prediction operation repository behavior for override create, replace, clear, expiry reads, review item persistence, review status transitions, and audit logging.
+- kept matcher override consumption limited to `trip_assignment` and `service_state`; prediction-only disruption overrides are consumed through `prediction.OperationsRepository`.
+- added minimal review queue lifecycle states: `open`, `resolved`, and `deferred`.
+- withheld deadhead, layover, weak, stale, degraded, ambiguous, added-trip, short-turn, and detour cases instead of fabricating Trip Updates.
+- exposed first-class prediction metrics in diagnostics and `feed_health_snapshot.details_json`.
+- preserved Phase 3 Vehicle Positions, Phase 4 GTFS import, Phase 5 GTFS Studio, and Phase 6 public endpoint/non-coupling contracts.
+
 ## Next Recommended Step
 
-Begin Phase 7 using the exact recommendation in `docs/handoffs/latest.md`.
+Begin Phase 8 using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. inspect the Phase 6 Trip Updates adapter/no-op implementation and diagnostics persistence
-2. choose the first real prediction backend strategy or keep building an internal deterministic predictor
-3. add stop-level ETA prediction quality behind the existing adapter contract
-4. add operator workflows for cancellations, added trips, detours, short turns, and missing predictions
-5. add Alerts authoring/persistence without changing the Phase 6 public endpoint shape
+1. inspect Phase 7 Trip Updates metrics, review queue, cancellation linkage, and deterministic adapter behavior
+2. choose the first compliance workflow slice, likely canonical validation/reporting and public feed metadata
+3. wire GTFS and GTFS-RT validator execution behind documented validation boundaries
+4. add public discoverability metadata and stable feed status reporting
+5. keep compliance workflow separate from prediction internals
 
 ## What Not To Do Next
 
 Do not:
-- bypass the Phase 6 prediction adapter boundary
+- bypass the prediction adapter boundary
 - add rider-facing functionality
 - add payments, passenger accounts, or dispatcher CAD
 - add a heavy frontend stack

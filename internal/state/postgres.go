@@ -28,6 +28,7 @@ func (r *PostgresRepository) ActiveManualOverride(ctx context.Context, agencyID 
 		FROM manual_override
 		WHERE agency_id = $1
 		  AND vehicle_id = $2
+		  AND override_type IN ('trip_assignment', 'service_state')
 		  AND cleared_at IS NULL
 		  AND (expires_at IS NULL OR expires_at > $3)
 		ORDER BY created_at DESC, id DESC

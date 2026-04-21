@@ -62,23 +62,26 @@ test:
 	go test ./...
 
 test-integration: migrate-status
-	@echo "Phase 6 integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests use isolated temporary databases when supported."
+	@echo "Phase 7 integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, and prediction operations tests use isolated temporary databases when supported."
 	INTEGRATION_TESTS=1 TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...
 
 lint:
 	@if command -v golangci-lint >/dev/null 2>&1; then golangci-lint run ./...; else echo "optional lint skipped: golangci-lint is not installed; future CI should make this required once configured"; fi
 
 validate:
-	@echo "Phase 6 validation smoke: checking scaffold, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates architecture, and Alerts architecture files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
+	@echo "Phase 7 validation smoke: checking scaffold, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, and Alerts architecture files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
 	@test -f db/migrations/000001_initial_schema.sql
 	@test -f db/migrations/000002_telemetry_ingest_foundation.sql
 	@test -f db/migrations/000003_deterministic_matching.sql
 	@test -f db/migrations/000004_gtfs_import_pipeline.sql
 	@test -f db/migrations/000005_gtfs_studio_drafts.sql
+	@test -f db/migrations/000006_prediction_operations.sql
 	@test -f internal/feed/vehicle_positions.go
 	@test -f internal/feed/tripupdates/trip_updates.go
 	@test -f internal/feed/alerts/alerts.go
 	@test -f internal/prediction/model.go
+	@test -f internal/prediction/deterministic.go
+	@test -f internal/prediction/postgres_operations.go
 	@test -f internal/gtfs/importer.go
 	@test -f internal/gtfs/draft.go
 	@test -f cmd/feed-vehicle-positions/main.go

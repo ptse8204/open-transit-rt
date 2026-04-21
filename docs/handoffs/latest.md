@@ -4,7 +4,7 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 7 — Prediction quality and operations workflows
+Phase 8 — Compliance and consumer workflow
 
 ## Phase Status
 
@@ -15,13 +15,14 @@ Phase 7 — Prediction quality and operations workflows
 - Phase 4 GTFS import and publish pipeline is implemented and complete.
 - Phase 5 GTFS Studio draft/publish model is implemented and complete.
 - Phase 6 Trip Updates and Alerts architecture is implemented and complete.
-- Phase 7 is ready to start.
+- Phase 7 prediction quality and operations workflows are implemented and complete.
+- Phase 8 is ready to start.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-06.md`
+3. `docs/handoffs/phase-07.md`
 4. `docs/phase-plan.md`
 5. `docs/codex-task.md`
 6. `docs/requirements-2a-2f.md`
@@ -32,7 +33,7 @@ Phase 7 — Prediction quality and operations workflows
 
 ## Current Objective
 
-Begin Phase 7 prediction quality and operations workflows. Do not bypass the Phase 6 prediction adapter boundary, do not couple predictor internals into telemetry ingest, Vehicle Positions, or GTFS Studio, and do not start rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
+Begin Phase 8 compliance and consumer workflow. Preserve the Phase 7 prediction adapter, metrics, override, review queue, and cancellation-linkage boundaries. Do not bypass canonical feed boundaries, do not couple validators into core prediction or matching internals, and do not start rider apps, payments, passenger accounts, dispatcher CAD, or marketplace workflows.
 
 ## Exact First Commands
 
@@ -60,37 +61,35 @@ task test:integration
 
 - Task is optional and may not be installed; Makefile remains independently usable.
 - Docker must be running before DB-backed checks.
-- Canonical GTFS and GTFS-RT validators are documented but not wired yet.
-- Trip Updates currently use a no-op adapter; no ETA-quality predictor is implemented yet.
-- Alerts endpoints exist but alert authoring and persistence are intentionally deferred.
+- Canonical GTFS and GTFS-Realtime validators are documented but not wired yet.
+- Alerts authoring and persistence remain deferred.
+- Phase 7 predictions are conservative schedule-deviation predictions, not production-grade learned ETAs.
+- Prediction review workflow has repository behavior but no full operator UI.
 - GTFS Studio auth is minimal/dev-only and not production-grade.
 
 ## First Files Likely To Edit
 
-- `internal/prediction/`
+- `internal/gtfs/`
 - `internal/feed/tripupdates/`
 - `internal/feed/alerts/`
-- `internal/state/` only for operation-state inputs needed by prediction
-- `internal/gtfs/` only if additional schedule-query contracts are needed
-- `db/migrations/` only if Phase 7 adds alert/prediction persistence beyond existing health snapshots
+- `internal/prediction/` only if compliance metrics need prediction diagnostics
+- `db/migrations/` if validation/report/compliance persistence changes are required
 - `docs/current-status.md`
-- `docs/handoffs/phase-07.md`
+- `docs/handoffs/phase-08.md`
 - `docs/handoffs/latest.md`
 - `docs/dependencies.md`
-- `docs/decisions.md` if architecture-significant prediction/alerts decisions are made
+- `docs/decisions.md` if architecture-significant compliance decisions are made
 
-## Phase 7 Entry Recommendation
+## Phase 8 Entry Recommendation
 
-Start prediction quality and operations work behind the Phase 6 contracts:
+Start compliance work behind stable validation and publication boundaries:
 
-1. Inspect `internal/prediction`, `internal/feed/tripupdates`, `internal/feed/alerts`, `internal/state`, and `internal/gtfs`.
-2. Choose the first real prediction strategy: internal deterministic ETA logic or an external adapter such as TheTransitClock.
-3. Keep public Trip Updates endpoint shape stable while replacing the no-op adapter behavior.
-4. Add stop-level predictions only from active published GTFS, persisted latest telemetry, and persisted assignments.
-5. Preserve deterministic entity ordering and ordered `stop_time_update` entries.
-6. Preserve `FeedHeader.timestamp` and `Last-Modified` alignment from snapshot `GeneratedAt`.
-7. Add alert authoring/persistence only after deciding whether alerts are operator-authored, incident-derived, or both.
-8. Keep Vehicle Positions, telemetry ingest, GTFS import, and GTFS Studio behavior stable.
+1. Inspect Phase 7 Trip Updates metrics, review queue, cancellation linkage, and deterministic adapter behavior.
+2. Choose the first compliance slice, likely canonical validation/reporting and public feed metadata.
+3. Wire GTFS and GTFS-RT validator execution behind documented validation interfaces.
+4. Add public discoverability metadata and stable feed status reporting.
+5. Keep compliance workflow separate from prediction internals.
+6. Preserve Vehicle Positions, telemetry ingest, GTFS import, GTFS Studio, and Trip Updates endpoint behavior.
 
 ## Constraints To Preserve
 
@@ -99,26 +98,30 @@ Start prediction quality and operations work behind the Phase 6 contracts:
 - Vehicle Positions first.
 - Trip Updates pluggable.
 - Draft GTFS separate from published GTFS.
-- Conservative matching.
+- Conservative matching and prediction.
 - Manual overrides take precedence over matching.
 - No rider apps, payments, passenger accounts, or dispatcher CAD.
 - External integrations stay behind documented adapters.
 - Runtime GTFS import input is ZIP; directory parsing is test-fixture setup only.
 - GTFS Studio publishes typed draft rows through the shared validation/activation helper directly, not through synthetic ZIP import.
 - GTFS times beyond `24:00:00` remain stored as imported text in canonical published GTFS tables.
-- Phase 6 Trip Updates packages must not become dependencies of telemetry ingest, Vehicle Positions, or GTFS Studio.
+- Trip Updates packages must not become dependencies of telemetry ingest, Vehicle Positions, or GTFS Studio.
+- Canceled trips are excluded from ETA coverage denominator and tracked separately.
+- Prediction review items use `open`, `resolved`, and `deferred` lifecycle states.
 
-## Phase 6 Notes For Phase 7
+## Phase 7 Notes For Phase 8
 
-- `internal/prediction.Adapter` is the only Trip Updates prediction boundary.
-- `prediction.NoopAdapter` is the default adapter and returns explicit no-op diagnostics.
-- Trip Updates diagnostics persist to `feed_health_snapshot` with required fields in `details_json`.
-- `cmd/feed-trip-updates` exposes `/public/gtfsrt/trip_updates.pb` and `/public/gtfsrt/trip_updates.json`.
-- `cmd/feed-alerts` exposes `/public/gtfsrt/alerts.pb` and `/public/gtfsrt/alerts.json`.
-- `VEHICLE_POSITIONS_FEED_URL` is an exact full Phase 3 protobuf URL. If unset, `FEED_BASE_URL` must include `/public` and derives `/public/gtfsrt/vehicle_positions.pb`.
-- Trip Updates and Alerts responses derive `Last-Modified` from the same snapshot `GeneratedAt` used for `FeedHeader.timestamp`.
-- Alerts do not write `feed_health_snapshot` rows in Phase 6; deferred status is JSON-only.
-- No database migration was added in Phase 6.
+- `internal/prediction.Adapter` remains the only Trip Updates prediction boundary.
+- `prediction.DeterministicAdapter` is the default runtime adapter.
+- `prediction.NoopAdapter` remains available through `TRIP_UPDATES_ADAPTER=noop`.
+- Trip Updates diagnostics persist to `feed_health_snapshot` with Phase 6 fields plus prediction metrics and adapter details.
+- Prediction review items persist as `incident` rows with `incident_type = 'prediction_review'`.
+- Override create, replace, clear, and review status updates write audit rows.
+- Canceled trips emit conservative `CANCELED` Trip Updates and persist missing-alert linkage signals until Alerts authoring/persistence is implemented.
+- Added trips, short turns, detours, deadhead, layover, weak, stale, degraded, and ambiguous cases are withheld with explicit reasons.
+- `cmd/feed-trip-updates` still exposes `/public/gtfsrt/trip_updates.pb` and `/public/gtfsrt/trip_updates.json`.
+- `cmd/feed-alerts` still exposes valid empty Alerts endpoints; public Alerts authoring/persistence is not implemented.
+- No external prediction dependency was added.
 
 ## Handoff Template Requirement
 

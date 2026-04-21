@@ -25,12 +25,14 @@ These questions do not block the next phase.
 
 ## Prediction Backends
 
-- Should the first real Trip Updates adapter be an internal deterministic ETA engine or TheTransitClock?
-- Phase 6 resolved the minimum no-op diagnostics trace: adapter name, diagnostics status/reason, active feed version, input counts, Vehicle Positions URL, and persistence outcome. What additional diagnostics are required for the first real predictor backend?
+- Phase 7 chose an internal deterministic predictor as the first real Trip Updates adapter. Should a later phase add TheTransitClock as an alternate adapter, and what deployment profile should own it?
+- What quality threshold should be required before claiming production-grade ETA quality rather than conservative schedule-deviation predictions?
+- What historical telemetry retention and backtesting workflow should support MAE by route, stop, and time of day?
 
 ## Alerts
 
-- Should Phase 7 store operator-authored alerts in a dedicated alert table, derive some alerts from incidents/manual overrides, or support both paths?
+- Phase 7 persists cancellation-to-alert linkage signals with `expected_alert_missing=true`, but public Alerts authoring/persistence remains deferred. Should Alerts be operator-authored, incident-derived, or both?
+- What minimal Alerts authoring workflow should clear or satisfy a canceled-trip `expected_alert_missing` review signal?
 
 ## GTFS Studio
 

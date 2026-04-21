@@ -90,6 +90,152 @@ func TestPostgresDiagnosticsRepositoryIntegration(t *testing.T) {
 	}
 }
 
+func TestPostgresOperationsRepositoryIntegration(t *testing.T) {
+	if os.Getenv("INTEGRATION_TESTS") != "1" {
+		t.Skip("set INTEGRATION_TESTS=1 to run DB-backed prediction operations tests")
+	}
+	ctx := context.Background()
+	pool, cleanup := setupPredictionIntegrationDB(t)
+	defer cleanup()
+
+	_, err := pool.Exec(ctx, `
+		INSERT INTO agency (id, name, timezone)
+		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver')
+	`)
+	if err != nil {
+		t.Fatalf("seed agency: %v", err)
+	}
+
+	repo := NewPostgresOperationsRepository(pool)
+	now := time.Date(2026, 4, 21, 12, 0, 0, 0, time.UTC)
+	expires := now.Add(time.Hour)
+	created, err := repo.CreatePredictionOverride(ctx, OverrideInput{
+		AgencyID:     "demo-agency",
+		VehicleID:    "bus-10",
+		OverrideType: "trip_assignment",
+		TripID:       "trip-10",
+		StartDate:    "20260421",
+		StartTime:    "08:00:00",
+		State:        "in_service",
+		ExpiresAt:    &expires,
+		Reason:       "fix bad match",
+		ActorID:      "operator@example.com",
+		Now:          now,
+	})
+	if err != nil {
+		t.Fatalf("create override: %v", err)
+	}
+	if created.ID == 0 {
+		t.Fatalf("created override id = 0")
+	}
+
+	active, err := repo.ListActivePredictionOverrides(ctx, "demo-agency", now)
+	if err != nil {
+		t.Fatalf("list active overrides: %v", err)
+	}
+	if len(active) != 1 || active[0].TripID != "trip-10" {
+		t.Fatalf("active overrides = %+v, want created override", active)
+	}
+
+	replaced, err := repo.ReplacePredictionOverride(ctx, OverrideInput{
+		AgencyID:     "demo-agency",
+		VehicleID:    "bus-10",
+		OverrideType: "service_state",
+		State:        "deadhead",
+		Reason:       "vehicle deadheading",
+		ActorID:      "operator@example.com",
+		Now:          now.Add(time.Minute),
+	})
+	if err != nil {
+		t.Fatalf("replace override: %v", err)
+	}
+	active, err = repo.ListActivePredictionOverrides(ctx, "demo-agency", now.Add(2*time.Minute))
+	if err != nil {
+		t.Fatalf("list replaced overrides: %v", err)
+	}
+	if len(active) != 1 || active[0].ID != replaced.ID || active[0].State != "deadhead" {
+		t.Fatalf("active overrides after replace = %+v, want replacement only", active)
+	}
+
+	if err := repo.ClearPredictionOverride(ctx, "demo-agency", replaced.ID, "operator@example.com", "resume automatic", now.Add(3*time.Minute)); err != nil {
+		t.Fatalf("clear override: %v", err)
+	}
+	active, err = repo.ListActivePredictionOverrides(ctx, "demo-agency", now.Add(4*time.Minute))
+	if err != nil {
+		t.Fatalf("list cleared overrides: %v", err)
+	}
+	if len(active) != 0 {
+		t.Fatalf("active overrides after clear = %+v, want none", active)
+	}
+
+	past := now.Add(-time.Minute)
+	if _, err := repo.CreatePredictionOverride(ctx, OverrideInput{
+		AgencyID:     "demo-agency",
+		VehicleID:    "bus-expired",
+		OverrideType: "service_state",
+		State:        "layover",
+		ExpiresAt:    &past,
+		Reason:       "expired",
+		ActorID:      "operator@example.com",
+		Now:          now,
+	}); err != nil {
+		t.Fatalf("create expired override: %v", err)
+	}
+	active, err = repo.ListActivePredictionOverrides(ctx, "demo-agency", now)
+	if err != nil {
+		t.Fatalf("list after expired override: %v", err)
+	}
+	if len(active) != 0 {
+		t.Fatalf("active overrides with expired row = %+v, want none", active)
+	}
+
+	var auditRows int
+	if err := pool.QueryRow(ctx, `
+		SELECT count(*)
+		FROM audit_log
+		WHERE agency_id = 'demo-agency'
+		  AND action IN ('prediction_override.create', 'prediction_override.replace', 'prediction_override.clear')
+	`).Scan(&auditRows); err != nil {
+		t.Fatalf("count audit rows: %v", err)
+	}
+	if auditRows < 4 {
+		t.Fatalf("audit rows = %d, want create/replace/clear coverage", auditRows)
+	}
+
+	if err := repo.SavePredictionReviewItems(ctx, []ReviewItem{{
+		AgencyID:   "demo-agency",
+		SnapshotAt: now,
+		VehicleID:  "bus-10",
+		RouteID:    "route-10",
+		TripID:     "trip-10",
+		StartDate:  "20260421",
+		StartTime:  "08:00:00",
+		Severity:   "warning",
+		Reason:     ReasonDeadheadNoPrediction,
+		Status:     ReviewStatusOpen,
+		Details:    map[string]any{"source": "test"},
+	}}); err != nil {
+		t.Fatalf("save review item: %v", err)
+	}
+	reviews, err := repo.ListPredictionReviewItems(ctx, ReviewFilter{AgencyID: "demo-agency", Status: ReviewStatusOpen})
+	if err != nil {
+		t.Fatalf("list review items: %v", err)
+	}
+	if len(reviews) != 1 || reviews[0].Reason != ReasonDeadheadNoPrediction || reviews[0].Status != ReviewStatusOpen {
+		t.Fatalf("reviews = %+v, want open prediction review", reviews)
+	}
+	if err := repo.UpdatePredictionReviewStatus(ctx, "demo-agency", reviews[0].ID, ReviewStatusDeferred, "operator@example.com", "check later", now.Add(5*time.Minute)); err != nil {
+		t.Fatalf("defer review item: %v", err)
+	}
+	deferred, err := repo.ListPredictionReviewItems(ctx, ReviewFilter{AgencyID: "demo-agency", Status: ReviewStatusDeferred})
+	if err != nil {
+		t.Fatalf("list deferred review items: %v", err)
+	}
+	if len(deferred) != 1 || deferred[0].Status != ReviewStatusDeferred {
+		t.Fatalf("deferred reviews = %+v, want deferred state", deferred)
+	}
+}
+
 func assertDetail(t *testing.T, details map[string]any, key string, want string) {
 	t.Helper()
 	if got, _ := details[key].(string); got != want {

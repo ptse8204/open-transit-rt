@@ -377,6 +377,46 @@ Replace the no-op adapter with an internal deterministic predictor, TheTransitCl
 
 ---
 
+## 7B. Phase 7 internal deterministic Trip Updates adapter
+
+### Classification
+Core internal prediction backend
+
+### Purpose
+Provide the first real Trip Updates behavior behind `internal/prediction.Adapter` without taking a dependency on an external predictor.
+
+### Integration boundary
+- implemented in Go inside `internal/prediction`
+- consumed only by `cmd/feed-trip-updates` through `internal/feed/tripupdates`
+- reads active published GTFS through `gtfs.Repository`
+- reads prediction-affecting overrides and writes review items through `prediction.OperationsRepository`
+- does not write telemetry, assignments, Vehicle Positions, or GTFS Studio data
+- does not expose GTFS-RT protobuf types outside feed boundary packages
+
+### Input contract
+- active published GTFS feed version
+- latest accepted telemetry snapshot
+- current persisted vehicle-trip assignments
+- active prediction-affecting overrides
+- configured Vehicle Positions feed URL
+
+### Output contract
+- conservative Trip Updates for defensible in-service trip instances
+- conservative `CANCELED` Trip Updates for active canceled-trip overrides
+- prediction diagnostics, coverage metrics, withheld reasons, and review items
+
+### Failure behavior
+- weak, stale, degraded, deadhead, layover, ambiguous, unsupported added-trip, unsupported short-turn, and unsupported detour inputs are withheld
+- canceled trips are excluded from ETA coverage metrics and tracked separately
+- missing Alerts authoring for cancellations is persisted as `expected_alert_missing=true`
+- review item persistence failure is reported in diagnostics without corrupting feed output
+- adapter construction or core schedule-query failures surface as Trip Updates adapter errors
+
+### Replacement strategy
+The adapter can be replaced by TheTransitClock, another external predictor, or a later higher-quality internal ETA engine if the `internal/prediction.Adapter` and operations repository contracts remain stable.
+
+---
+
 ## 8. Go toolchain
 
 ### Classification

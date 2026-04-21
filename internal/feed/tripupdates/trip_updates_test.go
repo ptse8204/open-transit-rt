@@ -187,6 +187,90 @@ func TestTripUpdatesAdapterErrorReturnsEmptyDiagnostics(t *testing.T) {
 	}
 }
 
+func TestTripUpdatesBuilderWithDeterministicAdapterProducesNonEmptyFeed(t *testing.T) {
+	generatedAt := time.Date(2026, 4, 20, 15, 5, 0, 0, time.UTC)
+	adapter, err := prediction.NewDeterministicAdapter(
+		&fakeScheduleRepo{
+			active: gtfs.FeedVersion{ID: "feed-demo", AgencyID: "demo-agency"},
+			agency: gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"},
+			tripsByDate: map[string][]gtfs.TripCandidate{
+				"20260420": {{
+					AgencyID:      "demo-agency",
+					FeedVersionID: "feed-demo",
+					ServiceDate:   "20260420",
+					RouteID:       "route-10",
+					ServiceID:     "weekday",
+					TripID:        "trip-10",
+					StopTimes: []gtfs.StopTime{
+						{TripID: "trip-10", StopID: "stop-1", StopSequence: 1, ArrivalSeconds: 8 * 3600, DepartureSeconds: 8 * 3600},
+						{TripID: "trip-10", StopID: "stop-2", StopSequence: 2, ArrivalSeconds: 8*3600 + 600, DepartureSeconds: 8*3600 + 600},
+					},
+				}},
+			},
+		},
+		&fakePredictionOperations{},
+		prediction.DeterministicConfig{},
+	)
+	if err != nil {
+		t.Fatalf("new deterministic adapter: %v", err)
+	}
+	builder := newTestBuilder(t,
+		&fakeScheduleRepo{
+			active: gtfs.FeedVersion{ID: "feed-demo", AgencyID: "demo-agency"},
+			agency: gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"},
+			tripsByDate: map[string][]gtfs.TripCandidate{
+				"20260420": {{
+					AgencyID:      "demo-agency",
+					FeedVersionID: "feed-demo",
+					ServiceDate:   "20260420",
+					RouteID:       "route-10",
+					ServiceID:     "weekday",
+					TripID:        "trip-10",
+					StopTimes: []gtfs.StopTime{
+						{TripID: "trip-10", StopID: "stop-1", StopSequence: 1, ArrivalSeconds: 8 * 3600, DepartureSeconds: 8 * 3600},
+						{TripID: "trip-10", StopID: "stop-2", StopSequence: 2, ArrivalSeconds: 8*3600 + 600, DepartureSeconds: 8*3600 + 600},
+					},
+				}},
+			},
+		},
+		&fakeTelemetryRepo{events: []telemetry.StoredEvent{tripUpdateStoredEvent(10, "bus-10", generatedAt)}},
+		&fakeStateRepo{assignments: map[string]state.Assignment{
+			"bus-10": {
+				AgencyID:            "demo-agency",
+				VehicleID:           "bus-10",
+				FeedVersionID:       "feed-demo",
+				TelemetryEventID:    10,
+				State:               state.StateInService,
+				ServiceDate:         "20260420",
+				RouteID:             "route-10",
+				TripID:              "trip-10",
+				StartDate:           "20260420",
+				StartTime:           "08:00:00",
+				CurrentStopSequence: 1,
+				Confidence:          0.9,
+				AssignmentSource:    state.AssignmentSourceAutomatic,
+				DegradedState:       state.DegradedNone,
+			},
+		}},
+		adapter,
+		&fakeDiagnosticsRepo{},
+	)
+	snapshot, err := builder.Snapshot(context.Background(), generatedAt)
+	if err != nil {
+		t.Fatalf("snapshot: %v", err)
+	}
+	if len(snapshot.TripUpdates) != 1 {
+		t.Fatalf("trip updates = %+v, want deterministic non-empty output", snapshot.TripUpdates)
+	}
+	if snapshot.Diagnostics.Metrics.EligiblePredictionCandidates != 1 {
+		t.Fatalf("metrics = %+v, want first-class prediction metrics", snapshot.Diagnostics.Metrics)
+	}
+	message := unmarshalFeed(t, mustMarshalProto(t, snapshot))
+	if len(message.Entity) != 1 || len(message.Entity[0].GetTripUpdate().GetStopTimeUpdate()) != 1 {
+		t.Fatalf("protobuf message = %+v, want one entity with future stop update", message)
+	}
+}
+
 func newTestBuilder(
 	t *testing.T,
 	scheduleRepo gtfs.Repository,
@@ -248,11 +332,16 @@ func unmarshalFeed(t *testing.T, payload []byte) *gtfsrt.FeedMessage {
 }
 
 type fakeScheduleRepo struct {
-	active gtfs.FeedVersion
-	err    error
+	active      gtfs.FeedVersion
+	agency      gtfs.Agency
+	tripsByDate map[string][]gtfs.TripCandidate
+	err         error
 }
 
 func (f *fakeScheduleRepo) Agency(context.Context, string) (gtfs.Agency, error) {
+	if f.agency.ID != "" {
+		return f.agency, nil
+	}
 	return gtfs.Agency{}, errors.New("not implemented")
 }
 
@@ -263,8 +352,8 @@ func (f *fakeScheduleRepo) ActiveFeedVersion(context.Context, string) (gtfs.Feed
 	return f.active, nil
 }
 
-func (f *fakeScheduleRepo) ListTripCandidates(context.Context, string, string, string) ([]gtfs.TripCandidate, error) {
-	return nil, errors.New("not implemented")
+func (f *fakeScheduleRepo) ListTripCandidates(_ context.Context, _ string, _ string, serviceDate string) ([]gtfs.TripCandidate, error) {
+	return append([]gtfs.TripCandidate(nil), f.tripsByDate[serviceDate]...), nil
 }
 
 type fakeTelemetryRepo struct {
@@ -344,6 +433,36 @@ func (f *fakeAdapter) PredictTripUpdates(_ context.Context, request prediction.R
 type fakeDiagnosticsRepo struct {
 	records []prediction.DiagnosticsRecord
 	err     error
+}
+
+type fakePredictionOperations struct{}
+
+func (fakePredictionOperations) ListActivePredictionOverrides(context.Context, string, time.Time) ([]prediction.OverrideRecord, error) {
+	return nil, nil
+}
+
+func (fakePredictionOperations) CreatePredictionOverride(context.Context, prediction.OverrideInput) (prediction.OverrideRecord, error) {
+	return prediction.OverrideRecord{}, nil
+}
+
+func (fakePredictionOperations) ReplacePredictionOverride(context.Context, prediction.OverrideInput) (prediction.OverrideRecord, error) {
+	return prediction.OverrideRecord{}, nil
+}
+
+func (fakePredictionOperations) ClearPredictionOverride(context.Context, string, int64, string, string, time.Time) error {
+	return nil
+}
+
+func (fakePredictionOperations) SavePredictionReviewItems(context.Context, []prediction.ReviewItem) error {
+	return nil
+}
+
+func (fakePredictionOperations) ListPredictionReviewItems(context.Context, prediction.ReviewFilter) ([]prediction.ReviewItem, error) {
+	return nil, nil
+}
+
+func (fakePredictionOperations) UpdatePredictionReviewStatus(context.Context, string, int64, prediction.ReviewStatus, string, string, time.Time) error {
+	return nil
 }
 
 func (f *fakeDiagnosticsRepo) SaveTripUpdatesDiagnostics(_ context.Context, record prediction.DiagnosticsRecord) (prediction.DiagnosticsPersistenceResult, error) {

@@ -13,6 +13,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"open-transit-rt/internal/feed/tripupdates"
+	"open-transit-rt/internal/gtfs"
 	"open-transit-rt/internal/prediction"
 )
 
@@ -48,6 +49,31 @@ func TestVehiclePositionsFeedURLWinsAsExactFullURL(t *testing.T) {
 	}
 	if config.VehiclePositionsURL != "https://feeds.example.com/public/gtfsrt/vehicle_positions.pb" {
 		t.Fatalf("vehicle positions url = %q, want exact env URL", config.VehiclePositionsURL)
+	}
+}
+
+func TestPredictionAdapterFromEnvDefaultsToDeterministicAndKeepsNoopFallback(t *testing.T) {
+	t.Setenv("TRIP_UPDATES_ADAPTER", "")
+	adapter, err := predictionAdapterFromEnv(fakeAdapterSchedule{}, nil)
+	if err != nil {
+		t.Fatalf("default adapter: %v", err)
+	}
+	if adapter.Name() != "deterministic" {
+		t.Fatalf("adapter = %q, want deterministic default", adapter.Name())
+	}
+
+	t.Setenv("TRIP_UPDATES_ADAPTER", "noop")
+	adapter, err = predictionAdapterFromEnv(fakeAdapterSchedule{}, nil)
+	if err != nil {
+		t.Fatalf("noop adapter: %v", err)
+	}
+	if adapter.Name() != "noop" {
+		t.Fatalf("adapter = %q, want noop fallback", adapter.Name())
+	}
+
+	t.Setenv("TRIP_UPDATES_ADAPTER", "bad")
+	if _, err := predictionAdapterFromEnv(fakeAdapterSchedule{}, nil); err == nil {
+		t.Fatalf("invalid adapter succeeded, want error")
 	}
 }
 
@@ -159,4 +185,18 @@ type errPinger struct {
 
 func (e errPinger) Ping(context.Context) error {
 	return e.err
+}
+
+type fakeAdapterSchedule struct{}
+
+func (fakeAdapterSchedule) Agency(context.Context, string) (gtfs.Agency, error) {
+	return gtfs.Agency{ID: "demo-agency", Timezone: "America/Vancouver"}, nil
+}
+
+func (fakeAdapterSchedule) ActiveFeedVersion(context.Context, string) (gtfs.FeedVersion, error) {
+	return gtfs.FeedVersion{ID: "feed-demo", AgencyID: "demo-agency"}, nil
+}
+
+func (fakeAdapterSchedule) ListTripCandidates(context.Context, string, string, string) ([]gtfs.TripCandidate, error) {
+	return nil, nil
 }
