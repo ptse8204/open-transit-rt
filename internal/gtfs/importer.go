@@ -151,14 +151,19 @@ func (s *ImportService) ImportZip(ctx context.Context, opts ImportOptions) (Impo
 
 	feedVersionID := fmt.Sprintf("gtfs-import-%d", importID)
 	if err := s.publish(ctx, opts, importID, feedVersionID, feed, report); err != nil {
-		if markErr := s.markImportFailed(ctx, importID, reportWithError(report, ImportMessage{
+		failedReport := reportWithError(report, ImportMessage{
 			Code:    "publish_failed",
 			Message: err.Error(),
-		})); markErr != nil {
-			result := reportResult(opts.AgencyID, importID, "", ImportStatusFailed, report, false, "publish failed and failure report could not be stored")
+		})
+		if markErr := s.markImportFailed(ctx, importID, failedReport); markErr != nil {
+			result := reportResult(opts.AgencyID, importID, "", ImportStatusFailed, failedReport, false, "publish failed and failure report could not be stored")
 			return result, &ImportError{Result: result, Err: fmt.Errorf("gtfs import publish failed and failure report could not be stored: publish error: %v; report error: %w", err, markErr)}
 		}
-		result := reportResult(opts.AgencyID, importID, "", ImportStatusFailed, report, true, "publish failed")
+		if reportErr := s.insertValidationReport(ctx, nil, importID, opts.AgencyID, "", failedReport); reportErr != nil {
+			result := reportResult(opts.AgencyID, importID, "", ImportStatusFailed, failedReport, false, "publish failed and validation report could not be stored")
+			return result, &ImportError{Result: result, Err: fmt.Errorf("gtfs import publish failed and validation report could not be stored: publish error: %v; report error: %w", err, reportErr)}
+		}
+		result := reportResult(opts.AgencyID, importID, "", ImportStatusFailed, failedReport, true, "publish failed")
 		return result, &ImportError{Result: result, Err: fmt.Errorf("gtfs import publish failed: %w", err)}
 	}
 
@@ -790,6 +795,9 @@ func parseRoutes(table csvTable, report *ImportReport) []importRoute {
 		}
 		seen[id] = true
 		routeType := row.requiredInt("route_type", report)
+		if !supportedRouteType(routeType) {
+			report.addError(row.file, row.number, "invalid_route_type", "route_type must be 0-7 or an extended GTFS route type from 100 through 1702")
+		}
 		routes = append(routes, importRoute{
 			ID:        id,
 			AgencyID:  row.get("agency_id"),
@@ -1003,10 +1011,6 @@ func parseFrequencies(table csvTable, report *ImportReport) []importFrequency {
 }
 
 func validateFeed(feed *parsedFeed, report *ImportReport) {
-	if len(feed.Calendars) == 0 && len(feed.CalendarDates) == 0 {
-		report.addError("", 0, "missing_usable_service_source", "calendar.txt or calendar_dates.txt must contain at least one usable service row")
-	}
-
 	routes := map[string]bool{}
 	for _, route := range feed.Routes {
 		routes[route.ID] = true
@@ -1018,12 +1022,23 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 	for _, stop := range feed.Stops {
 		stops[stop.ID] = true
 	}
-	services := map[string]bool{}
+	usableServices := map[string]bool{}
 	for _, calendar := range feed.Calendars {
-		services[calendar.ServiceID] = true
+		if !calendar.hasActiveWeekday() {
+			report.addError("calendar.txt", 0, "unusable_calendar_service", fmt.Sprintf("service_id %q has no active weekdays", calendar.ServiceID))
+			continue
+		}
+		if calendar.ServiceID != "" && calendar.StartDate != "" && calendar.EndDate != "" && calendar.StartDate <= calendar.EndDate {
+			usableServices[calendar.ServiceID] = true
+		}
 	}
 	for _, date := range feed.CalendarDates {
-		services[date.ServiceID] = true
+		if date.ExceptionType == 1 && date.ServiceID != "" && date.Date != "" {
+			usableServices[date.ServiceID] = true
+		}
+	}
+	if len(usableServices) == 0 {
+		report.addError("", 0, "missing_usable_service_source", "calendar.txt or calendar_dates.txt must contain at least one usable service: an active calendar weekday or a calendar_dates exception_type=1 addition")
 	}
 
 	shapes := map[string]bool{}
@@ -1059,7 +1074,7 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 		if !routes[trip.RouteID] {
 			report.addError("trips.txt", 0, "unknown_route", fmt.Sprintf("trip_id %q references unknown route_id %q", trip.ID, trip.RouteID))
 		}
-		if !services[trip.ServiceID] {
+		if !usableServices[trip.ServiceID] {
 			report.addError("trips.txt", 0, "unknown_service", fmt.Sprintf("trip_id %q references unknown service_id %q", trip.ID, trip.ServiceID))
 		}
 		if trip.ShapeID != "" && len(feed.ShapePoints) > 0 && !shapes[trip.ShapeID] {
@@ -1084,6 +1099,14 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 			report.addError("frequencies.txt", 0, "invalid_frequency_range", fmt.Sprintf("frequency for trip_id %q must have end_time after start_time", frequency.TripID))
 		}
 	}
+}
+
+func supportedRouteType(routeType int) bool {
+	return (routeType >= 0 && routeType <= 7) || (routeType >= 100 && routeType <= 1702)
+}
+
+func (c importCalendar) hasActiveWeekday() bool {
+	return c.Monday || c.Tuesday || c.Wednesday || c.Thursday || c.Friday || c.Saturday || c.Sunday
 }
 
 func (r csvRow) get(field string) string {

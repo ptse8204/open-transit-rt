@@ -14,12 +14,15 @@ Phase 4 — GTFS import and publish pipeline
 - Added `cmd/gtfs-import` for runtime GTFS ZIP import.
 - Added `internal/gtfs.ImportService` to parse, validate, report, stage, and atomically publish GTFS ZIPs.
 - Added internal validation for the exact Phase 4 required input rule: `agency.txt`, `routes.txt`, `stops.txt`, `trips.txt`, `stop_times.txt`, and at least one usable service source from `calendar.txt` or `calendar_dates.txt`.
+- Made usable service-source validation deterministic: `calendar.txt` rows require at least one active weekday, and `calendar_dates.txt`-only feeds require at least one `exception_type=1` addition.
+- Added route type validation for supported GTFS route types: base `0` through `7` and extended `100` through `1702`.
 - Added support for `agency`, `routes`, `stops`, `trips`, `stop_times`, `calendar`, `calendar_dates`, optional `shapes`, optional `frequencies`, and optional `block_id`.
 - Preserved GTFS time strings exactly as imported in canonical published tables, including times beyond `24:00:00`; parsed seconds remain validation/query logic only.
 - Preserved `block_id` from `trips.txt` when present and covered downstream visibility through `gtfs.PostgresRepository.ListTripCandidates`.
 - Built PostGIS point geometry for stops and shape points, and `gtfs_shape_line` from ordered shape points when a shape has at least two points.
 - Implemented transactional publish: create staged feed version, insert GTFS rows, write validation report, retire previous active feed, activate new feed, update import status, and audit successful publish in one transaction.
 - Implemented failed-import behavior: validation failures create no `feed_version`; publish failures roll back partial GTFS rows; failed import rows keep `gtfs_import.feed_version_id` `NULL` when the failure report write succeeds.
+- Publish/database failures now persist a failed `validation_report` outside the rolled-back publish transaction when possible; if that write also fails, the importer reports that clearly and does not claim validation-report persistence.
 - Made failure-report write failure explicit: importer/CLI returns a clear nonzero failure and does not claim failure metadata was stored.
 
 ## What Was Designed But Intentionally Not Implemented Yet
@@ -51,8 +54,8 @@ Phase 4 — GTFS import and publish pipeline
 
 ## Tests Added And Results
 
-- Added parser tests for valid GTFS, after-midnight time preservation, optional missing `shapes.txt`/`frequencies.txt`, required service source enforcement, malformed input, and multi-agency route conflict rejection.
-- Added DB-backed import tests for valid import activation, failed import report storage with no staged feed version, active feed switching, downstream `block_id` visibility, and shape-line construction.
+- Added parser tests for valid GTFS, after-midnight time preservation, optional missing `shapes.txt`/`frequencies.txt`, required service source enforcement, unusable calendar rows, calendar_dates-only removals, unsupported route types, malformed input, and multi-agency route conflict rejection.
+- Added DB-backed import tests for valid import activation, failed import report storage with no staged feed version, publish/database failure validation-report persistence after rollback, active feed switching, downstream `block_id` visibility, and shape-line construction.
 - Added CLI smoke tests for required flags, successful JSON result output, and failed-import JSON output when report storage fails.
 
 Results:
@@ -83,6 +86,7 @@ Blocked checks:
 ## Known Issues
 
 - MobilityData GTFS Validator is still not wired; internal validation blocks obvious unsafe imports but is not a compliance claim.
+- Phase 4 internal validation semantics now fully match the Phase 4 contract for required files, route types, numeric ranges, usable service sources, references, shape ordering, stop_times references, blocks, and GTFS times beyond `24:00:00`.
 - Runtime import input is GTFS ZIP only. Directory parsing exists only as a test-fixture convenience that creates ZIPs.
 - Original uploaded ZIP bytes are not stored in Postgres and no public static GTFS ZIP endpoint was added.
 - Existing current vehicle assignments are not cleared on feed switch; the next matcher pass uses the new active feed.

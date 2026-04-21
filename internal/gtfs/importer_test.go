@@ -72,6 +72,37 @@ func TestParseGTFSZipRequiresServiceSource(t *testing.T) {
 	}
 }
 
+func TestParseGTFSZipRejectsUnusableCalendarService(t *testing.T) {
+	payload := zipFixture(t, "../../testdata/gtfs/valid-small", map[string]string{
+		"calendar.txt": "service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date\nweekday,0,0,0,0,0,0,0,20260401,20261231\n",
+	})
+	_, report := parseGTFSZip(payload, "demo-agency")
+	if !hasImportCode(report, "unusable_calendar_service") || !hasImportCode(report, "missing_usable_service_source") {
+		t.Fatalf("report errors = %+v, want unusable calendar and missing usable service source", report.Errors)
+	}
+}
+
+func TestParseGTFSZipRejectsCalendarDatesOnlyRemovals(t *testing.T) {
+	payload := zipFixture(t, "../../testdata/gtfs/valid-small", map[string]string{
+		"calendar.txt":       "",
+		"calendar_dates.txt": "service_id,date,exception_type\nweekday,20260420,2\n",
+	})
+	_, report := parseGTFSZip(payload, "demo-agency")
+	if !hasImportCode(report, "missing_usable_service_source") {
+		t.Fatalf("report errors = %+v, want missing usable service source for removal-only calendar_dates", report.Errors)
+	}
+}
+
+func TestParseGTFSZipRejectsUnsupportedRouteType(t *testing.T) {
+	payload := zipFixture(t, "../../testdata/gtfs/valid-small", map[string]string{
+		"routes.txt": "route_id,agency_id,route_short_name,route_long_name,route_type\nroute-10,demo-agency,10,Downtown/Uptown,9999\n",
+	})
+	_, report := parseGTFSZip(payload, "demo-agency")
+	if !hasImportCode(report, "invalid_route_type") {
+		t.Fatalf("report errors = %+v, want invalid_route_type", report.Errors)
+	}
+}
+
 func TestParseGTFSZipMalformedFixtureFails(t *testing.T) {
 	payload := zipFixture(t, "../../testdata/gtfs/malformed", nil)
 	_, report := parseGTFSZip(payload, "bad-agency")
@@ -177,6 +208,66 @@ func TestImportServiceIntegration(t *testing.T) {
 		}
 		if failedImports != 1 {
 			t.Fatalf("failed import reports = %d, want 1", failedImports)
+		}
+	})
+
+	t.Run("publish failure stores gtfs import and validation report outside rolled back transaction", func(t *testing.T) {
+		resetGTFSImportData(t, ctx, pool)
+		_, err := pool.Exec(ctx, `
+			CREATE OR REPLACE FUNCTION fail_gtfs_import_feed_version_insert()
+			RETURNS trigger AS $$
+			BEGIN
+				RAISE EXCEPTION 'forced publish failure';
+			END;
+			$$ LANGUAGE plpgsql;
+
+			CREATE TRIGGER fail_gtfs_import_feed_version_insert_trigger
+			BEFORE INSERT ON feed_version
+			FOR EACH ROW EXECUTE FUNCTION fail_gtfs_import_feed_version_insert();
+		`)
+		if err != nil {
+			t.Fatalf("install failure trigger: %v", err)
+		}
+		t.Cleanup(func() {
+			_, _ = pool.Exec(ctx, `
+				DROP TRIGGER IF EXISTS fail_gtfs_import_feed_version_insert_trigger ON feed_version;
+				DROP FUNCTION IF EXISTS fail_gtfs_import_feed_version_insert();
+			`)
+		})
+
+		path := writeZipFixture(t, "../../testdata/gtfs/valid-small", nil)
+		result, err := service.ImportZip(ctx, ImportOptions{AgencyID: "demo-agency", ZipPath: path, ActorID: "test"})
+		if err == nil {
+			t.Fatalf("forced publish failure unexpectedly succeeded")
+		}
+		if result.Status != ImportStatusFailed || !result.ReportStored || result.FeedVersionID != "" {
+			t.Fatalf("result = %+v, want failed stored publish-failure report without feed version", result)
+		}
+
+		var feedVersions int
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM feed_version WHERE agency_id = 'demo-agency'`).Scan(&feedVersions); err != nil {
+			t.Fatalf("count feed versions: %v", err)
+		}
+		if feedVersions != 0 {
+			t.Fatalf("feed versions = %d, want rolled back publish to leave none", feedVersions)
+		}
+
+		var failedReports int
+		if err := pool.QueryRow(ctx, `
+			SELECT count(*)
+			FROM gtfs_import gi
+			JOIN validation_report vr ON vr.gtfs_import_id = gi.id
+			WHERE gi.agency_id = 'demo-agency'
+			  AND gi.status = 'failed'
+			  AND gi.feed_version_id IS NULL
+			  AND vr.feed_version_id IS NULL
+			  AND vr.status = 'failed'
+			  AND vr.report_json::text LIKE '%publish_failed%'
+		`).Scan(&failedReports); err != nil {
+			t.Fatalf("count failed publish reports: %v", err)
+		}
+		if failedReports != 1 {
+			t.Fatalf("failed publish reports = %d, want 1 gtfs_import plus validation_report", failedReports)
 		}
 	})
 

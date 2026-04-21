@@ -102,8 +102,11 @@ Start GTFS Studio draft/publish work without changing Vehicle Positions semantic
 
 - `cmd/gtfs-import` is a thin CLI wrapper over `internal/gtfs.ImportService`.
 - `gtfs_import.feed_version_id` is set only after successful publish and remains `NULL` for failed imports.
-- Validation failures create no `feed_version`; publish failures roll back staged rows.
+- Validation failures create no `feed_version`; publish failures roll back staged rows and write a failed `validation_report` outside the rolled-back transaction when possible.
 - `validation_report.gtfs_import_id` links schedule validation reports to import attempts.
+- Phase 4 internal validation semantics fully match the Phase 4 contract for route types, numeric ranges, usable service sources, references, shape ordering, stop_times references, blocks, and GTFS times beyond `24:00:00`.
+- Supported `route_type` values are base GTFS route types `0` through `7` and extended route types `100` through `1702`.
+- Usable service source means at least one active calendar weekday or at least one `calendar_dates.exception_type=1` addition; removal-only service definitions are rejected.
 - `block_id` from `trips.txt` is imported when present and visible through `gtfs.PostgresRepository.ListTripCandidates`.
 - `gtfs_shape_line` is built from ordered shape points when a shape has at least two points.
 - Optional `shapes.txt` and `frequencies.txt` are accepted.

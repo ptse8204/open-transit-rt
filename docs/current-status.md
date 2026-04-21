@@ -116,14 +116,17 @@ The repo now has:
 The repo now has:
 - `cmd/gtfs-import` as a thin runtime GTFS ZIP import CLI
 - `internal/gtfs.ImportService` for GTFS ZIP import, validation, report persistence, staging, and atomic activation
-- internal GTFS validation for required files, service source availability, core references, service usability, shapes ordering, stop_times references, trips/routes/services consistency, frequencies, blocks, and times beyond `24:00:00`
+- internal GTFS validation for required files, usable service source availability, route type ranges, core references, service usability, shapes ordering, stop_times references, trips/routes/services consistency, frequencies, blocks, and times beyond `24:00:00`
 - exact required runtime input rule: `agency.txt`, `routes.txt`, `stops.txt`, `trips.txt`, `stop_times.txt`, and at least one usable service source from `calendar.txt` or `calendar_dates.txt`
+- deterministic service-source validation: usable `calendar.txt` rows must have at least one active weekday; `calendar_dates.txt`-only feeds must include at least one `exception_type=1` addition
+- route type validation for the supported GTFS route type domain: base route types `0` through `7` and extended route types `100` through `1702`
 - optional `shapes.txt` and `frequencies.txt` handling
 - preservation of imported GTFS time text, including values beyond `24:00:00`
 - preservation of `block_id` from `trips.txt` when present
 - PostGIS point construction for stops and shape points, plus `gtfs_shape_line` construction from ordered shape points when a shape has at least two points
 - transactional publish behavior that inserts a new staged `feed_version`, loads published GTFS rows, retires the previous active feed, and activates the new feed atomically
 - failed validation behavior that stores `gtfs_import` and `validation_report` rows when possible and creates no staged `feed_version`
+- publish/database failure behavior that updates `gtfs_import.report_json` and writes a failed `validation_report` outside the rolled-back publish transaction when possible
 - failed publish rollback behavior that leaves no partial GTFS rows and keeps `gtfs_import.feed_version_id` `NULL`
 - tests for valid import, invalid import, rollback safety, active feed switching, block visibility to downstream GTFS consumers, shape-line creation, and CLI wrapper behavior
 
@@ -277,12 +280,13 @@ Phase 4 implementation results:
 - added real GTFS ZIP import path through `cmd/gtfs-import` and `internal/gtfs.ImportService`.
 - added durable import reports in `gtfs_import` and linked schedule validation reports.
 - kept runtime import input as GTFS ZIP; directory handling exists only as test fixture setup that creates ZIPs before invoking importer behavior.
-- validates required files and service source availability, core references, service usability, shapes ordering, stop_times references, trips/routes/services consistency, frequencies, agency scoping, and GTFS times beyond `24:00:00`.
+- validates required files, route types, numeric ranges, usable service source availability, core references, service usability, shapes ordering, stop_times references, trips/routes/services consistency, frequencies, agency scoping, and GTFS times beyond `24:00:00`.
+- service-source validation now fully matches the Phase 4 contract: mere file or row presence is insufficient; calendar rows with no active weekdays and calendar_dates-only feeds with only removal exceptions are rejected.
 - preserves canonical imported GTFS time text in published tables while using parsed seconds only for validation and query logic.
 - imports optional `block_id` from `trips.txt` and proves it remains visible through the downstream GTFS repository boundary.
 - creates `gtfs_shape_line` rows from ordered shape points when a shape has at least two points.
 - publishes atomically by activating a new `feed_version` and retiring the previous active version in one transaction.
-- failed validation creates no staged `feed_version`; publish failures roll back partial rows and leave `gtfs_import.feed_version_id` `NULL`.
+- failed validation creates no staged `feed_version`; publish failures roll back partial rows, leave `gtfs_import.feed_version_id` `NULL`, and persist a failed `validation_report` outside the publish transaction when possible.
 - did not add GTFS Studio runtime editing, Trip Updates, Alerts, rider apps, payments, passenger accounts, CAD, or marketplace workflows.
 
 ## Next Recommended Step
