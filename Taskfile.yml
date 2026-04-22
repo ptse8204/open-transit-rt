@@ -46,6 +46,14 @@ tasks:
     cmds:
       - ./scripts/demo-agency-flow.sh
 
+  evidence:hosted:
+    cmds:
+      - ./scripts/collect-hosted-evidence.sh
+
+  evidence:audit:
+    cmds:
+      - ./scripts/audit-hosted-evidence.sh
+
   build:
     cmds:
       - go build ./...

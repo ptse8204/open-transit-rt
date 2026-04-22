@@ -57,6 +57,9 @@ git diff --check
 - Java was not installed during Step 2, so local static validator execution failed even though pinned tooling was present.
 - Local GTFS-RT validator execution failed because the current Docker-backed wrapper invocation passed unsupported `--schedule` arguments to the pinned image.
 - No hosted HTTPS hostname, TLS certificate, production reverse proxy config, monitoring alert lifecycle, production backup policy, or consumer acceptance evidence has been captured.
+- `docs/evidence/captured/hosted-pending/2026-04-22/` now contains an operator intake packet for the missing hosted artifacts; it is not completed evidence.
+- `make collect-hosted-evidence` is available for hosted feed fetch, TLS, validation, and manual scorecard collection once `ENVIRONMENT_NAME` and `PUBLIC_BASE_URL` are set. `ADMIN_TOKEN` is needed for hosted validation and scorecard export.
+- `make audit-hosted-evidence` is available for completed hosted packets once `EVIDENCE_PACKET_DIR` is set; it should fail until pending markers, failed validators, missing TLS evidence, and missing operator-supplied artifacts are resolved.
 - Consumer submission APIs remain out of scope; workflow records are not third-party acceptance proof.
 
 ## First Files Likely To Edit

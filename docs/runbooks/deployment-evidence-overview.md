@@ -27,6 +27,27 @@ Use `docs/evidence/` as the root.
   - Real evidence may be redacted before committing.
   - If artifacts cannot be committed, store a redacted summary plus a reference pointer in this folder.
 
+Generic hosted collection can be started with:
+
+```sh
+ENVIRONMENT_NAME="<hosted-environment>" \
+PUBLIC_BASE_URL="https://<canonical-feed-host>" \
+ADMIN_BASE_URL="https://<admin-or-origin-host>" \
+ADMIN_TOKEN="<redacted-admin-token>" \
+make collect-hosted-evidence
+```
+
+This collects feed fetches, TLS headers/certificate details, admin validation runs, and a manual scorecard export. Operators must still attach deployment-owned monitoring, alert lifecycle, backup/restore, reverse proxy renewal, and scheduler/job-history artifacts.
+
+After completing a hosted packet, audit it before making closure claims:
+
+```sh
+EVIDENCE_PACKET_DIR="docs/evidence/captured/<hosted-environment>/<UTC-date>" \
+make audit-hosted-evidence
+```
+
+The audit fails while pending markers, failed validators, missing public artifacts, missing TLS redirect/certificate evidence, or missing operator-supplied monitoring/backup/scheduler artifacts remain.
+
 ## Required Evidence Packs
 
 Collect one pack per deployment environment (for example, `pilot-agency-prod`).

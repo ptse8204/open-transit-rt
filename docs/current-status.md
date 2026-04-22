@@ -556,6 +556,8 @@ Phase 12 Step 2 produced a real local evidence packet at `docs/evidence/captured
 - one local Postgres dump/restore drill into `open_transit_rt_restore_drill_20260422`, including restored row counts and feed fetch checks against the restored database
 - manual scorecard export artifacts with checksums
 
+An operator intake packet for the missing hosted artifacts exists at `docs/evidence/captured/hosted-pending/2026-04-22/`. It contains command artifacts and pending fields only; it is not hosted proof. Generic hosted collection can now be started with `make collect-hosted-evidence` after setting `ENVIRONMENT_NAME`, `PUBLIC_BASE_URL`, and optionally `ADMIN_BASE_URL` and `ADMIN_TOKEN`. Completed hosted packets can be checked with `make audit-hosted-evidence` after setting `EVIDENCE_PACKET_DIR`.
+
 Phase 12 remains in progress because hosted HTTPS evidence, clean production validator records, monitoring/alert lifecycle proof, production backup schedule/retention, production rollback URL permanence, and any third-party consumer confirmation have not been collected in this repository yet.
 
 ## Next Recommended Step

@@ -10,6 +10,7 @@ This folder is the Phase 12 Step 1 evidence scaffold.
 Current captured packet:
 
 - `captured/local-demo/2026-04-22/`: real local demo evidence packet. It is not hosted HTTPS production proof.
+- `captured/hosted-pending/2026-04-22/`: hosted evidence intake packet with command artifacts and pending fields. It is not proof until an operator replaces pending entries with real hosted outputs.
 
 ## Important
 
