@@ -4,52 +4,40 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 11 — Compliance Evidence and Optional External Integrations is complete and closed for the selected evidence-only path.
+Phase 12 — Deployment Evidence Hardening is in progress.
 
 ## Phase Status
 
-- Phase 0 scaffolding is implemented and operationally closed.
-- Phase 1 durable telemetry foundation is implemented and operationally closed.
-- Phase 2 deterministic trip matching is implemented and semantically closed.
-- Phase 3 Vehicle Positions production feed is implemented and complete.
-- Phase 4 GTFS import and publish pipeline is implemented and complete.
-- Phase 5 GTFS Studio draft/publish model is implemented and complete.
-- Phase 6 Trip Updates and Alerts architecture is implemented and complete.
-- Phase 7 prediction quality and operations workflows are implemented and complete for the first conservative scope.
-- Phase 8 publication/compliance workflow is implemented and complete for the first production-directed layer.
-- Phase 9 production closure is implemented for validator execution, validator tooling pins, admin auth/roles, device auth/binding, assignment current-row races, safer config defaults, debug endpoint protection, request logging/request IDs, metrics toggle, stronger feed-service readiness, and smoke coverage.
-- Phase 10 docs/tutorial/deployment/demo work is implemented and complete for the current repository surface.
-- Phase 11 compliance evidence and external-integration reality review is implemented and complete for the evidence-only scope.
+- Phases 0 through 11 are closed for their documented scope.
+- Phase 12 is active.
+- **Phase 12 Step 1 is complete** as repo-side docs/runbooks/evidence-template scaffolding.
+- Real hosted evidence collection for Phase 12 is still pending.
+- Phases 13 and 14 remain planning/docs tracks only.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
 3. `docs/phase-12-deployment-evidence-hardening.md`
-4. `docs/handoffs/phase-11.md`
+4. `docs/handoffs/phase-12-step-1.md`
 5. `docs/compliance-evidence-checklist.md`
 6. `docs/dependencies.md`
-7. `docs/decisions.md`
-8. `docs/prompts/calitp-truthfulness.md`
-9. `README.md`
-10. `docs/phase-13-consumer-submission-evidence.md`
-11. `docs/phase-14-public-launch-polish.md`
+7. `docs/prompts/calitp-truthfulness.md`
+8. `README.md`
+9. `docs/runbooks/deployment-evidence-overview.md`
+10. `docs/evidence/README.md`
+11. `docs/tutorials/production-checklist.md`
 12. `docs/tutorials/calitp-readiness-checklist.md`
-13. `docs/tutorials/production-checklist.md`
 
 ## Current Objective
 
-Phase 12 is the next execution target: `docs/phase-12-deployment-evidence-hardening.md`.
+Execute the next Phase 12 slice after Step 1 by collecting **real deployment/operator evidence** using the committed runbooks/templates.
 
-Phase 11 closed the repo-side evidence framing, but real deployment proof is still missing. Execute Phase 12 to collect HTTPS feed-root proof, production validation records, monitoring/alerting evidence, backup/restore/ops runbooks, and scorecard export artifacts.
-
-Phase 13 (`docs/phase-13-consumer-submission-evidence.md`) and Phase 14 (`docs/phase-14-public-launch-polish.md`) are planning/docs tracks only and should not be treated as already implemented.
+Do not claim production readiness, CAL-ITP compliance, or consumer acceptance without hosted and third-party evidence.
 
 ## Exact First Commands
 
 ```bash
-command -v go
-go version
 make validators-check
 make validate
 make test
@@ -60,62 +48,25 @@ docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```
 
-If Task is installed, optional equivalents may be run:
-
-```bash
-task test
-task smoke
-task demo:agency
-task migrate:status
-task test:integration
-```
-
 ## Known Blockers
 
-- Task is optional and may not be installed; Makefile remains independently usable.
-- Docker must be running before DB-backed checks, the GTFS-RT validator wrapper, and the agency demo.
-- `scripts/demo-agency-flow.sh` uses local ports `8081` through `8086` plus `8090`; free those ports before running it.
-- Full hosted login/SSO and server-side `jti` replay tracking are deferred.
-- TheTransitClock and other external predictors are not integrated; future work must keep them behind `internal/prediction.Adapter`.
-- Prometheus/Grafana deployment assets and OpenTelemetry tracing/exporter wiring are not integrated.
-- Consumer-ingestion workflow records exist, but external consumer submission APIs are not integrated.
-- Compliance or consumer-acceptance claims need deployment and third-party evidence.
+- Docker must be installed/running for `make demo-agency-flow`, DB-backed integration flow, and `docker compose ... config`.
+- Pinned validator tooling must be installed (`make validators-install`) before `make validators-check`, `make validate`, and `make smoke` can pass.
+- Consumer submission APIs remain out of scope; workflow records are not third-party acceptance proof.
 
 ## First Files Likely To Edit
 
-- `docs/phase-12-deployment-evidence-hardening.md` execution artifacts and linked runbooks
-- `docs/compliance-evidence-checklist.md` if evidence categories change
-- `docs/dependencies.md` if a deferred external integration becomes real
+- `docs/evidence/captured/<environment>/*` (real operator evidence artifacts when available)
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`
-- a new handoff file for the next track
-
-## Phase 11 Notes For Future Work
-
-- `docs/compliance-evidence-checklist.md` is the Phase 11 evidence package.
-- It separates repo-proven capability, deployment/operator proof, and third-party confirmation.
-- `docs/dependencies.md` includes the Phase 11 wiring reality table.
-- Real integrations are code-backed or tool-backed only where the repo actually wires them.
-- TheTransitClock, other external predictors, Prometheus/Grafana deployment, OpenTelemetry, and consumer submission APIs remain deferred or workflow-only.
-- Mobility Database and transit.land are documented workflow targets, not seeded default consumers or API integrations.
+- `docs/handoffs/phase-12-step-2.md` (or equivalent next-step handoff)
 
 ## Constraints To Preserve
 
-- Mostly Go.
-- Postgres/PostGIS source of truth.
-- Stable public URLs for schedule, Vehicle Positions, Trip Updates, and Alerts.
-- Vehicle Positions first.
-- Trip Updates pluggable.
-- Draft GTFS separate from published GTFS.
-- Conservative matching and prediction.
-- Manual overrides take precedence over matching.
-- No rider apps, payments, passenger accounts, or dispatcher CAD.
-- External integrations stay behind documented adapters.
-- Runtime GTFS import input is ZIP; directory parsing is test-fixture setup only.
-- GTFS Studio publishes typed draft rows through the shared validation/activation helper directly, not through synthetic ZIP import.
-- GTFS times beyond `24:00:00` remain stored as imported text in canonical published GTFS tables.
-- Trip Updates packages must not become dependencies of telemetry ingest, Vehicle Positions, GTFS Studio, or Alerts.
-- Do not claim full CAL-ITP/Caltrans compliance, production readiness, marketplace equivalence, or consumer acceptance without actual evidence.
+- Keep claims evidence-bounded and truthful.
+- Keep Trip Updates pluggable and architecture boundaries unchanged.
+- Do not add unrelated product scope (rider apps, fares, CAD/dispatch).
+- Do not reopen implementation work from Phases 9–11 during this docs/evidence pass.
 
 ## Handoff Template Requirement
 

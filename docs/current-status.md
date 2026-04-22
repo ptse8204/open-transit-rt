@@ -30,7 +30,7 @@ Phase 10 docs, tutorials, deployment, and demo work is complete for the current 
 
 Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
 
-Phase 12, Phase 13, and Phase 14 are now documented as future planning tracks only. They are docs/evidence planning artifacts (`docs/phase-12-deployment-evidence-hardening.md`, `docs/phase-13-consumer-submission-evidence.md`, and `docs/phase-14-public-launch-polish.md`) and are not implemented backend/runtime work in the repository yet.
+Phase 12 is now in progress. Step 1 (repo-side deployment evidence scaffolding) is complete as documentation/runbook/template work only; hosted deployment evidence collection is still pending. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
 
 ## What Exists Now
 
@@ -209,9 +209,11 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 11 is closed. The next execution track is Phase 12 — Deployment Evidence Hardening (`docs/phase-12-deployment-evidence-hardening.md`).
+**Active phase:** Phase 12 — Deployment Evidence Hardening is in progress (`docs/phase-12-deployment-evidence-hardening.md`).
 
-Phase 12 through Phase 14 currently exist as planning/docs tracks only and are not yet implemented runtime/product changes.
+Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Real hosted evidence capture remains pending operator/deployment work.
+
+Phases 13 and 14 currently exist as planning/docs tracks only and are not implemented runtime/product changes.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -536,14 +538,25 @@ Phase 11 implementation results:
 - documented optional/deferred or workflow-only systems truthfully: TheTransitClock, other external predictors, Prometheus/Grafana deployment, OpenTelemetry, consumer submission APIs, Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land.
 - tightened README and tutorial wording by linking to the evidence checklist and clarifying deployment-owned observability and consumer-ingestion proof limits.
 
+## Phase 12 Step 1 Progress
+
+Phase 12 Step 1 (repo-side docs/runbooks/evidence packaging) is complete:
+- added deployment evidence overview and targeted runbooks under `docs/runbooks/`
+- added `docs/evidence/` structure with committed templates and operator-owned captured-artifact placeholders
+- added lightweight README links to deployment evidence docs
+- added Phase 12 Step 1 handoff notes while keeping claim boundaries explicit
+
+Phase 12 remains in progress because real hosted evidence artifacts have not been collected in this repository yet.
+
 ## Next Recommended Step
 
-Begin the next hardening track for deployment evidence. The first slice should collect proof from a real hosted environment:
-1. public HTTPS fetch evidence for schedule, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
-2. production validator records for schedule and all three realtime feeds
-3. monitored operations evidence, including logs, metrics, backups, and alerting
-4. scorecard export for an actual deployment
-5. third-party submission or acceptance records only when they exist
+Continue Phase 12 after Step 1 scaffolding by collecting real hosted deployment evidence with the new runbooks/templates:
+1. capture public HTTPS fetch evidence for schedule, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
+2. capture production validator records for schedule and all three realtime feeds
+3. capture monitoring/alerting evidence including one real alert lifecycle
+4. capture backup/restore drill evidence and outage/validator-failure response notes
+5. capture scorecard export evidence (scheduled and/or manual)
+6. keep third-party submission/acceptance records separate and only when they exist
 
 ## What Not To Do Next
 

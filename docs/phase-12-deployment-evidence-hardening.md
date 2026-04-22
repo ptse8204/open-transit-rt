@@ -157,3 +157,8 @@ Phase 12 does **not**:
 - `docs/phase-12-deployment-evidence-hardening.md` (this plan).
 - Updated handoff/current-status pointers for next execution.
 - Identified artifact folders or links where deployment evidence will be stored in a future execution pass.
+## Step 1 (Repo Scaffolding) Completion Note
+
+Phase 12 Step 1 is complete as a repository documentation pass. It added concrete runbooks under `docs/runbooks/` and evidence templates/placeholders under `docs/evidence/`.
+
+This step does not include real hosted deployment artifacts. Deployment/operator evidence collection remains pending in later Phase 12 execution slices.
