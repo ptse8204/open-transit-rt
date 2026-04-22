@@ -4,7 +4,7 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 11 — Compliance Evidence and Optional External Integrations is complete for the selected evidence-only path.
+Phase 11 — Compliance Evidence and Optional External Integrations is complete and closed for the selected evidence-only path.
 
 ## Phase Status
 
@@ -25,19 +25,25 @@ Phase 11 — Compliance Evidence and Optional External Integrations is complete 
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-11.md`
-4. `docs/compliance-evidence-checklist.md`
-5. `docs/dependencies.md`
-6. `docs/decisions.md`
-7. `docs/prompts/calitp-truthfulness.md`
-8. `docs/phase-plan-production-closure.md`
+3. `docs/phase-12-deployment-evidence-hardening.md`
+4. `docs/handoffs/phase-11.md`
+5. `docs/compliance-evidence-checklist.md`
+6. `docs/dependencies.md`
+7. `docs/decisions.md`
+8. `docs/prompts/calitp-truthfulness.md`
 9. `README.md`
-10. `docs/tutorials/calitp-readiness-checklist.md`
-11. `docs/tutorials/production-checklist.md`
+10. `docs/phase-13-consumer-submission-evidence.md`
+11. `docs/phase-14-public-launch-polish.md`
+12. `docs/tutorials/calitp-readiness-checklist.md`
+13. `docs/tutorials/production-checklist.md`
 
 ## Current Objective
 
-Start the next hardening track only if requested. Phase 11 closed the evidence layer but did not collect proof from a real public deployment. The next useful work is deployment evidence hardening: HTTPS feed-root proof, production validation records, monitoring/alerting assets, scorecard export, and third-party submission or acceptance records where real evidence exists.
+Phase 12 is the next execution target: `docs/phase-12-deployment-evidence-hardening.md`.
+
+Phase 11 closed the repo-side evidence framing, but real deployment proof is still missing. Execute Phase 12 to collect HTTPS feed-root proof, production validation records, monitoring/alerting evidence, backup/restore/ops runbooks, and scorecard export artifacts.
+
+Phase 13 (`docs/phase-13-consumer-submission-evidence.md`) and Phase 14 (`docs/phase-14-public-launch-polish.md`) are planning/docs tracks only and should not be treated as already implemented.
 
 ## Exact First Commands
 
@@ -77,7 +83,7 @@ task test:integration
 
 ## First Files Likely To Edit
 
-- deployment evidence docs or runbooks for a real hosted environment
+- `docs/phase-12-deployment-evidence-hardening.md` execution artifacts and linked runbooks
 - `docs/compliance-evidence-checklist.md` if evidence categories change
 - `docs/dependencies.md` if a deferred external integration becomes real
 - `docs/current-status.md`
