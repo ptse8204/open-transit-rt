@@ -6,10 +6,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -43,6 +46,10 @@ type adminAuth interface {
 	Require(...auth.Role) func(http.Handler) http.Handler
 }
 
+type realtimeArtifactSource interface {
+	RealtimePB(ctx context.Context, feedType string) ([]byte, error)
+}
+
 type handler struct {
 	agencyID string
 	schedule scheduleBuilder
@@ -51,6 +58,7 @@ type handler struct {
 	ready    pinger
 	admin    adminAuth
 	cache    *scheduleZIPCache
+	realtime realtimeArtifactSource
 }
 
 func main() {
@@ -82,7 +90,11 @@ func main() {
 }
 
 func newHandler(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth) http.Handler {
-	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, ready: ready, admin: admin, cache: newScheduleZIPCache()}
+	return newHandlerWithRealtime(agencyID, scheduleBuilder, store, deviceStore, ready, admin, realtimeArtifactSourceFromEnv())
+}
+
+func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource) http.Handler {
+	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, ready: ready, admin: admin, cache: newScheduleZIPCache(), realtime: realtime}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
@@ -296,6 +308,14 @@ func (h *handler) runValidation(w http.ResponseWriter, r *http.Request) {
 			input.FeedVersionID = snapshot.FeedVersionID
 		}
 	}
+	if spec, ok := registry[input.ValidatorID]; ok && spec.RequiresRealtime {
+		payload, err := h.realtime.RealtimePB(r.Context(), input.FeedType)
+		if err != nil {
+			http.Error(w, "load realtime protobuf for validation", http.StatusInternalServerError)
+			return
+		}
+		input.RealtimePBPayload = payload
+	}
 	result, err := compliance.RunValidation(r.Context(), h.store, registry, input)
 	if err != nil {
 		http.Error(w, "run validation", http.StatusInternalServerError)
@@ -371,6 +391,87 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(payload)
+}
+
+type httpRealtimeArtifactSource struct {
+	client   *http.Client
+	urls     map[string]string
+	maxBytes int64
+}
+
+func realtimeArtifactSourceFromEnv() realtimeArtifactSource {
+	maxBytes := int64(10 * 1024 * 1024)
+	if raw := os.Getenv("REALTIME_VALIDATION_MAX_BYTES"); raw != "" {
+		if parsed, err := strconv.ParseInt(raw, 10, 64); err == nil && parsed > 0 {
+			maxBytes = parsed
+		}
+	}
+	baseURL := firstNonEmpty(os.Getenv("REALTIME_VALIDATION_BASE_URL"), os.Getenv("FEED_BASE_URL"))
+	urls := map[string]string{
+		"vehicle_positions": firstNonEmpty(os.Getenv("VEHICLE_POSITIONS_FEED_URL"), realtimeFeedURL(baseURL, "vehicle_positions")),
+		"trip_updates":      firstNonEmpty(os.Getenv("TRIP_UPDATES_FEED_URL"), realtimeFeedURL(baseURL, "trip_updates")),
+		"alerts":            firstNonEmpty(os.Getenv("ALERTS_FEED_URL"), realtimeFeedURL(baseURL, "alerts")),
+	}
+	return &httpRealtimeArtifactSource{
+		client:   &http.Client{Timeout: 15 * time.Second},
+		urls:     urls,
+		maxBytes: maxBytes,
+	}
+}
+
+func (s *httpRealtimeArtifactSource) RealtimePB(ctx context.Context, feedType string) ([]byte, error) {
+	rawURL := strings.TrimSpace(s.urls[feedType])
+	if rawURL == "" {
+		return nil, fmt.Errorf("no server-owned realtime validation URL configured for %s", feedType)
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return nil, fmt.Errorf("invalid server-owned realtime validation URL for %s", feedType)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsed.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("build realtime validation request: %w", err)
+	}
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("fetch realtime validation artifact: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return nil, fmt.Errorf("fetch realtime validation artifact status %d", resp.StatusCode)
+	}
+	payload, err := io.ReadAll(io.LimitReader(resp.Body, s.maxBytes+1))
+	if err != nil {
+		return nil, fmt.Errorf("read realtime validation artifact: %w", err)
+	}
+	if int64(len(payload)) > s.maxBytes {
+		return nil, fmt.Errorf("realtime validation artifact exceeds REALTIME_VALIDATION_MAX_BYTES")
+	}
+	return payload, nil
+}
+
+func realtimeFeedURL(baseURL string, feedType string) string {
+	if strings.TrimSpace(baseURL) == "" {
+		return ""
+	}
+	filename := map[string]string{
+		"vehicle_positions": "vehicle_positions.pb",
+		"trip_updates":      "trip_updates.pb",
+		"alerts":            "alerts.pb",
+	}[feedType]
+	if filename == "" {
+		return ""
+	}
+	return strings.TrimRight(baseURL, "/") + "/gtfsrt/" + filename
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }
 
 type scheduleZIPCache struct {

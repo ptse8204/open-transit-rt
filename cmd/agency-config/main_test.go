@@ -1,0 +1,180 @@
+package main
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"open-transit-rt/internal/auth"
+	"open-transit-rt/internal/compliance"
+	"open-transit-rt/internal/devices"
+	"open-transit-rt/internal/feed/schedule"
+)
+
+func TestValidationRunDerivesRealtimeArtifacts(t *testing.T) {
+	validatorPath := writeRealtimeValidator(t)
+	t.Setenv("GTFS_RT_VALIDATOR_PATH", validatorPath)
+	t.Setenv("GTFS_RT_VALIDATOR_VERSION", "test-validator")
+	t.Setenv("GTFS_RT_VALIDATOR_ARGS", "")
+
+	for _, feedType := range []string{"vehicle_positions", "trip_updates", "alerts"} {
+		t.Run(feedType, func(t *testing.T) {
+			store := &fakePublicationStore{}
+			artifacts := &fakeRealtimeArtifacts{payloads: map[string][]byte{
+				feedType: []byte("protobuf-" + feedType),
+			}}
+			handler := newHandlerWithRealtime(
+				"demo-agency",
+				fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-demo", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip bytes")}},
+				store,
+				fakeDeviceStore{},
+				fakePinger{},
+				auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}},
+				artifacts,
+			)
+
+			body := []byte(fmt.Sprintf(`{"validator_id":"realtime-mobilitydata","feed_type":%q}`, feedType))
+			req := httptest.NewRequest(http.MethodPost, "/admin/validation/run", bytes.NewReader(body))
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			var result compliance.ValidationResult
+			if err := json.Unmarshal(rr.Body.Bytes(), &result); err != nil {
+				t.Fatalf("decode result: %v", err)
+			}
+			if result.Status != "passed" || result.FeedType != feedType || store.result.Status != "passed" {
+				t.Fatalf("result = %+v stored = %+v, want passed %s validation", result, store.result, feedType)
+			}
+			if artifacts.calls[feedType] != 1 {
+				t.Fatalf("artifact calls = %+v, want one call for %s", artifacts.calls, feedType)
+			}
+		})
+	}
+}
+
+func TestValidationRunRejectsClientSuppliedRealtimePath(t *testing.T) {
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}},
+		&fakeRealtimeArtifacts{},
+	)
+	req := httptest.NewRequest(http.MethodPost, "/admin/validation/run", bytes.NewReader([]byte(`{"validator_id":"realtime-mobilitydata","feed_type":"alerts","realtime_pb_path":"/tmp/evil.pb"}`)))
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", rr.Code)
+	}
+}
+
+func writeRealtimeValidator(t *testing.T) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "gtfs-rt-validator.sh")
+	script := `#!/bin/sh
+realtime=""
+schedule=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --realtime) shift; realtime="$1" ;;
+    --schedule) shift; schedule="$1" ;;
+  esac
+  shift
+done
+test -s "$schedule" || exit 3
+test -s "$realtime" || exit 4
+printf '%s' '{"status":"passed","error_count":0,"warning_count":0,"info_count":1}'
+`
+	if err := os.WriteFile(path, []byte(script), 0o700); err != nil {
+		t.Fatalf("write validator: %v", err)
+	}
+	return path
+}
+
+type fakeScheduleBuilder struct {
+	snapshot schedule.Snapshot
+	err      error
+}
+
+func (f fakeScheduleBuilder) Snapshot(context.Context, time.Time) (schedule.Snapshot, error) {
+	if f.err != nil {
+		return schedule.Snapshot{}, f.err
+	}
+	return f.snapshot, nil
+}
+
+type fakePublicationStore struct {
+	result compliance.ValidationResult
+}
+
+func (f *fakePublicationStore) BootstrapPublication(context.Context, compliance.BootstrapInput) error {
+	return nil
+}
+
+func (f *fakePublicationStore) FeedDiscovery(context.Context, string, time.Time) (compliance.FeedDiscovery, error) {
+	return compliance.FeedDiscovery{}, nil
+}
+
+func (f *fakePublicationStore) UpsertConsumer(context.Context, compliance.ConsumerInput) (compliance.ConsumerRecord, error) {
+	return compliance.ConsumerRecord{}, nil
+}
+
+func (f *fakePublicationStore) ListConsumers(context.Context, string) ([]compliance.ConsumerRecord, error) {
+	return nil, nil
+}
+
+func (f *fakePublicationStore) LatestScorecard(context.Context, string) (compliance.Scorecard, error) {
+	return compliance.Scorecard{}, nil
+}
+
+func (f *fakePublicationStore) BuildAndStoreScorecard(context.Context, string, time.Time) (compliance.Scorecard, error) {
+	return compliance.Scorecard{}, nil
+}
+
+func (f *fakePublicationStore) StoreValidationResult(_ context.Context, result compliance.ValidationResult) error {
+	f.result = result
+	return nil
+}
+
+type fakeRealtimeArtifacts struct {
+	payloads map[string][]byte
+	calls    map[string]int
+}
+
+func (f *fakeRealtimeArtifacts) RealtimePB(_ context.Context, feedType string) ([]byte, error) {
+	if f.calls == nil {
+		f.calls = map[string]int{}
+	}
+	f.calls[feedType]++
+	if payload := f.payloads[feedType]; len(payload) > 0 {
+		return payload, nil
+	}
+	return []byte("protobuf-" + feedType), nil
+}
+
+type fakeDeviceStore struct{}
+
+func (fakeDeviceStore) Verify(context.Context, devices.VerifyInput) (devices.Credential, error) {
+	return devices.Credential{}, nil
+}
+
+func (fakeDeviceStore) Rebind(context.Context, devices.RebindInput) (devices.RebindResult, error) {
+	return devices.RebindResult{}, nil
+}
+
+type fakePinger struct{}
+
+func (fakePinger) Ping(context.Context) error {
+	return nil
+}

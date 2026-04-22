@@ -242,6 +242,7 @@ Validate GTFS-RT feeds:
 - invoked during CI, smoke tests, scheduled runtime validation, or admin validation runs
 - Post-Phase-8 hardening uses `validator_id=realtime-mobilitydata` with server-owned config from `GTFS_RT_VALIDATOR_PATH` and `GTFS_RT_VALIDATOR_ARGS`
 - realtime validation should prefer generated local feed bytes/temp files over internal feed URLs whenever the service can build the artifact locally
+- `cmd/agency-config` derives realtime artifacts from server-owned feed URLs (`VEHICLE_POSITIONS_FEED_URL`, `TRIP_UPDATES_FEED_URL`, `ALERTS_FEED_URL`, or `REALTIME_VALIDATION_BASE_URL`/`FEED_BASE_URL`) and writes them to local temp files before validator execution
 - the server-owned args may use `{schedule_zip}`, `{realtime_pb}`, `{feed_type}`, and `{output_dir}` placeholders
 - CI/local/prod must pin the selected MobilityData GTFS Realtime validator distribution by immutable package digest before making compliance claims
 - output stored as normalized `validation_report` rows

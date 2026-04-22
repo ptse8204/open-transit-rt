@@ -18,7 +18,8 @@ Post-Phase-8 Hardening 01 — Pilot-readiness security and operability slice
 - Kept public `.pb` feed endpoints anonymous and stable.
 - Moved admin actor and agency scope to auth context. Request `agency_id` fields/query params that conflict with auth scope return `403`.
 - Replaced validator command execution with server-side `validator_id` allowlists. Requests may provide only `validator_id`, `feed_type`, and optional `feed_version_id`.
-- Validator execution now uses generated local artifacts/temp files where available, argv-based `exec.CommandContext`, timeouts, stdout/stderr caps, report-size caps, and temp/output confinement.
+- Validator execution now uses generated/fetched server-owned local artifacts/temp files, argv-based `exec.CommandContext`, timeouts, stdout/stderr caps, report-size caps, and temp/output confinement.
+- Realtime validation derives protobuf bytes from server-owned feed URLs and writes local temp files for Vehicle Positions, Trip Updates, and Alerts validation.
 - Added opaque telemetry device Bearer token verification with peppered HMAC hashes, active credential status checks, and agency/device/vehicle binding checks.
 - Added admin-managed `POST /admin/devices/rebind`, which rotates the token/binding and audit-logs the change.
 - Added partial unique current-assignment index plus per-agency/per-vehicle advisory transaction lock in `SaveAssignment`.

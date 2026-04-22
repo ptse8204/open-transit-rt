@@ -22,6 +22,8 @@ Phase 8 compliance and consumer workflow is complete for the first production-di
 
 Post-Phase-8 production hardening is now implemented for the first pilot-readiness slice. Admin and JSON debug routes require JWT/cookie admin auth with DB-backed roles, cookie admin flows require CSRF on unsafe methods, telemetry ingest requires active device Bearer tokens bound to agency/device/vehicle, validator execution uses server-side allowlisted validator IDs with argv-based execution, current assignment writes are serialized and protected by a partial unique index, and production runtime config fails fast without required secrets.
 
+`/admin/validation/run` derives schedule and realtime artifacts itself. Schedule validation uses generated ZIP bytes; realtime validation fetches server-owned Vehicle Positions, Trip Updates, or Alerts protobuf bytes from configured feed URLs and writes local temp files before invoking the allowlisted validator.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs

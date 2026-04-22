@@ -90,7 +90,7 @@ task test:integration
 - Alerts authoring/persistence is owned by `internal/alerts`; GTFS-RT protobuf rendering is owned by `internal/feed/alerts`.
 - Prediction packages must not import Alerts packages. Canceled-trip missing-alert review signals are satisfied by the Alerts-owned reconciler.
 - Validator runs are allowlisted by `validator_id`; admin requests cannot provide commands, input paths, argv, URLs, or output directories.
-- Validator execution uses generated local artifacts/temp files whenever possible, argv-based `exec.CommandContext`, timeout/output/report caps, and output confinement.
+- Validator execution uses generated/fetched server-owned local artifacts/temp files, argv-based `exec.CommandContext`, timeout/output/report caps, and output confinement. Realtime validation derives protobuf artifacts from server-owned feed URLs and never from request input.
 - Admin JWTs require `sub`, `agency_id`, `iat`, `exp`, `iss`, and `aud`; default TTL is 8h, clock skew allowance is 2m, `ADMIN_JWT_OLD_SECRETS` supports secret rotation, and `jti` replay tracking is deferred.
 - Cookie auth is only for browser-admin flows; Bearer auth remains the default for machine/API admin calls.
 - Telemetry ingest requires opaque device Bearer tokens. `POST /admin/devices/rebind` rotates token and binding immediately.

@@ -60,6 +60,8 @@ PORT=8081 go run ./cmd/agency-config
 
 `agency-config` serves `/public/gtfs/schedule.zip`, `/public/feeds.json`, admin publication bootstrap, consumer workflow records, scorecards, device rebinding, and allowlisted validation runs. `/public/gtfs/schedule.zip` emits `ETag`, `Last-Modified`, and `X-Checksum-SHA256`; `SCHEDULE_ZIP_MAX_BYTES` bounds generated payloads.
 
+`/admin/validation/run` accepts only `validator_id`, `feed_type`, and optional `feed_version_id`. Schedule validation uses locally generated schedule ZIP bytes. Realtime validation fetches server-owned protobuf artifacts from `VEHICLE_POSITIONS_FEED_URL`, `TRIP_UPDATES_FEED_URL`, `ALERTS_FEED_URL`, or `REALTIME_VALIDATION_BASE_URL`/`FEED_BASE_URL`, then passes local temp files to the allowlisted validator.
+
 ### telemetry-ingest
 ```bash
 DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" \
