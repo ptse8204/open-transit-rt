@@ -30,6 +30,8 @@ Phase 10 docs, tutorials, deployment, and demo work is complete for the current 
 
 Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
 
+Phase 12, Phase 13, and Phase 14 are now documented as future planning tracks only. They are docs/evidence planning artifacts (`docs/phase-12-deployment-evidence-hardening.md`, `docs/phase-13-consumer-submission-evidence.md`, and `docs/phase-14-public-launch-polish.md`) and are not implemented backend/runtime work in the repository yet.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -207,7 +209,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 11 — Compliance Evidence and Optional External Integrations is complete for the selected evidence-only path. The next recommended track is deployment evidence hardening: real HTTPS feed root, production validator records, monitored operations, scorecard export, and third-party submission or acceptance records.
+**Active phase:** Phase 11 is closed. The next execution track is Phase 12 — Deployment Evidence Hardening (`docs/phase-12-deployment-evidence-hardening.md`).
+
+Phase 12 through Phase 14 currently exist as planning/docs tracks only and are not yet implemented runtime/product changes.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
