@@ -42,8 +42,8 @@ Realtime protobuf paths returned `Content-Type: application/x-protobuf`, `HTTP/1
 
 ## Publish / Rollback URL Stability
 
-- Before publish proof: local demo imported `testdata/gtfs/valid-small` and published feed version `gtfs-import-7`.
-- After publish proof: local fetches above prove the local URLs served artifacts after import and publication metadata bootstrap.
+- Before publish proof: Missing. No pre-publish fetch was captured in this pass.
+- After publish proof: local demo imported `testdata/gtfs/valid-small`, published feed version `gtfs-import-7`, and the local fetches above prove the local URLs served artifacts after import and publication metadata bootstrap.
 - After rollback proof: Missing. No rollback operation was performed in this pass.
 - URL changed? Not proven for publish/rollback. Local URLs stayed constant during this capture only.
 

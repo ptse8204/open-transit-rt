@@ -20,9 +20,9 @@
 ## Timestamped History
 
 - Prior export timestamps/artifacts:
-  - 2026-04-22T21:33:57Z from the demo flow, stored transiently in the demo temp directory before the final export.
+  - 2026-04-22T21:33:57Z from the demo flow, observed during command execution but not retained in this packet.
   - 2026-04-22T21:37:22Z committed in this packet.
-- Evidence that generation is repeatable: `make demo-agency-flow` generated a scorecard, and a later manual POST generated a new stored snapshot after additional validator records were captured.
+- Evidence that generation is repeatable: `make demo-agency-flow` generated a scorecard during the run, and a later manual POST generated the committed snapshot after additional validator records were captured. Only the later export is retained as packet evidence.
 
 ## Scorecard Result
 

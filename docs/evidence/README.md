@@ -5,7 +5,7 @@ This folder is the Phase 12 Step 1 evidence scaffold.
 ## Structure
 
 - `templates/`: repo-owned templates and checklists committed to git.
-- `captured/`: placeholder location for real deployment artifacts collected later by operators.
+- `captured/`: location for captured evidence packets. Existing local packets may be partial; hosted deployment artifacts should be added here when available.
 
 Current captured packet:
 

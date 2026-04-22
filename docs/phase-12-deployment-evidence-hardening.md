@@ -2,7 +2,8 @@
 
 ## Status
 
-Planned documentation track. Not implemented in this repository yet.
+In progress. Step 1 repo scaffolding is complete and Step 2 produced a partial
+local demo evidence packet. Hosted deployment evidence remains missing.
 
 ## Purpose
 
