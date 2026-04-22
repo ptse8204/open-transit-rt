@@ -28,6 +28,8 @@ Validator tooling now has a repo-supported pin/install/check workflow. `make val
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the current repository surface. The README now reflects Phase 9 behavior, the tutorial set under `docs/tutorials/` is filled, `make demo-agency-flow` runs an executable agency demo, `scripts/bootstrap-dev.sh` prints current services and protected/public surfaces, and repo-owned docs assets live under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
+Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -41,6 +43,7 @@ The repo has:
 - `docs/requirements-calitp-compliance.md`
 - `docs/repo-gaps.md`
 - `docs/dependencies.md`
+- `docs/compliance-evidence-checklist.md`
 - `docs/phase-plan.md`
 - `docs/decisions.md`
 - `docs/backlog.md`
@@ -198,10 +201,13 @@ The following are still missing or incomplete unless a later handoff says otherw
 - hosted login/SSO and server-side admin JWT `jti` replay tracking
 - full operator UI for manual override workflows
 - production SLO dashboards and alerting beyond basic request logs, request IDs, readiness checks, and `/metrics` toggle
+- OpenTelemetry tracing/exporter wiring and Prometheus/Grafana deployment assets
+- external predictor adapters such as TheTransitClock
+- external consumer submission API integrations or consumer acceptance evidence
 
 ## Current Phase
 
-**Active phase:** Phase 10 — Docs, Tutorials, Deployment, and Demo is complete for the current codebase surface. `docs/phase-plan-production-closure.md` defines Phase 11 as the follow-on compliance evidence and optional external integrations phase.
+**Active phase:** Phase 11 — Compliance Evidence and Optional External Integrations is complete for the selected evidence-only path. The next recommended track is deployment evidence hardening: real HTTPS feed root, production validator records, monitored operations, scorecard export, and third-party submission or acceptance records.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -493,15 +499,47 @@ Phase 10 implementation results:
 - added repo-owned docs assets under `docs/assets/` and documented source specs plus alt text.
 - updated `docs/dependencies.md` for local demo packaging tools.
 
+## Phase 11 Closure Audit Results
+
+Checked during Phase 11 closure:
+- pre-edit `command -v go`: passed, `/usr/local/bin/go`.
+- pre-edit `go version`: passed, `go version go1.26.2 darwin/amd64`.
+- pre-edit `make validators-install`: passed.
+- pre-edit `make validators-check`: passed.
+- pre-edit `make test`: passed.
+- pre-edit `make smoke`: passed.
+- pre-edit `make demo-agency-flow`: passed.
+- pre-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- pre-edit `make validate`: passed.
+- pre-edit `make migrate-status`: passed and reports migration versions 1 through 8 applied.
+- pre-edit `make test-integration`: passed.
+- pre-edit `git diff --check`: passed.
+- post-edit `make validators-check`: passed.
+- post-edit `make validate`: passed.
+- post-edit `make test`: passed.
+- post-edit `make smoke`: passed.
+- post-edit `make demo-agency-flow`: passed.
+- post-edit `make test-integration`: passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- post-edit `git diff --check`: passed.
+- Blocked commands: none.
+
+Phase 11 implementation results:
+- added `docs/compliance-evidence-checklist.md` as the evidence package separating implemented repo capability, deployment/operator proof, and third-party confirmation.
+- mapped current repo support to Caltrans/CAL-ITP-style expectations without claiming full compliance, production readiness, consumer acceptance, or marketplace equivalence.
+- updated `docs/dependencies.md` with a Phase 11 wiring reality table for all originally mentioned external tools and repos.
+- documented real integrations as wired where code-backed: Postgres/PostGIS, pgx, Goose, MobilityData validators, GTFS-RT protobuf bindings, Docker/Docker Compose, Task, local demo tools, and internal Prometheus-format `/metrics`.
+- documented optional/deferred or workflow-only systems truthfully: TheTransitClock, other external predictors, Prometheus/Grafana deployment, OpenTelemetry, consumer submission APIs, Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land.
+- tightened README and tutorial wording by linking to the evidence checklist and clarifying deployment-owned observability and consumer-ingestion proof limits.
+
 ## Next Recommended Step
 
-Begin Phase 11 — Compliance Evidence and Optional External Integrations using the exact recommendation in `docs/handoffs/latest.md`.
-
-The first implementation slice should be:
-1. produce an evidence checklist that separates code-complete, deployment-required, and external-consumer-confirmation-required readiness
-2. review optional external integrations in `docs/dependencies.md`
-3. either defer optional predictors explicitly or wire them only behind `internal/prediction.Adapter`
-4. keep compliance wording evidence-bounded; do not claim consumer acceptance or full CAL-ITP/Caltrans compliance without deployment and third-party evidence
+Begin the next hardening track for deployment evidence. The first slice should collect proof from a real hosted environment:
+1. public HTTPS fetch evidence for schedule, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
+2. production validator records for schedule and all three realtime feeds
+3. monitored operations evidence, including logs, metrics, backups, and alerting
+4. scorecard export for an actual deployment
+5. third-party submission or acceptance records only when they exist
 
 ## What Not To Do Next
 

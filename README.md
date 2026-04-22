@@ -12,6 +12,8 @@ The current codebase focuses on the agency-operated backend path:
 
 This repository is production-directed, but it is not a hosted turnkey service and it should not be described as universally production ready. It implements the technical foundations needed to deploy toward Caltrans/CAL-ITP-style transit data readiness, including stable URLs, validation workflows, open-license/contact metadata, and consumer-ingestion workflow records. A real deployment still needs HTTPS, operations, validator evidence, monitoring, and consumer acceptance before stronger compliance claims are justified.
 
+For the evidence-by-evidence Phase 11 mapping, see [Compliance Evidence Checklist](docs/compliance-evidence-checklist.md).
+
 ![Architecture overview](docs/assets/architecture-overview.png)
 
 ## What Works Today
@@ -190,12 +192,15 @@ or:
 
 Valid `feed_type` values are `schedule`, `vehicle_positions`, `trip_updates`, and `alerts` where supported by the selected validator.
 
+The repository can record and report readiness evidence, but local checks and demo output are not the same as deployment compliance. Use [Compliance Evidence Checklist](docs/compliance-evidence-checklist.md) to separate repo-proven capability, deployment/operator proof, and third-party consumer confirmation.
+
 ## Current Limitations
 
 Do not overstate the current repo:
 - No hosted login/SSO UI.
 - No packaged production app containers or Kubernetes manifests.
 - No full SLO dashboard or alerting stack beyond request logs, request IDs, readiness checks, and optional `/metrics`.
+- No OpenTelemetry tracing/exporter or Prometheus/Grafana deployment assets.
 - No server-side admin JWT `jti` replay tracking.
 - No external predictor integration such as TheTransitClock.
 - Trip Updates are conservative schedule-deviation predictions, not learned production-grade ETA quality.

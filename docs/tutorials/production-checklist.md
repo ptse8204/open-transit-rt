@@ -2,6 +2,8 @@
 
 This checklist is for production-directed pilots. Completing it is not the same as proving full production readiness for every agency.
 
+For the Phase 11 evidence separation between repo capability, deployment/operator proof, and third-party confirmation, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
+
 ## Runtime Configuration
 
 - Set `APP_ENV=production`.
@@ -85,6 +87,7 @@ Set `PUBLIC_BASE_URL` to the deployment host before running the command. The exp
 
 - Capture service logs with request IDs.
 - Keep `/metrics` internal if `METRICS_ENABLED=true`.
+- Treat Prometheus/Grafana and OpenTelemetry as deployment-owned or future integrations; this repo does not currently ship dashboards, alert rules, collectors, exporters, or tracing configuration.
 - Monitor readiness endpoints for database and active-feed dependencies.
 - Define who can use admin roles: `admin`, `editor`, `operator`, and `read_only`.
 - Keep audit logs for imports, publication metadata changes, alert edits, validation runs, overrides, and device rebinding.

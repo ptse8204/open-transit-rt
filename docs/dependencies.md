@@ -41,6 +41,33 @@ Dependencies fall into four groups:
 
 ---
 
+## Phase 11 wiring reality
+
+This table is the current external dependency and integration status. It separates repo-wired tooling from optional systems that remain deferred or workflow-only.
+
+| Dependency or external system | Current status | Evidence / boundary |
+| --- | --- | --- |
+| Postgres | Integrated | Core datastore through repository interfaces; local Compose uses PostgreSQL 16 image with host port `55432`. |
+| PostGIS | Integrated | Spatial storage and queries are migration-backed and kept inside repository/matching boundaries. |
+| pgx | Integrated | Go PostgreSQL driver and pool used by services and repositories. |
+| Goose | Integrated | `cmd/migrate` applies versioned migrations. |
+| MobilityData GTFS Validator | Integrated as validation tooling | Pinned `v7.1.0` JAR installed by `make validators-install` and checked by `make validators-check`; invoked through allowlisted validator IDs. |
+| MobilityData GTFS Realtime Validator | Integrated as validation tooling | Docker-backed wrapper pinned by image digest; invoked through allowlisted validator IDs with server-derived artifacts. |
+| GTFS Realtime protobuf Go bindings | Integrated | Used only at feed serialization boundaries. |
+| Go toolchain | Integrated developer/runtime build tool | Version follows `go.mod`; used for build, test, and service commands. |
+| Docker / Docker Compose | Integrated local tooling | Provisions local Postgres/PostGIS and supports the Docker-backed GTFS-RT validator wrapper; app containers are not packaged in this repo. |
+| Task | Optional local tooling | Mirrors Make targets; Makefile remains independently supported. |
+| Local demo tools `curl`, `zip`, `unzip` | Integrated local demo tooling | Used only by `scripts/demo-agency-flow.sh`; not runtime service dependencies. |
+| Internal Prometheus-format `/metrics` | Partially wired | Services can expose internal metrics text when `METRICS_ENABLED=true`; no Prometheus server, Grafana dashboard, alert rules, or SLO deployment assets are integrated. |
+| Prometheus / Grafana | Deferred optional integration | Future deployment/observability stack only. |
+| OpenTelemetry | Deferred optional integration | Phase 11 repo scan found no OpenTelemetry SDK, collector, exporter, trace propagation, or deployment wiring. |
+| TheTransitClock | Deferred optional predictor | Not integrated. Future use must be behind `internal/prediction.Adapter`; Open Transit RT remains source of truth. |
+| Other external predictors | Deferred optional predictors | Same adapter boundary as TheTransitClock. |
+| Google Maps, Apple Maps, Transit App, Bing Maps, Moovit | Workflow records only | Default `consumer_ingestion` records can track submission status; no external API calls or acceptance proof. |
+| Mobility Database, transit.land | Workflow targets only | Documented as possible publication/aggregator targets; no API integration. Operators may track them as consumer records when used. |
+
+---
+
 ## 1. Postgres
 
 ### Classification
@@ -632,6 +659,11 @@ Support the Phase 10 local agency demo wrapper:
 ### Classification
 Future optional integrations
 
+### Current wiring status
+- Open Transit RT has an internal Prometheus-format `/metrics` endpoint when `METRICS_ENABLED=true`.
+- The repo does not provision a Prometheus server, Grafana dashboards, alert rules, remote write, retention, uptime checks, or production SLO evidence.
+- Therefore Prometheus/Grafana are deferred deployment integrations, not current repo-integrated systems.
+
 ### Purpose
 Observability stack for:
 - feed freshness
@@ -649,6 +681,36 @@ Observability stack for:
 
 ### Replacement strategy
 - any metrics backend is acceptable if service-level metrics contracts remain stable
+
+---
+
+## 10A. OpenTelemetry
+
+### Classification
+Future optional integration
+
+### Current wiring status
+- Not integrated.
+- Phase 11 repo search found no OpenTelemetry SDK, collector, exporter, trace propagation, sampling configuration, or deployment documentation.
+- Request IDs and structured logs exist, but they are not OpenTelemetry tracing.
+
+### Purpose
+Potential future observability layer for:
+- distributed traces across Go services
+- structured span attributes for feed generation, validation, ingest, and database operations
+- trace export to a collector or hosted observability backend
+
+### Integration boundary
+- OpenTelemetry instrumentation should stay in service/server middleware, repository wrappers, or observability packages.
+- Core transit domain models must not depend on OpenTelemetry types.
+- Exporter configuration must be optional and deployment-owned.
+
+### Failure behavior
+- If OpenTelemetry export is unavailable, request handling and feed generation must continue.
+- Telemetry export failures must not corrupt application state or block public feed responses.
+
+### Replacement strategy
+- Any tracing backend is acceptable if request/operation context remains decoupled from core domain contracts.
 
 ---
 
@@ -671,6 +733,8 @@ Operational workflows for:
 - these are not runtime dependencies
 - they are workflow and compliance dependencies
 - Phase 8 tracks submission status and packet JSON in `consumer_ingestion`
+- default seeded consumer records are Google Maps, Apple Maps, Transit App, Bing Maps, and Moovit
+- Mobility Database and transit.land are documented workflow targets; they are not seeded defaults, but operators can track them as `consumer_ingestion.consumer_name` values when needed
 - no external submission API is called directly by the app
 
 ### Failure behavior

@@ -44,4 +44,9 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 ## Phase 10 — Docs, Tutorials, Deployment, And Demo
 
 - Complete for the current codebase surface. README, local/deployment/demo/checklist tutorials, executable agency demo flow, docs assets, bootstrap output polish, and truthful CAL-ITP/Caltrans-aligned wording are implemented.
-- Remaining later work: Phase 11 compliance evidence packaging, optional external predictor review/integration, and deployment-specific proof for any stronger readiness or consumer-ingestion claims.
+- Remaining later work: deployment-specific proof for any stronger readiness or consumer-ingestion claims.
+
+## Phase 11 — Compliance Evidence And Optional External Integrations
+
+- Complete for the selected evidence-only path. The Phase 11 evidence checklist, dependency reality table, README/tutorial truthfulness links, current-status update, and Phase 11 handoff are implemented.
+- Remaining later work: deployment evidence hardening, real HTTPS feed proof, production validator records, monitored operations evidence, scorecard export, and third-party submission or acceptance records where they exist.

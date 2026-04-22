@@ -10,6 +10,8 @@ Start here:
 - [Production Checklist](production-checklist.md)
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md)
 
+For the detailed Phase 11 evidence separation, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
+
 Rules for future edits:
 
 - Every command must be runnable from the committed repo or clearly marked as deployment-specific.

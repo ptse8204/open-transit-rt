@@ -2,6 +2,8 @@
 
 This checklist uses evidence-bounded language. The repository supports the technical foundations for California transit data readiness, but a specific deployment must provide validation, hosting, metadata, operations, and consumer evidence before stronger compliance claims are appropriate.
 
+The Phase 11 evidence package is [Compliance Evidence Checklist](../compliance-evidence-checklist.md). Use it when deciding whether a claim is repo-proven, deployment-dependent, or dependent on third-party confirmation.
+
 ## Current Claim Boundaries
 
 Allowed wording:
@@ -84,7 +86,7 @@ The repo stores consumer-ingestion workflow records for:
 - Bing Maps
 - Moovit
 
-It does not call external consumer submission APIs and it does not prove acceptance. Record consumer status only when the agency or operator has real evidence for that deployment.
+It does not call external consumer submission APIs and it does not prove acceptance. Mobility Database and transit.land may be tracked as workflow records when an operator adds them, but they are not API integrations. Record consumer status only when the agency or operator has real evidence for that deployment.
 
 ## Marketplace Gap
 
