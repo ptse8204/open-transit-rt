@@ -84,7 +84,7 @@ task test:integration
 - `feed_config.publication_environment = 'production'` makes missing canonical validator execution red in scorecards. In `dev`, missing validators are yellow/not-run.
 - Alerts authoring/persistence is owned by `internal/alerts`; GTFS-RT protobuf rendering is owned by `internal/feed/alerts`.
 - Prediction packages must not import Alerts packages. Canceled-trip missing-alert review signals are satisfied by the Alerts-owned reconciler.
-- Validator adapters store normalized `validation_report` rows. Missing validator configuration is recorded as `status='not_run'`.
+- Validator adapters parse structured JSON reports from stdout, stderr, or output files, store normalized `validation_report` rows with error/warning/info counts, and record missing validator configuration as `status='not_run'`.
 
 ## Constraints To Preserve
 

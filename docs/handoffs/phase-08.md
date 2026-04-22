@@ -19,7 +19,7 @@ Phase 8 — Compliance and consumer workflow
 - Added publication metadata bootstrap that writes `feed_config`, `published_feed`, `consumer_ingestion`, and `marketplace_gap`.
 - Added consumer ingestion workflow record updates.
 - Added compliance scorecard snapshot persistence.
-- Added canonical validator command adapters that store normalized `validation_report` rows and record `not_run` when tooling is missing.
+- Added canonical validator command adapters that parse structured report output, store normalized `validation_report` rows, and record `not_run` when tooling is missing.
 - Expanded architecture tests so Alerts do not couple into prediction, Trip Updates, telemetry ingest, Vehicle Positions, or GTFS Studio.
 
 ## What Was Designed But Intentionally Not Implemented Yet
@@ -69,7 +69,7 @@ Schedule ZIP serving is on demand from the active published `feed_version`. ZIP 
 - Added Alerts feed tests for non-empty GTFS-RT Alert protobuf output, translated text, active period, informed trip selectors, and debug JSON.
 - Added `cmd/feed-alerts` handler tests for public endpoints, admin authoring, reconciliation, method rejection, and readiness.
 - Added schedule ZIP tests proving deterministic bytes and entry `Modified` timestamp behavior.
-- Added compliance tests for `/public/feeds.json` readiness semantics and dev-versus-production validator missing-tool score behavior.
+- Added compliance tests for `/public/feeds.json` readiness semantics, dev-versus-production validator missing-tool score behavior, and validator passed/warning/failed/not-run normalization.
 - Expanded non-coupling tests around Alerts and prediction/Trip Updates boundaries.
 
 Results:

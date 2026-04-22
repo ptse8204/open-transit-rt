@@ -41,6 +41,18 @@ func TestValidationScoreTreatsMissingValidatorsAsProductionRed(t *testing.T) {
 	}
 }
 
+func TestValidationScoreUsesPassedWarningAndFailedStatuses(t *testing.T) {
+	if got := validationScore(EnvironmentProduction, []FeedMetadata{{FeedType: "schedule", LastValidationStatus: "passed"}}); got != StatusGreen {
+		t.Fatalf("passed validator score = %s, want green", got)
+	}
+	if got := validationScore(EnvironmentProduction, []FeedMetadata{{FeedType: "schedule", LastValidationStatus: "warning"}}); got != StatusYellow {
+		t.Fatalf("warning validator score = %s, want yellow", got)
+	}
+	if got := validationScore(EnvironmentProduction, []FeedMetadata{{FeedType: "schedule", LastValidationStatus: "failed"}}); got != StatusRed {
+		t.Fatalf("failed validator score = %s, want red", got)
+	}
+}
+
 func TestRunValidationStoresNotRunWhenCommandMissing(t *testing.T) {
 	store := &fakeValidationStore{}
 	result, err := RunValidation(context.Background(), store, ValidationRunInput{
@@ -56,6 +68,57 @@ func TestRunValidationStoresNotRunWhenCommandMissing(t *testing.T) {
 	}
 	if store.result.Report["reason"] != "validator_command_missing" {
 		t.Fatalf("report = %+v, want missing command reason", store.result.Report)
+	}
+}
+
+func TestRunValidationNormalizesPassedJSONReport(t *testing.T) {
+	store := &fakeValidationStore{}
+	result, err := RunValidation(context.Background(), store, ValidationRunInput{
+		AgencyID: "demo-agency",
+		FeedType: "schedule",
+		Command:  `printf '%s' '{"status":"passed","error_count":0,"warning_count":0,"info_count":3}'`,
+	})
+	if err != nil {
+		t.Fatalf("run validation: %v", err)
+	}
+	if result.Status != "passed" || result.ErrorCount != 0 || result.WarningCount != 0 || result.InfoCount != 3 {
+		t.Fatalf("result = %+v, want passed with info count", result)
+	}
+	if store.result.Report["raw_report"] == nil {
+		t.Fatalf("report = %+v, want raw_report", store.result.Report)
+	}
+}
+
+func TestRunValidationNormalizesWarningJSONReport(t *testing.T) {
+	store := &fakeValidationStore{}
+	result, err := RunValidation(context.Background(), store, ValidationRunInput{
+		AgencyID: "demo-agency",
+		FeedType: "alerts",
+		Command:  `printf '%s' '{"notices":[{"severity":"WARNING"},{"severity":"INFO"}]}'`,
+	})
+	if err != nil {
+		t.Fatalf("run validation: %v", err)
+	}
+	if result.Status != "warning" || result.ErrorCount != 0 || result.WarningCount != 1 || result.InfoCount != 1 {
+		t.Fatalf("result = %+v, want warning with notice counts", result)
+	}
+}
+
+func TestRunValidationNormalizesFailedJSONReport(t *testing.T) {
+	store := &fakeValidationStore{}
+	result, err := RunValidation(context.Background(), store, ValidationRunInput{
+		AgencyID: "demo-agency",
+		FeedType: "trip_updates",
+		Command:  `printf '%s' '{"summary":{"errors":2,"warnings":1,"infos":4}}'; exit 1`,
+	})
+	if err != nil {
+		t.Fatalf("run validation: %v", err)
+	}
+	if result.Status != "failed" || result.ErrorCount != 2 || result.WarningCount != 1 || result.InfoCount != 4 {
+		t.Fatalf("result = %+v, want failed with parsed counts", result)
+	}
+	if store.result.Report["error"] == "" {
+		t.Fatalf("report = %+v, want command error retained", store.result.Report)
 	}
 }
 

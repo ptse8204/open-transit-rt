@@ -152,6 +152,6 @@ Realtime `published_feed.revision_timestamp` is a publication/bootstrap metadata
 
 ## ADR-0021 — Validator-backed scorecards distinguish dev from production
 
-Phase 8 adds canonical validator command adapters for static GTFS and GTFS-RT. Validator results are normalized into `validation_report`. If validator tooling is absent, the system stores `status='not_run'` instead of pretending validation passed.
+Phase 8 adds canonical validator command adapters for static GTFS and GTFS-RT. Validator results are normalized into `validation_report`. The adapters parse structured JSON from stdout, stderr, or validator output files, count errors/warnings/info notices, preserve the raw parsed report under `report_json.raw_report`, and derive `passed`, `warning`, or `failed` status from the normalized counts plus command exit status. If validator tooling is absent, the system stores `status='not_run'` instead of pretending validation passed.
 
 Production mode is agency-scoped and stored as `feed_config.publication_environment = 'production'`. In production mode, missing canonical validator execution makes scorecard validation red. In dev mode, missing validators are yellow/not-run. `validator_strictness` controls failure handling, but it does not define production mode by itself.
