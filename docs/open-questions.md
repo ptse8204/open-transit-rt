@@ -6,6 +6,7 @@ These questions do not block the next phase.
 
 - What production hosting target should be documented first: single VM, managed container platform, or Kubernetes?
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
+- Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 
 ## Authentication
 
@@ -15,9 +16,8 @@ These questions do not block the next phase.
 
 ## Validation Tooling
 
-- Which exact GTFS static validator distribution should be pinned first?
-- Which GTFS-Realtime validator should be used for CI versus scheduled production checks?
-- Phase 8 added canonical validator command adapters and `validation_report` persistence, but did not pin validator binary download/install steps. Which distributions should local dev, CI, and production standardize on?
+- Answered for the repo-supported path in Phase 9: MobilityData GTFS Validator `v7.1.0` and Docker-backed MobilityData GTFS-RT validator image digest in `tools/validators/validators.lock.json`.
+- Open for deployments: whether a production environment should use the repo-supported Docker-backed GTFS-RT wrapper or document an equivalent checksum/digest contract for a native executable.
 
 ## Static GTFS Publication
 

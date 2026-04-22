@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Agency deployment diagram</title>
+  <desc id="desc">TLS reverse proxy exposes anonymous public feeds and keeps admin, debug, GTFS Studio, metrics, and validators protected.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2563eb"/></marker>
+    <style>.bg{fill:#f8fafc}.box{fill:#fff;stroke:#334155;stroke-width:2;rx:10}.public{fill:#ecfdf5;stroke:#16a34a}.private{fill:#f5f3ff;stroke:#7c3aed}.svc{fill:#eff6ff;stroke:#2563eb}.db{fill:#f1f5f9;stroke:#64748b}.warn{fill:#fff7ed;stroke:#ea580c}.text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;fill:#0f172a;font-size:24px;font-weight:650}.small{font-size:18px;font-weight:500}.tiny{font-size:15px;font-weight:500;fill:#334155}.line{stroke:#2563eb;stroke-width:3;fill:none;marker-end:url(#arrow)}.publine{stroke:#16a34a;stroke-width:3;fill:none;marker-end:url(#arrow)}.privline{stroke:#7c3aed;stroke-width:3;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text x="60" y="64" class="text" style="font-size:34px">Small Agency Deployment Shape</text>
+  <text x="60" y="96" class="tiny">Current repo: Compose provisions Postgres/PostGIS; Go services run behind deployment-owned TLS proxy/process management.</text>
+  <rect x="560" y="130" width="480" height="70" class="box"/><text x="710" y="174" class="text">Public Internet</text>
+  <rect x="500" y="250" width="600" height="85" class="box svc"/><text x="650" y="302" class="text">TLS Reverse Proxy</text>
+  <rect x="110" y="410" width="430" height="160" class="box public"/><text x="150" y="455" class="text">Anonymous Public Feeds</text><text x="150" y="490" class="small">schedule.zip, feeds.json</text><text x="150" y="520" class="small">vehicle_positions.pb</text><text x="150" y="550" class="small">trip_updates.pb, alerts.pb</text>
+  <rect x="1060" y="410" width="430" height="160" class="box private"/><text x="1100" y="455" class="text">Protected Admin + Debug</text><text x="1100" y="490" class="small">Bearer JWT or admin cookie</text><text x="1100" y="520" class="small">CSRF for cookie unsafe methods</text><text x="1100" y="550" class="small">GTFS Studio, JSON debug, metrics</text>
+  <rect x="250" y="650" width="760" height="120" class="box svc"/><text x="285" y="695" class="text">Go Services</text><text x="285" y="730" class="small">agency-config, telemetry-ingest, feed publishers, GTFS Studio</text>
+  <rect x="1080" y="650" width="340" height="120" class="box db"/><text x="1120" y="702" class="text">Postgres / PostGIS</text><text x="1120" y="734" class="small">source of truth</text>
+  <rect x="250" y="805" width="330" height="58" class="box warn"/><text x="280" y="842" class="small">Pinned Validators</text>
+  <rect x="625" y="805" width="385" height="58" class="box private"/><text x="655" y="842" class="small">Optional Predictor Adapter Boundary</text>
+  <path class="line" d="M800 200V250"/><path class="publine" d="M650 335C520 380 420 390 325 410"/><path class="privline" d="M950 335C1080 380 1180 390 1275 410"/><path class="line" d="M325 570C370 620 440 635 520 650"/><path class="line" d="M1275 570C1180 620 1020 635 900 650"/><path class="line" d="M1010 710H1080"/><path class="line" d="M415 805V770"/><path class="privline" d="M820 805V770"/>
+</svg>

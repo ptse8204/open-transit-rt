@@ -593,6 +593,40 @@ Phase 5 adds a minimal operator/admin UI for GTFS Studio draft editing and draft
 
 ---
 
+## 9D. Local demo packaging tools
+
+### Classification
+Developer tooling
+
+### Purpose
+Support the Phase 10 local agency demo wrapper:
+- package `testdata/gtfs/valid-small` into a runtime GTFS ZIP
+- verify the fetched public `schedule.zip`
+- fetch local HTTP endpoints
+
+### Expected tools
+- `zip`
+- `unzip`
+- `curl`
+
+### Startup / provisioning
+- these are invoked by `scripts/demo-agency-flow.sh`
+- they are not runtime service dependencies
+
+### Integration boundary
+- used only for local/demo packaging and verification
+- the production GTFS import path remains `cmd/gtfs-import -zip <gtfs.zip>`
+- public feed serving and validation do not depend on these tools
+
+### Failure behavior
+- the demo wrapper fails fast if one of these tools is missing
+- missing local demo tools must not be interpreted as application runtime failure
+
+### Replacement strategy
+- the demo can replace these shell tools with a Go helper later if needed, without changing service contracts
+
+---
+
 ## 10. Prometheus / Grafana
 
 ### Classification

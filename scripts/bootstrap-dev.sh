@@ -69,13 +69,30 @@ Core service commands:
   make run-agency-config          http://localhost:8081/healthz
   make run-telemetry-ingest       http://localhost:8082/healthz
   make run-feed-vehicle-positions http://localhost:8083/healthz
+  make run-feed-trip-updates      http://localhost:8084/healthz
+  make run-feed-alerts            http://localhost:8085/healthz
+  make run-gtfs-studio            http://localhost:8086/healthz
 
-Public feed URLs planned by contract:
+Public feed URLs:
+  http://localhost:8081/public/gtfs/schedule.zip
+  http://localhost:8081/public/feeds.json
   http://localhost:8083/public/gtfsrt/vehicle_positions.pb
-  http://localhost:8083/public/gtfsrt/vehicle_positions.json
+  http://localhost:8084/public/gtfsrt/trip_updates.pb
+  http://localhost:8085/public/gtfsrt/alerts.pb
+
+Protected debug/admin routes require the admin token above, for example:
+  curl -H "Authorization: Bearer \$ADMIN_TOKEN" http://localhost:8083/public/gtfsrt/vehicle_positions.json
+  curl -H "Authorization: Bearer \$ADMIN_TOKEN" http://localhost:8086/admin/gtfs-studio
+
+Pinned validators:
+  make validators-install
+  make validators-check
 
 Fixtures:
   testdata/
+
+Executable agency demo:
+  make demo-agency-flow
 
 Hardening smoke:
   make smoke

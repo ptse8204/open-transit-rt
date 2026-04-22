@@ -1,21 +1,18 @@
-# Tutorials Directory Plan
+# Tutorials
 
-This file records the intended tutorial set for the repo closure phases.
+These tutorials describe the current Phase 9/Phase 10 repository surface. They are intentionally evidence-bounded: they document what the repo can run today and do not claim hosted production readiness, consumer acceptance, or completed CAL-ITP/Caltrans compliance.
 
-## Planned Tutorials
+Start here:
 
-- `local-quickstart.md`
-- `deploy-with-docker-compose.md`
-- `agency-demo-flow.md`
-- `production-checklist.md`
-- `calitp-readiness-checklist.md`
+- [Local Quickstart](local-quickstart.md)
+- [Agency Demo Flow](agency-demo-flow.md)
+- [Deploy With Docker Compose](deploy-with-docker-compose.md)
+- [Production Checklist](production-checklist.md)
+- [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md)
 
-## Rules For Tutorial Authors
+Rules for future edits:
 
-- Every command must be runnable from the committed repo.
-- Every path, endpoint, and environment variable must match the actual code.
-- Every tutorial must clearly say whether it is:
-  - local dev only
-  - pilot deployment
-  - production-directed
-- Do not leave placeholder commands or aspirational steps.
+- Every command must be runnable from the committed repo or clearly marked as deployment-specific.
+- Every endpoint and environment variable must match the actual codebase.
+- Public protobuf endpoints are anonymous; JSON debug, admin, and GTFS Studio routes are protected.
+- Use "supports" and "technical foundations for" when describing compliance readiness unless deployment and external-consumer evidence supports stronger wording.

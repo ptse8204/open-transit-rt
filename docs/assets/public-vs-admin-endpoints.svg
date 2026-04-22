@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Public versus protected endpoint boundary</title>
+  <desc id="desc">Anonymous public endpoints are schedule.zip, feeds.json, and GTFS Realtime protobuf feeds. Admin and debug endpoints require Bearer JWT or admin cookie plus CSRF for unsafe cookie requests.</desc>
+  <style>.bg{fill:#f8fafc}.public{fill:#eff6ff;stroke:#2563eb;stroke-width:2;rx:10}.private{fill:#ecfdf5;stroke:#16a34a;stroke-width:2;rx:10}.row{fill:#fff;stroke:#cbd5e1;stroke-width:1.5;rx:8}.boundary{stroke:#64748b;stroke-width:3;stroke-dasharray:10 12}.text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;fill:#0f172a;font-size:24px;font-weight:650}.small{font-size:18px;font-weight:500}.path{font-size:18px;font-weight:600;fill:#1d4ed8}.greenpath{font-size:18px;font-weight:600;fill:#047857}.tiny{font-size:15px;font-weight:500;fill:#334155}</style>
+  <rect class="bg" width="1600" height="900"/>
+  <text x="60" y="64" class="text" style="font-size:34px">Public vs Admin Endpoint Boundary</text>
+  <rect x="70" y="125" width="650" height="690" class="public"/>
+  <rect x="880" y="125" width="650" height="690" class="private"/>
+  <line x1="800" y1="115" x2="800" y2="825" class="boundary"/>
+  <text x="735" y="430" class="text">Auth</text><text x="710" y="462" class="text">Boundary</text>
+  <text x="120" y="180" class="text">Anonymous Public Endpoints</text><text x="120" y="214" class="small">No login for consumers</text>
+  <text x="930" y="180" class="text">Protected Admin + Debug Endpoints</text><text x="930" y="214" class="small">Bearer JWT or admin cookie; CSRF for unsafe cookie requests</text>
+  <g>
+    <rect x="120" y="260" width="550" height="62" class="row"/><text x="150" y="299" class="small">Static GTFS</text><text x="420" y="299" class="path">/public/gtfs/schedule.zip</text>
+    <rect x="120" y="345" width="550" height="62" class="row"/><text x="150" y="384" class="small">Discovery</text><text x="420" y="384" class="path">/public/feeds.json</text>
+    <rect x="120" y="430" width="550" height="62" class="row"/><text x="150" y="469" class="small">Vehicle Positions</text><text x="420" y="469" class="path">/public/gtfsrt/vehicle_positions.pb</text>
+    <rect x="120" y="515" width="550" height="62" class="row"/><text x="150" y="554" class="small">Trip Updates</text><text x="420" y="554" class="path">/public/gtfsrt/trip_updates.pb</text>
+    <rect x="120" y="600" width="550" height="62" class="row"/><text x="150" y="639" class="small">Alerts</text><text x="420" y="639" class="path">/public/gtfsrt/alerts.pb</text>
+  </g>
+  <g>
+    <rect x="930" y="250" width="550" height="56" class="row"/><text x="960" y="286" class="small">GTFS Studio</text><text x="1220" y="286" class="greenpath">/admin/gtfs-studio</text>
+    <rect x="930" y="322" width="550" height="56" class="row"/><text x="960" y="358" class="small">GTFS Studio Drafts</text><text x="1220" y="358" class="greenpath">/admin/gtfs-studio/drafts/...</text>
+    <rect x="930" y="394" width="550" height="56" class="row"/><text x="960" y="430" class="small">JSON Debug Feeds</text><text x="1220" y="430" class="greenpath">/public/gtfsrt/*.json</text>
+    <rect x="930" y="466" width="550" height="56" class="row"/><text x="960" y="502" class="small">Telemetry Events</text><text x="1220" y="502" class="greenpath">/v1/events</text>
+    <rect x="930" y="538" width="550" height="56" class="row"/><text x="960" y="574" class="small">Validation Run</text><text x="1220" y="574" class="greenpath">/admin/validation/run</text>
+    <rect x="930" y="610" width="550" height="56" class="row"/><text x="960" y="646" class="small">Scorecard</text><text x="1220" y="646" class="greenpath">/admin/compliance/scorecard</text>
+    <rect x="930" y="682" width="550" height="56" class="row"/><text x="960" y="718" class="small">Alerts Admin</text><text x="1220" y="718" class="greenpath">/admin/alerts</text>
+    <rect x="930" y="754" width="550" height="56" class="row"/><text x="960" y="790" class="small">Device Rebind</text><text x="1220" y="790" class="greenpath">/admin/devices/rebind</text>
+  </g>
+</svg>

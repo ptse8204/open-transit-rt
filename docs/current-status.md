@@ -26,6 +26,8 @@ Phase 9 production closure is implemented for the current repository surface. Ad
 
 Validator tooling now has a repo-supported pin/install/check workflow. `make validators-install` installs MobilityData GTFS Validator `v7.1.0` with SHA-256 verification and a Docker-backed GTFS-RT validator wrapper pinned to `ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89`. `make validators-check`, `make validate`, and `make smoke` distinguish missing pinned tooling from checksum/digest/path misconfiguration. `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests.
 
+Phase 10 docs, tutorials, deployment, and demo work is complete for the current repository surface. The README now reflects Phase 9 behavior, the tutorial set under `docs/tutorials/` is filled, `make demo-agency-flow` runs an executable agency demo, `scripts/bootstrap-dev.sh` prints current services and protected/public surfaces, and repo-owned docs assets live under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -43,6 +45,8 @@ The repo has:
 - `docs/decisions.md`
 - `docs/backlog.md`
 - `docs/open-questions.md`
+- `docs/tutorials/`
+- `docs/assets/`
 - `docs/handoffs/latest.md`
 
 ### Phase 0 scaffolding
@@ -66,7 +70,7 @@ The repo includes starter Go services for:
 - `feed-alerts`
 - `gtfs-studio`
 
-`cmd/telemetry-ingest` persists valid telemetry to Postgres through a telemetry repository. `cmd/feed-vehicle-positions` now serves DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug output from persisted latest accepted telemetry plus persisted current assignments. `agency-config` remains starter scaffolding.
+`cmd/telemetry-ingest` persists valid telemetry to Postgres through a telemetry repository. `cmd/feed-vehicle-positions` serves DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug output from persisted latest accepted telemetry plus persisted current assignments. `cmd/agency-config` serves publication, schedule ZIP, feed discovery, scorecard, validation, consumer-ingestion, and device-rebind workflows.
 
 `cmd/gtfs-studio` serves a minimal server-rendered admin surface for typed GTFS draft editing and draft publishing. It is operational row editing, not a map editor or timetable designer.
 
@@ -192,12 +196,12 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 - production-grade learned ETA/prediction quality and backtesting
 - hosted login/SSO and server-side admin JWT `jti` replay tracking
-- manual override workflows
+- full operator UI for manual override workflows
 - production SLO dashboards and alerting beyond basic request logs, request IDs, readiness checks, and `/metrics` toggle
 
 ## Current Phase
 
-**Active phase:** Phase 9 — Production Closure is complete for the current codebase surface. `docs/phase-plan-production-closure.md` defines the follow-on closure phases.
+**Active phase:** Phase 10 — Docs, Tutorials, Deployment, and Demo is complete for the current codebase surface. `docs/phase-plan-production-closure.md` defines Phase 11 as the follow-on compliance evidence and optional external integrations phase.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -468,15 +472,36 @@ Phase 9 implementation results:
 - strengthened DB-backed device rebind tests for spoof rejection and immediate old-token invalidation.
 - strengthened assignment current-row race tests with a partial-index assertion and higher concurrency.
 
+## Phase 10 Closure Audit Results
+
+Checked during Phase 10 closure:
+- `make validators-install`: passed.
+- `make validators-check`: passed.
+- `make test`: passed.
+- `make smoke`: passed.
+- `make validate`: passed.
+- `make demo-agency-flow`: passed and verified DB bootstrap, validator install/check, sample GTFS import, publication metadata bootstrap, authenticated telemetry ingest, public `schedule.zip`, public `feeds.json`, public realtime protobuf feeds, protected debug/admin routes including GTFS Studio, validation run flow, scorecard, and consumer-ingestion visibility.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `make test-integration`: passed.
+- `git diff --check`: passed.
+
+Phase 10 implementation results:
+- rewrote `README.md` to describe the current Phase 9 runtime surface, public/protected endpoints, quickstart, deployment path, limitations, and truthful Caltrans/CAL-ITP-aligned wording.
+- added tutorial docs for local quickstart, Docker Compose deployment, agency demo flow, production checklist, and CAL-ITP readiness checklist.
+- added `scripts/demo-agency-flow.sh`, `make demo-agency-flow`, and `task demo:agency`.
+- updated `scripts/bootstrap-dev.sh` to print current service commands, public feed URLs, protected debug/admin examples, validator setup, and the executable demo target.
+- added repo-owned docs assets under `docs/assets/` and documented source specs plus alt text.
+- updated `docs/dependencies.md` for local demo packaging tools.
+
 ## Next Recommended Step
 
-Begin Phase 10 — Docs, Tutorials, Deployment, and Demo using the exact recommendation in `docs/handoffs/latest.md`.
+Begin Phase 11 — Compliance Evidence and Optional External Integrations using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. update README and local quickstart to match the Phase 9 runtime exactly
-2. document the agency demo flow using the current pinned validator setup and auth/device-token workflow
-3. add deployment guidance for reverse proxy/TLS, internal `/metrics`, pinned validators, and service env vars
-4. keep compliance wording technical and truthful; do not claim consumer acceptance or full CAL-ITP/Caltrans compliance without deployment evidence
+1. produce an evidence checklist that separates code-complete, deployment-required, and external-consumer-confirmation-required readiness
+2. review optional external integrations in `docs/dependencies.md`
+3. either defer optional predictors explicitly or wire them only behind `internal/prediction.Adapter`
+4. keep compliance wording evidence-bounded; do not claim consumer acceptance or full CAL-ITP/Caltrans compliance without deployment and third-party evidence
 
 ## What Not To Do Next
 

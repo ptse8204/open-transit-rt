@@ -5,7 +5,7 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check
+.PHONY: build deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check
 
 build:
 	go build ./...
@@ -36,6 +36,9 @@ seed:
 
 dev bootstrap:
 	./scripts/bootstrap-dev.sh
+
+demo-agency-flow:
+	./scripts/demo-agency-flow.sh
 
 run-agency-config:
 	PORT=8081 go run ./cmd/agency-config

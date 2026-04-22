@@ -1,203 +1,209 @@
 # Open Transit RT
 
-Open Transit RT is a starter monorepo for a small-agency transit data stack:
-- static GTFS authoring/import
-- device-based vehicle telemetry ingestion
-- deterministic trip matching
-- GTFS-RT Vehicle Positions publishing
-- a pluggable Trip Updates engine
-- alerts, compliance workflows, and hardening foundations
+Open Transit RT is a modular transit data platform for small agencies that need to publish static GTFS and GTFS Realtime feeds without buying a full CAD/AVL replacement.
 
-This repo is a phased starter, not a finished product. It focuses on the wedge we discussed: **BYOD or low-cost GPS -> public realtime feeds**, with **Trip Updates** treated as a replaceable module.
+The current codebase focuses on the agency-operated backend path:
+- import or author static GTFS
+- persist authenticated vehicle telemetry
+- preserve conservative trip-assignment state
+- publish stable GTFS and GTFS Realtime feed URLs
+- keep Trip Updates behind a replaceable prediction adapter
+- expose validation, publication metadata, scorecard, Alerts, and consumer-ingestion workflow records
 
-## Current status
+This repository is production-directed, but it is not a hosted turnkey service and it should not be described as universally production ready. It implements the technical foundations needed to deploy toward Caltrans/CAL-ITP-style transit data readiness, including stable URLs, validation workflows, open-license/contact metadata, and consumer-ingestion workflow records. A real deployment still needs HTTPS, operations, validator evidence, monitoring, and consumer acceptance before stronger compliance claims are justified.
 
-Implemented now:
-- simple `agency-config` HTTP service
-- DB-backed `telemetry-ingest` HTTP service
-- simple `feed-vehicle-positions` HTTP service
-- minimal `gtfs-studio` HTTP service
-- shared domain models
-- Phase 0 scaffolding for migrations, bootstrap, fixtures, and handoffs
-- Phase 1 durable telemetry persistence foundation
-- Phase 2 deterministic trip matching foundation
-- Phase 3 DB-backed GTFS-RT Vehicle Positions protobuf and JSON debug feed
-- Phase 4 GTFS ZIP import/publish pipeline
-- Phase 5 GTFS Studio typed draft/publish model
-- Phase 6 Trip Updates and Alerts architecture with no-op/default feeds
-- Phase 7 deterministic Trip Updates prediction and operations workflows
-- Phase 8 Alerts, publication metadata, compliance scorecards, consumer workflow, and validation records
-- post-Phase-8 production hardening for admin auth, device auth, validator execution, assignment races, and safer config defaults
-- architecture and Codex handoff docs
+![Architecture overview](docs/assets/architecture-overview.png)
 
-Not yet implemented:
-- Android client
-- production Trip Updates prediction quality
-- TheTransitClock integration or another real predictor
-- GTFS Studio rich map/timetable editor
-- full hosted login/identity UI
+## What Works Today
 
-## Services
+Implemented in the Phase 9 codebase:
+- Postgres/PostGIS-backed migrations and local bootstrap.
+- GTFS ZIP import with internal validation and atomic active-feed publication.
+- Minimal server-rendered GTFS Studio for typed draft rows and draft publishing.
+- Authenticated telemetry ingest using opaque device Bearer tokens bound to agency, device, and vehicle.
+- Conservative persisted assignment model used by feed builders; automatic matching logic exists in `internal/state`, but there is no standalone matcher daemon in Phase 10.
+- Public GTFS Schedule ZIP generated from the active published GTFS feed.
+- Public GTFS-RT Vehicle Positions protobuf from latest accepted telemetry plus current assignments.
+- Public GTFS-RT Trip Updates protobuf through the deterministic prediction adapter, withholding weak or unsupported cases.
+- Public GTFS-RT Alerts protobuf from persisted published Service Alerts.
+- Protected JSON debug views for schedule/realtime/admin inspection.
+- Admin JWT auth with DB-backed roles, cookie CSRF protection for browser admin flows, and production secret checks.
+- Publication metadata bootstrap, `/public/feeds.json`, consumer-ingestion records, validator records, and compliance scorecard snapshots.
+- Pinned validator tooling workflow for MobilityData static GTFS Validator and a Docker-backed GTFS-RT validator wrapper.
 
-Admin/API hardening:
-- Public `.pb` feed endpoints remain anonymous and stable for consumers.
-- Admin routes and JSON debug endpoints require admin authentication.
-- Bearer JWT auth is the default for machine/API admin calls.
-- `admin_session` cookie auth is only for browser-admin flows and requires CSRF tokens on unsafe methods.
-- Admin JWTs require `sub`, `agency_id`, `iat`, `exp`, `iss`, and `aud`; default local TTL is `8h`, clock skew allowance is `2m`, and secret rotation accepts `ADMIN_JWT_SECRET` plus comma-separated `ADMIN_JWT_OLD_SECRETS`. `jti` is emitted for auditability but server-side replay tracking is deferred.
+## Public Endpoints
 
-### agency-config
+Public feed endpoints are anonymous by design:
+
+| Feed | Endpoint |
+| --- | --- |
+| Static GTFS | `/public/gtfs/schedule.zip` |
+| Feed discovery metadata | `/public/feeds.json` |
+| Vehicle Positions | `/public/gtfsrt/vehicle_positions.pb` |
+| Trip Updates | `/public/gtfsrt/trip_updates.pb` |
+| Alerts | `/public/gtfsrt/alerts.pb` |
+
+`/public/gtfs/schedule.zip` returns `ETag`, `Last-Modified`, and `X-Checksum-SHA256`. The realtime protobuf endpoints return valid GTFS Realtime `FeedMessage` payloads, including successful empty feeds when there is no publishable entity.
+
+In a deployment, put a reverse proxy in front of the services so these public paths share one stable HTTPS feed root.
+
+## Admin And Debug Surfaces
+
+Admin, mutation, and JSON debug routes require admin auth. Bearer JWT auth is the default for API use; `admin_session` cookie auth exists for browser-admin flows and requires CSRF on unsafe methods.
+
+Protected routes include:
+- `/public/gtfsrt/vehicle_positions.json` and `/admin/debug/gtfsrt/vehicle_positions.json`
+- `/public/gtfsrt/trip_updates.json` and `/admin/debug/gtfsrt/trip_updates.json`
+- `/public/gtfsrt/alerts.json` and `/admin/debug/gtfsrt/alerts.json`
+- `/v1/events` and `/admin/debug/telemetry/events`
+- `/admin/publication/bootstrap`
+- `/admin/compliance/scorecard`
+- `/admin/consumer-ingestion`
+- `/admin/validation/run`
+- `/admin/devices/rebind`
+- `/admin/alerts` and alert lifecycle routes
+- `/admin/gtfs-studio` and draft subroutes
+
+Generate a local admin token after seeding:
+
 ```bash
-DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" \
-AGENCY_ID=demo-agency \
-ADMIN_JWT_SECRET=dev-admin-jwt-secret-change-me \
-ADMIN_JWT_ISSUER=open-transit-rt-local \
-ADMIN_JWT_AUDIENCE=open-transit-rt-admin \
-CSRF_SECRET=dev-csrf-secret-change-me \
-DEVICE_TOKEN_PEPPER=dev-device-token-pepper-change-me \
-PORT=8081 go run ./cmd/agency-config
+export ADMIN_JWT_SECRET=dev-admin-jwt-secret-change-me
+export ADMIN_JWT_ISSUER=open-transit-rt-local
+export ADMIN_JWT_AUDIENCE=open-transit-rt-admin
+export CSRF_SECRET=dev-csrf-secret-change-me
+export DEVICE_TOKEN_PEPPER=dev-device-token-pepper-change-me
+
+ADMIN_TOKEN="$(go run ./cmd/admin-token -sub admin@example.com -agency-id demo-agency | sed -n 's/^token=//p')"
+curl -H "Authorization: Bearer $ADMIN_TOKEN" http://localhost:8086/admin/gtfs-studio
 ```
 
-`agency-config` serves `/public/gtfs/schedule.zip`, `/public/feeds.json`, admin publication bootstrap, consumer workflow records, scorecards, device rebinding, and allowlisted validation runs. `/public/gtfs/schedule.zip` emits `ETag`, `Last-Modified`, and `X-Checksum-SHA256`; `SCHEDULE_ZIP_MAX_BYTES` bounds generated payloads.
+## Local Quickstart
 
-`/admin/validation/run` accepts only `validator_id`, `feed_type`, and optional `feed_version_id`. Schedule validation uses locally generated schedule ZIP bytes. Realtime validation fetches server-owned protobuf artifacts from `VEHICLE_POSITIONS_FEED_URL`, `TRIP_UPDATES_FEED_URL`, `ALERTS_FEED_URL`, or `REALTIME_VALIDATION_BASE_URL`/`FEED_BASE_URL`, then passes local temp files to the allowlisted validator.
+Prerequisites:
+- Go matching `go.mod`
+- Docker with Compose support
+- `curl`, `zip`, and `unzip` for the demo wrapper
+- Java if you want the static GTFS validator JAR to execute successfully; missing Java is recorded as validator failure, not as feed success
 
-### telemetry-ingest
-```bash
-DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" \
-ADMIN_JWT_SECRET=dev-admin-jwt-secret-change-me \
-ADMIN_JWT_ISSUER=open-transit-rt-local \
-ADMIN_JWT_AUDIENCE=open-transit-rt-admin \
-CSRF_SECRET=dev-csrf-secret-change-me \
-DEVICE_TOKEN_PEPPER=dev-device-token-pepper-change-me \
-PORT=8082 go run ./cmd/telemetry-ingest
-```
+Start with the one-command bootstrap:
 
-Example request:
-```bash
-curl -X POST http://localhost:8082/v1/telemetry \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer dev-device-token' \
-  --data @examples/telemetry.json
-```
-
-Telemetry timestamps must be RFC 3339 values with a timezone or offset. Device tokens are opaque Bearer tokens bound to agency, device, and vehicle. The development seed creates `device-1` bound to `bus-1` with token `dev-device-token`; rebinding is admin-managed through `POST /admin/devices/rebind` and immediately invalidates the old token/binding.
-
-Admin debug endpoint:
-```bash
-curl -H "Authorization: Bearer $ADMIN_TOKEN" \
-  'http://localhost:8082/v1/events?agency_id=demo-agency&limit=25'
-```
-
-`/v1/events` and `/admin/debug/telemetry/events` require admin auth and derive agency scope from the token.
-
-### feed-vehicle-positions
-```bash
-PORT=8083 go run ./cmd/feed-vehicle-positions
-```
-
-Current endpoints:
-- `GET /healthz`
-- `GET /readyz`
-- `GET /public/gtfsrt/vehicle_positions.pb`
-- `GET /public/gtfsrt/vehicle_positions.json`
-- `GET /admin/debug/gtfsrt/vehicle_positions.json`
-
-`feed-vehicle-positions` requires `DATABASE_URL`, `AGENCY_ID`, and admin auth config. The protobuf endpoint is public; JSON debug paths require admin auth and use the same underlying debug representation.
-
-### gtfs-studio
-```bash
-DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" PORT=8086 go run ./cmd/gtfs-studio
-```
-
-Current endpoints:
-- `GET /healthz`
-- `GET /readyz`
-- `GET /admin/gtfs-studio?agency_id=demo-agency`
-
-GTFS Studio is a minimal server-rendered admin surface for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies. Draft edits are stored separately from published GTFS rows. It uses admin auth and CSRF validation for cookie-authenticated unsafe methods.
-
-### feed-trip-updates
-```bash
-DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" AGENCY_ID=demo-agency FEED_BASE_URL=http://localhost:8083/public PORT=8084 go run ./cmd/feed-trip-updates
-```
-
-Current endpoints:
-- `GET /healthz`
-- `GET /readyz`
-- `GET /public/gtfsrt/trip_updates.pb`
-- `GET /public/gtfsrt/trip_updates.json`
-- `GET /admin/debug/gtfsrt/trip_updates.json`
-
-Trip Updates default to the deterministic prediction adapter. The protobuf endpoint is public; JSON debug paths require admin auth and expose diagnostics/traceability from one shared debug builder.
-
-### feed-alerts
-```bash
-DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" AGENCY_ID=demo-agency PORT=8085 go run ./cmd/feed-alerts
-```
-
-Current endpoints:
-- `GET /healthz`
-- `GET /readyz`
-- `GET /public/gtfsrt/alerts.pb`
-- `GET /public/gtfsrt/alerts.json`
-- `GET /admin/debug/gtfsrt/alerts.json`
-- `GET/POST /admin/alerts`
-- `POST /admin/alerts/{id}/publish`
-- `POST /admin/alerts/{id}/archive`
-- `POST /admin/alerts/reconcile-cancellations`
-
-Alerts publish persisted Service Alerts. The protobuf endpoint is public; JSON debug and admin mutation routes require admin auth. Actor and agency come from the authenticated context.
-
-## Local development
-
-Copy local defaults if needed:
 ```bash
 cp .env.example .env
-```
-
-Bring up Postgres/PostGIS and apply migrations:
-```bash
-make db-up
-make migrate-up
-```
-
-One-command bootstrap:
-```bash
 make dev
 ```
 
-Task is optional. The Makefile remains independently usable when `task` is not installed.
+Install and check pinned validators:
 
 ```bash
-make build
-make test
 make validators-install
 make validators-check
 ```
 
-Useful local commands:
+Run the executable agency demo flow:
+
 ```bash
-make migrate-status
-make test-integration
-make smoke
-make validate
+make demo-agency-flow
 ```
 
-`make test-integration` runs DB-backed telemetry tests. The tests prefer creating an isolated temporary database from `TEST_DATABASE_URL`; if that is not permitted, they fall back to an isolated temporary schema in the configured test database.
+The demo imports `testdata/gtfs/valid-small`, starts local services, publishes metadata, ingests token-authenticated telemetry, fetches `schedule.zip`, `feeds.json`, and the realtime protobuf feeds, verifies protected debug/admin access including GTFS Studio, runs validation, and reads the scorecard plus consumer-ingestion records.
 
-`make validators-install` installs the repo-pinned MobilityData static GTFS validator JAR and the Docker-backed GTFS-RT validator wrapper. `make validators-check`, `make validate`, and `make smoke` distinguish missing pinned tooling from checksum/digest/path misconfiguration. Use `VALIDATOR_TOOLING_MODE=stub` only for deterministic validator stubs in targeted tests.
+For the full step-by-step path, see [Local Quickstart](docs/tutorials/local-quickstart.md) and [Agency Demo Flow](docs/tutorials/agency-demo-flow.md).
 
-`make smoke` runs hardening HTTP/runtime smoke coverage, including validation handler success paths, unauthenticated admin/debug rejection, and telemetry token checks. `make validate` verifies required hardening, pinned validator, migration, and fixture paths exist.
+## Running Services Manually
 
-Production deployment notes:
-- Set `APP_ENV=production`; services fail fast without `DATABASE_URL`, admin JWT config, `CSRF_SECRET`, and `DEVICE_TOKEN_PEPPER`.
-- `BIND_ADDR` defaults to `127.0.0.1`. Use `BIND_ADDR=0.0.0.0` only behind a TLS-terminating reverse proxy.
-- Public feed URLs should be served over HTTPS by the proxy/domain layer.
-- Do not expose `.json` debug paths without admin auth; this repo protects them by default.
+The local defaults use Postgres on host port `55432`.
 
-## Recommended next build order
+```bash
+make db-up
+make migrate-up
+make seed
+```
 
-1. update tutorials and demo docs to match the Phase 9 validator/auth/device-token workflow
-2. document deployment reverse-proxy controls for public feeds, protected admin/debug routes, and internal `/metrics`
-3. add stronger feed SLO dashboards and alerting beyond the basic metrics endpoint
+Run services in separate terminals:
+
+```bash
+make run-agency-config          # http://localhost:8081
+make run-telemetry-ingest       # http://localhost:8082
+make run-feed-vehicle-positions # http://localhost:8083
+make run-feed-trip-updates      # http://localhost:8084
+make run-feed-alerts            # http://localhost:8085
+make run-gtfs-studio            # http://localhost:8086
+```
+
+Task is optional:
+
+```bash
+task dev
+task demo:agency
+```
+
+The Makefile remains the supported fallback when Task is not installed.
+
+## Deployment Path
+
+The current Docker Compose file provisions Postgres/PostGIS only. The Go services are run as application processes using the same binaries and environment variables documented in `.env.example`.
+
+For a small agency pilot:
+- run Postgres/PostGIS from Compose or a managed database
+- run migrations with `go run ./cmd/migrate up`
+- run each Go service under a process manager or container image owned by the deployment
+- put a TLS-terminating reverse proxy in front of public feed paths
+- keep admin/debug routes behind auth and network controls
+- install pinned validators with `make validators-install validators-check` or bake equivalent pinned artifacts into the runtime image
+- set real production secrets and `APP_ENV=production`
+
+See [Deploy With Docker Compose](docs/tutorials/deploy-with-docker-compose.md) and [Production Checklist](docs/tutorials/production-checklist.md).
+
+## Validation And Readiness
+
+Repo-supported validator setup:
+
+```bash
+make validators-install
+make validators-check
+make validate
+make smoke
+make test
+```
+
+Pinned tooling:
+- MobilityData GTFS Validator `v7.1.0`, checksum-verified into `.cache/validators/`
+- Docker-backed GTFS-RT validator wrapper pinned by image digest in `tools/validators/validators.lock.json`
+
+Admin validation requests are server-side allowlisted. `/admin/validation/run` accepts only:
+
+```json
+{
+  "validator_id": "static-mobilitydata",
+  "feed_type": "schedule"
+}
+```
+
+or:
+
+```json
+{
+  "validator_id": "realtime-mobilitydata",
+  "feed_type": "vehicle_positions"
+}
+```
+
+Valid `feed_type` values are `schedule`, `vehicle_positions`, `trip_updates`, and `alerts` where supported by the selected validator.
+
+## Current Limitations
+
+Do not overstate the current repo:
+- No hosted login/SSO UI.
+- No packaged production app containers or Kubernetes manifests.
+- No full SLO dashboard or alerting stack beyond request logs, request IDs, readiness checks, and optional `/metrics`.
+- No server-side admin JWT `jti` replay tracking.
+- No external predictor integration such as TheTransitClock.
+- Trip Updates are conservative schedule-deviation predictions, not learned production-grade ETA quality.
+- Consumer-ingestion records exist, but the app does not submit feeds to Google Maps, Apple Maps, Transit App, or other consumers.
+- The repo supports deployment toward CAL-ITP/Caltrans-style readiness; it does not prove full compliance or consumer acceptance by itself.
+
+## Support The Project
+
+If this project is useful, star the repository, try the demo flow, and open focused issues with exact commands, logs, and expected behavior. The most valuable feedback is practical: deployment blockers, validator failures, confusing docs, or small-agency workflows that the current backend does not yet handle.
+
+Please keep feature requests inside the product boundary: GTFS import/Studio, telemetry ingest, deterministic matching, GTFS-RT feeds, Alerts, validation, monitoring, and admin/operator workflows.

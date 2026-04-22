@@ -29,9 +29,19 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 ## Phase 7 — Prediction Quality And Operations
 
 - Complete for the first conservative operations scope. The deterministic Trip Updates adapter, override lifecycle repository, audit logging, prediction review queue, cancellation linkage signal, deadhead/layover suppression, disruption withholds, and coverage metrics are implemented.
-- Remaining later work: production-grade ETA quality, backtesting, full operator UI, canonical realtime validation, public Alerts authoring/persistence, vehicle swap UI/workflow, and richer detour/short-turn prediction behavior.
+- Remaining later work: production-grade ETA quality, backtesting, full operator UI, vehicle swap UI/workflow, and richer detour/short-turn prediction behavior.
 
 ## Phase 8 — Compliance And Consumer Workflow
 
 - Complete for the first publication/compliance layer. Persisted Alerts, public Alerts feeds, canceled-trip alert reconciliation, public schedule ZIP publication, public feed metadata, license/contact workflows, consumer ingestion records, marketplace-gap records, validator report execution/recording, and compliance scorecard snapshots are implemented.
-- Remaining later work: pin canonical validator distributions in local/CI/prod, production auth/roles for admin endpoints, richer operator UI, production observability/SLO rollups, and service-packaging documentation beyond software workflow metadata.
+- Remaining later work: richer operator UI, production observability/SLO rollups, deployment-specific validator evidence, and external consumer acceptance evidence.
+
+## Phase 9 — Production Closure
+
+- Complete for the current codebase surface. Validator execution hardening, pinned validator install/check workflow, admin JWT/cookie auth, DB-backed roles, device token binding/rebinding, assignment current-row race protection, request IDs/logging, metrics gating, readiness checks, and smoke coverage are implemented.
+- Remaining later work: hosted login/SSO, server-side admin JWT `jti` replay tracking, production SLO dashboards, and deployment-specific monitoring/alerting assets.
+
+## Phase 10 — Docs, Tutorials, Deployment, And Demo
+
+- Complete for the current codebase surface. README, local/deployment/demo/checklist tutorials, executable agency demo flow, docs assets, bootstrap output polish, and truthful CAL-ITP/Caltrans-aligned wording are implemented.
+- Remaining later work: Phase 11 compliance evidence packaging, optional external predictor review/integration, and deployment-specific proof for any stronger readiness or consumer-ingestion claims.

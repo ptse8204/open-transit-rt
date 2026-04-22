@@ -42,6 +42,10 @@ tasks:
     cmds:
       - ./scripts/bootstrap-dev.sh
 
+  demo:agency:
+    cmds:
+      - ./scripts/demo-agency-flow.sh
+
   build:
     cmds:
       - go build ./...
