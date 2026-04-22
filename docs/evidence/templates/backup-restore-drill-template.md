@@ -9,7 +9,16 @@
 - Backup schedule:
 - Retention policy:
 - Storage location:
+- Access boundary:
 - Last successful backup timestamp (UTC):
+
+## Restore Procedure
+
+- Isolation steps/commands:
+- Database restore steps/commands:
+- Feed-serving verification steps/commands:
+- Post-restore validator steps/commands:
+- Command transcript location:
 
 ## Restore Drill
 
@@ -30,3 +39,4 @@
 - Feed outage runbook link:
 - Validator failure runbook link:
 - Escalation path:
+- Rollback criteria:

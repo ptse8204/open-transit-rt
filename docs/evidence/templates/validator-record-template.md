@@ -16,18 +16,24 @@
 
 ### Vehicle Positions
 - Validator ID/version:
+- Feed URL/artifact:
+- Feed generated/header timestamp or revision:
 - Run timestamp (UTC):
 - Result summary:
 - Full output location:
 
 ### Trip Updates
 - Validator ID/version:
+- Feed URL/artifact:
+- Feed generated/header timestamp or revision:
 - Run timestamp (UTC):
 - Result summary:
 - Full output location:
 
 ### Alerts
 - Validator ID/version:
+- Feed URL/artifact:
+- Feed generated/header timestamp or revision:
 - Run timestamp (UTC):
 - Result summary:
 - Full output location:
