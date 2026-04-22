@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -195,6 +196,67 @@ func TestPublicScheduleRemainsAnonymous(t *testing.T) {
 	}
 }
 
+func TestAgencyConfigReadyzRequiresDBActiveFeedAndPublicationMetadata(t *testing.T) {
+	cases := []struct {
+		name     string
+		pinger   fakePinger
+		schedule fakeScheduleBuilder
+		store    *fakePublicationStore
+		want     int
+	}{
+		{
+			name:   "database unavailable",
+			pinger: fakePinger{err: errors.New("down")},
+			store:  &fakePublicationStore{discovery: readyDiscovery()},
+			want:   http.StatusServiceUnavailable,
+		},
+		{
+			name:     "active schedule feed missing",
+			schedule: fakeScheduleBuilder{readyErr: errors.New("no active feed")},
+			store:    &fakePublicationStore{discovery: readyDiscovery()},
+			want:     http.StatusServiceUnavailable,
+		},
+		{
+			name:  "publication config missing",
+			store: &fakePublicationStore{discoveryErr: errors.New("no feed_config")},
+			want:  http.StatusServiceUnavailable,
+		},
+		{
+			name:  "published feed metadata incomplete",
+			store: &fakePublicationStore{discovery: compliance.FeedDiscovery{Readiness: compliance.Readiness{AllRequiredFeedsListed: false}}},
+			want:  http.StatusServiceUnavailable,
+		},
+		{
+			name:  "ready",
+			store: &fakePublicationStore{discovery: readyDiscovery()},
+			want:  http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.store == nil {
+				tc.store = &fakePublicationStore{discovery: readyDiscovery()}
+			}
+			handler := newHandlerWithRealtime(
+				"demo-agency",
+				tc.schedule,
+				tc.store,
+				fakeDeviceStore{},
+				tc.pinger,
+				auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}},
+				&fakeRealtimeArtifacts{},
+			)
+			req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != tc.want {
+				t.Fatalf("status = %d, want %d: %s", rr.Code, tc.want, rr.Body.String())
+			}
+		})
+	}
+}
+
 func writeRealtimeValidator(t *testing.T) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "gtfs-rt-validator.sh")
@@ -241,6 +303,11 @@ printf '%s' '{"status":"passed","error_count":0,"warning_count":0,"info_count":1
 type fakeScheduleBuilder struct {
 	snapshot schedule.Snapshot
 	err      error
+	readyErr error
+}
+
+func (f fakeScheduleBuilder) Ready(context.Context) error {
+	return f.readyErr
 }
 
 func (f fakeScheduleBuilder) Snapshot(context.Context, time.Time) (schedule.Snapshot, error) {
@@ -262,7 +329,9 @@ func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersi
 }
 
 type fakePublicationStore struct {
-	result compliance.ValidationResult
+	result       compliance.ValidationResult
+	discovery    compliance.FeedDiscovery
+	discoveryErr error
 }
 
 func (f *fakePublicationStore) BootstrapPublication(context.Context, compliance.BootstrapInput) error {
@@ -270,7 +339,10 @@ func (f *fakePublicationStore) BootstrapPublication(context.Context, compliance.
 }
 
 func (f *fakePublicationStore) FeedDiscovery(context.Context, string, time.Time) (compliance.FeedDiscovery, error) {
-	return compliance.FeedDiscovery{}, nil
+	if f.discoveryErr != nil {
+		return compliance.FeedDiscovery{}, f.discoveryErr
+	}
+	return f.discovery, nil
 }
 
 func (f *fakePublicationStore) UpsertConsumer(context.Context, compliance.ConsumerInput) (compliance.ConsumerRecord, error) {
@@ -320,10 +392,16 @@ func (fakeDeviceStore) Rebind(context.Context, devices.RebindInput) (devices.Reb
 	return devices.RebindResult{}, nil
 }
 
-type fakePinger struct{}
+func readyDiscovery() compliance.FeedDiscovery {
+	return compliance.FeedDiscovery{Readiness: compliance.Readiness{AllRequiredFeedsListed: true}}
+}
 
-func (fakePinger) Ping(context.Context) error {
-	return nil
+type fakePinger struct {
+	err error
+}
+
+func (f fakePinger) Ping(context.Context) error {
+	return f.err
 }
 
 type authRejectAll struct{}

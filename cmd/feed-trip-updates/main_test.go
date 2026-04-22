@@ -164,6 +164,13 @@ func TestTripUpdatesReadyz(t *testing.T) {
 		t.Fatalf("status = %d, want 503", rr.Code)
 	}
 
+	handler = newHandler(&fakeTripUpdatesBuilder{readyErr: errors.New("missing active feed")}, okPinger{})
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want 503", rr.Code)
+	}
+
 	handler = newHandler(&fakeTripUpdatesBuilder{}, okPinger{})
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -175,6 +182,11 @@ func TestTripUpdatesReadyz(t *testing.T) {
 type fakeTripUpdatesBuilder struct {
 	snapshot tripupdates.Snapshot
 	err      error
+	readyErr error
+}
+
+func (f *fakeTripUpdatesBuilder) Ready(context.Context) error {
+	return f.readyErr
 }
 
 func (f *fakeTripUpdatesBuilder) Snapshot(context.Context, time.Time) (tripupdates.Snapshot, error) {

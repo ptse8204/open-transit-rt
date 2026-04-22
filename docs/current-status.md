@@ -464,6 +464,7 @@ Phase 9 implementation results:
 - made realtime validation prefer internal builder-derived protobuf bytes and use configured feed URLs only as fallback.
 - added repo-supported validator install/check targets and lock file for pinned static GTFS and GTFS-RT validator tooling.
 - added structured request logs, request IDs, redaction rules, and `/metrics` only when `METRICS_ENABLED=true`.
+- tightened `/readyz` for `agency-config`, Trip Updates, and Alerts so DB reachability alone is not enough: agency-config also requires an active schedule feed plus complete published feed metadata, and realtime feed services require an active GTFS feed.
 - strengthened DB-backed device rebind tests for spoof rejection and immediate old-token invalidation.
 - strengthened assignment current-row race tests with a partial-index assertion and higher concurrency.
 

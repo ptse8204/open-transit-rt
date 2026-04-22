@@ -27,6 +27,7 @@ type pinger interface {
 }
 
 type snapshotBuilder interface {
+	Ready(ctx context.Context) error
 	Snapshot(ctx context.Context, generatedAt time.Time) (tripupdates.Snapshot, error)
 }
 
@@ -193,6 +194,14 @@ func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) 
 				"service": "feed-trip-updates",
 				"status":  "unavailable",
 				"error":   "database unavailable",
+			})
+			return
+		}
+		if err := builder.Ready(ctx); err != nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+				"service": "feed-trip-updates",
+				"status":  "unavailable",
+				"error":   "active feed unavailable",
 			})
 			return
 		}

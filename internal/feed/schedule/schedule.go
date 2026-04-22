@@ -82,6 +82,13 @@ func (b *Builder) SnapshotForFeedVersion(ctx context.Context, feedVersionID stri
 	}, nil
 }
 
+func (b *Builder) Ready(ctx context.Context) error {
+	if _, err := b.activeFeed(ctx); err != nil {
+		return fmt.Errorf("active schedule feed unavailable: %w", err)
+	}
+	return nil
+}
+
 type activeFeed struct {
 	ID           string
 	RevisionTime time.Time

@@ -17,7 +17,7 @@ Phase 9 — Production Closure is complete for the current codebase surface. Con
 - Phase 6 Trip Updates and Alerts architecture is implemented and complete.
 - Phase 7 prediction quality and operations workflows are implemented and complete.
 - Phase 8 publication/compliance workflow is implemented and complete for the first production-directed layer.
-- Phase 9 production closure is implemented for validator execution, validator tooling pins, admin auth/roles, device auth/binding, assignment current-row races, safer config defaults, debug endpoint protection, request logging/request IDs, metrics toggle, and smoke coverage.
+- Phase 9 production closure is implemented for validator execution, validator tooling pins, admin auth/roles, device auth/binding, assignment current-row races, safer config defaults, debug endpoint protection, request logging/request IDs, metrics toggle, stronger feed-service readiness, and smoke coverage.
 
 ## Read These Files First
 
@@ -93,6 +93,7 @@ task test:integration
 - Validator runs are allowlisted by `validator_id`; admin requests may provide only `validator_id`, `feed_type`, and optional `feed_version_id`.
 - Validator execution uses server-owned local artifacts/temp files, argv-based `exec.CommandContext`, timeout/output/report caps, output confinement, and redacted argv/path reporting.
 - Realtime validation prefers internal builder-derived Vehicle Positions, Trip Updates, and Alerts protobuf bytes; configured feed URLs are fallback only when an internal builder cannot be constructed.
+- `/readyz` for `agency-config`, Trip Updates, and Alerts requires DB reachability plus the required active feed/config dependencies; DB ping alone is intentionally insufficient.
 - Pinned validator tooling lives in `tools/validators/validators.lock.json`; `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests only.
 - Admin JWTs require `sub`, `agency_id`, `iat`, `exp`, `iss`, and `aud`; default TTL is 8h, clock skew allowance is 2m, `ADMIN_JWT_OLD_SECRETS` supports secret rotation, and `jti` replay tracking is deferred.
 - Cookie auth is only for browser-admin flows; Bearer auth remains the default for machine/API admin calls.

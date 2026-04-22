@@ -39,6 +39,7 @@ type pinger interface {
 }
 
 type scheduleBuilder interface {
+	Ready(ctx context.Context) error
 	Snapshot(ctx context.Context, generatedAt time.Time) (schedule.Snapshot, error)
 	SnapshotForFeedVersion(ctx context.Context, feedVersionID string, generatedAt time.Time) (schedule.Snapshot, error)
 }
@@ -137,6 +138,19 @@ func (h *handler) readyz(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	if err := h.ready.Ping(ctx); err != nil {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"service": "agency-config", "status": "unavailable", "error": "database unavailable"})
+		return
+	}
+	if err := h.schedule.Ready(ctx); err != nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"service": "agency-config", "status": "unavailable", "error": "active schedule feed unavailable"})
+		return
+	}
+	discovery, err := h.store.FeedDiscovery(ctx, h.agencyID, time.Now().UTC().Truncate(time.Second))
+	if err != nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"service": "agency-config", "status": "unavailable", "error": "publication config unavailable"})
+		return
+	}
+	if !discovery.Readiness.AllRequiredFeedsListed {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"service": "agency-config", "status": "unavailable", "error": "published feed metadata incomplete"})
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"service": "agency-config", "status": "ready"})

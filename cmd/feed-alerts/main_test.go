@@ -13,6 +13,7 @@ import (
 	domainalerts "open-transit-rt/internal/alerts"
 	"open-transit-rt/internal/auth"
 	feedalerts "open-transit-rt/internal/feed/alerts"
+	"open-transit-rt/internal/gtfs"
 
 	gtfsrt "github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
 	"google.golang.org/protobuf/proto"
@@ -114,6 +115,30 @@ func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 	if rr.Code != http.StatusServiceUnavailable {
 		t.Fatalf("status = %d, want 503", rr.Code)
 	}
+
+	handler = newHandlerWithReadiness("demo-agency", fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, fakeActiveFeed{err: errors.New("missing active feed")}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}})
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want 503", rr.Code)
+	}
+
+	handler = newHandlerWithReadiness("demo-agency", fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, fakeActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}})
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rr.Code)
+	}
 }
 
 type fakeAlertsBuilder struct {
@@ -163,6 +188,17 @@ type errPinger struct {
 
 func (e errPinger) Ping(context.Context) error {
 	return e.err
+}
+
+type fakeActiveFeed struct {
+	err error
+}
+
+func (f fakeActiveFeed) ActiveFeedVersion(_ context.Context, agencyID string) (gtfs.FeedVersion, error) {
+	if f.err != nil {
+		return gtfs.FeedVersion{}, f.err
+	}
+	return gtfs.FeedVersion{ID: "feed-demo", AgencyID: agencyID}, nil
 }
 
 type authRejectAll struct{}

@@ -165,6 +165,13 @@ func (b *Builder) Snapshot(ctx context.Context, generatedAt time.Time) (Snapshot
 	return snapshot, nil
 }
 
+func (b *Builder) Ready(ctx context.Context) error {
+	if _, err := b.schedules.ActiveFeedVersion(ctx, b.config.AgencyID); err != nil {
+		return fmt.Errorf("active feed version unavailable: %w", err)
+	}
+	return nil
+}
+
 func (b *Builder) persistDiagnostics(ctx context.Context, snapshot *Snapshot) {
 	record := prediction.DiagnosticsRecord{
 		AgencyID:            snapshot.AgencyID,

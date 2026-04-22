@@ -19,6 +19,7 @@ Phase 9 — Production Closure
 - Validator execution remains allowlisted, argv-based, timeout-bounded, stdout/stderr/report-capped, temp-directory confined, and redacted in stored argv/path reporting.
 - Added repo-supported pinned validator tooling with `tools/validators/validators.lock.json`, `make validators-install`, `make validators-check`, and Task equivalents.
 - Added structured request logs, `X-Request-ID`, secret/query redaction rules, and `/metrics` only when `METRICS_ENABLED=true`.
+- Tightened `/readyz` for `agency-config`, Trip Updates, and Alerts so readiness requires DB reachability plus required active feed/config dependencies instead of DB ping alone.
 - Strengthened telemetry device-token closure tests for spoof rejection, rebinding, immediate old-token invalidation, new-token verification, and audit logging.
 - Strengthened assignment race coverage with a partial unique-index assertion and higher-concurrency current-row writes.
 
@@ -38,6 +39,7 @@ Phase 9 — Production Closure
 - `ValidationRunInput` records `RealtimeArtifactSource` internally so stored reports can distinguish internal builder artifacts from feed-URL fallback.
 - `X-Request-ID` is returned on HTTP responses from services run through `internal/server`.
 - `/metrics` is registered only when `METRICS_ENABLED=true`.
+- `schedule.Builder` and Trip Updates builder now expose explicit readiness checks for their active feed dependency; Alerts readiness checks active feed through the GTFS repository at the service boundary.
 
 ## Dependency Changes
 
@@ -62,6 +64,7 @@ Phase 9 — Production Closure
 - Added DB-backed device rebind tests proving spoofed bindings fail, old tokens stop working immediately, new tokens work, and audit rows are written.
 - Strengthened DB-backed assignment concurrency tests and partial-index assertions.
 - Added server middleware tests for request IDs, redacted query logging behavior, and `/metrics` gating.
+- Added readiness tests proving DB-unavailable, missing active feed/config dependency, and satisfied-dependency outcomes for `agency-config`, Trip Updates, and Alerts.
 
 ## Checks Run And Blocked Checks
 

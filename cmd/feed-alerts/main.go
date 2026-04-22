@@ -14,6 +14,7 @@ import (
 	"open-transit-rt/internal/auth"
 	appdb "open-transit-rt/internal/db"
 	feedalerts "open-transit-rt/internal/feed/alerts"
+	"open-transit-rt/internal/gtfs"
 	"open-transit-rt/internal/server"
 )
 
@@ -23,6 +24,10 @@ type pinger interface {
 
 type snapshotBuilder interface {
 	Snapshot(ctx context.Context, generatedAt time.Time) (feedalerts.Snapshot, error)
+}
+
+type activeFeedChecker interface {
+	ActiveFeedVersion(ctx context.Context, agencyID string) (gtfs.FeedVersion, error)
 }
 
 type alertStore interface {
@@ -35,10 +40,12 @@ type adminAuth interface {
 }
 
 type handler struct {
-	builder snapshotBuilder
-	alerts  alertStore
-	ready   pinger
-	admin   adminAuth
+	agencyID   string
+	builder    snapshotBuilder
+	alerts     alertStore
+	ready      pinger
+	activeFeed activeFeedChecker
+	admin      adminAuth
 }
 
 func main() {
@@ -62,7 +69,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := server.Run("feed-alerts", newHandlerWithAuth(builder, alertRepo, pool, adminAuth)); err != nil {
+	if err := server.Run("feed-alerts", newHandlerWithReadiness(agencyID, builder, alertRepo, pool, gtfs.NewPostgresRepository(pool), adminAuth)); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -77,7 +84,11 @@ func newHandler(builder snapshotBuilder, alerts alertStore, ready pinger) http.H
 }
 
 func newHandlerWithAuth(builder snapshotBuilder, alerts alertStore, ready pinger, admin adminAuth) http.Handler {
-	h := &handler{builder: builder, alerts: alerts, ready: ready, admin: admin}
+	return newHandlerWithReadiness("demo-agency", builder, alerts, ready, readyActiveFeed{}, admin)
+}
+
+func newHandlerWithReadiness(agencyID string, builder snapshotBuilder, alerts alertStore, ready pinger, activeFeed activeFeedChecker, admin adminAuth) http.Handler {
+	h := &handler{agencyID: agencyID, builder: builder, alerts: alerts, ready: ready, activeFeed: activeFeed, admin: admin}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
@@ -90,6 +101,12 @@ func newHandlerWithAuth(builder snapshotBuilder, alerts alertStore, ready pinger
 	return mux
 }
 
+type readyActiveFeed struct{}
+
+func (readyActiveFeed) ActiveFeedVersion(_ context.Context, agencyID string) (gtfs.FeedVersion, error) {
+	return gtfs.FeedVersion{ID: "test-active-feed", AgencyID: agencyID}, nil
+}
+
 func (h *handler) healthz(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"service": "feed-alerts", "status": "ok"})
 }
@@ -99,6 +116,10 @@ func (h *handler) readyz(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	if err := h.ready.Ping(ctx); err != nil {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"service": "feed-alerts", "status": "unavailable", "error": "database unavailable"})
+		return
+	}
+	if _, err := h.activeFeed.ActiveFeedVersion(ctx, h.agencyID); err != nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"service": "feed-alerts", "status": "unavailable", "error": "active feed unavailable"})
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"service": "feed-alerts", "status": "ready"})
