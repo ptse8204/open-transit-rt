@@ -283,6 +283,39 @@ func (r *PostgresRepository) BuildAndStoreScorecard(ctx context.Context, agencyI
 	return scorecard, nil
 }
 
+func (r *PostgresRepository) LatestScorecard(ctx context.Context, agencyID string) (Scorecard, error) {
+	var scorecard Scorecard
+	var detailsBytes []byte
+	err := r.pool.QueryRow(ctx, `
+		SELECT agency_id, snapshot_at, publication_environment, overall_status, schedule_status,
+		       vehicle_positions_status, trip_updates_status, alerts_status, validation_status,
+		       discoverability_status, consumer_ingestion_status, details_json
+		FROM compliance_scorecard_snapshot
+		WHERE agency_id = $1
+		ORDER BY snapshot_at DESC, id DESC
+		LIMIT 1
+	`, agencyID).Scan(
+		&scorecard.AgencyID,
+		&scorecard.SnapshotAt,
+		&scorecard.PublicationEnvironment,
+		&scorecard.OverallStatus,
+		&scorecard.ScheduleStatus,
+		&scorecard.VehiclePositionsStatus,
+		&scorecard.TripUpdatesStatus,
+		&scorecard.AlertsStatus,
+		&scorecard.ValidationStatus,
+		&scorecard.DiscoverabilityStatus,
+		&scorecard.ConsumerIngestionStatus,
+		&detailsBytes,
+	)
+	if err != nil {
+		return Scorecard{}, fmt.Errorf("query latest scorecard: %w", err)
+	}
+	scorecard.Details = map[string]any{}
+	_ = json.Unmarshal(detailsBytes, &scorecard.Details)
+	return scorecard, nil
+}
+
 func (r *PostgresRepository) StoreValidationResult(ctx context.Context, result ValidationResult) error {
 	report, err := json.Marshal(result.Report)
 	if err != nil {

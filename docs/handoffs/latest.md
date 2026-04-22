@@ -4,7 +4,7 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 8 — Compliance and consumer workflow is complete. No Phase 9 is defined in `docs/phase-plan.md`.
+Post-Phase-8 hardening slice is complete for the first pilot-readiness pass. No Phase 9 is defined in `docs/phase-plan.md`.
 
 ## Phase Status
 
@@ -17,6 +17,7 @@ Phase 8 — Compliance and consumer workflow is complete. No Phase 9 is defined 
 - Phase 6 Trip Updates and Alerts architecture is implemented and complete.
 - Phase 7 prediction quality and operations workflows are implemented and complete.
 - Phase 8 publication/compliance workflow is implemented and complete for the first production-directed layer.
+- Post-Phase-8 production hardening is implemented for validator execution, admin auth/roles, device auth/binding, assignment current-row races, safer config defaults, debug endpoint protection, and smoke coverage.
 
 ## Read These Files First
 
@@ -33,7 +34,7 @@ Phase 8 — Compliance and consumer workflow is complete. No Phase 9 is defined 
 
 ## Current Objective
 
-Begin a focused post-Phase-8 hardening slice. Preserve stable feed URLs, public schedule ZIP behavior, persisted Alerts, Phase 7 prediction boundaries, Vehicle Positions behavior, GTFS import, and GTFS Studio draft/publish behavior.
+Continue from the completed hardening slice. Preserve stable public protobuf feed URLs, protected JSON debug routes, auth-scoped admin mutations, device-token telemetry ingest, Phase 7 prediction boundaries, GTFS import, and GTFS Studio draft/publish behavior.
 
 ## Exact First Commands
 
@@ -42,6 +43,7 @@ command -v go
 go version
 make fmt
 make test
+make smoke
 docker compose -f deploy/docker-compose.yml config
 make db-up
 make migrate-status
@@ -53,6 +55,7 @@ If Task is installed, optional equivalents may be run:
 ```bash
 task fmt
 task test
+task smoke
 task migrate:status
 task test:integration
 ```
@@ -61,8 +64,8 @@ task test:integration
 
 - Task is optional and may not be installed; Makefile remains independently usable.
 - Docker must be running before DB-backed checks.
-- Canonical validator command adapters exist, but exact validator distributions are not pinned or installed by repo automation.
-- Production admin auth and role enforcement are not implemented.
+- Exact GTFS Realtime validator distribution digest is documented as required but still must be pinned/installed in CI and production automation.
+- Full hosted login/SSO and server-side `jti` replay tracking are deferred; the current auth contract accepts HS256 admin JWTs plus optional browser cookie sessions.
 - Consumer ingestion workflow records exist, but external consumer submission APIs are not integrated.
 
 ## First Files Likely To Edit
@@ -71,8 +74,10 @@ task test:integration
 - `Makefile`
 - `internal/compliance/`
 - `cmd/agency-config/`
+- `internal/auth/`
+- `internal/devices/`
 - deployment/CI docs or scripts for validator installation
-- auth/admin docs if production auth is the next slice
+- metrics/observability docs if production operations is the next slice
 
 ## Phase 8 Notes For Future Work
 
@@ -84,7 +89,12 @@ task test:integration
 - `feed_config.publication_environment = 'production'` makes missing canonical validator execution red in scorecards. In `dev`, missing validators are yellow/not-run.
 - Alerts authoring/persistence is owned by `internal/alerts`; GTFS-RT protobuf rendering is owned by `internal/feed/alerts`.
 - Prediction packages must not import Alerts packages. Canceled-trip missing-alert review signals are satisfied by the Alerts-owned reconciler.
-- Validator adapters parse structured JSON reports from stdout, stderr, or output files, store normalized `validation_report` rows with error/warning/info counts, and record missing validator configuration as `status='not_run'`.
+- Validator runs are allowlisted by `validator_id`; admin requests cannot provide commands, input paths, argv, URLs, or output directories.
+- Validator execution uses generated local artifacts/temp files whenever possible, argv-based `exec.CommandContext`, timeout/output/report caps, and output confinement.
+- Admin JWTs require `sub`, `agency_id`, `iat`, `exp`, `iss`, and `aud`; default TTL is 8h, clock skew allowance is 2m, `ADMIN_JWT_OLD_SECRETS` supports secret rotation, and `jti` replay tracking is deferred.
+- Cookie auth is only for browser-admin flows; Bearer auth remains the default for machine/API admin calls.
+- Telemetry ingest requires opaque device Bearer tokens. `POST /admin/devices/rebind` rotates token and binding immediately.
+- `/public/gtfs/schedule.zip` returns `ETag`, `Last-Modified`, and `X-Checksum-SHA256`, with `SCHEDULE_ZIP_MAX_BYTES` bounding payload size.
 
 ## Constraints To Preserve
 

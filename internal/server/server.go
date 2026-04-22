@@ -16,9 +16,13 @@ func Run(name string, handler http.Handler) error {
 	if port == "" {
 		port = "8080"
 	}
+	addr := os.Getenv("BIND_ADDR")
+	if addr == "" {
+		addr = "127.0.0.1"
+	}
 
 	srv := &http.Server{
-		Addr:              ":" + port,
+		Addr:              addr + ":" + port,
 		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}

@@ -2,10 +2,13 @@ package prediction
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -193,6 +196,8 @@ func (r *PostgresOperationsRepository) SavePredictionReviewItems(ctx context.Con
 		if item.StartTime != "" {
 			details["start_time"] = item.StartTime
 		}
+		dedupeKey := predictionReviewDedupeKey(item)
+		details["dedupe_key"] = dedupeKey
 		payload, err := json.Marshal(details)
 		if err != nil {
 			return fmt.Errorf("marshal prediction review details: %w", err)
@@ -206,15 +211,50 @@ func (r *PostgresOperationsRepository) SavePredictionReviewItems(ctx context.Con
 				vehicle_id,
 				trip_id,
 				status,
-				details_json
+				details_json,
+				dedupe_key,
+				last_seen_at,
+				occurrence_count
 			)
-			VALUES ($1, 'prediction_review', $2, $3, $4, $5, $6, $7::jsonb)
-		`, item.AgencyID, severity, nilIfEmpty(item.RouteID), nilIfEmpty(item.VehicleID), nilIfEmpty(item.TripID), status, string(payload))
+			VALUES ($1, 'prediction_review', $2, $3, $4, $5, $6, $7::jsonb, $8, $9, 1)
+			ON CONFLICT (agency_id, incident_type, dedupe_key)
+			WHERE incident_type = 'prediction_review'
+			  AND dedupe_key IS NOT NULL
+			  AND status IN ('open', 'acknowledged', 'deferred')
+			DO UPDATE
+			SET severity = EXCLUDED.severity,
+			    route_id = EXCLUDED.route_id,
+			    vehicle_id = EXCLUDED.vehicle_id,
+			    trip_id = EXCLUDED.trip_id,
+			    details_json = incident.details_json || EXCLUDED.details_json,
+			    last_seen_at = EXCLUDED.last_seen_at,
+			    occurrence_count = incident.occurrence_count + 1
+		`, item.AgencyID, severity, nilIfEmpty(item.RouteID), nilIfEmpty(item.VehicleID), nilIfEmpty(item.TripID), status, string(payload), dedupeKey, item.SnapshotAt.UTC())
 		if err != nil {
 			return fmt.Errorf("insert prediction review item: %w", err)
 		}
 	}
 	return nil
+}
+
+func predictionReviewDedupeKey(item ReviewItem) string {
+	parts := []string{
+		item.AgencyID,
+		item.Reason,
+		item.VehicleID,
+		item.RouteID,
+		item.TripID,
+		item.StartDate,
+		item.StartTime,
+	}
+	if feedVersionID, _ := item.Details["active_feed_version_id"].(string); feedVersionID != "" {
+		parts = append(parts, feedVersionID)
+	}
+	if telemetryEventID, ok := item.Details["telemetry_event_id"]; ok {
+		parts = append(parts, fmt.Sprint(telemetryEventID))
+	}
+	sum := sha256.Sum256([]byte(strings.Join(parts, "\x00")))
+	return "prediction_review:" + hex.EncodeToString(sum[:])
 }
 
 func (r *PostgresOperationsRepository) ListPredictionReviewItems(ctx context.Context, filter ReviewFilter) ([]ReviewItem, error) {

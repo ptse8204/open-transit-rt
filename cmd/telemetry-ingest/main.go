@@ -9,9 +9,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
+	"open-transit-rt/internal/auth"
 	appdb "open-transit-rt/internal/db"
+	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/server"
 	"open-transit-rt/internal/telemetry"
 )
@@ -31,6 +34,10 @@ type ingestResponse struct {
 	ReceivedAt   time.Time              `json:"received_at"`
 }
 
+type adminAuth interface {
+	Require(...auth.Role) func(http.Handler) http.Handler
+}
+
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -42,12 +49,29 @@ func main() {
 	defer pool.Close()
 
 	repo := telemetry.NewPostgresRepository(pool)
-	if err := server.Run("telemetry-ingest", newHandler(repo, pool)); err != nil {
+	adminAuth, err := auth.MiddlewareFromEnv(pool)
+	if err != nil {
+		log.Fatal(err)
+	}
+	deviceConfig, err := devices.ConfigFromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := server.Run("telemetry-ingest", newHandlerWithSecurity(repo, devices.NewPostgresStore(pool, deviceConfig), pool, adminAuth, true)); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func newHandler(repo telemetry.Repository, ready pinger) http.Handler {
+	return newHandlerWithSecurity(repo, acceptingDeviceStore{}, ready, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}}, false)
+}
+
+func newHandlerWithSecurity(repo telemetry.Repository, deviceStore devices.Store, ready pinger, admin adminAuth, requireDeviceToken bool) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -85,6 +109,22 @@ func newHandler(repo telemetry.Repository, ready pinger) http.Handler {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		if requireDeviceToken {
+			token := bearerToken(r)
+			if token == "" {
+				http.Error(w, "missing device token", http.StatusUnauthorized)
+				return
+			}
+			if _, err := deviceStore.Verify(r.Context(), devices.VerifyInput{
+				Token:     token,
+				AgencyID:  evt.AgencyID,
+				DeviceID:  evt.DeviceID,
+				VehicleID: evt.VehicleID,
+			}); err != nil {
+				http.Error(w, "invalid device token or binding", http.StatusUnauthorized)
+				return
+			}
+		}
 
 		result, err := repo.Store(r.Context(), evt, payload)
 		if errors.Is(err, telemetry.ErrUnknownAgency) {
@@ -110,14 +150,13 @@ func newHandler(repo telemetry.Repository, ready pinger) http.Handler {
 		})
 	})
 
-	mux.HandleFunc("/v1/events", func(w http.ResponseWriter, r *http.Request) {
+	eventsHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		agencyID := r.URL.Query().Get("agency_id")
-		if agencyID == "" {
-			http.Error(w, "agency_id is required", http.StatusBadRequest)
+		principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+		if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
 			return
 		}
 		limit, err := parseRequiredLimit(r.URL.Query().Get("limit"))
@@ -126,15 +165,28 @@ func newHandler(repo telemetry.Repository, ready pinger) http.Handler {
 			return
 		}
 
-		events, err := repo.ListEvents(r.Context(), agencyID, limit)
+		events, err := repo.ListEvents(r.Context(), principal.AgencyID, limit)
 		if err != nil {
 			http.Error(w, "list telemetry events", http.StatusInternalServerError)
 			return
 		}
 		writeJSON(w, http.StatusOK, events)
 	})
+	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/v1/events", adminRead(eventsHandler))
+	mux.Handle("/admin/debug/telemetry/events", adminRead(eventsHandler))
 
 	return mux
+}
+
+type acceptingDeviceStore struct{}
+
+func (acceptingDeviceStore) Verify(_ context.Context, input devices.VerifyInput) (devices.Credential, error) {
+	return devices.Credential{AgencyID: input.AgencyID, DeviceID: input.DeviceID, VehicleID: input.VehicleID, Status: "active"}, nil
+}
+
+func (acceptingDeviceStore) Rebind(context.Context, devices.RebindInput) (devices.RebindResult, error) {
+	return devices.RebindResult{}, nil
 }
 
 func decodeTelemetryPayload(w http.ResponseWriter, r *http.Request) (telemetry.Event, json.RawMessage, error) {
@@ -156,6 +208,14 @@ func decodeTelemetryPayload(w http.ResponseWriter, r *http.Request) (telemetry.E
 		return telemetry.Event{}, nil, fmt.Errorf("invalid telemetry payload")
 	}
 	return evt, append(json.RawMessage(nil), raw...), nil
+}
+
+func bearerToken(r *http.Request) string {
+	fields := strings.Fields(strings.TrimSpace(r.Header.Get("Authorization")))
+	if len(fields) == 2 && strings.EqualFold(fields[0], "Bearer") {
+		return fields[1]
+	}
+	return ""
 }
 
 func parseRequiredLimit(raw string) (int, error) {

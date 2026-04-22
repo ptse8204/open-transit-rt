@@ -11,6 +11,7 @@ import (
 	"time"
 
 	domainalerts "open-transit-rt/internal/alerts"
+	"open-transit-rt/internal/auth"
 	feedalerts "open-transit-rt/internal/feed/alerts"
 
 	gtfsrt "github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
@@ -87,6 +88,16 @@ func TestAlertsAdminCreateAndReconcile(t *testing.T) {
 	}
 }
 
+func TestAlertsAdminRejectsUnauthenticatedAccess(t *testing.T) {
+	handler := newHandlerWithAuth(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, authRejectAll{})
+	req := httptest.NewRequest(http.MethodPost, "/admin/alerts", bytes.NewReader([]byte(`{}`)))
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rr.Code)
+	}
+}
+
 func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 	handler := newHandler(fakeAlertsBuilder{snapshot: feedalerts.Snapshot{GeneratedAt: time.Now().UTC()}}, &fakeAlertStore{}, okPinger{})
 	req := httptest.NewRequest(http.MethodPost, "/public/gtfsrt/alerts.pb", nil)
@@ -152,4 +163,14 @@ type errPinger struct {
 
 func (e errPinger) Ping(context.Context) error {
 	return e.err
+}
+
+type authRejectAll struct{}
+
+func (authRejectAll) Require(...auth.Role) func(http.Handler) http.Handler {
+	return func(_ http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+		})
+	}
 }

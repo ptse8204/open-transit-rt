@@ -73,8 +73,13 @@ tasks:
   test:integration:
     cmds:
       - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate status
-      - echo "Phase 7 integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, and prediction operations tests use isolated temporary databases when supported."
+      - echo "Phase 8 hardening integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, and hardening tests use isolated temporary databases when supported."
       - INTEGRATION_TESTS=1 TEST_DATABASE_URL="{{.TEST_DATABASE_URL}}" go test ./...
+
+  smoke:
+    cmds:
+      - echo "Running hardening HTTP smoke coverage..."
+      - go test ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices
 
   fmt:
     cmds:
@@ -91,13 +96,17 @@ tasks:
 
   validate:
     cmds:
-      - echo "Phase 7 validation smoke: checking scaffold, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, and Alerts architecture files only; canonical GTFS and GTFS-RT validators are documented but not wired yet."
+      - echo "Phase 8 hardening validation smoke: checking scaffold, auth, device credentials, validators, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, Alerts, schedule publication, and compliance workflow files."
       - test -f db/migrations/000001_initial_schema.sql
       - test -f db/migrations/000002_telemetry_ingest_foundation.sql
       - test -f db/migrations/000003_deterministic_matching.sql
       - test -f db/migrations/000004_gtfs_import_pipeline.sql
       - test -f db/migrations/000005_gtfs_studio_drafts.sql
       - test -f db/migrations/000006_prediction_operations.sql
+      - test -f db/migrations/000007_phase_8_alerts_compliance.sql
+      - test -f db/migrations/000008_production_hardening.sql
+      - test -f internal/auth/jwt.go
+      - test -f internal/devices/devices.go
       - test -f internal/feed/vehicle_positions.go
       - test -f internal/feed/tripupdates/trip_updates.go
       - test -f internal/feed/alerts/alerts.go
@@ -116,4 +125,4 @@ tasks:
       - test -d testdata/gtfs/frequency-based
       - test -d testdata/gtfs/malformed
       - test -d testdata/telemetry
-      - echo "Validation smoke passed. Future phases must wire canonical validators before any compliance claim."
+      - echo "Validation smoke passed. Canonical validators run through server-side allowlisted IDs when configured."

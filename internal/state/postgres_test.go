@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -598,6 +599,57 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		}
 		if _, ok := current["missing"]; ok {
 			t.Fatalf("missing vehicle unexpectedly returned: %+v", current["missing"])
+		}
+	})
+
+	t.Run("concurrent assignment writes leave one active row", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedDemoSchedule(t, ctx, pool, true)
+
+		var wg sync.WaitGroup
+		errs := make(chan error, 2)
+		for i, tripID := range []string{"trip-concurrent-a", "trip-concurrent-b"} {
+			wg.Add(1)
+			go func(i int, tripID string) {
+				defer wg.Done()
+				_, err := assignments.SaveAssignment(ctx, Assignment{
+					AgencyID:         "demo-agency",
+					VehicleID:        "bus-concurrent",
+					State:            StateInService,
+					ServiceDate:      "20260420",
+					RouteID:          "route-10",
+					TripID:           tripID,
+					StartDate:        "20260420",
+					StartTime:        "08:00:00",
+					Confidence:       0.8 + float64(i)/100,
+					AssignmentSource: AssignmentSourceAutomatic,
+					ReasonCodes:      []string{ReasonTripHintMatch},
+					DegradedState:    DegradedNone,
+					ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1"},
+					ActiveFrom:       time.Date(2026, 4, 20, 15, i, 0, 0, time.UTC),
+				}, nil)
+				errs <- err
+			}(i, tripID)
+		}
+		wg.Wait()
+		close(errs)
+		for err := range errs {
+			if err != nil {
+				t.Fatalf("save concurrent assignment: %v", err)
+			}
+		}
+		var activeRows int
+		if err := pool.QueryRow(ctx, `
+			SELECT count(*)
+			FROM vehicle_trip_assignment
+			WHERE agency_id = 'demo-agency'
+			  AND vehicle_id = 'bus-concurrent'
+			  AND active_to IS NULL
+		`).Scan(&activeRows); err != nil {
+			t.Fatalf("count active assignments: %v", err)
+		}
+		if activeRows != 1 {
+			t.Fatalf("active rows = %d, want 1", activeRows)
 		}
 	})
 }

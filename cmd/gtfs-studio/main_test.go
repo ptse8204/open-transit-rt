@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/gtfs"
 )
 
@@ -90,9 +91,29 @@ func TestDraftSummaryShowsVersionVisibility(t *testing.T) {
 	}
 }
 
+func TestGTFSStudioAdminRejectsUnauthenticatedAccess(t *testing.T) {
+	handler := newHandlerWithAuth(&fakeDraftStore{}, fakePinger{}, authRejectAll{}, "test-csrf")
+	resp := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/admin/gtfs-studio?agency_id=demo-agency", nil)
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", resp.Code)
+	}
+}
+
 type fakePinger struct{}
 
 func (fakePinger) Ping(context.Context) error { return nil }
+
+type authRejectAll struct{}
+
+func (authRejectAll) Require(...auth.Role) func(http.Handler) http.Handler {
+	return func(_ http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+		})
+	}
+}
 
 type fakeDraftStore struct {
 	drafts           []gtfs.DraftSummary

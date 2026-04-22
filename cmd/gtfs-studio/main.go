@@ -7,10 +7,12 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"open-transit-rt/internal/auth"
 	appdb "open-transit-rt/internal/db"
 	"open-transit-rt/internal/gtfs"
 	"open-transit-rt/internal/server"
@@ -54,9 +56,15 @@ type draftStore interface {
 	RemoveFrequency(context.Context, string, string, string) error
 }
 
+type adminAuth interface {
+	Require(...auth.Role) func(http.Handler) http.Handler
+}
+
 type studioHandler struct {
-	drafts draftStore
-	ready  pinger
+	drafts     draftStore
+	ready      pinger
+	admin      adminAuth
+	csrfSecret string
 }
 
 func main() {
@@ -69,19 +77,33 @@ func main() {
 	}
 	defer pool.Close()
 
-	if err := server.Run("gtfs-studio", newHandler(gtfs.NewDraftService(pool), pool)); err != nil {
+	adminAuth, err := auth.MiddlewareFromEnv(pool)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := server.Run("gtfs-studio", newHandlerWithAuth(gtfs.NewDraftService(pool), pool, adminAuth, os.Getenv("CSRF_SECRET"))); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func newHandler(drafts draftStore, ready pinger) http.Handler {
-	h := &studioHandler{drafts: drafts, ready: ready}
+	return newHandlerWithAuth(drafts, ready, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}}, "test-csrf")
+}
+
+func newHandlerWithAuth(drafts draftStore, ready pinger, admin adminAuth, csrfSecret string) http.Handler {
+	h := &studioHandler{drafts: drafts, ready: ready, admin: admin, csrfSecret: csrfSecret}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
-	mux.HandleFunc("/admin/gtfs-studio", h.listDrafts)
-	mux.HandleFunc("/admin/gtfs-studio/drafts", h.createDraft)
-	mux.HandleFunc("/admin/gtfs-studio/drafts/", h.draftRoutes)
+	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/admin/gtfs-studio", adminRead(http.HandlerFunc(h.listDrafts)))
+	mux.Handle("/admin/gtfs-studio/drafts", adminRead(http.HandlerFunc(h.createDraft)))
+	mux.Handle("/admin/gtfs-studio/drafts/", adminRead(http.HandlerFunc(h.draftRoutes)))
 	return mux
 }
 
@@ -108,18 +130,17 @@ func (h *studioHandler) listDrafts(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	agencyID := r.URL.Query().Get("agency_id")
-	if agencyID == "" {
-		http.Error(w, "agency_id is required", http.StatusBadRequest)
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
 		return
 	}
 	includeDiscarded := r.URL.Query().Get("include_discarded") == "1"
-	drafts, err := h.drafts.ListDrafts(r.Context(), agencyID, includeDiscarded)
+	drafts, err := h.drafts.ListDrafts(r.Context(), principal.AgencyID, includeDiscarded)
 	if err != nil {
 		http.Error(w, "list drafts", http.StatusInternalServerError)
 		return
 	}
-	render(w, "drafts", draftsPage{AgencyID: agencyID, IncludeDiscarded: includeDiscarded, Drafts: drafts})
+	render(w, "drafts", draftsPage{AgencyID: principal.AgencyID, IncludeDiscarded: includeDiscarded, Drafts: drafts, CSRFToken: h.csrfToken(r)})
 }
 
 func (h *studioHandler) createDraft(w http.ResponseWriter, r *http.Request) {
@@ -127,14 +148,21 @@ func (h *studioHandler) createDraft(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	principal, ok := auth.RequireRole(w, r, auth.RoleEditor, auth.RoleAdmin)
+	if !ok {
+		return
+	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
+	if auth.RejectAgencyConflict(w, r.FormValue("agency_id"), principal) {
+		return
+	}
 	draft, err := h.drafts.CreateDraft(r.Context(), gtfs.CreateDraftOptions{
-		AgencyID: r.FormValue("agency_id"),
+		AgencyID: principal.AgencyID,
 		Name:     r.FormValue("name"),
-		ActorID:  actorID(r),
+		ActorID:  principal.Subject,
 		Blank:    r.FormValue("mode") == "blank",
 	})
 	if err != nil {
@@ -177,7 +205,11 @@ func (h *studioHandler) draftSummary(w http.ResponseWriter, r *http.Request, dra
 		http.Error(w, "draft not found", http.StatusNotFound)
 		return
 	}
-	render(w, "summary", draft)
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !h.requireDraftAgency(w, draft, principal) {
+		return
+	}
+	render(w, "summary", summaryPage{Draft: draft, CSRFToken: h.csrfToken(r)})
 }
 
 func (h *studioHandler) discardDraft(w http.ResponseWriter, r *http.Request, draftID string) {
@@ -185,11 +217,15 @@ func (h *studioHandler) discardDraft(w http.ResponseWriter, r *http.Request, dra
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	principal, ok := auth.RequireRole(w, r, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !h.requireDraftIDAgency(w, r, draftID, principal) {
+		return
+	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
-	if err := h.drafts.DiscardDraft(r.Context(), gtfs.DiscardDraftOptions{DraftID: draftID, ActorID: actorID(r), Reason: r.FormValue("reason")}); err != nil {
+	if err := h.drafts.DiscardDraft(r.Context(), gtfs.DiscardDraftOptions{DraftID: draftID, ActorID: principal.Subject, Reason: r.FormValue("reason")}); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -201,11 +237,15 @@ func (h *studioHandler) publishDraft(w http.ResponseWriter, r *http.Request, dra
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	principal, ok := auth.RequireRole(w, r, auth.RoleAdmin)
+	if !ok || !h.requireDraftIDAgency(w, r, draftID, principal) {
+		return
+	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
-	result, err := h.drafts.PublishDraft(r.Context(), gtfs.PublishDraftOptions{DraftID: draftID, ActorID: actorID(r), Notes: r.FormValue("notes")})
+	result, err := h.drafts.PublishDraft(r.Context(), gtfs.PublishDraftOptions{DraftID: draftID, ActorID: principal.Subject, Notes: r.FormValue("notes")})
 	status := http.StatusOK
 	if err != nil {
 		status = http.StatusBadRequest
@@ -233,6 +273,10 @@ func (h *studioHandler) entity(w http.ResponseWriter, r *http.Request, draftID s
 }
 
 func (h *studioHandler) listEntity(w http.ResponseWriter, r *http.Request, draftID string, entity string) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !h.requireDraftIDAgency(w, r, draftID, principal) {
+		return
+	}
 	var payload any
 	var err error
 	switch entity {
@@ -262,15 +306,22 @@ func (h *studioHandler) listEntity(w http.ResponseWriter, r *http.Request, draft
 		http.Error(w, "list entity", http.StatusInternalServerError)
 		return
 	}
-	render(w, "entity", entityPage{DraftID: draftID, Entity: entity, Fields: fieldsFor(entity), Payload: payload})
+	render(w, "entity", entityPage{DraftID: draftID, Entity: entity, Fields: fieldsFor(entity), Payload: payload, CSRFToken: h.csrfToken(r)})
 }
 
 func (h *studioHandler) upsertEntity(w http.ResponseWriter, r *http.Request, draftID string, entity string) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !h.requireDraftIDAgency(w, r, draftID, principal) {
+		return
+	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
-	err := h.upsertEntityForm(r, draftID, entity)
+	if auth.RejectAgencyConflict(w, r.FormValue("agency_id"), principal) {
+		return
+	}
+	err := h.upsertEntityForm(r, draftID, entity, principal.AgencyID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -279,6 +330,10 @@ func (h *studioHandler) upsertEntity(w http.ResponseWriter, r *http.Request, dra
 }
 
 func (h *studioHandler) removeEntity(w http.ResponseWriter, r *http.Request, draftID string, entity string) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !h.requireDraftIDAgency(w, r, draftID, principal) {
+		return
+	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
@@ -312,10 +367,10 @@ func (h *studioHandler) removeEntity(w http.ResponseWriter, r *http.Request, dra
 	http.Redirect(w, r, "/admin/gtfs-studio/drafts/"+draftID+"/"+entity, http.StatusSeeOther)
 }
 
-func (h *studioHandler) upsertEntityForm(r *http.Request, draftID string, entity string) error {
+func (h *studioHandler) upsertEntityForm(r *http.Request, draftID string, entity string, agencyID string) error {
 	switch entity {
 	case "agency":
-		return h.drafts.UpsertAgency(r.Context(), gtfs.DraftAgency{DraftID: draftID, AgencyID: r.FormValue("agency_id"), Name: r.FormValue("name"), Timezone: r.FormValue("timezone"), ContactEmail: r.FormValue("contact_email"), PublicURL: r.FormValue("public_url")})
+		return h.drafts.UpsertAgency(r.Context(), gtfs.DraftAgency{DraftID: draftID, AgencyID: agencyID, Name: r.FormValue("name"), Timezone: r.FormValue("timezone"), ContactEmail: r.FormValue("contact_email"), PublicURL: r.FormValue("public_url")})
 	case "routes":
 		return h.drafts.UpsertRoute(r.Context(), gtfs.DraftRoute{DraftID: draftID, ID: r.FormValue("id"), ShortName: r.FormValue("short_name"), LongName: r.FormValue("long_name"), RouteType: atoi(r.FormValue("route_type"))})
 	case "stops":
@@ -346,13 +401,20 @@ type draftsPage struct {
 	AgencyID         string
 	IncludeDiscarded bool
 	Drafts           []gtfs.DraftSummary
+	CSRFToken        string
+}
+
+type summaryPage struct {
+	gtfs.Draft
+	CSRFToken string
 }
 
 type entityPage struct {
-	DraftID string
-	Entity  string
-	Fields  []string
-	Payload any
+	DraftID   string
+	Entity    string
+	Fields    []string
+	Payload   any
+	CSRFToken string
 }
 
 var pages = template.Must(template.New("pages").Parse(`
@@ -360,10 +422,10 @@ var pages = template.Must(template.New("pages").Parse(`
 <!doctype html><title>GTFS Studio</title><h1>GTFS Studio</h1>
 <p>Agency: {{.AgencyID}}</p>
 <form method="post" action="/admin/gtfs-studio/drafts">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input name="agency_id" value="{{.AgencyID}}">
 <input name="name" placeholder="Draft name">
 <select name="mode"><option value="clone">Clone active feed</option><option value="blank">Blank draft</option></select>
-<input name="actor_id" value="system">
 <button>Create draft</button>
 </form>
 <table><thead><tr><th>Name</th><th>Status</th><th>Base feed</th><th>Published feed</th><th>Latest publish</th></tr></thead><tbody>
@@ -391,8 +453,8 @@ var pages = template.Must(template.New("pages").Parse(`
 <a href="{{.ID}}/shape_points">shape points</a>
 <a href="{{.ID}}/frequencies">frequencies</a>
 </nav>
-<form method="post" action="{{.ID}}/publish"><input name="actor_id" value="system"><input name="notes" placeholder="notes"><button>Publish</button></form>
-<form method="post" action="{{.ID}}/discard"><input name="actor_id" value="system"><input name="reason" placeholder="reason"><button>Discard</button></form>
+<form method="post" action="{{.ID}}/publish"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="notes" placeholder="notes"><button>Publish</button></form>
+<form method="post" action="{{.ID}}/discard"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="reason" placeholder="reason"><button>Discard</button></form>
 {{end}}
 
 {{define "entity"}}
@@ -400,6 +462,7 @@ var pages = template.Must(template.New("pages").Parse(`
 <p>Minimal operational row editor for {{.Entity}}.</p>
 <pre>{{printf "%+v" .Payload}}</pre>
 <form method="post">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 {{range .Fields}}<label>{{.}} <input name="{{.}}"></label><br>{{end}}
 <button>Save row</button>
 </form>
@@ -419,16 +482,34 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	_ = json.NewEncoder(w).Encode(payload)
 }
 
-func actorID(r *http.Request) string {
-	if value := r.FormValue("actor_id"); value != "" {
-		return value
-	}
-	return "system"
-}
-
 func checkbox(r *http.Request, key string) bool {
 	value := r.FormValue(key)
 	return value == "1" || value == "true" || value == "on"
+}
+
+func (h *studioHandler) csrfToken(r *http.Request) string {
+	principal, ok := auth.PrincipalFromContext(r.Context())
+	if !ok || h.csrfSecret == "" {
+		return ""
+	}
+	return auth.CSRFToken(h.csrfSecret, principal)
+}
+
+func (h *studioHandler) requireDraftIDAgency(w http.ResponseWriter, r *http.Request, draftID string, principal auth.Principal) bool {
+	draft, err := h.drafts.GetDraft(r.Context(), draftID)
+	if err != nil {
+		http.Error(w, "draft not found", http.StatusNotFound)
+		return false
+	}
+	return h.requireDraftAgency(w, draft, principal)
+}
+
+func (h *studioHandler) requireDraftAgency(w http.ResponseWriter, draft gtfs.Draft, principal auth.Principal) bool {
+	if draft.AgencyID != principal.AgencyID {
+		http.Error(w, "draft belongs to another agency", http.StatusForbidden)
+		return false
+	}
+	return true
 }
 
 func atoi(raw string) int {

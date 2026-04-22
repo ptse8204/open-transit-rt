@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"open-transit-rt/internal/appconfig"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,8 +20,12 @@ type Config struct {
 }
 
 func LoadConfigFromEnv() Config {
+	databaseURL := getenv("DATABASE_URL", defaultDatabaseURL)
+	if appconfig.IsProduction() && os.Getenv("DATABASE_URL") == "" {
+		databaseURL = ""
+	}
 	cfg := Config{
-		DatabaseURL: getenv("DATABASE_URL", defaultDatabaseURL),
+		DatabaseURL: databaseURL,
 		MaxConns:    10,
 	}
 	if raw := os.Getenv("DB_MAX_CONNS"); raw != "" {
@@ -31,6 +37,9 @@ func LoadConfigFromEnv() Config {
 }
 
 func Connect(ctx context.Context, cfg Config) (*pgxpool.Pool, error) {
+	if cfg.DatabaseURL == "" {
+		return nil, fmt.Errorf("DATABASE_URL is required")
+	}
 	poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("parse database url: %w", err)

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	domainalerts "open-transit-rt/internal/alerts"
+	"open-transit-rt/internal/auth"
 	appdb "open-transit-rt/internal/db"
 	feedalerts "open-transit-rt/internal/feed/alerts"
 	"open-transit-rt/internal/server"
@@ -29,10 +30,15 @@ type alertStore interface {
 	ReconcileCanceledTripAlerts(ctx context.Context, agencyID string, actorID string, at time.Time) (domainalerts.ReconcileResult, error)
 }
 
+type adminAuth interface {
+	Require(...auth.Role) func(http.Handler) http.Handler
+}
+
 type handler struct {
 	builder snapshotBuilder
 	alerts  alertStore
 	ready   pinger
+	admin   adminAuth
 }
 
 func main() {
@@ -52,20 +58,35 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := server.Run("feed-alerts", newHandler(builder, alertRepo, pool)); err != nil {
+	adminAuth, err := auth.MiddlewareFromEnv(pool)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := server.Run("feed-alerts", newHandlerWithAuth(builder, alertRepo, pool, adminAuth)); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func newHandler(builder snapshotBuilder, alerts alertStore, ready pinger) http.Handler {
-	h := &handler{builder: builder, alerts: alerts, ready: ready}
+	return newHandlerWithAuth(builder, alerts, ready, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}})
+}
+
+func newHandlerWithAuth(builder snapshotBuilder, alerts alertStore, ready pinger, admin adminAuth) http.Handler {
+	h := &handler{builder: builder, alerts: alerts, ready: ready, admin: admin}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
 	mux.HandleFunc("/public/gtfsrt/alerts.pb", h.publicProto)
-	mux.HandleFunc("/public/gtfsrt/alerts.json", h.publicJSON)
-	mux.HandleFunc("/admin/alerts", h.adminAlerts)
-	mux.HandleFunc("/admin/alerts/", h.adminAlertAction)
+	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/public/gtfsrt/alerts.json", adminRead(http.HandlerFunc(h.publicJSON)))
+	mux.Handle("/admin/debug/gtfsrt/alerts.json", adminRead(http.HandlerFunc(h.publicJSON)))
+	mux.Handle("/admin/alerts", adminRead(http.HandlerFunc(h.adminAlerts)))
+	mux.Handle("/admin/alerts/", adminRead(http.HandlerFunc(h.adminAlertAction)))
 	return mux
 }
 
@@ -128,23 +149,31 @@ func (h *handler) publicJSON(w http.ResponseWriter, r *http.Request) {
 func (h *handler) adminAlerts(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		agencyID := r.URL.Query().Get("agency_id")
-		if agencyID == "" {
-			http.Error(w, "agency_id is required", http.StatusBadRequest)
+		principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+		if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
 			return
 		}
-		alerts, err := h.alerts.ListAlerts(r.Context(), domainalerts.ListFilter{AgencyID: agencyID, Status: r.URL.Query().Get("status"), Limit: 200})
+		alerts, err := h.alerts.ListAlerts(r.Context(), domainalerts.ListFilter{AgencyID: principal.AgencyID, Status: r.URL.Query().Get("status"), Limit: 200})
 		if err != nil {
 			http.Error(w, "list alerts", http.StatusInternalServerError)
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"alerts": alerts})
 	case http.MethodPost:
+		principal, ok := auth.RequireRole(w, r, auth.RoleOperator, auth.RoleAdmin)
+		if !ok {
+			return
+		}
 		var input alertRequest
 		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 			http.Error(w, "invalid json", http.StatusBadRequest)
 			return
 		}
+		if auth.RejectAgencyConflict(w, input.AgencyID, principal) {
+			return
+		}
+		input.AgencyID = principal.AgencyID
+		input.ActorID = principal.Subject
 		alert, err := h.alerts.UpsertAlert(r.Context(), input.toUpsertInput())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -163,12 +192,19 @@ func (h *handler) adminAlertAction(w http.ResponseWriter, r *http.Request) {
 	}
 	trimmed := strings.Trim(strings.TrimPrefix(r.URL.Path, "/admin/alerts/"), "/")
 	if trimmed == "reconcile-cancellations" {
+		principal, ok := auth.RequireRole(w, r, auth.RoleOperator, auth.RoleAdmin)
+		if !ok {
+			return
+		}
 		var req reconcileRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "invalid json", http.StatusBadRequest)
 			return
 		}
-		result, err := h.alerts.ReconcileCanceledTripAlerts(r.Context(), req.AgencyID, req.ActorID, time.Now().UTC())
+		if auth.RejectAgencyConflict(w, req.AgencyID, principal) {
+			return
+		}
+		result, err := h.alerts.ReconcileCanceledTripAlerts(r.Context(), principal.AgencyID, principal.Subject, time.Now().UTC())
 		if err != nil {
 			http.Error(w, "reconcile canceled trip alerts", http.StatusInternalServerError)
 			return
@@ -191,16 +227,23 @@ func (h *handler) adminAlertAction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid json", http.StatusBadRequest)
 		return
 	}
+	principal, ok := auth.RequireRole(w, r, auth.RoleOperator, auth.RoleAdmin)
+	if !ok {
+		return
+	}
+	if auth.RejectAgencyConflict(w, req.AgencyID, principal) {
+		return
+	}
 	switch parts[1] {
 	case "publish":
-		alert, err := h.alerts.PublishAlert(r.Context(), req.AgencyID, alertID, req.ActorID, time.Now().UTC())
+		alert, err := h.alerts.PublishAlert(r.Context(), principal.AgencyID, alertID, principal.Subject, time.Now().UTC())
 		if err != nil {
 			http.Error(w, "publish alert", http.StatusBadRequest)
 			return
 		}
 		writeJSON(w, http.StatusOK, alert)
 	case "archive":
-		if err := h.alerts.ArchiveAlert(r.Context(), req.AgencyID, alertID, req.ActorID, req.Reason, time.Now().UTC()); err != nil {
+		if err := h.alerts.ArchiveAlert(r.Context(), principal.AgencyID, alertID, principal.Subject, req.Reason, time.Now().UTC()); err != nil {
 			http.Error(w, "archive alert", http.StatusBadRequest)
 			return
 		}

@@ -200,11 +200,15 @@ Validate static GTFS before publish and during compliance checks.
 
 ### Integration boundary
 - invoked by import/publish workflows, admin validation runs, or CI checks
-- Phase 8 adds a command adapter driven by `GTFS_VALIDATOR_PATH`
+- Post-Phase-8 hardening replaces request-supplied commands with server-side allowlisted validator IDs
+- static validation uses `validator_id=static-mobilitydata`
+- local/prod config supplies `GTFS_VALIDATOR_PATH`; if the path ends with `.jar`, the adapter runs `java -jar` through argv-based execution
+- expected canonical version: MobilityData GTFS Validator `v7.1.0`
 - validation results stored as normalized `validation_report` rows
 - validator output should not dictate internal schema design
 - Phase 4 implements an internal GTFS import validator/report contract for required files, supported route type ranges, numeric ranges, core references, usable service sources, shape ordering, stop_times references, times beyond `24:00:00`, frequencies, and block preservation. This internal validator is not a substitute for canonical compliance validation.
-- Phase 8 canonical validation is executed only when `GTFS_VALIDATOR_PATH` is configured. If the path ends with `.jar`, the adapter runs `java -jar`; otherwise it executes the path directly.
+- validators execute with `exec.CommandContext(binary, args...)`, never `/bin/sh -c`
+- admin validation requests may provide only `validator_id`, `feed_type`, and optional `feed_version_id`; the server derives local feed artifacts itself
 
 ### Failure behavior
 - failed validation should block publish or mark the import unhealthy based on configured strictness
@@ -236,15 +240,19 @@ Validate GTFS-RT feeds:
 
 ### Integration boundary
 - invoked during CI, smoke tests, scheduled runtime validation, or admin validation runs
-- Phase 8 adds a command-template adapter driven by `GTFS_RT_VALIDATOR_COMMAND`
-- the command template supports `{schedule_zip}`, `{realtime_pb}`, `{feed_type}`, and `{output_dir}` placeholders
+- Post-Phase-8 hardening uses `validator_id=realtime-mobilitydata` with server-owned config from `GTFS_RT_VALIDATOR_PATH` and `GTFS_RT_VALIDATOR_ARGS`
+- realtime validation should prefer generated local feed bytes/temp files over internal feed URLs whenever the service can build the artifact locally
+- the server-owned args may use `{schedule_zip}`, `{realtime_pb}`, `{feed_type}`, and `{output_dir}` placeholders
+- CI/local/prod must pin the selected MobilityData GTFS Realtime validator distribution by immutable package digest before making compliance claims
 - output stored as normalized `validation_report` rows
 - does not own business logic; it verifies it
 
 ### Failure behavior
 - validation failure should mark a feed unhealthy
 - unhealthy state must be visible in monitoring and admin views
-- missing validator command configuration stores `status='not_run'`; in production scorecards this is red, and in dev scorecards this is yellow
+- missing validator binary configuration stores `status='not_run'`; in production scorecards this is red, and in dev scorecards this is yellow
+- request-provided shell text, paths, argv, output directories, and validator URLs are not accepted
+- validators run with timeout, stdout/stderr caps, report-size caps, and temp-file/output confinement
 
 ### Replacement strategy
 - validator engine may be swapped

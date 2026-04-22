@@ -6,7 +6,7 @@ Open Transit RT is a starter monorepo for a small-agency transit data stack:
 - deterministic trip matching
 - GTFS-RT Vehicle Positions publishing
 - a pluggable Trip Updates engine
-- alerts and monitoring later
+- alerts, compliance workflows, and hardening foundations
 
 This repo is a phased starter, not a finished product. It focuses on the wedge we discussed: **BYOD or low-cost GPS -> public realtime feeds**, with **Trip Updates** treated as a replaceable module.
 
@@ -25,42 +25,69 @@ Implemented now:
 - Phase 4 GTFS ZIP import/publish pipeline
 - Phase 5 GTFS Studio typed draft/publish model
 - Phase 6 Trip Updates and Alerts architecture with no-op/default feeds
+- Phase 7 deterministic Trip Updates prediction and operations workflows
+- Phase 8 Alerts, publication metadata, compliance scorecards, consumer workflow, and validation records
+- post-Phase-8 production hardening for admin auth, device auth, validator execution, assignment races, and safer config defaults
 - architecture and Codex handoff docs
 
 Not yet implemented:
 - Android client
 - production Trip Updates prediction quality
 - TheTransitClock integration or another real predictor
-- alerts authoring UI
 - GTFS Studio rich map/timetable editor
+- full hosted login/identity UI
 
 ## Services
 
+Admin/API hardening:
+- Public `.pb` feed endpoints remain anonymous and stable for consumers.
+- Admin routes and JSON debug endpoints require admin authentication.
+- Bearer JWT auth is the default for machine/API admin calls.
+- `admin_session` cookie auth is only for browser-admin flows and requires CSRF tokens on unsafe methods.
+- Admin JWTs require `sub`, `agency_id`, `iat`, `exp`, `iss`, and `aud`; default local TTL is `8h`, clock skew allowance is `2m`, and secret rotation accepts `ADMIN_JWT_SECRET` plus comma-separated `ADMIN_JWT_OLD_SECRETS`. `jti` is emitted for auditability but server-side replay tracking is deferred.
+
 ### agency-config
 ```bash
+DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" \
+AGENCY_ID=demo-agency \
+ADMIN_JWT_SECRET=dev-admin-jwt-secret-change-me \
+ADMIN_JWT_ISSUER=open-transit-rt-local \
+ADMIN_JWT_AUDIENCE=open-transit-rt-admin \
+CSRF_SECRET=dev-csrf-secret-change-me \
+DEVICE_TOKEN_PEPPER=dev-device-token-pepper-change-me \
 PORT=8081 go run ./cmd/agency-config
 ```
 
+`agency-config` serves `/public/gtfs/schedule.zip`, `/public/feeds.json`, admin publication bootstrap, consumer workflow records, scorecards, device rebinding, and allowlisted validation runs. `/public/gtfs/schedule.zip` emits `ETag`, `Last-Modified`, and `X-Checksum-SHA256`; `SCHEDULE_ZIP_MAX_BYTES` bounds generated payloads.
+
 ### telemetry-ingest
 ```bash
-DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" PORT=8082 go run ./cmd/telemetry-ingest
+DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable" \
+ADMIN_JWT_SECRET=dev-admin-jwt-secret-change-me \
+ADMIN_JWT_ISSUER=open-transit-rt-local \
+ADMIN_JWT_AUDIENCE=open-transit-rt-admin \
+CSRF_SECRET=dev-csrf-secret-change-me \
+DEVICE_TOKEN_PEPPER=dev-device-token-pepper-change-me \
+PORT=8082 go run ./cmd/telemetry-ingest
 ```
 
 Example request:
 ```bash
 curl -X POST http://localhost:8082/v1/telemetry \
   -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer dev-device-token' \
   --data @examples/telemetry.json
 ```
 
-Telemetry timestamps must be RFC 3339 values with a timezone or offset. Unknown agencies are rejected; `make dev` or `make seed` creates the local fixture agencies.
+Telemetry timestamps must be RFC 3339 values with a timezone or offset. Device tokens are opaque Bearer tokens bound to agency, device, and vehicle. The development seed creates `device-1` bound to `bus-1` with token `dev-device-token`; rebinding is admin-managed through `POST /admin/devices/rebind` and immediately invalidates the old token/binding.
 
-Debug endpoint for local development:
+Admin debug endpoint:
 ```bash
-curl 'http://localhost:8082/v1/events?agency_id=demo-agency&limit=25'
+curl -H "Authorization: Bearer $ADMIN_TOKEN" \
+  'http://localhost:8082/v1/events?agency_id=demo-agency&limit=25'
 ```
 
-`/v1/events` is agency-scoped and bounded, but Phase 1 has no auth layer; production deployments should disable or protect it until admin/auth controls exist.
+`/v1/events` and `/admin/debug/telemetry/events` require admin auth and derive agency scope from the token.
 
 ### feed-vehicle-positions
 ```bash
@@ -72,8 +99,9 @@ Current endpoints:
 - `GET /readyz`
 - `GET /public/gtfsrt/vehicle_positions.pb`
 - `GET /public/gtfsrt/vehicle_positions.json`
+- `GET /admin/debug/gtfsrt/vehicle_positions.json`
 
-`feed-vehicle-positions` requires `DATABASE_URL` and `AGENCY_ID`. The protobuf endpoint returns a valid empty `FeedMessage` with normal success headers when no telemetry is available or all vehicles are suppressed as stale.
+`feed-vehicle-positions` requires `DATABASE_URL`, `AGENCY_ID`, and admin auth config. The protobuf endpoint is public; JSON debug paths require admin auth and use the same underlying debug representation.
 
 ### gtfs-studio
 ```bash
@@ -85,7 +113,7 @@ Current endpoints:
 - `GET /readyz`
 - `GET /admin/gtfs-studio?agency_id=demo-agency`
 
-GTFS Studio is a minimal server-rendered admin surface for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies. Draft edits are stored separately from published GTFS rows. Published and discarded drafts are read-only by default.
+GTFS Studio is a minimal server-rendered admin surface for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies. Draft edits are stored separately from published GTFS rows. It uses admin auth and CSRF validation for cookie-authenticated unsafe methods.
 
 ### feed-trip-updates
 ```bash
@@ -97,8 +125,9 @@ Current endpoints:
 - `GET /readyz`
 - `GET /public/gtfsrt/trip_updates.pb`
 - `GET /public/gtfsrt/trip_updates.json`
+- `GET /admin/debug/gtfsrt/trip_updates.json`
 
-Phase 6 Trip Updates use an explicit no-op prediction adapter by default. The protobuf endpoint returns a valid empty `FeedMessage`; the JSON endpoint exposes diagnostics and traceability.
+Trip Updates default to the deterministic prediction adapter. The protobuf endpoint is public; JSON debug paths require admin auth and expose diagnostics/traceability from one shared debug builder.
 
 ### feed-alerts
 ```bash
@@ -110,8 +139,13 @@ Current endpoints:
 - `GET /readyz`
 - `GET /public/gtfsrt/alerts.pb`
 - `GET /public/gtfsrt/alerts.json`
+- `GET /admin/debug/gtfsrt/alerts.json`
+- `GET/POST /admin/alerts`
+- `POST /admin/alerts/{id}/publish`
+- `POST /admin/alerts/{id}/archive`
+- `POST /admin/alerts/reconcile-cancellations`
 
-Phase 6 Alerts return a valid empty `FeedMessage` plus JSON-only deferred diagnostics. Alert authoring and persistence are not implemented yet.
+Alerts publish persisted Service Alerts. The protobuf endpoint is public; JSON debug and admin mutation routes require admin auth. Actor and agency come from the authenticated context.
 
 ## Local development
 
@@ -142,15 +176,22 @@ Useful local commands:
 ```bash
 make migrate-status
 make test-integration
+make smoke
 make validate
 ```
 
 `make test-integration` runs DB-backed telemetry tests. The tests prefer creating an isolated temporary database from `TEST_DATABASE_URL`; if that is not permitted, they fall back to an isolated temporary schema in the configured test database.
 
-`make validate` is currently a scaffold, telemetry, matcher, and Vehicle Positions file smoke check only. It verifies required migration and fixture paths exist; canonical GTFS and GTFS-Realtime validators are documented but not wired yet.
+`make smoke` runs the hardening HTTP smoke coverage, including unauthenticated admin/debug rejection and telemetry token checks. `make validate` verifies required hardening, validator, migration, and fixture paths exist. Canonical validators run through server-side allowlisted validator IDs when configured.
+
+Production deployment notes:
+- Set `APP_ENV=production`; services fail fast without `DATABASE_URL`, admin JWT config, `CSRF_SECRET`, and `DEVICE_TOKEN_PEPPER`.
+- `BIND_ADDR` defaults to `127.0.0.1`. Use `BIND_ADDR=0.0.0.0` only behind a TLS-terminating reverse proxy.
+- Public feed URLs should be served over HTTPS by the proxy/domain layer.
+- Do not expose `.json` debug paths without admin auth; this repo protects them by default.
 
 ## Recommended next build order
 
-1. add stop-level Trip Updates prediction behind the Phase 6 adapter
-2. add operations workflows for prediction repair, cancellations, detours, and alerts
-3. add compliance and consumer workflow surfaces
+1. integrate real hosted identity or SSO in front of the JWT contract
+2. add stronger feed SLO dashboards and metrics export
+3. install/pin canonical validator distributions in CI and production automation

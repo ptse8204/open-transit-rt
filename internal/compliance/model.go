@@ -107,14 +107,12 @@ type Scorecard struct {
 }
 
 type ValidationRunInput struct {
-	AgencyID         string `json:"agency_id"`
-	FeedType         string `json:"feed_type"`
-	FeedVersionID    string `json:"feed_version_id"`
-	ScheduleZIPPath  string `json:"schedule_zip_path"`
-	RealtimePBPath   string `json:"realtime_pb_path"`
-	ValidatorName    string `json:"validator_name"`
-	ValidatorVersion string `json:"validator_version"`
-	Command          string `json:"command"`
+	AgencyID           string `json:"agency_id"`
+	FeedType           string `json:"feed_type"`
+	FeedVersionID      string `json:"feed_version_id"`
+	ValidatorID        string `json:"validator_id"`
+	ScheduleZIPPayload []byte `json:"-"`
+	RealtimePBPayload  []byte `json:"-"`
 }
 
 type ValidationResult struct {

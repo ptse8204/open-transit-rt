@@ -20,6 +20,8 @@ Phase 7 prediction quality and operations workflows are complete for the first c
 
 Phase 8 compliance and consumer workflow is complete for the first production-directed publication layer. The repo now has persisted Service Alerts authoring/lifecycle state, real GTFS-RT Alerts publication, Alerts-owned canceled-trip reconciliation, stable on-demand public static GTFS ZIP publication, `/public/feeds.json` discoverability metadata, publication/license/contact metadata workflows, consumer ingestion records, marketplace-gap records, compliance scorecard snapshots, and canonical-validator command adapters that normalize passed/warning/failed/not-run results.
 
+Post-Phase-8 production hardening is now implemented for the first pilot-readiness slice. Admin and JSON debug routes require JWT/cookie admin auth with DB-backed roles, cookie admin flows require CSRF on unsafe methods, telemetry ingest requires active device Bearer tokens bound to agency/device/vehicle, validator execution uses server-side allowlisted validator IDs with argv-based execution, current assignment writes are serialized and protected by a partial unique index, and production runtime config fails fast without required secrets.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -70,6 +72,10 @@ The repo includes starter Go services for:
 
 `cmd/agency-config` now serves publication/compliance workflows: `/public/gtfs/schedule.zip`, `/public/feeds.json`, publication metadata bootstrap, compliance scorecard snapshots, consumer ingestion workflow records, and validator run records.
 
+Admin routes derive actor and agency from auth context. Conflicting request `agency_id` fields or query params are rejected. Scorecard GET reads the latest stored snapshot; scorecard POST recomputes and stores. `/admin/devices/rebind` rotates a device token and binding with audit logging.
+
+Public `.pb` feed endpoints remain anonymous. JSON debug endpoints such as `/public/gtfsrt/vehicle_positions.json`, `/public/gtfsrt/trip_updates.json`, `/public/gtfsrt/alerts.json`, and their `/admin/debug/...` aliases require admin read auth and share the same debug builders.
+
 ### Phase 1 telemetry foundation
 The repo now has:
 - `internal/db` with `pgxpool` connection setup and readiness ping support
@@ -78,6 +84,9 @@ The repo now has:
 - `/healthz` liveness and `/readyz` DB readiness behavior for telemetry ingest
 - agency-scoped, bounded `/v1/events` debug listing
 - durable parsed request payload storage in `telemetry_event.payload_json`
+- active device credential verification before telemetry persistence
+- opaque device tokens hashed with `DEVICE_TOKEN_PEPPER`
+- device-to-agency/device/vehicle binding checks, including immediate old-token invalidation after rebinding/rotation
 - atomic duplicate and out-of-order classification inside a transaction with a deterministic advisory lock
 - DB-backed integration tests using `testdata/telemetry`
 - development agency seeding through `scripts/seed-dev.sql`
@@ -103,6 +112,8 @@ The repo now has:
 - active manual overrides are evaluated before stale-telemetry fallback, so operator state is absolute until cleared or expired
 - resolvable manual override assignments populate active `feed_version_id` and trip `block_id`, making override rows first-class persisted assignments alongside automatic matches
 - Postgres assignment repository that closes prior active rows and persists assignment confidence, reasons, degraded state, score details, and incident linkage
+- per-agency/per-vehicle advisory locking for current assignment writes
+- a partial unique index preventing duplicate active assignment rows
 - `shape_dist_traveled = 0` is preserved as a valid persisted value, not collapsed to NULL
 - repeated identical degraded unknown states reuse the active degraded assignment only when degraded state, reason codes, service date, and telemetry evidence match; telemetry evidence means matching `telemetry_event_id` when present, with `active_from` equality only as the no-telemetry fallback
 - batched GTFS schedule detail loading for stop times, shape points, and frequencies under the existing schedule-query boundary

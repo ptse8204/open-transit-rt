@@ -155,3 +155,15 @@ Realtime `published_feed.revision_timestamp` is a publication/bootstrap metadata
 Phase 8 adds canonical validator command adapters for static GTFS and GTFS-RT. Validator results are normalized into `validation_report`. The adapters parse structured JSON from stdout, stderr, or validator output files, count errors/warnings/info notices, preserve the raw parsed report under `report_json.raw_report`, and derive `passed`, `warning`, or `failed` status from the normalized counts plus command exit status. If validator tooling is absent, the system stores `status='not_run'` instead of pretending validation passed.
 
 Production mode is agency-scoped and stored as `feed_config.publication_environment = 'production'`. In production mode, missing canonical validator execution makes scorecard validation red. In dev mode, missing validators are yellow/not-run. `validator_strictness` controls failure handling, but it does not define production mode by itself.
+
+## ADR-0022 — Harden admin, device, validator, and current-assignment boundaries
+
+Post-Phase-8 hardening introduces a service-level `APP_ENV` switch. In `production`, services fail fast without explicit `DATABASE_URL`, admin JWT config, `CSRF_SECRET`, and `DEVICE_TOKEN_PEPPER`. `BIND_ADDR` defaults to `127.0.0.1`; binding to `0.0.0.0` assumes a TLS-terminating reverse proxy.
+
+Admin identity is an HS256 JWT contract with required `sub`, `agency_id`, `iat`, `exp`, `iss`, and `aud` claims. Bearer auth is the default for machine/API admin calls. Optional `admin_session` cookie auth is for browser-admin flows only and requires CSRF validation on every unsafe cookie-authenticated admin method. Roles are loaded from `agency_user` and `role_binding`, not from token claims. Default token TTL is 8 hours, clock skew allowance is 2 minutes, and secret rotation accepts the active secret plus `ADMIN_JWT_OLD_SECRETS`; server-side `jti` replay tracking is deferred.
+
+Telemetry ingest now verifies opaque device Bearer tokens against peppered HMAC hashes in `device_credential` and enforces active agency/device/vehicle binding before persistence. Device rebinding is an admin-managed operation that rotates the token and immediately invalidates the old token/binding.
+
+Validator runs no longer accept request-supplied commands, paths, argv, or output directories. `/admin/validation/run` accepts only `validator_id`, `feed_type`, and optional `feed_version_id`; the server derives artifacts itself, preferring generated local feed bytes/temp files over URLs whenever possible. Validators run with argv-based `exec.CommandContext`, timeout/output/report caps, and temp/output confinement.
+
+`vehicle_trip_assignment` now has a partial unique index for one current row per `(agency_id, vehicle_id)`, and `SaveAssignment` serializes writes with a per-agency/per-vehicle advisory transaction lock before reading or closing the current row.

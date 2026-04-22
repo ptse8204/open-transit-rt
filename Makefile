@@ -5,7 +5,7 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration validate
+.PHONY: build deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate
 
 build:
 	go build ./...
@@ -62,14 +62,18 @@ test:
 	go test ./...
 
 test-integration: migrate-status
-	@echo "Phase 8 integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, and compliance tests use isolated temporary databases when supported."
+	@echo "Phase 8 hardening integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, and hardening tests use isolated temporary databases when supported."
 	INTEGRATION_TESTS=1 TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...
+
+smoke:
+	@echo "Running hardening HTTP smoke coverage..."
+	go test ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices
 
 lint:
 	@if command -v golangci-lint >/dev/null 2>&1; then golangci-lint run ./...; else echo "optional lint skipped: golangci-lint is not installed; future CI should make this required once configured"; fi
 
 validate:
-	@echo "Phase 8 validation smoke: checking scaffold, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, Alerts persistence/feed, schedule publication, and compliance workflow files."
+	@echo "Phase 8 hardening validation smoke: checking scaffold, auth, device credentials, validators, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, Alerts, schedule publication, and compliance workflow files."
 	@test -f db/migrations/000001_initial_schema.sql
 	@test -f db/migrations/000002_telemetry_ingest_foundation.sql
 	@test -f db/migrations/000003_deterministic_matching.sql
@@ -77,6 +81,9 @@ validate:
 	@test -f db/migrations/000005_gtfs_studio_drafts.sql
 	@test -f db/migrations/000006_prediction_operations.sql
 	@test -f db/migrations/000007_phase_8_alerts_compliance.sql
+	@test -f db/migrations/000008_production_hardening.sql
+	@test -f internal/auth/jwt.go
+	@test -f internal/devices/devices.go
 	@test -f internal/feed/vehicle_positions.go
 	@test -f internal/feed/tripupdates/trip_updates.go
 	@test -f internal/feed/alerts/alerts.go
@@ -98,4 +105,4 @@ validate:
 	@test -d testdata/gtfs/frequency-based
 	@test -d testdata/gtfs/malformed
 	@test -d testdata/telemetry
-	@echo "Validation smoke passed. Canonical validators run when configured and are recorded as not_run when tooling is missing."
+	@echo "Validation smoke passed. Canonical validators run through server-side allowlisted IDs when configured."

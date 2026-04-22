@@ -2,6 +2,8 @@ package compliance
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -53,31 +55,25 @@ func TestValidationScoreUsesPassedWarningAndFailedStatuses(t *testing.T) {
 	}
 }
 
-func TestRunValidationStoresNotRunWhenCommandMissing(t *testing.T) {
+func TestRunValidationStoresNotRunWhenBinaryMissing(t *testing.T) {
 	store := &fakeValidationStore{}
-	result, err := RunValidation(context.Background(), store, ValidationRunInput{
-		AgencyID: "demo-agency",
-		FeedType: "schedule",
-		Command:  "",
-	})
+	registry := ValidatorRegistry{"static-test": {ID: "static-test", Name: "test-validator", FeedTypes: []string{"schedule"}, RequiresSchedule: true}}
+	result, err := RunValidation(context.Background(), store, registry, ValidationRunInput{AgencyID: "demo-agency", FeedType: "schedule", ValidatorID: "static-test", ScheduleZIPPayload: []byte("zip")})
 	if err != nil {
 		t.Fatalf("run validation: %v", err)
 	}
 	if result.Status != "not_run" || store.result.Status != "not_run" {
 		t.Fatalf("result = %+v stored = %+v, want not_run", result, store.result)
 	}
-	if store.result.Report["reason"] != "validator_command_missing" {
-		t.Fatalf("report = %+v, want missing command reason", store.result.Report)
+	if store.result.Report["reason"] != "validator_binary_missing" {
+		t.Fatalf("report = %+v, want missing binary reason", store.result.Report)
 	}
 }
 
 func TestRunValidationNormalizesPassedJSONReport(t *testing.T) {
 	store := &fakeValidationStore{}
-	result, err := RunValidation(context.Background(), store, ValidationRunInput{
-		AgencyID: "demo-agency",
-		FeedType: "schedule",
-		Command:  `printf '%s' '{"status":"passed","error_count":0,"warning_count":0,"info_count":3}'`,
-	})
+	registry := ValidatorRegistry{"echo-json": {ID: "echo-json", Name: "test-validator", FeedTypes: []string{"schedule"}, Binary: "/bin/echo", Args: []string{`{"status":"passed","error_count":0,"warning_count":0,"info_count":3}`}}}
+	result, err := RunValidation(context.Background(), store, registry, ValidationRunInput{AgencyID: "demo-agency", FeedType: "schedule", ValidatorID: "echo-json"})
 	if err != nil {
 		t.Fatalf("run validation: %v", err)
 	}
@@ -91,11 +87,8 @@ func TestRunValidationNormalizesPassedJSONReport(t *testing.T) {
 
 func TestRunValidationNormalizesWarningJSONReport(t *testing.T) {
 	store := &fakeValidationStore{}
-	result, err := RunValidation(context.Background(), store, ValidationRunInput{
-		AgencyID: "demo-agency",
-		FeedType: "alerts",
-		Command:  `printf '%s' '{"notices":[{"severity":"WARNING"},{"severity":"INFO"}]}'`,
-	})
+	registry := ValidatorRegistry{"echo-json": {ID: "echo-json", Name: "test-validator", FeedTypes: []string{"alerts"}, Binary: "/bin/echo", Args: []string{`{"notices":[{"severity":"WARNING"},{"severity":"INFO"}]}`}}}
+	result, err := RunValidation(context.Background(), store, registry, ValidationRunInput{AgencyID: "demo-agency", FeedType: "alerts", ValidatorID: "echo-json"})
 	if err != nil {
 		t.Fatalf("run validation: %v", err)
 	}
@@ -106,11 +99,12 @@ func TestRunValidationNormalizesWarningJSONReport(t *testing.T) {
 
 func TestRunValidationNormalizesFailedJSONReport(t *testing.T) {
 	store := &fakeValidationStore{}
-	result, err := RunValidation(context.Background(), store, ValidationRunInput{
-		AgencyID: "demo-agency",
-		FeedType: "trip_updates",
-		Command:  `printf '%s' '{"summary":{"errors":2,"warnings":1,"infos":4}}'; exit 1`,
-	})
+	script := filepath.Join(t.TempDir(), "validator.sh")
+	if err := os.WriteFile(script, []byte("#!/bin/sh\nprintf '%s' '{\"summary\":{\"errors\":2,\"warnings\":1,\"infos\":4}}'\nexit 1\n"), 0o700); err != nil {
+		t.Fatalf("write validator script: %v", err)
+	}
+	registry := ValidatorRegistry{"script-json": {ID: "script-json", Name: "test-validator", FeedTypes: []string{"trip_updates"}, Binary: script}}
+	result, err := RunValidation(context.Background(), store, registry, ValidationRunInput{AgencyID: "demo-agency", FeedType: "trip_updates", ValidatorID: "script-json"})
 	if err != nil {
 		t.Fatalf("run validation: %v", err)
 	}
@@ -119,6 +113,12 @@ func TestRunValidationNormalizesFailedJSONReport(t *testing.T) {
 	}
 	if store.result.Report["error"] == "" {
 		t.Fatalf("report = %+v, want command error retained", store.result.Report)
+	}
+}
+
+func TestRunValidationRejectsUnknownValidatorID(t *testing.T) {
+	if _, err := RunValidation(context.Background(), &fakeValidationStore{}, ValidatorRegistry{}, ValidationRunInput{AgencyID: "demo-agency", FeedType: "schedule", ValidatorID: "command"}); err == nil {
+		t.Fatalf("run validation succeeded with unknown validator_id")
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	gtfsrt "github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
 	"google.golang.org/protobuf/proto"
 
+	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/feed"
 	"open-transit-rt/internal/telemetry"
 )
@@ -101,6 +102,16 @@ func TestVehiclePositionsJSONHandlerUsesSnapshotDebug(t *testing.T) {
 	}
 }
 
+func TestVehiclePositionsDebugRejectsUnauthenticatedAccess(t *testing.T) {
+	handler := newHandlerWithAuth(&fakeSnapshotBuilder{}, okPinger{}, authRejectAll{})
+	req := httptest.NewRequest(http.MethodGet, "/public/gtfsrt/vehicle_positions.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rr.Code)
+	}
+}
+
 func TestVehiclePositionsHandlersRejectWrongMethodAndSurfaceSnapshotErrors(t *testing.T) {
 	handler := newHandler(&fakeSnapshotBuilder{err: errors.New("database down")}, okPinger{})
 
@@ -156,6 +167,16 @@ func (okPinger) Ping(context.Context) error {
 
 type errPinger struct {
 	err error
+}
+
+type authRejectAll struct{}
+
+func (authRejectAll) Require(...auth.Role) func(http.Handler) http.Handler {
+	return func(_ http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+		})
+	}
 }
 
 func (e errPinger) Ping(context.Context) error {

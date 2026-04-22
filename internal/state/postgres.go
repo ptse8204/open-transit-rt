@@ -2,7 +2,9 @@ package state
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -143,6 +145,10 @@ func (r *PostgresRepository) SaveAssignment(ctx context.Context, assignment Assi
 		assignment.ScoreDetails = map[string]any{"score_schema": "loose_debug_v1"}
 	}
 
+	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock($1::bigint)`, assignmentLockKey(assignment.AgencyID, assignment.VehicleID)); err != nil {
+		return Assignment{}, fmt.Errorf("lock current assignment: %w", err)
+	}
+
 	current, err := currentAssignmentInTx(ctx, tx, assignment.AgencyID, assignment.VehicleID)
 	if err != nil {
 		return Assignment{}, err
@@ -262,6 +268,11 @@ func (r *PostgresRepository) SaveAssignment(ctx context.Context, assignment Assi
 		return Assignment{}, fmt.Errorf("commit assignment transaction: %w", err)
 	}
 	return assignment, nil
+}
+
+func assignmentLockKey(agencyID string, vehicleID string) int64 {
+	sum := sha256.Sum256([]byte("vehicle_trip_assignment\x00" + agencyID + "\x00" + vehicleID))
+	return int64(binary.BigEndian.Uint64(sum[:8]))
 }
 
 func currentAssignmentInTx(ctx context.Context, tx pgx.Tx, agencyID string, vehicleID string) (*Assignment, error) {

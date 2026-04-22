@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"open-transit-rt/internal/auth"
 	appdb "open-transit-rt/internal/db"
 	"open-transit-rt/internal/feed"
 	"open-transit-rt/internal/server"
@@ -22,6 +23,10 @@ type pinger interface {
 
 type snapshotBuilder interface {
 	Snapshot(ctx context.Context, generatedAt time.Time) (feed.VehiclePositionsSnapshot, error)
+}
+
+type adminAuth interface {
+	Require(...auth.Role) func(http.Handler) http.Handler
 }
 
 func main() {
@@ -46,7 +51,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := server.Run("feed-vehicle-positions", newHandler(builder, pool)); err != nil {
+	adminAuth, err := auth.MiddlewareFromEnv(pool)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := server.Run("feed-vehicle-positions", newHandlerWithAuth(builder, pool, adminAuth)); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -87,6 +96,15 @@ func getenvFloat(key string, fallback float64) float64 {
 }
 
 func newHandler(builder snapshotBuilder, ready pinger) http.Handler {
+	return newHandlerWithAuth(builder, ready, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}})
+}
+
+func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -134,7 +152,7 @@ func newHandler(builder snapshotBuilder, ready pinger) http.Handler {
 		_, _ = w.Write(payload)
 	})
 
-	mux.HandleFunc("/public/gtfsrt/vehicle_positions.json", func(w http.ResponseWriter, r *http.Request) {
+	debugHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -154,6 +172,9 @@ func newHandler(builder snapshotBuilder, ready pinger) http.Handler {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(payload)
 	})
+	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/public/gtfsrt/vehicle_positions.json", adminRead(debugHandler))
+	mux.Handle("/admin/debug/gtfsrt/vehicle_positions.json", adminRead(debugHandler))
 
 	return mux
 }

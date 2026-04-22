@@ -12,6 +12,7 @@ import (
 	gtfsrt "github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
 	"google.golang.org/protobuf/proto"
 
+	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/feed/tripupdates"
 	"open-transit-rt/internal/gtfs"
 	"open-transit-rt/internal/prediction"
@@ -127,6 +128,16 @@ func TestTripUpdatesHandlersReturnValidEmptyFeedAndDebug(t *testing.T) {
 	}
 }
 
+func TestTripUpdatesDebugRejectsUnauthenticatedAccess(t *testing.T) {
+	handler := newHandlerWithAuth(&fakeTripUpdatesBuilder{}, okPinger{}, authRejectAll{})
+	req := httptest.NewRequest(http.MethodGet, "/public/gtfsrt/trip_updates.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rr.Code)
+	}
+}
+
 func TestTripUpdatesHandlersRejectWrongMethodAndSurfaceSnapshotErrors(t *testing.T) {
 	handler := newHandler(&fakeTripUpdatesBuilder{err: errors.New("database down")}, okPinger{})
 	req := httptest.NewRequest(http.MethodPost, "/public/gtfsrt/trip_updates.pb", nil)
@@ -185,6 +196,16 @@ type errPinger struct {
 
 func (e errPinger) Ping(context.Context) error {
 	return e.err
+}
+
+type authRejectAll struct{}
+
+func (authRejectAll) Require(...auth.Role) func(http.Handler) http.Handler {
+	return func(_ http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+		})
+	}
 }
 
 type fakeAdapterSchedule struct{}

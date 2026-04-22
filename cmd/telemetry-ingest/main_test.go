@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"open-transit-rt/internal/auth"
+	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/telemetry"
 )
 
@@ -137,6 +139,54 @@ func TestTelemetryPostUnknownAgency(t *testing.T) {
 	}
 }
 
+func TestTelemetryPostRequiresDeviceTokenWhenHardened(t *testing.T) {
+	storeCalled := false
+	handler := newHandlerWithSecurity(fakeRepo{
+		storeFn: func(context.Context, telemetry.Event, json.RawMessage) (telemetry.StoreResult, error) {
+			storeCalled = true
+			return telemetry.StoreResult{}, nil
+		},
+		listFn: func(context.Context, string, int) ([]telemetry.StoredEvent, error) { return nil, nil },
+	}, acceptingDeviceStore{}, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}}, true)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/telemetry", strings.NewReader(validTelemetryPayload()))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status code = %d, want 401; body=%s", rec.Code, rec.Body.String())
+	}
+	if storeCalled {
+		t.Fatalf("store called without device token")
+	}
+}
+
+func TestTelemetryPostRejectsDeviceBindingMismatchWhenHardened(t *testing.T) {
+	handler := newHandlerWithSecurity(fakeRepo{
+		storeFn: func(context.Context, telemetry.Event, json.RawMessage) (telemetry.StoreResult, error) {
+			return telemetry.StoreResult{}, nil
+		},
+		listFn: func(context.Context, string, int) ([]telemetry.StoredEvent, error) { return nil, nil },
+	}, rejectingDeviceStore{}, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "test-admin",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}}, true)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/telemetry", strings.NewReader(validTelemetryPayload()))
+	req.Header.Set("Authorization", "Bearer bad-token")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status code = %d, want 401; body=%s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestEventsEndpointRequiresAgencyAndBoundedLimit(t *testing.T) {
 	var gotAgency string
 	var gotLimit int
@@ -216,4 +266,14 @@ func validTelemetryPayload() string {
 		"lat":49.2,
 		"lon":-123.1
 	}`
+}
+
+type rejectingDeviceStore struct{}
+
+func (rejectingDeviceStore) Verify(context.Context, devices.VerifyInput) (devices.Credential, error) {
+	return devices.Credential{}, errors.New("binding mismatch")
+}
+
+func (rejectingDeviceStore) Rebind(context.Context, devices.RebindInput) (devices.RebindResult, error) {
+	return devices.RebindResult{}, nil
 }
