@@ -4,7 +4,7 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Post-Phase-8 hardening slice is complete for the first pilot-readiness pass. No Phase 9 is defined in `docs/phase-plan.md`.
+Phase 9 — Production Closure is complete for the current codebase surface. Continue with Phase 10 from `docs/phase-plan-production-closure.md`.
 
 ## Phase Status
 
@@ -17,14 +17,14 @@ Post-Phase-8 hardening slice is complete for the first pilot-readiness pass. No 
 - Phase 6 Trip Updates and Alerts architecture is implemented and complete.
 - Phase 7 prediction quality and operations workflows are implemented and complete.
 - Phase 8 publication/compliance workflow is implemented and complete for the first production-directed layer.
-- Post-Phase-8 production hardening is implemented for validator execution, admin auth/roles, device auth/binding, assignment current-row races, safer config defaults, debug endpoint protection, and smoke coverage.
+- Phase 9 production closure is implemented for validator execution, validator tooling pins, admin auth/roles, device auth/binding, assignment current-row races, safer config defaults, debug endpoint protection, request logging/request IDs, metrics toggle, and smoke coverage.
 
 ## Read These Files First
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-08.md`
-4. `docs/phase-plan.md`
+3. `docs/handoffs/phase-09.md`
+4. `docs/phase-plan-production-closure.md`
 5. `docs/codex-task.md`
 6. `docs/requirements-2a-2f.md`
 7. `docs/requirements-trip-updates.md`
@@ -34,7 +34,7 @@ Post-Phase-8 hardening slice is complete for the first pilot-readiness pass. No 
 
 ## Current Objective
 
-Continue from the completed hardening slice. Preserve stable public protobuf feed URLs, protected JSON debug routes, auth-scoped admin mutations, device-token telemetry ingest, Phase 7 prediction boundaries, GTFS import, and GTFS Studio draft/publish behavior.
+Start Phase 10 — Docs, Tutorials, Deployment, and Demo. Preserve stable public protobuf feed URLs, protected JSON debug routes, auth-scoped admin mutations, device-token telemetry ingest, pinned validator setup, Phase 7 prediction boundaries, GTFS import, and GTFS Studio draft/publish behavior.
 
 ## Exact First Commands
 
@@ -42,6 +42,8 @@ Continue from the completed hardening slice. Preserve stable public protobuf fee
 command -v go
 go version
 make fmt
+make validators-install
+make validators-check
 make test
 make smoke
 docker compose -f deploy/docker-compose.yml config
@@ -64,20 +66,19 @@ task test:integration
 
 - Task is optional and may not be installed; Makefile remains independently usable.
 - Docker must be running before DB-backed checks.
-- Exact GTFS Realtime validator distribution digest is documented as required but still must be pinned/installed in CI and production automation.
+- Pinned validator tooling is repo-supported through `make validators-install` and `make validators-check`; CI and production automation still need to run or bake those steps into their environment.
 - Full hosted login/SSO and server-side `jti` replay tracking are deferred; the current auth contract accepts HS256 admin JWTs plus optional browser cookie sessions.
 - Consumer ingestion workflow records exist, but external consumer submission APIs are not integrated.
 
 ## First Files Likely To Edit
 
-- `.env.example`
-- `Makefile`
-- `internal/compliance/`
-- `cmd/agency-config/`
-- `internal/auth/`
-- `internal/devices/`
-- deployment/CI docs or scripts for validator installation
-- metrics/observability docs if production operations is the next slice
+- `README.md`
+- `docs/tutorials/local-quickstart.md`
+- `docs/tutorials/deploy-with-docker-compose.md`
+- `docs/tutorials/agency-demo-flow.md`
+- `docs/tutorials/production-checklist.md`
+- `docs/tutorials/calitp-readiness-checklist.md`
+- `docs/assets/README.md`
 
 ## Phase 8 Notes For Future Work
 
@@ -89,12 +90,15 @@ task test:integration
 - `feed_config.publication_environment = 'production'` makes missing canonical validator execution red in scorecards. In `dev`, missing validators are yellow/not-run.
 - Alerts authoring/persistence is owned by `internal/alerts`; GTFS-RT protobuf rendering is owned by `internal/feed/alerts`.
 - Prediction packages must not import Alerts packages. Canceled-trip missing-alert review signals are satisfied by the Alerts-owned reconciler.
-- Validator runs are allowlisted by `validator_id`; admin requests cannot provide commands, input paths, argv, URLs, or output directories.
-- Validator execution uses generated/fetched server-owned local artifacts/temp files, argv-based `exec.CommandContext`, timeout/output/report caps, and output confinement. Realtime validation derives protobuf artifacts from server-owned feed URLs and never from request input.
+- Validator runs are allowlisted by `validator_id`; admin requests may provide only `validator_id`, `feed_type`, and optional `feed_version_id`.
+- Validator execution uses server-owned local artifacts/temp files, argv-based `exec.CommandContext`, timeout/output/report caps, output confinement, and redacted argv/path reporting.
+- Realtime validation prefers internal builder-derived Vehicle Positions, Trip Updates, and Alerts protobuf bytes; configured feed URLs are fallback only when an internal builder cannot be constructed.
+- Pinned validator tooling lives in `tools/validators/validators.lock.json`; `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests only.
 - Admin JWTs require `sub`, `agency_id`, `iat`, `exp`, `iss`, and `aud`; default TTL is 8h, clock skew allowance is 2m, `ADMIN_JWT_OLD_SECRETS` supports secret rotation, and `jti` replay tracking is deferred.
 - Cookie auth is only for browser-admin flows; Bearer auth remains the default for machine/API admin calls.
 - Telemetry ingest requires opaque device Bearer tokens. `POST /admin/devices/rebind` rotates token and binding immediately.
 - `/public/gtfs/schedule.zip` returns `ETag`, `Last-Modified`, and `X-Checksum-SHA256`, with `SCHEDULE_ZIP_MAX_BYTES` bounding payload size.
+- `/metrics` exists only when `METRICS_ENABLED=true` and should be treated as an internal/reverse-proxy-controlled operations surface, not an anonymous public feed.
 
 ## Constraints To Preserve
 

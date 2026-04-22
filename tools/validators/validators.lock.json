@@ -1,0 +1,16 @@
+{
+  "static_gtfs": {
+    "name": "mobilitydata-gtfs-validator",
+    "version": "v7.1.0",
+    "url": "https://github.com/MobilityData/gtfs-validator/releases/download/v7.1.0/gtfs-validator-7.1.0-cli.jar",
+    "sha256": "52c2785089aaf04e7ba1bb11b2db215692e2622eb0e196b823c194d156d9b58c",
+    "local_path": ".cache/validators/gtfs-validator-7.1.0-cli.jar"
+  },
+  "gtfs_realtime": {
+    "name": "mobilitydata-gtfs-realtime-validator",
+    "source_tag": "latest",
+    "image": "ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89",
+    "digest": "sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89",
+    "wrapper_path": ".cache/validators/gtfs-rt-validator-wrapper.sh"
+  }
+}

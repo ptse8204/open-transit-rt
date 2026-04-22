@@ -204,6 +204,8 @@ Validate static GTFS before publish and during compliance checks.
 - static validation uses `validator_id=static-mobilitydata`
 - local/prod config supplies `GTFS_VALIDATOR_PATH`; if the path ends with `.jar`, the adapter runs `java -jar` through argv-based execution
 - expected canonical version: MobilityData GTFS Validator `v7.1.0`
+- repo-supported installation is `make validators-install`, which downloads `gtfs-validator-7.1.0-cli.jar` into `.cache/validators/` and verifies SHA-256 `52c2785089aaf04e7ba1bb11b2db215692e2622eb0e196b823c194d156d9b58c` from `tools/validators/validators.lock.json`
+- CI and production setup should run `make validators-install validators-check` or use a prebuilt runner image whose installed validator paths match `tools/validators/validators.lock.json`
 - validation results stored as normalized `validation_report` rows
 - validator output should not dictate internal schema design
 - Phase 4 implements an internal GTFS import validator/report contract for required files, supported route type ranges, numeric ranges, core references, usable service sources, shape ordering, stop_times references, times beyond `24:00:00`, frequencies, and block preservation. This internal validator is not a substitute for canonical compliance validation.
@@ -242,8 +244,12 @@ Validate GTFS-RT feeds:
 - invoked during CI, smoke tests, scheduled runtime validation, or admin validation runs
 - Post-Phase-8 hardening uses `validator_id=realtime-mobilitydata` with server-owned config from `GTFS_RT_VALIDATOR_PATH` and `GTFS_RT_VALIDATOR_ARGS`
 - realtime validation should prefer generated local feed bytes/temp files over internal feed URLs whenever the service can build the artifact locally
-- `cmd/agency-config` derives realtime artifacts from server-owned feed URLs (`VEHICLE_POSITIONS_FEED_URL`, `TRIP_UPDATES_FEED_URL`, `ALERTS_FEED_URL`, or `REALTIME_VALIDATION_BASE_URL`/`FEED_BASE_URL`) and writes them to local temp files before validator execution
+- `cmd/agency-config` now prefers internal builder-derived protobuf bytes for Vehicle Positions, Trip Updates, and Alerts, then writes those bytes to local temp files before validator execution
+- configured feed URLs (`VEHICLE_POSITIONS_FEED_URL`, `TRIP_UPDATES_FEED_URL`, `ALERTS_FEED_URL`, or `REALTIME_VALIDATION_BASE_URL`/`FEED_BASE_URL`) are a fallback only when internal builders cannot be constructed in that runtime context
 - the server-owned args may use `{schedule_zip}`, `{realtime_pb}`, `{feed_type}`, and `{output_dir}` placeholders
+- repo-supported GTFS-RT installation is Docker-backed: `make validators-install` pulls `ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89` and writes `.cache/validators/gtfs-rt-validator-wrapper.sh`
+- `GTFS_RT_VALIDATOR_PATH` should point to that wrapper for the repo-supported pinned workflow; a direct non-Docker executable is runtime-capable, but `make validators-check` intentionally does not accept it as pinned proof unless this document and `tools/validators/validators.lock.json` are extended with an equivalent checksum/digest contract
+- `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests or smoke runs that intentionally do not use pinned canonical tooling
 - CI/local/prod must pin the selected MobilityData GTFS Realtime validator distribution by immutable package digest before making compliance claims
 - output stored as normalized `validation_report` rows
 - does not own business logic; it verifies it
@@ -254,6 +260,7 @@ Validate GTFS-RT feeds:
 - missing validator binary configuration stores `status='not_run'`; in production scorecards this is red, and in dev scorecards this is yellow
 - request-provided shell text, paths, argv, output directories, and validator URLs are not accepted
 - validators run with timeout, stdout/stderr caps, report-size caps, and temp-file/output confinement
+- `make validate` and `make smoke` report missing pinned tooling separately from checksum/digest/path misconfiguration through `scripts/check-validators.sh`
 
 ### Replacement strategy
 - validator engine may be swapped
@@ -530,8 +537,9 @@ Phase 3 uses official GTFS-Realtime protobuf bindings for Vehicle Positions feed
 
 ### Startup / provisioning
 - protobuf bindings are pulled through Go modules
-- canonical validator execution runs when `GTFS_VALIDATOR_PATH` or `GTFS_RT_VALIDATOR_COMMAND` is configured
-- exact validator distributions are not pinned by repo automation yet
+- canonical validator execution runs when `GTFS_VALIDATOR_PATH` or `GTFS_RT_VALIDATOR_PATH` is configured
+- canonical validator setup is repo-supported through `make validators-install` and `make validators-check`
+- `GTFS_VALIDATOR_PATH` points to the pinned MobilityData static-validator JAR; `GTFS_RT_VALIDATOR_PATH` points to the pinned Docker-backed GTFS-RT wrapper for the repo-supported path
 
 ### Integration boundary
 - protobuf types may appear in feed boundary packages only

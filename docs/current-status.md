@@ -20,9 +20,11 @@ Phase 7 prediction quality and operations workflows are complete for the first c
 
 Phase 8 compliance and consumer workflow is complete for the first production-directed publication layer. The repo now has persisted Service Alerts authoring/lifecycle state, real GTFS-RT Alerts publication, Alerts-owned canceled-trip reconciliation, stable on-demand public static GTFS ZIP publication, `/public/feeds.json` discoverability metadata, publication/license/contact metadata workflows, consumer ingestion records, marketplace-gap records, compliance scorecard snapshots, and canonical-validator command adapters that normalize passed/warning/failed/not-run results.
 
-Post-Phase-8 production hardening is now implemented for the first pilot-readiness slice. Admin and JSON debug routes require JWT/cookie admin auth with DB-backed roles, cookie admin flows require CSRF on unsafe methods, telemetry ingest requires active device Bearer tokens bound to agency/device/vehicle, validator execution uses server-side allowlisted validator IDs with argv-based execution, current assignment writes are serialized and protected by a partial unique index, and production runtime config fails fast without required secrets.
+Phase 9 production closure is implemented for the current repository surface. Admin and JSON debug routes require JWT/cookie admin auth with DB-backed roles, cookie admin flows require CSRF on unsafe methods, telemetry ingest requires active device Bearer tokens bound to agency/device/vehicle, validator execution uses server-side allowlisted validator IDs with argv-based execution, current assignment writes are serialized and protected by a partial unique index, and production runtime config fails fast without required secrets.
 
-`/admin/validation/run` derives schedule and realtime artifacts itself. Schedule validation uses generated ZIP bytes; realtime validation fetches server-owned Vehicle Positions, Trip Updates, or Alerts protobuf bytes from configured feed URLs and writes local temp files before invoking the allowlisted validator.
+`/admin/validation/run` derives schedule and realtime artifacts itself. Schedule validation uses generated ZIP bytes; realtime validation prefers internally generated Vehicle Positions, Trip Updates, or Alerts protobuf bytes from the service builder boundary and uses configured feed URLs only as a fallback. The endpoint accepts only `validator_id`, `feed_type`, and optional `feed_version_id`; command/path/argv/output/artifact request fields are rejected.
+
+Validator tooling now has a repo-supported pin/install/check workflow. `make validators-install` installs MobilityData GTFS Validator `v7.1.0` with SHA-256 verification and a Docker-backed GTFS-RT validator wrapper pinned to `ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89`. `make validators-check`, `make validate`, and `make smoke` distinguish missing pinned tooling from checksum/digest/path misconfiguration. `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests.
 
 ## What Exists Now
 
@@ -189,16 +191,15 @@ Migrations under `db/migrations` are the source of truth for executable schema c
 The following are still missing or incomplete unless a later handoff says otherwise:
 
 - production-grade learned ETA/prediction quality and backtesting
-- production auth and role enforcement for admin/operator endpoints
-- canonical validator binaries/commands pinned into local/CI environments
+- hosted login/SSO and server-side admin JWT `jti` replay tracking
 - manual override workflows
-- production observability and SLO reporting
+- production SLO dashboards and alerting beyond basic request logs, request IDs, readiness checks, and `/metrics` toggle
 
 ## Current Phase
 
-**Active phase:** Phase 8 — Compliance and consumer workflow is complete. No Phase 9 is defined in `docs/phase-plan.md`; next work should be a focused hardening slice.
+**Active phase:** Phase 9 — Production Closure is complete for the current codebase surface. `docs/phase-plan-production-closure.md` defines the follow-on closure phases.
 
-Phase 7 is complete. The next Codex instance should start with `docs/handoffs/latest.md`.
+The next Codex instance should start with `docs/handoffs/latest.md`.
 
 ## Architecture Posture
 
@@ -443,15 +444,38 @@ Phase 8 implementation results:
 - kept realtime `published_feed.revision_timestamp` as publication/bootstrap metadata revision; realtime feed generation does not update it.
 - kept schedule `published_feed.revision_timestamp` tied to active schedule publication/bootstrap metadata, not request time.
 
+## Phase 9 Closure Audit Results
+
+Checked during Phase 9 closure:
+- `gofmt -w ./cmd ./internal`: passed.
+- `go mod tidy`: passed.
+- `go test ./...`: passed.
+- `make validators-install`: passed; installed the pinned static GTFS validator JAR and Docker-backed GTFS-RT validator wrapper.
+- `make validators-check`: passed.
+- `make validate`: passed with pinned validator tooling checks.
+- `make test-integration`: passed with DB-backed tests using isolated temporary databases where supported.
+- `make smoke`: passed with pinned validator tooling checks and HTTP/runtime hardening package coverage.
+- `docker compose -f deploy/docker-compose.yml config`: passed.
+- `git diff --check`: passed.
+
+Phase 9 implementation results:
+- tightened `/admin/validation/run` to accept only `validator_id`, `feed_type`, and optional `feed_version_id`.
+- added handler coverage proving schedule and Vehicle Positions, Trip Updates, and Alerts realtime validation runs return `200`, persist results, normalize status, and record feed type/feed version.
+- made realtime validation prefer internal builder-derived protobuf bytes and use configured feed URLs only as fallback.
+- added repo-supported validator install/check targets and lock file for pinned static GTFS and GTFS-RT validator tooling.
+- added structured request logs, request IDs, redaction rules, and `/metrics` only when `METRICS_ENABLED=true`.
+- strengthened DB-backed device rebind tests for spoof rejection and immediate old-token invalidation.
+- strengthened assignment current-row race tests with a partial-index assertion and higher concurrency.
+
 ## Next Recommended Step
 
-Begin a post-Phase-8 hardening slice using the exact recommendation in `docs/handoffs/latest.md`.
+Begin Phase 10 — Docs, Tutorials, Deployment, and Demo using the exact recommendation in `docs/handoffs/latest.md`.
 
 The first implementation slice should be:
-1. pin canonical validator distributions for local/CI/prod environments
-2. add production auth/role enforcement around admin mutation endpoints
-3. add a richer operator UI only after the JSON workflows remain stable
-4. keep Trip Updates, Vehicle Positions, GTFS import, and GTFS Studio behavior stable
+1. update README and local quickstart to match the Phase 9 runtime exactly
+2. document the agency demo flow using the current pinned validator setup and auth/device-token workflow
+3. add deployment guidance for reverse proxy/TLS, internal `/metrics`, pinned validators, and service env vars
+4. keep compliance wording technical and truthful; do not claim consumer acceptance or full CAL-ITP/Caltrans compliance without deployment evidence
 
 ## What Not To Do Next
 

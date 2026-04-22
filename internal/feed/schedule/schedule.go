@@ -58,6 +58,30 @@ func (b *Builder) Snapshot(ctx context.Context, generatedAt time.Time) (Snapshot
 	}, nil
 }
 
+func (b *Builder) SnapshotForFeedVersion(ctx context.Context, feedVersionID string, generatedAt time.Time) (Snapshot, error) {
+	if feedVersionID == "" {
+		return b.Snapshot(ctx, generatedAt)
+	}
+	if generatedAt.IsZero() {
+		generatedAt = time.Now().UTC()
+	}
+	feed, err := b.feedByID(ctx, feedVersionID)
+	if err != nil {
+		return Snapshot{}, err
+	}
+	payload, err := b.buildZIP(ctx, feed)
+	if err != nil {
+		return Snapshot{}, err
+	}
+	return Snapshot{
+		AgencyID:      b.agencyID,
+		FeedVersionID: feed.ID,
+		GeneratedAt:   generatedAt.UTC(),
+		RevisionTime:  feed.RevisionTime.UTC(),
+		Payload:       payload,
+	}, nil
+}
+
 type activeFeed struct {
 	ID           string
 	RevisionTime time.Time
@@ -75,6 +99,21 @@ func (b *Builder) activeFeed(ctx context.Context) (activeFeed, error) {
 	`, b.agencyID).Scan(&feed.ID, &feed.RevisionTime)
 	if err != nil {
 		return activeFeed{}, fmt.Errorf("query active schedule feed: %w", err)
+	}
+	return feed, nil
+}
+
+func (b *Builder) feedByID(ctx context.Context, feedVersionID string) (activeFeed, error) {
+	var feed activeFeed
+	err := b.pool.QueryRow(ctx, `
+		SELECT id, COALESCE(activated_at, published_at, created_at)
+		FROM feed_version
+		WHERE agency_id = $1
+		  AND id = $2
+		  AND lifecycle_state IN ('staged', 'active', 'retired')
+	`, b.agencyID, feedVersionID).Scan(&feed.ID, &feed.RevisionTime)
+	if err != nil {
+		return activeFeed{}, fmt.Errorf("query schedule feed version: %w", err)
 	}
 	return feed, nil
 }

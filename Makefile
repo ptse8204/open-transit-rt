@@ -5,7 +5,7 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate
+.PHONY: build deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check
 
 build:
 	go build ./...
@@ -62,18 +62,26 @@ test:
 	go test ./...
 
 test-integration: migrate-status
-	@echo "Phase 8 hardening integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, and hardening tests use isolated temporary databases when supported."
+	@echo "Phase 9 production-closure integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, device auth, assignment race, and hardening tests use isolated temporary databases when supported."
 	INTEGRATION_TESTS=1 TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...
+
+validators-install:
+	./scripts/install-validators.sh
+
+validators-check:
+	./scripts/check-validators.sh
 
 smoke:
 	@echo "Running hardening HTTP smoke coverage..."
-	go test ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices
+	@./scripts/check-validators.sh
+	go test ./cmd/agency-config ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices ./internal/compliance ./internal/state
 
 lint:
 	@if command -v golangci-lint >/dev/null 2>&1; then golangci-lint run ./...; else echo "optional lint skipped: golangci-lint is not installed; future CI should make this required once configured"; fi
 
 validate:
-	@echo "Phase 8 hardening validation smoke: checking scaffold, auth, device credentials, validators, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, Alerts, schedule publication, and compliance workflow files."
+	@echo "Phase 9 production-closure validation smoke: checking scaffold, auth, device credentials, pinned validators, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, Alerts, schedule publication, and compliance workflow files."
+	@./scripts/check-validators.sh
 	@test -f db/migrations/000001_initial_schema.sql
 	@test -f db/migrations/000002_telemetry_ingest_foundation.sql
 	@test -f db/migrations/000003_deterministic_matching.sql
@@ -90,6 +98,9 @@ validate:
 	@test -f internal/feed/schedule/schedule.go
 	@test -f internal/alerts/model.go
 	@test -f internal/compliance/model.go
+	@test -f tools/validators/validators.lock.json
+	@test -f scripts/install-validators.sh
+	@test -f scripts/check-validators.sh
 	@test -f internal/prediction/model.go
 	@test -f internal/prediction/deterministic.go
 	@test -f internal/prediction/postgres_operations.go

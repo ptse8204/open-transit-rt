@@ -61,6 +61,40 @@ func TestValidationRunDerivesRealtimeArtifacts(t *testing.T) {
 	}
 }
 
+func TestValidationRunDerivesScheduleArtifact(t *testing.T) {
+	validatorPath := writeScheduleValidator(t)
+	t.Setenv("GTFS_VALIDATOR_PATH", validatorPath)
+	t.Setenv("GTFS_VALIDATOR_VERSION", "test-validator")
+
+	store := &fakePublicationStore{}
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-demo", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip bytes")}},
+		store,
+		fakeDeviceStore{},
+		fakePinger{},
+		auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}},
+		&fakeRealtimeArtifacts{},
+	)
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/validation/run", bytes.NewReader([]byte(`{"validator_id":"static-mobilitydata","feed_type":"schedule"}`)))
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var result compliance.ValidationResult
+	if err := json.Unmarshal(rr.Body.Bytes(), &result); err != nil {
+		t.Fatalf("decode result: %v", err)
+	}
+	if result.Status != "passed" || result.FeedType != "schedule" || result.FeedVersionID != "feed-demo" {
+		t.Fatalf("result = %+v, want passed schedule validation recorded for feed-demo", result)
+	}
+	if store.result.Status != "passed" || store.result.FeedType != "schedule" || store.result.FeedVersionID != "feed-demo" {
+		t.Fatalf("stored result = %+v, want persisted passed schedule validation", store.result)
+	}
+}
+
 func TestValidationRunRejectsClientSuppliedRealtimePath(t *testing.T) {
 	handler := newHandlerWithRealtime(
 		"demo-agency",
@@ -76,6 +110,88 @@ func TestValidationRunRejectsClientSuppliedRealtimePath(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400", rr.Code)
+	}
+}
+
+func TestValidationRunRejectsUnknownFields(t *testing.T) {
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}},
+		&fakeRealtimeArtifacts{},
+	)
+	for _, body := range []string{
+		`{"validator_id":"static-mobilitydata","feed_type":"schedule","agency_id":"demo-agency"}`,
+		`{"validator_id":"realtime-mobilitydata","feed_type":"alerts","argv":["bad"]}`,
+	} {
+		req := httptest.NewRequest(http.MethodPost, "/admin/validation/run", bytes.NewReader([]byte(body)))
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusBadRequest {
+			t.Fatalf("body %s status = %d, want 400", body, rr.Code)
+		}
+	}
+}
+
+func TestValidationRunRejectsUnknownValidatorAndFeedType(t *testing.T) {
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}},
+		&fakeRealtimeArtifacts{},
+	)
+	for _, body := range []string{
+		`{"validator_id":"missing","feed_type":"schedule"}`,
+		`{"validator_id":"static-mobilitydata","feed_type":"alerts"}`,
+	} {
+		req := httptest.NewRequest(http.MethodPost, "/admin/validation/run", bytes.NewReader([]byte(body)))
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusBadRequest {
+			t.Fatalf("body %s status = %d, want 400", body, rr.Code)
+		}
+	}
+}
+
+func TestAgencyConfigAdminRejectsUnauthenticatedAccess(t *testing.T) {
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		authRejectAll{},
+		&fakeRealtimeArtifacts{},
+	)
+	req := httptest.NewRequest(http.MethodPost, "/admin/validation/run", bytes.NewReader([]byte(`{"validator_id":"static-mobilitydata","feed_type":"schedule"}`)))
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rr.Code)
+	}
+}
+
+func TestPublicScheduleRemainsAnonymous(t *testing.T) {
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-demo", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip bytes")}},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		authRejectAll{},
+		&fakeRealtimeArtifacts{},
+	)
+	req := httptest.NewRequest(http.MethodGet, "/public/gtfs/schedule.zip", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want anonymous 200", rr.Code)
 	}
 }
 
@@ -102,6 +218,26 @@ printf '%s' '{"status":"passed","error_count":0,"warning_count":0,"info_count":1
 	return path
 }
 
+func writeScheduleValidator(t *testing.T) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "gtfs-validator.sh")
+	script := `#!/bin/sh
+schedule=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -i) shift; schedule="$1" ;;
+  esac
+  shift
+done
+test -s "$schedule" || exit 3
+printf '%s' '{"status":"passed","error_count":0,"warning_count":0,"info_count":1}'
+`
+	if err := os.WriteFile(path, []byte(script), 0o700); err != nil {
+		t.Fatalf("write validator: %v", err)
+	}
+	return path
+}
+
 type fakeScheduleBuilder struct {
 	snapshot schedule.Snapshot
 	err      error
@@ -112,6 +248,17 @@ func (f fakeScheduleBuilder) Snapshot(context.Context, time.Time) (schedule.Snap
 		return schedule.Snapshot{}, f.err
 	}
 	return f.snapshot, nil
+}
+
+func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersionID string, _ time.Time) (schedule.Snapshot, error) {
+	if f.err != nil {
+		return schedule.Snapshot{}, f.err
+	}
+	snapshot := f.snapshot
+	if feedVersionID != "" {
+		snapshot.FeedVersionID = feedVersionID
+	}
+	return snapshot, nil
 }
 
 type fakePublicationStore struct {
@@ -152,15 +299,15 @@ type fakeRealtimeArtifacts struct {
 	calls    map[string]int
 }
 
-func (f *fakeRealtimeArtifacts) RealtimePB(_ context.Context, feedType string) ([]byte, error) {
+func (f *fakeRealtimeArtifacts) RealtimePB(_ context.Context, feedType string) ([]byte, string, error) {
 	if f.calls == nil {
 		f.calls = map[string]int{}
 	}
 	f.calls[feedType]++
 	if payload := f.payloads[feedType]; len(payload) > 0 {
-		return payload, nil
+		return payload, "internal_builder", nil
 	}
-	return []byte("protobuf-" + feedType), nil
+	return []byte("protobuf-" + feedType), "internal_builder", nil
 }
 
 type fakeDeviceStore struct{}
@@ -177,4 +324,14 @@ type fakePinger struct{}
 
 func (fakePinger) Ping(context.Context) error {
 	return nil
+}
+
+type authRejectAll struct{}
+
+func (authRejectAll) Require(...auth.Role) func(http.Handler) http.Handler {
+	return func(_ http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+		})
+	}
 }

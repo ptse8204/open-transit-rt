@@ -16,12 +16,22 @@ import (
 	"sync"
 	"time"
 
+	domainalerts "open-transit-rt/internal/alerts"
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
 	appdb "open-transit-rt/internal/db"
 	"open-transit-rt/internal/devices"
+	"open-transit-rt/internal/feed"
+	feedalerts "open-transit-rt/internal/feed/alerts"
 	"open-transit-rt/internal/feed/schedule"
+	"open-transit-rt/internal/feed/tripupdates"
+	"open-transit-rt/internal/gtfs"
+	"open-transit-rt/internal/prediction"
 	"open-transit-rt/internal/server"
+	"open-transit-rt/internal/state"
+	"open-transit-rt/internal/telemetry"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type pinger interface {
@@ -30,6 +40,7 @@ type pinger interface {
 
 type scheduleBuilder interface {
 	Snapshot(ctx context.Context, generatedAt time.Time) (schedule.Snapshot, error)
+	SnapshotForFeedVersion(ctx context.Context, feedVersionID string, generatedAt time.Time) (schedule.Snapshot, error)
 }
 
 type publicationStore interface {
@@ -47,7 +58,7 @@ type adminAuth interface {
 }
 
 type realtimeArtifactSource interface {
-	RealtimePB(ctx context.Context, feedType string) ([]byte, error)
+	RealtimePB(ctx context.Context, feedType string) ([]byte, string, error)
 }
 
 type handler struct {
@@ -90,7 +101,11 @@ func main() {
 }
 
 func newHandler(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth) http.Handler {
-	return newHandlerWithRealtime(agencyID, scheduleBuilder, store, deviceStore, ready, admin, realtimeArtifactSourceFromEnv())
+	var pool *pgxpool.Pool
+	if typed, ok := ready.(*pgxpool.Pool); ok {
+		pool = typed
+	}
+	return newHandlerWithRealtime(agencyID, scheduleBuilder, store, deviceStore, ready, admin, realtimeArtifactSourceFromEnv(pool, agencyID))
 }
 
 func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource) http.Handler {
@@ -285,43 +300,61 @@ func (h *handler) runValidation(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	var input compliance.ValidationRunInput
+	var input validationRunRequest
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&input); err != nil {
 		http.Error(w, "invalid json", http.StatusBadRequest)
 		return
 	}
-	if auth.RejectAgencyConflict(w, input.AgencyID, principal) {
+	runInput := compliance.ValidationRunInput{
+		AgencyID:      principal.AgencyID,
+		FeedType:      input.FeedType,
+		FeedVersionID: input.FeedVersionID,
+		ValidatorID:   input.ValidatorID,
+	}
+	registry := compliance.ValidatorRegistryFromEnv()
+	spec, ok := registry[runInput.ValidatorID]
+	if !ok || runInput.ValidatorID == "" {
+		http.Error(w, "unknown validator_id", http.StatusBadRequest)
 		return
 	}
-	input.AgencyID = principal.AgencyID
-	registry := compliance.ValidatorRegistryFromEnv()
-	if spec, ok := registry[input.ValidatorID]; ok && spec.RequiresSchedule {
-		snapshot, err := h.schedule.Snapshot(r.Context(), time.Now().UTC().Truncate(time.Second))
+	if !spec.Supports(runInput.FeedType) {
+		http.Error(w, "validator does not support feed_type", http.StatusBadRequest)
+		return
+	}
+	if spec.RequiresSchedule {
+		snapshot, err := h.schedule.SnapshotForFeedVersion(r.Context(), runInput.FeedVersionID, time.Now().UTC().Truncate(time.Second))
 		if err != nil {
 			http.Error(w, "build schedule zip for validation", http.StatusInternalServerError)
 			return
 		}
-		input.ScheduleZIPPayload = snapshot.Payload
-		if input.FeedVersionID == "" {
-			input.FeedVersionID = snapshot.FeedVersionID
+		runInput.ScheduleZIPPayload = snapshot.Payload
+		if runInput.FeedVersionID == "" {
+			runInput.FeedVersionID = snapshot.FeedVersionID
 		}
 	}
-	if spec, ok := registry[input.ValidatorID]; ok && spec.RequiresRealtime {
-		payload, err := h.realtime.RealtimePB(r.Context(), input.FeedType)
+	if spec.RequiresRealtime {
+		payload, source, err := h.realtime.RealtimePB(r.Context(), runInput.FeedType)
 		if err != nil {
 			http.Error(w, "load realtime protobuf for validation", http.StatusInternalServerError)
 			return
 		}
-		input.RealtimePBPayload = payload
+		runInput.RealtimePBPayload = payload
+		runInput.RealtimeArtifactSource = source
 	}
-	result, err := compliance.RunValidation(r.Context(), h.store, registry, input)
+	result, err := compliance.RunValidation(r.Context(), h.store, registry, runInput)
 	if err != nil {
 		http.Error(w, "run validation", http.StatusInternalServerError)
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
+}
+
+type validationRunRequest struct {
+	FeedType      string `json:"feed_type"`
+	FeedVersionID string `json:"feed_version_id"`
+	ValidatorID   string `json:"validator_id"`
 }
 
 func (h *handler) rebindDevice(w http.ResponseWriter, r *http.Request) {
@@ -399,7 +432,15 @@ type httpRealtimeArtifactSource struct {
 	maxBytes int64
 }
 
-func realtimeArtifactSourceFromEnv() realtimeArtifactSource {
+func realtimeArtifactSourceFromEnv(pool *pgxpool.Pool, agencyID string) realtimeArtifactSource {
+	fallback := httpRealtimeArtifactSourceFromEnv()
+	if pool == nil || strings.TrimSpace(agencyID) == "" {
+		return fallback
+	}
+	return newInternalRealtimeArtifactSource(pool, agencyID, fallback)
+}
+
+func httpRealtimeArtifactSourceFromEnv() realtimeArtifactSource {
 	maxBytes := int64(10 * 1024 * 1024)
 	if raw := os.Getenv("REALTIME_VALIDATION_MAX_BYTES"); raw != "" {
 		if parsed, err := strconv.ParseInt(raw, 10, 64); err == nil && parsed > 0 {
@@ -419,35 +460,144 @@ func realtimeArtifactSourceFromEnv() realtimeArtifactSource {
 	}
 }
 
-func (s *httpRealtimeArtifactSource) RealtimePB(ctx context.Context, feedType string) ([]byte, error) {
+func (s *httpRealtimeArtifactSource) RealtimePB(ctx context.Context, feedType string) ([]byte, string, error) {
 	rawURL := strings.TrimSpace(s.urls[feedType])
 	if rawURL == "" {
-		return nil, fmt.Errorf("no server-owned realtime validation URL configured for %s", feedType)
+		return nil, "", fmt.Errorf("no server-owned realtime validation URL configured for %s", feedType)
 	}
 	parsed, err := url.Parse(rawURL)
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-		return nil, fmt.Errorf("invalid server-owned realtime validation URL for %s", feedType)
+		return nil, "", fmt.Errorf("invalid server-owned realtime validation URL for %s", feedType)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsed.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("build realtime validation request: %w", err)
+		return nil, "", fmt.Errorf("build realtime validation request: %w", err)
 	}
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("fetch realtime validation artifact: %w", err)
+		return nil, "", fmt.Errorf("fetch realtime validation artifact: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return nil, fmt.Errorf("fetch realtime validation artifact status %d", resp.StatusCode)
+		return nil, "", fmt.Errorf("fetch realtime validation artifact status %d", resp.StatusCode)
 	}
 	payload, err := io.ReadAll(io.LimitReader(resp.Body, s.maxBytes+1))
 	if err != nil {
-		return nil, fmt.Errorf("read realtime validation artifact: %w", err)
+		return nil, "", fmt.Errorf("read realtime validation artifact: %w", err)
 	}
 	if int64(len(payload)) > s.maxBytes {
-		return nil, fmt.Errorf("realtime validation artifact exceeds REALTIME_VALIDATION_MAX_BYTES")
+		return nil, "", fmt.Errorf("realtime validation artifact exceeds REALTIME_VALIDATION_MAX_BYTES")
 	}
-	return payload, nil
+	return payload, "feed_url", nil
+}
+
+type internalRealtimeArtifactSource struct {
+	vehiclePositions interface {
+		Snapshot(context.Context, time.Time) (feed.VehiclePositionsSnapshot, error)
+	}
+	tripUpdates interface {
+		Snapshot(context.Context, time.Time) (tripupdates.Snapshot, error)
+	}
+	alerts interface {
+		Snapshot(context.Context, time.Time) (feedalerts.Snapshot, error)
+	}
+	fallback realtimeArtifactSource
+}
+
+func newInternalRealtimeArtifactSource(pool *pgxpool.Pool, agencyID string, fallback realtimeArtifactSource) realtimeArtifactSource {
+	src := &internalRealtimeArtifactSource{fallback: fallback}
+
+	assignments := state.NewPostgresRepository(pool)
+	telemetryRepo := telemetry.NewPostgresRepository(pool)
+	gtfsRepo := gtfs.NewPostgresRepository(pool)
+
+	vpConfig := feed.VehiclePositionsConfig{
+		AgencyID:                  agencyID,
+		MaxVehicles:               getenvInt("VEHICLE_POSITIONS_MAX_VEHICLES", 2000),
+		StaleTelemetryTTL:         time.Duration(getenvInt("STALE_TELEMETRY_TTL_SECONDS", 90)) * time.Second,
+		SuppressStaleVehicleAfter: time.Duration(getenvInt("SUPPRESS_STALE_VEHICLE_AFTER_SECONDS", 300)) * time.Second,
+		TripConfidenceThreshold:   getenvFloat("VEHICLE_POSITIONS_TRIP_CONFIDENCE_THRESHOLD", state.DefaultConfig().MinConfidence),
+	}
+	if builder, err := feed.NewVehiclePositionsBuilder(telemetryRepo, assignments, vpConfig); err == nil {
+		src.vehiclePositions = builder
+	}
+
+	ops := prediction.NewPostgresOperationsRepository(pool)
+	adapter, err := predictionAdapterFromEnv(gtfsRepo, ops)
+	if err == nil {
+		tuConfig := tripupdates.Config{
+			AgencyID:            agencyID,
+			MaxVehicles:         getenvInt("TRIP_UPDATES_MAX_VEHICLES", 2000),
+			VehiclePositionsURL: firstNonEmpty(os.Getenv("VEHICLE_POSITIONS_FEED_URL"), realtimeFeedURL(firstNonEmpty(os.Getenv("REALTIME_VALIDATION_BASE_URL"), os.Getenv("FEED_BASE_URL")), "vehicle_positions"), "internal://vehicle_positions"),
+		}
+		if builder, err := tripupdates.NewBuilder(gtfsRepo, telemetryRepo, assignments, adapter, prediction.NewPostgresDiagnosticsRepository(pool), tuConfig); err == nil {
+			src.tripUpdates = builder
+		}
+	}
+
+	alertRepo := domainalerts.NewPostgresRepository(pool)
+	if builder, err := feedalerts.NewBuilder(alertRepo, feedalerts.NewPostgresHealthRepository(pool), feedalerts.Config{AgencyID: agencyID}); err == nil {
+		src.alerts = builder
+	}
+
+	return src
+}
+
+func (s *internalRealtimeArtifactSource) RealtimePB(ctx context.Context, feedType string) ([]byte, string, error) {
+	generatedAt := time.Now().UTC().Truncate(time.Second)
+	switch feedType {
+	case "vehicle_positions":
+		if s.vehiclePositions != nil {
+			snapshot, err := s.vehiclePositions.Snapshot(ctx, generatedAt)
+			if err != nil {
+				return nil, "", err
+			}
+			payload, err := snapshot.MarshalProto()
+			return payload, "internal_builder", err
+		}
+	case "trip_updates":
+		if s.tripUpdates != nil {
+			snapshot, err := s.tripUpdates.Snapshot(ctx, generatedAt)
+			if err != nil {
+				return nil, "", err
+			}
+			payload, err := snapshot.MarshalProto()
+			return payload, "internal_builder", err
+		}
+	case "alerts":
+		if s.alerts != nil {
+			snapshot, err := s.alerts.Snapshot(ctx, generatedAt)
+			if err != nil {
+				return nil, "", err
+			}
+			payload, err := snapshot.MarshalProto()
+			return payload, "internal_builder", err
+		}
+	}
+	if s.fallback == nil {
+		return nil, "", fmt.Errorf("no internal realtime artifact builder configured for %s", feedType)
+	}
+	payload, _, err := s.fallback.RealtimePB(ctx, feedType)
+	if err != nil {
+		return nil, "", err
+	}
+	return payload, "feed_url_fallback", nil
+}
+
+func predictionAdapterFromEnv(scheduleRepo gtfs.Repository, operationsRepo prediction.OperationsRepository) (prediction.Adapter, error) {
+	switch strings.ToLower(firstNonEmpty(os.Getenv("TRIP_UPDATES_ADAPTER"), "deterministic")) {
+	case "noop":
+		return prediction.NewNoopAdapter(), nil
+	case "deterministic":
+		return prediction.NewDeterministicAdapter(scheduleRepo, operationsRepo, prediction.DeterministicConfig{
+			StaleTelemetryTTL:       time.Duration(getenvInt("TRIP_UPDATES_STALE_TELEMETRY_TTL_SECONDS", 90)) * time.Second,
+			AssignmentConfidenceMin: getenvFloat("TRIP_UPDATES_ASSIGNMENT_CONFIDENCE_THRESHOLD", state.DefaultConfig().MinConfidence),
+			MaxScheduleDeviation:    time.Duration(getenvInt("TRIP_UPDATES_MAX_SCHEDULE_DEVIATION_SECONDS", 2700)) * time.Second,
+			DuplicateConfidenceGap:  getenvFloat("TRIP_UPDATES_DUPLICATE_CONFIDENCE_GAP", 0.05),
+		})
+	default:
+		return nil, fmt.Errorf("TRIP_UPDATES_ADAPTER must be noop or deterministic")
+	}
 }
 
 func realtimeFeedURL(baseURL string, feedType string) string {
@@ -472,6 +622,30 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func getenvInt(key string, fallback int) int {
+	raw := strings.TrimSpace(os.Getenv(key))
+	if raw == "" {
+		return fallback
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0
+	}
+	return value
+}
+
+func getenvFloat(key string, fallback float64) float64 {
+	raw := strings.TrimSpace(os.Getenv(key))
+	if raw == "" {
+		return fallback
+	}
+	value, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		return -1
+	}
+	return value
 }
 
 type scheduleZIPCache struct {

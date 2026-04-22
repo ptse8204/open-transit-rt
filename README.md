@@ -172,6 +172,8 @@ Task is optional. The Makefile remains independently usable when `task` is not i
 ```bash
 make build
 make test
+make validators-install
+make validators-check
 ```
 
 Useful local commands:
@@ -184,7 +186,9 @@ make validate
 
 `make test-integration` runs DB-backed telemetry tests. The tests prefer creating an isolated temporary database from `TEST_DATABASE_URL`; if that is not permitted, they fall back to an isolated temporary schema in the configured test database.
 
-`make smoke` runs the hardening HTTP smoke coverage, including unauthenticated admin/debug rejection and telemetry token checks. `make validate` verifies required hardening, validator, migration, and fixture paths exist. Canonical validators run through server-side allowlisted validator IDs when configured.
+`make validators-install` installs the repo-pinned MobilityData static GTFS validator JAR and the Docker-backed GTFS-RT validator wrapper. `make validators-check`, `make validate`, and `make smoke` distinguish missing pinned tooling from checksum/digest/path misconfiguration. Use `VALIDATOR_TOOLING_MODE=stub` only for deterministic validator stubs in targeted tests.
+
+`make smoke` runs hardening HTTP/runtime smoke coverage, including validation handler success paths, unauthenticated admin/debug rejection, and telemetry token checks. `make validate` verifies required hardening, pinned validator, migration, and fixture paths exist.
 
 Production deployment notes:
 - Set `APP_ENV=production`; services fail fast without `DATABASE_URL`, admin JWT config, `CSRF_SECRET`, and `DEVICE_TOKEN_PEPPER`.
@@ -194,6 +198,6 @@ Production deployment notes:
 
 ## Recommended next build order
 
-1. integrate real hosted identity or SSO in front of the JWT contract
-2. add stronger feed SLO dashboards and metrics export
-3. install/pin canonical validator distributions in CI and production automation
+1. update tutorials and demo docs to match the Phase 9 validator/auth/device-token workflow
+2. document deployment reverse-proxy controls for public feeds, protected admin/debug routes, and internal `/metrics`
+3. add stronger feed SLO dashboards and alerting beyond the basic metrics endpoint

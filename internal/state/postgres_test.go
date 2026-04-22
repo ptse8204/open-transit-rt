@@ -606,9 +606,27 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		resetMatcherData(t, ctx, pool)
 		seedDemoSchedule(t, ctx, pool, true)
 
+		var currentIndexExists bool
+		if err := pool.QueryRow(ctx, `
+			SELECT EXISTS (
+				SELECT 1
+				FROM pg_indexes
+				WHERE schemaname = current_schema()
+				  AND indexname = 'vehicle_trip_assignment_current_uidx'
+				  AND indexdef ILIKE '%WHERE (active_to IS NULL)%'
+			)
+		`).Scan(&currentIndexExists); err != nil {
+			t.Fatalf("query current assignment index: %v", err)
+		}
+		if !currentIndexExists {
+			t.Fatalf("vehicle_trip_assignment_current_uidx partial active-row index is missing")
+		}
+
 		var wg sync.WaitGroup
-		errs := make(chan error, 2)
-		for i, tripID := range []string{"trip-concurrent-a", "trip-concurrent-b"} {
+		const writers = 12
+		errs := make(chan error, writers)
+		for i := 0; i < writers; i++ {
+			tripID := fmt.Sprintf("trip-concurrent-%02d", i)
 			wg.Add(1)
 			go func(i int, tripID string) {
 				defer wg.Done()

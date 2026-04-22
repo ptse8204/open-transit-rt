@@ -73,13 +73,22 @@ tasks:
   test:integration:
     cmds:
       - DATABASE_URL="{{.DATABASE_URL}}" MIGRATIONS_DIR="{{.MIGRATIONS_DIR}}" go run ./cmd/migrate status
-      - echo "Phase 8 hardening integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, and hardening tests use isolated temporary databases when supported."
+      - echo "Phase 9 production-closure integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, device auth, assignment race, and hardening tests use isolated temporary databases when supported."
       - INTEGRATION_TESTS=1 TEST_DATABASE_URL="{{.TEST_DATABASE_URL}}" go test ./...
+
+  validators:install:
+    cmds:
+      - ./scripts/install-validators.sh
+
+  validators:check:
+    cmds:
+      - ./scripts/check-validators.sh
 
   smoke:
     cmds:
       - echo "Running hardening HTTP smoke coverage..."
-      - go test ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices
+      - ./scripts/check-validators.sh
+      - go test ./cmd/agency-config ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices ./internal/compliance ./internal/state
 
   fmt:
     cmds:
@@ -96,7 +105,8 @@ tasks:
 
   validate:
     cmds:
-      - echo "Phase 8 hardening validation smoke: checking scaffold, auth, device credentials, validators, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, Alerts, schedule publication, and compliance workflow files."
+      - echo "Phase 9 production-closure validation smoke: checking scaffold, auth, device credentials, pinned validators, telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates prediction operations, Alerts, schedule publication, and compliance workflow files."
+      - ./scripts/check-validators.sh
       - test -f db/migrations/000001_initial_schema.sql
       - test -f db/migrations/000002_telemetry_ingest_foundation.sql
       - test -f db/migrations/000003_deterministic_matching.sql
@@ -110,6 +120,12 @@ tasks:
       - test -f internal/feed/vehicle_positions.go
       - test -f internal/feed/tripupdates/trip_updates.go
       - test -f internal/feed/alerts/alerts.go
+      - test -f internal/feed/schedule/schedule.go
+      - test -f internal/alerts/model.go
+      - test -f internal/compliance/model.go
+      - test -f tools/validators/validators.lock.json
+      - test -f scripts/install-validators.sh
+      - test -f scripts/check-validators.sh
       - test -f internal/prediction/model.go
       - test -f internal/prediction/deterministic.go
       - test -f internal/prediction/postgres_operations.go

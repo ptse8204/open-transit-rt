@@ -129,6 +129,14 @@ func RunValidation(ctx context.Context, store ValidationStore, registry Validato
 		}
 		return result, nil
 	}
+	if err := spec.validatePlaceholders(); err != nil {
+		result.Report["reason"] = "validator_args_misconfigured"
+		result.Report["error"] = err.Error()
+		if err := store.StoreValidationResult(ctx, result); err != nil {
+			return ValidationResult{}, err
+		}
+		return result, nil
+	}
 	if spec.Timeout <= 0 {
 		spec.Timeout = DefaultValidatorTimeout
 	}
@@ -161,6 +169,7 @@ func RunValidation(ctx context.Context, store ValidationStore, registry Validato
 			return ValidationResult{}, fmt.Errorf("write schedule validator artifact: %w", err)
 		}
 		artifacts["{schedule_zip}"] = path
+		result.Report["schedule_artifact_source"] = "internal_builder"
 	}
 	if spec.RequiresRealtime {
 		if len(input.RealtimePBPayload) == 0 {
@@ -175,12 +184,16 @@ func RunValidation(ctx context.Context, store ValidationStore, registry Validato
 			return ValidationResult{}, fmt.Errorf("write realtime validator artifact: %w", err)
 		}
 		artifacts["{realtime_pb}"] = path
+		if input.RealtimeArtifactSource != "" {
+			result.Report["realtime_artifact_source"] = input.RealtimeArtifactSource
+		}
 	}
 
 	args := expandArgs(spec.Args, artifacts)
 	runCtx, cancel := context.WithTimeout(ctx, spec.Timeout)
 	defer cancel()
 	cmd := exec.CommandContext(runCtx, spec.Binary, args...)
+	cmd.Dir = workDir
 	stdout := &limitedBuffer{max: spec.MaxStdoutBytes}
 	stderr := &limitedBuffer{max: spec.MaxStderrBytes}
 	cmd.Stdout = stdout
@@ -229,6 +242,24 @@ func (s ValidatorSpec) supports(feedType string) bool {
 		}
 	}
 	return false
+}
+
+func (s ValidatorSpec) Supports(feedType string) bool {
+	return s.supports(feedType)
+}
+
+func (s ValidatorSpec) validatePlaceholders() error {
+	joined := strings.Join(s.Args, "\x00")
+	if !strings.Contains(joined, "{output_dir}") {
+		return fmt.Errorf("validator args must include {output_dir}")
+	}
+	if s.RequiresSchedule && !strings.Contains(joined, "{schedule_zip}") {
+		return fmt.Errorf("validator args must include {schedule_zip}")
+	}
+	if s.RequiresRealtime && !strings.Contains(joined, "{realtime_pb}") {
+		return fmt.Errorf("validator args must include {realtime_pb}")
+	}
+	return nil
 }
 
 func expandArgs(args []string, replacements map[string]string) []string {

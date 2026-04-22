@@ -72,7 +72,7 @@ func TestRunValidationStoresNotRunWhenBinaryMissing(t *testing.T) {
 
 func TestRunValidationNormalizesPassedJSONReport(t *testing.T) {
 	store := &fakeValidationStore{}
-	registry := ValidatorRegistry{"echo-json": {ID: "echo-json", Name: "test-validator", FeedTypes: []string{"schedule"}, Binary: "/bin/echo", Args: []string{`{"status":"passed","error_count":0,"warning_count":0,"info_count":3}`}}}
+	registry := ValidatorRegistry{"echo-json": {ID: "echo-json", Name: "test-validator", FeedTypes: []string{"schedule"}, Binary: "/bin/echo", Args: []string{`{"status":"passed","error_count":0,"warning_count":0,"info_count":3}`, "{output_dir}"}}}
 	result, err := RunValidation(context.Background(), store, registry, ValidationRunInput{AgencyID: "demo-agency", FeedType: "schedule", ValidatorID: "echo-json"})
 	if err != nil {
 		t.Fatalf("run validation: %v", err)
@@ -87,7 +87,7 @@ func TestRunValidationNormalizesPassedJSONReport(t *testing.T) {
 
 func TestRunValidationNormalizesWarningJSONReport(t *testing.T) {
 	store := &fakeValidationStore{}
-	registry := ValidatorRegistry{"echo-json": {ID: "echo-json", Name: "test-validator", FeedTypes: []string{"alerts"}, Binary: "/bin/echo", Args: []string{`{"notices":[{"severity":"WARNING"},{"severity":"INFO"}]}`}}}
+	registry := ValidatorRegistry{"echo-json": {ID: "echo-json", Name: "test-validator", FeedTypes: []string{"alerts"}, Binary: "/bin/echo", Args: []string{`{"notices":[{"severity":"WARNING"},{"severity":"INFO"}]}`, "{output_dir}"}}}
 	result, err := RunValidation(context.Background(), store, registry, ValidationRunInput{AgencyID: "demo-agency", FeedType: "alerts", ValidatorID: "echo-json"})
 	if err != nil {
 		t.Fatalf("run validation: %v", err)
@@ -103,7 +103,7 @@ func TestRunValidationNormalizesFailedJSONReport(t *testing.T) {
 	if err := os.WriteFile(script, []byte("#!/bin/sh\nprintf '%s' '{\"summary\":{\"errors\":2,\"warnings\":1,\"infos\":4}}'\nexit 1\n"), 0o700); err != nil {
 		t.Fatalf("write validator script: %v", err)
 	}
-	registry := ValidatorRegistry{"script-json": {ID: "script-json", Name: "test-validator", FeedTypes: []string{"trip_updates"}, Binary: script}}
+	registry := ValidatorRegistry{"script-json": {ID: "script-json", Name: "test-validator", FeedTypes: []string{"trip_updates"}, Binary: script, Args: []string{"{output_dir}"}}}
 	result, err := RunValidation(context.Background(), store, registry, ValidationRunInput{AgencyID: "demo-agency", FeedType: "trip_updates", ValidatorID: "script-json"})
 	if err != nil {
 		t.Fatalf("run validation: %v", err)
