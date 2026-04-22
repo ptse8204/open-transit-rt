@@ -156,7 +156,7 @@ For a small agency pilot:
 
 See [Deploy With Docker Compose](docs/tutorials/deploy-with-docker-compose.md) and [Production Checklist](docs/tutorials/production-checklist.md).
 
-For deployment evidence packaging runbooks/templates (Phase 12 Step 1 scaffolding), see [Deployment Evidence Overview](docs/runbooks/deployment-evidence-overview.md) and [docs/evidence/README.md](docs/evidence/README.md).
+For deployment evidence runbooks/templates and the current local demo evidence packet, see [Deployment Evidence Overview](docs/runbooks/deployment-evidence-overview.md) and [docs/evidence/README.md](docs/evidence/README.md). The local packet is not hosted HTTPS production proof.
 
 ## Validation And Readiness
 

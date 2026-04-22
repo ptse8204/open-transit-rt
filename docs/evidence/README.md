@@ -7,6 +7,10 @@ This folder is the Phase 12 Step 1 evidence scaffold.
 - `templates/`: repo-owned templates and checklists committed to git.
 - `captured/`: placeholder location for real deployment artifacts collected later by operators.
 
+Current captured packet:
+
+- `captured/local-demo/2026-04-22/`: real local demo evidence packet. It is not hosted HTTPS production proof.
+
 ## Important
 
 Do not fabricate evidence.

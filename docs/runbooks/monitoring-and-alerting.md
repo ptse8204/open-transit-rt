@@ -2,6 +2,12 @@
 
 This runbook defines the minimum deployment evidence for feed monitoring and alert operations.
 
+Latest captured packet:
+
+- `docs/evidence/captured/local-demo/2026-04-22/monitoring-alert-2026-04-22.md`
+
+The local packet captures request-log and scorecard evidence only. A real monitoring dashboard, alert rules, notification destination, and alert lifecycle remain missing.
+
 ## What To Measure
 
 Capture metrics/evidence for at least:

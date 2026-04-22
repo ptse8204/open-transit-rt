@@ -1,0 +1,17 @@
+2026/04/22 14:33:47 agency-config listening on 127.0.0.1:8081
+2026/04/22 14:33:48 {"service":"agency-config","request_id":"047092434119baaec8644fc6cda53094","method":"GET","path":"/healthz","status":200,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:55 {"service":"agency-config","request_id":"6d0e08307793dbdb9522cb0e20e4c935","method":"GET","path":"/public/gtfs/schedule.zip","status":200,"duration_ms":70,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"6d2ff17c63989c6fa522511da7ceda76","method":"POST","path":"/admin/publication/bootstrap","status":200,"duration_ms":43,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"788d6d0a5f57f325d2bfd79a155b0735","method":"POST","path":"/admin/consumer-ingestion","status":200,"duration_ms":4,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"63b35637cbe694ba8395c6ac2a3a8a3f","method":"POST","path":"/admin/consumer-ingestion","status":200,"duration_ms":1,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"29b3395a8e3ca5bc73b3baa149485fe4","method":"POST","path":"/admin/consumer-ingestion","status":200,"duration_ms":1,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"3bf8ecec66fb326333c688c256c86f43","method":"POST","path":"/admin/consumer-ingestion","status":200,"duration_ms":1,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"eaf28ba287d14755c62f118e98168566","method":"POST","path":"/admin/consumer-ingestion","status":200,"duration_ms":1,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"f8f828324c77cbe97802007ed98bca42","method":"GET","path":"/admin/compliance/scorecard","status":401,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"bc5412d7045996adb246ce1005954fc7","method":"GET","path":"/public/gtfs/schedule.zip","status":200,"duration_ms":2,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"ba794b6b021b7fd5e52bc992784e99dc","method":"GET","path":"/public/feeds.json","status":200,"duration_ms":56,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"agency-config","request_id":"dec3e1dd661f3aef1ee0ae28b6783e7a","method":"POST","path":"/admin/validation/run","status":200,"duration_ms":43,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:57 {"service":"agency-config","request_id":"fb461dc05a303cfd322049db4160cc85","method":"POST","path":"/admin/validation/run","status":200,"duration_ms":760,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:57 {"service":"agency-config","request_id":"9bbe0a64d1bd38a94cdf7429bbbcbe33","method":"POST","path":"/admin/compliance/scorecard","status":200,"duration_ms":9,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:57 {"service":"agency-config","request_id":"063db9fe5795cb6ef369c8feb268c598","method":"GET","path":"/admin/compliance/scorecard","status":200,"duration_ms":2,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:57 {"service":"agency-config","request_id":"a0ed4e3ee6de7b29a15c219d710fda08","method":"GET","path":"/admin/consumer-ingestion","status":200,"duration_ms":1,"remote_addr":"127.0.0.1"}

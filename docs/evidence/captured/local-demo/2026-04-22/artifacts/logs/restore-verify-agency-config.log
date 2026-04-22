@@ -1,0 +1,5 @@
+2026/04/22 14:38:39 agency-config listening on 127.0.0.1:8081
+2026/04/22 14:38:40 {"service":"agency-config","request_id":"9822a92c43a6a6e30f72087b9f3d8aa7","method":"GET","path":"/healthz","status":200,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:38:44 {"service":"agency-config","request_id":"f8139efa12c7312383616fe0109ef4af","method":"GET","path":"/public/feeds.json","status":200,"duration_ms":107,"remote_addr":"127.0.0.1"}
+2026/04/22 14:38:44 {"service":"agency-config","request_id":"4ec6cce323ec75aef3a39506d1b8cb36","method":"GET","path":"/public/gtfs/schedule.zip","status":200,"duration_ms":19,"remote_addr":"127.0.0.1"}
+2026/04/22 14:38:44 {"service":"agency-config","request_id":"6c6555823e43f1309a8da1cbe1099565","method":"GET","path":"/public/feeds.json","status":200,"duration_ms":3,"remote_addr":"127.0.0.1"}

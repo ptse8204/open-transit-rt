@@ -4,6 +4,10 @@ This runbook defines **where** deployment evidence should live and **how** to co
 
 Phase 12 Step 1 is repo-side scaffolding only. It does not provide hosted deployment evidence by itself.
 
+## Captured Evidence Packets
+
+- `docs/evidence/captured/local-demo/2026-04-22/`: Phase 12 Step 2 local demo packet. This packet contains real local artifacts for loopback HTTP feed retrieval, local validator run records, a local restore drill, and manual scorecard export. It does **not** prove hosted HTTPS deployment readiness, clean validator status, production monitoring/alerting, production backup retention, or consumer acceptance.
+
 ## Claim Boundaries
 
 Use three evidence buckets in all deployment notes:

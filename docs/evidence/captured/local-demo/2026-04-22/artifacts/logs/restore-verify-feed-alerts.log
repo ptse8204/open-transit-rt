@@ -1,0 +1,3 @@
+2026/04/22 14:38:42 feed-alerts listening on 127.0.0.1:8085
+2026/04/22 14:38:43 {"service":"feed-alerts","request_id":"6f8a26edc68b5599ef53a7173890858b","method":"GET","path":"/healthz","status":200,"duration_ms":1,"remote_addr":"127.0.0.1"}
+2026/04/22 14:38:44 {"service":"feed-alerts","request_id":"80dc11e931c259cb7648569af459928f","method":"GET","path":"/public/gtfsrt/alerts.pb","status":200,"duration_ms":50,"remote_addr":"127.0.0.1"}

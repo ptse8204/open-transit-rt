@@ -2,6 +2,13 @@
 
 This runbook is for deployment/operator evidence capture. Do not use it to claim hosted proof until artifacts are actually collected.
 
+Latest captured packet:
+
+- `docs/evidence/captured/local-demo/2026-04-22/public-feed-proof-2026-04-22.md`
+- `docs/evidence/captured/local-demo/2026-04-22/reverse-proxy-tls-2026-04-22.md`
+
+These are local loopback HTTP artifacts only. Hosted HTTPS, certificate, renewal, redirect, and production routing evidence remain missing.
+
 ## Purpose
 
 Document and retain proof that public feeds are served from a stable HTTPS boundary with protected admin/debug routes.

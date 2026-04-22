@@ -75,3 +75,26 @@ Optional or deferred, not currently integrated as external systems:
 Phase 11 does not add new backend features or external adapters. It closes the evidence layer by documenting what the repo proves, what a deployment must prove, and what third parties must confirm.
 
 The next hardening track should collect deployment evidence: real HTTPS feed root, production validation records, live scorecard export, monitoring and alerting assets, operations runbooks, and third-party submission or acceptance records.
+
+## Phase 12 Step 2 Evidence Result
+
+Phase 12 Step 2 collected a dated local evidence packet at `docs/evidence/captured/local-demo/2026-04-22/`.
+
+What it proves:
+
+- local loopback public feed retrieval for `schedule.zip`, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts;
+- local protected admin/debug route rejection for anonymous requests;
+- local validator workflow execution for schedule plus all three realtime feeds, with failures retained without omission;
+- local manual scorecard export;
+- local Postgres dump/restore mechanics into an isolated restore database, with restored row counts and public feed fetches against the restored database.
+
+What it does not prove:
+
+- public HTTPS hosting, TLS, or DNS ownership;
+- clean validator status;
+- production monitoring, alert delivery, or alert lifecycle;
+- production backup schedule, retention, or restore operations;
+- production publish/rollback URL permanence;
+- third-party consumer or aggregator acceptance.
+
+The local packet is useful operator/repo evidence, but it does not support stronger CAL-ITP compliance, production-readiness, or consumer-acceptance claims.

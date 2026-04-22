@@ -1,0 +1,6 @@
+2026/04/22 14:33:52 feed-alerts listening on 127.0.0.1:8085
+2026/04/22 14:33:52 {"service":"feed-alerts","request_id":"b36ae3af71e425da5c8976ec0c8800eb","method":"GET","path":"/healthz","status":200,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-alerts","request_id":"28f1e846c91b7d90d31975eb9d2273dc","method":"GET","path":"/public/gtfsrt/alerts.json","status":401,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-alerts","request_id":"f0793d058b4c13dbddb200c76e700bfc","method":"GET","path":"/public/gtfsrt/alerts.pb","status":200,"duration_ms":49,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-alerts","request_id":"ab01550554b15f6972807b70db22fa4d","method":"GET","path":"/public/gtfsrt/alerts.json","status":200,"duration_ms":14,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-alerts","request_id":"d091d8455d1062dc82610fc76255a749","method":"POST","path":"/admin/alerts","status":200,"duration_ms":13,"remote_addr":"127.0.0.1"}

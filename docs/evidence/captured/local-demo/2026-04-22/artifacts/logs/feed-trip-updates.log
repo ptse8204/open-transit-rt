@@ -1,0 +1,5 @@
+2026/04/22 14:33:50 feed-trip-updates listening on 127.0.0.1:8084
+2026/04/22 14:33:51 {"service":"feed-trip-updates","request_id":"0ab6ee935b56ebf79c778ded2fc67342","method":"GET","path":"/healthz","status":200,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-trip-updates","request_id":"469d430e312699911e6dcbd2d03600c6","method":"GET","path":"/public/gtfsrt/trip_updates.json","status":401,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-trip-updates","request_id":"553dd3434675e9cc11816d56acb90e91","method":"GET","path":"/public/gtfsrt/trip_updates.pb","status":200,"duration_ms":60,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-trip-updates","request_id":"d64981e0a9c4526b769344c5bfd86ed1","method":"GET","path":"/public/gtfsrt/trip_updates.json","status":200,"duration_ms":16,"remote_addr":"127.0.0.1"}

@@ -1,0 +1,5 @@
+2026/04/22 14:33:49 feed-vehicle-positions listening on 127.0.0.1:8083
+2026/04/22 14:33:50 {"service":"feed-vehicle-positions","request_id":"d05163965fd7cabb7ddd2d9ce12bf3e0","method":"GET","path":"/healthz","status":200,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-vehicle-positions","request_id":"6b6412a209d7b05e9425486d74d583c8","method":"GET","path":"/public/gtfsrt/vehicle_positions.json","status":401,"duration_ms":0,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-vehicle-positions","request_id":"3e9be3c3e752062c7211ae8375ad5ff1","method":"GET","path":"/public/gtfsrt/vehicle_positions.pb","status":200,"duration_ms":40,"remote_addr":"127.0.0.1"}
+2026/04/22 14:33:56 {"service":"feed-vehicle-positions","request_id":"3b007c19aa76d032c1a2ca614d9fc15d","method":"GET","path":"/public/gtfsrt/vehicle_positions.json","status":200,"duration_ms":14,"remote_addr":"127.0.0.1"}

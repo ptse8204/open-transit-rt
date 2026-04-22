@@ -2,6 +2,12 @@
 
 This runbook records how to package validator results from a real deployment.
 
+Latest captured packet:
+
+- `docs/evidence/captured/local-demo/2026-04-22/validator-record-2026-04-22.md`
+
+The local packet contains records for schedule, Vehicle Positions, Trip Updates, and Alerts, but all four validator runs failed in the local environment. It is retained as failure evidence and must not be used to claim validator-clean feeds.
+
 ## Purpose
 
 Retain complete validator history for schedule and realtime feeds without selectively omitting warnings or errors.

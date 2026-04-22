@@ -2,6 +2,12 @@
 
 This runbook defines how to capture evidence for compliance scorecard exports from a real deployment.
 
+Latest captured packet:
+
+- `docs/evidence/captured/local-demo/2026-04-22/scorecard-export-2026-04-22.md`
+
+The local packet records a manual JSON scorecard export. Scheduled export/job evidence and production retention policy remain missing.
+
 ## Required Evidence
 
 Capture:

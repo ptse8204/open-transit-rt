@@ -2,6 +2,12 @@
 
 This runbook captures evidence that deployment data can be backed up and restored with a repeatable operator process.
 
+Latest captured packet:
+
+- `docs/evidence/captured/local-demo/2026-04-22/backup-restore-drill-2026-04-22.md`
+
+The local packet records a one-time Postgres dump, isolated restore database, restored row counts, and public feed fetches against the restored database. Production backup schedule, retention, storage access boundary, and incident runbook evidence remain missing.
+
 ## Backup Evidence
 
 Record:

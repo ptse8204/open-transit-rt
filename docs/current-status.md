@@ -30,7 +30,7 @@ Phase 10 docs, tutorials, deployment, and demo work is complete for the current 
 
 Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
 
-Phase 12 is now in progress. Step 1 (repo-side deployment evidence scaffolding) is complete as documentation/runbook/template work only; hosted deployment evidence collection is still pending. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
+Phase 12 is now in progress. Step 1 (repo-side deployment evidence scaffolding) is complete. Step 2 has a real dated local demo evidence packet at `docs/evidence/captured/local-demo/2026-04-22/`, including local HTTP feed fetch artifacts, local validator failure records for schedule plus all three realtime feeds, a local Postgres restore drill, and manual scorecard export evidence. Hosted HTTPS deployment evidence remains pending. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
 
 ## What Exists Now
 
@@ -211,7 +211,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 **Active phase:** Phase 12 — Deployment Evidence Hardening is in progress (`docs/phase-12-deployment-evidence-hardening.md`).
 
-Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Real hosted evidence capture remains pending operator/deployment work.
+Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Real hosted evidence capture remains pending operator/deployment work.
 
 Phases 13 and 14 currently exist as planning/docs tracks only and are not implemented runtime/product changes.
 
@@ -546,11 +546,21 @@ Phase 12 Step 1 (repo-side docs/runbooks/evidence packaging) is complete:
 - added lightweight README links to deployment evidence docs
 - added Phase 12 Step 1 handoff notes while keeping claim boundaries explicit
 
-Phase 12 remains in progress because real hosted evidence artifacts have not been collected in this repository yet.
+## Phase 12 Step 2 Progress
+
+Phase 12 Step 2 produced a real local evidence packet at `docs/evidence/captured/local-demo/2026-04-22/`:
+- local loopback public feed fetch proof for `schedule.zip`, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
+- local reverse proxy route map and protected admin/debug boundary checks
+- validator records for schedule and all three realtime feeds, all failed and retained without omission
+- local request-log and scorecard monitoring evidence, with alert lifecycle explicitly missing
+- one local Postgres dump/restore drill into `open_transit_rt_restore_drill_20260422`, including restored row counts and feed fetch checks against the restored database
+- manual scorecard export artifacts with checksums
+
+Phase 12 remains in progress because hosted HTTPS evidence, clean production validator records, monitoring/alert lifecycle proof, production backup schedule/retention, production rollback URL permanence, and any third-party consumer confirmation have not been collected in this repository yet.
 
 ## Next Recommended Step
 
-Continue Phase 12 after Step 1 scaffolding by collecting real hosted deployment evidence with the new runbooks/templates:
+Continue Phase 12 after the local Step 2 packet by collecting real hosted deployment evidence with the runbooks/templates:
 1. capture public HTTPS fetch evidence for schedule, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
 2. capture production validator records for schedule and all three realtime feeds
 3. capture monitoring/alerting evidence including one real alert lifecycle

@@ -162,3 +162,18 @@ Phase 12 does **not**:
 Phase 12 Step 1 is complete as a repository documentation pass. It added concrete runbooks under `docs/runbooks/` and evidence templates/placeholders under `docs/evidence/`.
 
 This step does not include real hosted deployment artifacts. Deployment/operator evidence collection remains pending in later Phase 12 execution slices.
+
+## Step 2 (Local Evidence Packet) Completion Note
+
+Phase 12 Step 2 created `docs/evidence/captured/local-demo/2026-04-22/`.
+
+This packet contains real local artifacts for:
+
+- anonymous local HTTP fetches of all five public feed paths;
+- local reverse proxy routing through the demo proxy;
+- protected admin/debug anonymous 401 checks;
+- validator records for schedule plus Vehicle Positions, Trip Updates, and Alerts;
+- a local Postgres dump/restore drill with restored feed fetch checks;
+- a manual scorecard export.
+
+The packet is intentionally marked partial. It does not include hosted HTTPS evidence, TLS/certificate renewal proof, production monitoring alert lifecycle, clean validator results, production backup retention, rollback URL permanence, or third-party consumer confirmation.
