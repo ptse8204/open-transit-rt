@@ -34,6 +34,29 @@ sha256_file() {
   fi
 }
 
+java_binary() {
+  if [ -n "${JAVA_BINARY:-}" ] && [ -x "$JAVA_BINARY" ]; then
+    printf '%s\n' "$JAVA_BINARY"
+    return
+  fi
+  if command -v java >/dev/null 2>&1 && java -version >/dev/null 2>&1; then
+    command -v java
+    return
+  fi
+  for candidate in \
+    /usr/local/opt/openjdk@17/bin/java \
+    /opt/homebrew/opt/openjdk@17/bin/java \
+    /usr/local/opt/openjdk/bin/java \
+    /opt/homebrew/opt/openjdk/bin/java
+  do
+    if [ -x "$candidate" ] && "$candidate" -version >/dev/null 2>&1; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+  return 1
+}
+
 static_path="$(abs_path "$(json_value local_path)")"
 static_sha="$(json_value sha256)"
 rt_image="$(json_value image)"
@@ -43,8 +66,9 @@ if [ ! -f "$static_path" ]; then
   echo "missing pinned tooling: static GTFS validator not installed at $static_path; run make validators-install" >&2
   exit 11
 fi
-if ! command -v java >/dev/null 2>&1 || ! java -version >/dev/null 2>&1; then
-  echo "missing pinned tooling: Java runtime is required for the static GTFS validator JAR" >&2
+java_path="$(java_binary || true)"
+if [ -z "$java_path" ]; then
+  echo "missing pinned tooling: Java runtime is required for the static GTFS validator JAR; install Java 17+ or set JAVA_BINARY" >&2
   exit 11
 fi
 actual_static_sha="$(sha256_file "$static_path")"

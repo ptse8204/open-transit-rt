@@ -16,10 +16,11 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
 - The wrapper now treats the pinned MobilityData GTFS-RT validator image as a webapp, starts it in Docker, serves the server-derived local schedule and realtime artifacts through a temporary local HTTP server, calls the validator webapp API, and normalizes monitor output into JSON counts.
 - Hardened `scripts/check-validators.sh` so `make validators-check` now verifies:
   - the pinned static validator JAR is installed and checksum-clean;
-  - Java is actually runnable for the static validator;
+  - Java is actually runnable for the static validator, using `JAVA_BINARY` or a Homebrew Java path when needed;
   - Docker, `curl`, and `python3` are available for the GTFS-RT wrapper;
   - the generated GTFS-RT wrapper references the pinned image and the webapp API path.
 - Regenerated `.cache/validators/gtfs-rt-validator-wrapper.sh` locally with `make validators-install`.
+- Installed Homebrew Java 17 locally and added `JAVA_BINARY` support so the static validator can run without requiring a system-wide sudo Java symlink.
 - Updated docs to reflect the stricter validator-tooling requirements and current blocker state.
 
 ## What Was Designed But Intentionally Not Implemented Yet
@@ -36,7 +37,7 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
 
 ## Dependency Changes
 
-- Static GTFS validation now explicitly requires a runnable Java runtime for `make validators-check` to pass.
+- Static GTFS validation now explicitly requires a runnable Java runtime for `make validators-check` to pass. `JAVA_BINARY` can point at a pinned Java runtime when `java` is not on `PATH`.
 - The Docker-backed GTFS-RT validator wrapper now explicitly requires `python3` and `curl` in addition to Docker.
 - `docs/dependencies.md` documents these validation-tooling requirements.
 
@@ -62,12 +63,12 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
 - `VALIDATOR_TOOLING_MODE=stub make validate` — passed as a scaffold check with canonical validators intentionally bypassed.
 - `docker compose -f deploy/docker-compose.yml config` — passed.
 - `git diff --check` — passed.
+- `make collect-hosted-evidence` — blocked/fails because `ENVIRONMENT_NAME` and `PUBLIC_BASE_URL` are not set for a real hosted deployment.
 - `EVIDENCE_PACKET_DIR=docs/evidence/captured/hosted-pending/2026-04-22 make audit-hosted-evidence` — failed as expected with 20 blockers because `hosted-pending` is only an intake packet.
-- `make validators-check` — blocked/fails because this workstation has `/usr/bin/java` but no Java runtime.
-- Required closure checks that depend on `make validators-check` are still blocked locally until Java 17+ is installed or a Java-capable validator runner is used:
-  - `make validate`
-  - `make smoke`
-  - `make demo-agency-flow`
+- `make validators-check` — passed.
+- `make validate` — passed.
+- `make smoke` — passed.
+- `make demo-agency-flow` — passed.
 - Hosted closure checks were not run because no real hosted evidence packet exists yet:
   - `make collect-hosted-evidence`
   - `make audit-hosted-evidence` for a production/pilot packet
@@ -82,7 +83,6 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
   - production backup schedule, retention, access boundary, and restore drill proof;
   - scorecard export job/history proof;
   - publish/rollback URL permanence evidence.
-- Java 17+ must be installed or supplied by a dedicated validator runner before the strict pinned validator gate can pass.
 - `docs/evidence/captured/hosted-pending/2026-04-22/` remains an intake packet only, not evidence.
 
 ## Exact Next-Step Recommendation
@@ -98,12 +98,12 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
   - `docs/current-status.md`
   - `docs/handoffs/latest.md`
   - a final Phase 12 closure handoff only after the hosted audit passes
-- Commands to run before coding:
+- Commands to run before hosted collection:
   - `make validators-install`
   - `make validators-check`
-  - confirm Java 17+ is available with `java -version`
+  - confirm Java 17+ is available with `java -version` or `JAVA_BINARY=/path/to/java make validators-check`
 - Known blockers:
   - no hosted production/pilot URL or operator exports are present in the repo;
-  - current workstation Java runtime is missing.
+  - no admin token for a real hosted deployment is present in the environment.
 - Recommended first implementation slice:
   - On a Java-capable operator machine, run `make collect-hosted-evidence` with real `ENVIRONMENT_NAME`, `PUBLIC_BASE_URL`, `ADMIN_BASE_URL`, and `ADMIN_TOKEN`, attach operator-owned proxy/monitoring/backup/scorecard scheduler artifacts, then run `make audit-hosted-evidence`.

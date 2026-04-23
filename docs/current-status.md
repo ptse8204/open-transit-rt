@@ -30,7 +30,7 @@ Phase 10 docs, tutorials, deployment, and demo work is complete for the current 
 
 Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
 
-Phase 12 is now in progress. Step 1 (repo-side deployment evidence scaffolding) is complete. Step 2 has a real dated local demo evidence packet at `docs/evidence/captured/local-demo/2026-04-22/`, including local HTTP feed fetch artifacts, local validator failure records for schedule plus all three realtime feeds, a local Postgres restore drill, and manual scorecard export evidence. Step 3 tightened the hosted-evidence closure tooling by regenerating the pinned GTFS-RT validator wrapper through the MobilityData webapp API and making `make validators-check` fail when Java is unavailable for the static validator. Hosted HTTPS deployment evidence remains pending. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
+Phase 12 is now in progress. Step 1 (repo-side deployment evidence scaffolding) is complete. Step 2 has a real dated local demo evidence packet at `docs/evidence/captured/local-demo/2026-04-22/`, including local HTTP feed fetch artifacts, local validator failure records for schedule plus all three realtime feeds, a local Postgres restore drill, and manual scorecard export evidence. Step 3 tightened the hosted-evidence closure tooling by regenerating the pinned GTFS-RT validator wrapper through the MobilityData webapp API and making `make validators-check` fail when Java is unavailable for the static validator. Java 17 is now available locally through Homebrew and the required repo-side checks pass again. Hosted HTTPS deployment evidence remains pending. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
 
 ## What Exists Now
 
@@ -560,10 +560,10 @@ An operator intake packet for the missing hosted artifacts exists at `docs/evide
 
 Phase 12 Step 3 implemented repo-side closure guardrails but did not collect hosted evidence:
 - `scripts/install-validators.sh` now writes a GTFS-RT validator wrapper that drives the pinned MobilityData webapp API against server-derived local artifacts instead of passing unsupported CLI flags to the image.
-- `scripts/check-validators.sh` now verifies Java, Docker, `curl`, `python3`, pinned artifacts, and a webapp-API wrapper shape before allowing pinned validator checks to pass.
+- `scripts/check-validators.sh` now verifies Java, Docker, `curl`, `python3`, pinned artifacts, and a webapp-API wrapper shape before allowing pinned validator checks to pass. It can use `JAVA_BINARY` or the Homebrew Java 17 path when the macOS `/usr/bin/java` shim is not usable.
 - `docs/dependencies.md` and `README.md` now document the Java and `python3` validator-tooling requirements.
 
-The local workstation still lacks a Java runtime, so `make validators-check`, `make validate`, `make smoke`, and `make demo-agency-flow` are blocked until Java 17+ is installed or a validator runner with Java is used.
+Homebrew Java 17 was installed and the strict repo-side validator gate now passes locally.
 
 Phase 12 remains in progress because hosted HTTPS evidence, clean production validator records, monitoring/alert lifecycle proof, production backup schedule/retention, production rollback URL permanence, and any third-party consumer confirmation have not been collected in this repository yet.
 

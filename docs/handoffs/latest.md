@@ -55,7 +55,7 @@ git diff --check
 
 - Docker must be installed/running for `make demo-agency-flow`, DB-backed integration flow, and `docker compose ... config`.
 - Pinned validator tooling must be installed (`make validators-install`) before `make validators-check`, `make validate`, and `make smoke` can pass.
-- Java is required for the pinned static GTFS validator JAR. The current workstation has `/usr/bin/java` but no Java runtime, so `make validators-check`, `make validate`, `make smoke`, and `make demo-agency-flow` fail until Java 17+ is installed or checks are run on a validator runner with Java.
+- Java is required for the pinned static GTFS validator JAR. Homebrew Java 17 is now available locally, and the repo tooling can use `JAVA_BINARY` or the Homebrew Java path when the macOS `/usr/bin/java` shim is not usable.
 - The Step 2 GTFS-RT validator wrapper blocker was addressed in `scripts/install-validators.sh`: the generated wrapper now drives the pinned MobilityData webapp API against local schedule/realtime artifacts and normalizes monitor results to JSON.
 - No hosted HTTPS hostname, TLS certificate, production reverse proxy config, monitoring alert lifecycle, production backup policy, or consumer acceptance evidence has been captured.
 - `docs/evidence/captured/hosted-pending/2026-04-22/` now contains an operator intake packet for the missing hosted artifacts; it is not completed evidence.

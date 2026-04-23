@@ -70,7 +70,7 @@ func staticValidatorFromEnv() ValidatorSpec {
 		return spec
 	}
 	if strings.HasSuffix(strings.ToLower(path), ".jar") {
-		spec.Binary = "java"
+		spec.Binary = getenv("JAVA_BINARY", "java")
 		spec.Args = []string{"-jar", path, "-i", "{schedule_zip}", "-o", "{output_dir}"}
 		return spec
 	}

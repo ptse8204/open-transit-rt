@@ -230,7 +230,7 @@ Validate static GTFS before publish and during compliance checks.
 - Post-Phase-8 hardening replaces request-supplied commands with server-side allowlisted validator IDs
 - static validation uses `validator_id=static-mobilitydata`
 - local/prod config supplies `GTFS_VALIDATOR_PATH`; if the path ends with `.jar`, the adapter runs `java -jar` through argv-based execution
-- Java 17 or newer must be installed and runnable as `java`; `make validators-check` fails when the pinned JAR is present but no Java runtime is available
+- Java 17 or newer must be installed and runnable as `java` or configured through `JAVA_BINARY`; `make validators-check` also probes common Homebrew Java locations on macOS and fails when no Java runtime is available
 - expected canonical version: MobilityData GTFS Validator `v7.1.0`
 - repo-supported installation is `make validators-install`, which downloads `gtfs-validator-7.1.0-cli.jar` into `.cache/validators/` and verifies SHA-256 `52c2785089aaf04e7ba1bb11b2db215692e2622eb0e196b823c194d156d9b58c` from `tools/validators/validators.lock.json`
 - CI and production setup should run `make validators-install validators-check` or use a prebuilt runner image whose installed validator paths match `tools/validators/validators.lock.json`
