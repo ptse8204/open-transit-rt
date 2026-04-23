@@ -39,6 +39,8 @@ make collect-hosted-evidence
 
 This collects feed fetches, TLS headers/certificate details, admin validation runs, and a manual scorecard export. Operators must still attach deployment-owned monitoring, alert lifecycle, backup/restore, reverse proxy renewal, and scheduler/job-history artifacts.
 
+Before using the hosted validator collection path, run `make validators-install` and `make validators-check` on the collection host. The pinned static validator requires Java 17+; the pinned Docker-backed GTFS-RT wrapper requires Docker, `curl`, and `python3`.
+
 After completing a hosted packet, audit it before making closure claims:
 
 ```sh

@@ -85,7 +85,8 @@ Prerequisites:
 - Go matching `go.mod`
 - Docker with Compose support
 - `curl`, `zip`, and `unzip` for the demo wrapper
-- Java if you want the static GTFS validator JAR to execute successfully; missing Java is recorded as validator failure, not as feed success
+- Java 17+ for the static GTFS validator JAR
+- `python3` for the Docker-backed GTFS-RT validator wrapper
 
 Start with the one-command bootstrap:
 

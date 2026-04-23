@@ -230,6 +230,7 @@ Validate static GTFS before publish and during compliance checks.
 - Post-Phase-8 hardening replaces request-supplied commands with server-side allowlisted validator IDs
 - static validation uses `validator_id=static-mobilitydata`
 - local/prod config supplies `GTFS_VALIDATOR_PATH`; if the path ends with `.jar`, the adapter runs `java -jar` through argv-based execution
+- Java 17 or newer must be installed and runnable as `java`; `make validators-check` fails when the pinned JAR is present but no Java runtime is available
 - expected canonical version: MobilityData GTFS Validator `v7.1.0`
 - repo-supported installation is `make validators-install`, which downloads `gtfs-validator-7.1.0-cli.jar` into `.cache/validators/` and verifies SHA-256 `52c2785089aaf04e7ba1bb11b2db215692e2622eb0e196b823c194d156d9b58c` from `tools/validators/validators.lock.json`
 - CI and production setup should run `make validators-install validators-check` or use a prebuilt runner image whose installed validator paths match `tools/validators/validators.lock.json`
@@ -275,6 +276,8 @@ Validate GTFS-RT feeds:
 - configured feed URLs (`VEHICLE_POSITIONS_FEED_URL`, `TRIP_UPDATES_FEED_URL`, `ALERTS_FEED_URL`, or `REALTIME_VALIDATION_BASE_URL`/`FEED_BASE_URL`) are a fallback only when internal builders cannot be constructed in that runtime context
 - the server-owned args may use `{schedule_zip}`, `{realtime_pb}`, `{feed_type}`, and `{output_dir}` placeholders
 - repo-supported GTFS-RT installation is Docker-backed: `make validators-install` pulls `ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89` and writes `.cache/validators/gtfs-rt-validator-wrapper.sh`
+- the pinned GTFS-RT image is a webapp, so the repo wrapper starts the container, serves the server-derived local schedule/realtime artifacts through a temporary local HTTP server, calls the validator webapp API, and normalizes the resulting monitor data into JSON counts
+- the repo-supported GTFS-RT wrapper requires Docker, `curl`, and `python3`; `make validators-check` verifies those runtime dependencies and rejects stale wrappers that do not call the webapp API
 - `GTFS_RT_VALIDATOR_PATH` should point to that wrapper for the repo-supported pinned workflow; a direct non-Docker executable is runtime-capable, but `make validators-check` intentionally does not accept it as pinned proof unless this document and `tools/validators/validators.lock.json` are extended with an equivalent checksum/digest contract
 - `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests or smoke runs that intentionally do not use pinned canonical tooling
 - CI/local/prod must pin the selected MobilityData GTFS Realtime validator distribution by immutable package digest before making compliance claims

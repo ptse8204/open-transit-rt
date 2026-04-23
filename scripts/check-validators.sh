@@ -43,6 +43,10 @@ if [ ! -f "$static_path" ]; then
   echo "missing pinned tooling: static GTFS validator not installed at $static_path; run make validators-install" >&2
   exit 11
 fi
+if ! command -v java >/dev/null 2>&1 || ! java -version >/dev/null 2>&1; then
+  echo "missing pinned tooling: Java runtime is required for the static GTFS validator JAR" >&2
+  exit 11
+fi
 actual_static_sha="$(sha256_file "$static_path")"
 if [ "$actual_static_sha" != "$static_sha" ]; then
   echo "misconfigured pinned tooling: static GTFS validator checksum mismatch: got $actual_static_sha want $static_sha" >&2
@@ -57,6 +61,14 @@ if ! command -v docker >/dev/null 2>&1; then
   echo "missing pinned tooling: docker is required for the repo-supported GTFS-RT validator wrapper" >&2
   exit 11
 fi
+if ! command -v curl >/dev/null 2>&1; then
+  echo "missing pinned tooling: curl is required for the repo-supported GTFS-RT validator wrapper" >&2
+  exit 11
+fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "missing pinned tooling: python3 is required for the repo-supported GTFS-RT validator wrapper" >&2
+  exit 11
+fi
 if ! docker image inspect "$rt_image" >/dev/null 2>&1; then
   echo "missing pinned tooling: GTFS-RT validator image $rt_image is not installed; run make validators-install" >&2
   exit 11
@@ -67,6 +79,10 @@ if [ ! -x "$rt_wrapper" ]; then
 fi
 if ! grep -F "$rt_image" "$rt_wrapper" >/dev/null 2>&1; then
   echo "misconfigured pinned tooling: GTFS-RT validator wrapper does not reference pinned image $rt_image" >&2
+  exit 12
+fi
+if ! grep -F "/api/gtfs-rt-feed" "$rt_wrapper" >/dev/null 2>&1; then
+  echo "misconfigured pinned tooling: GTFS-RT validator wrapper must drive the pinned webapp API" >&2
   exit 12
 fi
 if [ -n "${GTFS_RT_VALIDATOR_PATH:-}" ] && [ "$(abs_path "$GTFS_RT_VALIDATOR_PATH")" != "$rt_wrapper" ]; then

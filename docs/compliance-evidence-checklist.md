@@ -98,3 +98,13 @@ What it does not prove:
 - third-party consumer or aggregator acceptance.
 
 The local packet is useful operator/repo evidence, but it does not support stronger CAL-ITP compliance, production-readiness, or consumer-acceptance claims.
+
+## Phase 12 Step 3 Tooling Result
+
+Phase 12 Step 3 did not collect new hosted evidence. It hardened the validator-evidence path so closure checks are stricter:
+
+- the repo-supported GTFS-RT validator wrapper now drives the pinned MobilityData validator webapp API against local schedule and realtime artifacts instead of passing unsupported CLI flags to the pinned image;
+- `make validators-check` now fails if Java is not runnable for the pinned static validator JAR;
+- Docker, `curl`, and `python3` are now explicit requirements for the repo-supported GTFS-RT validator wrapper.
+
+This improves future hosted evidence collection, but it does not move any hosted deployment item into the deployment/operator-proof column. Phase 12 remains open until one production/pilot evidence packet passes the hosted audit.
