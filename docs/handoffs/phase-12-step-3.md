@@ -21,6 +21,7 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
   - the generated GTFS-RT wrapper references the pinned image and the webapp API path.
 - Regenerated `.cache/validators/gtfs-rt-validator-wrapper.sh` locally with `make validators-install`.
 - Installed Homebrew Java 17 locally and added `JAVA_BINARY` support so the static validator can run without requiring a system-wide sudo Java symlink.
+- Added `scripts/duckdns-pilot.sh` to bootstrap a DuckDNS-backed pilot on this machine without committing DuckDNS tokens or generated deployment secrets.
 - Updated docs to reflect the stricter validator-tooling requirements and current blocker state.
 
 ## What Was Designed But Intentionally Not Implemented Yet
@@ -69,6 +70,8 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
 - `make validate` — passed.
 - `make smoke` — passed.
 - `make demo-agency-flow` — passed.
+- `scripts/duckdns-pilot.sh start` — partially passed: DuckDNS authoritative DNS resolves `open-transit-pilot.duckdns.org` to `216.19.185.91`, local services reached health checks, and Caddy started with the generated Caddyfile.
+- DuckDNS public HTTPS collection — blocked: Caddy/Let's Encrypt reported `216.19.185.91: Connection refused`, and `https://open-transit-pilot.duckdns.org/public/feeds.json` timed out from this machine. Router/firewall forwarding for TCP 80 and 443 is still required before hosted evidence can be collected.
 - Hosted closure checks were not run because no real hosted evidence packet exists yet:
   - `make collect-hosted-evidence`
   - `make audit-hosted-evidence` for a production/pilot packet
@@ -84,6 +87,7 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
   - scorecard export job/history proof;
   - publish/rollback URL permanence evidence.
 - `docs/evidence/captured/hosted-pending/2026-04-22/` remains an intake packet only, not evidence.
+- `open-transit-pilot.duckdns.org` has DNS pointing at the apparent public IPv4, but TCP 80/443 are not reachable externally yet.
 
 ## Exact Next-Step Recommendation
 
@@ -106,4 +110,4 @@ Phase 12 — Deployment Evidence Hardening (Step 3: Hosted closure tooling harde
   - no hosted production/pilot URL or operator exports are present in the repo;
   - no admin token for a real hosted deployment is present in the environment.
 - Recommended first implementation slice:
-  - On a Java-capable operator machine, run `make collect-hosted-evidence` with real `ENVIRONMENT_NAME`, `PUBLIC_BASE_URL`, `ADMIN_BASE_URL`, and `ADMIN_TOKEN`, attach operator-owned proxy/monitoring/backup/scorecard scheduler artifacts, then run `make audit-hosted-evidence`.
+  - Forward router/firewall TCP 80 and 443 to this machine, run `scripts/duckdns-pilot.sh start` from a normal Terminal, then run `scripts/duckdns-pilot.sh collect` once `https://open-transit-pilot.duckdns.org/public/feeds.json` returns HTTP 200.

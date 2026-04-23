@@ -128,6 +128,7 @@ func (b *Builder) feedByID(ctx context.Context, feedVersionID string) (activeFee
 func (b *Builder) buildZIP(ctx context.Context, feed activeFeed) ([]byte, error) {
 	files := []zipFile{
 		{name: "agency.txt", rows: b.agencyRows},
+		{name: "feed_info.txt", rows: b.feedInfoRows},
 		{name: "routes.txt", rows: b.routeRows},
 		{name: "stops.txt", rows: b.stopRows},
 		{name: "trips.txt", rows: b.tripRows},
@@ -166,7 +167,7 @@ type zipFile struct {
 }
 
 func writeZipCSV(zw *zip.Writer, name string, modified time.Time, rows [][]string) error {
-	header := &zip.FileHeader{Name: name, Method: zip.Store}
+	header := &zip.FileHeader{Name: name, Method: zip.Deflate}
 	header.SetModTime(modified.UTC())
 	writer, err := zw.CreateHeader(header)
 	if err != nil {
@@ -192,6 +193,42 @@ func (b *Builder) agencyRows(ctx context.Context, _ string) ([][]string, error) 
 		return nil, fmt.Errorf("query agency for schedule zip: %w", err)
 	}
 	rows = append(rows, []string{b.agencyID, name, publicURL.String, timezone, email.String})
+	return rows, nil
+}
+
+func (b *Builder) feedInfoRows(ctx context.Context, feedVersionID string) ([][]string, error) {
+	rows := [][]string{{"feed_publisher_name", "feed_publisher_url", "feed_lang", "feed_start_date", "feed_end_date", "feed_version", "feed_contact_email"}}
+	var name string
+	var publicURL, email sql.NullString
+	err := b.pool.QueryRow(ctx, `
+		SELECT name, public_url, contact_email
+		FROM agency
+		WHERE id = $1
+	`, b.agencyID).Scan(&name, &publicURL, &email)
+	if err != nil {
+		return nil, fmt.Errorf("query agency for feed_info: %w", err)
+	}
+	var startDate, endDate sql.NullString
+	err = b.pool.QueryRow(ctx, `
+		SELECT MIN(service_date), MAX(service_date)
+		FROM (
+			SELECT start_date AS service_date
+			FROM gtfs_calendar
+			WHERE agency_id = $1 AND feed_version_id = $2
+			UNION ALL
+			SELECT end_date AS service_date
+			FROM gtfs_calendar
+			WHERE agency_id = $1 AND feed_version_id = $2
+			UNION ALL
+			SELECT date AS service_date
+			FROM gtfs_calendar_date
+			WHERE agency_id = $1 AND feed_version_id = $2
+		) service_dates
+	`, b.agencyID, feedVersionID).Scan(&startDate, &endDate)
+	if err != nil {
+		return nil, fmt.Errorf("query service dates for feed_info: %w", err)
+	}
+	rows = append(rows, []string{name, publicURL.String, "en", startDate.String, endDate.String, feedVersionID, email.String})
 	return rows, nil
 }
 

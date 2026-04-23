@@ -561,9 +561,11 @@ An operator intake packet for the missing hosted artifacts exists at `docs/evide
 Phase 12 Step 3 implemented repo-side closure guardrails but did not collect hosted evidence:
 - `scripts/install-validators.sh` now writes a GTFS-RT validator wrapper that drives the pinned MobilityData webapp API against server-derived local artifacts instead of passing unsupported CLI flags to the image.
 - `scripts/check-validators.sh` now verifies Java, Docker, `curl`, `python3`, pinned artifacts, and a webapp-API wrapper shape before allowing pinned validator checks to pass. It can use `JAVA_BINARY` or the Homebrew Java 17 path when the macOS `/usr/bin/java` shim is not usable.
+- `scripts/duckdns-pilot.sh` can bootstrap a local DuckDNS/Caddy pilot using generated secrets under `.cache/duckdns-pilot/`.
 - `docs/dependencies.md` and `README.md` now document the Java and `python3` validator-tooling requirements.
 
 Homebrew Java 17 was installed and the strict repo-side validator gate now passes locally.
+DuckDNS authoritative DNS for `open-transit-pilot.duckdns.org` points at the apparent public IPv4, but public TCP 80/443 are not reachable yet. Caddy cannot obtain a public TLS certificate or support hosted evidence collection until router/firewall forwarding is fixed.
 
 Phase 12 remains in progress because hosted HTTPS evidence, clean production validator records, monitoring/alert lifecycle proof, production backup schedule/retention, production rollback URL permanence, and any third-party consumer confirmation have not been collected in this repository yet.
 

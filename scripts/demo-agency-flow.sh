@@ -320,6 +320,16 @@ curl -fsS -X POST "http://localhost:8081/admin/validation/run" \
   -H "Content-Type: application/json" \
   --data '{"validator_id":"realtime-mobilitydata","feed_type":"vehicle_positions"}' >"$TMP_DIR/validate-vehicle-positions.json"
 grep -q '"validator_name"' "$TMP_DIR/validate-vehicle-positions.json"
+curl -fsS -X POST "http://localhost:8081/admin/validation/run" \
+  -H "$AUTH_HEADER" \
+  -H "Content-Type: application/json" \
+  --data '{"validator_id":"realtime-mobilitydata","feed_type":"trip_updates"}' >"$TMP_DIR/validate-trip-updates.json"
+grep -q '"validator_name"' "$TMP_DIR/validate-trip-updates.json"
+curl -fsS -X POST "http://localhost:8081/admin/validation/run" \
+  -H "$AUTH_HEADER" \
+  -H "Content-Type: application/json" \
+  --data '{"validator_id":"realtime-mobilitydata","feed_type":"alerts"}' >"$TMP_DIR/validate-alerts.json"
+grep -q '"validator_name"' "$TMP_DIR/validate-alerts.json"
 
 log "Inspect scorecard and consumer-ingestion workflow records"
 curl -fsS -X POST "http://localhost:8081/admin/compliance/scorecard" \

@@ -57,6 +57,7 @@ git diff --check
 - Pinned validator tooling must be installed (`make validators-install`) before `make validators-check`, `make validate`, and `make smoke` can pass.
 - Java is required for the pinned static GTFS validator JAR. Homebrew Java 17 is now available locally, and the repo tooling can use `JAVA_BINARY` or the Homebrew Java path when the macOS `/usr/bin/java` shim is not usable.
 - The Step 2 GTFS-RT validator wrapper blocker was addressed in `scripts/install-validators.sh`: the generated wrapper now drives the pinned MobilityData webapp API against local schedule/realtime artifacts and normalizes monitor results to JSON.
+- `scripts/duckdns-pilot.sh` exists for the DuckDNS/Caddy pilot path. DNS for `open-transit-pilot.duckdns.org` points at the apparent public IPv4, but TCP 80/443 are not externally reachable yet, so Caddy cannot complete ACME validation and hosted evidence collection is still blocked.
 - No hosted HTTPS hostname, TLS certificate, production reverse proxy config, monitoring alert lifecycle, production backup policy, or consumer acceptance evidence has been captured.
 - `docs/evidence/captured/hosted-pending/2026-04-22/` now contains an operator intake packet for the missing hosted artifacts; it is not completed evidence.
 - `make collect-hosted-evidence` is available for hosted feed fetch, TLS, validation, and manual scorecard collection once `ENVIRONMENT_NAME` and `PUBLIC_BASE_URL` are set. `ADMIN_TOKEN` is needed for hosted validation and scorecard export.

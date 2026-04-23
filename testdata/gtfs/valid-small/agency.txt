@@ -1,2 +1,2 @@
 agency_id,agency_name,agency_url,agency_timezone,agency_lang
-demo-agency,Demo Transit,http://localhost:8080,America/Vancouver,en
+demo-agency,Demo Transit,http://localhost,America/Vancouver,en

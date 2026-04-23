@@ -24,6 +24,9 @@ func TestWriteZipCSVUsesDeterministicEntryTimestampAndRows(t *testing.T) {
 	if len(reader.File) != 1 || reader.File[0].Name != "routes.txt" {
 		t.Fatalf("zip files = %+v, want routes.txt", reader.File)
 	}
+	if reader.File[0].Method != zip.Deflate {
+		t.Fatalf("zip method = %d, want deflate", reader.File[0].Method)
+	}
 	if !reader.File[0].Modified.Equal(revision) {
 		t.Fatalf("modified = %s, want revision %s", reader.File[0].Modified, revision)
 	}
