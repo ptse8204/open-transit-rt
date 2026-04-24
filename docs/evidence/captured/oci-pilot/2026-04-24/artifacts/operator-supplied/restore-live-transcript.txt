@@ -1,0 +1,27 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+restore_start_utc=2026-04-24T04:13:19Z
+ pg_terminate_backend 
+----------------------
+(0 rows)
+
+could not change directory to "/home/opc": Permission denied
+could not change directory to "/home/opc": Permission denied
+could not change directory to "/home/opc": Permission denied
+could not change directory to "/home/opc": Permission denied
+pg_restore: error: could not open input file "/opt/open-transit-rt/backups/phase12-clean-20260424.dump": Permission denied
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+could not change directory to "/home/opc": Permission denied
+open-transit-agency-config active
+open-transit-telemetry-ingest active
+open-transit-feed-vehicle-positions active
+open-transit-feed-trip-updates active
+open-transit-feed-alerts active
+could not change directory to "/home/opc": Permission denied
+gtfs-import-1|retired|f
+gtfs-import-2|retired|f
+gtfs-import-3|active|t
+restore_finish_utc=2026-04-24T04:13:59Z

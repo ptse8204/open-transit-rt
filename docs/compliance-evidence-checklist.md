@@ -107,4 +107,18 @@ Phase 12 Step 3 did not collect new hosted evidence. It hardened the validator-e
 - `make validators-check` now fails if Java is not runnable for the pinned static validator JAR;
 - Docker, `curl`, and `python3` are now explicit requirements for the repo-supported GTFS-RT validator wrapper.
 
-This improves future hosted evidence collection, but it does not move any hosted deployment item into the deployment/operator-proof column. Phase 12 remains open until one production/pilot evidence packet passes the hosted audit.
+This improved future hosted evidence collection, but did not itself move hosted deployment items into the deployment/operator-proof column.
+
+## Phase 12 Hosted OCI Pilot Evidence Result
+
+Phase 12 hosted evidence was collected at `docs/evidence/captured/oci-pilot/2026-04-24/`.
+
+The hosted packet includes public HTTPS feed fetches, public-edge and SSH-tunneled auth-boundary checks, TLS/redirect evidence, clean hosted validator records for schedule plus all three realtime feeds, monitoring and alert lifecycle artifacts, backup/job history artifacts, a deployment data-restore rollback drill, and scorecard export job-history evidence.
+
+The closure command passed:
+
+```bash
+EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence
+```
+
+This closes Phase 12 for deployment/operator evidence on the OCI pilot only. It does not prove Cal-ITP compliance or third-party consumer acceptance.

@@ -1,0 +1,57 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+# Scorecard job definitions
+# /etc/systemd/system/open-transit-scorecard-export.service
+[Unit]
+Description=Open Transit RT compliance scorecard export
+[Service]
+Type=oneshot
+User=open-transit
+Group=open-transit
+ExecStart=/opt/open-transit-rt/ops/scorecard-export.sh
+
+# /etc/systemd/system/open-transit-scorecard-export.timer
+[Unit]
+Description=Run Open Transit RT scorecard export hourly
+[Timer]
+OnCalendar=hourly
+Persistent=true
+[Install]
+WantedBy=timers.target
+
+# Scorecard export script (token value stored separately and not printed)
+#!/usr/bin/env sh
+set -eu
+TOKEN=<read from deployment secret file>
+OUTDIR=/opt/open-transit-rt/evidence/scorecard
+mkdir -p "$OUTDIR"
+ts=$(date -u +%Y-%m-%dT%H%M%SZ)
+out="$OUTDIR/scorecard-$ts.json"
+curl -fsS -X POST http://127.0.0.1:8081/admin/compliance/scorecard \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  --data '{}' > "$out"
+sha256sum "$out" > "$out.sha256"
+printf '%s exported %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$out" >> "$OUTDIR/scorecard-export-job-history.txt"
+
+# Scorecard job history
+2026-04-24T04:21:14Z exported /opt/open-transit-rt/evidence/scorecard/scorecard-2026-04-24T042113Z.json
+
+# Scorecard artifacts
+2026-04-24 04:21 104 /opt/open-transit-rt/evidence/scorecard/scorecard-export-job-history.txt
+2026-04-24 04:21 140 /opt/open-transit-rt/evidence/scorecard/scorecard-2026-04-24T042113Z.json.sha256
+2026-04-24 04:21 3282 /opt/open-transit-rt/evidence/scorecard/scorecard-2026-04-24T042113Z.json
+
+# Service status
+○ open-transit-scorecard-export.service - Open Transit RT compliance scorecard export
+     Loaded: loaded (/etc/systemd/system/open-transit-scorecard-export.service; static)
+     Active: inactive (dead) since Fri 2026-04-24 04:21:14 GMT; 1min 57s ago
+TriggeredBy: ● open-transit-scorecard-export.timer
+    Process: 113976 ExecStart=/opt/open-transit-rt/ops/scorecard-export.sh (code=exited, status=0/SUCCESS)
+   Main PID: 113976 (code=exited, status=0/SUCCESS)
+        CPU: 19ms
+
+Apr 24 04:21:13 instance-20260422-2136 systemd[1]: Starting Open Transit RT compliance scorecard export...
+Apr 24 04:21:14 instance-20260422-2136 systemd[1]: open-transit-scorecard-export.service: Deactivated successfully.
+Apr 24 04:21:14 instance-20260422-2136 systemd[1]: Finished Open Transit RT compliance scorecard export.

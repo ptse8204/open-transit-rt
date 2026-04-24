@@ -30,7 +30,7 @@ Phase 10 docs, tutorials, deployment, and demo work is complete for the current 
 
 Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
 
-Phase 12 is now in progress. Step 1 (repo-side deployment evidence scaffolding) is complete. Step 2 has a real dated local demo evidence packet at `docs/evidence/captured/local-demo/2026-04-22/`, including local HTTP feed fetch artifacts, local validator failure records for schedule plus all three realtime feeds, a local Postgres restore drill, and manual scorecard export evidence. Step 3 tightened the hosted-evidence closure tooling by regenerating the pinned GTFS-RT validator wrapper through the MobilityData webapp API and making `make validators-check` fail when Java is unavailable for the static validator. Java 17 is now available locally through Homebrew and the required repo-side checks pass again. Hosted HTTPS deployment evidence remains pending. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
+Phase 12 is closed for the OCI pilot evidence scope. Step 1 (repo-side deployment evidence scaffolding), Step 2 (local demo evidence packet), Step 3 (hosted closure tooling hardening), and the hosted OCI pilot evidence packet are complete. The hosted packet lives at `docs/evidence/captured/oci-pilot/2026-04-24/` and passed `EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence`. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
 
 ## What Exists Now
 
@@ -209,9 +209,9 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 12 — Deployment Evidence Hardening is in progress (`docs/phase-12-deployment-evidence-hardening.md`).
+**Active phase:** Phase 13 planning/docs can proceed next. Phase 12 — Deployment Evidence Hardening is closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`).
 
-Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Real hosted evidence capture remains pending operator/deployment work.
+Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
 Phases 13 and 14 currently exist as planning/docs tracks only and are not implemented runtime/product changes.
 
@@ -556,7 +556,7 @@ Phase 12 Step 2 produced a real local evidence packet at `docs/evidence/captured
 - one local Postgres dump/restore drill into `open_transit_rt_restore_drill_20260422`, including restored row counts and feed fetch checks against the restored database
 - manual scorecard export artifacts with checksums
 
-An operator intake packet for the missing hosted artifacts exists at `docs/evidence/captured/hosted-pending/2026-04-22/`. It contains command artifacts and pending fields only; it is not hosted proof. Generic hosted collection can now be started with `make collect-hosted-evidence` after setting `ENVIRONMENT_NAME`, `PUBLIC_BASE_URL`, and optionally `ADMIN_BASE_URL` and `ADMIN_TOKEN`. Completed hosted packets can be checked with `make audit-hosted-evidence` after setting `EVIDENCE_PACKET_DIR`.
+An earlier operator intake packet exists at `docs/evidence/captured/hosted-pending/2026-04-22/`; it remains historical intake material only. The completed hosted proof packet is `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
 Phase 12 Step 3 implemented repo-side closure guardrails but did not collect hosted evidence:
 - `scripts/install-validators.sh` now writes a GTFS-RT validator wrapper that drives the pinned MobilityData webapp API against server-derived local artifacts instead of passing unsupported CLI flags to the image.
@@ -565,19 +565,16 @@ Phase 12 Step 3 implemented repo-side closure guardrails but did not collect hos
 - `docs/dependencies.md` and `README.md` now document the Java and `python3` validator-tooling requirements.
 
 Homebrew Java 17 was installed and the strict repo-side validator gate now passes locally.
-DuckDNS authoritative DNS for `open-transit-pilot.duckdns.org` points at the apparent public IPv4, but public TCP 80/443 are not reachable yet. Caddy cannot obtain a public TLS certificate or support hosted evidence collection until router/firewall forwarding is fixed.
+The OCI pilot at `https://open-transit-pilot.duckdns.org` now has public HTTPS feed proof, TLS/redirect evidence, clean hosted validator records, public-edge auth-boundary proof, SSH-tunneled admin auth proof, monitoring/alert lifecycle evidence, backup/restore evidence, deployment data-restore rollback proof, and scorecard export job-history proof.
 
-Phase 12 remains in progress because hosted HTTPS evidence, clean production validator records, monitoring/alert lifecycle proof, production backup schedule/retention, production rollback URL permanence, and any third-party consumer confirmation have not been collected in this repository yet.
+Phase 12 is closed for hosted/operator evidence because the OCI pilot packet passed the hosted audit. Third-party consumer confirmation has not been collected and remains outside Phase 12.
 
 ## Next Recommended Step
 
-Continue Phase 12 after the local Step 2 packet by collecting real hosted deployment evidence with the runbooks/templates:
-1. capture public HTTPS fetch evidence for schedule, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
-2. capture production validator records for schedule and all three realtime feeds
-3. capture monitoring/alerting evidence including one real alert lifecycle
-4. capture backup/restore drill evidence and outage/validator-failure response notes
-5. capture scorecard export evidence (scheduled and/or manual)
-6. keep third-party submission/acceptance records separate and only when they exist
+Move to the next documented track only with evidence-bounded claims:
+1. keep third-party submission/acceptance records separate and only when they exist
+2. do not claim Cal-ITP compliance from the Phase 12 packet alone
+3. keep the OCI pilot operator jobs and validator tooling maintained if the pilot remains live
 
 ## What Not To Do Next
 

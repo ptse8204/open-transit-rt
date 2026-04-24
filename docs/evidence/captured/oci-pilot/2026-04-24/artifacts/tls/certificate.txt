@@ -1,0 +1,6 @@
+issuer=C=US, O=Let's Encrypt, CN=E8
+subject=CN=open-transit-pilot.duckdns.org
+notBefore=Apr 24 02:29:29 2026 GMT
+notAfter=Jul 23 02:29:28 2026 GMT
+X509v3 Subject Alternative Name: 
+    DNS:open-transit-pilot.duckdns.org

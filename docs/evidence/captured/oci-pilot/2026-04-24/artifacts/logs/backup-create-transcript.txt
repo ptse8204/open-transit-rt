@@ -1,0 +1,10 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+could not change directory to "/home/opc": Permission denied
+sha256sum: /opt/open-transit-rt/backups/phase12-clean-20260424.dump: Permission denied
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+3ef807f72ee38704b53bcd5879916583e602579c59f2560804a854c2d524ffa0  /opt/open-transit-rt/backups/phase12-clean-20260424.dump
+-rw-r-----. 1 postgres postgres 155K Apr 24 04:12 /opt/open-transit-rt/backups/phase12-clean-20260424.dump

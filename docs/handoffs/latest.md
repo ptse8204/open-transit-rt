@@ -4,16 +4,16 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 12 — Deployment Evidence Hardening is in progress.
+Phase 13 planning/docs can proceed next. Phase 12 — Deployment Evidence Hardening is closed for the OCI pilot evidence scope.
 
 ## Phase Status
 
 - Phases 0 through 11 are closed for their documented scope.
-- Phase 12 is active.
+- Phase 12 is closed for the OCI pilot evidence scope.
 - **Phase 12 Step 1 is complete** as repo-side docs/runbooks/evidence-template scaffolding.
 - **Phase 12 Step 2 is partially complete** with a real dated local evidence packet at `docs/evidence/captured/local-demo/2026-04-22/`.
-- **Phase 12 Step 3 is partially complete** as repo-side closure tooling hardening. It does not include hosted deployment evidence.
-- Real hosted HTTPS evidence collection for Phase 12 is still pending.
+- **Phase 12 Step 3 is complete** as repo-side closure tooling hardening. It did not itself include hosted deployment evidence.
+- **Phase 12 hosted closure evidence is complete** at `docs/evidence/captured/oci-pilot/2026-04-24/`.
 - Phases 13 and 14 remain planning/docs tracks only.
 
 ## Read These Files First
@@ -28,13 +28,14 @@ Phase 12 — Deployment Evidence Hardening is in progress.
 8. `README.md`
 9. `docs/runbooks/deployment-evidence-overview.md`
 10. `docs/evidence/captured/local-demo/2026-04-22/README.md`
-11. `docs/evidence/README.md`
-12. `docs/tutorials/production-checklist.md`
-13. `docs/tutorials/calitp-readiness-checklist.md`
+11. `docs/evidence/captured/oci-pilot/2026-04-24/README.md`
+12. `docs/evidence/README.md`
+13. `docs/tutorials/production-checklist.md`
+14. `docs/tutorials/calitp-readiness-checklist.md`
 
 ## Current Objective
 
-Execute the next Phase 12 slice by collecting **hosted deployment/operator evidence** using the committed runbooks/templates. The local demo packet and Step 3 validator-tooling hardening are useful, but they do not close the hosted evidence requirements.
+Use `docs/evidence/captured/oci-pilot/2026-04-24/` as the latest hosted/operator evidence packet. It closes Phase 12 for the OCI pilot evidence scope because the hosted audit passed.
 
 Do not claim production readiness, CAL-ITP compliance, or consumer acceptance without hosted and third-party evidence.
 
@@ -51,25 +52,18 @@ docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```
 
-## Known Blockers
+## Current Evidence Boundary
 
-- Docker must be installed/running for `make demo-agency-flow`, DB-backed integration flow, and `docker compose ... config`.
-- Pinned validator tooling must be installed (`make validators-install`) before `make validators-check`, `make validate`, and `make smoke` can pass.
-- Java is required for the pinned static GTFS validator JAR. Homebrew Java 17 is now available locally, and the repo tooling can use `JAVA_BINARY` or the Homebrew Java path when the macOS `/usr/bin/java` shim is not usable.
-- The Step 2 GTFS-RT validator wrapper blocker was addressed in `scripts/install-validators.sh`: the generated wrapper now drives the pinned MobilityData webapp API against local schedule/realtime artifacts and normalizes monitor results to JSON.
-- `scripts/duckdns-pilot.sh` exists for the DuckDNS/Caddy pilot path. DNS for `open-transit-pilot.duckdns.org` points at the apparent public IPv4, but TCP 80/443 are not externally reachable yet, so Caddy cannot complete ACME validation and hosted evidence collection is still blocked.
-- No hosted HTTPS hostname, TLS certificate, production reverse proxy config, monitoring alert lifecycle, production backup policy, or consumer acceptance evidence has been captured.
-- `docs/evidence/captured/hosted-pending/2026-04-22/` now contains an operator intake packet for the missing hosted artifacts; it is not completed evidence.
-- `make collect-hosted-evidence` is available for hosted feed fetch, TLS, validation, and manual scorecard collection once `ENVIRONMENT_NAME` and `PUBLIC_BASE_URL` are set. `ADMIN_TOKEN` is needed for hosted validation and scorecard export.
-- `make audit-hosted-evidence` is available for completed hosted packets once `EVIDENCE_PACKET_DIR` is set; it should fail until pending markers, failed validators, missing TLS evidence, and missing operator-supplied artifacts are resolved.
+- The OCI pilot packet includes public HTTPS feed fetches, TLS/redirect evidence, public-edge auth-boundary proof, SSH-tunneled admin auth proof, clean hosted validator records, monitoring/alert lifecycle evidence, backup/restore evidence, deployment data-restore rollback proof, and scorecard export job-history proof.
+- The closure command passed: `EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence`.
+- The scorecard still has consumer ingestion red because external consumer acceptance is outside Phase 12.
 - Consumer submission APIs remain out of scope; workflow records are not third-party acceptance proof.
 
 ## First Files Likely To Edit
 
-- `docs/evidence/captured/<hosted-environment>/*` (real hosted operator evidence artifacts when available)
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`
-- `docs/handoffs/phase-12-step-3.md` (or equivalent next-step handoff)
+- later phase docs or evidence packets, depending on the next requested track
 
 ## Constraints To Preserve
 

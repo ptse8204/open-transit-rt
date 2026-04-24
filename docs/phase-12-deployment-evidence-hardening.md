@@ -2,8 +2,9 @@
 
 ## Status
 
-In progress. Step 1 repo scaffolding is complete and Step 2 produced a partial
-local demo evidence packet. Hosted deployment evidence remains missing.
+Closed for the OCI pilot evidence scope on 2026-04-24. Step 1 repo scaffolding,
+Step 2 local evidence, Step 3 validator tooling hardening, and the hosted
+`oci-pilot` evidence packet are complete.
 
 ## Purpose
 
@@ -187,4 +188,26 @@ Phase 12 Step 3 hardened the repo-side tooling needed for a future hosted closur
 - `make validators-check` now verifies Java for the static validator and Docker, `curl`, and `python3` for the GTFS-RT wrapper;
 - no hosted production/pilot evidence was collected in this step.
 
-Phase 12 remains open until a real production/pilot evidence packet passes the hosted audit and required repo-side checks.
+## Hosted OCI Pilot Closure Note
+
+Phase 12 hosted evidence was collected at `docs/evidence/captured/oci-pilot/2026-04-24/`.
+
+The packet includes:
+
+- public HTTPS fetch proof for `schedule.zip`, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts;
+- public-edge auth boundary checks and SSH-tunneled admin auth checks;
+- TLS certificate and HTTP-to-HTTPS redirect evidence;
+- clean hosted validator records for schedule and all three realtime feeds;
+- pre-update, post-update, transient-update, and deployment data-restore rollback `feeds.json` snapshots;
+- operator-supplied reverse proxy, monitoring, alert lifecycle, backup, restore, and scorecard job artifacts.
+
+Closure gate:
+
+```bash
+EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence
+```
+
+Result: passed.
+
+This closes Phase 12 for hosted/operator evidence. It does not claim Cal-ITP
+compliance or third-party consumer acceptance.

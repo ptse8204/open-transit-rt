@@ -1,0 +1,74 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+# Open Transit RT — Caddy reverse proxy for OCI pilot
+#
+# open-transit-pilot.duckdns.org is substituted by deploy/oci/install-units.sh
+# Default: open-transit-pilot.duckdns.org
+#
+# Caddy obtains a TLS certificate automatically via Let's Encrypt (HTTP-01).
+# Requirements before Caddy can issue a cert:
+#   - DNS A record for open-transit-pilot.duckdns.org must resolve to this instance's public IP
+#   - Ports 80 and 443 must be open (OCI Security List + firewalld)
+
+open-transit-pilot.duckdns.org {
+  encode zstd gzip
+
+  # --- Public anonymous feed paths ---
+
+  handle /public/gtfs/* {
+    reverse_proxy 127.0.0.1:8081
+  }
+
+  handle /public/feeds.json {
+    reverse_proxy 127.0.0.1:8081
+  }
+
+  handle /public/gtfsrt/vehicle_positions.pb {
+    reverse_proxy 127.0.0.1:8083
+  }
+
+  handle /public/gtfsrt/trip_updates.pb {
+    reverse_proxy 127.0.0.1:8084
+  }
+
+  handle /public/gtfsrt/alerts.pb {
+    reverse_proxy 127.0.0.1:8085
+  }
+
+  # --- All other paths: 404 ---
+  # Admin, debug, and studio routes are NOT exposed through this public edge.
+  # Operators must SSH tunnel or use a separate auth-aware proxy for admin access.
+
+  handle {
+    respond 404
+  }
+}
+
+--- systemd unit status ---
+● caddy.service - Caddy
+     Loaded: loaded (/usr/lib/systemd/system/caddy.service; enabled; preset: disabled)
+     Active: active (running) since Fri 2026-04-24 03:27:56 GMT; 55min ago
+       Docs: https://caddyserver.com/docs/
+   Main PID: 104680 (caddy)
+      Tasks: 8 (limit: 2323)
+     Memory: 16.5M (peak: 74.2M)
+        CPU: 1.684s
+     CGroup: /system.slice/caddy.service
+             └─104680 /usr/bin/caddy run --environ --config /etc/caddy/Caddyfile
+
+Apr 24 04:13:37 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004017.4804788,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63490","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.00306776,"status":502,"err_id":"7jnm7byys","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:39 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004019.6023312,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63491","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"Accept":["*/*"],"User-Agent":["curl/8.7.1"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.000262247,"status":502,"err_id":"w1b07jggg","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:41 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004021.7252388,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63492","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.002025312,"status":502,"err_id":"kqgdmcc0y","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:43 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004023.8515675,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63493","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.00166529,"status":502,"err_id":"j4gqre2bd","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:45 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004025.9760625,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63494","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.002733276,"status":502,"err_id":"sar0cb93c","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:48 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004028.1226897,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63495","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.000275212,"status":502,"err_id":"t7vk3938n","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:50 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004030.3059385,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63497","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"Accept":["*/*"],"User-Agent":["curl/8.7.1"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.000984438,"status":502,"err_id":"3aiufhmx0","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:52 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004032.466061,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63498","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.006570848,"status":502,"err_id":"rzssi2pih","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:54 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004034.7809057,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63499","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.002427005,"status":502,"err_id":"nunq64wbd","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+Apr 24 04:13:57 instance-20260422-2136 caddy[104680]: {"level":"error","ts":1777004037.243879,"logger":"http.log.error","msg":"dial tcp 127.0.0.1:8081: connect: connection refused","request":{"remote_ip":"216.19.185.91","remote_port":"63500","client_ip":"216.19.185.91","proto":"HTTP/2.0","method":"GET","host":"open-transit-pilot.duckdns.org","uri":"/public/feeds.json","headers":{"User-Agent":["curl/8.7.1"],"Accept":["*/*"]},"tls":{"resumed":false,"version":772,"cipher_suite":4867,"proto":"h2","server_name":"open-transit-pilot.duckdns.org","ech":false}},"duration":0.183939907,"status":502,"err_id":"5pkrwwbpx","err_trace":"reverseproxy.statusError (reverseproxy.go:1525)"}
+
+--- timers ---
+Fri 2026-04-24 04:25:00 GMT 1min 51s left -                           -            open-transit-feed-monitor.timer     open-transit-feed-monitor.service
+Fri 2026-04-24 05:00:00 GMT 36min left    -                           -            open-transit-scorecard-export.timer open-transit-scorecard-export.service
+Sat 2026-04-25 00:00:00 GMT 19h left      -                           -            open-transit-backup.timer           open-transit-backup.service

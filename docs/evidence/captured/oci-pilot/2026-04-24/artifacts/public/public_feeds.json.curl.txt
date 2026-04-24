@@ -1,0 +1,5 @@
+url=https://open-transit-pilot.duckdns.org/public/feeds.json
+status=200
+content_type=application/json
+size_download=2541
+time_total=0.177948

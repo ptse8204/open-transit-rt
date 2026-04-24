@@ -1,0 +1,5 @@
+url=https://open-transit-pilot.duckdns.org/public/gtfs/schedule.zip
+status=200
+content_type=application/zip
+size_download=1937
+time_total=0.479586

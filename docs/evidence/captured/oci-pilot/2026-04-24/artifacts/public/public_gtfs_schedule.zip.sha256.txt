@@ -1,0 +1,1 @@
+7b0b389c41faa0fa0c01a25611f019822453f7a03bc9f1b547f7b16b66d99d83  artifacts/public/public_gtfs_schedule.zip

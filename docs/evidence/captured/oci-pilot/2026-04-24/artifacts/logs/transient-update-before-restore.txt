@@ -1,0 +1,4 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+{"import_id":4,"agency_id":"demo-agency","feed_version_id":"gtfs-import-4","status":"published","error_count":0,"warning_count":0,"info_count":0,"counts":{"agency":1,"calendar":1,"calendar_dates":0,"frequencies":0,"routes":1,"shapes":3,"stop_times":3,"stops":3,"trips":1},"report_stored":true}

@@ -1,0 +1,6 @@
+HTTP/1.1 308 Permanent Redirect
+Connection: close
+Location: https://open-transit-pilot.duckdns.org/public/feeds.json
+Server: Caddy
+Date: Fri, 24 Apr 2026 04:02:08 GMT
+

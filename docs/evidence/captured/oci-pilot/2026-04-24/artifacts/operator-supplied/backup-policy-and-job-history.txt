@@ -1,0 +1,49 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+# Backup policy
+schedule=daily systemd timer
+retention=7 days for open-transit-rt-*.dump on pilot host
+storage=/opt/open-transit-rt/backups; access=root/postgres on OCI pilot
+
+# Backup job definitions
+# /etc/systemd/system/open-transit-backup.service
+[Unit]
+Description=Open Transit RT PostgreSQL backup
+[Service]
+Type=oneshot
+ExecStart=/opt/open-transit-rt/ops/backup-open-transit.sh
+
+# /etc/systemd/system/open-transit-backup.timer
+[Unit]
+Description=Run Open Transit RT PostgreSQL backup daily
+[Timer]
+OnCalendar=daily
+Persistent=true
+[Install]
+WantedBy=timers.target
+
+# Backup script
+#!/usr/bin/env sh
+set -eu
+OUTDIR=/opt/open-transit-rt/backups
+mkdir -p "$OUTDIR"
+ts=$(date -u +%Y%m%dT%H%M%SZ)
+out="$OUTDIR/open-transit-rt-$ts.dump"
+tmp="/tmp/open-transit-rt-$ts.dump"
+sudo -u postgres pg_dump -Fc -d open_transit_rt -f "$tmp"
+mv "$tmp" "$out"
+chown postgres:postgres "$out"
+chmod 640 "$out"
+sha256sum "$out" > "$out.sha256"
+find "$OUTDIR" -name 'open-transit-rt-*.dump' -mtime +7 -delete
+printf '%s backup %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$out" >> "$OUTDIR/backup-job-history.txt"
+
+# Backup job history
+2026-04-24T04:22:04Z backup /opt/open-transit-rt/backups/open-transit-rt-20260424T042202Z.dump
+
+# Backup files
+2026-04-24 04:12 158199 /opt/open-transit-rt/backups/phase12-clean-20260424.dump
+2026-04-24 04:22 133 /opt/open-transit-rt/backups/open-transit-rt-20260424T042202Z.dump.sha256
+2026-04-24 04:22 159242 /opt/open-transit-rt/backups/open-transit-rt-20260424T042202Z.dump
+2026-04-24 04:22 95 /opt/open-transit-rt/backups/backup-job-history.txt

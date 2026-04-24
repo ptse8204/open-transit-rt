@@ -1,0 +1,78 @@
+{
+  "agency_id": "demo-agency",
+  "agency_name": "Demo Transit",
+  "generated_at": "2026-04-24T04:06:18Z",
+  "publication_environment": "production",
+  "public_base_url": "https://open-transit-pilot.duckdns.org",
+  "technical_contact_email": "ops@example.org",
+  "license": {
+    "name": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  "feeds": [
+    {
+      "feed_type": "schedule",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfs/schedule.zip",
+      "activation_status": "active",
+      "active_feed_version_id": "gtfs-import-1",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z",
+      "license_name": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "contact_email": "ops@example.org",
+      "last_validation_status": "failed",
+      "last_validation_at": "2026-04-24T04:02:19.133649Z",
+      "last_health_status": "not_run",
+      "last_health_at": null
+    },
+    {
+      "feed_type": "vehicle_positions",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfsrt/vehicle_positions.pb",
+      "activation_status": "active",
+      "active_feed_version_id": "gtfs-import-1",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z",
+      "license_name": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "contact_email": "ops@example.org",
+      "last_validation_status": "passed",
+      "last_validation_at": "2026-04-24T04:03:23.249752Z",
+      "last_health_status": "not_run",
+      "last_health_at": null
+    },
+    {
+      "feed_type": "trip_updates",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfsrt/trip_updates.pb",
+      "activation_status": "active",
+      "active_feed_version_id": "gtfs-import-1",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z",
+      "license_name": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "contact_email": "ops@example.org",
+      "last_validation_status": "passed",
+      "last_validation_at": "2026-04-24T04:04:03.821222Z",
+      "last_health_status": "ok",
+      "last_health_at": "2026-04-24T04:03:24Z"
+    },
+    {
+      "feed_type": "alerts",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfsrt/alerts.pb",
+      "activation_status": "active",
+      "active_feed_version_id": "gtfs-import-1",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z",
+      "license_name": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "contact_email": "ops@example.org",
+      "last_validation_status": "passed",
+      "last_validation_at": "2026-04-24T04:04:45.683136Z",
+      "last_health_status": "ok",
+      "last_health_at": "2026-04-24T04:04:04Z"
+    }
+  ],
+  "readiness": {
+    "discoverable": false,
+    "https_urls": true,
+    "license_complete": true,
+    "contact_complete": true,
+    "all_required_feeds_listed": true,
+    "canonical_validation_complete": false
+  }
+}

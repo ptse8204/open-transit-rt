@@ -1,0 +1,28 @@
+# Public-edge auth boundary probe
+captured_at_utc=2026-04-24T04:17:10Z
+
+## Anonymous public endpoints expected 200
+200 /public/gtfs/schedule.zip
+200 /public/feeds.json
+200 /public/gtfsrt/vehicle_positions.pb
+200 /public/gtfsrt/trip_updates.pb
+200 /public/gtfsrt/alerts.pb
+
+## Anonymous public debug JSON expected rejected or not publicly routed
+404 /public/gtfsrt/vehicle_positions.json
+404 /public/gtfsrt/trip_updates.json
+404 /public/gtfsrt/alerts.json
+404 /admin/debug/vehicle_positions
+404 /admin/debug/trip_updates
+404 /admin/debug/alerts
+
+## Anonymous public admin mutations expected rejected or not publicly routed
+404 POST /admin/publication/bootstrap
+404 POST /admin/validation/run
+404 POST /admin/compliance/scorecard
+404 POST /admin/devices/rebind
+404 POST /admin/alerts
+
+## SSH-tunneled admin auth boundary
+401 tunneled POST /admin/publication/bootstrap without bearer
+200 tunneled POST /admin/publication/bootstrap with bearer

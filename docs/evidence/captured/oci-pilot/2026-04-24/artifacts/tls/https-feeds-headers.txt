@@ -1,0 +1,9 @@
+HTTP/2 405 
+alt-svc: h3=":443"; ma=2592000
+content-type: text/plain; charset=utf-8
+date: Fri, 24 Apr 2026 04:02:08 GMT
+via: 1.1 Caddy
+x-content-type-options: nosniff
+x-request-id: e5000f91105e04f2eb7b6cd701d51655
+content-length: 19
+

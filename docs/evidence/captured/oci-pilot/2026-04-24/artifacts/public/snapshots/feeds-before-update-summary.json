@@ -1,0 +1,41 @@
+{
+  "feeds": [
+    {
+      "active_feed_version_id": "gtfs-import-1",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfs/schedule.zip",
+      "feed_type": "schedule",
+      "last_validation_status": "failed",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z"
+    },
+    {
+      "active_feed_version_id": "gtfs-import-1",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfsrt/vehicle_positions.pb",
+      "feed_type": "vehicle_positions",
+      "last_validation_status": "passed",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z"
+    },
+    {
+      "active_feed_version_id": "gtfs-import-1",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfsrt/trip_updates.pb",
+      "feed_type": "trip_updates",
+      "last_validation_status": "passed",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z"
+    },
+    {
+      "active_feed_version_id": "gtfs-import-1",
+      "canonical_public_url": "https://open-transit-pilot.duckdns.org/public/gtfsrt/alerts.pb",
+      "feed_type": "alerts",
+      "last_validation_status": "passed",
+      "revision_timestamp": "2026-04-24T03:30:50.174667Z"
+    }
+  ],
+  "public_base_url": "https://open-transit-pilot.duckdns.org",
+  "readiness": {
+    "all_required_feeds_listed": true,
+    "canonical_validation_complete": false,
+    "contact_complete": true,
+    "discoverable": false,
+    "https_urls": true,
+    "license_complete": true
+  }
+}

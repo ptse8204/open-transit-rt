@@ -1,0 +1,11 @@
+HTTP/2 200 
+alt-svc: h3=":443"; ma=2592000
+content-type: application/zip
+date: Fri, 24 Apr 2026 04:17:27 GMT
+etag: "gtfs-import-3-7b0b389c41faa0fa0c01a25611f019822453f7a03bc9f1b547f7b16b66d99d83"
+last-modified: Fri, 24 Apr 2026 04:10:01 GMT
+via: 1.1 Caddy
+x-checksum-sha256: 7b0b389c41faa0fa0c01a25611f019822453f7a03bc9f1b547f7b16b66d99d83
+x-request-id: 0fcd5bb913f2d91cb009815dd641d71d
+content-length: 1937
+

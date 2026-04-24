@@ -1,0 +1,5 @@
+url=https://open-transit-pilot.duckdns.org/public/gtfsrt/vehicle_positions.pb
+status=200
+content_type=application/x-protobuf
+size_download=15
+time_total=0.376040

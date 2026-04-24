@@ -1,0 +1,41 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+# Monitoring job definitions
+# /etc/systemd/system/open-transit-feed-monitor.service
+[Unit]
+Description=Open Transit RT feed availability monitor
+[Service]
+Type=oneshot
+User=open-transit
+Group=open-transit
+ExecStart=/opt/open-transit-rt/ops/monitor-feeds.sh
+
+# /etc/systemd/system/open-transit-feed-monitor.timer
+[Unit]
+Description=Run Open Transit RT feed availability monitor every 5 minutes
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+[Install]
+WantedBy=timers.target
+
+# Monitor history
+{"timestamp_utc":"2026-04-24T04:20:51Z","rule":"public_feed_availability","path":"/public/feeds.json","status_code":"200","status":"ok"}
+{"timestamp_utc":"2026-04-24T04:20:51Z","rule":"public_feed_availability","path":"/public/gtfs/schedule.zip","status_code":"200","status":"ok"}
+{"timestamp_utc":"2026-04-24T04:20:52Z","rule":"public_feed_availability","path":"/public/gtfsrt/vehicle_positions.pb","status_code":"200","status":"ok"}
+{"timestamp_utc":"2026-04-24T04:20:52Z","rule":"public_feed_availability","path":"/public/gtfsrt/trip_updates.pb","status_code":"200","status":"ok"}
+{"timestamp_utc":"2026-04-24T04:20:52Z","rule":"public_feed_availability","path":"/public/gtfsrt/alerts.pb","status_code":"200","status":"ok"}
+
+# Monitor service status
+○ open-transit-feed-monitor.service - Open Transit RT feed availability monitor
+     Loaded: loaded (/etc/systemd/system/open-transit-feed-monitor.service; static)
+     Active: inactive (dead) since Fri 2026-04-24 04:20:52 GMT; 2min 16s ago
+TriggeredBy: ● open-transit-feed-monitor.timer
+    Process: 113834 ExecStart=/opt/open-transit-rt/ops/monitor-feeds.sh (code=exited, status=0/SUCCESS)
+   Main PID: 113834 (code=exited, status=0/SUCCESS)
+        CPU: 206ms
+
+Apr 24 04:20:50 instance-20260422-2136 systemd[1]: Starting Open Transit RT feed availability monitor...
+Apr 24 04:20:52 instance-20260422-2136 systemd[1]: open-transit-feed-monitor.service: Deactivated successfully.
+Apr 24 04:20:52 instance-20260422-2136 systemd[1]: Finished Open Transit RT feed availability monitor.

@@ -1,0 +1,23 @@
+# Controlled Alert Lifecycle Drill
+captured_at_utc=2026-04-24T04:23:09Z
+environment=oci-pilot
+rule=public_feed_availability
+notification_destination=operator terminal/log artifact for pilot drill
+
+detected_at_utc=2026-04-24T04:23:09Z
+probe=https://open-transit-pilot.duckdns.org/public/gtfsrt/not_a_feed.pb
+probe_status=404
+alert_state=detected
+
+acknowledged_at_utc=2026-04-24T04:23:10Z
+acknowledged_by=phase12-operator
+alert_state=acknowledged
+
+mitigated_at_utc=2026-04-24T04:23:10Z
+mitigation=confirmed configured public feed paths remain HTTP 200 and the failing probe was an intentionally invalid synthetic path
+configured_feed_probe_artifact=artifacts/public/auth-boundary/public-and-tunneled-auth-boundary.txt
+alert_state=mitigated
+
+resolved_at_utc=2026-04-24T04:23:10Z
+resolution=controlled drill closed after confirming configured feed availability
+follow_up=keep monitor timer active and route alerts to the agency destination before external consumer launch
