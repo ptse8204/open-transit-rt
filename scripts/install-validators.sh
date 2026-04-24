@@ -143,11 +143,19 @@ docker run -d --rm --name "\$container_name" \
   "\$IMAGE" >"\$output_dir/validator-container-id.txt"
 
 validator_base="http://127.0.0.1:\$validator_port"
-for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+ready_timeout="\${GTFS_RT_VALIDATOR_READY_TIMEOUT_SECONDS:-20}"
+case "\$ready_timeout" in
+  ''|*[!0-9]*)
+    ready_timeout=20
+    ;;
+esac
+ready_elapsed=0
+while [ "\$ready_elapsed" -lt "\$ready_timeout" ]; do
   if curl -fsS "\$validator_base/" >/dev/null 2>&1; then
     break
   fi
   sleep 1
+  ready_elapsed=\$((ready_elapsed + 1))
 done
 if ! curl -fsS "\$validator_base/" >/dev/null 2>&1; then
   docker logs "\$container_name" >"\$output_dir/validator-container.log" 2>&1 || true

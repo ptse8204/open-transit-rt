@@ -33,5 +33,10 @@ Artifacts:
 - During transient restore drill update: `artifacts/public/snapshots/feeds-during-restore-drill-transient-update.json`
 - After deployment data-restore rollback: `artifacts/public/snapshots/feeds-after-restore-rollback.json`
 - Final after validator rerun: `artifacts/public/snapshots/feeds-final-after-validator-rerun.json`
+- Final current-live recheck: `artifacts/public/snapshots/feeds-final-current-live-20260424T163846Z.json`
+- Final current-live summary: `artifacts/public/snapshots/feeds-final-current-live-20260424T163846Z-summary.json`
+- Current live feed-version history: `artifacts/public/snapshots/current-live-feed-version-history-20260424T163846Z.txt`
 
 The controlled update moved the active feed from `gtfs-import-1` to `gtfs-import-3`. A transient drill update moved it to `gtfs-import-4`; restoring the clean backup returned the active feed to `gtfs-import-3`. The public base URL and all feed URLs stayed unchanged through the update and deployment data-restore rollback drill.
+
+The final current-live recheck at `2026-04-24T16:38:46Z` showed active `gtfs-import-3` for schedule, Vehicle Positions, Trip Updates, and Alerts. The database history artifact did not show an intentional move to `gtfs-import-16`.

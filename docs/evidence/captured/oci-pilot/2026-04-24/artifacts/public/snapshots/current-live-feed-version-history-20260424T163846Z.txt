@@ -1,0 +1,31 @@
+      id       | source_type | lifecycle_state | is_active | validation_status |          created_at           |         activated_at          
+---------------+-------------+-----------------+-----------+-------------------+-------------------------------+-------------------------------
+ gtfs-import-3 | gtfs_import | active          | t         | passed            | 2026-04-24 04:10:00.982809+00 | 2026-04-24 04:10:01.250396+00
+ gtfs-import-2 | gtfs_import | retired         | f         | passed            | 2026-04-24 04:06:43.378146+00 | 2026-04-24 04:06:43.631709+00
+ gtfs-import-1 | gtfs_import | retired         | f         | passed            | 2026-04-24 03:27:46.265653+00 | 2026-04-24 03:27:46.287873+00
+(3 rows)
+
+     feed_type     | active_feed_version_id | activation_status |      revision_timestamp      |          updated_at          
+-------------------+------------------------+-------------------+------------------------------+------------------------------
+ alerts            | gtfs-import-3          | active            | 2026-04-24 04:17:15.25903+00 | 2026-04-24 04:17:15.25903+00
+ schedule          | gtfs-import-3          | active            | 2026-04-24 04:17:15.25903+00 | 2026-04-24 04:17:15.25903+00
+ trip_updates      | gtfs-import-3          | active            | 2026-04-24 04:17:15.25903+00 | 2026-04-24 04:17:15.25903+00
+ vehicle_positions | gtfs-import-3          | active            | 2026-04-24 04:17:15.25903+00 | 2026-04-24 04:17:15.25903+00
+(4 rows)
+
+     feed_type     | feed_version_id | status | error_count | warning_count |          created_at           
+-------------------+-----------------+--------+-------------+---------------+-------------------------------
+ alerts            | gtfs-import-3   | passed |           0 |             0 | 2026-04-24 16:38:32.78329+00
+ alerts            | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:35:20.585508+00
+ alerts            | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:34:10.598777+00
+ trip_updates      | gtfs-import-3   | passed |           0 |             0 | 2026-04-24 16:33:28.678854+00
+ vehicle_positions | gtfs-import-3   | passed |           0 |             0 | 2026-04-24 16:32:40.594931+00
+ alerts            | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:31:39.476527+00
+ trip_updates      | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:30:53.117265+00
+ vehicle_positions | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:29:51.713515+00
+ alerts            | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:25:34.087343+00
+ trip_updates      | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:25:33.8644+00
+ vehicle_positions | gtfs-import-3   | failed |           1 |             0 | 2026-04-24 16:25:33.582229+00
+ schedule          | gtfs-import-3   | passed |           0 |             0 | 2026-04-24 16:25:32.957326+00
+(12 rows)
+

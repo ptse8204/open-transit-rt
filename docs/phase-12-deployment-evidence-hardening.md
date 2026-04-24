@@ -199,6 +199,7 @@ The packet includes:
 - TLS certificate and HTTP-to-HTTPS redirect evidence;
 - clean hosted validator records for schedule and all three realtime feeds;
 - pre-update, post-update, transient-update, and deployment data-restore rollback `feeds.json` snapshots;
+- final current-live recheck showing active `gtfs-import-3`, all required hosted validators passed, and `canonical_validation_complete=true`;
 - operator-supplied reverse proxy, monitoring, alert lifecycle, backup, restore, and scorecard job artifacts.
 
 Closure gate:

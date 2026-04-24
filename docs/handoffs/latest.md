@@ -56,6 +56,7 @@ git diff --check
 
 - The OCI pilot packet includes public HTTPS feed fetches, TLS/redirect evidence, public-edge auth-boundary proof, SSH-tunneled admin auth proof, clean hosted validator records, monitoring/alert lifecycle evidence, backup/restore evidence, deployment data-restore rollback proof, and scorecard export job-history proof.
 - The closure command passed: `EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence`.
+- The final current-live recheck on April 24, 2026 refreshed the packet with active `gtfs-import-3`, passed hosted validator artifacts for schedule, Vehicle Positions, Trip Updates, and Alerts, and `canonical_validation_complete=true`.
 - The scorecard still has consumer ingestion red because external consumer acceptance is outside Phase 12.
 - Consumer submission APIs remain out of scope; workflow records are not third-party acceptance proof.
 

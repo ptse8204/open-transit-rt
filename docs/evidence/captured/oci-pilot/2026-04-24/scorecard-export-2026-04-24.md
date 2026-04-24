@@ -8,7 +8,7 @@
 
 - Manual export artifacts: `artifacts/scorecard/latest-scorecard.json` and timestamped `scorecard-*.json` files.
 - Scheduled job evidence: `artifacts/operator-supplied/scorecard-job-definition-and-history.txt`.
-- Latest scorecard status: validation green, discoverability green, consumer ingestion red.
+- Latest scorecard status after the current-live recheck: validation green, discoverability green, consumer ingestion red.
 
 ## Claim Boundary
 

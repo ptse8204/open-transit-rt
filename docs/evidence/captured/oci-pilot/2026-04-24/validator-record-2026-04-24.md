@@ -4,7 +4,7 @@
 - Capture date (UTC): 2026-04-24
 - Operator: Codex operator session using OCI pilot admin credentials
 
-## Validator Runs After Restore
+## Final Current-Live Validator Runs
 
 | Feed type | Validator ID | Artifact | Status |
 | --- | --- | --- | --- |
@@ -13,4 +13,4 @@
 | `trip_updates` | `realtime-mobilitydata` | `artifacts/validation/validate-trip_updates.json` | `passed` |
 | `alerts` | `realtime-mobilitydata` | `artifacts/validation/validate-alerts.json` | `passed` |
 
-The final validator artifacts were collected after the deployment data-restore rollback, against active feed version `gtfs-import-3`.
+The final validator artifacts were refreshed during the current-live recheck against active feed version `gtfs-import-3`. The final public `feeds.json` snapshot reports `canonical_validation_complete=true` with schedule, Vehicle Positions, Trip Updates, and Alerts all `passed`.

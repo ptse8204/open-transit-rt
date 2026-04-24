@@ -113,7 +113,7 @@ This improved future hosted evidence collection, but did not itself move hosted 
 
 Phase 12 hosted evidence was collected at `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
-The hosted packet includes public HTTPS feed fetches, public-edge and SSH-tunneled auth-boundary checks, TLS/redirect evidence, clean hosted validator records for schedule plus all three realtime feeds, monitoring and alert lifecycle artifacts, backup/job history artifacts, a deployment data-restore rollback drill, and scorecard export job-history evidence.
+The hosted packet includes public HTTPS feed fetches, public-edge and SSH-tunneled auth-boundary checks, TLS/redirect evidence, clean hosted validator records for schedule plus all three realtime feeds, monitoring and alert lifecycle artifacts, backup/job history artifacts, a deployment data-restore rollback drill, scorecard export job-history evidence, and a final current-live recheck showing active `gtfs-import-3` with `canonical_validation_complete=true`.
 
 The closure command passed:
 
