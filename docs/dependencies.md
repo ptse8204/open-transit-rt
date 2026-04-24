@@ -85,7 +85,8 @@ Primary relational datastore for:
 - feed metadata
 
 ### Expected version
-- PostgreSQL 16 preferred
+- PostgreSQL 16 preferred for local/containerized and larger production deployments
+- PostgreSQL 15 is accepted for the Oracle Linux 9 OCI micro pilot because PGDG packages and PostGIS are available there and the host has about 503 MiB usable RAM
 
 ### Integration boundary
 - Accessed through Go repository interfaces
@@ -123,7 +124,7 @@ Spatial extension for:
 - efficient spatial queries for trip matching
 
 ### Expected version
-- compatible with PostgreSQL 16 deployment
+- compatible with the active PostgreSQL deployment; the OCI micro pilot uses PostGIS 3.4 for PostgreSQL 15 from PGDG
 
 ### Integration boundary
 - accessed only from repository / matching packages

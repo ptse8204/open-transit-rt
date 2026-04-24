@@ -1,8 +1,8 @@
 [Unit]
 Description=Open Transit RT — feed-trip-updates
 Documentation=https://github.com/YOUR_ORG/open-transit-rt
-After=network.target postgresql.service open-transit-feed-vehicle-positions.service
-Wants=postgresql.service
+After=network.target postgresql-15.service open-transit-feed-vehicle-positions.service
+Wants=postgresql-15.service
 
 [Service]
 Type=simple

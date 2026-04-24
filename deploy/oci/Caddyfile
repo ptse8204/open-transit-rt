@@ -6,7 +6,7 @@
 # Caddy obtains a TLS certificate automatically via Let's Encrypt (HTTP-01).
 # Requirements before Caddy can issue a cert:
 #   - DNS A record for {{DOMAIN}} must resolve to this instance's public IP
-#   - Ports 80 and 443 must be open (OCI Security List + iptables)
+#   - Ports 80 and 443 must be open (OCI Security List + firewalld)
 
 {{DOMAIN}} {
   encode zstd gzip

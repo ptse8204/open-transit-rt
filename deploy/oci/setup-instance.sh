@@ -1,113 +1,212 @@
 #!/usr/bin/env sh
-# deploy/oci/setup-instance.sh — First-time Oracle Cloud Ubuntu instance setup
+# deploy/oci/setup-instance.sh — First-time Oracle Linux 9 instance setup
 #
-# Run via: scripts/oci-pilot.sh setup
-# Or manually: sudo ./setup-instance.sh
+# Target OS: Oracle Linux Server 9.x (RHEL 9 compatible, uses dnf/firewalld)
+# Run via:   scripts/oci-pilot.sh setup
+# Or manually on the instance: sudo ./setup-instance.sh
 #
-# This script is IDEMPOTENT — safe to run more than once.
-# It does NOT write the application env file or secrets.
-# After this script, the operator must run:
-#   scripts/oci-pilot.sh env-init   (generates env file with secrets)
+# Idempotent — safe to run more than once.
+# Does NOT write the application env file or secrets.
 
 set -eu
 
-echo "==> open-transit-rt OCI instance setup"
+echo "==> open-transit-rt OCI instance setup (Oracle Linux 9)"
 echo "    $(date -u)"
 
 # ---------------------------------------------------------------------------
-# 1. Swap (4 GB — critical for 1 GB RAM)
+# 1. Firewall — open ports 80 and 443 via firewalld
 # ---------------------------------------------------------------------------
 
-if swapon --show | grep -q /swapfile; then
-  echo "==> Swap already enabled — skipping swap creation"
+echo "==> Opening ports 80 and 443 in firewalld..."
+firewall-cmd --permanent --add-port=80/tcp  2>/dev/null || true
+firewall-cmd --permanent --add-port=443/tcp 2>/dev/null || true
+firewall-cmd --reload 2>/dev/null || true
+echo "==> Firewalld ports: $(firewall-cmd --list-ports 2>/dev/null || echo '(check manually)')"
+
+# ---------------------------------------------------------------------------
+# 2. Swap — check/create (OCI may have pre-configured swap)
+# ---------------------------------------------------------------------------
+
+if swapon --show | grep -q swap 2>/dev/null; then
+  echo "==> Swap already enabled: $(free -h | awk '/Swap/{print $2}')"
 else
-  echo "==> Creating 4 GB swap file..."
+  echo "==> Creating 4G swap file..."
   fallocate -l 4G /swapfile
   chmod 0600 /swapfile
   mkswap /swapfile
   swapon /swapfile
-  if ! grep -q '/swapfile' /etc/fstab; then
-    echo '/swapfile none swap sw 0 0' >> /etc/fstab
-  fi
-  echo "vm.swappiness=10" >> /etc/sysctl.conf
-  sysctl -p
-  echo "==> Swap enabled: $(free -h | grep Swap)"
+  grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  echo "vm.swappiness=10" >> /etc/sysctl.conf && sysctl -p
+  echo "==> Swap created: $(free -h | awk '/Swap/{print $2}')"
 fi
 
 # ---------------------------------------------------------------------------
-# 2. iptables — open ports 80 and 443 persistently
+# 3. System packages (dnf)
 # ---------------------------------------------------------------------------
 
-echo "==> Configuring iptables for ports 80 and 443..."
-# Add rules only if not already present
-iptables -C INPUT -p tcp -m state --state NEW -m tcp --dport 80  -j ACCEPT 2>/dev/null \
-  || iptables -I INPUT 6 -p tcp -m state --state NEW -m tcp --dport 80  -j ACCEPT
-iptables -C INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT 2>/dev/null \
-  || iptables -I INPUT 6 -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+echo "==> Installing base system packages via dnf..."
+dnf install -y --setopt=install_weak_deps=False \
+  curl wget unzip zip git ca-certificates python3
+echo "==> Base system packages installed."
 
-apt-get install -y -q iptables-persistent 2>/dev/null || true
-netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4 || true
-echo "==> iptables rules saved."
-
-# ---------------------------------------------------------------------------
-# 3. System packages
-# ---------------------------------------------------------------------------
-
-echo "==> Installing system packages..."
-apt-get update -q
-apt-get install -y -q \
-  curl wget unzip zip git ca-certificates gnupg \
-  openjdk-17-jre-headless \
-  python3 \
-  postgresql postgresql-contrib
-
-# PostGIS: add PostgreSQL apt repo which has the postgis packages
-if ! dpkg -l | grep -q postgresql-14-postgis-3 2>/dev/null && \
-   ! dpkg -l | grep -q postgresql-16-postgis-3 2>/dev/null; then
-  PG_VER=$(pg_lsclusters -h 2>/dev/null | awk '{print $1}' | head -1 || echo "16")
-  apt-get install -y -q "postgresql-${PG_VER}-postgis-3" || \
-    apt-get install -y -q postgis || true
+if ! swapon --show | grep -q '/swapfile-extra' 2>/dev/null; then
+  echo "==> Creating temporary 4G extra swap for Oracle Linux package transactions..."
+  fallocate -l 4G /swapfile-extra
+  chmod 0600 /swapfile-extra
+  mkswap /swapfile-extra
+  swapon /swapfile-extra
+  echo "==> Extra swap enabled for setup: $(free -h | awk '/Swap/{print $2}')"
 fi
 
-echo "==> System packages installed."
+# ---------------------------------------------------------------------------
+# 4. PostgreSQL 15 + PostGIS (PGDG repo)
+# ---------------------------------------------------------------------------
+
+if rpm -q pgdg-redhat-repo > /dev/null 2>&1; then
+  echo "==> PGDG repo already installed."
+else
+  echo "==> Installing PGDG repo..."
+  rpm -Uvh --nodeps \
+    https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+fi
+
+if rpm -q postgresql15-server > /dev/null 2>&1; then
+  echo "==> PostgreSQL 15 already installed."
+else
+  echo "==> Installing PostgreSQL 15 from PGDG repo..."
+  dnf install -y --setopt=install_weak_deps=False \
+    --disablerepo='*' \
+    --enablerepo=pgdg15 \
+    --enablerepo=ol9_baseos_latest \
+    postgresql15-server
+  echo "==> PostgreSQL 15 installed."
+fi
+
+if rpm -q postgis34_15 > /dev/null 2>&1; then
+  echo "==> PostGIS already installed."
+else
+  echo "==> Installing PostGIS 3.4 for PostgreSQL 15..."
+  dnf install -y --nobest --setopt=install_weak_deps=False \
+    --disablerepo='*' \
+    --enablerepo=pgdg15 \
+    --enablerepo=pgdg-common \
+    --enablerepo=ol9_appstream \
+    --enablerepo=ol9_baseos_latest \
+    --enablerepo=ol9_codeready_builder \
+    --enablerepo=ol9_developer_EPEL \
+    postgis34_15
+fi
+
+# Initialize PostgreSQL cluster if not done yet
+if [ ! -f /var/lib/pgsql/15/data/PG_VERSION ]; then
+  echo "==> Initializing PostgreSQL 15 data directory..."
+  PGSETUP_INITDB_OPTIONS="--encoding=UTF8 --locale=C" \
+    /usr/pgsql-15/bin/postgresql-15-setup initdb
+fi
+
+# Apply memory tuning before first start
+PG_CONF_DIR="/var/lib/pgsql/15/data"
+TUNING_CONF="${PG_CONF_DIR}/conf.d/open-transit-rt.conf"
+mkdir -p "${PG_CONF_DIR}/conf.d"
+
+# Enable conf.d inclusion in postgresql.conf
+if ! grep -q "include_dir" "${PG_CONF_DIR}/postgresql.conf" 2>/dev/null; then
+  echo "include_dir = 'conf.d'" >> "${PG_CONF_DIR}/postgresql.conf"
+fi
+
+if [ ! -f "$TUNING_CONF" ]; then
+  cat > "$TUNING_CONF" <<'PGEOF'
+# Open Transit RT — VM.Standard.E2.1.Micro tuning (~503 MB usable RAM)
+shared_buffers              = 96MB
+effective_cache_size        = 384MB
+work_mem                    = 3MB
+maintenance_work_mem        = 24MB
+max_connections             = 25
+wal_buffers                 = 4MB
+checkpoint_completion_target = 0.9
+random_page_cost            = 1.1
+log_min_duration_statement  = 500
+PGEOF
+  echo "==> PostgreSQL tuning applied."
+fi
+
+# Bind PostgreSQL to loopback only
+sed -i "s|#listen_addresses = 'localhost'|listen_addresses = '127.0.0.1'|" \
+  "${PG_CONF_DIR}/postgresql.conf" 2>/dev/null || \
+  sed -i "s|listen_addresses = '\*'|listen_addresses = '127.0.0.1'|" \
+  "${PG_CONF_DIR}/postgresql.conf" 2>/dev/null || true
+
+# Adjust pg_hba.conf to allow md5/scram auth for local connections
+if ! grep -q "open_transit" "${PG_CONF_DIR}/pg_hba.conf" 2>/dev/null; then
+  # Add a line before the default ident local auth lines
+  sed -i '/^local.*all.*all.*peer/i host    open_transit_rt    open_transit    127.0.0.1/32    scram-sha-256' \
+    "${PG_CONF_DIR}/pg_hba.conf" || true
+fi
+
+systemctl enable postgresql-15
+systemctl restart postgresql-15
+echo "==> PostgreSQL running: $(systemctl is-active postgresql-15)"
 
 # ---------------------------------------------------------------------------
-# 4. Caddy (from official repo)
+# 5. Create Postgres DB and user
+# ---------------------------------------------------------------------------
+
+echo "==> Ensuring database 'open_transit_rt' and role 'open_transit' exist..."
+sudo -u postgres /usr/pgsql-15/bin/psql -tc \
+  "SELECT 1 FROM pg_roles WHERE rolname='open_transit'" \
+  | grep -q 1 || \
+  sudo -u postgres /usr/pgsql-15/bin/psql -c \
+  "CREATE ROLE open_transit WITH LOGIN PASSWORD 'changeme-run-env-init';"
+
+sudo -u postgres /usr/pgsql-15/bin/psql -tc \
+  "SELECT 1 FROM pg_database WHERE datname='open_transit_rt'" \
+  | grep -q 1 || \
+  sudo -u postgres /usr/pgsql-15/bin/psql -c \
+  "CREATE DATABASE open_transit_rt OWNER open_transit;"
+
+sudo -u postgres /usr/pgsql-15/bin/psql -d open_transit_rt \
+  -c "CREATE EXTENSION IF NOT EXISTS postgis;" 2>/dev/null || true
+sudo -u postgres /usr/pgsql-15/bin/psql -d open_transit_rt \
+  -c "CREATE EXTENSION IF NOT EXISTS postgis_topology;" 2>/dev/null || true
+sudo -u postgres /usr/pgsql-15/bin/psql \
+  -c "GRANT ALL ON DATABASE open_transit_rt TO open_transit;" 2>/dev/null || true
+
+echo "==> IMPORTANT: After running env-init, update Postgres password:"
+echo "    sudo -u postgres /usr/pgsql-15/bin/psql -c \"ALTER ROLE open_transit WITH PASSWORD '<from-env-file>';\""
+
+# ---------------------------------------------------------------------------
+# 6. Caddy (official Cloudsmith RPM repo)
 # ---------------------------------------------------------------------------
 
 if command -v caddy > /dev/null 2>&1; then
   echo "==> Caddy already installed: $(caddy version)"
 else
-  echo "==> Installing Caddy from official repository..."
-  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
-    | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
-    | tee /etc/apt/sources.list.d/caddy-stable.list
-  apt-get update -q
-  apt-get install -y -q caddy
+  echo "==> Installing Caddy..."
+  dnf install -y --setopt=install_weak_deps=False \
+    --disablerepo='*' \
+    --enablerepo='copr:copr.fedorainfracloud.org:group_caddy:caddy' \
+    --enablerepo=ol9_baseos_latest \
+    caddy
   echo "==> Caddy installed: $(caddy version)"
 fi
 
-# ---------------------------------------------------------------------------
-# 5. Go (match the version in go.mod — 1.23.x)
-# ---------------------------------------------------------------------------
+# Allow Caddy to bind ports 80/443 without root (SELinux + capability)
+setcap cap_net_bind_service=+ep "$(command -v caddy)" 2>/dev/null || true
 
-if command -v go > /dev/null 2>&1; then
-  echo "==> Go already installed: $(go version)"
-else
-  GO_VERSION="1.23.8"
-  echo "==> Installing Go ${GO_VERSION}..."
-  wget -q "https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz" -O /tmp/go.tar.gz
-  tar -C /usr/local -xzf /tmp/go.tar.gz
-  rm /tmp/go.tar.gz
-  if ! grep -q '/usr/local/go/bin' /etc/profile.d/go.sh 2>/dev/null; then
-    echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/go.sh
-  fi
-  echo "==> Go installed: $(/usr/local/go/bin/go version)"
-fi
+# Allow Caddy to connect to loopback backend (SELinux httpd_can_network_connect)
+setsebool -P httpd_can_network_connect 1 2>/dev/null || true
+
+systemctl enable caddy
+echo "==> Caddy enabled."
 
 # ---------------------------------------------------------------------------
-# 6. Create application system user
+# 7. Go toolchain
+# ---------------------------------------------------------------------------
+
+echo "==> Go is not installed by default; scripts/oci-pilot.sh deploys local cross-compiled binaries."
+
+# ---------------------------------------------------------------------------
+# 8. Create application system user
 # ---------------------------------------------------------------------------
 
 if id open-transit > /dev/null 2>&1; then
@@ -116,104 +215,28 @@ else
   echo "==> Creating system user 'open-transit'..."
   useradd -r -m -d /opt/open-transit-rt -s /sbin/nologin open-transit
 fi
+mkdir -p /opt/open-transit-rt
+chown open-transit:open-transit /opt/open-transit-rt
+chmod 750 /opt/open-transit-rt
 
 # ---------------------------------------------------------------------------
-# 7. PostgreSQL — configure for 1 GB RAM + PostGIS
+# 9. Docker (optional — for GTFS-RT validator only)
 # ---------------------------------------------------------------------------
 
-PG_VER=$(pg_lsclusters -h 2>/dev/null | awk '{print $1}' | head -1 || echo "16")
-PG_CONF_DIR="/etc/postgresql/${PG_VER}/main"
-TUNING_CONF="${PG_CONF_DIR}/conf.d/open-transit-rt.conf"
-
-if [ ! -f "$TUNING_CONF" ]; then
-  echo "==> Applying PostgreSQL memory tuning..."
-  mkdir -p "${PG_CONF_DIR}/conf.d"
-  cat > "$TUNING_CONF" <<'PGEOF'
-# Open Transit RT — VM.Standard.E2.1.Micro tuning (1 GB RAM)
-shared_buffers              = 128MB
-effective_cache_size        = 512MB
-work_mem                    = 4MB
-maintenance_work_mem        = 32MB
-max_connections             = 25
-wal_buffers                 = 4MB
-checkpoint_completion_target = 0.9
-random_page_cost            = 1.1
-log_min_duration_statement  = 500
-PGEOF
-  echo "==> PostgreSQL tuning written to ${TUNING_CONF}"
-fi
-
-# Bind PostgreSQL to loopback only
-if grep -q "listen_addresses = '\*'" "${PG_CONF_DIR}/postgresql.conf" 2>/dev/null; then
-  sed -i "s/listen_addresses = '\*'/listen_addresses = '127.0.0.1'/" \
-    "${PG_CONF_DIR}/postgresql.conf"
-fi
-
-systemctl restart postgresql
-systemctl enable postgresql
-echo "==> PostgreSQL running: $(systemctl is-active postgresql)"
-
-# ---------------------------------------------------------------------------
-# 8. Create Postgres DB and user (idempotent)
-# ---------------------------------------------------------------------------
-
-# We cannot generate the password here (it must match the env file).
-# Print instructions and create the DB structure without a known password first.
-# The operator will set the password when they run env-init and then re-run this step.
-echo "==> Ensuring database 'open_transit_rt' and role 'open_transit' exist..."
-sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='open_transit'" \
-  | grep -q 1 || \
-  sudo -u postgres psql -c "CREATE ROLE open_transit WITH LOGIN PASSWORD 'changeme-run-env-init';"
-
-sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='open_transit_rt'" \
-  | grep -q 1 || \
-  sudo -u postgres psql -c "CREATE DATABASE open_transit_rt OWNER open_transit;"
-
-sudo -u postgres psql -d open_transit_rt -c "CREATE EXTENSION IF NOT EXISTS postgis;" 2>/dev/null || true
-sudo -u postgres psql -d open_transit_rt -c "CREATE EXTENSION IF NOT EXISTS postgis_topology;" 2>/dev/null || true
-sudo -u postgres psql -c "GRANT ALL ON DATABASE open_transit_rt TO open_transit;" 2>/dev/null || true
-
-echo ""
-echo "==> IMPORTANT: after running 'scripts/oci-pilot.sh env-init', update the DB password:"
-echo "    sudo -u postgres psql -c \"ALTER ROLE open_transit WITH PASSWORD '<password-from-env-file>';\""
-
-# ---------------------------------------------------------------------------
-# 9. Caddy systemd enable
-# ---------------------------------------------------------------------------
-
-systemctl enable caddy
-echo "==> Caddy enabled."
-
-# ---------------------------------------------------------------------------
-# 10. Docker (optional — for GTFS-RT validator only, not running as a daemon)
-# ---------------------------------------------------------------------------
-
-if command -v docker > /dev/null 2>&1; then
-  echo "==> Docker already installed."
-else
-  echo "==> Installing Docker Engine (for GTFS-RT validator only)..."
-  curl -fsSL https://get.docker.com | sh
-  usermod -aG docker open-transit || true
-  # Do NOT auto-start Docker on boot — only start it when running validation
-  systemctl disable docker    2>/dev/null || true
-  systemctl disable containerd 2>/dev/null || true
-  echo "==> Docker installed but disabled at boot."
-fi
+echo "==> Docker is intentionally not installed on this 503MiB RAM instance."
 
 # ---------------------------------------------------------------------------
 # Done
 # ---------------------------------------------------------------------------
 
 echo ""
-echo "==> setup-instance.sh complete."
+echo "==> setup-instance.sh complete (Oracle Linux 9)."
 echo ""
 echo "NEXT STEPS:"
-echo "  1. Run: scripts/oci-pilot.sh env-init"
-echo "  2. Update Postgres password to match the generated DB password:"
-echo "       sudo -u postgres psql -c \"ALTER ROLE open_transit WITH PASSWORD '<from-env-file>';\""
-echo "  3. Run: scripts/oci-pilot.sh push"
-echo "  4. Run: scripts/oci-pilot.sh units"
-echo "  5. Run: scripts/oci-pilot.sh migrate"
-echo "  6. Run: scripts/oci-pilot.sh start"
-echo "  7. Configure Caddy: see deploy/oci/Caddyfile"
-echo "  8. Run: scripts/oci-pilot.sh status"
+echo "  1. scripts/oci-pilot.sh env-init"
+echo "  2. Update Postgres password to match generated DB password"
+echo "  3. scripts/oci-pilot.sh push"
+echo "  4. scripts/oci-pilot.sh units"
+echo "  5. scripts/oci-pilot.sh migrate"
+echo "  6. scripts/oci-pilot.sh start"
+echo "  7. scripts/oci-pilot.sh token <agency-id> && scripts/oci-pilot.sh bootstrap"

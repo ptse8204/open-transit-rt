@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# scripts/oci-pilot.sh — Oracle Cloud VM.Standard.E2.1.Micro pilot orchestration
+# scripts/oci-pilot.sh — Oracle Cloud VM.Standard.E2.1.Micro pilot orchestration (Oracle Linux 9)
 #
 # Runs from the local Mac. Manages the full lifecycle of the OCI pilot deployment:
 # build, push, setup, migrate, systemd services, DNS, and evidence collection.
@@ -9,7 +9,7 @@
 #
 # Required env for most commands:
 #   OCI_HOST      — public IP of the OCI instance        (default: 192.9.142.92)
-#   OCI_USER      — SSH username                         (default: ubuntu)
+#   OCI_USER      — SSH username                         (default: opc)
 #   OCI_KEY       — path to SSH private key              (default: use ssh-agent)
 #
 # Required env for DNS update:
@@ -28,7 +28,7 @@ cd "$ROOT_DIR"
 # ---------------------------------------------------------------------------
 
 OCI_HOST="${OCI_HOST:-192.9.142.92}"
-OCI_USER="${OCI_USER:-ubuntu}"
+OCI_USER="${OCI_USER:-opc}"          # Oracle Linux default; Ubuntu instances use 'ubuntu'
 OCI_KEY="${OCI_KEY:-}"                          # empty = use ssh-agent / ~/.ssh/id_rsa
 OCI_REMOTE_DIR="${OCI_REMOTE_DIR:-/opt/open-transit-rt}"
 OCI_APP_USER="${OCI_APP_USER:-open-transit}"
@@ -67,6 +67,18 @@ scp_to() {
     scp -r -i "$OCI_KEY" "$src" "${OCI_USER}@${OCI_HOST}:${dest}"
   else
     scp -r "$src" "${OCI_USER}@${OCI_HOST}:${dest}"
+  fi
+}
+
+# copy_dir_to_remote <local-dir> <remote-dir>
+# Streams a directory through tar because OCI_REMOTE_DIR is owned by the service account.
+copy_dir_to_remote() {
+  local src_dir="${1%/}" dest_dir="$2"
+  ssh_run "sudo mkdir -p '${dest_dir}'"
+  if [ -n "${OCI_KEY:-}" ]; then
+    COPYFILE_DISABLE=1 tar --disable-copyfile -C "$src_dir" -cf - . | ssh -i "$OCI_KEY" "${OCI_USER}@${OCI_HOST}" "sudo tar -C '${dest_dir}' -xf -"
+  else
+    COPYFILE_DISABLE=1 tar --disable-copyfile -C "$src_dir" -cf - . | ssh "${OCI_USER}@${OCI_HOST}" "sudo tar -C '${dest_dir}' -xf -"
   fi
 }
 
@@ -119,18 +131,18 @@ cmd_push() {
   ssh_run "sudo chmod 750 ${OCI_REMOTE_DIR}"
 
   echo "==> Uploading binaries..."
-  scp_to "${BIN_DIR}/" "${OCI_REMOTE_DIR}/bin/"
-  ssh_run "chmod +x ${OCI_REMOTE_DIR}/bin/*"
+  copy_dir_to_remote "${BIN_DIR}" "${OCI_REMOTE_DIR}/bin"
+  ssh_run "sudo sh -c 'chmod +x ${OCI_REMOTE_DIR}/bin/*'"
 
   echo "==> Uploading migrations..."
-  scp_to "db/migrations/." "${OCI_REMOTE_DIR}/app/db/migrations/"
+  copy_dir_to_remote "db/migrations" "${OCI_REMOTE_DIR}/app/db/migrations"
 
   echo "==> Uploading testdata (GTFS fixtures)..."
-  scp_to "testdata/." "${OCI_REMOTE_DIR}/app/testdata/"
+  copy_dir_to_remote "testdata" "${OCI_REMOTE_DIR}/app/testdata"
 
   echo "==> Uploading deploy assets (systemd units, OCI config)..."
-  scp_to "deploy/systemd/." "${OCI_REMOTE_DIR}/app/deploy/systemd/"
-  scp_to "deploy/oci/."     "${OCI_REMOTE_DIR}/app/deploy/oci/"
+  copy_dir_to_remote "deploy/systemd" "${OCI_REMOTE_DIR}/app/deploy/systemd"
+  copy_dir_to_remote "deploy/oci"     "${OCI_REMOTE_DIR}/app/deploy/oci"
 
   echo "==> Re-chowning after upload..."
   ssh_run "sudo chown -R ${OCI_APP_USER}:${OCI_APP_USER} ${OCI_REMOTE_DIR}"
@@ -140,7 +152,7 @@ cmd_push() {
 
 # ---------------------------------------------------------------------------
 # Subcommand: setup
-#   First-time instance setup: apt packages, swap, PostgreSQL, Caddy, user.
+#   First-time instance setup: Oracle Linux packages, swap, PostgreSQL, Caddy, user.
 #   Runs deploy/oci/setup-instance.sh on the remote host via sudo.
 #   Safe to run more than once (idempotent steps).
 # ---------------------------------------------------------------------------
@@ -214,7 +226,7 @@ REALTIME_VALIDATION_BASE_URL=${PUBLIC_BASE_URL}/public
 
 # REQUIRED: set contact and license
 TECHNICAL_CONTACT_EMAIL=ops@example.org
-FEED_LICENSE_NAME=CC BY 4.0
+FEED_LICENSE_NAME=CC-BY-4.0
 FEED_LICENSE_URL=https://creativecommons.org/licenses/by/4.0/
 PUBLICATION_ENVIRONMENT=production
 
@@ -254,10 +266,23 @@ GTFS_RT_VALIDATOR_VERSION=ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d
                sudo chown ${OCI_APP_USER}:${OCI_APP_USER} ${OCI_REMOTE_DIR}/env && \
                sudo chmod 600 ${OCI_REMOTE_DIR}/env"
 
-  echo "==> env file written. DB password for this instance: ${DB_PASSWORD}"
-  echo "    IMPORTANT: create the Postgres user with this password during setup:"
-  echo "      sudo -u postgres psql -c \"CREATE USER open_transit WITH PASSWORD '${DB_PASSWORD}';\""
-  echo "    Then edit ${OCI_REMOTE_DIR}/env to fill in AGENCY_ID, TECHNICAL_CONTACT_EMAIL, etc."
+  echo "==> Synchronizing Postgres role password with generated env secret..."
+  ssh_run "sudo -u postgres /usr/pgsql-15/bin/psql -v ON_ERROR_STOP=1 -c \
+    \"DO \\\$\\\$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'open_transit') THEN
+         CREATE ROLE open_transit WITH LOGIN PASSWORD '${DB_PASSWORD}';
+       ELSE
+         ALTER ROLE open_transit WITH LOGIN PASSWORD '${DB_PASSWORD}';
+       END IF;
+     END \\\$\\\$;\""
+
+  echo "==> Ensuring database exists..."
+  ssh_run "sudo -u postgres /usr/pgsql-15/bin/psql -tc \
+    \"SELECT 1 FROM pg_database WHERE datname='open_transit_rt'\" | grep -q 1 || \
+    sudo -u postgres /usr/pgsql-15/bin/createdb -O open_transit open_transit_rt"
+
+  echo "==> env file written at ${OCI_REMOTE_DIR}/env."
+  echo "    Edit ${OCI_REMOTE_DIR}/env to fill in AGENCY_ID, TECHNICAL_CONTACT_EMAIL, etc."
 }
 
 # ---------------------------------------------------------------------------
@@ -416,11 +441,12 @@ cmd_bootstrap() {
     echo "ERROR: ADMIN_TOKEN is not set. Run: scripts/oci-pilot.sh token" >&2
     exit 1
   fi
-  echo "==> Running publication metadata bootstrap..."
-  curl -fsS -X POST "${PUBLIC_BASE_URL}/admin/publication/bootstrap" \
-    -H "Authorization: Bearer ${ADMIN_TOKEN}" \
-    -H "Content-Type: application/json" \
-    --data '{}' | python3 -m json.tool
+  echo "==> Running publication metadata bootstrap over SSH loopback..."
+  # The public Caddy edge intentionally exposes anonymous feed paths only.
+  ssh_run "curl -fsS -X POST http://127.0.0.1:8081/admin/publication/bootstrap \
+    -H 'Authorization: Bearer ${ADMIN_TOKEN}' \
+    -H 'Content-Type: application/json' \
+    --data '{}'" | python3 -m json.tool
   echo ""
   echo "==> Bootstrap complete. Verify feeds.json:"
   curl -s "${PUBLIC_BASE_URL}/public/feeds.json" | python3 -m json.tool
@@ -490,7 +516,7 @@ scripts/oci-pilot.sh <subcommand>
 FIRST-TIME SETUP (run in this order):
   update-dns   Update DuckDNS A record to OCI_HOST           (needs DUCKDNS_TOKEN)
   build        Cross-compile linux/amd64 binaries -> deploy/bin/
-  setup        First-time instance setup (apt, swap, postgres, caddy) via SSH
+  setup        First-time instance setup (OL9 packages, swap, postgres, caddy) via SSH
   push         Upload binaries + migrations + config to OCI instance
   units        Install and enable systemd unit files on OCI instance
   env-init     Write initial env file on OCI instance (generates secrets)
@@ -514,7 +540,7 @@ DIAGNOSTICS:
 
 ENVIRONMENT:
   OCI_HOST          (default: 192.9.142.92)
-  OCI_USER          (default: ubuntu)
+  OCI_USER          (default: opc)
   OCI_KEY           SSH key path (default: ssh-agent)
   DUCKDNS_TOKEN     Required for update-dns
   ADMIN_TOKEN       Required for bootstrap / collect (or use 'token' subcommand)
