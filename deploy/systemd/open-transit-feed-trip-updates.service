@@ -1,0 +1,24 @@
+[Unit]
+Description=Open Transit RT — feed-trip-updates
+Documentation=https://github.com/YOUR_ORG/open-transit-rt
+After=network.target postgresql.service open-transit-feed-vehicle-positions.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User={{OCI_APP_USER}}
+WorkingDirectory={{OCI_REMOTE_DIR}}/app
+EnvironmentFile={{OCI_REMOTE_DIR}}/env
+Environment="PORT=8084"
+# VEHICLE_POSITIONS_FEED_URL is set in the env file at {{OCI_REMOTE_DIR}}/env
+ExecStart={{OCI_REMOTE_DIR}}/bin/feed-trip-updates
+Restart=on-failure
+RestartSec=5s
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths={{OCI_REMOTE_DIR}}
+
+[Install]
+WantedBy=multi-user.target

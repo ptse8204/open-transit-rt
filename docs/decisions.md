@@ -167,3 +167,21 @@ Telemetry ingest now verifies opaque device Bearer tokens against peppered HMAC 
 Validator runs no longer accept request-supplied commands, paths, argv, or output directories. `/admin/validation/run` accepts only `validator_id`, `feed_type`, and optional `feed_version_id`; the server derives artifacts itself, preferring generated local feed bytes/temp files over URLs whenever possible. Validators run with argv-based `exec.CommandContext`, timeout/output/report caps, and temp/output confinement.
 
 `vehicle_trip_assignment` now has a partial unique index for one current row per `(agency_id, vehicle_id)`, and `SaveAssignment` serializes writes with a per-agency/per-vehicle advisory transaction lock before reading or closing the current row.
+
+## ADR-0023 — Use compiled Go binaries and native services for memory-constrained deployments
+
+Phase 12 introduces `scripts/oci-pilot.sh` and `deploy/oci/` for deploying to an Oracle Cloud VM.Standard.E2.1.Micro instance (1 OCPU, 1 GB RAM). The following decisions apply to this deployment path and any future resource-constrained single-node target:
+
+**No Docker for application services.** The existing `deploy/docker-compose.yml` Postgres image consumes ~150–300 MB RAM by default. On a 1 GB instance shared with five Go services and Caddy, that leaves no safe operating margin. PostgreSQL 16 + PostGIS is installed natively via `apt` and tuned with `shared_buffers=128MB`, `max_connections=25`, and `work_mem=4MB`. The Docker Compose file remains for local development only and must not become the only documented production path.
+
+**Compiled binaries, not `go run`.** `go run` forks the compiler process at startup, consuming an additional ~100–150 MB during compilation. All production commands are pre-compiled with `GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w"` from the developer's local machine and uploaded via scp. This cross-compilation approach requires no Go toolchain on the OCI instance at runtime (though Go is installed by `setup-instance.sh` to support future on-instance rebuilds if needed).
+
+**Caddy via official Debian package.** Caddy is installed from the official Cloudsmith APT repository, creating a systemd-managed service with automatic TLS via Let's Encrypt. No manual certificate management, certbot cron, or Nginx configuration is required.
+
+**Docker remains installed but disabled at boot.** The GTFS-RT MobilityData validator wrapper requires Docker. Docker is installed on the OCI instance but `systemctl disable docker` prevents it from running continuously. Operators start Docker only when running a validation pass, then stop it to reclaim ~80–150 MB of idle RAM.
+
+**4 GB swap on the boot volume.** The OCI boot volume is 47 GB SSD-backed block storage. A 4 GB swapfile with `vm.swappiness=10` is created as a safety net for memory pressure during Java-based static GTFS validation (200–400 MB spike), cold start, or concurrent request bursts. Swap is not a substitute for RAM — production workloads should not rely on it continuously.
+
+**Systemd for service management.** All five application services run as the `open-transit` system user under individual systemd units in `deploy/systemd/`. Units use `ProtectSystem=strict`, `PrivateTmp=yes`, and `NoNewPrivileges=yes` for OS-level hardening. The `{{OCI_REMOTE_DIR}}`, `{{OCI_APP_USER}}`, and `{{DOMAIN}}` placeholders are substituted by `deploy/oci/install-units.sh` at install time.
+
+**DuckDNS for pilot DNS.** The pilot domain `open-transit-pilot.duckdns.org` is updated by `scripts/oci-pilot.sh update-dns` using the DuckDNS API. Custom domains follow the same flow by updating an A record at the registrar. DNS must resolve to the OCI public IP before Caddy can obtain a TLS certificate via the HTTP-01 ACME challenge.

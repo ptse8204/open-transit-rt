@@ -5,10 +5,13 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow collect-hosted-evidence audit-hosted-evidence run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow collect-hosted-evidence audit-hosted-evidence run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
+
+build-linux-amd64:
+	./scripts/oci-pilot.sh build
 
 deps:
 	go mod download
@@ -126,3 +129,44 @@ validate:
 	@test -d testdata/gtfs/malformed
 	@test -d testdata/telemetry
 	@echo "Validation smoke passed. Canonical validators run through server-side allowlisted IDs when configured."
+
+# ---------------------------------------------------------------------------
+# OCI Pilot targets — delegate to scripts/oci-pilot.sh
+# Set OCI_HOST, OCI_USER, OCI_KEY, DUCKDNS_TOKEN as needed.
+# ---------------------------------------------------------------------------
+
+oci-build:
+	./scripts/oci-pilot.sh build
+
+oci-setup:
+	./scripts/oci-pilot.sh setup
+
+oci-push:
+	./scripts/oci-pilot.sh push
+
+oci-units:
+	./scripts/oci-pilot.sh units
+
+oci-deploy:
+	./scripts/oci-pilot.sh deploy
+
+oci-status:
+	./scripts/oci-pilot.sh status
+
+oci-start:
+	./scripts/oci-pilot.sh start
+
+oci-stop:
+	./scripts/oci-pilot.sh stop
+
+oci-restart:
+	./scripts/oci-pilot.sh restart
+
+oci-logs:
+	./scripts/oci-pilot.sh logs
+
+oci-update-dns:
+	./scripts/oci-pilot.sh update-dns
+
+oci-collect:
+	./scripts/oci-pilot.sh collect

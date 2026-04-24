@@ -1,0 +1,43 @@
+# Open Transit RT — Caddy reverse proxy for OCI pilot
+#
+# {{DOMAIN}} is substituted by deploy/oci/install-units.sh
+# Default: open-transit-pilot.duckdns.org
+#
+# Caddy obtains a TLS certificate automatically via Let's Encrypt (HTTP-01).
+# Requirements before Caddy can issue a cert:
+#   - DNS A record for {{DOMAIN}} must resolve to this instance's public IP
+#   - Ports 80 and 443 must be open (OCI Security List + iptables)
+
+{{DOMAIN}} {
+  encode zstd gzip
+
+  # --- Public anonymous feed paths ---
+
+  handle /public/gtfs/* {
+    reverse_proxy 127.0.0.1:8081
+  }
+
+  handle /public/feeds.json {
+    reverse_proxy 127.0.0.1:8081
+  }
+
+  handle /public/gtfsrt/vehicle_positions.pb {
+    reverse_proxy 127.0.0.1:8083
+  }
+
+  handle /public/gtfsrt/trip_updates.pb {
+    reverse_proxy 127.0.0.1:8084
+  }
+
+  handle /public/gtfsrt/alerts.pb {
+    reverse_proxy 127.0.0.1:8085
+  }
+
+  # --- All other paths: 404 ---
+  # Admin, debug, and studio routes are NOT exposed through this public edge.
+  # Operators must SSH tunnel or use a separate auth-aware proxy for admin access.
+
+  handle {
+    respond 404
+  }
+}
