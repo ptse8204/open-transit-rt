@@ -11,6 +11,12 @@ Create or update these repo-owned assets:
 - `docs/assets/quickstart-flow.png`
 - `docs/assets/public-vs-admin-endpoints.png`
 
+Phase 14 public launch polish also uses these teaching visuals:
+
+- `docs/assets/agency-journey-to-public-feeds.png`
+- `docs/assets/docs-choose-your-path.png`
+- `docs/assets/data-flow-through-system.png`
+
 ## Asset Rules
 
 - diagrams must match the real repo architecture and endpoint surface
@@ -19,6 +25,10 @@ Create or update these repo-owned assets:
 - record the generation prompt/spec in `docs/assets/README.md`
 - if screenshots are used, ensure they reflect the current app
 - if image generation is unavailable in the environment, fall back to Mermaid and record the blocker in the handoff
+- manually review every generated or generated-assisted image for label accuracy and truthfulness before referencing it
+- captions must clearly state whether each image is illustrative or exact-behavior based
+- generated drafts may be refined into checked-in SVG/PNG assets when text or labels need cleanup
+- do not fabricate UI that does not exist
 
 ## Content Expectations
 

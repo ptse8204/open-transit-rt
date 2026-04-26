@@ -26,13 +26,15 @@ Phase 9 production closure is implemented for the current repository surface. Ad
 
 Validator tooling now has a repo-supported pin/install/check workflow. `make validators-install` installs MobilityData GTFS Validator `v7.1.0` with SHA-256 verification and a Docker-backed GTFS-RT validator wrapper pinned to `ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89`. `make validators-check`, `make validate`, and `make smoke` distinguish missing pinned tooling from checksum/digest/path misconfiguration. `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests.
 
-Phase 10 docs, tutorials, deployment, and demo work is complete for the current repository surface. The README now reflects Phase 9 behavior, the tutorial set under `docs/tutorials/` is filled, `make demo-agency-flow` runs an executable agency demo, `scripts/bootstrap-dev.sh` prints current services and protected/public surfaces, and repo-owned docs assets live under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
+Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
 Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
 
 Phase 12 is closed for the OCI pilot evidence scope. Step 1 (repo-side deployment evidence scaffolding), Step 2 (local demo evidence packet), Step 3 (hosted closure tooling hardening), and the hosted OCI pilot evidence packet are complete. The hosted packet lives at `docs/evidence/captured/oci-pilot/2026-04-24/` and passed `EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence`. A final current-live recheck on April 24, 2026 refreshed the packet with active `gtfs-import-3`, passed schedule/Vehicle Positions/Trip Updates/Alerts validation, and `canonical_validation_complete=true`.
 
 Phase 13 is complete for the initial consumer-submission evidence structure. The tracker lives at `docs/evidence/consumer-submissions/README.md`, with current records and templates for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land. All current target records are `not_started`; no repo evidence currently supports submitted, under-review, accepted, rejected, or blocked claims for any target.
+
+Phase 14 is complete for the public launch polish and repo simplification scope. The README is now a concise public front door with a short "what this is / what this is not" block, a single illustrative main visual, quick trial commands, bounded evidence links, limitations, and plain-language star/support wording. `docs/README.md` now serves as the docs landing page, tutorials have clearer navigation and captions, and `docs/assets/README.md` records generated-assisted visual specs plus the manual review rule for label accuracy, truthful captions, and useful alt text.
 
 ## What Exists Now
 
@@ -46,6 +48,7 @@ The repo has:
 - `docs/requirements-trip-updates.md`
 - `docs/requirements-calitp-compliance.md`
 - `docs/repo-gaps.md`
+- `docs/README.md`
 - `docs/dependencies.md`
 - `docs/compliance-evidence-checklist.md`
 - `docs/phase-plan.md`
@@ -55,6 +58,7 @@ The repo has:
 - `docs/tutorials/`
 - `docs/assets/`
 - `docs/handoffs/latest.md`
+- `docs/handoffs/phase-14.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -212,11 +216,13 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 13 — Consumer Submission and Acceptance Evidence is complete for the initial docs/evidence tracker structure. Phase 12 — Deployment Evidence Hardening is closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`).
+**Active phase:** Phase 14 — Public Launch Polish and Repo Simplification is complete for the docs/presentation/navigation scope. Phase 12 — Deployment Evidence Hardening remains closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`), and Phase 13 remains closed for the initial consumer-submission evidence tracker structure.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
 Phase 13 added documentation-only consumer submission records and templates. It did not add runtime/product changes or consumer submission APIs.
+
+Phase 14 added documentation-only public-facing polish. It did not change backend runtime behavior, API contracts, database schema, public feed URLs, external integrations, evidence claims, or consumer-submission status.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 

@@ -2,6 +2,10 @@
 
 This tutorial starts the current Open Transit RT development environment on one machine. It is local-dev only and uses seeded demo credentials.
 
+![Exact-behavior local quickstart flow showing database bootstrap, validator install, sample GTFS import, service startup, publication bootstrap, telemetry ingest, public feed fetches, validation run, and scorecard inspection.](../assets/quickstart-flow.png)
+
+*Exact-behavior flow diagram for the committed local demo path, rendered from a reviewed SVG spec.*
+
 ## Prerequisites
 
 - Go matching `go.mod`

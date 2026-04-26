@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">How data moves through Open Transit RT</title>
+  <desc id="desc">Illustrative system explainer showing inputs, Open Transit RT services and state, validation, and public feed outputs.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.col{fill:#fff;stroke:#cbd5e1;stroke-width:2;rx:18}.input{fill:#eff6ff;stroke:#2563eb;stroke-width:3;rx:14}.core{fill:#f8fafc;stroke:#0f172a;stroke-width:3;rx:14}.ok{fill:#ecfdf5;stroke:#16a34a;stroke-width:3;rx:14}.public{fill:#f1f5f9;stroke:#475569;stroke-width:3;rx:14}.line{stroke:#2563eb;stroke-width:4;fill:none;marker-end:url(#arrow)}.dash{stroke:#64748b;stroke-width:3;fill:none;stroke-dasharray:8 8;marker-end:url(#arrow)}.text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:750}.small{font-size:22px;font-weight:650}.tiny{font-size:18px;font-weight:500;fill:#475569}.mono{font-family:"SFMono-Regular",Consolas,monospace;font-size:19px;font-weight:650;fill:#1e293b}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text x="64" y="74" class="text" style="font-size:42px">How data moves through the system</text>
+  <text x="64" y="112" class="tiny">Illustrative system explainer. It summarizes current repo behavior and adapter boundaries; it is not a hosted deployment diagram.</text>
+
+  <rect x="70" y="170" width="390" height="590" class="col"/>
+  <text x="110" y="230" class="text">Inputs</text>
+  <rect x="110" y="285" width="310" height="90" class="input"/><text x="140" y="340" class="small">GTFS import</text>
+  <rect x="110" y="405" width="310" height="90" class="input"/><text x="140" y="460" class="small">GTFS Studio drafts</text>
+  <rect x="110" y="525" width="310" height="90" class="input"/><text x="140" y="580" class="small">Vehicle telemetry</text>
+
+  <rect x="605" y="170" width="390" height="590" class="col"/>
+  <text x="645" y="230" class="text">Open Transit RT</text>
+  <rect x="645" y="285" width="310" height="72" class="core"/><text x="675" y="331" class="small">Published GTFS</text>
+  <rect x="645" y="382" width="310" height="72" class="core"/><text x="675" y="428" class="small">Assignments</text>
+  <rect x="645" y="479" width="310" height="72" class="core"/><text x="675" y="525" class="small">Prediction adapter</text>
+  <rect x="645" y="576" width="310" height="72" class="core"/><text x="675" y="622" class="small">Alerts</text>
+  <rect x="645" y="673" width="310" height="72" class="ok"/><text x="675" y="712" class="small">Validation</text><text x="675" y="735" class="tiny">checks generated artifacts</text>
+
+  <rect x="1140" y="170" width="390" height="590" class="col"/>
+  <text x="1180" y="230" class="text">Public feeds</text>
+  <rect x="1180" y="285" width="310" height="72" class="public"/><text x="1210" y="331" class="mono">schedule.zip</text>
+  <rect x="1180" y="382" width="310" height="72" class="public"/><text x="1210" y="428" class="mono">feeds.json</text>
+  <rect x="1180" y="479" width="310" height="72" class="public"/><text x="1210" y="525" class="mono">Vehicle Positions</text>
+  <rect x="1180" y="576" width="310" height="72" class="public"/><text x="1210" y="622" class="mono">Trip Updates</text>
+  <rect x="1180" y="673" width="310" height="72" class="public"/><text x="1210" y="719" class="mono">Alerts</text>
+
+  <path class="line" d="M420 330H645"/>
+  <path class="line" d="M420 450C500 450 560 321 645 321"/>
+  <path class="line" d="M420 570C520 570 565 418 645 418"/>
+  <path class="line" d="M955 321H1180"/>
+  <path class="dash" d="M955 321C1045 335 1095 418 1180 418"/>
+  <path class="line" d="M955 418C1045 430 1090 515 1180 515"/>
+  <path class="line" d="M955 515C1045 525 1090 612 1180 612"/>
+  <path class="line" d="M955 612C1045 625 1090 709 1180 709"/>
+  <path class="dash" d="M800 357V382"/>
+  <path class="dash" d="M800 454V479"/>
+  <path class="dash" d="M800 551V576"/>
+</svg>

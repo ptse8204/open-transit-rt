@@ -1,8 +1,10 @@
 # Agency Demo Flow
 
-This tutorial shows the repo-owned local demo for an agency or evaluator. It is executable from the repo and uses only current Phase 9 behavior.
+This tutorial shows the repo-owned local demo for an agency or evaluator. It is executable from the repo and uses only current repository behavior.
 
-![Quickstart flow](../assets/quickstart-flow.png)
+![Illustrative agency journey from GTFS import or GTFS Studio drafts through schedule publication, authenticated telemetry, validation, and public GTFS plus GTFS Realtime feeds.](../assets/agency-journey-to-public-feeds.png)
+
+*Illustrative teaching graphic, not a product screenshot. It summarizes the agency path exercised by the local demo.*
 
 ## Run The Demo
 
@@ -77,7 +79,9 @@ It then verifies `/admin/gtfs-studio` succeeds with `Authorization: Bearer $ADMI
 
 This explicitly covers the GTFS Studio admin boundary: the Studio root and draft subroutes are protected admin surfaces, not public pages.
 
-![Public and admin endpoints](../assets/public-vs-admin-endpoints.png)
+![Exact-behavior boundary diagram showing anonymous public schedule, feeds.json, and realtime protobuf routes separated from protected GTFS Studio, JSON debug, telemetry events, validation, scorecard, Alerts admin, and device rebinding routes.](../assets/public-vs-admin-endpoints.png)
+
+*Exact-behavior endpoint boundary diagram rendered from a reviewed SVG spec.*
 
 ## Demo Credentials
 

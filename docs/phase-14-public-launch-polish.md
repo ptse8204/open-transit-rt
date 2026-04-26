@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned documentation track. Not implemented in this repository yet.
+Complete for the documentation, presentation, navigation, and teaching-visual scope.
 
 ## Purpose
 
@@ -18,6 +18,8 @@ Goals:
 - shorten initial narrative,
 - keep first-screen guidance focused on what Open Transit RT is, what it is not, and how to run the demo,
 - move deep phase history and detailed evidence matrices into dedicated docs.
+- keep README understandable by a non-technical agency reader in under 3 minutes,
+- keep README concise and easy to scan, ideally under 150 to 200 lines unless examples genuinely require more.
 
 ### 2) Move Phase/History Detail Into `docs/`
 
@@ -33,6 +35,9 @@ Goals:
 - organize `docs/assets/` with clear naming,
 - add concise doc navigation sections for deployers and contributors,
 - reduce duplication across status/handoff/tutorial files.
+- manually review every generated or generated-assisted visual for label accuracy and truthfulness before referencing it,
+- require captions to identify whether visuals are illustrative or exact-behavior based,
+- require useful descriptive alt text.
 
 ### 4) Improve “Support / Star The Repo” Presentation
 
@@ -50,6 +55,7 @@ Phase 14 is complete only when all are true:
 - Docs navigation is improved for quick pathfinding (status, handoff, tutorials, evidence).
 - Assets/screenshot references are current and organized.
 - Support/star/contribution messaging is clear and truthful.
+- README has a short "what this is / what this is not" block.
 - No readiness/compliance/acceptance overclaims are introduced.
 
 ## Explicit Non-Goals

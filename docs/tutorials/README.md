@@ -1,18 +1,22 @@
 # Tutorials
 
-These tutorials describe the current Phase 9/Phase 10 repository surface. They are intentionally evidence-bounded: they document what the repo can run today and do not claim hosted production readiness, consumer acceptance, or completed CAL-ITP/Caltrans compliance.
+These tutorials document what the current repo can run today. They do not claim hosted production readiness, consumer acceptance, or completed CAL-ITP/Caltrans compliance.
 
-Start here:
+![Exact-behavior local quickstart flow showing database bootstrap, validator install, sample GTFS import, service startup, publication bootstrap, telemetry ingest, public feed fetches, validation run, and scorecard inspection.](../assets/quickstart-flow.png)
 
-- [Local Quickstart](local-quickstart.md)
-- [Agency Demo Flow](agency-demo-flow.md)
-- [Deploy With Docker Compose](deploy-with-docker-compose.md)
-- [Production Checklist](production-checklist.md)
-- [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md)
+*Exact-behavior flow diagram for `make demo-agency-flow`, rendered from a reviewed SVG spec.*
 
-For the detailed Phase 11 evidence separation, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
+## Start Here
 
-Rules for future edits:
+- [Local Quickstart](local-quickstart.md): bring up the local development environment.
+- [Agency Demo Flow](agency-demo-flow.md): run the executable agency/evaluator demo.
+- [Deploy With Docker Compose](deploy-with-docker-compose.md): understand the current deployment path.
+- [Production Checklist](production-checklist.md): review operational work still needed for a real deployment.
+- [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md): track readiness without overclaiming compliance.
+
+For broader navigation, see [Docs Home](../README.md). For detailed evidence boundaries, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
+
+## Truthfulness Rules For Tutorial Edits
 
 - Every command must be runnable from the committed repo or clearly marked as deployment-specific.
 - Every endpoint and environment variable must match the actual codebase.
