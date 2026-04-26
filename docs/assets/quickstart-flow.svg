@@ -1,28 +1,65 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
   <title id="title">Local quickstart flow</title>
-  <desc id="desc">The local demo bootstraps the DB, installs validators, imports GTFS, starts services, bootstraps publication, ingests telemetry, fetches public feeds, runs validation, and inspects scorecards.</desc>
+  <desc id="desc">The local demo sets up the database and validators, imports GTFS, starts services, ingests telemetry, fetches public feeds, validates, and checks the scorecard.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2563eb"/></marker>
-    <style>.bg{fill:#f8fafc}.step{fill:#fff;stroke:#2563eb;stroke-width:2;rx:10}.note{fill:#ecfdf5;stroke:#16a34a;stroke-width:2;rx:10}.feeds{fill:#f1f5f9;stroke:#64748b;stroke-width:2;rx:10}.text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;fill:#0f172a;font-size:23px;font-weight:650}.small{font-size:17px;font-weight:500}.tiny{font-size:14px;font-weight:500;fill:#334155}.num{font-size:24px;font-weight:800;fill:#2563eb}.line{stroke:#2563eb;stroke-width:3;fill:none;marker-end:url(#arrow)}</style>
+    <style>
+      .bg{fill:#f8fafc}.title{font-family:Arial,sans-serif;fill:#0f172a;font-size:52px;font-weight:800}.subtitle{font-family:Arial,sans-serif;fill:#475569;font-size:24px;font-weight:500}.phase{font-family:Arial,sans-serif;fill:#2563eb;font-size:24px;font-weight:800}.card{fill:#fff;stroke:#2563eb;stroke-width:3;rx:22}.card2{fill:#ecfdf5;stroke:#16a34a;stroke-width:3;rx:22}.card3{fill:#f1f5f9;stroke:#475569;stroke-width:3;rx:22}.num{font-family:Arial,sans-serif;fill:#2563eb;font-size:34px;font-weight:800}.label{font-family:Arial,sans-serif;fill:#0f172a;font-size:24px;font-weight:800}.small{font-family:Arial,sans-serif;fill:#475569;font-size:17px;font-weight:600}.note{fill:#fff;stroke:#cbd5e1;stroke-width:2;rx:18}
+    </style>
   </defs>
   <rect class="bg" width="1600" height="900"/>
-  <text x="60" y="64" class="text" style="font-size:34px">Executable Local Demo Flow</text>
-  <text x="60" y="96" class="tiny">Implemented by make demo-agency-flow and scripts/demo-agency-flow.sh</text>
-  <g>
-    <rect x="55" y="160" width="150" height="100" class="step"/><text x="78" y="196" class="num">1</text><text x="78" y="230" class="small">Bootstrap DB</text>
-    <rect x="230" y="160" width="170" height="100" class="step"/><text x="253" y="196" class="num">2</text><text x="253" y="230" class="small">Install Validators</text>
-    <rect x="425" y="160" width="185" height="100" class="step"/><text x="448" y="196" class="num">3</text><text x="448" y="230" class="small">Import GTFS</text>
-    <rect x="635" y="160" width="170" height="100" class="step"/><text x="658" y="196" class="num">4</text><text x="658" y="230" class="small">Start Services</text>
-    <rect x="830" y="160" width="220" height="100" class="step"/><text x="853" y="196" class="num">5</text><text x="853" y="230" class="small">Bootstrap Publication</text>
-    <rect x="1075" y="160" width="185" height="100" class="step"/><text x="1098" y="196" class="num">6</text><text x="1098" y="230" class="small">Ingest Telemetry</text>
-    <rect x="1285" y="160" width="235" height="100" class="step"/><text x="1308" y="196" class="num">7</text><text x="1308" y="230" class="small">Fetch Public Feeds</text>
-    <path class="line" d="M205 210H230"/><path class="line" d="M400 210H425"/><path class="line" d="M610 210H635"/><path class="line" d="M805 210H830"/><path class="line" d="M1050 210H1075"/><path class="line" d="M1260 210H1285"/>
-  </g>
-  <rect x="865" y="310" width="255" height="70" class="note"/><text x="890" y="354" class="small">Admin token: Bearer JWT</text>
-  <rect x="1060" y="310" width="270" height="70" class="note"/><text x="1085" y="354" class="small">Device token: dev-device-token</text>
-  <rect x="1230" y="430" width="300" height="205" class="feeds"/><text x="1260" y="470" class="text">Public artifacts</text><text x="1260" y="510" class="small">schedule.zip</text><text x="1260" y="540" class="small">feeds.json</text><text x="1260" y="570" class="small">vehicle_positions.pb</text><text x="1260" y="600" class="small">trip_updates.pb</text><text x="1260" y="630" class="small">alerts.pb</text>
-  <rect x="720" y="610" width="245" height="100" class="step"/><text x="745" y="647" class="num">8</text><text x="745" y="682" class="small">Run Validation</text>
-  <rect x="420" y="610" width="260" height="100" class="step"/><text x="445" y="647" class="num">9</text><text x="445" y="682" class="small">Inspect Scorecard</text>
-  <rect x="180" y="430" width="360" height="120" class="feeds"/><text x="210" y="475" class="text">Protected checks</text><text x="210" y="510" class="small">GTFS Studio and JSON debug require auth</text>
-  <path class="line" d="M1402 260V430"/><path class="line" d="M1230 535C1090 560 1020 610 965 660"/><path class="line" d="M720 660H680"/><path class="line" d="M830 610C740 510 540 500 540 500"/>
+  <text x="70" y="82" class="title">Local Quickstart Flow</text>
+  <text x="70" y="122" class="subtitle">One command runs the agency demo. These are the major steps it verifies.</text>
+
+  <text x="95" y="190" class="phase">Set up</text>
+  <text x="590" y="190" class="phase">Publish and ingest</text>
+  <text x="1085" y="190" class="phase">Review outputs</text>
+
+  <rect x="70" y="225" width="430" height="110" class="card"/>
+  <text x="105" y="273" class="num">1</text>
+  <text x="160" y="273" class="label">Bootstrap database</text>
+  <text x="160" y="305" class="small">Postgres/PostGIS, migrations, seed data</text>
+
+  <rect x="70" y="365" width="430" height="110" class="card"/>
+  <text x="105" y="413" class="num">2</text>
+  <text x="160" y="413" class="label">Install validators</text>
+  <text x="160" y="445" class="small">Pinned static GTFS and GTFS-RT checks</text>
+
+  <rect x="70" y="505" width="430" height="110" class="card"/>
+  <text x="105" y="553" class="num">3</text>
+  <text x="160" y="553" class="label">Import sample GTFS</text>
+  <text x="160" y="585" class="small">Loads the committed small test feed</text>
+
+  <rect x="565" y="225" width="430" height="110" class="card2"/>
+  <text x="600" y="273" class="num" fill="#16a34a">4</text>
+  <text x="655" y="273" class="label">Start services</text>
+  <text x="655" y="305" class="small">Agency config, telemetry, feeds, Studio</text>
+
+  <rect x="565" y="365" width="430" height="110" class="card2"/>
+  <text x="600" y="413" class="num" fill="#16a34a">5</text>
+  <text x="655" y="413" class="label">Publish metadata</text>
+  <text x="655" y="445" class="small">Creates local feeds.json details</text>
+
+  <rect x="565" y="505" width="430" height="110" class="card2"/>
+  <text x="600" y="553" class="num" fill="#16a34a">6</text>
+  <text x="655" y="553" class="label">Ingest telemetry</text>
+  <text x="655" y="585" class="small">Uses the seeded device token</text>
+
+  <rect x="1060" y="225" width="430" height="110" class="card3"/>
+  <text x="1095" y="273" class="num" fill="#475569">7</text>
+  <text x="1150" y="273" class="label">Fetch public feeds</text>
+  <text x="1150" y="305" class="small">schedule.zip, feeds.json, realtime feeds</text>
+
+  <rect x="1060" y="365" width="430" height="110" class="card3"/>
+  <text x="1095" y="413" class="num" fill="#475569">8</text>
+  <text x="1150" y="413" class="label">Run validation</text>
+  <text x="1150" y="445" class="small">Checks schedule and realtime feeds</text>
+
+  <rect x="1060" y="505" width="430" height="110" class="card3"/>
+  <text x="1095" y="553" class="num" fill="#475569">9</text>
+  <text x="1150" y="553" class="label">Check readiness records</text>
+  <text x="1150" y="585" class="small">Scorecard and ingestion records</text>
+
+  <rect x="260" y="690" width="1080" height="92" class="note"/>
+  <text x="305" y="735" class="label" style="font-size:22px">Demo boundary</text>
+  <text x="305" y="765" class="small">The local demo proves the flow runs on one machine. Hosted readiness and consumer acceptance require separate evidence.</text>
 </svg>

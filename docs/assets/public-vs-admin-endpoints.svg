@@ -1,30 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
-  <title id="title">Public versus protected endpoint boundary</title>
-  <desc id="desc">Anonymous public endpoints are schedule.zip, feeds.json, and GTFS Realtime protobuf feeds. Admin and debug endpoints require Bearer JWT or admin cookie plus CSRF for unsafe cookie requests.</desc>
-  <style>.bg{fill:#f8fafc}.public{fill:#eff6ff;stroke:#2563eb;stroke-width:2;rx:10}.private{fill:#ecfdf5;stroke:#16a34a;stroke-width:2;rx:10}.row{fill:#fff;stroke:#cbd5e1;stroke-width:1.5;rx:8}.boundary{stroke:#64748b;stroke-width:3;stroke-dasharray:10 12}.text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;fill:#0f172a;font-size:24px;font-weight:650}.small{font-size:18px;font-weight:500}.path{font-size:18px;font-weight:600;fill:#1d4ed8}.greenpath{font-size:18px;font-weight:600;fill:#047857}.tiny{font-size:15px;font-weight:500;fill:#334155}</style>
+  <title id="title">Public and admin endpoint boundary</title>
+  <desc id="desc">Public feed endpoints are anonymous. Admin, debug, validation, telemetry event, scorecard, alert, and device routes require admin access.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}.title{font-family:Arial,sans-serif;fill:#0f172a;font-size:50px;font-weight:800}.subtitle{font-family:Arial,sans-serif;fill:#475569;font-size:24px;font-weight:500}.panel{stroke-width:3;rx:28}.public{fill:#eff6ff;stroke:#2563eb}.admin{fill:#ecfdf5;stroke:#16a34a}.row{fill:#fff;stroke:#cbd5e1;stroke-width:2;rx:16}.label{font-family:Arial,sans-serif;fill:#0f172a;font-size:24px;font-weight:800}.small{font-family:Arial,sans-serif;fill:#475569;font-size:19px;font-weight:600}.path{font-family:Arial,sans-serif;fill:#1d4ed8;font-size:18px;font-weight:700}.greenpath{font-family:Arial,sans-serif;fill:#047857;font-size:18px;font-weight:700}.badge{font-family:Arial,sans-serif;font-size:22px;font-weight:800}.note{fill:#fff;stroke:#cbd5e1;stroke-width:2;rx:18}
+    </style>
+  </defs>
   <rect class="bg" width="1600" height="900"/>
-  <text x="60" y="64" class="text" style="font-size:34px">Public vs Admin Endpoint Boundary</text>
-  <rect x="70" y="125" width="650" height="690" class="public"/>
-  <rect x="880" y="125" width="650" height="690" class="private"/>
-  <line x1="800" y1="115" x2="800" y2="825" class="boundary"/>
-  <text x="735" y="430" class="text">Auth</text><text x="710" y="462" class="text">Boundary</text>
-  <text x="120" y="180" class="text">Anonymous Public Endpoints</text><text x="120" y="214" class="small">No login for consumers</text>
-  <text x="930" y="180" class="text">Protected Admin + Debug Endpoints</text><text x="930" y="214" class="small">Bearer JWT or admin cookie; CSRF for unsafe cookie requests</text>
-  <g>
-    <rect x="120" y="260" width="550" height="62" class="row"/><text x="150" y="299" class="small">Static GTFS</text><text x="420" y="299" class="path">/public/gtfs/schedule.zip</text>
-    <rect x="120" y="345" width="550" height="62" class="row"/><text x="150" y="384" class="small">Discovery</text><text x="420" y="384" class="path">/public/feeds.json</text>
-    <rect x="120" y="430" width="550" height="62" class="row"/><text x="150" y="469" class="small">Vehicle Positions</text><text x="420" y="469" class="path">/public/gtfsrt/vehicle_positions.pb</text>
-    <rect x="120" y="515" width="550" height="62" class="row"/><text x="150" y="554" class="small">Trip Updates</text><text x="420" y="554" class="path">/public/gtfsrt/trip_updates.pb</text>
-    <rect x="120" y="600" width="550" height="62" class="row"/><text x="150" y="639" class="small">Alerts</text><text x="420" y="639" class="path">/public/gtfsrt/alerts.pb</text>
-  </g>
-  <g>
-    <rect x="930" y="250" width="550" height="56" class="row"/><text x="960" y="286" class="small">GTFS Studio</text><text x="1220" y="286" class="greenpath">/admin/gtfs-studio</text>
-    <rect x="930" y="322" width="550" height="56" class="row"/><text x="960" y="358" class="small">GTFS Studio Drafts</text><text x="1220" y="358" class="greenpath">/admin/gtfs-studio/drafts/...</text>
-    <rect x="930" y="394" width="550" height="56" class="row"/><text x="960" y="430" class="small">JSON Debug Feeds</text><text x="1220" y="430" class="greenpath">/public/gtfsrt/*.json</text>
-    <rect x="930" y="466" width="550" height="56" class="row"/><text x="960" y="502" class="small">Telemetry Events</text><text x="1220" y="502" class="greenpath">/v1/events</text>
-    <rect x="930" y="538" width="550" height="56" class="row"/><text x="960" y="574" class="small">Validation Run</text><text x="1220" y="574" class="greenpath">/admin/validation/run</text>
-    <rect x="930" y="610" width="550" height="56" class="row"/><text x="960" y="646" class="small">Scorecard</text><text x="1220" y="646" class="greenpath">/admin/compliance/scorecard</text>
-    <rect x="930" y="682" width="550" height="56" class="row"/><text x="960" y="718" class="small">Alerts Admin</text><text x="1220" y="718" class="greenpath">/admin/alerts</text>
-    <rect x="930" y="754" width="550" height="56" class="row"/><text x="960" y="790" class="small">Device Rebind</text><text x="1220" y="790" class="greenpath">/admin/devices/rebind</text>
-  </g>
+  <text x="70" y="82" class="title">Public vs Admin Endpoints</text>
+  <text x="70" y="122" class="subtitle">Public feeds are anonymous. Admin tools, debug views, and operations routes require access control.</text>
+
+  <rect x="70" y="175" width="700" height="590" class="panel public"/>
+  <text x="120" y="230" class="title" style="font-size:34px">Public feeds</text>
+  <text x="120" y="265" class="small">No login required for riders, apps, or feed consumers.</text>
+
+  <rect x="120" y="320" width="600" height="70" class="row"/>
+  <text x="150" y="362" class="label">Static GTFS</text>
+  <text x="420" y="362" class="path">/public/gtfs/schedule.zip</text>
+
+  <rect x="120" y="415" width="600" height="70" class="row"/>
+  <text x="150" y="457" class="label">Discovery</text>
+  <text x="420" y="457" class="path">/public/feeds.json</text>
+
+  <rect x="120" y="510" width="600" height="70" class="row"/>
+  <text x="150" y="552" class="label">Vehicle Positions</text>
+  <text x="420" y="552" class="path">/public/gtfsrt/vehicle_positions.pb</text>
+
+  <rect x="120" y="605" width="600" height="70" class="row"/>
+  <text x="150" y="647" class="label">Trip Updates</text>
+  <text x="420" y="647" class="path">/public/gtfsrt/trip_updates.pb</text>
+
+  <rect x="120" y="700" width="600" height="70" class="row"/>
+  <text x="150" y="742" class="label">Alerts</text>
+  <text x="420" y="742" class="path">/public/gtfsrt/alerts.pb</text>
+
+  <rect x="830" y="175" width="700" height="590" class="panel admin"/>
+  <text x="880" y="230" class="title" style="font-size:34px">Admin and operations</text>
+  <text x="880" y="265" class="small">Bearer JWT or admin cookie. CSRF protects unsafe cookie requests.</text>
+
+  <rect x="880" y="320" width="600" height="70" class="row"/>
+  <text x="910" y="362" class="label">GTFS Studio</text>
+  <text x="1190" y="362" class="greenpath">/admin/gtfs-studio</text>
+
+  <rect x="880" y="415" width="600" height="70" class="row"/>
+  <text x="910" y="457" class="label">Debug JSON</text>
+  <text x="1190" y="457" class="greenpath">/public/gtfsrt/*.json</text>
+
+  <rect x="880" y="510" width="600" height="70" class="row"/>
+  <text x="910" y="552" class="label">Telemetry events</text>
+  <text x="1190" y="552" class="greenpath">/v1/events</text>
+
+  <rect x="880" y="605" width="600" height="70" class="row"/>
+  <text x="910" y="647" class="label">Validation</text>
+  <text x="1190" y="647" class="greenpath">/admin/validation/run</text>
+
+  <rect x="880" y="700" width="600" height="70" class="row"/>
+  <text x="910" y="742" class="label">Scorecard</text>
+  <text x="1190" y="742" class="greenpath">/admin/compliance/scorecard</text>
+
+  <rect x="300" y="800" width="1000" height="64" class="note"/>
+  <text x="335" y="840" class="small">Key rule: public protobuf feeds stay open; operational and debug surfaces stay protected.</text>
 </svg>

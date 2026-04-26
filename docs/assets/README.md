@@ -8,7 +8,7 @@ Public-facing copies of selected PNG assets also live under `wiki/assets/` so `/
 
 Every generated or generated-assisted image must be manually reviewed before it is referenced in docs.
 
-- Labels must match current repo behavior.
+- Labels must match project behavior.
 - Captions must say whether the image is illustrative or exact-behavior based.
 - Alt text must describe the useful content of the image, not just repeat the filename.
 - Generated drafts may be refined into checked-in SVG/PNG assets when text or labels need cleanup.
@@ -89,16 +89,16 @@ Source:
 - `architecture-overview.svg`
 
 Type:
-- Exact-behavior architecture diagram rendered from a reviewed SVG spec.
+- Exact-behavior architecture summary rendered from a reviewed SVG spec.
 
 Used in:
 - Available as a deeper architecture reference; not currently used on the README front door.
 
 Alt text:
-- Architecture overview showing GTFS ZIP import and GTFS Studio feeding published GTFS, telemetry feeding matcher assignments, Vehicle Positions and Trip Updates publication through a prediction adapter, Service Alerts, validation/scorecard, and public feed outputs.
+- Architecture overview showing schedule inputs, vehicle state, feed builders, public feed outputs, and validation/readiness evidence as four clear areas.
 
 Prompt/spec:
-- Clean technical architecture overview. Include GTFS import, GTFS Studio, published GTFS, telemetry ingest, matcher/assignments, Vehicle Positions, prediction adapter, Trip Updates, Service Alerts, validation/scorecard, and public outputs: `schedule.zip`, `vehicle_positions.pb`, `trip_updates.pb`, `alerts.pb`, and `feeds.json`.
+- Clean architecture summary with four bounded areas: schedule inputs, vehicle state, feed builders, and public feeds. Use large readable labels, no crossing lines, and no phase-history wording.
 
 ### `agency-deployment.png`
 
@@ -106,16 +106,16 @@ Source:
 - `agency-deployment.svg`
 
 Type:
-- Exact-behavior deployment-boundary diagram rendered from a reviewed SVG spec.
+- Exact-behavior deployment-shape diagram rendered from a reviewed SVG spec.
 
 Used in:
 - Deployment/readiness documentation as needed.
 
 Alt text:
-- Agency deployment diagram showing public internet through TLS reverse proxy, anonymous public feed paths, protected admin/debug paths, Go services, Postgres/PostGIS, pinned validators, and optional predictor adapter boundary.
+- Small agency deployment diagram showing public internet, TLS reverse proxy, anonymous public feeds, protected admin tools, Open Transit RT services, pinned validators, prediction adapter, and Postgres/PostGIS.
 
 Prompt/spec:
-- Clean small-agency deployment diagram. Show TLS reverse proxy, anonymous public feeds, protected admin/debug, Go services, Postgres/PostGIS, pinned validators, and optional predictor adapter. Do not show unsupported SSO, consumer acceptance, or production-ready claims.
+- Clean small-agency deployment diagram. Show TLS reverse proxy, anonymous public feeds, protected admin tools, Open Transit RT services, Postgres/PostGIS, pinned validators, and optional predictor adapter. Keep text bounded and avoid overlapping connectors. Do not show unsupported SSO, consumer acceptance, or production-ready claims.
 
 ### `quickstart-flow.png`
 
@@ -130,10 +130,10 @@ Used in:
 - `docs/tutorials/local-quickstart.md`
 
 Alt text:
-- Exact-behavior local quickstart flow showing database bootstrap, validator install, sample GTFS import, service startup, publication bootstrap, telemetry ingest, public feed fetches, validation run, and scorecard inspection.
+- Exact-behavior local quickstart flow grouped into setup, publish-and-ingest, and review-output steps.
 
 Prompt/spec:
-- Clean numbered quickstart flow. Include bootstrap DB, install validators, import sample GTFS, start services, bootstrap publication, ingest telemetry, fetch public feeds, run validation, and inspect scorecard.
+- Clean numbered quickstart flow grouped into setup, publish-and-ingest, and review-output steps. Use large bounded labels and avoid long connector lines.
 
 ### `public-vs-admin-endpoints.png`
 
@@ -147,7 +147,7 @@ Used in:
 - `docs/tutorials/agency-demo-flow.md`
 
 Alt text:
-- Exact-behavior boundary diagram showing anonymous public schedule, feeds.json, and realtime protobuf routes separated from protected GTFS Studio, JSON debug, telemetry events, validation, scorecard, Alerts admin, and device rebinding routes.
+- Exact-behavior endpoint boundary diagram showing anonymous public feed routes separated from protected admin, debug, telemetry, validation, and scorecard examples.
 
 Prompt/spec:
-- Clean two-column endpoint boundary. Public side includes `schedule.zip`, `feeds.json`, `vehicle_positions.pb`, `trip_updates.pb`, and `alerts.pb`. Protected side includes GTFS Studio, GTFS Studio draft subroutes, JSON debug feeds, telemetry events, validation run, scorecard, Alerts admin, and device rebinding. Include the Bearer JWT/admin-cookie auth boundary.
+- Clean two-column endpoint boundary. Public side includes `schedule.zip`, `feeds.json`, `vehicle_positions.pb`, `trip_updates.pb`, and `alerts.pb`. Protected side includes examples such as GTFS Studio, JSON debug feeds, telemetry events, validation, and scorecard. Keep labels bounded and readable.

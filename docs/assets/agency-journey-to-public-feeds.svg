@@ -14,7 +14,7 @@
   </defs>
   <rect class="bg" width="1600" height="900"/>
   <text x="80" y="86" class="title">Agency path to public feeds</text>
-  <text x="80" y="126" class="subtitle">Illustrative teaching graphic based on the repo-supported flow.</text>
+  <text x="80" y="126" class="subtitle">Illustrative teaching graphic based on the project flow.</text>
   <text x="80" y="158" class="subtitle">It does not claim SaaS hosting, CAD/AVL replacement, consumer acceptance, or full compliance.</text>
 
   <g transform="translate(80 245)">

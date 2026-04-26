@@ -14,7 +14,8 @@
   </defs>
   <rect class="bg" width="1600" height="900"/>
   <text x="80" y="88" class="title">How data moves through Open Transit RT</text>
-  <text x="80" y="128" class="subtitle">Illustrative system explainer based on current repo behavior. Validation records checks; it does not prove consumer acceptance.</text>
+  <text x="80" y="128" class="subtitle">Illustrative system explainer based on the project design.</text>
+  <text x="80" y="160" class="subtitle">Validation records checks; consumer acceptance needs separate evidence.</text>
 
   <g transform="translate(70 190)">
     <rect class="col" width="315" height="570" rx="28"/>
