@@ -95,3 +95,20 @@ make demo-agency-flow
 ## Handoff Template Requirement
 
 All future phase handoff files must use `docs/handoffs/template.md` unless the phase explicitly documents a reason to diverge.
+
+## Future Roadmap
+
+After Phase 14, use `docs/roadmap-post-phase-14.md` as the roadmap source of truth.
+
+The next planned phase after Phase 14 is:
+
+- Phase 15 — Public Repo Security Hygiene And Artifact Redaction
+
+Future roadmap docs:
+- `docs/phase-15-public-repo-security-hygiene.md`
+- `docs/phase-16-agency-onboarding-product-packaging.md`
+- `docs/phase-17-deployment-automation-pilot-operations.md`
+- `docs/phase-18-admin-ux-agency-operations-console.md`
+- `docs/phase-19-realtime-quality-eta-improvement.md`
+- `docs/phase-20-consumer-submission-calitp-readiness.md`
+- `docs/phase-21-community-governance-multi-agency.md`
