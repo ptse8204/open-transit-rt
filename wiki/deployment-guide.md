@@ -1,6 +1,8 @@
 # Deployment Guide
 
-This guide describes the current small-agency pilot shape. It is not a complete hosted production package.
+This guide describes a small-agency pilot shape. It is not a complete hosted production package.
+
+➡️ New to the project? Read [How It Works](how-it-works.md) first.
 
 ![Agency deployment diagram showing public internet through TLS reverse proxy, anonymous public feed paths, protected admin/debug paths, Go services, Postgres/PostGIS, pinned validators, and optional predictor adapter boundary.](assets/agency-deployment.png)
 
@@ -32,9 +34,14 @@ Expose these paths anonymously over stable HTTPS:
 
 Keep admin/debug/JSON routes behind admin auth and deployment network controls.
 
-## Useful Internal References
+## Detailed References
 
 - [Deploy With Docker Compose](../docs/tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](../docs/tutorials/production-checklist.md)
 - [Reverse Proxy And TLS Runbook](../docs/runbooks/reverse-proxy-and-tls.md)
 - [Monitoring And Alerting Runbook](../docs/runbooks/monitoring-and-alerting.md)
+
+## Next Steps
+
+- ✅ [Review readiness evidence](readiness-and-evidence.md)
+- ⭐ [Support or contribute](support-and-contribute.md)

@@ -4,7 +4,7 @@ Open Transit RT is a backend toolkit for publishing transit data feeds.
 
 ![Illustrative data-flow diagram showing GTFS import, GTFS Studio drafts, vehicle telemetry, Open Transit RT state, validation, and public feed outputs.](assets/data-flow-through-system.png)
 
-*Illustrative system explainer based on current repo behavior. It is not a hosted deployment diagram and does not prove consumer acceptance or full compliance.*
+*Illustrative system explainer based on the project design. Hosted deployment details, consumer acceptance, and full compliance require separate evidence.*
 
 ## Main Pieces
 
@@ -29,3 +29,9 @@ These feed paths are public by design:
 ```
 
 Admin, JSON debug, validation, scorecard, device, and alert-authoring routes require admin access.
+
+## Next Steps
+
+- 💻 [Try it locally](local-quickstart.md)
+- 🚌 [Run the agency demo](agency-demo.md)
+- 🚀 [Plan a pilot deployment](deployment-guide.md)

@@ -21,6 +21,8 @@ Phase 14 — Public Launch Polish and Repo Simplification
 - Added public wiki pages for project overview, local quickstart, agency demo, deployment, readiness/evidence, and support/contribution.
 - Added `wiki/assets/` copies of public-facing PNG assets so wiki pages have local asset references.
 - Updated README with direct links to public wiki pages and internal reference docs.
+- Reviewed README and `wiki/` for public-facing tone, replacing phase/status-report wording such as "not claimed yet", "do not overstate", "current repo", and visible "handoff" link text with reader-facing boundary and maintainer-reference language.
+- Added emoji-based quick-action navigation and direct GitHub star links/badge for non-technical readers.
 - Refreshed `docs/tutorials/README.md`, `docs/tutorials/local-quickstart.md`, and `docs/tutorials/agency-demo-flow.md` with clearer navigation, captions, and descriptive alt text.
 - Updated `docs/assets/README.md` with visual source notes, where each image is used, prompt/spec text, alt text, and the manual visual review rule.
 - Updated `docs/prompts/docs-assets-image-generation.md` with Phase 14 visual candidates and review requirements.

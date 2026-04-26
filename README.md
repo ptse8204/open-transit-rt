@@ -1,5 +1,7 @@
 # Open Transit RT
 
+[![Star Open Transit RT on GitHub](https://img.shields.io/github/stars/ptse8204/open-transit-rt?style=social)](https://github.com/ptse8204/open-transit-rt)
+
 Open Transit RT is open-source tooling for small transit agencies that need a practical path to publish static GTFS and GTFS Realtime feeds.
 
 It is meant for agencies, civic technologists, operators, and evaluators who want to understand or run a lightweight backend for schedule publication, vehicle telemetry, validation, and public feed URLs.
@@ -8,7 +10,7 @@ It is meant for agencies, civic technologists, operators, and evaluators who wan
 
 - Open-source tooling to help agencies publish GTFS and GTFS Realtime feeds.
 - A mostly Go backend with Postgres/PostGIS, GTFS import, GTFS Studio drafts, authenticated vehicle telemetry, conservative trip assignment, public feed builders, Alerts, validation workflow records, and readiness evidence tracking.
-- A repo that supports deployment toward Caltrans/CAL-ITP-style readiness when paired with real hosting, operations, and evidence.
+- A project that helps agencies move toward Caltrans/CAL-ITP-style readiness when paired with real hosting, operations, and evidence.
 
 ## What This Is Not
 
@@ -19,11 +21,11 @@ It is meant for agencies, civic technologists, operators, and evaluators who wan
 
 ![Illustrative agency journey from GTFS import or GTFS Studio drafts through schedule publication, authenticated telemetry, validation, and public GTFS plus GTFS Realtime feeds.](wiki/assets/agency-journey-to-public-feeds.png)
 
-*Illustrative teaching graphic, not a product screenshot. It shows the repo-supported path without claiming hosted SaaS, CAD/AVL replacement, consumer acceptance, or full compliance.*
+*Illustrative teaching graphic, not a product screenshot. It shows the project path without claiming hosted SaaS, CAD/AVL replacement, consumer acceptance, or full compliance.*
 
-## What It Can Do Today
+## What You Can Use Now
 
-The current repo can:
+Open Transit RT can:
 
 - import static GTFS ZIP files or publish typed GTFS Studio drafts
 - persist authenticated vehicle telemetry
@@ -31,7 +33,7 @@ The current repo can:
 - publish stable public paths for `schedule.zip`, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
 - keep Trip Updates behind a replaceable prediction adapter
 - run validation workflows and store readiness/consumer-ingestion records
-- run an executable local agency demo from the committed repo
+- run an executable local agency demo from the committed project files
 
 Public feed paths are:
 
@@ -45,6 +47,17 @@ Public feed paths are:
 
 Admin, JSON debug, GTFS Studio, validation, scorecard, device, and alert-authoring routes require admin auth.
 
+## Quick Actions
+
+| I want to... | Start here |
+| --- | --- |
+| 🧭 Understand the project | [How It Works](wiki/how-it-works.md) |
+| 💻 Try it locally | [Local Quickstart](wiki/local-quickstart.md) |
+| 🚌 See the agency demo | [Agency Demo](wiki/agency-demo.md) |
+| 🚀 Plan a pilot deployment | [Deployment Guide](wiki/deployment-guide.md) |
+| ✅ Review readiness evidence | [Readiness And Evidence](wiki/readiness-and-evidence.md) |
+| ⭐ Support the project | [Star this repo](https://github.com/ptse8204/open-transit-rt) |
+
 ## Try It Locally
 
 Prerequisites: Go, Docker with Compose, `curl`, `zip`, `unzip`, Java for the static GTFS validator, and `python3` for the GTFS-RT validator wrapper.
@@ -57,9 +70,9 @@ make validators-check
 make demo-agency-flow
 ```
 
-The demo imports sample GTFS, starts the current services, publishes local feed metadata, ingests token-authenticated telemetry, fetches public feeds, verifies protected admin/debug access, runs validation, and reads scorecard plus consumer-ingestion records.
+The demo imports sample GTFS, starts the Open Transit RT services, publishes local feed metadata, ingests token-authenticated telemetry, fetches public feeds, verifies protected admin/debug access, runs validation, and reads scorecard plus consumer-ingestion records.
 
-Start with the public wiki:
+More public guides:
 
 - [Wiki Home](wiki/README.md)
 - [How It Works](wiki/how-it-works.md)
@@ -69,13 +82,13 @@ Start with the public wiki:
 - [Readiness And Evidence](wiki/readiness-and-evidence.md)
 - [Support And Contribute](wiki/support-and-contribute.md)
 
-## Evidence And Status
+## Readiness And Evidence
 
-Evidence is kept in docs instead of duplicated here:
+Use these links to understand what the project can show today and what still needs real deployment or third-party evidence:
 
 - [Public Readiness And Evidence Guide](wiki/readiness-and-evidence.md)
-- [Current Status](docs/current-status.md)
-- [Latest Handoff](docs/handoffs/latest.md)
+- [Project Status](docs/current-status.md)
+- [Latest Maintainer Notes](docs/handoffs/latest.md)
 - [Compliance Evidence Checklist](docs/compliance-evidence-checklist.md)
 - [Consumer Submission Evidence](docs/consumer-submission-evidence.md)
 - [Consumer Submission Tracker](docs/evidence/consumer-submissions/README.md)
@@ -87,25 +100,25 @@ Maintainer and agent reference docs:
 - [Architecture](docs/architecture.md)
 - [Dependencies](docs/dependencies.md)
 - [Decisions](docs/decisions.md)
-- [Repo Gaps](docs/repo-gaps.md)
-- [Handoff History](docs/handoffs/)
+- [Known Gaps](docs/repo-gaps.md)
+- [Maintainer History](docs/handoffs/)
 
-Evidence boundary: validator success, public fetch proof, hosted operator evidence, and consumer-ingestion workflow records are useful, but they are not the same as third-party consumer acceptance.
+Validator success, public fetch proof, hosted operator evidence, and consumer-ingestion workflow records are useful readiness signals. They are not the same as third-party consumer acceptance.
 
-## What Is Not Claimed Yet
+## Important Boundaries
 
-Do not overstate the current repo:
+Open Transit RT is intentionally scoped:
 
-- No hosted login/SSO product.
-- No packaged full production platform with universal operations guarantees.
-- No external predictor integration such as TheTransitClock.
-- No consumer submission API integrations.
-- No evidence that Google Maps, Apple Maps, Transit App, or another consumer has accepted a feed from this repo.
-- No full CAL-ITP/Caltrans compliance claim.
+- Hosted login/SSO belongs outside this project today.
+- Universal production operations guarantees require deployment-specific work.
+- External predictor integrations such as TheTransitClock are future adapter work.
+- Consumer submission API integrations are outside the available product surface.
+- Google Maps, Apple Maps, Transit App, or other consumer acceptance requires real third-party evidence.
+- Full CAL-ITP/Caltrans compliance requires deployment and evidence beyond the project files.
 
 ## Support Or Contribute
 
-If this project is useful to you, consider starring the repo. A GitHub star is a simple way to show support, similar to a like or bookmark. For an independent open-source project, stars help more people discover the work, help show that the project is useful, and support continued work on it. A star is not an official agency endorsement.
+⭐ **[Star Open Transit RT](https://github.com/ptse8204/open-transit-rt)** if the project is useful to you. A GitHub star is a simple way to show support, similar to a like or bookmark. For an independent open-source project, stars help more people discover the work, help show that the project is useful, and support continued work on it. A star is not an official agency endorsement.
 
 Useful contributions include focused issues, reproducible demo failures, validator findings, clearer docs, deployment notes, and small-agency workflow feedback.
 

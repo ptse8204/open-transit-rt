@@ -1,8 +1,8 @@
 # Readiness And Evidence
 
-Open Transit RT supports deployment toward Caltrans/CAL-ITP-style transit data readiness. A specific deployment still needs real evidence before making stronger claims.
+Open Transit RT helps with the technical foundations for Caltrans/CAL-ITP-style transit data readiness. Stronger claims need real deployment evidence and, where relevant, third-party consumer evidence.
 
-## What The Repo Can Support
+## What Open Transit RT Can Support
 
 - stable public GTFS and GTFS Realtime feed paths
 - `feeds.json` discovery metadata
@@ -11,7 +11,7 @@ Open Transit RT supports deployment toward Caltrans/CAL-ITP-style transit data r
 - compliance scorecard snapshots
 - consumer-ingestion workflow records
 
-## Evidence Still Needed For Stronger Claims
+## Evidence Needed For Stronger Claims
 
 Before claiming a deployment is compliant or consumer-ready, collect:
 
@@ -24,9 +24,14 @@ Before claiming a deployment is compliant or consumer-ready, collect:
 
 Consumer-ingestion records inside the app are workflow records. They are not third-party acceptance.
 
-## Source Records
+## Detailed Evidence Links
 
 - [Compliance Evidence Checklist](../docs/compliance-evidence-checklist.md)
 - [Consumer Submission Evidence](../docs/consumer-submission-evidence.md)
 - [Consumer Submission Tracker](../docs/evidence/consumer-submissions/README.md)
 - [OCI Pilot Evidence Packet](../docs/evidence/captured/oci-pilot/2026-04-24/README.md)
+
+## Next Steps
+
+- 🚀 [Review deployment guidance](deployment-guide.md)
+- ⭐ [Support or contribute](support-and-contribute.md)

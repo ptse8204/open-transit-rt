@@ -2,6 +2,8 @@
 
 Use this path when you want to run Open Transit RT on your machine.
 
+➡️ Prefer to see the full flow first? Go to the [Agency Demo](agency-demo.md).
+
 ## Prerequisites
 
 - Go matching `go.mod`
@@ -29,4 +31,10 @@ make demo-agency-flow
 
 The demo imports sample GTFS, starts the services, publishes local feed metadata, ingests authenticated telemetry, fetches public feeds, checks protected routes, runs validation, and reads readiness records.
 
-For the internal command-by-command reference, see [docs/tutorials/local-quickstart.md](../docs/tutorials/local-quickstart.md).
+For the detailed command reference, see [docs/tutorials/local-quickstart.md](../docs/tutorials/local-quickstart.md).
+
+## Next Steps
+
+- 🚌 [Run the agency demo](agency-demo.md)
+- 🚀 [Plan a pilot deployment](deployment-guide.md)
+- ✅ [Review readiness evidence](readiness-and-evidence.md)

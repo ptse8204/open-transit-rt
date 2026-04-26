@@ -4,7 +4,9 @@ Open Transit RT is an independent open-source project.
 
 ## Star The Repo
 
-If this project is useful to you, consider starring the repo. A GitHub star is a simple way to show support, similar to a like or bookmark. Stars help more people discover the project and support continued open-source work. A star is not an agency endorsement.
+⭐ **[Star Open Transit RT on GitHub](https://github.com/ptse8204/open-transit-rt)** if this project is useful to you.
+
+A GitHub star is a simple way to show support, similar to a like or bookmark. Stars help more people discover the project and support continued open-source work. A star is not an agency endorsement.
 
 ## Helpful Contributions
 
@@ -18,3 +20,9 @@ Useful contributions include:
 - small-agency workflow feedback
 
 Please keep requests inside the project boundary: GTFS import/Studio, telemetry ingest, deterministic matching, GTFS Realtime feeds, Alerts, validation, monitoring, and admin/operator workflows.
+
+## Keep Exploring
+
+- 🧭 [How It Works](how-it-works.md)
+- 💻 [Local Quickstart](local-quickstart.md)
+- ✅ [Readiness And Evidence](readiness-and-evidence.md)
