@@ -58,6 +58,7 @@ This table is the current external dependency and integration status. It separat
 | Docker / Docker Compose | Integrated local tooling | Provisions local Postgres/PostGIS and supports the Docker-backed GTFS-RT validator wrapper; app containers are not packaged in this repo. |
 | Task | Optional local tooling | Mirrors Make targets; Makefile remains independently supported. |
 | Local demo tools `curl`, `zip`, `unzip` | Integrated local demo tooling | Used only by `scripts/demo-agency-flow.sh`; not runtime service dependencies. |
+| Phase 17 pilot operations helpers | Integrated deployment tooling | `scripts/pilot-ops.sh` provides dry-run-capable validator, backup, restore-drill, feed-monitor, and scorecard-export helpers; systemd timer examples are under `deploy/systemd/`. |
 | Internal Prometheus-format `/metrics` | Partially wired | Services can expose internal metrics text when `METRICS_ENABLED=true`; no Prometheus server, Grafana dashboard, alert rules, or SLO deployment assets are integrated. |
 | Prometheus / Grafana | Deferred optional integration | Future deployment/observability stack only. |
 | OpenTelemetry | Deferred optional integration | Phase 11 repo scan found no OpenTelemetry SDK, collector, exporter, trace propagation, or deployment wiring. |
@@ -833,3 +834,49 @@ Phase 16 adds a local Compose `app` profile so an evaluator can start the full l
 - `scripts/agency-local-app.sh up` waits for Postgres, migrations, service readiness, proxy health, and public feed URL fetches before reporting success.
 - Docker unavailable, port conflicts, DB failures, service readiness failures, missing validators, and feed fetch failures should print next-action guidance.
 - `scripts/agency-local-app.sh reset` is destructive and must state that it removes containers, the Compose volume, local demo DB state, generated local env files if present, and container logs.
+
+---
+
+## Phase 17 pilot operations helpers
+
+### Classification
+Deployment/operator tooling
+
+### Purpose
+Provide repeatable pilot operations for:
+
+- scheduled canonical validation for static GTFS, Vehicle Positions, Trip Updates, and Alerts;
+- Postgres backup and retention cleanup;
+- restore-drill command sequence with post-restore public feed checks;
+- public feed availability monitoring;
+- compliance scorecard export evidence.
+
+### Startup / provisioning
+- `scripts/pilot-ops.sh` is the helper entry point.
+- Example systemd service/timer files live under `deploy/systemd/`.
+- Deployment-owned values should live in a private environment file such as `/opt/open-transit-rt/ops/pilot-ops.env`.
+
+### Integration boundary
+- Helpers call existing service endpoints and standard Postgres tools; they do not change backend API contracts, database schema, public feed URLs, GTFS-RT contracts, or consumer-submission statuses.
+- All helpers support `--dry-run`.
+- State-changing helper runs require explicit `ENVIRONMENT_NAME` and target paths/URLs.
+- Restore requires explicit confirmation unless `--force` is passed.
+- Systemd examples use `EnvironmentFile=` and must not inline live secrets.
+
+### Evidence outputs
+- `validator-cycle-YYYY-MM-DD.json`
+- `backup-run-YYYY-MM-DD.txt`
+- `restore-drill-YYYY-MM-DD.txt`
+- `feed-monitor-YYYY-MM-DD.txt`
+- `scorecard-export-YYYY-MM-DD.json`
+
+Raw backups, private env files, admin tokens, database URLs with passwords, webhook URLs, notification credentials, private keys, and unredacted operator artifacts are never public evidence.
+
+### Failure behavior
+- Missing required environment variables fail clearly instead of assuming deployment defaults.
+- Missing webhook/email notification destinations are recorded as `notification not configured`, not as feed failures.
+- Feed monitor exits non-zero only for feed availability failures.
+- Validation and scorecard helpers fail on admin/API errors.
+
+### Replacement strategy
+The helpers may be replaced by a deployment scheduler, CI runner, managed monitoring service, or external backup system if the replacement preserves evidence outputs, redaction rules, auditability, and truthfulness boundaries.

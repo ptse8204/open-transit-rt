@@ -4,8 +4,8 @@ This roadmap extends Open Transit RT beyond the current Phase 14 public-launch p
 
 ## Current State Assumption
 
-- Phases 0 through 15 are closed for their documented scope.
-- Phase 16 is the next planned phase unless `docs/handoffs/latest.md` says otherwise.
+- Phases 0 through 17 are closed for their documented scope.
+- Phase 18 is the next planned phase unless `docs/handoffs/latest.md` says otherwise.
 - Phase 12 produced hosted/operator evidence for the OCI pilot.
 - Phase 13 created the consumer-submission evidence layer, but all consumer/aggregator records remain `not_started` until real third-party artifacts exist.
 
@@ -36,11 +36,15 @@ Plan doc: `docs/phase-15-public-repo-security-hygiene.md`.
 
 ### Phase 16 — Agency Onboarding And Product Packaging
 
+Status: complete for the approved local packaging scope.
+
 Goal: make the project usable by a non-expert small agency. Package a one-command product demo, full app Docker Compose, setup walkthrough, and first-use agency workflow.
 
 Plan doc: `docs/phase-16-agency-onboarding-product-packaging.md`.
 
 ### Phase 17 — Deployment Automation And Pilot Operations
+
+Status: complete for the approved pilot operations scope.
 
 Goal: turn the OCI pilot evidence into a repeatable deployment model. Add deployment runbooks, production profiles, backup/restore automation, validator schedules, and operational playbooks.
 

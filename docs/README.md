@@ -26,6 +26,7 @@ These are command-level references for people running or evaluating the project:
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](tutorials/production-checklist.md)
+- [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 
 ## Readiness And Evidence

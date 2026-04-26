@@ -15,6 +15,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Agency Demo Flow](agency-demo-flow.md): run the executable agency/evaluator demo.
 - [Deploy With Docker Compose](deploy-with-docker-compose.md): understand the current deployment path.
 - [Production Checklist](production-checklist.md): review operational work still needed for a real deployment.
+- [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md): run the Phase 17 pilot operations profile.
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md): track readiness without overclaiming compliance.
 
 For broader navigation, see [Docs Home](../README.md). For detailed evidence boundaries, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).

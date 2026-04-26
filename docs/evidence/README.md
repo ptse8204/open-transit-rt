@@ -34,3 +34,23 @@ If real deployment artifacts are not yet collected, leave placeholders and mark 
 
 Before committing a new captured packet, review it against `redaction-policy.md`
 and add every committed archive to `archive-inventory.md`.
+
+## Phase 17 Evidence Refresh
+
+Pilot operations helpers write private/operator-owned outputs to `EVIDENCE_OUTPUT_DIR` before any public evidence packet is assembled:
+
+- `validator-cycle-YYYY-MM-DD.json`
+- `backup-run-YYYY-MM-DD.txt`
+- `restore-drill-YYYY-MM-DD.txt`
+- `feed-monitor-YYYY-MM-DD.txt`
+- `scorecard-export-YYYY-MM-DD.json`
+
+Raw backups, admin tokens, database URLs with passwords, TLS private material, webhook URLs, notification credentials, and private operator artifacts are never committed. Redacted summaries may be copied into `captured/<environment>/<UTC-date>/` only after review.
+
+Every hosted evidence refresh must end with:
+
+```sh
+EVIDENCE_PACKET_DIR=docs/evidence/captured/<environment>/<UTC-date> make audit-hosted-evidence
+```
+
+Do not call refreshed evidence complete unless that audit passes.

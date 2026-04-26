@@ -5,7 +5,7 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset collect-hosted-evidence audit-hosted-evidence run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -60,6 +60,9 @@ collect-hosted-evidence:
 
 audit-hosted-evidence:
 	./scripts/audit-hosted-evidence.sh
+
+pilot-ops-help:
+	./scripts/pilot-ops.sh help
 
 run-agency-config:
 	PORT=8081 go run ./cmd/agency-config
@@ -127,8 +130,14 @@ validate:
 	@test -f scripts/check-validators.sh
 	@test -f scripts/agency-local-app.sh
 	@test -f scripts/device-onboarding.sh
+	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local
 	@test -f deploy/Caddyfile.local
+	@test -f deploy/systemd/open-transit-validator-cycle.service
+	@test -f deploy/systemd/open-transit-backup.service
+	@test -f deploy/systemd/open-transit-feed-monitor.service
+	@test -f deploy/systemd/open-transit-scorecard-export.service
+	@test -f docs/runbooks/small-agency-pilot-operations.md
 	@test -f docs/tutorials/agency-first-run.md
 	@test -f internal/prediction/model.go
 	@test -f internal/prediction/deterministic.go

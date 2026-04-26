@@ -19,6 +19,7 @@ A pilot deployment should provide:
 - protected admin and debug routes
 - real production secrets
 - pinned validator tooling or equivalent pinned validator artifacts
+- backup, monitoring, and evidence-refresh operations
 
 ## Public Paths
 
@@ -38,6 +39,7 @@ Keep admin/debug/JSON routes behind admin auth and deployment network controls.
 
 - [Deploy With Docker Compose](../docs/tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](../docs/tutorials/production-checklist.md)
+- [Small-Agency Pilot Operations](../docs/runbooks/small-agency-pilot-operations.md)
 - [Reverse Proxy And TLS Runbook](../docs/runbooks/reverse-proxy-and-tls.md)
 - [Monitoring And Alerting Runbook](../docs/runbooks/monitoring-and-alerting.md)
 

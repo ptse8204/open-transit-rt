@@ -21,7 +21,7 @@ Public evidence may include:
 Do not commit:
 
 - raw credentials, bearer tokens, JWTs, API keys, DNS provider tokens, database
-  passwords, or device tokens;
+  passwords, webhook URLs, notification credentials, or device tokens;
 - private keys, private certificates, ACME account keys, SSH keys, or key paths
   that reveal private operator layouts;
 - admin URLs containing embedded secrets;
@@ -34,8 +34,9 @@ Do not commit:
   personal data.
 
 Use placeholders such as `<redacted-admin-token>`,
-`<redacted-instance-host>`, `<redacted-client-ip>`, and
-`<redacted-private-origin>` when the surrounding context is still useful.
+`<redacted-instance-host>`, `<redacted-client-ip>`,
+`<redacted-private-origin>`, and `<redacted-webhook-url>` when the surrounding
+context is still useful.
 
 ## Checksums And Inventories
 

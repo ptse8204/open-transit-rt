@@ -1,4 +1,4 @@
-# Deployment Evidence Overview (Phase 12 Step 1)
+# Deployment Evidence Overview
 
 This runbook defines **where** deployment evidence should live and **how** to collect it truthfully.
 
@@ -7,6 +7,7 @@ Phase 12 Step 1 is repo-side scaffolding only. It does not provide hosted deploy
 ## Captured Evidence Packets
 
 - `docs/evidence/captured/local-demo/2026-04-22/`: Phase 12 Step 2 local demo packet. This packet contains real local artifacts for loopback HTTP feed retrieval, local validator run records, a local restore drill, and manual scorecard export. It does **not** prove hosted HTTPS deployment readiness, clean validator status, production monitoring/alerting, production backup retention, or consumer acceptance.
+- `docs/evidence/captured/oci-pilot/2026-04-24/`: hosted OCI pilot packet for the recorded pilot scope. It is deployment/operator proof only, not CAL-ITP compliance or consumer acceptance.
 
 ## Claim Boundaries
 
@@ -48,7 +49,19 @@ EVIDENCE_PACKET_DIR="docs/evidence/captured/<hosted-environment>/<UTC-date>" \
 make audit-hosted-evidence
 ```
 
-The audit fails while pending markers, failed validators, missing public artifacts, missing TLS redirect/certificate evidence, or missing operator-supplied monitoring/backup/scheduler artifacts remain.
+The audit fails while pending markers, failed validators, missing public artifacts, missing TLS redirect/certificate evidence, or missing operator-supplied monitoring/backup/scheduler artifacts remain. Refreshed evidence is not complete unless this command passes.
+
+## Phase 17 Operational Evidence Locations
+
+For repeatable pilot operations, `scripts/pilot-ops.sh` writes deployment-owned evidence to `EVIDENCE_OUTPUT_DIR`. Use these names:
+
+- `validator-cycle-YYYY-MM-DD.json` plus per-feed response files: `private/operator-only` until redacted; summaries may become `safe-to-commit-after-review`.
+- `backup-run-YYYY-MM-DD.txt`: `safe-to-commit-after-review` only after paths and hashes are reviewed; raw dumps are `never-commit`.
+- `restore-drill-YYYY-MM-DD.txt`: `private/operator-only` until reviewed; redacted summaries may be committed.
+- `feed-monitor-YYYY-MM-DD.txt`: `safe-to-commit-after-review` if it contains no private hosts, client IPs, webhook URLs, or credentials.
+- `scorecard-export-YYYY-MM-DD.json`: `safe-to-commit-after-review` if it contains no private notes or credentials.
+
+Raw environment files, admin tokens, database URLs with passwords, private keys, TLS private material, webhook URLs, and notification credentials are always `never-commit`.
 
 ## Required Evidence Packs
 
@@ -74,10 +87,19 @@ Suggested naming under `docs/evidence/captured/<environment>/`:
 - `backup-restore-drill-YYYY-MM-DD.md`
 - `scorecard-export-YYYY-MM-DD.md`
 
+Suggested naming under private deployment-owned `EVIDENCE_OUTPUT_DIR`:
+
+- `validator-cycle-YYYY-MM-DD.json`
+- `backup-run-YYYY-MM-DD.txt`
+- `restore-drill-YYYY-MM-DD.txt`
+- `feed-monitor-YYYY-MM-DD.txt`
+- `scorecard-export-YYYY-MM-DD.json`
+
 Keep filenames date-stamped in UTC.
 
 ## Required Links
 
+- Small-agency pilot operations profile: `docs/runbooks/small-agency-pilot-operations.md`
 - Reverse proxy/TLS runbook: `docs/runbooks/reverse-proxy-and-tls.md`
 - Validator evidence runbook: `docs/runbooks/validator-evidence.md`
 - Monitoring/alerting runbook: `docs/runbooks/monitoring-and-alerting.md`

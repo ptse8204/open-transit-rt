@@ -6,14 +6,14 @@ cd "$ROOT_DIR"
 
 usage() {
   cat <<'USAGE'
-Collect Phase 12 hosted deployment evidence.
+Collect hosted deployment evidence.
 
 Required environment:
   ENVIRONMENT_NAME   short evidence folder name, e.g. pilot-agency-prod
   PUBLIC_BASE_URL    canonical HTTPS feed root, e.g. https://feeds.example.org
 
 Optional environment:
-  ADMIN_BASE_URL     admin/origin base URL; defaults to PUBLIC_BASE_URL
+  ADMIN_BASE_URL     admin/origin base URL; required when ADMIN_TOKEN is set
   ADMIN_TOKEN        bearer token for validation and scorecard export
   CAPTURE_DATE_UTC   YYYY-MM-DD; defaults to current UTC date
   OUTPUT_ROOT        evidence output root; defaults to docs/evidence/captured
@@ -21,6 +21,9 @@ Optional environment:
 This script does not collect deployment-owned monitoring screenshots, backup
 job history, reverse proxy config, or scorecard scheduler exports. Add those
 artifacts manually to the generated packet.
+
+After review, run:
+  EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence
 USAGE
 }
 
@@ -58,14 +61,6 @@ http_code() {
   curl -sS -o /dev/null -w '%{http_code}' "$1" || true
 }
 
-redacted_admin_base_url() {
-  if [ -n "${ADMIN_BASE_URL:-}" ]; then
-    printf '%s\n' "$ADMIN_BASE_URL"
-  else
-    printf '%s\n' "$PUBLIC_BASE_URL"
-  fi
-}
-
 need curl
 need openssl
 need sed
@@ -74,6 +69,9 @@ need date
 
 require_env ENVIRONMENT_NAME
 require_env PUBLIC_BASE_URL
+if [ -n "${ADMIN_TOKEN:-}" ]; then
+  require_env ADMIN_BASE_URL
+fi
 
 case "$ENVIRONMENT_NAME" in
   *[!A-Za-z0-9._-]*)
@@ -90,7 +88,7 @@ case "$PUBLIC_BASE_URL" in
     ;;
 esac
 
-ADMIN_BASE_URL="$(redacted_admin_base_url)"
+ADMIN_BASE_URL="${ADMIN_BASE_URL:-}"
 CAPTURE_DATE_UTC="${CAPTURE_DATE_UTC:-$(date -u '+%Y-%m-%d')}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-docs/evidence/captured}"
 PACKET_DIR="$OUTPUT_ROOT/$ENVIRONMENT_NAME/$CAPTURE_DATE_UTC"
@@ -105,6 +103,15 @@ mkdir -p "$PACKET_DIR/artifacts/public" \
 
 public_host="$(printf '%s' "$PUBLIC_BASE_URL" | sed 's#^https://##' | sed 's#/.*$##')"
 
+echo "==> Target environment: $ENVIRONMENT_NAME"
+echo "==> Public base URL: $PUBLIC_BASE_URL"
+if [ -n "$ADMIN_BASE_URL" ]; then
+  echo "==> Admin base URL: configured (value not printed in command records)"
+else
+  echo "==> Admin base URL: not configured; admin-authenticated steps will be skipped"
+fi
+echo "==> Evidence packet: $PACKET_DIR"
+
 cat >"$PACKET_DIR/README.md" <<EOF
 # Phase 12 Hosted Evidence Packet: $ENVIRONMENT_NAME
 
@@ -117,7 +124,7 @@ cat >"$PACKET_DIR/README.md" <<EOF
 
 ## Claim Boundary
 
-This packet contains command outputs from a hosted evidence collection run. It is not proof of compliance until an operator reviews every artifact, confirms validator status, attaches deployment-owned monitoring/backup/proxy evidence, and updates the summaries.
+This packet contains command outputs from a hosted evidence collection run. It is not proof of compliance until an operator reviews every artifact, confirms validator status, attaches deployment-owned monitoring/backup/proxy evidence, updates the summaries, and passes `EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence`.
 
 ## Required Operator Attachments
 
@@ -129,6 +136,16 @@ Add redacted deployment-owned files under \`artifacts/operator-supplied/\` for:
 - alert rules and one alert lifecycle;
 - production backup policy, job history, and restore transcript;
 - scorecard scheduler/job definition and history.
+
+## Phase 17 Helper Naming
+
+Deployment-owned helper outputs may use:
+
+- `validator-cycle-YYYY-MM-DD.json`
+- `backup-run-YYYY-MM-DD.txt`
+- `restore-drill-YYYY-MM-DD.txt`
+- `feed-monitor-YYYY-MM-DD.txt`
+- `scorecard-export-YYYY-MM-DD.json`
 EOF
 
 cat >"$PACKET_DIR/public-feed-proof-$CAPTURE_DATE_UTC.md" <<EOF
@@ -350,4 +367,7 @@ Hosted evidence packet written to:
 Review the generated markdown summaries, attach deployment-owned monitoring,
 backup, proxy renewal, and scheduler artifacts, then replace pending fields with
 operator-reviewed facts.
+
+Then run:
+  EVIDENCE_PACKET_DIR="$PACKET_DIR" make audit-hosted-evidence
 EOF

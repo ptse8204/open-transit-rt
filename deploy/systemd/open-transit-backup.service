@@ -1,0 +1,18 @@
+[Unit]
+Description=Open Transit RT pilot PostgreSQL backup
+Documentation=https://github.com/YOUR_ORG/open-transit-rt
+After=network.target postgresql-15.service
+Wants=postgresql-15.service
+
+[Service]
+Type=oneshot
+User={{OCI_APP_USER}}
+Group={{OCI_APP_USER}}
+WorkingDirectory={{OCI_REMOTE_DIR}}/app
+EnvironmentFile={{OCI_REMOTE_DIR}}/ops/pilot-ops.env
+ExecStart={{OCI_REMOTE_DIR}}/app/scripts/pilot-ops.sh backup
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths={{OCI_REMOTE_DIR}}
+

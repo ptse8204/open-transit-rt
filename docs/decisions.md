@@ -195,3 +195,15 @@ The local package is intentionally not the production deployment contract. It us
 `make agency-app-up` imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for service readiness, verifies public feed URLs, and prints next actions. The command does not fail solely because validator tooling is missing; validators remain an optional setup step unless a validation workflow is explicitly run.
 
 The local image must not include `.cache`, local env files, generated tokens, private keys, or operator artifacts. Device-token rotation continues to use the existing `/admin/devices/rebind` API contract, which returns a one-time token by design.
+
+## ADR-0025 — Use explicit dry-run-first pilot operations helpers
+
+Phase 17 adds `scripts/pilot-ops.sh` and systemd timer examples for repeatable small-agency pilot operations. This is deployment/operator tooling, not a backend product feature.
+
+The helper owns scheduled validation, backup, restore-drill, feed-monitor, and scorecard-export command sequences. It does not change service APIs, database schema, public feed URLs, GTFS-RT contracts, or consumer-submission statuses.
+
+Every helper subcommand supports `--dry-run`, prints the target environment before doing work, and fails clearly when required target environment variables are missing. State-changing operations require explicit `ENVIRONMENT_NAME` and target paths or URLs. Restore operations are destructive for `RESTORE_DATABASE_URL` and require typed confirmation unless `--force` is passed.
+
+Systemd examples use `EnvironmentFile=` and never inline live secrets. Raw backups, admin tokens, database URLs with passwords, webhook URLs, notification credentials, TLS private material, and unredacted operator artifacts are never public evidence. Missing notification destinations are recorded as `notification not configured`, not as feed failure.
+
+Phase 17 evidence refresh must end with `EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence`; refreshed evidence is not complete unless that audit passes. Passing evidence audit remains deployment/operator proof only and does not establish CAL-ITP/Caltrans compliance, consumer acceptance, agency endorsement, or hosted SaaS availability.

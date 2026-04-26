@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Open Transit RT pilot validator cycle hourly
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

@@ -7,10 +7,13 @@
 # Usage:  scripts/oci-pilot.sh <subcommand> [args]
 # Run:    scripts/oci-pilot.sh help   for a full list of subcommands.
 #
-# Required env for most commands:
-#   OCI_HOST      — public IP of the OCI instance        (default: 192.9.142.92)
-#   OCI_USER      — SSH username                         (default: opc)
-#   OCI_KEY       — path to SSH private key              (default: use ssh-agent)
+# Required env for remote/state-changing commands:
+#   ENVIRONMENT_NAME — evidence/deployment environment name, e.g. oci-pilot
+#   OCI_HOST         — public IP or host of the OCI instance
+#   DOMAIN           — canonical public feed DNS name
+#   OCI_REMOTE_DIR   — remote install directory
+#   OCI_USER         — SSH username                         (default: opc)
+#   OCI_KEY          — path to SSH private key              (default: use ssh-agent)
 #
 # Required env for DNS update:
 #   DUCKDNS_TOKEN — DuckDNS API token
@@ -27,19 +30,42 @@ cd "$ROOT_DIR"
 # Configuration
 # ---------------------------------------------------------------------------
 
-OCI_HOST="${OCI_HOST:-192.9.142.92}"
+OCI_HOST="${OCI_HOST:-}"
 OCI_USER="${OCI_USER:-opc}"          # Oracle Linux default; Ubuntu instances use 'ubuntu'
 OCI_KEY="${OCI_KEY:-}"                          # empty = use ssh-agent / ~/.ssh/id_rsa
-OCI_REMOTE_DIR="${OCI_REMOTE_DIR:-/opt/open-transit-rt}"
+OCI_REMOTE_DIR="${OCI_REMOTE_DIR:-}"
 OCI_APP_USER="${OCI_APP_USER:-open-transit}"
-DOMAIN="${DOMAIN:-open-transit-pilot.duckdns.org}"
-DUCKDNS_DOMAIN="${DUCKDNS_DOMAIN:-open-transit-pilot}"
-ENVIRONMENT_NAME="${ENVIRONMENT_NAME:-oci-pilot}"
-PUBLIC_BASE_URL="https://${DOMAIN}"
+DOMAIN="${DOMAIN:-}"
+DUCKDNS_DOMAIN="${DUCKDNS_DOMAIN:-}"
+ENVIRONMENT_NAME="${ENVIRONMENT_NAME:-}"
+PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-}"
 BIN_DIR="$ROOT_DIR/deploy/bin"
 
 SERVICES="agency-config telemetry-ingest feed-vehicle-positions feed-trip-updates feed-alerts"
 SERVICE_PORTS="8081 8082 8083 8084 8085"
+
+require_var() {
+  name="$1"
+  value="$(eval "printf '%s' \"\${$name:-}\"")"
+  if [ -z "$value" ]; then
+    echo "ERROR: missing required environment variable: $name" >&2
+    exit 2
+  fi
+}
+
+require_target() {
+  require_var ENVIRONMENT_NAME
+  require_var OCI_HOST
+  require_var DOMAIN
+  require_var OCI_REMOTE_DIR
+  if [ -z "${PUBLIC_BASE_URL:-}" ]; then
+    PUBLIC_BASE_URL="https://${DOMAIN}"
+  fi
+  echo "==> Target environment: ${ENVIRONMENT_NAME}"
+  echo "==> Target host: ${OCI_USER}@${OCI_HOST}"
+  echo "==> Remote dir: ${OCI_REMOTE_DIR}"
+  echo "==> Public base URL: ${PUBLIC_BASE_URL}"
+}
 
 # ---------------------------------------------------------------------------
 # SSH / SCP helpers
@@ -119,6 +145,7 @@ cmd_build() {
 # ---------------------------------------------------------------------------
 
 cmd_push() {
+  require_target
   echo "==> Checking that deploy/bin/ is populated..."
   if [ ! -f "${BIN_DIR}/agency-config" ]; then
     echo "ERROR: deploy/bin/agency-config not found. Run: scripts/oci-pilot.sh build" >&2
@@ -126,7 +153,7 @@ cmd_push() {
   fi
 
   echo "==> Creating remote directory structure..."
-  ssh_run "sudo mkdir -p ${OCI_REMOTE_DIR}/{bin,app/db/migrations,app/testdata,app/deploy/systemd,app/deploy/oci,.cache/validators,data}"
+  ssh_run "sudo mkdir -p ${OCI_REMOTE_DIR}/{bin,app/db/migrations,app/testdata,app/deploy/systemd,app/deploy/oci,app/scripts,.cache/validators,data,ops,backups,evidence}"
   ssh_run "sudo chown -R ${OCI_APP_USER}:${OCI_APP_USER} ${OCI_REMOTE_DIR}"
   ssh_run "sudo chmod 750 ${OCI_REMOTE_DIR}"
 
@@ -144,6 +171,10 @@ cmd_push() {
   copy_dir_to_remote "deploy/systemd" "${OCI_REMOTE_DIR}/app/deploy/systemd"
   copy_dir_to_remote "deploy/oci"     "${OCI_REMOTE_DIR}/app/deploy/oci"
 
+  echo "==> Uploading operator helper scripts..."
+  copy_dir_to_remote "scripts" "${OCI_REMOTE_DIR}/app/scripts"
+  ssh_run "sudo sh -c 'chmod +x ${OCI_REMOTE_DIR}/app/scripts/*.sh'"
+
   echo "==> Re-chowning after upload..."
   ssh_run "sudo chown -R ${OCI_APP_USER}:${OCI_APP_USER} ${OCI_REMOTE_DIR}"
 
@@ -158,6 +189,7 @@ cmd_push() {
 # ---------------------------------------------------------------------------
 
 cmd_setup() {
+  require_target
   echo "==> Uploading setup-instance.sh..."
   scp_to "deploy/oci/setup-instance.sh" "/tmp/oci-setup-instance.sh"
   ssh_run "chmod +x /tmp/oci-setup-instance.sh"
@@ -174,6 +206,7 @@ cmd_setup() {
 # ---------------------------------------------------------------------------
 
 cmd_units() {
+  require_target
   echo "==> Uploading install-units.sh..."
   scp_to "deploy/oci/install-units.sh" "/tmp/oci-install-units.sh"
   ssh_run "chmod +x /tmp/oci-install-units.sh"
@@ -191,6 +224,7 @@ cmd_units() {
 # ---------------------------------------------------------------------------
 
 cmd_env_init() {
+  require_target
   echo "==> Checking for existing env file on remote..."
   if ssh_run "test -f ${OCI_REMOTE_DIR}/env" 2>/dev/null; then
     echo "  env file already exists at ${OCI_REMOTE_DIR}/env — skipping."
@@ -283,6 +317,31 @@ GTFS_RT_VALIDATOR_VERSION=ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d
 
   echo "==> env file written at ${OCI_REMOTE_DIR}/env."
   echo "    Edit ${OCI_REMOTE_DIR}/env to fill in AGENCY_ID, TECHNICAL_CONTACT_EMAIL, etc."
+
+  echo "==> Writing placeholder pilot ops env file..."
+  ssh_run "sudo mkdir -p ${OCI_REMOTE_DIR}/ops ${OCI_REMOTE_DIR}/backups ${OCI_REMOTE_DIR}/evidence && sudo chown -R ${OCI_APP_USER}:${OCI_APP_USER} ${OCI_REMOTE_DIR}/ops ${OCI_REMOTE_DIR}/backups ${OCI_REMOTE_DIR}/evidence"
+  OPS_ENV_CONTENT="# Open Transit RT pilot operations environment
+# Generated by scripts/oci-pilot.sh env-init. Keep mode 600.
+# Replace placeholder tokens/URLs before enabling optional timers.
+
+ENVIRONMENT_NAME=${ENVIRONMENT_NAME}
+EVIDENCE_OUTPUT_DIR=${OCI_REMOTE_DIR}/evidence/$(date -u +%Y-%m-%d)
+PUBLIC_BASE_URL=${PUBLIC_BASE_URL}
+ADMIN_BASE_URL=http://127.0.0.1:8081
+ADMIN_TOKEN=replace-with-redacted-admin-token
+DATABASE_URL=postgres://open_transit:${DB_PASSWORD}@127.0.0.1:5432/open_transit_rt?sslmode=disable
+BACKUP_DIR=${OCI_REMOTE_DIR}/backups
+BACKUP_RETENTION_DAYS=7
+RESTORE_DATABASE_URL=replace-with-restore-target-database-url
+RESTORE_BACKUP_FILE=replace-with-restore-backup-file
+NOTIFY_WEBHOOK_URL=
+NOTIFY_EMAIL_TO=
+"
+  printf '%s\n' "$OPS_ENV_CONTENT" \
+    | ssh_run "sudo tee ${OCI_REMOTE_DIR}/ops/pilot-ops.env > /dev/null && \
+               sudo chown ${OCI_APP_USER}:${OCI_APP_USER} ${OCI_REMOTE_DIR}/ops/pilot-ops.env && \
+               sudo chmod 600 ${OCI_REMOTE_DIR}/ops/pilot-ops.env"
+  echo "    Placeholder ops env written at ${OCI_REMOTE_DIR}/ops/pilot-ops.env."
 }
 
 # ---------------------------------------------------------------------------
@@ -291,6 +350,7 @@ GTFS_RT_VALIDATOR_VERSION=ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d
 # ---------------------------------------------------------------------------
 
 cmd_migrate() {
+  require_target
   echo "==> Running migrations on OCI instance..."
   ssh_run "sudo -u ${OCI_APP_USER} sh -c \
     'set -a; . ${OCI_REMOTE_DIR}/env; set +a; \
@@ -306,6 +366,7 @@ cmd_migrate() {
 # ---------------------------------------------------------------------------
 
 cmd_start() {
+  require_target
   echo "==> Starting all Open Transit RT services..."
   for svc in $SERVICES; do
     ssh_run "sudo systemctl start open-transit-${svc}"
@@ -314,6 +375,7 @@ cmd_start() {
 }
 
 cmd_stop() {
+  require_target
   echo "==> Stopping all Open Transit RT services..."
   for svc in $SERVICES; do
     ssh_run "sudo systemctl stop open-transit-${svc}" || true
@@ -322,6 +384,7 @@ cmd_stop() {
 }
 
 cmd_restart() {
+  require_target
   echo "==> Restarting all Open Transit RT services..."
   for svc in $SERVICES; do
     ssh_run "sudo systemctl restart open-transit-${svc}"
@@ -335,6 +398,7 @@ cmd_restart() {
 # ---------------------------------------------------------------------------
 
 cmd_status() {
+  require_target
   echo "==> Systemd service status:"
   for svc in $SERVICES; do
     ssh_run "systemctl is-active open-transit-${svc} 2>/dev/null || echo inactive" \
@@ -377,11 +441,13 @@ cmd_status() {
 # ---------------------------------------------------------------------------
 
 cmd_update_dns() {
+  require_target
   if [ -z "${DUCKDNS_TOKEN:-}" ]; then
     echo "ERROR: DUCKDNS_TOKEN is not set." >&2
     echo "  Export it: export DUCKDNS_TOKEN=<your-token>" >&2
     exit 1
   fi
+  require_var DUCKDNS_DOMAIN
   echo "==> Updating DuckDNS record for ${DUCKDNS_DOMAIN} to ${OCI_HOST}..."
   RESPONSE=$(curl -s \
     "https://www.duckdns.org/update?domains=${DUCKDNS_DOMAIN}&token=${DUCKDNS_TOKEN}&ip=${OCI_HOST}")
@@ -402,6 +468,7 @@ cmd_update_dns() {
 # ---------------------------------------------------------------------------
 
 cmd_token() {
+  require_target
   AGENCY_ID="${1:-}"
   if [ -z "$AGENCY_ID" ]; then
     # Try to read from the remote env file
@@ -436,6 +503,7 @@ cmd_token() {
 # ---------------------------------------------------------------------------
 
 cmd_bootstrap() {
+  require_target
   ADMIN_TOKEN="${ADMIN_TOKEN:-$(cat "$ROOT_DIR/.cache/oci-admin-token" 2>/dev/null || echo '')}"
   if [ -z "$ADMIN_TOKEN" ]; then
     echo "ERROR: ADMIN_TOKEN is not set. Run: scripts/oci-pilot.sh token" >&2
@@ -458,6 +526,7 @@ cmd_bootstrap() {
 # ---------------------------------------------------------------------------
 
 cmd_collect() {
+  require_target
   ADMIN_TOKEN="${ADMIN_TOKEN:-$(cat "$ROOT_DIR/.cache/oci-admin-token" 2>/dev/null || echo '')}"
   if [ -z "$ADMIN_TOKEN" ]; then
     echo "WARN: ADMIN_TOKEN is not set — admin-authenticated evidence steps will be skipped." >&2
@@ -475,7 +544,7 @@ cmd_collect() {
   echo ""
   echo "==> Auditing collected packet: ${PACKET_DIR}"
   if [ -d "$PACKET_DIR" ]; then
-    EVIDENCE_PACKET_DIR="$PACKET_DIR" ./scripts/audit-hosted-evidence.sh || true
+    EVIDENCE_PACKET_DIR="$PACKET_DIR" make audit-hosted-evidence
   else
     echo "    Packet directory not found: ${PACKET_DIR}"
   fi
@@ -487,6 +556,7 @@ cmd_collect() {
 # ---------------------------------------------------------------------------
 
 cmd_logs() {
+  require_target
   echo "==> Tailing service logs (Ctrl+C to stop)..."
   UNITS=$(printf ' open-transit-%s' $SERVICES)
   # shellcheck disable=SC2086
@@ -539,12 +609,15 @@ DIAGNOSTICS:
   logs         Tail journalctl for all services + Caddy
 
 ENVIRONMENT:
-  OCI_HOST          (default: 192.9.142.92)
+  ENVIRONMENT_NAME  Required for remote/evidence commands, e.g. oci-pilot
+  OCI_HOST          Required public IP or host for remote commands
+  DOMAIN            Required public feed DNS name
+  OCI_REMOTE_DIR    Required remote install path, e.g. /opt/open-transit-rt
   OCI_USER          (default: opc)
   OCI_KEY           SSH key path (default: ssh-agent)
   DUCKDNS_TOKEN     Required for update-dns
+  DUCKDNS_DOMAIN    Required for update-dns
   ADMIN_TOKEN       Required for bootstrap / collect (or use 'token' subcommand)
-  DOMAIN            (default: open-transit-pilot.duckdns.org)
 EOF
 }
 

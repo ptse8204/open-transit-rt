@@ -75,7 +75,7 @@ For a guided version, start with the [Agency First Run](docs/tutorials/agency-fi
 
 ## Evidence And Boundaries
 
-This repo includes local validation workflows, an executable agency demo, documentation for deployment readiness, and captured OCI pilot evidence. These are useful signals for evaluating the project.
+This repo includes local validation workflows, an executable agency demo, a repeatable pilot operations guide, and captured OCI pilot evidence. These are useful signals for evaluating the project.
 
 They are not the same as third-party consumer acceptance, an agency endorsement, full CAL-ITP/Caltrans compliance, or a guarantee that every deployment is production-ready. Those claims require deployment-specific records and external confirmation.
 

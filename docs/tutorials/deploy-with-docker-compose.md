@@ -7,6 +7,8 @@ This guide describes the current repository-supported Compose paths.
 
 This is suitable as a small-agency pilot shape, not a complete hosted production package.
 
+For the Phase 17 production-directed pilot operations profile, use [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md). That profile covers systemd/Caddy deployment, scheduled validators, backup/restore, monitoring, scorecard export, and evidence refresh.
+
 ![Agency deployment](../assets/agency-deployment.png)
 
 ## Default Compose Database
@@ -79,6 +81,8 @@ export PUBLICATION_ENVIRONMENT=production
 
 In `APP_ENV=production`, services fail fast when required secrets are missing or still look like development placeholders.
 
+Do not inline live secrets in systemd units or committed docs. Store deployment values in private environment files such as `/opt/open-transit-rt/env` and `/opt/open-transit-rt/ops/pilot-ops.env`, with real admin tokens, DB passwords, device peppers, and notification credentials kept operator-only.
+
 ## Validator Tooling
 
 Install and verify pinned validators on the host or bake equivalent pinned artifacts into your service image:
@@ -101,6 +105,18 @@ The repo-supported GTFS-RT validator path is:
 ```
 
 The GTFS-RT wrapper requires Docker access because it runs the pinned MobilityData validator image by digest. A deployment that uses a native GTFS-RT validator executable should add an equivalent checksum/version contract before making stronger validation-readiness claims.
+
+For scheduled pilot validation, run the dry-run first:
+
+```bash
+ENVIRONMENT_NAME=pilot-agency-prod \
+EVIDENCE_OUTPUT_DIR=/opt/open-transit-rt/evidence/$(date -u +%Y-%m-%d) \
+ADMIN_BASE_URL=http://127.0.0.1:8081 \
+ADMIN_TOKEN=replace-with-redacted-admin-token \
+scripts/pilot-ops.sh validator-cycle --dry-run
+```
+
+The live helper writes `validator-cycle-YYYY-MM-DD.json` to `EVIDENCE_OUTPUT_DIR`.
 
 ## Run Services
 
@@ -163,6 +179,8 @@ Keep admin/debug/JSON paths protected by admin auth and, for production deployme
 
 `/metrics` exists only when `METRICS_ENABLED=true`; treat it as an internal operations surface.
 
+The redacted Caddy example in `deploy/oci/Caddyfile` follows this default-public-only boundary. It relies on Caddy-managed TLS renewal and keeps admin/debug paths absent from the public edge.
+
 ## Publish Feed Metadata
 
 After importing or publishing an active GTFS feed, bootstrap publication metadata:
@@ -200,3 +218,21 @@ curl -fsS -o /tmp/alerts.pb "$PUBLIC_BASE_URL/public/gtfsrt/alerts.pb"
 ```
 
 Set `PUBLIC_BASE_URL` to the agency’s actual feed host before running these checks. Do not claim consumer acceptance until the agency has evidence from the specific consumer.
+
+## Phase 17 Evidence Refresh
+
+Deployment helper outputs should use these names in the private operator evidence directory:
+
+- `validator-cycle-YYYY-MM-DD.json`
+- `backup-run-YYYY-MM-DD.txt`
+- `restore-drill-YYYY-MM-DD.txt`
+- `feed-monitor-YYYY-MM-DD.txt`
+- `scorecard-export-YYYY-MM-DD.json`
+
+After copying reviewed, redacted artifacts into a hosted packet, finish with:
+
+```bash
+EVIDENCE_PACKET_DIR=docs/evidence/captured/<environment>/<UTC-date> make audit-hosted-evidence
+```
+
+Do not call refreshed evidence complete unless that audit passes.

@@ -40,6 +40,8 @@ Phase 15 is complete for the targeted public repo hygiene and evidence redaction
 
 Phase 16 is complete for the agency onboarding product packaging scope. The repo now has a local Compose `app` profile, `deploy/Dockerfile.local`, `deploy/Caddyfile.local`, and `scripts/agency-local-app.sh` behind `make agency-app-up`, `make agency-app-down`, `make agency-app-logs`, and `make agency-app-reset`. `make agency-app-up` starts the full local stack behind `http://localhost:8080`, applies migrations, seeds demo data, imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for readiness, verifies public feed URLs, and prints public URLs, admin/token instructions, device helper guidance, logs, validation status or next step, and a copy/paste support summary. Device onboarding is clearer through `scripts/device-onboarding.sh` for rebind, sample telemetry, dry-run, and simulator-style telemetry. The local proxy is explicitly demo-only; production still requires HTTPS/TLS and deployment-owned admin network boundaries.
 
+Phase 17 is complete for the deployment automation and pilot operations scope. The repo now has `docs/runbooks/small-agency-pilot-operations.md` with an explicit deployment environment variable matrix, evidence output labels, and naming conventions; `scripts/pilot-ops.sh` with dry-run-capable validator-cycle, backup, restore-drill, feed-monitor, and scorecard-export helpers; and systemd timer examples for validation, backup, feed monitoring, and scorecard export. Hosted evidence refresh now ends with `EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence`, and refreshed evidence is not complete unless the audit passes. The Phase 17 work does not change backend API contracts, database schema, public feed URLs, GTFS-RT contracts, consumer-submission statuses, or evidence claims.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -68,6 +70,7 @@ The repo has:
 - `docs/handoffs/phase-14.md`
 - `docs/handoffs/phase-15.md`
 - `docs/handoffs/phase-16.md`
+- `docs/handoffs/phase-17.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -81,6 +84,7 @@ The repo now has:
 - `scripts/bootstrap-dev.sh`
 - `scripts/agency-local-app.sh`
 - `scripts/device-onboarding.sh`
+- `scripts/pilot-ops.sh`
 - deterministic fixtures under `testdata/`
 - handoff template and Phase 0 handoff under `docs/handoffs/`
 
@@ -220,7 +224,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 - production-grade learned ETA/prediction quality and backtesting
 - hosted login/SSO and server-side admin JWT `jti` replay tracking
 - full operator UI for manual override workflows
-- production SLO dashboards and alerting beyond basic request logs, request IDs, readiness checks, and `/metrics` toggle
+- production SLO dashboards and alerting beyond Phase 17 lightweight feed-monitor examples, request logs, request IDs, readiness checks, and `/metrics` toggle
 - OpenTelemetry tracing/exporter wiring and Prometheus/Grafana deployment assets
 - external predictor adapters such as TheTransitClock
 - external consumer submission API integrations
@@ -228,13 +232,15 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 15 — Targeted Public Repo Hygiene And Evidence Redaction Review is complete for the documented targeted scope. Phase 12 — Deployment Evidence Hardening remains closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`), Phase 13 remains closed for the initial consumer-submission evidence tracker structure, and Phase 14 remains closed for the public launch polish scope.
+**Active phase:** Phase 17 — Deployment Automation And Pilot Operations is complete for the documented pilot operations scope. Phases 12 through 16 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
 Phase 13 added documentation-only consumer submission records and templates. It did not add runtime/product changes or consumer submission APIs.
 
 Phase 14 added documentation-only public-facing polish. It did not change backend runtime behavior, API contracts, database schema, public feed URLs, external integrations, evidence claims, or consumer-submission status.
+
+Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only; it did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, or new product features.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 

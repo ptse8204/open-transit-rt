@@ -4,6 +4,8 @@ This checklist is for production-directed pilots. Completing it is not the same 
 
 For the Phase 11 evidence separation between repo capability, deployment/operator proof, and third-party confirmation, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
 
+For the Phase 17 pilot operations profile, see [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md).
+
 ## Runtime Configuration
 
 - Set `APP_ENV=production`.
@@ -15,6 +17,7 @@ For the Phase 11 evidence separation between repo capability, deployment/operato
 - Configure `PUBLIC_BASE_URL` and `FEED_BASE_URL` to the stable public HTTPS feed host.
 - Configure `TECHNICAL_CONTACT_EMAIL`, `FEED_LICENSE_NAME`, and `FEED_LICENSE_URL`.
 - Set `PUBLICATION_ENVIRONMENT=production` only when scorecards should treat missing validator evidence as red.
+- Put deployment secrets in private environment files. Do not inline live DB passwords, admin tokens, device peppers, CSRF/JWT secrets, webhook URLs, private keys, or notification credentials in systemd units or committed docs.
 
 ## Database
 
@@ -69,6 +72,7 @@ Production deployments must choose their own admin network boundary. The local a
 - Configure `GTFS_RT_VALIDATOR_PATH` to the pinned wrapper or an equivalently pinned executable.
 - Run `/admin/validation/run` for schedule, Vehicle Positions, Trip Updates, and Alerts.
 - Store and review validation results before claiming feeds are validator-clean.
+- For scheduled pilot validation, dry-run `scripts/pilot-ops.sh validator-cycle --dry-run` before enabling `open-transit-validator-cycle.timer`.
 
 ## Publication Workflow
 
@@ -93,6 +97,10 @@ Production deployments must choose their own admin network boundary. The local a
 - Keep `/metrics` internal if `METRICS_ENABLED=true`.
 - Treat Prometheus/Grafana and OpenTelemetry as deployment-owned or future integrations; this repo does not currently ship dashboards, alert rules, collectors, exporters, or tracing configuration.
 - Monitor readiness endpoints for database and active-feed dependencies.
+- For lightweight pilot monitoring, dry-run `scripts/pilot-ops.sh feed-monitor --dry-run` before enabling `open-transit-feed-monitor.timer`.
+- If webhook or email notification destinations are missing, record `notification not configured`; do not count that as a feed failure.
+- Do not commit real webhook URLs, email credentials, or notification tokens.
+- Dry-run `scripts/pilot-ops.sh backup --dry-run`, `restore-drill --dry-run`, and `scorecard-export --dry-run` before enabling scheduled operations. Restore is destructive and requires typed confirmation unless `--force` is passed.
 - Define who can use admin roles: `admin`, `editor`, `operator`, and `read_only`.
 - Keep audit logs for imports, publication metadata changes, alert edits, validation runs, overrides, and device rebinding.
 
@@ -109,3 +117,11 @@ Before claiming a deployment is compliant or consumer-ready, collect evidence fo
 - external consumer submission or acceptance evidence, if claimed
 
 Without that evidence, use wording such as "supports deployment toward CAL-ITP/Caltrans-style readiness."
+
+Hosted evidence refresh is complete only after:
+
+```bash
+EVIDENCE_PACKET_DIR=docs/evidence/captured/<environment>/<UTC-date> make audit-hosted-evidence
+```
+
+The audit must pass before the packet is described as complete.
