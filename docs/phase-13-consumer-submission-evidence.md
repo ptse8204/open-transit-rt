@@ -2,7 +2,9 @@
 
 ## Status
 
-Planned documentation track. Not implemented in this repository yet.
+Implemented documentation/evidence track for the initial tracker structure.
+
+No current target has submitted, under-review, accepted, rejected, or blocked evidence in the repository.
 
 ## Purpose
 
@@ -27,13 +29,27 @@ Maintain per-consumer records with strict evidence categories and explicit proof
 
 Each consumer must be in exactly one category at a given time:
 
-- **not_started** — no submission packet prepared or sent.
+- **not_started** — no submission has been made.
+- **prepared** — packet prepared only, no submission.
 - **submitted** — packet sent with verifiable timestamp and destination.
 - **under_review** — consumer acknowledged review in progress.
 - **accepted** — consumer explicitly confirmed acceptance/ingestion.
 - **rejected** — consumer explicitly rejected or requested resubmission.
+- **blocked** — submission blocked by named missing evidence/action.
 
 Category transitions must be audit-loggable and accompanied by supporting artifacts.
+
+## Allowed Claims By Status
+
+| Status | Allowed claim |
+| --- | --- |
+| `not_started` | No submission has been made. |
+| `prepared` | Packet prepared only, no submission. |
+| `submitted` | Submission sent, no acceptance implied. |
+| `under_review` | Consumer review in progress, no acceptance implied. |
+| `accepted` | Acceptance may be claimed only for the named consumer, feed scope, URL root, and evidence date. |
+| `rejected` | Rejection documented, no acceptance claim. |
+| `blocked` | Submission blocked by named missing evidence/action. |
 
 ## Workflow Tracker Requirements
 
@@ -42,9 +58,19 @@ For each consumer, track at minimum:
 - current category,
 - status effective timestamp,
 - who changed the status,
+- tracker last reviewed timestamp,
+- reviewed by,
+- linked Phase 12 evidence packet,
 - submission packet/version reference,
+- feed root submitted,
+- exact feed URLs submitted,
+- validation evidence reference,
+- Phase 12 evidence packet reference,
+- acceptance-scope fields,
 - evidence link(s): email thread, portal screenshot, ticket ID, or API response,
-- notes with next action and due date.
+- redaction notes,
+- next action,
+- allowed public wording.
 
 Recommended tracker format:
 - structured table in docs plus linked JSON artifacts,
@@ -59,9 +85,10 @@ Required truthfulness rules:
 1. `submitted` is **not** `accepted`.
 2. `under_review` is **not** `accepted`.
 3. validator-clean feeds are **not** automatic consumer acceptance.
-4. Mobility Database and transit.land listing/processing are not proof that Google/Apple/Transit/Bing/Moovit accepted feeds.
-5. "No rejection received" is **not** acceptance.
-6. verbal/informal statements are not enough without retained evidence.
+4. public fetch proof is **not** automatic consumer acceptance.
+5. Mobility Database and transit.land listing/processing are not proof that Google/Apple/Transit/Bing/Moovit accepted feeds.
+6. "No rejection received" is **not** acceptance.
+7. verbal/informal statements are not enough without retained evidence.
 
 Allowed wording examples:
 - "Submission sent on <date>; currently under review."
@@ -78,6 +105,7 @@ Phase 13 is complete only when all are true:
 
 - A consumer workflow tracker exists for all seven named targets.
 - Every target has one valid category and timestamped evidence state.
+- Every target has a current evidence record and reusable template.
 - Overclaiming guardrails are documented in tracker and handoff docs.
 - Claims in README/status/handoff materials remain evidence-bounded.
 - A repeatable update process exists for status changes and artifact retention.
@@ -93,6 +121,9 @@ make validators-check
 make validate
 make test
 make smoke
+make demo-agency-flow
+make test-integration
+docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```
 
@@ -110,6 +141,9 @@ Expected evidence artifacts (deployment-owned):
 At minimum:
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`
+- `docs/handoffs/phase-13.md`
+- `docs/consumer-submission-evidence.md`
+- `docs/evidence/consumer-submissions/README.md`
 - `docs/compliance-evidence-checklist.md` (if categories or interpretation rules change)
 - relevant runbook docs that define artifact storage and review cadence
 

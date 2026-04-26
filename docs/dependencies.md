@@ -63,8 +63,8 @@ This table is the current external dependency and integration status. It separat
 | OpenTelemetry | Deferred optional integration | Phase 11 repo scan found no OpenTelemetry SDK, collector, exporter, trace propagation, or deployment wiring. |
 | TheTransitClock | Deferred optional predictor | Not integrated. Future use must be behind `internal/prediction.Adapter`; Open Transit RT remains source of truth. |
 | Other external predictors | Deferred optional predictors | Same adapter boundary as TheTransitClock. |
-| Google Maps, Apple Maps, Transit App, Bing Maps, Moovit | Workflow records only | Default `consumer_ingestion` records can track submission status; no external API calls or acceptance proof. |
-| Mobility Database, transit.land | Workflow targets only | Documented as possible publication/aggregator targets; no API integration. Operators may track them as consumer records when used. |
+| Google Maps, Apple Maps, Transit App, Bing Maps, Moovit | Workflow records and Phase 13 evidence docs only | Default `consumer_ingestion` records can track submission status; Phase 13 docs provide current records and templates. No external API calls or acceptance proof. |
+| Mobility Database, transit.land | Workflow targets and Phase 13 evidence docs only | Documented as possible publication/aggregator targets; Phase 13 docs provide current records and templates. No API integration or acceptance proof. |
 
 ---
 
@@ -740,6 +740,8 @@ Operational workflows for:
 - Phase 8 tracks submission status and packet JSON in `consumer_ingestion`
 - default seeded consumer records are Google Maps, Apple Maps, Transit App, Bing Maps, and Moovit
 - Mobility Database and transit.land are documented workflow targets; they are not seeded defaults, but operators can track them as `consumer_ingestion.consumer_name` values when needed
+- Phase 13 adds documentation-only evidence records and templates under `docs/evidence/consumer-submissions/`
+- validator success and public fetch proof are supporting evidence only, not consumer acceptance
 - no external submission API is called directly by the app
 
 ### Failure behavior

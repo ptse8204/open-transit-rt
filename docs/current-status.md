@@ -30,7 +30,9 @@ Phase 10 docs, tutorials, deployment, and demo work is complete for the current 
 
 Phase 11 compliance evidence and optional external integration review is complete for the selected evidence-only path. The repo now has `docs/compliance-evidence-checklist.md`, which separates repo-proven capability, deployment/operator proof, and third-party confirmation. Dependency docs now explicitly mark wired integrations, workflow-only targets, and deferred optional systems including TheTransitClock, other external predictors, Prometheus/Grafana, OpenTelemetry, consumer submission APIs, Mobility Database, and transit.land.
 
-Phase 12 is closed for the OCI pilot evidence scope. Step 1 (repo-side deployment evidence scaffolding), Step 2 (local demo evidence packet), Step 3 (hosted closure tooling hardening), and the hosted OCI pilot evidence packet are complete. The hosted packet lives at `docs/evidence/captured/oci-pilot/2026-04-24/` and passed `EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence`. A final current-live recheck on April 24, 2026 refreshed the packet with active `gtfs-import-3`, passed schedule/Vehicle Positions/Trip Updates/Alerts validation, and `canonical_validation_complete=true`. Phases 13 and 14 remain planning/docs tracks only and are not implemented backend/runtime work.
+Phase 12 is closed for the OCI pilot evidence scope. Step 1 (repo-side deployment evidence scaffolding), Step 2 (local demo evidence packet), Step 3 (hosted closure tooling hardening), and the hosted OCI pilot evidence packet are complete. The hosted packet lives at `docs/evidence/captured/oci-pilot/2026-04-24/` and passed `EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence`. A final current-live recheck on April 24, 2026 refreshed the packet with active `gtfs-import-3`, passed schedule/Vehicle Positions/Trip Updates/Alerts validation, and `canonical_validation_complete=true`.
+
+Phase 13 is complete for the initial consumer-submission evidence structure. The tracker lives at `docs/evidence/consumer-submissions/README.md`, with current records and templates for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land. All current target records are `not_started`; no repo evidence currently supports submitted, under-review, accepted, rejected, or blocked claims for any target.
 
 ## What Exists Now
 
@@ -205,15 +207,16 @@ The following are still missing or incomplete unless a later handoff says otherw
 - production SLO dashboards and alerting beyond basic request logs, request IDs, readiness checks, and `/metrics` toggle
 - OpenTelemetry tracing/exporter wiring and Prometheus/Grafana deployment assets
 - external predictor adapters such as TheTransitClock
-- external consumer submission API integrations or consumer acceptance evidence
+- external consumer submission API integrations
+- consumer submission, review, acceptance, rejection, or blocker evidence from third parties
 
 ## Current Phase
 
-**Active phase:** Phase 13 planning/docs can proceed next. Phase 12 — Deployment Evidence Hardening is closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`).
+**Active phase:** Phase 13 — Consumer Submission and Acceptance Evidence is complete for the initial docs/evidence tracker structure. Phase 12 — Deployment Evidence Hardening is closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`).
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
-Phases 13 and 14 currently exist as planning/docs tracks only and are not implemented runtime/product changes.
+Phase 13 added documentation-only consumer submission records and templates. It did not add runtime/product changes or consumer submission APIs.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -569,12 +572,23 @@ The OCI pilot at `https://open-transit-pilot.duckdns.org` now has public HTTPS f
 
 Phase 12 is closed for hosted/operator evidence because the OCI pilot packet passed the hosted audit. Third-party consumer confirmation has not been collected and remains outside Phase 12.
 
+## Phase 13 Progress
+
+Phase 13 is complete for the initial consumer submission evidence layer:
+- added `docs/consumer-submission-evidence.md` with status definitions, allowed claims by status, tracker requirements, and acceptance-scope rules
+- added `docs/evidence/consumer-submissions/README.md` with tracker freshness fields, Phase 12 packet linkage, current target summary, and current OCI pilot feed URLs for future submission packets
+- added current evidence records for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land under `docs/evidence/consumer-submissions/current/`
+- added reusable templates for all seven targets under `docs/evidence/consumer-submissions/templates/`
+- kept all current records at `not_started` because no redacted real submission, review, acceptance, rejection, or blocker evidence is present in the repo
+- documented that validator success and public fetch proof are supporting evidence only, not consumer acceptance
+
 ## Next Recommended Step
 
-Move to the next documented track only with evidence-bounded claims:
-1. keep third-party submission/acceptance records separate and only when they exist
-2. do not claim Cal-ITP compliance from the Phase 12 packet alone
-3. keep the OCI pilot operator jobs and validator tooling maintained if the pilot remains live
+Move to operator collection only when real external artifacts exist:
+1. prepare the target-specific packet using `docs/evidence/consumer-submissions/templates/`
+2. submit through the named consumer or aggregator workflow outside the repo
+3. add only redacted correspondence, receipt, ticket, portal screenshot, rejection, blocker, or acceptance evidence
+4. keep the OCI pilot operator jobs and validator tooling maintained if the pilot remains live
 
 ## What Not To Do Next
 

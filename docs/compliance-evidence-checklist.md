@@ -122,3 +122,23 @@ EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hoste
 ```
 
 This closes Phase 12 for deployment/operator evidence on the OCI pilot only. It does not prove Cal-ITP compliance or third-party consumer acceptance.
+
+## Phase 13 Consumer Submission Evidence Result
+
+Phase 13 adds a truthful consumer-submission evidence layer under `docs/evidence/consumer-submissions/` and `docs/consumer-submission-evidence.md`.
+
+What Phase 13 currently proves:
+
+- a tracker exists for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land;
+- each target has a current evidence record and reusable template;
+- each current record is `not_started` because no redacted third-party submission, review, acceptance, rejection, or blocker evidence is present in the repository;
+- each template requires status timestamp, operator, feed root, exact submitted URLs, submission packet artifact, validation reference, Phase 12 evidence packet reference, correspondence/receipt/ticket/screenshot reference, redaction notes, next action, allowed public wording, and acceptance-scope fields.
+
+What Phase 13 does not prove:
+
+- submission to any consumer or aggregator;
+- review by any consumer or aggregator;
+- acceptance, ingestion, listing, or production use by any consumer or aggregator;
+- CAL-ITP compliance.
+
+Hosted/operator evidence completed in Phase 12 remains separate from consumer submission evidence collected in Phase 13. Validator success and public fetch proof are supporting evidence only, not consumer acceptance.
