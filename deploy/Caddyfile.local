@@ -1,0 +1,25 @@
+:8080 {
+	route {
+		respond /healthz "ok" 200
+
+		@agency path /public/gtfs/* /public/feeds.json /admin/publication* /admin/compliance* /admin/consumer-ingestion* /admin/validation* /admin/devices*
+		reverse_proxy @agency agency-config:8081
+
+		@telemetry path /v1/telemetry /v1/events*
+		reverse_proxy @telemetry telemetry-ingest:8082
+
+		@vehicle_positions path /public/gtfsrt/vehicle_positions.pb /public/gtfsrt/vehicle_positions.json /admin/debug/gtfsrt/vehicle_positions.json
+		reverse_proxy @vehicle_positions feed-vehicle-positions:8083
+
+		@trip_updates path /public/gtfsrt/trip_updates.pb /public/gtfsrt/trip_updates.json /admin/debug/gtfsrt/trip_updates.json
+		reverse_proxy @trip_updates feed-trip-updates:8084
+
+		@alerts path /public/gtfsrt/alerts.pb /public/gtfsrt/alerts.json /admin/debug/gtfsrt/alerts.json /admin/alerts*
+		reverse_proxy @alerts feed-alerts:8085
+
+		@studio path /admin/gtfs-studio*
+		reverse_proxy @studio gtfs-studio:8086
+
+		respond "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200
+	}
+}

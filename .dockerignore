@@ -1,0 +1,14 @@
+.cache/
+.env
+.env.*
+!.env.example
+deploy/bin/
+.git/
+*.log
+*.pem
+*.key
+*.p12
+*.pfx
+*.tmp
+.DS_Store
+Thumbs.db

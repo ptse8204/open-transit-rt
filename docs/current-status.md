@@ -38,6 +38,8 @@ Phase 14 is complete for the public launch polish and repo simplification scope.
 
 Phase 15 is complete for the targeted public repo hygiene and evidence redaction review scope. The review used `839efd6` (`Phase 14 -- Checkpoint 4 -- Security Cleanup`) as the earlier scrub baseline, reviewed changed files since that point plus tracked high-risk file patterns from `git ls-files`, inventoried committed evidence archives, added `SECURITY.md`, added `docs/evidence/redaction-policy.md`, added `docs/evidence/archive-inventory.md`, expanded `.gitignore`, removed ignored local `.DS_Store` and `.cache` secret artifacts from the working tree, and redacted unnecessary raw public client IP / instance-host detail from OCI operator evidence. The review found real secrets only in ignored local `.cache` files, not in tracked files or history for those `.cache` paths; rotation/revocation is still required before further pilot use.
 
+Phase 16 is complete for the agency onboarding product packaging scope. The repo now has a local Compose `app` profile, `deploy/Dockerfile.local`, `deploy/Caddyfile.local`, and `scripts/agency-local-app.sh` behind `make agency-app-up`, `make agency-app-down`, `make agency-app-logs`, and `make agency-app-reset`. `make agency-app-up` starts the full local stack behind `http://localhost:8080`, applies migrations, seeds demo data, imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for readiness, verifies public feed URLs, and prints public URLs, admin/token instructions, device helper guidance, logs, validation status or next step, and a copy/paste support summary. Device onboarding is clearer through `scripts/device-onboarding.sh` for rebind, sample telemetry, dry-run, and simulator-style telemetry. The local proxy is explicitly demo-only; production still requires HTTPS/TLS and deployment-owned admin network boundaries.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -65,6 +67,7 @@ The repo has:
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-14.md`
 - `docs/handoffs/phase-15.md`
+- `docs/handoffs/phase-16.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -74,7 +77,10 @@ The repo now has:
 - `cmd/migrate`
 - versioned migrations under `db/migrations`
 - PostGIS-backed Docker Compose configuration on host port `55432`
+- local full-stack Compose app profile behind `make agency-app-up`
 - `scripts/bootstrap-dev.sh`
+- `scripts/agency-local-app.sh`
+- `scripts/device-onboarding.sh`
 - deterministic fixtures under `testdata/`
 - handoff template and Phase 0 handoff under `docs/handoffs/`
 

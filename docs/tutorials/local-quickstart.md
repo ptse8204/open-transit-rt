@@ -8,14 +8,43 @@ This tutorial starts the current Open Transit RT development environment on one 
 
 ## Prerequisites
 
-- Go matching `go.mod`
 - Docker with Compose support
-- `curl`, `zip`, and `unzip`
+- `curl`
+- Go matching `go.mod` for development commands outside the local app package
+- `zip` and `unzip` for the legacy demo script
 - Java if you want the static GTFS validator JAR to execute successfully
 
 The GTFS-RT validator workflow uses Docker because the repo-supported path is a pinned wrapper around a MobilityData container image.
 
-## Bootstrap
+## Full Local App Package
+
+The simplest agency/evaluator path is:
+
+```bash
+make agency-app-up
+```
+
+This starts the full local stack behind:
+
+```text
+http://localhost:8080
+```
+
+The command imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, verifies feed discovery, verifies public protobuf feed URLs, and prints admin/device/log/validation next steps.
+
+Useful companion commands:
+
+```bash
+make agency-app-logs
+make agency-app-down
+make agency-app-reset
+```
+
+`make agency-app-reset` is destructive and prompts before removing local containers, the Compose Postgres volume, local demo database state, and container logs.
+
+The local reverse proxy is only for demo packaging. Admin/debug routes may be reachable through `localhost:8080`, but they still require auth. Production deployments need HTTPS/TLS and deployment-owned admin network boundaries.
+
+## Development Bootstrap
 
 ```bash
 cp .env.example .env
@@ -195,3 +224,23 @@ make test-integration
 ```
 
 Docker must be running for DB-backed integration tests and the pinned GTFS-RT validator wrapper.
+
+## Device Helper
+
+Use the helper for local device onboarding and simulator-style telemetry:
+
+```bash
+scripts/device-onboarding.sh help
+scripts/device-onboarding.sh sample --dry-run
+scripts/device-onboarding.sh sample
+scripts/device-onboarding.sh simulate --dry-run
+scripts/device-onboarding.sh simulate
+```
+
+To rotate or bind a demo device token through the existing API:
+
+```bash
+scripts/device-onboarding.sh rebind --device-id device-1 --vehicle-id bus-1
+```
+
+The rebind command prints the one-time token returned by the API. Store it securely if you need it, and do not commit it.

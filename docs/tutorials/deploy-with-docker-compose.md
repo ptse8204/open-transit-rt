@@ -1,12 +1,15 @@
 # Deploy With Docker Compose
 
-This guide describes the current repository-supported deployment path. The committed Compose file provisions Postgres/PostGIS only; the Go services are run as application processes or by deployment-owned service units.
+This guide describes the current repository-supported Compose paths.
+
+- Default Compose starts Postgres/PostGIS for local development.
+- The `app` profile starts the full local demo package behind `http://localhost:8080`.
 
 This is suitable as a small-agency pilot shape, not a complete hosted production package.
 
 ![Agency deployment](../assets/agency-deployment.png)
 
-## What Compose Provides
+## Default Compose Database
 
 ```bash
 docker compose -f deploy/docker-compose.yml config
@@ -22,6 +25,34 @@ DATABASE_URL="postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmo
 MIGRATIONS_DIR=db/migrations \
 go run ./cmd/migrate up
 ```
+
+## Full Local App Profile
+
+For a non-expert local trial, use the orchestration helper:
+
+```bash
+make agency-app-up
+```
+
+This wraps:
+
+```bash
+docker compose -f deploy/docker-compose.yml --profile app ...
+```
+
+It starts Postgres/PostGIS, builds the local Go service image, applies migrations, seeds demo data, imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for readiness, verifies the public feed URLs, and prints next steps.
+
+Companion commands:
+
+```bash
+make agency-app-logs
+make agency-app-down
+make agency-app-reset
+```
+
+`make agency-app-reset` is destructive. It removes local containers, the Compose Postgres volume, local demo database state, and container logs after confirmation. Use `scripts/agency-local-app.sh reset --force` only for automation.
+
+The local app profile uses `deploy/Dockerfile.local` and `deploy/Caddyfile.local`. It does not bake generated credentials or `.cache` material into the image.
 
 ## Production-Like Environment
 
@@ -91,6 +122,14 @@ go build ./...
 ```
 
 ## Reverse Proxy Boundary
+
+The local app profile includes a Caddy reverse proxy at:
+
+```text
+http://localhost:8080
+```
+
+That proxy is local-demo convenience only. Admin/debug routes may be routed through it, but they still require admin auth. Production deployments must choose their own admin network boundary, TLS policy, and reverse proxy controls.
 
 Terminate TLS at a reverse proxy and expose only stable public feed paths anonymously:
 

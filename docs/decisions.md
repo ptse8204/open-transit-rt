@@ -185,3 +185,13 @@ Phase 12 introduces `scripts/oci-pilot.sh` and `deploy/oci/` for deploying to an
 **Systemd for service management.** All five application services run as the `open-transit` system user under individual systemd units in `deploy/systemd/`. Units use `ProtectSystem=strict`, `PrivateTmp=yes`, and `NoNewPrivileges=yes` for OS-level hardening. The `{{OCI_REMOTE_DIR}}`, `{{OCI_APP_USER}}`, and `{{DOMAIN}}` placeholders are substituted by `deploy/oci/install-units.sh` at install time.
 
 **DuckDNS for pilot DNS.** The pilot domain `open-transit-pilot.duckdns.org` is updated by `scripts/oci-pilot.sh update-dns` using the DuckDNS API. Custom domains follow the same flow by updating an A record at the registrar. DNS must resolve to the OCI public IP before Caddy can obtain a TLS certificate via the HTTP-01 ACME challenge.
+
+## ADR-0024 — Add a local Compose app profile for agency evaluation only
+
+Phase 16 adds `scripts/agency-local-app.sh`, `deploy/Dockerfile.local`, `deploy/Caddyfile.local`, and a Docker Compose `app` profile so small-agency evaluators can run the full local stack without manually starting each Go service.
+
+The local package is intentionally not the production deployment contract. It uses development defaults, local container networking, and `http://localhost:8080` as a convenience reverse proxy. Production deployments still require deployment-owned HTTPS/TLS, DNS, secret management, admin network boundaries, backup/restore policy, and monitoring.
+
+`make agency-app-up` imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for service readiness, verifies public feed URLs, and prints next actions. The command does not fail solely because validator tooling is missing; validators remain an optional setup step unless a validation workflow is explicitly run.
+
+The local image must not include `.cache`, local env files, generated tokens, private keys, or operator artifacts. Device-token rotation continues to use the existing `/admin/devices/rebind` API contract, which returns a one-time token by design.

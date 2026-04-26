@@ -10,6 +10,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | --- | --- |
 | 🧭 Understand the project | [Wiki Home](../wiki/README.md) |
 | 🧩 See how the pieces fit together | [How It Works](../wiki/how-it-works.md) |
+| 🚌 Start the local app package | [Agency First Run](tutorials/agency-first-run.md) |
 | 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
 | 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
 | 🚀 Plan a small deployment | [Deployment Guide](../wiki/deployment-guide.md) |
@@ -21,6 +22,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 These are command-level references for people running or evaluating the project:
 
 - [Local Quickstart](tutorials/local-quickstart.md)
+- [Agency First Run](tutorials/agency-first-run.md)
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](tutorials/production-checklist.md)

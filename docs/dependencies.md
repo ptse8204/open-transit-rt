@@ -800,3 +800,36 @@ The following repo artifacts should exist to make dependency handling explicit:
 - durable storage only
 
 This separation must be preserved as the repository evolves.
+
+---
+
+## Local Docker app package
+
+### Classification
+Local development and agency-evaluation packaging
+
+### Purpose
+Phase 16 adds a local Compose `app` profile so an evaluator can start the full local stack without manually launching six Go services. It is used by:
+
+- `scripts/agency-local-app.sh`
+- `make agency-app-up`
+- `make agency-app-down`
+- `make agency-app-logs`
+- `make agency-app-reset`
+
+### Components
+- `deploy/Dockerfile.local` builds local Go service binaries into `open-transit-rt-local:latest`.
+- `deploy/docker-compose.yml --profile app` runs the Go services, GTFS Studio, Postgres/PostGIS, and a local Caddy proxy.
+- `deploy/Caddyfile.local` routes local `http://localhost:8080` requests to the service containers.
+
+### Integration boundary
+- This profile is for local demo packaging only.
+- It does not define the production TLS, DNS, or admin network boundary.
+- It does not bake generated credentials, private keys, `.cache` validator downloads, or local env files into the image.
+- Admin/debug routes may be proxied locally but still require admin auth.
+- Validators remain an optional host-side setup step for startup; run `make validators-install validators-check` before validation workflows.
+
+### Failure behavior
+- `scripts/agency-local-app.sh up` waits for Postgres, migrations, service readiness, proxy health, and public feed URL fetches before reporting success.
+- Docker unavailable, port conflicts, DB failures, service readiness failures, missing validators, and feed fetch failures should print next-action guidance.
+- `scripts/agency-local-app.sh reset` is destructive and must state that it removes containers, the Compose volume, local demo DB state, generated local env files if present, and container logs.

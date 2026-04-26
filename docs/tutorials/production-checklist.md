@@ -37,6 +37,8 @@ Expose these paths anonymously over stable HTTPS:
 
 Do not require login for public protobuf feeds. Do not change URLs when the underlying feed version changes.
 
+The local `http://localhost:8080` reverse proxy from `make agency-app-up` is demo packaging only. Do not treat it as the production public or admin network boundary.
+
 ## Admin And Debug Boundary
 
 Protect these surfaces with admin auth and deployment network controls:
@@ -56,6 +58,8 @@ curl -s -o /dev/null -w '%{http_code}\n' "$PUBLIC_BASE_URL/admin/gtfs-studio"
 ```
 
 Set `PUBLIC_BASE_URL` to the deployment host before running the command. The expected anonymous response is `401` or another deployment-level denial.
+
+Production deployments must choose their own admin network boundary. The local app profile may route admin/debug paths through `localhost:8080` for convenience, but those routes still require auth and are not a production exposure recommendation.
 
 ## Validator Setup
 

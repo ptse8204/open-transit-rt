@@ -38,23 +38,34 @@ Open Transit RT can help you:
 
 ## Try It Locally
 
-Prerequisites: Go, Docker with Compose, `curl`, `zip`, `unzip`, Java for the static GTFS validator, and `python3` for the GTFS Realtime validator wrapper.
+Prerequisites for the simplest local trial: Docker with Compose support and `curl`.
 
 ```bash
-cp .env.example .env
-make dev
-make validators-install
-make validators-check
+make agency-app-up
+```
+
+The local app package starts the full stack behind `http://localhost:8080`, imports the committed sample GTFS, bootstraps feed metadata, verifies public feed URLs, and prints next steps.
+
+Validators are optional for startup. To install and check them:
+
+```bash
+make validators-install validators-check
+```
+
+For the deeper executable demo:
+
+```bash
 make demo-agency-flow
 ```
 
-For a guided version, start with the [Local Quickstart](wiki/local-quickstart.md) or the [Agency Demo](wiki/agency-demo.md).
+For a guided version, start with the [Agency First Run](docs/tutorials/agency-first-run.md), [Local Quickstart](wiki/local-quickstart.md), or [Agency Demo](wiki/agency-demo.md).
 
 ## Where To Go Next
 
 | Need | Start here |
 | --- | --- |
 | 🧭 Understand the system | [How It Works](wiki/how-it-works.md) |
+| 🚌 Try the full local package | [Agency First Run](docs/tutorials/agency-first-run.md) |
 | 💻 Run it on your machine | [Local Quickstart](wiki/local-quickstart.md) |
 | 🚌 Walk through the agency demo | [Agency Demo](wiki/agency-demo.md) |
 | 🚀 Plan a small deployment | [Deployment Guide](wiki/deployment-guide.md) |

@@ -1,0 +1,28 @@
+FROM golang:1.23.2-alpine AS builder
+
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN mkdir -p /out && \
+    go build -trimpath -o /out/agency-config ./cmd/agency-config && \
+    go build -trimpath -o /out/telemetry-ingest ./cmd/telemetry-ingest && \
+    go build -trimpath -o /out/feed-vehicle-positions ./cmd/feed-vehicle-positions && \
+    go build -trimpath -o /out/feed-trip-updates ./cmd/feed-trip-updates && \
+    go build -trimpath -o /out/feed-alerts ./cmd/feed-alerts && \
+    go build -trimpath -o /out/gtfs-studio ./cmd/gtfs-studio && \
+    go build -trimpath -o /out/gtfs-import ./cmd/gtfs-import && \
+    go build -trimpath -o /out/admin-token ./cmd/admin-token && \
+    go build -trimpath -o /out/migrate ./cmd/migrate
+
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates tzdata zip
+
+WORKDIR /app
+COPY --from=builder /out/ /app/bin/
+COPY db/migrations/ /app/db/migrations/
+COPY testdata/ /app/testdata/
+
+ENV MIGRATIONS_DIR=/app/db/migrations

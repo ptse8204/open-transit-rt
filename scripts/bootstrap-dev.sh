@@ -44,6 +44,15 @@ until docker compose -f deploy/docker-compose.yml exec -T postgres pg_isready -U
   fi
   sleep 2
 done
+attempt=0
+until DATABASE_URL="$DATABASE_URL" MIGRATIONS_DIR="$MIGRATIONS_DIR" go run ./cmd/migrate status >/dev/null 2>&1; do
+  attempt=$((attempt + 1))
+  if [ "$attempt" -ge 30 ]; then
+    echo "database host connection did not become ready after 30 attempts" >&2
+    exit 1
+  fi
+  sleep 2
+done
 
 echo "Applying migrations..."
 DATABASE_URL="$DATABASE_URL" MIGRATIONS_DIR="$MIGRATIONS_DIR" go run ./cmd/migrate up

@@ -1,3 +1,42 @@
+x-app-environment: &app-environment
+  DATABASE_URL: postgres://postgres:postgres@postgres:5432/open_transit_rt?sslmode=disable
+  MIGRATIONS_DIR: /app/db/migrations
+  APP_ENV: dev
+  BIND_ADDR: 0.0.0.0
+  AGENCY_ID: demo-agency
+  PUBLIC_BASE_URL: http://localhost:8080
+  FEED_BASE_URL: http://localhost:8080/public
+  VEHICLE_POSITIONS_FEED_URL: http://localhost:8080/public/gtfsrt/vehicle_positions.pb
+  SCHEDULE_FEED_URL: http://localhost:8080/public/gtfs/schedule.zip
+  TECHNICAL_CONTACT_EMAIL: dev@example.com
+  FEED_LICENSE_NAME: CC BY 4.0
+  FEED_LICENSE_URL: https://creativecommons.org/licenses/by/4.0/
+  PUBLICATION_ENVIRONMENT: dev
+  ADMIN_JWT_SECRET: dev-admin-jwt-secret-change-me
+  ADMIN_JWT_ISSUER: open-transit-rt-local
+  ADMIN_JWT_AUDIENCE: open-transit-rt-admin
+  ADMIN_JWT_TTL: 8h
+  CSRF_SECRET: dev-csrf-secret-change-me
+  DEVICE_TOKEN_PEPPER: dev-device-token-pepper-change-me
+  METRICS_ENABLED: "false"
+  MATCH_CONFIDENCE_THRESHOLD: "0.75"
+  STALE_TELEMETRY_TTL_SECONDS: "90"
+  SUPPRESS_STALE_VEHICLE_AFTER_SECONDS: "300"
+  VEHICLE_POSITIONS_MAX_VEHICLES: "2000"
+  VEHICLE_POSITIONS_TRIP_CONFIDENCE_THRESHOLD: "0.65"
+  TRIP_UPDATES_ADAPTER: deterministic
+  TRIP_UPDATES_MAX_VEHICLES: "2000"
+  TRIP_UPDATES_STALE_TELEMETRY_TTL_SECONDS: "90"
+  TRIP_UPDATES_ASSIGNMENT_CONFIDENCE_THRESHOLD: "0.65"
+  TRIP_UPDATES_MAX_SCHEDULE_DEVIATION_SECONDS: "2700"
+  TRIP_UPDATES_DUPLICATE_CONFIDENCE_GAP: "0.05"
+  VALIDATOR_STRICTNESS: warn
+  VALIDATOR_TOOLING_MODE: pinned
+  REALTIME_VALIDATION_BASE_URL: http://localhost:8080/public
+  REALTIME_VALIDATION_MAX_BYTES: "10485760"
+  TRIP_UPDATES_FEED_URL: http://localhost:8080/public/gtfsrt/trip_updates.pb
+  ALERTS_FEED_URL: http://localhost:8080/public/gtfsrt/alerts.pb
+
 services:
   postgres:
     image: postgis/postgis:16-3.4
@@ -12,6 +51,143 @@ services:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d open_transit_rt"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  agency-config:
+    profiles: ["app"]
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.local
+    image: open-transit-rt-local:latest
+    command: ["/app/bin/agency-config"]
+    environment:
+      <<: *app-environment
+      PORT: "8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  telemetry-ingest:
+    profiles: ["app"]
+    image: open-transit-rt-local:latest
+    command: ["/app/bin/telemetry-ingest"]
+    environment:
+      <<: *app-environment
+      PORT: "8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agency-config:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8082/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  feed-vehicle-positions:
+    profiles: ["app"]
+    image: open-transit-rt-local:latest
+    command: ["/app/bin/feed-vehicle-positions"]
+    environment:
+      <<: *app-environment
+      PORT: "8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agency-config:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8083/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  feed-trip-updates:
+    profiles: ["app"]
+    image: open-transit-rt-local:latest
+    command: ["/app/bin/feed-trip-updates"]
+    environment:
+      <<: *app-environment
+      PORT: "8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agency-config:
+        condition: service_started
+      feed-vehicle-positions:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8084/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  feed-alerts:
+    profiles: ["app"]
+    image: open-transit-rt-local:latest
+    command: ["/app/bin/feed-alerts"]
+    environment:
+      <<: *app-environment
+      PORT: "8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agency-config:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8085/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  gtfs-studio:
+    profiles: ["app"]
+    image: open-transit-rt-local:latest
+    command: ["/app/bin/gtfs-studio"]
+    environment:
+      <<: *app-environment
+      PORT: "8086"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      agency-config:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8086/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  local-proxy:
+    profiles: ["app"]
+    image: caddy:2.8-alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile:ro
+    depends_on:
+      agency-config:
+        condition: service_started
+      telemetry-ingest:
+        condition: service_started
+      feed-vehicle-positions:
+        condition: service_started
+      feed-trip-updates:
+        condition: service_started
+      feed-alerts:
+        condition: service_started
+      gtfs-studio:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz >/dev/null"]
       interval: 5s
       timeout: 5s
       retries: 20

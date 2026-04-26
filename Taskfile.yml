@@ -46,6 +46,22 @@ tasks:
     cmds:
       - ./scripts/demo-agency-flow.sh
 
+  agency-app:up:
+    cmds:
+      - ./scripts/agency-local-app.sh up
+
+  agency-app:down:
+    cmds:
+      - ./scripts/agency-local-app.sh down
+
+  agency-app:logs:
+    cmds:
+      - ./scripts/agency-local-app.sh logs
+
+  agency-app:reset:
+    cmds:
+      - ./scripts/agency-local-app.sh reset
+
   evidence:hosted:
     cmds:
       - ./scripts/collect-hosted-evidence.sh
@@ -138,6 +154,11 @@ tasks:
       - test -f tools/validators/validators.lock.json
       - test -f scripts/install-validators.sh
       - test -f scripts/check-validators.sh
+      - test -f scripts/agency-local-app.sh
+      - test -f scripts/device-onboarding.sh
+      - test -f deploy/Dockerfile.local
+      - test -f deploy/Caddyfile.local
+      - test -f docs/tutorials/agency-first-run.md
       - test -f internal/prediction/model.go
       - test -f internal/prediction/deterministic.go
       - test -f internal/prediction/postgres_operations.go

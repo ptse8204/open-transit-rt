@@ -4,30 +4,17 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 15 — Targeted Public Repo Hygiene And Evidence Redaction Review is
-complete for the documented targeted scope.
+Phase 16 — Agency Onboarding Product Packaging is complete for the approved local packaging, first-run documentation, device onboarding, and operator-friendly output scope.
 
-Phase 12 remains closed for the OCI pilot hosted/operator evidence scope. Phase
-13 remains closed for the initial consumer-submission evidence tracker
-structure. Phase 14 remains closed for the public launch polish and repo
-simplification scope. Do not reopen those phases unless a blocking truthfulness
-or safety issue directly affects the next task.
+Phase 12 remains closed for the OCI pilot hosted/operator evidence scope. Phase 13 remains closed for the initial consumer-submission evidence tracker structure. Phase 14 remains closed for public launch polish. Phase 15 remains closed for targeted public repo hygiene and evidence redaction review. Do not reopen earlier phases unless a blocking truthfulness or safety issue directly affects the next task.
 
 ## Phase Status
 
-- Phases 0 through 11 are closed for their documented scope.
-- Phase 12 is closed for the OCI pilot hosted/operator evidence scope.
-- Phase 13 is closed for the consumer-submission evidence tracker structure.
-- Phase 14 simplified README/docs navigation, kept public reader guides in
-  `wiki/`, made `docs/README.md` the documentation hub, and added reviewed
-  teaching visuals.
-- Phase 15 used `839efd6` (`Phase 14 -- Checkpoint 4 -- Security Cleanup`) as
-  the earlier scrub baseline and completed a targeted delta-focused public repo
-  hygiene review. It did not perform or claim a complete historical security
-  audit.
-- All seven current consumer/aggregator records are still `not_started`.
-- No current repo evidence supports submitted, under-review, accepted,
-  rejected, or blocked claims for any consumer target.
+- Phases 0 through 16 are closed for their documented scopes.
+- Phase 16 added the local Compose `app` profile, `deploy/Dockerfile.local`, `deploy/Caddyfile.local`, `scripts/agency-local-app.sh`, `scripts/device-onboarding.sh`, `make agency-app-up`, `make agency-app-down`, `make agency-app-logs`, and `make agency-app-reset`.
+- `make agency-app-up` starts the full local stack behind `http://localhost:8080`, applies migrations, seeds demo data, imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for readiness, verifies public feed URLs, and prints next steps.
+- The local reverse proxy is demo packaging only. Production still requires HTTPS/TLS and deployment-owned admin network boundaries.
+- All seven current consumer/aggregator records are still `not_started`; no current repo evidence supports submitted, under-review, accepted, rejected, or blocked claims for any consumer target.
 
 ## Read These Files First
 
@@ -36,144 +23,88 @@ or safety issue directly affects the next task.
 3. `README.md`
 4. `wiki/README.md`
 5. `docs/README.md`
-6. `docs/handoffs/phase-15.md`
-7. `docs/phase-15-public-repo-security-hygiene.md`
+6. `docs/handoffs/phase-16.md`
+7. `docs/phase-17-deployment-automation-pilot-operations.md`
 8. `SECURITY.md`
 9. `docs/evidence/redaction-policy.md`
-10. `docs/evidence/archive-inventory.md`
-11. `docs/compliance-evidence-checklist.md`
-12. `docs/consumer-submission-evidence.md`
-13. `docs/evidence/consumer-submissions/README.md`
-14. `docs/evidence/captured/oci-pilot/2026-04-24/README.md`
-15. `docs/prompts/calitp-truthfulness.md`
-16. `docs/tutorials/README.md`
-17. `docs/tutorials/local-quickstart.md`
-18. `docs/tutorials/agency-demo-flow.md`
-19. `docs/tutorials/deploy-with-docker-compose.md`
-20. `docs/tutorials/production-checklist.md`
-21. `docs/tutorials/calitp-readiness-checklist.md`
-22. `docs/assets/README.md`
-23. `docs/dependencies.md`
-24. `docs/decisions.md`
+10. `docs/compliance-evidence-checklist.md`
+11. `docs/prompts/calitp-truthfulness.md`
+12. `docs/tutorials/agency-first-run.md`
+13. `docs/tutorials/local-quickstart.md`
+14. `docs/tutorials/agency-demo-flow.md`
+15. `docs/tutorials/deploy-with-docker-compose.md`
+16. `docs/tutorials/production-checklist.md`
+17. `docs/dependencies.md`
+18. `docs/decisions.md`
 
 ## Current Objective
 
-Use the simplified README as the public front door and preserve the Phase 15
-evidence safety boundary. Future docs work should keep public reader guides in
-`wiki/`, detailed evidence/history in `docs/`, and committed captured evidence
-aligned with `docs/evidence/redaction-policy.md`.
+The next planned phase is Phase 17 — Deployment Automation And Pilot Operations. Use the Phase 16 local app package as the operator-experience baseline, but do not treat it as production hosting, TLS, admin network policy, or compliance evidence.
 
-Do not claim CAL-ITP/Caltrans compliance, production readiness,
-marketplace/vendor equivalence, agency endorsement, or consumer acceptance from
-repo evidence, validator success, public fetch proof, workflow records, stars,
-or the Phase 12 hosted packet alone.
+Do not claim CAL-ITP/Caltrans compliance, production readiness, marketplace/vendor equivalence, agency endorsement, or consumer acceptance from repo evidence, validator success, public fetch proof, workflow records, stars, the local app package, or the Phase 12 hosted packet alone.
 
 ## Exact First Commands
 
 ```bash
 make validate
 make test
+make smoke
+make agency-app-up
+docker compose -f deploy/docker-compose.yml --profile app config
 git diff --check
 ```
 
-If Docker is available and user-facing docs, README, or scripts change, also
-run:
+If touching demo validation or public feed workflows, also run:
 
 ```bash
-make smoke
 make demo-agency-flow
 ```
 
-## Current Evidence Boundary
+## Current Evidence And Security Boundary
 
-- The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/`
-  includes hosted/operator proof for public HTTPS feed fetches, TLS/redirect
-  behavior, auth boundaries, clean hosted validation, monitoring/alert
-  lifecycle, backup/restore, deployment rollback, and scorecard export job
-  history.
-- Phase 15 redacted unnecessary raw public client IP, remote port, and OCI
-  instance-host details from committed OCI operator artifacts while preserving
-  public host, feed URLs, validation status, TLS evidence, and safe proof
-  artifacts.
-- `docs/evidence/redaction-policy.md` is the evidence safety rule for future
-  packets. Public evidence may include public URLs, validation status, TLS
-  metadata, checksums, public headers/status, and redacted operational
-  summaries. It must not include raw credentials, bearer tokens, admin URLs with
-  secrets, private SSH paths, unredacted IP logs, private keys, database
-  passwords, or internal hostnames unless explicitly justified as public-safe.
-- `docs/evidence/archive-inventory.md` lists every committed archive under
-  `docs/evidence/captured/**`; do not keep opaque archives without listed
-  contents.
-- The Phase 13 tracker at `docs/evidence/consumer-submissions/README.md` links
-  to the Phase 12 packet as supporting evidence only.
+- The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` includes hosted/operator proof for public HTTPS feed fetches, TLS/redirect behavior, auth boundaries, clean hosted validation, monitoring/alert lifecycle, backup/restore, deployment rollback, and scorecard export job history.
+- Phase 15 found real secrets only in ignored local `.cache` files, not in tracked files or history for those `.cache` paths. Rotation/revocation is still required before further real pilot use.
+- Do not rely on old local `.cache` credentials.
+- Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, or raw private operator artifacts.
+- `docs/evidence/redaction-policy.md` is the evidence safety rule for future packets.
 - Validator success and public fetch proof are not consumer acceptance.
 - Consumer-ingestion workflow records are not third-party acceptance.
-- Acceptance may be claimed only for the named consumer, feed scope, URL root,
-  and evidence date shown in a retained evidence artifact.
-
-## Phase 15 Security Notes
-
-- PATH scanner binaries `gitleaks` and `trufflehog` were unavailable.
-- Docker was available and `docker run --rm -v "$PWD:/repo:ro"
-  zricethezav/gitleaks:latest dir /repo --redact --verbose --no-banner` was
-  attempted.
-- The first Docker gitleaks directory scan found real secrets in ignored local
-  `.cache/` files. Those local files were removed from the working tree.
-- `git ls-files` and targeted `git log --all -- <paths>` checks found no tracked
-  or historical git records for those `.cache` secret paths, so destructive git
-  history cleanup is not indicated from this finding.
-- The operator should rotate or revoke the affected admin tokens, device token,
-  admin JWT secret, CSRF secret, device token pepper, ACME account key, and TLS
-  private key before further pilot use.
-- After local secret removal, the Docker gitleaks directory scan reported no
-  leaks. Manual high-risk searches over tracked and non-cache working-tree files
-  did not find committed private keys, cloud tokens, GitHub tokens, Slack tokens,
-  OpenAI-style API keys, or literal Bearer credentials.
 
 ## First Files Likely To Edit
 
-- `docs/phase-16-agency-onboarding-product-packaging.md`
+- `docs/phase-17-deployment-automation-pilot-operations.md`
+- `scripts/oci-pilot.sh`
+- `deploy/oci/`
+- `deploy/systemd/`
+- `docs/runbooks/`
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`
-- `docs/handoffs/phase-16.md`
-- public onboarding/package docs selected by Phase 16
+- `docs/handoffs/phase-17.md`
 
 ## Constraints To Preserve
 
-- Keep README understandable by a non-technical agency reader in under 3
-  minutes.
-- Keep README concise and easy to scan, ideally under 150 to 200 lines unless
-  examples genuinely require more.
-- Keep claims evidence-bounded and truthful.
-- Keep captions explicit about illustrative versus exact-behavior visuals.
-- Keep alt text descriptive and useful.
-- Do not change backend runtime behavior, API contracts, database schema, public
-  feed URLs, external integrations, or consumer-submission status unless the
-  active phase explicitly requires it.
-- Do not add consumer submission APIs unless explicitly required and supported
-  by a public documented API.
-- Do not automate fake submissions.
-- Do not invent acceptance, rejection, receipt, or blocker evidence.
-- Do not perform destructive git history rewriting without explicit maintainer
-  approval.
+- Keep Trip Updates pluggable and Vehicle Positions first.
+- Do not change backend API contracts, database schema, public feed URLs, consumer-submission statuses, or evidence claims unless the active phase explicitly requires it.
+- Do not add consumer submission APIs or automate fake submissions.
+- Do not invent acceptance, rejection, receipt, blocker, compliance, or endorsement evidence.
+- Keep `.cache` ignored and do not mount or commit it unless a specific safe need is documented and reviewed.
+- Keep local `http://localhost:8080` wording scoped to local-demo packaging only.
+- Do not echo raw long-lived secrets in final command output.
 
 ## Handoff Template Requirement
 
-All future phase handoff files must use `docs/handoffs/template.md` unless the
-phase explicitly documents a reason to diverge.
+All future phase handoff files must use `docs/handoffs/template.md` unless the phase explicitly documents a reason to diverge.
 
 ## Future Roadmap
 
-After Phase 15, use `docs/roadmap-post-phase-14.md` as the roadmap source of
-truth.
+Use `docs/roadmap-post-phase-14.md` as the roadmap source of truth.
 
-The next planned phase after Phase 15 is:
+The next planned phase is:
 
-- Phase 16 — Agency Onboarding Product Packaging
+- Phase 17 — Deployment Automation And Pilot Operations
 
 Future roadmap docs:
 
-- `docs/phase-16-agency-onboarding-product-packaging.md`
 - `docs/phase-17-deployment-automation-pilot-operations.md`
 - `docs/phase-18-admin-ux-agency-operations-console.md`
 - `docs/phase-19-realtime-quality-eta-improvement.md`

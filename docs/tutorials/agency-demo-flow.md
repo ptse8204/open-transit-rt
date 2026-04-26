@@ -8,6 +8,14 @@ This tutorial shows the repo-owned local demo for an agency or evaluator. It is 
 
 ## Run The Demo
 
+For the simplest local app startup, use:
+
+```bash
+make agency-app-up
+```
+
+Use the demo flow below when you want the fuller executable verification pass, including validator workflow calls and protected-route checks.
+
 ```bash
 make demo-agency-flow
 ```
@@ -105,6 +113,13 @@ Telemetry ingest uses:
 
 ```http
 Authorization: Bearer <local-device-token>
+```
+
+For a friendlier local telemetry flow, use:
+
+```bash
+scripts/device-onboarding.sh sample
+scripts/device-onboarding.sh simulate --dry-run
 ```
 
 ## What The Demo Does Not Prove

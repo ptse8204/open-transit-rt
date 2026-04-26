@@ -5,7 +5,7 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow collect-hosted-evidence audit-hosted-evidence run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset collect-hosted-evidence audit-hosted-evidence run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -42,6 +42,18 @@ dev bootstrap:
 
 demo-agency-flow:
 	./scripts/demo-agency-flow.sh
+
+agency-app-up:
+	./scripts/agency-local-app.sh up
+
+agency-app-down:
+	./scripts/agency-local-app.sh down
+
+agency-app-logs:
+	./scripts/agency-local-app.sh logs
+
+agency-app-reset:
+	./scripts/agency-local-app.sh reset
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -113,6 +125,11 @@ validate:
 	@test -f tools/validators/validators.lock.json
 	@test -f scripts/install-validators.sh
 	@test -f scripts/check-validators.sh
+	@test -f scripts/agency-local-app.sh
+	@test -f scripts/device-onboarding.sh
+	@test -f deploy/Dockerfile.local
+	@test -f deploy/Caddyfile.local
+	@test -f docs/tutorials/agency-first-run.md
 	@test -f internal/prediction/model.go
 	@test -f internal/prediction/deterministic.go
 	@test -f internal/prediction/postgres_operations.go

@@ -15,6 +15,7 @@ Open Transit RT helps small transit agencies publish GTFS and GTFS Realtime feed
 | If you want to... | Read this |
 | --- | --- |
 | 🧭 Understand the project | [How It Works](how-it-works.md) |
+| 🚌 Start the local app package | [Agency First Run](../docs/tutorials/agency-first-run.md) |
 | 💻 Try it on your machine | [Local Quickstart](local-quickstart.md) |
 | 🚌 Run the agency demo | [Agency Demo](agency-demo.md) |
 | 🚀 Plan a pilot deployment | [Deployment Guide](deployment-guide.md) |
