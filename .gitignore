@@ -1,3 +1,28 @@
 .cache/
 deploy/bin/
 .DS_Store
+
+# Local environment and secret material.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local editor, OS, and runtime output.
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*.log
+
+# Local archives and generated bundles. Evidence archives must be reviewed and
+# force-added intentionally with an inventory entry before they are committed.
+/*.zip
+/*.tar
+/*.tar.gz
+/*.tgz
+/*.7z
+/*.rar

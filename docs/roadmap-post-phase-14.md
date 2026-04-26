@@ -4,8 +4,8 @@ This roadmap extends Open Transit RT beyond the current Phase 14 public-launch p
 
 ## Current State Assumption
 
-- Phases 0 through 13 are closed for their documented scope.
-- Phase 14 is the current public launch polish and repo simplification phase unless `docs/handoffs/latest.md` says otherwise.
+- Phases 0 through 15 are closed for their documented scope.
+- Phase 16 is the next planned phase unless `docs/handoffs/latest.md` says otherwise.
 - Phase 12 produced hosted/operator evidence for the OCI pilot.
 - Phase 13 created the consumer-submission evidence layer, but all consumer/aggregator records remain `not_started` until real third-party artifacts exist.
 
@@ -26,9 +26,11 @@ Existing plan: `docs/phase-14-public-launch-polish.md`.
 
 Goal: make the repository easier to understand publicly. Simplify README, improve docs navigation, add truthful teaching visuals, and improve support/star wording without changing runtime behavior.
 
-### Phase 15 — Public Repo Security Hygiene And Artifact Redaction
+### Phase 15 — Targeted Public Repo Hygiene And Evidence Redaction Review
 
-Goal: make the public repo safe to promote. Audit committed evidence, generated artifacts, zips, local files, and docs for accidental secrets or reconnaissance-heavy details.
+Status: complete for the targeted delta-focused scope.
+
+Goal: make the public repo safe to promote. Review files added or changed since the earlier scrub baseline, audit committed evidence, generated artifacts, zips, local files, and docs for accidental secrets or reconnaissance-heavy details.
 
 Plan doc: `docs/phase-15-public-repo-security-hygiene.md`.
 

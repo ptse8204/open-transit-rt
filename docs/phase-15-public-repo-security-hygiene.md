@@ -1,95 +1,90 @@
-# Phase 15 — Public Repo Security Hygiene And Artifact Redaction
+# Phase 15 — Targeted Public Repo Hygiene And Evidence Redaction Review
 
 ## Status
 
-Planned phase. Not implemented until `docs/handoffs/latest.md` marks it active.
+Complete for the targeted Phase 15 scope.
 
 ## Purpose
 
-Phase 15 prepares the repository for broader public attention by reducing the risk that committed docs, evidence artifacts, generated files, or local files reveal secrets, private infrastructure detail, or unnecessary attack surface.
+Phase 15 prepares the repository for broader public attention by reviewing the
+delta since the earlier Phase 14 security cleanup checkpoint, then tightening
+evidence redaction, archive inventory, local-artifact ignores, and security
+reporting guidance.
 
-This phase is especially important because Phase 12 committed real hosted evidence artifacts. Those artifacts are valuable proof, but they must be reviewed carefully before public promotion.
+The chosen review baseline is commit `839efd6` (`Phase 14 -- Checkpoint 4 --
+Security Cleanup`). This phase is delta-focused and does not claim a complete
+historical security audit.
 
 ## Scope
 
-1. Public artifact and evidence audit.
-2. Secret scanning and token hygiene.
-3. Removal of accidental local files and stale bundles.
-4. Security policy and disclosure guidance.
-5. Evidence redaction rules for future operator packets.
-6. GitHub-visible repo hygiene.
+1. Files added or changed since `839efd6`, using `git diff --name-only
+   839efd6..HEAD`.
+2. Tracked high-risk filename patterns from `git ls-files`, including archives,
+   `.env`-like files, keys/certs, logs, local OS files, and generated evidence
+   artifacts.
+3. Phase 12 hosted OCI evidence, Phase 13 consumer evidence docs, Phase 14 public
+   docs/assets, `.gitignore`, local artifacts, and generated/archive files.
+4. Secret scanner attempts plus manual high-risk searches.
+5. Concrete inventory of committed archives under `docs/evidence/captured/**`.
 
-## Required Work
+## Public Evidence Safety Rule
 
-### 1) Public Artifact Audit
+Public evidence may include public URLs, validation status, TLS metadata,
+checksums, public HTTP status and headers, and redacted operational summaries.
 
-Inspect:
+Public evidence must not include raw credentials, bearer tokens, admin URLs with
+secrets, private SSH paths, unredacted IP logs, private keys, database passwords,
+or internal hostnames unless explicitly justified as public-safe.
 
-- `docs/evidence/captured/**`
-- `docs/assets/**`
-- root-level archives such as `*.zip`
-- `.env*` examples
-- scripts and generated logs
-- hidden local files such as `.DS_Store`
+## Completed Work
 
-Look for:
+- Added `SECURITY.md` with private reporting guidance and evidence/secret
+  handling rules.
+- Added `docs/evidence/redaction-policy.md`.
+- Added `docs/evidence/archive-inventory.md` with the two committed evidence
+  ZIP archives and their contents.
+- Expanded `.gitignore` for local environment files, key material, local logs,
+  OS files, and root-level archives.
+- Removed ignored local `.DS_Store` files from the working tree.
+- Removed ignored local secret files found under `.cache/` from the working
+  tree; they were not tracked and did not appear in git history for those paths.
+- Redacted unnecessary OCI operator detail from committed evidence:
+  - raw public client IP and remote ports in the Caddy route-map artifact;
+  - OCI instance hostname in three operator-supplied artifacts.
+- Refreshed the OCI pilot `SHA256SUMS.txt` entries for the modified artifacts.
 
-- tokens, bearer credentials, JWTs, API keys, DuckDNS tokens, DB passwords, SSH keys, private certs, private IPs paired with credentials, unredacted emails that should remain private, and internal hostnames that are not necessary for public evidence.
+## Required Rotation Or Revocation
 
-### 2) Secret Scanning
+The Docker gitleaks scan found real secrets in ignored local `.cache/` files:
 
-Run at least one local secret scanner if available, such as:
+- `.cache/duckdns-pilot/admin-token`
+- `.cache/duckdns-pilot/device-rebind.json`
+- `.cache/duckdns-pilot/env`
+- `.cache/duckdns-pilot/caddy-data/.../default.key`
+- `.cache/duckdns-pilot/caddy-data/.../open-transit-pilot.duckdns.org.key`
+- `.cache/oci-admin-token`
 
-```bash
-gitleaks detect --source . --redact --verbose
-trufflehog git file://. --only-verified
-```
+Before further pilot use, the operator should rotate or revoke the affected
+admin tokens, device token, admin JWT secret, CSRF secret, device token pepper,
+ACME account key, and TLS certificate private key. The Phase 15 targeted check
+found no git-tracked copy or git history record for those `.cache/` paths, so
+destructive git history rewriting is not indicated from this finding.
 
-If a scanner is unavailable, document that blocker and perform a manual high-risk pattern search.
+## Acceptance Notes
 
-### 3) Remove Accidental Files
+- Public evidence artifacts were reviewed in the targeted Phase 15 scope.
+- Committed archives are inventoried and retained only because they contain
+  expected public/demo GTFS schedule files.
+- Accidental local `.DS_Store` files and ignored local secret files were removed
+  from the working tree.
+- No backend runtime behavior, APIs, database schema, public feed URLs, consumer
+  statuses, or evidence claims were changed.
+- No compliance, consumer acceptance, production readiness, or vendor-equivalence
+  claim is added by this phase.
 
-- Remove tracked `.DS_Store` and add it to `.gitignore`.
-- Inspect any root-level zip bundles. Remove them unless they are intentional, current, and safe.
-- Avoid committing generated local runtime logs unless they are deliberate redacted evidence.
+## Checks
 
-### 4) Evidence Redaction Policy
-
-Add or update a doc such as `docs/evidence/redaction-policy.md` explaining:
-
-- what evidence may be public;
-- what must stay private;
-- what must be redacted;
-- how to store secrets out of the repo;
-- how to summarize private operator artifacts safely.
-
-### 5) Security Policy
-
-Add or update:
-
-- `SECURITY.md`
-- optional `.github/ISSUE_TEMPLATE/` docs if appropriate
-- disclosure instructions for security issues
-
-### 6) Rotate If Needed
-
-If a real secret is found, do not only delete it. Document that the operator must rotate/revoke the secret because Git history and forks may retain it.
-
-## Acceptance Criteria
-
-Phase 15 is complete only when:
-
-- secret scan or manual equivalent is recorded;
-- risky accidental files are removed or justified;
-- evidence artifacts are reviewed for redaction;
-- `.gitignore` covers common local artifacts;
-- `SECURITY.md` exists or is updated;
-- evidence redaction guidance exists;
-- any discovered secret has a documented rotation action;
-- README remains friendly and does not expose sensitive details;
-- status and handoff docs are updated truthfully.
-
-## Required Checks
+Pre-edit checks:
 
 ```bash
 make validate
@@ -97,14 +92,31 @@ make test
 git diff --check
 ```
 
-Run `make smoke` and `make demo-agency-flow` if docs or scripts that affect user-facing flows are changed.
+Post-edit checks:
 
-## Explicit Non-Goals
+```bash
+make validate
+make test
+git diff --check
+make smoke
+make demo-agency-flow
+EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence
+```
 
-Phase 15 does not:
+Scanner and manual review:
 
-- add backend product features;
-- change public feed URLs;
-- delete useful evidence merely because it is operational;
-- hide evidence that is safe and necessary for trust;
-- claim compliance or consumer acceptance.
+```bash
+command -v gitleaks
+command -v trufflehog
+docker run --rm -v "$PWD:/repo:ro" zricethezav/gitleaks:latest dir /repo --redact --verbose --no-banner
+git diff --name-only 839efd6..HEAD
+git ls-files
+find docs/evidence/captured -type f \( -name '*.zip' -o -name '*.tar' -o -name '*.tgz' -o -name '*.tar.gz' -o -name '*.gz' -o -name '*.7z' -o -name '*.rar' \) -print
+```
+
+The PATH scanner binaries were unavailable. Docker was available. The first
+Docker gitleaks directory scan found ignored local `.cache/` secrets; after
+removing those local files, the Docker gitleaks directory scan reported no
+leaks. Manual high-risk searches over tracked and non-cache working-tree files
+did not find committed private keys, cloud tokens, GitHub tokens, Slack tokens,
+OpenAI-style API keys, or literal Bearer credentials.

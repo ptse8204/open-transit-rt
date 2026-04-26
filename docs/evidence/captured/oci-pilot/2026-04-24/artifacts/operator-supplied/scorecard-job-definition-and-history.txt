@@ -52,6 +52,6 @@ TriggeredBy: ● open-transit-scorecard-export.timer
    Main PID: 113976 (code=exited, status=0/SUCCESS)
         CPU: 19ms
 
-Apr 24 04:21:13 instance-20260422-2136 systemd[1]: Starting Open Transit RT compliance scorecard export...
-Apr 24 04:21:14 instance-20260422-2136 systemd[1]: open-transit-scorecard-export.service: Deactivated successfully.
-Apr 24 04:21:14 instance-20260422-2136 systemd[1]: Finished Open Transit RT compliance scorecard export.
+Apr 24 04:21:13 <redacted-instance-host> systemd[1]: Starting Open Transit RT compliance scorecard export...
+Apr 24 04:21:14 <redacted-instance-host> systemd[1]: open-transit-scorecard-export.service: Deactivated successfully.
+Apr 24 04:21:14 <redacted-instance-host> systemd[1]: Finished Open Transit RT compliance scorecard export.

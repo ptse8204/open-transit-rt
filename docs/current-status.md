@@ -36,6 +36,8 @@ Phase 13 is complete for the initial consumer-submission evidence structure. The
 
 Phase 14 is complete for the public launch polish and repo simplification scope. The README is now a concise public front door with a short "what this is / what this is not" block, a single illustrative main visual, quick trial commands, bounded evidence links, quick-action links, and plain-language star/support wording. Public reader guides live under `wiki/`, while `docs/README.md` works as the documentation hub for public guides, practical tutorials, evidence records, architecture references, dependencies, decisions, and maintainer notes. `docs/assets/README.md` records generated-assisted visual specs plus the manual review rule for label accuracy, truthful captions, and useful alt text.
 
+Phase 15 is complete for the targeted public repo hygiene and evidence redaction review scope. The review used `839efd6` (`Phase 14 -- Checkpoint 4 -- Security Cleanup`) as the earlier scrub baseline, reviewed changed files since that point plus tracked high-risk file patterns from `git ls-files`, inventoried committed evidence archives, added `SECURITY.md`, added `docs/evidence/redaction-policy.md`, added `docs/evidence/archive-inventory.md`, expanded `.gitignore`, removed ignored local `.DS_Store` and `.cache` secret artifacts from the working tree, and redacted unnecessary raw public client IP / instance-host detail from OCI operator evidence. The review found real secrets only in ignored local `.cache` files, not in tracked files or history for those `.cache` paths; rotation/revocation is still required before further pilot use.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -58,8 +60,11 @@ The repo has:
 - `docs/open-questions.md`
 - `docs/tutorials/`
 - `docs/assets/`
+- `docs/evidence/redaction-policy.md`
+- `docs/evidence/archive-inventory.md`
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-14.md`
+- `docs/handoffs/phase-15.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -217,7 +222,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 14 — Public Launch Polish and Repo Simplification is complete for the docs/presentation/navigation scope. Phase 12 — Deployment Evidence Hardening remains closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`), and Phase 13 remains closed for the initial consumer-submission evidence tracker structure.
+**Active phase:** Phase 15 — Targeted Public Repo Hygiene And Evidence Redaction Review is complete for the documented targeted scope. Phase 12 — Deployment Evidence Hardening remains closed for the OCI pilot evidence scope (`docs/phase-12-deployment-evidence-hardening.md`), Phase 13 remains closed for the initial consumer-submission evidence tracker structure, and Phase 14 remains closed for the public launch polish scope.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 

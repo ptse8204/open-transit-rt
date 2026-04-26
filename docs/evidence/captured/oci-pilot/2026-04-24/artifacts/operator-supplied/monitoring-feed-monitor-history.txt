@@ -36,6 +36,6 @@ TriggeredBy: ● open-transit-feed-monitor.timer
    Main PID: 113834 (code=exited, status=0/SUCCESS)
         CPU: 206ms
 
-Apr 24 04:20:50 instance-20260422-2136 systemd[1]: Starting Open Transit RT feed availability monitor...
-Apr 24 04:20:52 instance-20260422-2136 systemd[1]: open-transit-feed-monitor.service: Deactivated successfully.
-Apr 24 04:20:52 instance-20260422-2136 systemd[1]: Finished Open Transit RT feed availability monitor.
+Apr 24 04:20:50 <redacted-instance-host> systemd[1]: Starting Open Transit RT feed availability monitor...
+Apr 24 04:20:52 <redacted-instance-host> systemd[1]: open-transit-feed-monitor.service: Deactivated successfully.
+Apr 24 04:20:52 <redacted-instance-host> systemd[1]: Finished Open Transit RT feed availability monitor.
