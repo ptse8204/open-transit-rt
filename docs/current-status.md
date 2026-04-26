@@ -34,7 +34,7 @@ Phase 12 is closed for the OCI pilot evidence scope. Step 1 (repo-side deploymen
 
 Phase 13 is complete for the initial consumer-submission evidence structure. The tracker lives at `docs/evidence/consumer-submissions/README.md`, with current records and templates for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land. All current target records are `not_started`; no repo evidence currently supports submitted, under-review, accepted, rejected, or blocked claims for any target.
 
-Phase 14 is complete for the public launch polish and repo simplification scope. The README is now a concise public front door with a short "what this is / what this is not" block, a single illustrative main visual, quick trial commands, bounded evidence links, limitations, and plain-language star/support wording. `docs/README.md` now serves as the docs landing page, tutorials have clearer navigation and captions, and `docs/assets/README.md` records generated-assisted visual specs plus the manual review rule for label accuracy, truthful captions, and useful alt text.
+Phase 14 is complete for the public launch polish and repo simplification scope. The README is now a concise public front door with a short "what this is / what this is not" block, a single illustrative main visual, quick trial commands, bounded evidence links, limitations, and plain-language star/support wording. Public reader docs now live under `wiki/`, while `docs/` is marked as internal reference material for agents, maintainers, handoffs, evidence source records, and command-level references. `docs/assets/README.md` records generated-assisted visual specs plus the manual review rule for label accuracy, truthful captions, and useful alt text.
 
 ## What Exists Now
 
@@ -49,6 +49,7 @@ The repo has:
 - `docs/requirements-calitp-compliance.md`
 - `docs/repo-gaps.md`
 - `docs/README.md`
+- `wiki/README.md`
 - `docs/dependencies.md`
 - `docs/compliance-evidence-checklist.md`
 - `docs/phase-plan.md`

@@ -1,6 +1,8 @@
 # Tutorials
 
-These tutorials document what the current repo can run today. They do not claim hosted production readiness, consumer acceptance, or completed CAL-ITP/Caltrans compliance.
+These command-level tutorials are internal maintainer references. Public-facing versions live in [`/wiki`](../../wiki/README.md).
+
+They document what the current repo can run today. They do not claim hosted production readiness, consumer acceptance, or completed CAL-ITP/Caltrans compliance.
 
 ![Exact-behavior local quickstart flow showing database bootstrap, validator install, sample GTFS import, service startup, publication bootstrap, telemetry ingest, public feed fetches, validation run, and scorecard inspection.](../assets/quickstart-flow.png)
 

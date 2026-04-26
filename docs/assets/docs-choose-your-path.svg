@@ -1,44 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
-  <title id="title">Choose your path through the documentation</title>
-  <desc id="desc">Illustrative documentation guide with paths for trying locally, running the agency demo, planning deployment, reviewing evidence, and contributing.</desc>
+  <title id="title">Where to start in the docs</title>
+  <desc id="desc">Illustrative documentation guide with five large cards for trying locally, running the agency demo, planning deployment, reviewing evidence, and contributing.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2563eb"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
     <style>
-      .bg{fill:#f8fafc}.center{fill:#0f172a;stroke:#0f172a;stroke-width:3;rx:20}.path{fill:#fff;stroke:#2563eb;stroke-width:3;rx:18}.evidence{fill:#ecfdf5;stroke:#16a34a;stroke-width:3;rx:18}.deploy{fill:#fff7ed;stroke:#f97316;stroke-width:3;rx:18}.contrib{fill:#f1f5f9;stroke:#475569;stroke-width:3;rx:18}.line{stroke:#2563eb;stroke-width:4;fill:none;marker-end:url(#arrow)}.text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;fill:#0f172a;font-size:30px;font-weight:750}.small{font-size:22px;font-weight:600}.tiny{font-size:18px;font-weight:500;fill:#475569}.white{fill:#fff}.mono{font-family:"SFMono-Regular",Consolas,monospace;font-size:18px;font-weight:650;fill:#1e293b}
+      .bg{fill:#f8fafc}.title{font-family:Arial,sans-serif;fill:#0f172a;font-size:58px;font-weight:800}.subtitle{font-family:Arial,sans-serif;fill:#475569;font-size:25px;font-weight:500}.card{stroke-width:3;rx:26;filter:url(#shadow)}.blue{fill:#eff6ff;stroke:#2563eb}.green{fill:#ecfdf5;stroke:#16a34a}.purple{fill:#f5f3ff;stroke:#7c3aed}.amber{fill:#fffbeb;stroke:#f59e0b}.cyan{fill:#ecfeff;stroke:#0891b2}.orange{fill:#fff7ed;stroke:#ea580c}.label{font-family:Arial,sans-serif;fill:#0f172a;font-size:38px;font-weight:800}.small{font-family:Arial,sans-serif;fill:#475569;font-size:24px;font-weight:600}.icon{stroke:#0f172a;stroke-width:9;fill:none;stroke-linecap:round;stroke-linejoin:round}.soft{fill:#dbeafe}.softgreen{fill:#bbf7d0}.softpurple{fill:#ddd6fe}.softamber{fill:#fde68a}.softcyan{fill:#cffafe}.softorange{fill:#fed7aa}
     </style>
   </defs>
   <rect class="bg" width="1600" height="900"/>
-  <text x="64" y="74" class="text" style="font-size:42px">Choose your path</text>
-  <text x="64" y="112" class="tiny">Illustrative guide for readers who want the fastest useful starting point in the docs.</text>
+  <text x="80" y="92" class="title">Where to start</text>
+  <text x="80" y="136" class="subtitle">Choose the documentation path that matches what you want to do.</text>
 
-  <rect x="650" y="350" width="300" height="150" class="center"/>
-  <text x="715" y="415" class="text white">Start here</text>
-  <text x="704" y="455" class="tiny white">Pick the path that</text>
-  <text x="704" y="482" class="tiny white">matches your job.</text>
+  <g transform="translate(80 205)">
+    <rect class="card blue" width="430" height="230" rx="26"/>
+    <circle cx="96" cy="86" r="48" class="soft" stroke="#2563eb" stroke-width="4"/>
+    <path class="icon" d="M72 86h48M96 62v48" stroke="#2563eb"/>
+    <text x="175" y="92" class="label">Try locally</text>
+    <text x="175" y="134" class="small">Local Quickstart</text>
+  </g>
 
-  <rect x="110" y="190" width="310" height="135" class="path"/>
-  <text x="145" y="245" class="small">Try locally</text>
-  <text x="145" y="282" class="mono">local-quickstart.md</text>
+  <g transform="translate(585 205)">
+    <rect class="card purple" width="430" height="230" rx="26"/>
+    <circle cx="96" cy="86" r="48" class="softpurple" stroke="#7c3aed" stroke-width="4"/>
+    <rect x="62" y="58" width="68" height="55" rx="10" fill="none" stroke="#7c3aed" stroke-width="8"/>
+    <circle cx="79" cy="125" r="8" fill="#7c3aed"/>
+    <circle cx="113" cy="125" r="8" fill="#7c3aed"/>
+    <text x="175" y="92" class="label">Agency demo</text>
+    <text x="175" y="134" class="small">Executable flow</text>
+  </g>
 
-  <rect x="110" y="565" width="310" height="135" class="path"/>
-  <text x="145" y="620" class="small">Run agency demo</text>
-  <text x="145" y="657" class="mono">agency-demo-flow.md</text>
+  <g transform="translate(1090 205)">
+    <rect class="card amber" width="430" height="230" rx="26"/>
+    <circle cx="96" cy="86" r="48" class="softamber" stroke="#f59e0b" stroke-width="4"/>
+    <path class="icon" d="M62 112h68M72 112V72h48v40M83 72V54h26v18" stroke="#d97706"/>
+    <text x="175" y="92" class="label">Deploy</text>
+    <text x="175" y="134" class="small">Deployment guides</text>
+  </g>
 
-  <rect x="645" y="665" width="310" height="135" class="deploy"/>
-  <text x="680" y="720" class="small">Plan deployment</text>
-  <text x="680" y="757" class="mono">production checklist</text>
+  <g transform="translate(330 505)">
+    <rect class="card cyan" width="430" height="230" rx="26"/>
+    <circle cx="96" cy="86" r="48" class="softcyan" stroke="#0891b2" stroke-width="4"/>
+    <path class="icon" d="M70 94l20 20 52-58M145 118H90" stroke="#0891b2"/>
+    <text x="175" y="92" class="label">Evidence</text>
+    <text x="175" y="134" class="small">Readiness boundaries</text>
+  </g>
 
-  <rect x="1180" y="190" width="310" height="135" class="evidence"/>
-  <text x="1215" y="245" class="small">Review evidence</text>
-  <text x="1215" y="282" class="mono">compliance checklist</text>
-
-  <rect x="1180" y="565" width="310" height="135" class="contrib"/>
-  <text x="1215" y="620" class="small">Contribute</text>
-  <text x="1215" y="657" class="mono">status, handoffs, issues</text>
-
-  <path class="line" d="M650 390C530 330 480 280 420 258"/>
-  <path class="line" d="M650 460C530 530 470 595 420 632"/>
-  <path class="line" d="M800 500V665"/>
-  <path class="line" d="M950 390C1070 330 1120 280 1180 258"/>
-  <path class="line" d="M950 460C1070 530 1130 595 1180 632"/>
+  <g transform="translate(840 505)">
+    <rect class="card orange" width="430" height="230" rx="26"/>
+    <circle cx="96" cy="86" r="48" class="softorange" stroke="#ea580c" stroke-width="4"/>
+    <path class="icon" d="M96 57v58M67 86h58M70 128h52" stroke="#ea580c"/>
+    <text x="175" y="92" class="label">Contribute</text>
+    <text x="175" y="134" class="small">Status and handoffs</text>
+  </g>
 </svg>

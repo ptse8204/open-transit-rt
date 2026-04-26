@@ -17,6 +17,10 @@ Phase 14 — Public Launch Polish and Repo Simplification
 - Added a near-top "what this is / what this is not" block for non-technical agency readers.
 - Kept README to 101 lines, with one main explainer visual and links to deeper docs.
 - Added `docs/README.md` as a docs landing page with clear paths for quickstart, agency demo, deployment, evidence, current status, latest handoff, dependencies, and decisions.
+- Split public-facing documentation into `wiki/` and changed `docs/README.md` into an internal documentation home for agents and maintainers.
+- Added public wiki pages for project overview, local quickstart, agency demo, deployment, readiness/evidence, and support/contribution.
+- Added `wiki/assets/` copies of public-facing PNG assets so wiki pages have local asset references.
+- Updated README with direct links to public wiki pages and internal reference docs.
 - Refreshed `docs/tutorials/README.md`, `docs/tutorials/local-quickstart.md`, and `docs/tutorials/agency-demo-flow.md` with clearer navigation, captions, and descriptive alt text.
 - Updated `docs/assets/README.md` with visual source notes, where each image is used, prompt/spec text, alt text, and the manual visual review rule.
 - Updated `docs/prompts/docs-assets-image-generation.md` with Phase 14 visual candidates and review requirements.
@@ -26,20 +30,22 @@ Phase 14 — Public Launch Polish and Repo Simplification
 New generated-assisted visuals added:
 
 - `docs/assets/agency-journey-to-public-feeds.png` and `.svg`
-  - Placed in `README.md` and `docs/tutorials/agency-demo-flow.md`.
+  - Placed in `README.md`, `docs/tutorials/agency-demo-flow.md`, and `wiki/agency-demo.md`.
   - Added to help agencies understand the path from GTFS import/Studio drafts through telemetry, validation, and public feeds.
 - `docs/assets/docs-choose-your-path.png` and `.svg`
-  - Placed in `docs/README.md`.
+  - Placed in `wiki/README.md`.
   - Added to help readers pick a starting point in the docs.
 - `docs/assets/data-flow-through-system.png` and `.svg`
-  - Placed in `docs/README.md`.
+  - Placed in `wiki/how-it-works.md`.
   - Added to explain how GTFS, telemetry, assignments, prediction adapter, Alerts, validation, and public feeds fit together.
 
-The image-generation tool was used to create draft concepts. The final checked-in assets were manually reviewed and refined as SVG-derived PNGs because generated diagram text can introduce label errors.
+The image-generation tool was used to create draft concepts. The final checked-in assets were manually reviewed and refined as simpler SVG-derived PNGs because generated diagram text can introduce label errors and the first checked-in drafts were too dense.
 
 ## What Was Designed But Intentionally Not Implemented Yet
 
 - Deep phase history, implementation detail, compliance matrices, deployment evidence, and consumer-submission details stayed in `docs/` instead of README.
+- Public-facing prose was moved into `wiki/` and kept out of phase-reporting tone.
+- Public wiki pages link to internal source records only where a reader may need deeper detail.
 - Existing Phase 12 hosted/operator evidence and Phase 13 consumer-submission evidence records were not changed except through navigation links.
 - No new screenshots were fabricated. New visuals are clearly labeled as illustrative teaching graphics, not product screenshots.
 - No backend features, runtime behavior, API contracts, database schema, public feed URLs, external integrations, or consumer-submission workflows were changed.
@@ -107,6 +113,7 @@ The image-generation tool was used to create draft concepts. The final checked-i
   - `AGENTS.md`
   - `docs/current-status.md`
   - `README.md`
+  - `wiki/README.md`
   - `docs/README.md`
   - `docs/handoffs/latest.md`
   - `docs/handoffs/phase-14.md`

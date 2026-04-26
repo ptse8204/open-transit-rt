@@ -2,6 +2,8 @@
 
 These are repo-owned documentation visuals. They are used to teach the current Open Transit RT architecture, local workflows, and public/admin boundaries without making unsupported product or compliance claims.
 
+Public-facing copies of selected PNG assets also live under `wiki/assets/` so `/wiki` pages do not depend on internal relative paths.
+
 ## Visual Review Rule
 
 Every generated or generated-assisted image must be manually reviewed before it is referenced in docs.
@@ -18,7 +20,7 @@ Every generated or generated-assisted image must be manually reviewed before it 
 
 Source:
 - `agency-journey-to-public-feeds.svg`
-- Generated image draft created with the image-generation tool, then manually reviewed and refined into an exact SVG-derived PNG because generated text can be unreliable.
+- Regenerated image draft created with the image-generation tool, then manually reviewed and refined into a simpler SVG-derived PNG because generated text and dense labels can be unreliable.
 
 Type:
 - Illustrative teaching graphic, not a screenshot.
@@ -26,12 +28,13 @@ Type:
 Used in:
 - `README.md`
 - `docs/tutorials/agency-demo-flow.md`
+- `wiki/agency-demo.md`
 
 Alt text:
 - Illustrative agency journey from GTFS import or GTFS Studio drafts through schedule publication, authenticated telemetry, validation, and public GTFS plus GTFS Realtime feeds.
 
 Prompt/spec:
-- Create an illustrative poster-style agency journey diagram for Open Transit RT. Show a small transit agency moving from GTFS import or GTFS Studio draft, to published static GTFS, to authenticated vehicle telemetry, to validation and public feeds. Include only these labels: "Agency journey", "Import or author GTFS", "Publish schedule.zip", "Ingest vehicle telemetry", "Validate feeds", and "Public GTFS + GTFS Realtime". Do not show a fake application UI or unsupported claims.
+- Create a clean, modern, easy-to-understand agency path graphic. Show the simple path from preparing GTFS, publishing a schedule, adding vehicle data, validating, and publishing public feeds. Keep labels large and readable. Do not show fake UI or unsupported claims.
 
 Truthfulness notes:
 - The visual says the path is illustrative and does not claim hosted SaaS, CAD/AVL replacement, consumer acceptance, or full compliance.
@@ -40,19 +43,20 @@ Truthfulness notes:
 
 Source:
 - `docs-choose-your-path.svg`
-- Generated image draft created with the image-generation tool, then manually reviewed and refined into an exact SVG-derived PNG.
+- Regenerated image draft created with the image-generation tool, then manually reviewed and refined into a simpler SVG-derived PNG.
 
 Type:
 - Illustrative docs navigation graphic.
 
 Used in:
 - `docs/README.md`
+- `wiki/README.md`
 
 Alt text:
 - Illustrative documentation guide showing paths for trying locally, running the agency demo, planning deployment, reviewing evidence, and contributing.
 
 Prompt/spec:
-- Create a choose-your-path graphic that helps readers decide where to start in the docs. Use a central "Start here" signpost with paths for "Try locally", "Run agency demo", "Plan deployment", "Review evidence", and "Contribute". Do not imply SaaS hosting, consumer acceptance, full compliance, or agency endorsement.
+- Create a clean docs navigation graphic with five large destination cards: Try locally, Agency demo, Deploy, Evidence, and Contribute. Keep labels large and readable. Do not imply SaaS hosting, consumer acceptance, full compliance, or agency endorsement.
 
 Truthfulness notes:
 - The visual points to documentation paths only. It is not a product UI and does not imply agency endorsement.
@@ -61,19 +65,20 @@ Truthfulness notes:
 
 Source:
 - `data-flow-through-system.svg`
-- Generated image draft created with the image-generation tool, then manually reviewed and refined into an exact SVG-derived PNG.
+- Regenerated image draft created with the image-generation tool, then manually reviewed and refined into a simpler SVG-derived PNG.
 
 Type:
 - Illustrative system explainer.
 
 Used in:
 - `docs/README.md`
+- `wiki/how-it-works.md`
 
 Alt text:
 - Illustrative data-flow diagram showing GTFS import, GTFS Studio drafts, vehicle telemetry, Open Transit RT state, validation, and public feed outputs.
 
 Prompt/spec:
-- Create a simple system data-flow explainer showing inputs, Open Transit RT services and state, validation, and public feed outputs. Include GTFS import, GTFS Studio drafts, vehicle telemetry, published GTFS, assignments, prediction adapter, Alerts, validation, `schedule.zip`, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts. Do not imply SSO, SaaS hosting, CAD/AVL replacement, full compliance, consumer acceptance, or external predictor integration.
+- Create a clean four-column system explainer showing Inputs, Open Transit RT, Validation, and Public feeds. Keep labels large and readable. Do not imply SSO, SaaS hosting, CAD/AVL replacement, full compliance, consumer acceptance, or external predictor integration.
 
 Truthfulness notes:
 - The visual summarizes current boundaries. Trip Updates remain behind the prediction adapter; validation checks generated artifacts rather than proving consumer acceptance.

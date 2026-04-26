@@ -1,46 +1,34 @@
-# Documentation Home
+# Internal Documentation Home
 
-This is the best starting point after the README. Pick the path that matches what you need to do.
+This directory is internal reference material for agents, maintainers, and contributors working inside the repo. Public reader docs live in [`/wiki`](../wiki/README.md).
 
-![Illustrative documentation guide showing paths for trying locally, running the agency demo, planning deployment, reviewing evidence, and contributing.](assets/docs-choose-your-path.png)
+Use this directory for implementation history, phase handoffs, evidence source records, architecture notes, and command-level references. It can use maintainer/agent wording; public-facing pages in `/wiki` should stay reader-friendly and avoid sounding like a developer status report.
 
-*Illustrative docs navigation graphic, not an exact app screenshot.*
+## Agent And Maintainer Starting Points
 
-## Start Here
-
-| Goal | Read |
+| Need | Read |
 | --- | --- |
-| Understand current capability | [Current Status](current-status.md) |
-| Try the repo locally | [Local Quickstart](tutorials/local-quickstart.md) |
-| Run the executable agency demo | [Agency Demo Flow](tutorials/agency-demo-flow.md) |
-| Plan a small deployment path | [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md) |
-| Check production-readiness gaps | [Production Checklist](tutorials/production-checklist.md) |
-| Review CAL-ITP/Caltrans-style readiness | [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md) |
-| Review compliance evidence boundaries | [Compliance Evidence Checklist](compliance-evidence-checklist.md) |
-| Review consumer-submission status | [Consumer Submission Evidence](consumer-submission-evidence.md) and [Consumer Submission Tracker](evidence/consumer-submissions/README.md) |
-| Continue from the latest phase state | [Latest Handoff](handoffs/latest.md) |
-| Understand dependencies and decisions | [Dependencies](dependencies.md) and [Decisions](decisions.md) |
+| Current implementation state | [Current Status](current-status.md) |
+| Latest continuation notes | [Latest Handoff](handoffs/latest.md) |
+| Phase 14 handoff | [Phase 14 Handoff](handoffs/phase-14.md) |
+| Architecture boundaries | [Architecture](architecture.md) |
+| Dependency boundaries | [Dependencies](dependencies.md) |
+| Architectural decisions | [Decisions](decisions.md) |
+| Known gaps | [Repo Gaps](repo-gaps.md) |
+| Product requirements | [Requirements 2A-2F](requirements-2a-2f.md), [Trip Updates](requirements-trip-updates.md), [CAL-ITP Requirements](requirements-calitp-compliance.md) |
+| Compliance evidence source records | [Compliance Evidence Checklist](compliance-evidence-checklist.md) |
+| Consumer-submission source records | [Consumer Submission Evidence](consumer-submission-evidence.md) and [Consumer Submission Tracker](evidence/consumer-submissions/README.md) |
+| Tutorials and command references | [Tutorials](tutorials/README.md) |
+| Documentation assets | [Docs Assets](assets/README.md) |
 
-## How The System Fits Together
+## Public Docs
 
-![Illustrative data-flow diagram showing GTFS import, GTFS Studio drafts, vehicle telemetry, Open Transit RT state, validation, and public feed outputs.](assets/data-flow-through-system.png)
+The public docs are intentionally lighter and easier to scan:
 
-*Illustrative system explainer based on current repo behavior. It is not a hosted deployment diagram and does not claim consumer acceptance or full compliance.*
-
-Open Transit RT keeps the core boundaries small:
-
-- GTFS ZIP import and GTFS Studio drafts publish into the active static GTFS model.
-- Vehicle telemetry is authenticated and persisted before it is used for realtime feeds.
-- Trip Updates stay behind a prediction adapter boundary.
-- Public protobuf feeds are anonymous; admin and debug surfaces require auth.
-- Validation, scorecard, deployment evidence, and consumer-submission evidence are tracked separately from claims of acceptance or compliance.
-
-## More Navigation
-
-- [Tutorials](tutorials/README.md)
-- [Docs Assets](assets/README.md)
-- [Phase 14 Launch Polish Plan](phase-14-public-launch-polish.md)
-- [Handoff History](handoffs/)
-- [Evidence Overview](evidence/README.md)
-
-Starring the repo helps more people discover the project and shows support for continued independent open-source work. It is not an agency endorsement.
+- [Wiki Home](../wiki/README.md)
+- [How It Works](../wiki/how-it-works.md)
+- [Local Quickstart](../wiki/local-quickstart.md)
+- [Agency Demo](../wiki/agency-demo.md)
+- [Deployment Guide](../wiki/deployment-guide.md)
+- [Readiness And Evidence](../wiki/readiness-and-evidence.md)
+- [Support And Contribute](../wiki/support-and-contribute.md)

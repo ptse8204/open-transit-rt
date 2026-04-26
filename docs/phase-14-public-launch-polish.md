@@ -28,6 +28,14 @@ Goals:
 - keep README focused on onboarding, capabilities, and truthful boundaries,
 - ensure references are easy to follow from README.
 
+### 2a) Split Public And Internal Docs
+
+Goals:
+- keep public-facing reader docs under `wiki/`,
+- keep implementation history, phase handoffs, evidence source records, and agent/maintainer references under `docs/`,
+- avoid developer-to-PM status-report tone in public wiki pages,
+- allow internal docs to keep phase and handoff language where useful.
+
 ### 3) Improve Screenshots / Assets / Docs Navigation
 
 Goals:
@@ -53,6 +61,8 @@ Phase 14 is complete only when all are true:
 - README is shorter, clearer, and onboarding-focused.
 - Deep phase history is primarily housed in `docs/` with README links.
 - Docs navigation is improved for quick pathfinding (status, handoff, tutorials, evidence).
+- Public wiki navigation is improved for agencies and non-expert evaluators.
+- Internal docs are clearly labeled as agent/maintainer references.
 - Assets/screenshot references are current and organized.
 - Support/star/contribution messaging is clear and truthful.
 - README has a short "what this is / what this is not" block.

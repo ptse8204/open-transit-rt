@@ -13,7 +13,7 @@ Phase 12 remains closed for the OCI pilot hosted/operator evidence scope. Phase 
 - Phases 0 through 11 are closed for their documented scope.
 - Phase 12 is closed for the OCI pilot hosted/operator evidence scope.
 - Phase 13 is closed for the consumer-submission evidence tracker structure.
-- Phase 14 simplified README/docs navigation and added reviewed teaching visuals.
+- Phase 14 simplified README/docs navigation, split public docs into `wiki/`, marked `docs/` as internal reference material, and added reviewed teaching visuals.
 - All seven current consumer/aggregator records are still `not_started`.
 - No current repo evidence supports submitted, under-review, accepted, rejected, or blocked claims for any consumer target.
 
@@ -22,27 +22,28 @@ Phase 12 remains closed for the OCI pilot hosted/operator evidence scope. Phase 
 1. `AGENTS.md`
 2. `docs/current-status.md`
 3. `README.md`
-4. `docs/README.md`
-5. `docs/handoffs/phase-14.md`
-6. `docs/phase-14-public-launch-polish.md`
-7. `docs/compliance-evidence-checklist.md`
-8. `docs/consumer-submission-evidence.md`
-9. `docs/evidence/consumer-submissions/README.md`
-10. `docs/evidence/captured/oci-pilot/2026-04-24/README.md`
-11. `docs/prompts/calitp-truthfulness.md`
-12. `docs/tutorials/README.md`
-13. `docs/tutorials/local-quickstart.md`
-14. `docs/tutorials/agency-demo-flow.md`
-15. `docs/tutorials/deploy-with-docker-compose.md`
-16. `docs/tutorials/production-checklist.md`
-17. `docs/tutorials/calitp-readiness-checklist.md`
-18. `docs/assets/README.md`
-19. `docs/dependencies.md`
-20. `docs/decisions.md`
+4. `wiki/README.md`
+5. `docs/README.md`
+6. `docs/handoffs/phase-14.md`
+7. `docs/phase-14-public-launch-polish.md`
+8. `docs/compliance-evidence-checklist.md`
+9. `docs/consumer-submission-evidence.md`
+10. `docs/evidence/consumer-submissions/README.md`
+11. `docs/evidence/captured/oci-pilot/2026-04-24/README.md`
+12. `docs/prompts/calitp-truthfulness.md`
+13. `docs/tutorials/README.md`
+14. `docs/tutorials/local-quickstart.md`
+15. `docs/tutorials/agency-demo-flow.md`
+16. `docs/tutorials/deploy-with-docker-compose.md`
+17. `docs/tutorials/production-checklist.md`
+18. `docs/tutorials/calitp-readiness-checklist.md`
+19. `docs/assets/README.md`
+20. `docs/dependencies.md`
+21. `docs/decisions.md`
 
 ## Current Objective
 
-Use the simplified README and docs landing page as the public front door. Future docs work should preserve the concise README, keep detailed evidence/history in `docs/`, and maintain the visual review rule for generated or generated-assisted assets.
+Use the simplified README and `wiki/` as the public front door. Future docs work should preserve the concise README, keep public reader docs in `wiki/`, keep detailed evidence/history in `docs/`, and maintain the visual review rule for generated or generated-assisted assets.
 
 Do not claim CAL-ITP/Caltrans compliance, production readiness, marketplace/vendor equivalence, agency endorsement, or consumer acceptance from repo evidence, validator success, public fetch proof, workflow records, stars, or the Phase 12 hosted packet alone.
 
@@ -72,6 +73,7 @@ make demo-agency-flow
 ## First Files Likely To Edit
 
 - `README.md`
+- `wiki/README.md`
 - `docs/README.md`
 - `docs/tutorials/README.md`
 - `docs/assets/README.md`

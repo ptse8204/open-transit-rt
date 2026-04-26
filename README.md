@@ -17,7 +17,7 @@ It is meant for agencies, civic technologists, operators, and evaluators who wan
 - Not proof of consumer acceptance by itself.
 - Not a claim of full CAL-ITP/Caltrans compliance or universal production readiness.
 
-![Illustrative agency journey from GTFS import or GTFS Studio drafts through schedule publication, authenticated telemetry, validation, and public GTFS plus GTFS Realtime feeds.](docs/assets/agency-journey-to-public-feeds.png)
+![Illustrative agency journey from GTFS import or GTFS Studio drafts through schedule publication, authenticated telemetry, validation, and public GTFS plus GTFS Realtime feeds.](wiki/assets/agency-journey-to-public-feeds.png)
 
 *Illustrative teaching graphic, not a product screenshot. It shows the repo-supported path without claiming hosted SaaS, CAD/AVL replacement, consumer acceptance, or full compliance.*
 
@@ -59,25 +59,36 @@ make demo-agency-flow
 
 The demo imports sample GTFS, starts the current services, publishes local feed metadata, ingests token-authenticated telemetry, fetches public feeds, verifies protected admin/debug access, runs validation, and reads scorecard plus consumer-ingestion records.
 
-Start with:
+Start with the public wiki:
 
-- [Docs Home](docs/README.md)
-- [Local Quickstart](docs/tutorials/local-quickstart.md)
-- [Agency Demo Flow](docs/tutorials/agency-demo-flow.md)
-- [Deploy With Docker Compose](docs/tutorials/deploy-with-docker-compose.md)
-- [Production Checklist](docs/tutorials/production-checklist.md)
-- [CAL-ITP/Caltrans Readiness Checklist](docs/tutorials/calitp-readiness-checklist.md)
+- [Wiki Home](wiki/README.md)
+- [How It Works](wiki/how-it-works.md)
+- [Local Quickstart](wiki/local-quickstart.md)
+- [Agency Demo](wiki/agency-demo.md)
+- [Deployment Guide](wiki/deployment-guide.md)
+- [Readiness And Evidence](wiki/readiness-and-evidence.md)
+- [Support And Contribute](wiki/support-and-contribute.md)
 
 ## Evidence And Status
 
 Evidence is kept in docs instead of duplicated here:
 
+- [Public Readiness And Evidence Guide](wiki/readiness-and-evidence.md)
 - [Current Status](docs/current-status.md)
 - [Latest Handoff](docs/handoffs/latest.md)
 - [Compliance Evidence Checklist](docs/compliance-evidence-checklist.md)
 - [Consumer Submission Evidence](docs/consumer-submission-evidence.md)
 - [Consumer Submission Tracker](docs/evidence/consumer-submissions/README.md)
 - [OCI Pilot Evidence Packet](docs/evidence/captured/oci-pilot/2026-04-24/README.md)
+
+Maintainer and agent reference docs:
+
+- [Internal Docs Home](docs/README.md)
+- [Architecture](docs/architecture.md)
+- [Dependencies](docs/dependencies.md)
+- [Decisions](docs/decisions.md)
+- [Repo Gaps](docs/repo-gaps.md)
+- [Handoff History](docs/handoffs/)
 
 Evidence boundary: validator success, public fetch proof, hosted operator evidence, and consumer-ingestion workflow records are useful, but they are not the same as third-party consumer acceptance.
 
