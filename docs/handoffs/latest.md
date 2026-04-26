@@ -13,7 +13,7 @@ Phase 12 remains closed for the OCI pilot hosted/operator evidence scope. Phase 
 - Phases 0 through 11 are closed for their documented scope.
 - Phase 12 is closed for the OCI pilot hosted/operator evidence scope.
 - Phase 13 is closed for the consumer-submission evidence tracker structure.
-- Phase 14 simplified README/docs navigation, split public docs into `wiki/`, marked `docs/` as internal reference material, and added reviewed teaching visuals.
+- Phase 14 simplified README/docs navigation, kept public reader guides in `wiki/`, made `docs/README.md` the documentation hub, and added reviewed teaching visuals.
 - All seven current consumer/aggregator records are still `not_started`.
 - No current repo evidence supports submitted, under-review, accepted, rejected, or blocked claims for any consumer target.
 
@@ -43,7 +43,7 @@ Phase 12 remains closed for the OCI pilot hosted/operator evidence scope. Phase 
 
 ## Current Objective
 
-Use the simplified README and `wiki/` as the public front door. Future docs work should preserve the concise README, keep public reader docs in `wiki/`, keep detailed evidence/history in `docs/`, and maintain the visual review rule for generated or generated-assisted assets.
+Use the simplified README as the public front door. Future docs work should preserve the concise README, keep public reader guides in `wiki/`, keep detailed evidence/history in `docs/`, and maintain the visual review rule for generated or generated-assisted assets.
 
 Do not claim CAL-ITP/Caltrans compliance, production readiness, marketplace/vendor equivalence, agency endorsement, or consumer acceptance from repo evidence, validator success, public fetch proof, workflow records, stars, or the Phase 12 hosted packet alone.
 

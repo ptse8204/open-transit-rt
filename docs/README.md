@@ -1,34 +1,60 @@
-# Internal Documentation Home
+# Documentation Home
 
-This directory is internal reference material for agents, maintainers, and contributors working inside the repo. Public reader docs live in [`/wiki`](../wiki/README.md).
+Use this page to find the right guide without reading the whole repository history.
 
-Use this directory for implementation history, phase handoffs, evidence source records, architecture notes, and command-level references. It can use maintainer/agent wording; public-facing pages in `/wiki` should stay reader-friendly and avoid sounding like a developer status report.
+If you are new to Open Transit RT, start with the public guides. If you are maintaining the repo, reviewing evidence, or continuing implementation work, use the deeper reference sections below.
 
-## Agent And Maintainer Starting Points
+## Start Here
 
-| Need | Read |
+| Need | Guide |
 | --- | --- |
-| Current implementation state | [Current Status](current-status.md) |
-| Latest continuation notes | [Latest Handoff](handoffs/latest.md) |
-| Phase 14 handoff | [Phase 14 Handoff](handoffs/phase-14.md) |
-| Architecture boundaries | [Architecture](architecture.md) |
-| Dependency boundaries | [Dependencies](dependencies.md) |
-| Architectural decisions | [Decisions](decisions.md) |
-| Known gaps | [Repo Gaps](repo-gaps.md) |
-| Product requirements | [Requirements 2A-2F](requirements-2a-2f.md), [Trip Updates](requirements-trip-updates.md), [CAL-ITP Requirements](requirements-calitp-compliance.md) |
-| Compliance evidence source records | [Compliance Evidence Checklist](compliance-evidence-checklist.md) |
-| Consumer-submission source records | [Consumer Submission Evidence](consumer-submission-evidence.md) and [Consumer Submission Tracker](evidence/consumer-submissions/README.md) |
-| Tutorials and command references | [Tutorials](tutorials/README.md) |
-| Documentation assets | [Docs Assets](assets/README.md) |
+| 🧭 Understand the project | [Wiki Home](../wiki/README.md) |
+| 🧩 See how the pieces fit together | [How It Works](../wiki/how-it-works.md) |
+| 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
+| 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
+| 🚀 Plan a small deployment | [Deployment Guide](../wiki/deployment-guide.md) |
+| ✅ Review readiness and evidence | [Readiness And Evidence](../wiki/readiness-and-evidence.md) |
+| 🤝 Support or contribute | [Support And Contribute](../wiki/support-and-contribute.md) |
 
-## Public Docs
+## Practical Guides
 
-The public docs are intentionally lighter and easier to scan:
+These are command-level references for people running or evaluating the project:
 
-- [Wiki Home](../wiki/README.md)
-- [How It Works](../wiki/how-it-works.md)
-- [Local Quickstart](../wiki/local-quickstart.md)
-- [Agency Demo](../wiki/agency-demo.md)
-- [Deployment Guide](../wiki/deployment-guide.md)
-- [Readiness And Evidence](../wiki/readiness-and-evidence.md)
-- [Support And Contribute](../wiki/support-and-contribute.md)
+- [Local Quickstart](tutorials/local-quickstart.md)
+- [Agency Demo Flow](tutorials/agency-demo-flow.md)
+- [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
+- [Production Checklist](tutorials/production-checklist.md)
+- [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
+
+## Readiness And Evidence
+
+These pages explain what evidence exists and what it can, and cannot, prove:
+
+- [Compliance Evidence Checklist](compliance-evidence-checklist.md)
+- [Consumer Submission Evidence](consumer-submission-evidence.md)
+- [Consumer Submission Tracker](evidence/consumer-submissions/README.md)
+- [OCI Pilot Evidence Packet](evidence/captured/oci-pilot/2026-04-24/README.md)
+- [Captured Evidence Index](evidence/captured/README.md)
+
+## Architecture And Dependencies
+
+Use these when checking product boundaries, integration points, and design decisions:
+
+- [Architecture](architecture.md)
+- [Dependencies](dependencies.md)
+- [Decisions](decisions.md)
+- [Known Gaps](repo-gaps.md)
+- [Requirements 2A-2F](requirements-2a-2f.md)
+- [Trip Updates Requirements](requirements-trip-updates.md)
+- [CAL-ITP / Caltrans Requirements](requirements-calitp-compliance.md)
+
+## Maintainer Notes
+
+These pages preserve detailed project state and history for maintainers and future agents:
+
+- [Current Status](current-status.md)
+- [Latest Continuation Notes](handoffs/latest.md)
+- [Maintainer History](handoffs/)
+- [Documentation Assets](assets/README.md)
+
+Public-facing pages should stay plain and reader-friendly. Detailed evidence records, operational notes, and implementation history belong here rather than in the top-level README.

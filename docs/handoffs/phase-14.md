@@ -15,12 +15,12 @@ Phase 14 — Public Launch Polish and Repo Simplification
 
 - Simplified `README.md` into a concise public front door.
 - Added a near-top "what this is / what this is not" block for non-technical agency readers.
-- Kept README to 101 lines, with one main explainer visual and links to deeper docs.
-- Added `docs/README.md` as a docs landing page with clear paths for quickstart, agency demo, deployment, evidence, current status, latest handoff, dependencies, and decisions.
-- Split public-facing documentation into `wiki/` and changed `docs/README.md` into an internal documentation home for agents and maintainers.
+- Kept README to 80 lines, with one main explainer visual and links to deeper docs.
+- Added `docs/README.md` as a documentation hub with clear paths for public guides, practical tutorials, deployment, evidence, architecture, dependencies, decisions, and maintainer notes.
+- Split public-facing guide pages into `wiki/`, while keeping detailed evidence records, architecture notes, implementation history, and maintainer notes in `docs/`.
 - Added public wiki pages for project overview, local quickstart, agency demo, deployment, readiness/evidence, and support/contribution.
 - Added `wiki/assets/` copies of public-facing PNG assets so wiki pages have local asset references.
-- Updated README with direct links to public wiki pages and internal reference docs.
+- Updated README with direct links to public wiki pages and the documentation hub, while avoiding direct phase/history links from the public front door.
 - Reviewed README and `wiki/` for public-facing tone, replacing phase/status-report wording such as "not claimed yet", "do not overstate", "current repo", and visible "handoff" link text with reader-facing boundary and maintainer-reference language.
 - Added emoji-based quick-action navigation and direct GitHub star links/badge for non-technical readers.
 - Regenerated the older Phase 10 docs diagrams (`architecture-overview`, `agency-deployment`, `quickstart-flow`, and `public-vs-admin-endpoints`) from simplified reviewed SVG specs with larger labels, fewer words, and no crossing or overlapping diagram lines.
@@ -46,7 +46,7 @@ The image-generation tool was used to create draft concepts. The final checked-i
 
 ## What Was Designed But Intentionally Not Implemented Yet
 
-- Deep phase history, implementation detail, compliance matrices, deployment evidence, and consumer-submission details stayed in `docs/` instead of README.
+- Deep phase history, implementation detail, compliance matrices, deployment evidence, endpoint/admin detail, and consumer-submission records stayed in docs links instead of README.
 - Public-facing prose was moved into `wiki/` and kept out of phase-reporting tone.
 - Public wiki pages link to internal source records only where a reader may need deeper detail.
 - Existing Phase 12 hosted/operator evidence and Phase 13 consumer-submission evidence records were not changed except through navigation links.
