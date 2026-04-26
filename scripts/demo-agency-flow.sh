@@ -252,6 +252,7 @@ done
 
 log "Verify protected admin/debug surfaces reject anonymous requests"
 expect_status 401 "http://localhost:8081/admin/compliance/scorecard"
+expect_status 401 "http://localhost:8081/admin/operations"
 expect_status 401 "http://localhost:8082/v1/events?limit=10"
 expect_status 401 "http://localhost:8083/public/gtfsrt/vehicle_positions.json"
 expect_status 401 "http://localhost:8084/public/gtfsrt/trip_updates.json"
@@ -263,6 +264,11 @@ log "Verify protected GTFS Studio access with admin token"
 curl -fsS -H "$AUTH_HEADER" "http://localhost:8086/admin/gtfs-studio" >"$TMP_DIR/gtfs-studio.html"
 grep -q "GTFS Studio" "$TMP_DIR/gtfs-studio.html"
 echo "verified /admin/gtfs-studio requires admin auth and succeeds with Bearer JWT"
+
+log "Verify protected Operations Console access with admin token"
+curl -fsS -H "$AUTH_HEADER" "http://localhost:8081/admin/operations" >"$TMP_DIR/operations.html"
+grep -q "Operations Console" "$TMP_DIR/operations.html"
+echo "verified /admin/operations requires admin auth and succeeds with Bearer JWT"
 
 log "Ingest authenticated telemetry"
 OBSERVED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
@@ -363,6 +369,7 @@ Verified:
   - device-token telemetry ingest
   - public schedule.zip, feeds.json, and realtime protobuf fetches
   - protected debug/admin routes, including GTFS Studio
+  - protected Operations Console access
   - validation run flow
   - scorecard and consumer-ingestion visibility
 

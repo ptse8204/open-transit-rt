@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	"open-transit-rt/internal/compliance"
 	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/feed/schedule"
+	"open-transit-rt/internal/state"
+	"open-transit-rt/internal/telemetry"
 )
 
 func TestValidationRunDerivesRealtimeArtifacts(t *testing.T) {
@@ -196,6 +199,186 @@ func TestPublicScheduleRemainsAnonymous(t *testing.T) {
 	}
 }
 
+func TestOperationsConsoleRejectsUnauthenticatedAccess(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rr.Code)
+	}
+}
+
+func TestOperationsConsoleRendersEmptyState(t *testing.T) {
+	store := &fakePublicationStore{
+		discoveryErr: errors.New("no feed config"),
+		scorecardErr: errors.New("no scorecard"),
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Operations Console", "publication metadata is not configured yet", "telemetry repository is not available"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+}
+
+func TestOperationsConsoleRendersDemoStateWithSafeTelemetryDiagnostics(t *testing.T) {
+	t.Setenv("PUBLICATION_ENVIRONMENT", "pilot")
+	now := time.Date(2026, 4, 26, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: "Demo Agency", GeneratedAt: now, PublicationEnvironment: "dev",
+			PublicBaseURL: "http://localhost:8080",
+			Feeds: []compliance.FeedMetadata{{
+				FeedType: "schedule", CanonicalPublicURL: "http://localhost:8080/public/gtfs/schedule.zip",
+				ActivationStatus: "active", ActiveFeedVersionID: "gtfs-import-3", LastValidationStatus: "passed", LastValidationAt: &now,
+			}},
+			Readiness: compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, CanonicalValidationComplete: true},
+		},
+		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
+		consumers: []compliance.ConsumerRecord{{ConsumerName: "Google Maps", Status: "not_started", UpdatedAt: now}},
+	}
+	handler := newOperationsTestHandler(&handler{
+		store: store,
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{
+			AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now, CreatedAt: now,
+		}}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+			ID: 42,
+			Event: telemetry.Event{
+				AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now.Add(-30 * time.Second), Lat: 1, Lon: 2,
+			},
+			ReceivedAt: now.Add(-29 * time.Second), IngestStatus: telemetry.IngestStatusAccepted, PayloadJSON: []byte(`{"secret":"hidden"}`),
+		}}},
+		state: fakeStateRepository{assignments: map[string]state.Assignment{"bus-1": {
+			VehicleID: "bus-1", State: state.StateInService, RouteID: "route-1", TripID: "trip-1", Confidence: 0.91,
+			ReasonCodes: []string{state.ReasonTripHintMatch}, DegradedState: state.DegradedNone, AssignmentSource: state.AssignmentSourceAutomatic,
+			ScoreDetails: map[string]any{"private_debug": true}, ActiveFrom: now.Add(-25 * time.Second),
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/telemetry", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"bus-1", "trip-1", "route-1", "0.91", state.ReasonTripHintMatch} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"payload_json", "secret", "score_details", "private_debug"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("body leaks %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestOperationsDeviceRebindShowsTokenOnlyOnPost(t *testing.T) {
+	deviceStore := &fakeDeviceStoreWithToken{token: "one-time-token"}
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: deviceStore}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	form := strings.NewReader("agency_id=demo-agency&device_id=device-1&vehicle_id=bus-1&reason=rotate")
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/devices", form)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, "one-time-token") {
+		t.Fatalf("POST body does not show one-time token: %s", body)
+	}
+	if strings.Contains(body, "token_hash") {
+		t.Fatalf("POST body leaks token hash: %s", body)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/devices", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if strings.Contains(rr.Body.String(), "one-time-token") {
+		t.Fatalf("GET body repeats one-time token: %s", rr.Body.String())
+	}
+}
+
+func TestOperationsDeviceRebindRequiresAdminRole(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/devices", strings.NewReader("agency_id=demo-agency&device_id=device-1&vehicle_id=bus-1"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rr.Code)
+	}
+}
+
+func TestOperationsCookiePostRequiresCSRF(t *testing.T) {
+	cfg := auth.JWTConfig{Secrets: []string{"test-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour}
+	signer, err := auth.NewSigner(cfg)
+	if err != nil {
+		t.Fatalf("signer: %v", err)
+	}
+	token, _, err := signer.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign token: %v", err)
+	}
+	verifier, err := auth.NewVerifier(cfg)
+	if err != nil {
+		t.Fatalf("verifier: %v", err)
+	}
+	middleware := auth.NewMiddleware(verifier, auth.StaticRoleStore{Roles: []auth.Role{auth.RoleAdmin}}, "csrf-secret")
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, csrfSecret: "csrf-secret"}, middleware)
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/devices", strings.NewReader("agency_id=demo-agency&device_id=device-1&vehicle_id=bus-1"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: token})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403 for missing CSRF", rr.Code)
+	}
+}
+
+func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
+	now := time.Date(2026, 4, 26, 12, 0, 0, 0, time.UTC)
+	handler := newOperationsTestHandler(&handler{
+		store:   &fakePublicationStore{consumers: []compliance.ConsumerRecord{{ConsumerName: "Google Maps", Status: "not_started", UpdatedAt: now}}},
+		devices: fakeDeviceStore{},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/consumers", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Google Maps", "not_started", "Mobility Database", "transit.land", "docs tracker"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	if strings.Contains(strings.ToLower(body), "accepted by") {
+		t.Fatalf("body invents acceptance claim: %s", body)
+	}
+}
+
 func TestAgencyConfigReadyzRequiresDBActiveFeedAndPublicationMetadata(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -332,6 +515,10 @@ type fakePublicationStore struct {
 	result       compliance.ValidationResult
 	discovery    compliance.FeedDiscovery
 	discoveryErr error
+	scorecard    compliance.Scorecard
+	scorecardErr error
+	consumers    []compliance.ConsumerRecord
+	consumersErr error
 }
 
 func (f *fakePublicationStore) BootstrapPublication(context.Context, compliance.BootstrapInput) error {
@@ -350,11 +537,17 @@ func (f *fakePublicationStore) UpsertConsumer(context.Context, compliance.Consum
 }
 
 func (f *fakePublicationStore) ListConsumers(context.Context, string) ([]compliance.ConsumerRecord, error) {
-	return nil, nil
+	if f.consumersErr != nil {
+		return nil, f.consumersErr
+	}
+	return f.consumers, nil
 }
 
 func (f *fakePublicationStore) LatestScorecard(context.Context, string) (compliance.Scorecard, error) {
-	return compliance.Scorecard{}, nil
+	if f.scorecardErr != nil {
+		return compliance.Scorecard{}, f.scorecardErr
+	}
+	return f.scorecard, nil
 }
 
 func (f *fakePublicationStore) BuildAndStoreScorecard(context.Context, string, time.Time) (compliance.Scorecard, error) {
@@ -390,6 +583,99 @@ func (fakeDeviceStore) Verify(context.Context, devices.VerifyInput) (devices.Cre
 
 func (fakeDeviceStore) Rebind(context.Context, devices.RebindInput) (devices.RebindResult, error) {
 	return devices.RebindResult{}, nil
+}
+
+func (fakeDeviceStore) ListBindings(context.Context, string) ([]devices.Binding, error) {
+	return nil, nil
+}
+
+type fakeDeviceStoreWithBindings struct {
+	bindings []devices.Binding
+}
+
+func (f fakeDeviceStoreWithBindings) Verify(context.Context, devices.VerifyInput) (devices.Credential, error) {
+	return devices.Credential{}, nil
+}
+
+func (f fakeDeviceStoreWithBindings) Rebind(context.Context, devices.RebindInput) (devices.RebindResult, error) {
+	return devices.RebindResult{}, nil
+}
+
+func (f fakeDeviceStoreWithBindings) ListBindings(context.Context, string) ([]devices.Binding, error) {
+	return f.bindings, nil
+}
+
+type fakeDeviceStoreWithToken struct {
+	token string
+}
+
+func (f *fakeDeviceStoreWithToken) Verify(context.Context, devices.VerifyInput) (devices.Credential, error) {
+	return devices.Credential{}, nil
+}
+
+func (f *fakeDeviceStoreWithToken) Rebind(_ context.Context, input devices.RebindInput) (devices.RebindResult, error) {
+	return devices.RebindResult{AgencyID: input.AgencyID, DeviceID: input.DeviceID, VehicleID: input.VehicleID, Token: f.token, RotatedAt: "2026-04-26T12:00:00Z"}, nil
+}
+
+func (f *fakeDeviceStoreWithToken) ListBindings(context.Context, string) ([]devices.Binding, error) {
+	return nil, nil
+}
+
+type fakeTelemetryRepository struct {
+	latest []telemetry.StoredEvent
+}
+
+func (f fakeTelemetryRepository) Store(context.Context, telemetry.Event, json.RawMessage) (telemetry.StoreResult, error) {
+	return telemetry.StoreResult{}, nil
+}
+
+func (f fakeTelemetryRepository) LatestByVehicle(context.Context, string, string) (telemetry.StoredEvent, error) {
+	return telemetry.StoredEvent{}, nil
+}
+
+func (f fakeTelemetryRepository) ListLatestByAgency(context.Context, string, int) ([]telemetry.StoredEvent, error) {
+	return f.latest, nil
+}
+
+func (f fakeTelemetryRepository) ListEvents(context.Context, string, int) ([]telemetry.StoredEvent, error) {
+	return nil, nil
+}
+
+type fakeStateRepository struct {
+	assignments map[string]state.Assignment
+}
+
+func (f fakeStateRepository) ActiveManualOverride(context.Context, string, string, time.Time) (*state.ManualOverride, error) {
+	return nil, nil
+}
+
+func (f fakeStateRepository) CurrentAssignment(context.Context, string, string) (*state.Assignment, error) {
+	return nil, nil
+}
+
+func (f fakeStateRepository) ListCurrentAssignments(context.Context, string, []string) (map[string]state.Assignment, error) {
+	return f.assignments, nil
+}
+
+func (f fakeStateRepository) SaveAssignment(context.Context, state.Assignment, []state.Incident) (state.Assignment, error) {
+	return state.Assignment{}, nil
+}
+
+func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
+	if h.store == nil {
+		h.store = &fakePublicationStore{}
+	}
+	if h.devices == nil {
+		h.devices = fakeDeviceStore{}
+	}
+	if h.csrfSecret == "" {
+		h.csrfSecret = "test-csrf"
+	}
+	mux := http.NewServeMux()
+	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
+	return mux
 }
 
 func readyDiscovery() compliance.FeedDiscovery {

@@ -63,14 +63,17 @@ type realtimeArtifactSource interface {
 }
 
 type handler struct {
-	agencyID string
-	schedule scheduleBuilder
-	store    publicationStore
-	devices  devices.Store
-	ready    pinger
-	admin    adminAuth
-	cache    *scheduleZIPCache
-	realtime realtimeArtifactSource
+	agencyID   string
+	schedule   scheduleBuilder
+	store      publicationStore
+	devices    devices.Store
+	telemetry  telemetry.Repository
+	state      state.Repository
+	ready      pinger
+	admin      adminAuth
+	csrfSecret string
+	cache      *scheduleZIPCache
+	realtime   realtimeArtifactSource
 }
 
 func main() {
@@ -110,13 +113,21 @@ func newHandler(agencyID string, scheduleBuilder scheduleBuilder, store publicat
 }
 
 func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource) http.Handler {
-	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, ready: ready, admin: admin, cache: newScheduleZIPCache(), realtime: realtime}
+	var telemetryRepo telemetry.Repository
+	var stateRepo state.Repository
+	if pool, ok := ready.(*pgxpool.Pool); ok {
+		telemetryRepo = telemetry.NewPostgresRepository(pool)
+		stateRepo = state.NewPostgresRepository(pool)
+	}
+	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, ready: ready, admin: admin, csrfSecret: os.Getenv("CSRF_SECRET"), cache: newScheduleZIPCache(), realtime: realtime}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
 	mux.HandleFunc("/public/gtfs/schedule.zip", h.publicScheduleZIP)
 	mux.HandleFunc("/public/feeds.json", h.publicFeedsJSON)
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/publication/bootstrap", adminRead(http.HandlerFunc(h.bootstrapPublication)))
 	mux.Handle("/admin/compliance/scorecard", adminRead(http.HandlerFunc(h.scorecard)))
 	mux.Handle("/admin/consumer-ingestion", adminRead(http.HandlerFunc(h.consumerIngestion)))

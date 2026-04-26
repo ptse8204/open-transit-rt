@@ -42,6 +42,8 @@ Phase 16 is complete for the agency onboarding product packaging scope. The repo
 
 Phase 17 is complete for the deployment automation and pilot operations scope. The repo now has `docs/runbooks/small-agency-pilot-operations.md` with an explicit deployment environment variable matrix, evidence output labels, and naming conventions; `scripts/pilot-ops.sh` with dry-run-capable validator-cycle, backup, restore-drill, feed-monitor, and scorecard-export helpers; and systemd timer examples for validation, backup, feed monitoring, and scorecard export. Hosted evidence refresh now ends with `EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence`, and refreshed evidence is not complete unless the audit passes. The Phase 17 work does not change backend API contracts, database schema, public feed URLs, GTFS-RT contracts, consumer-submission statuses, or evidence claims.
 
+Phase 18 is complete for the Admin UX and Agency Operations Console scope. `cmd/agency-config` now serves authenticated server-rendered operations pages under `/admin/operations` for dashboard, feed URL/validation state, telemetry freshness, device rotate/rebind, consumer evidence status, evidence links, and setup checklist views. `cmd/feed-alerts` now has `/admin/alerts/console` for simple alert listing, create/update, publish, and archive flows. GTFS Studio links back to the Operations Console, and the local app output prints `/admin/operations`. The console shows `PUBLICATION_ENVIRONMENT`/feed environment context and section last-updated timestamps where available. It does not add new public feed URLs, protobuf contracts, external consumer APIs, consumer-status claims, or production public-edge admin exposure.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -224,7 +226,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 - production-grade learned ETA/prediction quality and backtesting
 - hosted login/SSO and server-side admin JWT `jti` replay tracking
 - full operator UI for manual override workflows
-- production SLO dashboards and alerting beyond Phase 17 lightweight feed-monitor examples, request logs, request IDs, readiness checks, and `/metrics` toggle
+- production SLO dashboards and alerting beyond Phase 17 lightweight feed-monitor examples, Phase 18 operator pages, request logs, request IDs, readiness checks, and `/metrics` toggle
 - OpenTelemetry tracing/exporter wiring and Prometheus/Grafana deployment assets
 - external predictor adapters such as TheTransitClock
 - external consumer submission API integrations
@@ -232,7 +234,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 17 — Deployment Automation And Pilot Operations is complete for the documented pilot operations scope. Phases 12 through 16 remain closed for their documented scopes.
+**Active phase:** Phase 18 — Admin UX And Agency Operations Console is complete for the documented minimal operator-console scope. Phases 12 through 17 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -240,7 +242,7 @@ Phase 13 added documentation-only consumer submission records and templates. It 
 
 Phase 14 added documentation-only public-facing polish. It did not change backend runtime behavior, API contracts, database schema, public feed URLs, external integrations, evidence claims, or consumer-submission status.
 
-Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only; it did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, or new product features.
+Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, or new evidence claims.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 

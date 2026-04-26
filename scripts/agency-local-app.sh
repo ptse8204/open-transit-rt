@@ -240,6 +240,9 @@ Public feed URLs:
   Trip Updates protobuf:      $FEED_ROOT/gtfsrt/trip_updates.pb
   Alerts protobuf:            $FEED_ROOT/gtfsrt/alerts.pb
 
+Operations Console URL:
+  $PUBLIC_ROOT/admin/operations
+
 GTFS Studio/admin URL:
   $PUBLIC_ROOT/admin/gtfs-studio
 
@@ -269,7 +272,8 @@ Exact next action:
 Copy/paste support summary:
   generated_at=$generated_at
   feed_root=$FEED_ROOT
-  admin_url=$PUBLIC_ROOT/admin/gtfs-studio
+  admin_url=$PUBLIC_ROOT/admin/operations
+  gtfs_studio_url=$PUBLIC_ROOT/admin/gtfs-studio
   app_profile=$PROFILE
   status=running
   log_location="make agency-app-logs"

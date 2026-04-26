@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -99,6 +100,72 @@ func TestAlertsAdminRejectsUnauthenticatedAccess(t *testing.T) {
 	}
 }
 
+func TestAlertsConsoleRendersEmptyStateAndRejectsUnauthenticated(t *testing.T) {
+	handler := newHandlerWithAuth(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, authRejectAll{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/alerts/console", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rr.Code)
+	}
+
+	handler = newHandler(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{})
+	req = httptest.NewRequest(http.MethodGet, "/admin/alerts/console", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Alerts Console", "No alerts are recorded", "Operations Console"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+}
+
+func TestAlertsConsoleCreatePublishArchiveAndRoleBoundary(t *testing.T) {
+	readOnly := newHandlerWithAuth(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodPost, "/admin/alerts/console", strings.NewReader("agency_id=demo-agency&alert_key=a1&header_text=Alert"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	readOnly.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("read-only POST status = %d, want 403", rr.Code)
+	}
+
+	store := &fakeAlertStore{}
+	handler := newHandler(fakeAlertsBuilder{}, store, okPinger{})
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/console", strings.NewReader("agency_id=demo-agency&alert_key=a1&header_text=Alert&route_id=r1&trip_id=t1&publish=on"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusSeeOther {
+		t.Fatalf("create status = %d, want 303: %s", rr.Code, rr.Body.String())
+	}
+	if store.upsert.AlertKey != "a1" || !store.upsert.Publish || len(store.upsert.Entities) != 1 || store.upsert.Entities[0].RouteID != "r1" {
+		t.Fatalf("upsert = %+v, want console create with affected entity", store.upsert)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/console/7/publish", strings.NewReader("agency_id=demo-agency"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusSeeOther || store.publishedID != 7 {
+		t.Fatalf("publish status = %d id=%d, want 303 id 7", rr.Code, store.publishedID)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/console/7/archive", strings.NewReader("agency_id=demo-agency&reason=done"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusSeeOther || store.archivedID != 7 {
+		t.Fatalf("archive status = %d id=%d, want 303 id 7", rr.Code, store.archivedID)
+	}
+}
+
 func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 	handler := newHandler(fakeAlertsBuilder{snapshot: feedalerts.Snapshot{GeneratedAt: time.Now().UTC()}}, &fakeAlertStore{}, okPinger{})
 	req := httptest.NewRequest(http.MethodPost, "/public/gtfsrt/alerts.pb", nil)
@@ -150,8 +217,11 @@ func (f fakeAlertsBuilder) Snapshot(context.Context, time.Time) (feedalerts.Snap
 }
 
 type fakeAlertStore struct {
-	upsert     domainalerts.UpsertInput
-	reconciled bool
+	upsert      domainalerts.UpsertInput
+	reconciled  bool
+	publishedID int64
+	archivedID  int64
+	alerts      []domainalerts.Alert
 }
 
 func (f *fakeAlertStore) UpsertAlert(_ context.Context, input domainalerts.UpsertInput) (domainalerts.Alert, error) {
@@ -159,16 +229,18 @@ func (f *fakeAlertStore) UpsertAlert(_ context.Context, input domainalerts.Upser
 	return domainalerts.Alert{ID: 1, AgencyID: input.AgencyID, AlertKey: input.AlertKey}, nil
 }
 
-func (f *fakeAlertStore) PublishAlert(context.Context, string, int64, string, time.Time) (domainalerts.Alert, error) {
-	return domainalerts.Alert{ID: 1, Status: domainalerts.StatusPublished}, nil
+func (f *fakeAlertStore) PublishAlert(_ context.Context, _ string, alertID int64, _ string, _ time.Time) (domainalerts.Alert, error) {
+	f.publishedID = alertID
+	return domainalerts.Alert{ID: alertID, Status: domainalerts.StatusPublished}, nil
 }
 
-func (f *fakeAlertStore) ArchiveAlert(context.Context, string, int64, string, string, time.Time) error {
+func (f *fakeAlertStore) ArchiveAlert(_ context.Context, _ string, alertID int64, _ string, _ string, _ time.Time) error {
+	f.archivedID = alertID
 	return nil
 }
 
 func (f *fakeAlertStore) ListAlerts(context.Context, domainalerts.ListFilter) ([]domainalerts.Alert, error) {
-	return nil, nil
+	return f.alerts, nil
 }
 
 func (f *fakeAlertStore) ReconcileCanceledTripAlerts(context.Context, string, string, time.Time) (domainalerts.ReconcileResult, error) {

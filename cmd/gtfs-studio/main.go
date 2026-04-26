@@ -420,6 +420,7 @@ type entityPage struct {
 var pages = template.Must(template.New("pages").Parse(`
 {{define "drafts"}}
 <!doctype html><title>GTFS Studio</title><h1>GTFS Studio</h1>
+<nav><a href="/admin/operations">Operations Console</a></nav>
 <p>Agency: {{.AgencyID}}</p>
 <form method="post" action="/admin/gtfs-studio/drafts">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -436,6 +437,7 @@ var pages = template.Must(template.New("pages").Parse(`
 
 {{define "summary"}}
 <!doctype html><title>Draft {{.ID}}</title><h1>{{.Name}}</h1>
+<nav><a href="/admin/operations">Operations Console</a> <a href="/admin/gtfs-studio">GTFS Studio</a></nav>
 <dl>
 <dt>Status</dt><dd>{{.Status}}</dd>
 <dt>Base feed version</dt><dd>{{.BaseFeedVersionID}}</dd>
@@ -459,6 +461,7 @@ var pages = template.Must(template.New("pages").Parse(`
 
 {{define "entity"}}
 <!doctype html><title>{{.Entity}}</title><h1>{{.Entity}}</h1>
+<nav><a href="/admin/operations">Operations Console</a> <a href="/admin/gtfs-studio">GTFS Studio</a></nav>
 <p>Minimal operational row editor for {{.Entity}}.</p>
 <pre>{{printf "%+v" .Payload}}</pre>
 <form method="post">

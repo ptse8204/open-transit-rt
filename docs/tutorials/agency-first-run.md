@@ -20,7 +20,7 @@ make agency-app-up
 
 The command starts Postgres/PostGIS, builds local service binaries, applies migrations, seeds demo records, imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for service readiness, and verifies the public feed URLs.
 
-At the end it prints the public feed root, feed URLs, GTFS Studio/admin URL, token instructions, log command, validation next step, and the exact next action.
+At the end it prints the public feed root, feed URLs, Operations Console URL, GTFS Studio/admin URL, token instructions, log command, validation next step, and the exact next action.
 
 Stop the local app:
 
@@ -95,6 +95,16 @@ http://localhost:8080/public/gtfsrt/alerts.pb
 ```
 
 These local URLs are for demo packaging only. Production deployments need stable HTTPS URLs and deployment-owned reverse proxy controls.
+
+## What The Operations Console Shows
+
+The local app exposes the authenticated Operations Console at:
+
+```text
+http://localhost:8080/admin/operations
+```
+
+It shows feed URLs, validation status, telemetry freshness, safe device binding information, Alerts links, consumer evidence status, and setup next actions. Admin routes still require an admin token; the local proxy does not make them public.
 
 ## Why Validation Matters
 

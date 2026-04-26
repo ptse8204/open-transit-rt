@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -65,9 +66,22 @@ type RebindResult struct {
 	RotatedAt string `json:"rotated_at"`
 }
 
+type Binding struct {
+	AgencyID   string     `json:"agency_id"`
+	DeviceID   string     `json:"device_id"`
+	VehicleID  string     `json:"vehicle_id"`
+	Status     string     `json:"status"`
+	ValidFrom  time.Time  `json:"valid_from"`
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+	RotatedAt  *time.Time `json:"rotated_at,omitempty"`
+	RevokedAt  *time.Time `json:"revoked_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+}
+
 type Store interface {
 	Verify(ctx context.Context, input VerifyInput) (Credential, error)
 	Rebind(ctx context.Context, input RebindInput) (RebindResult, error)
+	ListBindings(ctx context.Context, agencyID string) ([]Binding, error)
 }
 
 type PostgresStore struct {
@@ -174,6 +188,57 @@ func (s *PostgresStore) Rebind(ctx context.Context, input RebindInput) (RebindRe
 		Token:     token,
 		RotatedAt: input.Now.Format(time.RFC3339),
 	}, nil
+}
+
+func (s *PostgresStore) ListBindings(ctx context.Context, agencyID string) ([]Binding, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT agency_id, device_id, COALESCE(vehicle_id, ''), status, valid_from,
+		       last_used_at, rotated_at, revoked_at, created_at
+		FROM device_credential
+		WHERE agency_id = $1
+		ORDER BY device_id
+	`, agencyID)
+	if err != nil {
+		return nil, fmt.Errorf("query device bindings: %w", err)
+	}
+	defer rows.Close()
+	var bindings []Binding
+	for rows.Next() {
+		var binding Binding
+		var lastUsedAt, rotatedAt, revokedAt sql.NullTime
+		if err := rows.Scan(
+			&binding.AgencyID,
+			&binding.DeviceID,
+			&binding.VehicleID,
+			&binding.Status,
+			&binding.ValidFrom,
+			&lastUsedAt,
+			&rotatedAt,
+			&revokedAt,
+			&binding.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan device binding: %w", err)
+		}
+		if lastUsedAt.Valid {
+			t := lastUsedAt.Time.UTC()
+			binding.LastUsedAt = &t
+		}
+		if rotatedAt.Valid {
+			t := rotatedAt.Time.UTC()
+			binding.RotatedAt = &t
+		}
+		if revokedAt.Valid {
+			t := revokedAt.Time.UTC()
+			binding.RevokedAt = &t
+		}
+		binding.ValidFrom = binding.ValidFrom.UTC()
+		binding.CreatedAt = binding.CreatedAt.UTC()
+		bindings = append(bindings, binding)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate device bindings: %w", err)
+	}
+	return bindings, nil
 }
 
 func (s *PostgresStore) HashToken(token string) string {

@@ -2,7 +2,7 @@
 	route {
 		respond /healthz "ok" 200
 
-		@agency path /public/gtfs/* /public/feeds.json /admin/publication* /admin/compliance* /admin/consumer-ingestion* /admin/validation* /admin/devices*
+		@agency path /public/gtfs/* /public/feeds.json /admin/operations* /admin/publication* /admin/compliance* /admin/consumer-ingestion* /admin/validation* /admin/devices*
 		reverse_proxy @agency agency-config:8081
 
 		@telemetry path /v1/telemetry /v1/events*

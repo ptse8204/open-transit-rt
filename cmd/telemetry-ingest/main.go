@@ -189,6 +189,10 @@ func (acceptingDeviceStore) Rebind(context.Context, devices.RebindInput) (device
 	return devices.RebindResult{}, nil
 }
 
+func (acceptingDeviceStore) ListBindings(context.Context, string) ([]devices.Binding, error) {
+	return nil, nil
+}
+
 func decodeTelemetryPayload(w http.ResponseWriter, r *http.Request) (telemetry.Event, json.RawMessage, error) {
 	raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxTelemetryPayloadBytes))
 	if err != nil {

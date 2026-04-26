@@ -277,3 +277,7 @@ func (rejectingDeviceStore) Verify(context.Context, devices.VerifyInput) (device
 func (rejectingDeviceStore) Rebind(context.Context, devices.RebindInput) (devices.RebindResult, error) {
 	return devices.RebindResult{}, nil
 }
+
+func (rejectingDeviceStore) ListBindings(context.Context, string) ([]devices.Binding, error) {
+	return nil, nil
+}
