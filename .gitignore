@@ -1,2 +1,3 @@
 .cache/
 deploy/bin/
+.DS_Store

@@ -104,7 +104,7 @@ go run ./cmd/admin-token -sub admin@example.com -agency-id demo-agency
 Telemetry ingest uses:
 
 ```http
-Authorization: Bearer dev-device-token
+Authorization: Bearer <local-device-token>
 ```
 
 ## What The Demo Does Not Prove

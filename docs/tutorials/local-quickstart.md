@@ -127,8 +127,9 @@ The seeded device token works only for `demo-agency`, `device-1`, and `bus-1`.
 
 ```bash
 observed_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+device_token="dev-device-token"
 curl -fsS -X POST http://localhost:8082/v1/telemetry \
-  -H "Authorization: Bearer dev-device-token" \
+  -H "Authorization: Bearer ${device_token}" \
   -H "Content-Type: application/json" \
   --data "{
     \"agency_id\": \"demo-agency\",

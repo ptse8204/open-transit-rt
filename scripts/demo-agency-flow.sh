@@ -257,6 +257,7 @@ echo "verified /admin/gtfs-studio requires admin auth and succeeds with Bearer J
 
 log "Ingest authenticated telemetry"
 OBSERVED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+DEVICE_TOKEN="dev-device-token"
 cat >"$TMP_DIR/telemetry.json" <<EOF
 {
   "agency_id": "$AGENCY_ID",
@@ -272,7 +273,7 @@ cat >"$TMP_DIR/telemetry.json" <<EOF
 }
 EOF
 curl -fsS -X POST "http://localhost:8082/v1/telemetry" \
-  -H "Authorization: Bearer dev-device-token" \
+  -H "Authorization: Bearer ${DEVICE_TOKEN}" \
   -H "Content-Type: application/json" \
   --data @"$TMP_DIR/telemetry.json" >"$TMP_DIR/telemetry-response.json"
 grep -q "\"agency_id\":\"$AGENCY_ID\"" "$TMP_DIR/telemetry-response.json"
