@@ -162,6 +162,10 @@ func (b *VehiclePositionsBuilder) vehicleSnapshot(event telemetry.StoredEvent, a
 		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionAssignmentTelemetryMismatch
 		return vehicle
 	}
+	if degradedAssignmentBlocksTripDescriptor(assignment.DegradedState) {
+		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionDegradedAssignment
+		return vehicle
+	}
 	if assignment.State != state.StateInService {
 		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionNotInService
 		return vehicle
@@ -172,10 +176,6 @@ func (b *VehiclePositionsBuilder) vehicleSnapshot(event telemetry.StoredEvent, a
 	}
 	if assignment.TripID == "" {
 		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionMissingTripID
-		return vehicle
-	}
-	if degradedAssignmentBlocksTripDescriptor(assignment.DegradedState) {
-		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionDegradedAssignment
 		return vehicle
 	}
 	if assignment.AssignmentSource != state.AssignmentSourceManualOverride && assignment.Confidence < b.config.TripConfidenceThreshold {

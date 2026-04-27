@@ -44,6 +44,8 @@ Phase 17 is complete for the deployment automation and pilot operations scope. T
 
 Phase 18 is complete for the Admin UX and Agency Operations Console scope. `cmd/agency-config` now serves authenticated server-rendered operations pages under `/admin/operations` for dashboard, feed URL/validation state, telemetry freshness, device rotate/rebind, consumer evidence status, evidence links, and setup checklist views. `cmd/feed-alerts` now has `/admin/alerts/console` for simple alert listing, create/update, publish, and archive flows. GTFS Studio links back to the Operations Console, and the local app output prints `/admin/operations`. The console shows `PUBLICATION_ENVIRONMENT`/feed environment context and section last-updated timestamps where available. It does not add new public feed URLs, protobuf contracts, external consumer APIs, consumer-status claims, or production public-edge admin exposure.
 
+Phase 19 is complete for the Realtime Quality and ETA Improvement measurement-first scope. The repo now has deterministic replay evaluation under `internal/realtimequality`, documented replay fixture schema under `testdata/replay/README.md`, baseline replay fixtures for matched, stale, ambiguous, low-confidence, manual override, canceled-trip, added-trip, short-turn, and detour cases, explicit quality metrics with denominators and `not_applicable` zero-denominator handling, regression guards that keep unknown/ambiguous/stale/withheld/degraded uncertainty visible, and authenticated Operations Console Trip Updates quality summaries from recorded `feed_health_snapshot` diagnostics. Phase 19 did not integrate TheTransitClock or another external predictor, did not claim production-grade ETA quality, and did not change public feed URLs, GTFS-RT protobuf contracts, unauthenticated surfaces, consumer statuses, or evidence claims.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -73,6 +75,7 @@ The repo has:
 - `docs/handoffs/phase-15.md`
 - `docs/handoffs/phase-16.md`
 - `docs/handoffs/phase-17.md`
+- `docs/handoffs/phase-19.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -104,6 +107,8 @@ The repo includes starter Go services for:
 `cmd/gtfs-studio` serves a minimal server-rendered admin surface for typed GTFS draft editing and draft publishing. It is operational row editing, not a map editor or timetable designer.
 
 `cmd/feed-trip-updates` serves stable Trip Updates endpoints backed by the Phase 7 deterministic prediction adapter by default, with the Phase 6 no-op adapter still selectable as a fallback. It returns valid GTFS-RT Trip Updates protobuf output, JSON diagnostics, prediction metrics, and persisted Trip Updates traceability through `feed_health_snapshot`.
+
+`internal/realtimequality` runs deterministic replay fixtures from `testdata/replay/` to compare matcher assignments, Vehicle Positions publication decisions, Trip Updates behavior, withheld reasons, and quality metrics. `make realtime-quality` runs this focused suite.
 
 `cmd/feed-alerts` serves DB-backed GTFS-RT Alerts protobuf and JSON output from persisted published Service Alerts. It also exposes minimal JSON admin operations for alert authoring, publish/archive lifecycle, and canceled-trip alert reconciliation.
 
@@ -223,7 +228,7 @@ Migrations under `db/migrations` are the source of truth for executable schema c
 
 The following are still missing or incomplete unless a later handoff says otherwise:
 
-- production-grade learned ETA/prediction quality and backtesting
+- production-grade learned ETA/prediction quality
 - hosted login/SSO and server-side admin JWT `jti` replay tracking
 - full operator UI for manual override workflows
 - production SLO dashboards and alerting beyond Phase 17 lightweight feed-monitor examples, Phase 18 operator pages, request logs, request IDs, readiness checks, and `/metrics` toggle
@@ -234,7 +239,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 18 — Admin UX And Agency Operations Console is complete for the documented minimal operator-console scope. Phases 12 through 17 remain closed for their documented scopes.
+**Active phase:** Phase 19 — Realtime Quality And ETA Improvement is complete for the documented measurement-first scope. Phases 12 through 18 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -242,7 +247,7 @@ Phase 13 added documentation-only consumer submission records and templates. It 
 
 Phase 14 added documentation-only public-facing polish. It did not change backend runtime behavior, API contracts, database schema, public feed URLs, external integrations, evidence claims, or consumer-submission status.
 
-Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, or new evidence claims.
+Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. Phase 19 added replay measurement, explicit quality metrics, diagnostics, and safe Operations Console quality summaries. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, or new evidence claims.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 

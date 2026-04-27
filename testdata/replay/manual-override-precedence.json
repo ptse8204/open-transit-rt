@@ -1,0 +1,54 @@
+{
+  "name": "manual-override-precedence",
+  "input_fixture": "inline-manual-override-replay",
+  "agency_id": "demo-agency",
+  "timezone": "America/Vancouver",
+  "feed_version_id": "feed-replay",
+  "generated_at": "2026-04-20T15:05:00Z",
+  "trips": [
+    {
+      "service_date": "20260420",
+      "route_id": "route-10",
+      "trip_id": "trip-10",
+      "block_id": "block-10",
+      "start_time": "08:00:00",
+      "stop_times": [
+        {"stop_id": "stop-1", "stop_sequence": 1, "arrival_time": "08:00:00", "departure_time": "08:00:00", "shape_dist_traveled": 0},
+        {"stop_id": "stop-2", "stop_sequence": 2, "arrival_time": "08:10:00", "departure_time": "08:10:00", "shape_dist_traveled": 1000}
+      ]
+    }
+  ],
+  "telemetry_events": [
+    {"id": 501, "device_id": "device-manual", "vehicle_id": "bus-manual", "timestamp": "2026-04-20T15:05:00Z", "lat": 0, "lon": 0}
+  ],
+  "manual_overrides": [
+    {"id": 1, "vehicle_id": "bus-manual", "type": "trip_assignment", "route_id": "route-10", "trip_id": "trip-10", "start_date": "20260420", "start_time": "08:00:00", "state": "in_service", "reason": "operator correction"}
+  ],
+  "expected": {
+    "assignments": [
+      {"vehicle_id": "bus-manual", "state": "in_service", "source": "manual_override", "degraded_state": "none", "trip_id": "trip-10", "reason_codes": ["manual_override_active"]}
+    ],
+    "vehicle_positions": [
+      {"vehicle_id": "bus-manual", "included": true, "trip_descriptor": true, "trip_omission_reason": "none"}
+    ],
+    "trip_updates": [],
+    "withheld_reasons": {"missing_current_stop_sequence": 1},
+    "metrics": {
+      "telemetry_rows_considered": 1,
+      "assignments_considered": 1,
+      "unknown_assignments": 0,
+      "ambiguous_assignments": 0,
+      "degraded_assignments": 0,
+      "stale_telemetry_rows": 0,
+      "manual_override_assignments": 1,
+      "eligible_prediction_candidates": 0,
+      "trip_updates_emitted": 0,
+      "withheld_by_reason": {"missing_current_stop_sequence": 1},
+      "unknown_assignment_rate": {"numerator": 0, "denominator": 1, "status": "measured", "percent": 0},
+      "ambiguous_assignment_rate": {"numerator": 0, "denominator": 1, "status": "measured", "percent": 0},
+      "stale_telemetry_rate": {"numerator": 0, "denominator": 1, "status": "measured", "percent": 0},
+      "trip_updates_coverage_rate": {"numerator": 0, "denominator": 0, "status": "not_applicable"},
+      "future_stop_coverage_rate": {"numerator": 0, "denominator": 0, "status": "not_applicable"}
+    }
+  }
+}

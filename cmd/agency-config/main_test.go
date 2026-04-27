@@ -18,6 +18,7 @@ import (
 	"open-transit-rt/internal/compliance"
 	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/feed/schedule"
+	"open-transit-rt/internal/prediction"
 	"open-transit-rt/internal/state"
 	"open-transit-rt/internal/telemetry"
 )
@@ -224,9 +225,61 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "publication metadata is not configured yet", "telemetry repository is not available"} {
+	for _, want := range []string{"Operations Console", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+}
+
+func TestOperationsConsoleRendersSafeTripUpdatesQualitySummary(t *testing.T) {
+	now := time.Date(2026, 4, 26, 12, 0, 0, 0, time.UTC)
+	coverage := 50.0
+	store := &fakePublicationStore{
+		tripDiagnostics: compliance.TripUpdatesDiagnosticsSummary{
+			Recorded:                      true,
+			SnapshotAt:                    now,
+			AdapterName:                   "deterministic",
+			DiagnosticsStatus:             prediction.StatusOK,
+			DiagnosticsReason:             prediction.ReasonPartialPredictions,
+			ActiveFeedVersionID:           "feed-demo",
+			DiagnosticsPersistenceOutcome: "stored",
+			Metrics: prediction.Metrics{
+				TelemetryRowsConsidered:      2,
+				AssignmentsConsidered:        2,
+				EligiblePredictionCandidates: 2,
+				TripUpdatesEmitted:           1,
+				UnknownAssignments:           1,
+				AmbiguousAssignments:         1,
+				StaleTelemetryRows:           1,
+				ManualOverrideAssignments:    1,
+				WithheldByReason:             map[string]int{prediction.ReasonDegradedAssignment: 1},
+				UnknownAssignmentRate:        prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "current unknown assignments / current assignments considered"},
+				AmbiguousAssignmentRate:      prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "current ambiguous assignments / current assignments considered"},
+				StaleTelemetryRate:           prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "stale latest telemetry rows / telemetry rows considered"},
+				TripUpdatesCoverageRate:      prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "emitted non-canceled Trip Updates / eligible in-service ETA candidates"},
+				FutureStopCoverageRate:       prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "non-canceled Trip Updates with at least one future stop update / eligible in-service ETA candidates"},
+			},
+		},
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/feeds", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Trip Updates Quality Diagnostics", "deterministic", "partial_predictions", "50.0% (1/2)", "degraded_assignment: 1"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"payload_json", "score_details", "private_debug", "token_hash"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("body leaks %q: %s", forbidden, body)
 		}
 	}
 }
@@ -512,13 +565,15 @@ func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersi
 }
 
 type fakePublicationStore struct {
-	result       compliance.ValidationResult
-	discovery    compliance.FeedDiscovery
-	discoveryErr error
-	scorecard    compliance.Scorecard
-	scorecardErr error
-	consumers    []compliance.ConsumerRecord
-	consumersErr error
+	result             compliance.ValidationResult
+	discovery          compliance.FeedDiscovery
+	discoveryErr       error
+	scorecard          compliance.Scorecard
+	scorecardErr       error
+	consumers          []compliance.ConsumerRecord
+	consumersErr       error
+	tripDiagnostics    compliance.TripUpdatesDiagnosticsSummary
+	tripDiagnosticsErr error
 }
 
 func (f *fakePublicationStore) BootstrapPublication(context.Context, compliance.BootstrapInput) error {
@@ -548,6 +603,13 @@ func (f *fakePublicationStore) LatestScorecard(context.Context, string) (complia
 		return compliance.Scorecard{}, f.scorecardErr
 	}
 	return f.scorecard, nil
+}
+
+func (f *fakePublicationStore) LatestTripUpdatesDiagnostics(context.Context, string) (compliance.TripUpdatesDiagnosticsSummary, error) {
+	if f.tripDiagnosticsErr != nil {
+		return compliance.TripUpdatesDiagnosticsSummary{}, f.tripDiagnosticsErr
+	}
+	return f.tripDiagnostics, nil
 }
 
 func (f *fakePublicationStore) BuildAndStoreScorecard(context.Context, string, time.Time) (compliance.Scorecard, error) {

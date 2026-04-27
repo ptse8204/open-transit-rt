@@ -12,6 +12,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"open-transit-rt/internal/prediction"
 )
 
 type PostgresRepository struct {
@@ -314,6 +316,47 @@ func (r *PostgresRepository) LatestScorecard(ctx context.Context, agencyID strin
 	scorecard.Details = map[string]any{}
 	_ = json.Unmarshal(detailsBytes, &scorecard.Details)
 	return scorecard, nil
+}
+
+func (r *PostgresRepository) LatestTripUpdatesDiagnostics(ctx context.Context, agencyID string) (TripUpdatesDiagnosticsSummary, error) {
+	var snapshotAt time.Time
+	var detailsBytes []byte
+	err := r.pool.QueryRow(ctx, `
+		SELECT snapshot_at, details_json
+		FROM feed_health_snapshot
+		WHERE agency_id = $1 AND feed_type = 'trip_updates'
+		ORDER BY snapshot_at DESC, id DESC
+		LIMIT 1
+	`, agencyID).Scan(&snapshotAt, &detailsBytes)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return TripUpdatesDiagnosticsSummary{Recorded: false}, nil
+		}
+		return TripUpdatesDiagnosticsSummary{}, fmt.Errorf("query latest trip updates diagnostics: %w", err)
+	}
+	var details struct {
+		AdapterName                   string             `json:"adapter_name"`
+		DiagnosticsStatus             string             `json:"diagnostics_status"`
+		DiagnosticsReason             string             `json:"diagnostics_reason"`
+		ActiveFeedVersionID           string             `json:"active_feed_version_id"`
+		PredictionMetrics             prediction.Metrics `json:"prediction_metrics"`
+		VehiclePositionsURL           string             `json:"vehicle_positions_url"`
+		DiagnosticsPersistenceOutcome string             `json:"diagnostics_persistence_outcome"`
+	}
+	if err := json.Unmarshal(detailsBytes, &details); err != nil {
+		return TripUpdatesDiagnosticsSummary{}, fmt.Errorf("decode latest trip updates diagnostics: %w", err)
+	}
+	return TripUpdatesDiagnosticsSummary{
+		Recorded:                      true,
+		SnapshotAt:                    snapshotAt.UTC(),
+		AdapterName:                   details.AdapterName,
+		DiagnosticsStatus:             details.DiagnosticsStatus,
+		DiagnosticsReason:             details.DiagnosticsReason,
+		ActiveFeedVersionID:           details.ActiveFeedVersionID,
+		VehiclePositionsURL:           details.VehiclePositionsURL,
+		DiagnosticsPersistenceOutcome: details.DiagnosticsPersistenceOutcome,
+		Metrics:                       details.PredictionMetrics,
+	}, nil
 }
 
 func (r *PostgresRepository) StoreValidationResult(ctx context.Context, result ValidationResult) error {

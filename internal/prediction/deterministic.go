@@ -98,12 +98,26 @@ func (a *DeterministicAdapter) PredictTripUpdates(ctx context.Context, request R
 	metrics := Metrics{
 		TelemetryRowsConsidered: len(request.Telemetry),
 		AssignmentsConsidered:   len(request.Assignments),
-		WithheldByReason:        map[string]int{},
-		DegradedByReason:        map[string]int{},
+		AssignmentConfidenceBuckets: map[string]int{
+			"0.00-0.49": 0,
+			"0.50-0.64": 0,
+			"0.65-0.79": 0,
+			"0.80-1.00": 0,
+		},
+		WithheldByReason: map[string]int{},
+		DegradedByReason: map[string]int{},
 	}
+	a.populateQualityMetrics(request, &metrics)
 	details := map[string]any{
 		"coverage_denominator": "eligible in-service ETA prediction candidates; canceled trips are excluded and tracked separately",
 		"review_lifecycle":     "prediction review items use open/resolved/deferred status",
+		"rate_denominators": map[string]string{
+			"unknown_assignment_rate":   "current unknown assignments / current assignments considered",
+			"ambiguous_assignment_rate": "current ambiguous assignments / current assignments considered",
+			"stale_telemetry_rate":      "stale latest telemetry rows / telemetry rows considered",
+			"trip_updates_coverage":     "emitted non-canceled Trip Updates / eligible in-service ETA candidates",
+			"future_stop_coverage":      "non-canceled Trip Updates with at least one future stop update / eligible in-service ETA candidates",
+		},
 	}
 	reviews := []ReviewItem{}
 
@@ -148,6 +162,8 @@ func (a *DeterministicAdapter) PredictTripUpdates(ctx context.Context, request R
 	}
 	metrics.CoveragePercent = percent(countETAUpdates(updates), metrics.EligiblePredictionCandidates)
 	metrics.FutureStopCoveragePercent = percent(countUpdatesWithFutureStops(updates), metrics.EligiblePredictionCandidates)
+	metrics.TripUpdatesCoverageRate = rateMetric(countETAUpdates(updates), metrics.EligiblePredictionCandidates, "emitted non-canceled Trip Updates / eligible in-service ETA candidates", "no eligible in-service ETA candidates")
+	metrics.FutureStopCoverageRate = rateMetric(countUpdatesWithFutureStops(updates), metrics.EligiblePredictionCandidates, "non-canceled Trip Updates with at least one future stop update / eligible in-service ETA candidates", "no eligible in-service ETA candidates")
 
 	if a.operations != nil && len(reviews) > 0 {
 		if err := a.operations.SavePredictionReviewItems(ctx, reviews); err != nil {
@@ -172,6 +188,32 @@ func (a *DeterministicAdapter) PredictTripUpdates(ctx context.Context, request R
 			Details: details,
 		},
 	}, nil
+}
+
+func (a *DeterministicAdapter) populateQualityMetrics(request Request, metrics *Metrics) {
+	for _, event := range request.Telemetry {
+		if request.GeneratedAt.Sub(event.Timestamp) > a.config.StaleTelemetryTTL {
+			metrics.StaleTelemetryRows++
+		}
+	}
+	for _, assignment := range request.Assignments {
+		metrics.AssignmentConfidenceBuckets[confidenceBucket(assignment.Confidence)]++
+		if assignment.State == state.StateUnknown {
+			metrics.UnknownAssignments++
+		}
+		if assignment.AssignmentSource == state.AssignmentSourceManualOverride {
+			metrics.ManualOverrideAssignments++
+		}
+		if assignment.DegradedState != "" && assignment.DegradedState != state.DegradedNone {
+			metrics.DegradedAssignments++
+			if assignment.DegradedState == state.DegradedAmbiguous || hasAssignmentReason(assignment, state.ReasonAmbiguousCandidates) {
+				metrics.AmbiguousAssignments++
+			}
+		}
+	}
+	metrics.UnknownAssignmentRate = rateMetric(metrics.UnknownAssignments, metrics.AssignmentsConsidered, "current unknown assignments / current assignments considered", "no current assignments considered")
+	metrics.AmbiguousAssignmentRate = rateMetric(metrics.AmbiguousAssignments, metrics.AssignmentsConsidered, "current ambiguous assignments / current assignments considered", "no current assignments considered")
+	metrics.StaleTelemetryRate = rateMetric(metrics.StaleTelemetryRows, metrics.TelemetryRowsConsidered, "stale latest telemetry rows / telemetry rows considered", "no telemetry rows considered")
 }
 
 type scheduleCache struct {
@@ -234,6 +276,11 @@ func (a *DeterministicAdapter) evaluateAssignment(
 	}
 	if assignment.State == state.StateLayover {
 		a.withhold(request, assignment, &event, ReasonLayoverNoPrediction, metrics, reviews)
+		return predictedCandidate{}, false
+	}
+	if assignment.State == state.StateUnknown && assignment.DegradedState != "" && assignment.DegradedState != state.DegradedNone {
+		a.withhold(request, assignment, &event, ReasonDegradedAssignment, metrics, reviews)
+		metrics.DegradedByReason[string(assignment.DegradedState)]++
 		return predictedCandidate{}, false
 	}
 	if assignment.State != state.StateInService {
@@ -488,15 +535,22 @@ func hasBlockingDisruption(overrides []OverrideRecord) bool {
 func (a *DeterministicAdapter) withhold(request Request, assignment state.Assignment, event *telemetry.StoredEvent, reason string, metrics *Metrics, reviews *[]ReviewItem) {
 	metrics.WithheldByReason[reason]++
 	details := map[string]any{
-		"reason":                    reason,
-		"assignment_id":             assignment.ID,
-		"assignment_source":         assignment.AssignmentSource,
-		"degraded_state":            assignment.DegradedState,
-		"coverage_denominator_note": "only ETA-eligible in-service prediction candidates count in coverage percent",
+		"reason":                       reason,
+		"reason_category":              reasonCategory(reason),
+		"assignment_id":                assignment.ID,
+		"assignment_source":            assignment.AssignmentSource,
+		"degraded_state":               assignment.DegradedState,
+		"assignment_state":             assignment.State,
+		"assignment_confidence_bucket": confidenceBucket(assignment.Confidence),
+		"has_trip_identity":            assignment.TripID != "" && assignment.StartDate != "" && assignment.StartTime != "",
+		"active_feed_version_id":       request.ActiveFeedVersion.ID,
+		"coverage_denominator_note":    "only ETA-eligible in-service prediction candidates count in coverage percent",
 	}
 	if event != nil {
 		details["telemetry_event_id"] = event.ID
 		details["observed_at"] = event.Timestamp.UTC().Format(time.RFC3339)
+		details["telemetry_age_seconds"] = request.GeneratedAt.Sub(event.Timestamp).Seconds()
+		details["stale_threshold_seconds"] = a.config.StaleTelemetryTTL.Seconds()
 	}
 	*reviews = append(*reviews, ReviewItem{
 		AgencyID:   request.AgencyID,
@@ -530,8 +584,49 @@ func (a *DeterministicAdapter) withholdOverride(request Request, override Overri
 			"prediction_override_id": override.ID,
 			"override_type":          override.OverrideType,
 			"override_state":         override.State,
+			"reason_category":        reasonCategory(reason),
+			"active_feed_version_id": request.ActiveFeedVersion.ID,
 		},
 	})
+}
+
+func confidenceBucket(confidence float64) string {
+	switch {
+	case confidence < 0.50:
+		return "0.00-0.49"
+	case confidence < 0.65:
+		return "0.50-0.64"
+	case confidence < 0.80:
+		return "0.65-0.79"
+	default:
+		return "0.80-1.00"
+	}
+}
+
+func hasAssignmentReason(assignment state.Assignment, reason string) bool {
+	for _, candidate := range assignment.ReasonCodes {
+		if candidate == reason {
+			return true
+		}
+	}
+	return false
+}
+
+func reasonCategory(reason string) string {
+	switch reason {
+	case ReasonStaleTelemetry:
+		return "stale_telemetry"
+	case ReasonDegradedAssignment, ReasonBelowConfidenceThreshold, ReasonDuplicateTripInstance:
+		return "assignment_quality"
+	case ReasonAddedTripWithheld, ReasonShortTurnWithheld, ReasonDetourPredictionWithheld:
+		return "unsupported_disruption"
+	case ReasonCanceledTripRequiresAlert:
+		return "cancellation_alert_review"
+	case ReasonScheduleUnavailable, ReasonCurrentStopNotInSchedule, ReasonScheduleDeviationTooLarge, ReasonNoFutureStops:
+		return "schedule_prediction"
+	default:
+		return "eligibility"
+	}
 }
 
 func reviewSeverity(reason string) string {
@@ -586,6 +681,23 @@ func percent(numerator int, denominator int) *float64 {
 	}
 	value := float64(numerator) / float64(denominator) * 100
 	return &value
+}
+
+func rateMetric(numerator int, denominator int, definition string, notApplicableReason string) RateMetric {
+	metric := RateMetric{
+		Numerator:             numerator,
+		Denominator:           denominator,
+		DenominatorDefinition: definition,
+	}
+	if denominator <= 0 {
+		metric.Status = "not_applicable"
+		metric.NotApplicableReason = notApplicableReason
+		return metric
+	}
+	value := float64(numerator) / float64(denominator) * 100
+	metric.Percent = &value
+	metric.Status = "measured"
+	return metric
 }
 
 func countUpdatesWithFutureStops(updates []TripUpdate) int {

@@ -5,7 +5,7 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -88,6 +88,9 @@ fmt:
 test:
 	go test ./...
 
+realtime-quality:
+	go test ./internal/realtimequality
+
 test-integration: migrate-status
 	@echo "Phase 9 production-closure integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, device auth, assignment race, and hardening tests use isolated temporary databases when supported."
 	INTEGRATION_TESTS=1 TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...
@@ -142,6 +145,7 @@ validate:
 	@test -f internal/prediction/model.go
 	@test -f internal/prediction/deterministic.go
 	@test -f internal/prediction/postgres_operations.go
+	@test -f internal/realtimequality/replay.go
 	@test -f internal/gtfs/importer.go
 	@test -f internal/gtfs/draft.go
 	@test -f cmd/feed-vehicle-positions/main.go
@@ -154,6 +158,7 @@ validate:
 	@test -d testdata/gtfs/frequency-based
 	@test -d testdata/gtfs/malformed
 	@test -d testdata/telemetry
+	@test -d testdata/replay
 	@echo "Validation smoke passed. Canonical validators run through server-side allowlisted IDs when configured."
 
 # ---------------------------------------------------------------------------

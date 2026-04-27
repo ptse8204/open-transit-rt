@@ -68,8 +68,8 @@ func TestPostgresDiagnosticsRepositoryIntegration(t *testing.T) {
 	if feedType != "trip_updates" {
 		t.Fatalf("feed_type = %q, want trip_updates", feedType)
 	}
-	if coverage == nil || *coverage != 0 {
-		t.Fatalf("coverage = %v, want 0", coverage)
+	if coverage != nil {
+		t.Fatalf("coverage = %v, want nil when no eligible coverage denominator is recorded", *coverage)
 	}
 	var details map[string]any
 	if err := json.Unmarshal(detailsBytes, &details); err != nil {

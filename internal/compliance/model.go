@@ -1,6 +1,10 @@
 package compliance
 
-import "time"
+import (
+	"time"
+
+	"open-transit-rt/internal/prediction"
+)
 
 const (
 	EnvironmentDev        = "dev"
@@ -127,4 +131,16 @@ type ValidationResult struct {
 	WarningCount     int            `json:"warning_count"`
 	InfoCount        int            `json:"info_count"`
 	Report           map[string]any `json:"report"`
+}
+
+type TripUpdatesDiagnosticsSummary struct {
+	Recorded                      bool               `json:"recorded"`
+	SnapshotAt                    time.Time          `json:"snapshot_at,omitempty"`
+	AdapterName                   string             `json:"adapter_name,omitempty"`
+	DiagnosticsStatus             string             `json:"diagnostics_status,omitempty"`
+	DiagnosticsReason             string             `json:"diagnostics_reason,omitempty"`
+	ActiveFeedVersionID           string             `json:"active_feed_version_id,omitempty"`
+	VehiclePositionsURL           string             `json:"vehicle_positions_url,omitempty"`
+	DiagnosticsPersistenceOutcome string             `json:"diagnostics_persistence_outcome,omitempty"`
+	Metrics                       prediction.Metrics `json:"prediction_metrics"`
 }

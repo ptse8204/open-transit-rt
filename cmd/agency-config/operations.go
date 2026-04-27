@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
 	"open-transit-rt/internal/devices"
+	"open-transit-rt/internal/prediction"
 	"open-transit-rt/internal/state"
 )
 
@@ -32,6 +34,7 @@ type operationsPage struct {
 	ActiveFeedVersion  string
 	FeedsUpdatedAt     *time.Time
 	TelemetryUpdatedAt *time.Time
+	TripUpdatesQuality tripUpdatesQualityView
 	ScorecardUpdatedAt *time.Time
 	ConsumersUpdatedAt *time.Time
 	EvidenceUpdatedAt  string
@@ -76,10 +79,44 @@ type telemetryView struct {
 	AssignmentAt     *time.Time
 }
 
+type tripUpdatesQualityView struct {
+	Recorded                      bool
+	Message                       string
+	SnapshotAt                    *time.Time
+	AdapterName                   string
+	DiagnosticsStatus             string
+	DiagnosticsReason             string
+	ActiveFeedVersionID           string
+	DiagnosticsPersistenceOutcome string
+	UnknownAssignmentRate         string
+	AmbiguousAssignmentRate       string
+	StaleTelemetryRate            string
+	TripUpdatesCoverageRate       string
+	FutureStopCoverageRate        string
+	EligiblePredictionCandidates  int
+	TripUpdatesEmitted            int
+	UnknownAssignments            int
+	AmbiguousAssignments          int
+	StaleTelemetryRows            int
+	ManualOverrideAssignments     int
+	CanceledTripsEmitted          int
+	CancellationAlertLinksMissing int
+	WithheldByReason              []countView
+}
+
+type countView struct {
+	Label string
+	Count int
+}
+
 type evidenceLink struct {
 	Label     string
 	Path      string
 	UpdatedAt string
+}
+
+type tripUpdatesDiagnosticsReader interface {
+	LatestTripUpdatesDiagnostics(ctx context.Context, agencyID string) (compliance.TripUpdatesDiagnosticsSummary, error)
 }
 
 func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
@@ -196,6 +233,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	}
 
 	page.Telemetry, page.TelemetryUpdatedAt, page.StaleCount, page.TelemetryError = h.telemetryViews(r, principal.AgencyID, now)
+	page.TripUpdatesQuality = h.tripUpdatesQualityView(r, principal.AgencyID)
 
 	bindings, err := h.devices.ListBindings(r.Context(), principal.AgencyID)
 	if err != nil {
@@ -204,6 +242,74 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		page.Devices = bindings
 	}
 	return page
+}
+
+func (h *handler) tripUpdatesQualityView(r *http.Request, agencyID string) tripUpdatesQualityView {
+	reader, ok := h.store.(tripUpdatesDiagnosticsReader)
+	if !ok {
+		return tripUpdatesQualityView{Message: "no Trip Updates diagnostics recorded yet"}
+	}
+	summary, err := reader.LatestTripUpdatesDiagnostics(r.Context(), agencyID)
+	if err != nil {
+		return tripUpdatesQualityView{Message: "Trip Updates diagnostics are not available"}
+	}
+	if !summary.Recorded {
+		return tripUpdatesQualityView{Message: "no Trip Updates diagnostics recorded yet"}
+	}
+	snapshotAt := summary.SnapshotAt.UTC()
+	metrics := summary.Metrics
+	return tripUpdatesQualityView{
+		Recorded:                      true,
+		SnapshotAt:                    &snapshotAt,
+		AdapterName:                   summary.AdapterName,
+		DiagnosticsStatus:             summary.DiagnosticsStatus,
+		DiagnosticsReason:             summary.DiagnosticsReason,
+		ActiveFeedVersionID:           summary.ActiveFeedVersionID,
+		DiagnosticsPersistenceOutcome: summary.DiagnosticsPersistenceOutcome,
+		UnknownAssignmentRate:         rateText(metrics.UnknownAssignmentRate),
+		AmbiguousAssignmentRate:       rateText(metrics.AmbiguousAssignmentRate),
+		StaleTelemetryRate:            rateText(metrics.StaleTelemetryRate),
+		TripUpdatesCoverageRate:       rateText(metrics.TripUpdatesCoverageRate),
+		FutureStopCoverageRate:        rateText(metrics.FutureStopCoverageRate),
+		EligiblePredictionCandidates:  metrics.EligiblePredictionCandidates,
+		TripUpdatesEmitted:            metrics.TripUpdatesEmitted,
+		UnknownAssignments:            metrics.UnknownAssignments,
+		AmbiguousAssignments:          metrics.AmbiguousAssignments,
+		StaleTelemetryRows:            metrics.StaleTelemetryRows,
+		ManualOverrideAssignments:     metrics.ManualOverrideAssignments,
+		CanceledTripsEmitted:          metrics.CanceledTripsEmitted,
+		CancellationAlertLinksMissing: metrics.CancellationAlertLinksMissing,
+		WithheldByReason:              countViews(metrics.WithheldByReason),
+	}
+}
+
+func rateText(rate prediction.RateMetric) string {
+	if rate.Status == "not_applicable" {
+		if rate.NotApplicableReason != "" {
+			return "not applicable: " + rate.NotApplicableReason
+		}
+		return "not applicable"
+	}
+	if rate.Percent == nil {
+		return "not available"
+	}
+	return fmt.Sprintf("%.1f%% (%d/%d)", *rate.Percent, rate.Numerator, rate.Denominator)
+}
+
+func countViews(counts map[string]int) []countView {
+	keys := make([]string, 0, len(counts))
+	for key, count := range counts {
+		if count <= 0 {
+			continue
+		}
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	views := make([]countView, 0, len(keys))
+	for _, key := range keys {
+		views = append(views, countView{Label: key, Count: counts[key]})
+	}
+	return views
 }
 
 func (h *handler) telemetryViews(r *http.Request, agencyID string, now time.Time) ([]telemetryView, *time.Time, int, string) {
@@ -445,6 +551,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
+<tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
 <tr><td>Scorecard</td><td>{{if .Scorecard}}{{.Scorecard.OverallStatus}}{{else}}{{.ScorecardError}}{{end}}</td><td>{{formatTimePtr .ScorecardUpdatedAt}}</td><td><a href="/admin/operations/evidence">find scorecard evidence</a></td></tr>
 <tr><td>Consumer status</td><td>{{if .ConsumerError}}{{.ConsumerError}}{{else}}{{len .Consumers}} targets shown{{end}}</td><td>{{formatTimePtr .ConsumersUpdatedAt}}</td><td><a href="/admin/operations/consumers">review evidence-only statuses</a></td></tr>
 <tr><td>Evidence links</td><td>repo documentation links</td><td>{{.EvidenceUpdatedAt}}</td><td><a href="/admin/operations/evidence">open evidence index</a></td></tr>
@@ -452,6 +559,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 <h2>Public Feed URLs</h2>
 {{if .DiscoveryError}}<p>No public feed metadata is available yet.</p>{{else}}{{template "feedTable" .}}{{end}}
+{{template "tripUpdatesQuality" .}}
 <p class="muted">Validation and public fetch records are supporting evidence only. They are not consumer acceptance or CAL-ITP/Caltrans compliance by themselves.</p>
 {{template "layoutEnd" .}}
 {{end}}
@@ -461,6 +569,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Feed URLs And Validation</h2>
 {{if .DiscoveryError}}<p class="warning">No feed metadata is available. Next action: publish or import a GTFS feed, then bootstrap publication metadata.</p>{{else}}
 {{template "feedTable" .}}
+{{template "tripUpdatesQuality" .}}
 <h3>Feed discovery document</h3>
 <table><thead><tr><th>Item</th><th>URL</th><th>Validation</th><th>Last checked</th></tr></thead><tbody>
 <tr><td>feeds.json</td><td>{{.Discovery.PublicBaseURL}}/public/feeds.json</td><td>not a validator result</td><td>{{formatTime .Discovery.GeneratedAt}}</td></tr>
@@ -474,6 +583,27 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <table><thead><tr><th>Feed</th><th>URL</th><th>Validation</th><th>Validation time</th><th>Health</th><th>Health time</th><th>Active feed version</th></tr></thead><tbody>
 {{range sortedFeeds .Discovery.Feeds}}<tr><td>{{.FeedType}}</td><td>{{if .CanonicalPublicURL}}<code>{{.CanonicalPublicURL}}</code>{{else}}missing{{end}}</td><td>{{.LastValidationStatus}}</td><td>{{formatTimePtr .LastValidationAt}}</td><td>{{.LastHealthStatus}}</td><td>{{formatTimePtr .LastHealthAt}}</td><td>{{.ActiveFeedVersionID}}</td></tr>{{end}}
 </tbody></table>
+{{end}}
+
+{{define "tripUpdatesQuality"}}
+<h3>Trip Updates Quality Diagnostics</h3>
+{{if not .TripUpdatesQuality.Recorded}}<p class="warning">{{.TripUpdatesQuality.Message}}.</p>{{else}}
+<table><tbody>
+<tr><th>Recorded</th><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td></tr>
+<tr><th>Adapter</th><td>{{.TripUpdatesQuality.AdapterName}}</td></tr>
+<tr><th>Status</th><td>{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}</td></tr>
+<tr><th>Active feed version</th><td>{{.TripUpdatesQuality.ActiveFeedVersionID}}</td></tr>
+<tr><th>Unknown assignment rate</th><td>{{.TripUpdatesQuality.UnknownAssignmentRate}}</td></tr>
+<tr><th>Ambiguous assignment rate</th><td>{{.TripUpdatesQuality.AmbiguousAssignmentRate}}</td></tr>
+<tr><th>Stale telemetry rate</th><td>{{.TripUpdatesQuality.StaleTelemetryRate}}</td></tr>
+<tr><th>Trip Updates coverage</th><td>{{.TripUpdatesQuality.TripUpdatesCoverageRate}}</td></tr>
+<tr><th>Future-stop coverage</th><td>{{.TripUpdatesQuality.FutureStopCoverageRate}}</td></tr>
+<tr><th>Counts</th><td>{{.TripUpdatesQuality.TripUpdatesEmitted}} emitted; {{.TripUpdatesQuality.EligiblePredictionCandidates}} eligible ETA candidates; {{.TripUpdatesQuality.UnknownAssignments}} unknown; {{.TripUpdatesQuality.AmbiguousAssignments}} ambiguous; {{.TripUpdatesQuality.StaleTelemetryRows}} stale telemetry; {{.TripUpdatesQuality.ManualOverrideAssignments}} manual overrides; {{.TripUpdatesQuality.CanceledTripsEmitted}} canceled emitted; {{.TripUpdatesQuality.CancellationAlertLinksMissing}} cancellation alerts missing</td></tr>
+<tr><th>Withheld by reason</th><td>{{if .TripUpdatesQuality.WithheldByReason}}{{range .TripUpdatesQuality.WithheldByReason}}<span class="pill">{{.Label}}: {{.Count}}</span> {{end}}{{else}}none recorded{{end}}</td></tr>
+<tr><th>Diagnostics persistence</th><td>{{.TripUpdatesQuality.DiagnosticsPersistenceOutcome}}</td></tr>
+</tbody></table>
+{{end}}
+<p class="muted">This summary is based only on recorded Trip Updates diagnostics. It omits raw telemetry payloads, full score details, token fields, and private debug blobs.</p>
 {{end}}
 
 {{define "telemetry"}}

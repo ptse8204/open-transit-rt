@@ -52,12 +52,5 @@ func (r *PostgresDiagnosticsRepository) SaveTripUpdatesDiagnostics(ctx context.C
 }
 
 func coveragePercent(record DiagnosticsRecord) *float64 {
-	if record.Metrics.CoveragePercent != nil {
-		return record.Metrics.CoveragePercent
-	}
-	if record.InputCounts.AssignmentRows <= 0 {
-		return nil
-	}
-	value := float64(record.InputCounts.TripUpdatesOutput) / float64(record.InputCounts.AssignmentRows) * 100
-	return &value
+	return record.Metrics.CoveragePercent
 }

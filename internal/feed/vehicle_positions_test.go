@@ -139,7 +139,7 @@ func TestVehiclePositionsSnapshotPublicationDecisions(t *testing.T) {
 				AssignmentSource: state.AssignmentSourceUnknown,
 				DegradedState:    state.DegradedUnknown,
 			}),
-			wantReason: TripDescriptorOmissionNotInService,
+			wantReason: TripDescriptorOmissionDegradedAssignment,
 			wantEntity: true,
 		},
 		{

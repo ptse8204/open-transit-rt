@@ -2,11 +2,11 @@
 
 ## Status
 
-Planned phase. Not implemented until `docs/handoffs/latest.md` marks it active.
+Implemented for the measurement-first Phase 19 scope. See `docs/handoffs/phase-19.md`.
 
 ## Purpose
 
-Phase 19 returns to the hardest original technical problem: trustworthy trip matching and useful Trip Updates. Earlier phases built conservative matching and prediction. This phase improves quality with replay tests, metrics, and optional predictor contracts.
+Phase 19 returns to the hardest original technical problem: trustworthy trip matching and useful Trip Updates. Earlier phases built conservative matching and prediction. This phase improves measurable quality with deterministic replay tests, explicit metrics, and safer diagnostics.
 
 ## Scope
 
@@ -21,13 +21,15 @@ Phase 19 returns to the hardest original technical problem: trustworthy trip mat
 
 ### 1) Replay Evaluation
 
-Add a fixture or replay framework that can compare:
+Implemented a deterministic fixture replay framework under `internal/realtimequality` with fixtures under `testdata/replay/`. The replay suite compares:
 
 - telemetry events;
 - expected assignments;
 - expected Vehicle Positions output;
 - expected Trip Updates behavior;
-- withheld/unknown cases.
+- withheld/unknown/degraded cases.
+
+Fixture schema and denominator definitions are documented in `testdata/replay/README.md`.
 
 ### 2) Quality Metrics
 
@@ -38,16 +40,20 @@ Track and report:
 - ambiguous candidate rate;
 - stale telemetry rate;
 - Trip Updates coverage;
+- future-stop coverage;
+- withheld-by-reason counts;
 - validator outcomes;
 - manual override usage.
 
+Rate metrics carry numerator, denominator, status, denominator definition, and an explicit `not_applicable` status when a denominator is zero.
+
 ### 3) ETA/Prediction Improvements
 
-Improve only where evidence supports it. Keep conservative behavior where data is weak.
+No broad ETA algorithm change was made in this phase. The implemented changes preserve conservative behavior and improve evidence/diagnostics around stale, ambiguous, unknown, low-confidence, canceled, added-trip, short-turn, and detour cases.
 
 ### 4) External Predictor Evaluation
 
-If evaluating TheTransitClock or another predictor:
+No TheTransitClock or other external predictor integration was added in this phase. If evaluated later:
 
 - keep it behind `internal/prediction.Adapter`;
 - do not make it the source of truth;
@@ -64,6 +70,13 @@ Phase 19 is complete only when:
 - conservative unknown behavior remains possible;
 - optional predictors remain adapter-bound;
 - Trip Updates claims remain realistic.
+
+## Implemented Notes
+
+- `make realtime-quality` runs `go test ./internal/realtimequality`.
+- Operations Console feed/dashboard views show only safe Trip Updates quality summaries from recorded `feed_health_snapshot` diagnostics.
+- If no Trip Updates diagnostics exist, the console says `no Trip Updates diagnostics recorded yet`.
+- The console does not synthesize a green or healthy summary without recorded diagnostics.
 
 ## Required Checks
 

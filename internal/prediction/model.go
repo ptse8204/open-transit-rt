@@ -90,6 +90,12 @@ type Metrics struct {
 	EligiblePredictionCandidates   int            `json:"eligible_prediction_candidates"`
 	TripUpdatesEmitted             int            `json:"trip_updates_emitted"`
 	StopUpdatesEmitted             int            `json:"stop_updates_emitted"`
+	AssignmentConfidenceBuckets    map[string]int `json:"assignment_confidence_buckets,omitempty"`
+	UnknownAssignments             int            `json:"unknown_assignments"`
+	AmbiguousAssignments           int            `json:"ambiguous_assignments"`
+	DegradedAssignments            int            `json:"degraded_assignments"`
+	StaleTelemetryRows             int            `json:"stale_telemetry_rows"`
+	ManualOverrideAssignments      int            `json:"manual_override_assignments"`
 	WithheldByReason               map[string]int `json:"withheld_by_reason,omitempty"`
 	DegradedByReason               map[string]int `json:"degraded_by_reason,omitempty"`
 	CanceledTripsEmitted           int            `json:"canceled_trips_emitted"`
@@ -100,6 +106,20 @@ type Metrics struct {
 	DetoursWithheld                int            `json:"detours_withheld"`
 	CoveragePercent                *float64       `json:"coverage_percent,omitempty"`
 	FutureStopCoveragePercent      *float64       `json:"future_stop_coverage_percent,omitempty"`
+	UnknownAssignmentRate          RateMetric     `json:"unknown_assignment_rate"`
+	AmbiguousAssignmentRate        RateMetric     `json:"ambiguous_assignment_rate"`
+	StaleTelemetryRate             RateMetric     `json:"stale_telemetry_rate"`
+	TripUpdatesCoverageRate        RateMetric     `json:"trip_updates_coverage_rate"`
+	FutureStopCoverageRate         RateMetric     `json:"future_stop_coverage_rate"`
+}
+
+type RateMetric struct {
+	Numerator             int      `json:"numerator"`
+	Denominator           int      `json:"denominator"`
+	Percent               *float64 `json:"percent,omitempty"`
+	Status                string   `json:"status"`
+	NotApplicableReason   string   `json:"not_applicable_reason,omitempty"`
+	DenominatorDefinition string   `json:"denominator_definition"`
 }
 
 type DiagnosticsRecord struct {
