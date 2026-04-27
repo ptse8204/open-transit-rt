@@ -1,0 +1,61 @@
+name: Feature request
+description: Suggest a scoped project improvement.
+title: "[Feature]: "
+labels:
+  - enhancement
+  - agency-feedback
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep requests inside Open Transit RT scope: GTFS import/Studio, telemetry ingest, conservative matching, GTFS Realtime feeds, Alerts, validation, monitoring, evidence workflows, and admin/operator workflows.
+
+        Do not paste tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, or unredacted operator artifacts. Use redacted examples and public-safe evidence. Maintainers may add `security-review-needed` when a request touches security, deployment boundaries, or evidence handling.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or operator need
+      description: What agency/operator/contributor problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the smallest useful change.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope area
+      options:
+        - Contributor experience
+        - Agency onboarding
+        - GTFS import or Studio
+        - Telemetry ingest
+        - Matching or realtime quality
+        - Public feed publishing
+        - Validation or evidence
+        - Operations or runbooks
+        - Multi-agency planning
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Boundary check
+      options:
+        - label: This request does not ask for rider apps, payments, passenger accounts, or CAD/dispatch replacement.
+          required: true
+        - label: This request does not claim compliance, consumer acceptance, agency endorsement, hosted SaaS availability, paid support, or SLA coverage.
+          required: true
+        - label: I did not include secrets or private operator artifacts.
+          required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional public-safe context
+      description: Add links, examples, or redacted notes. Leave blank if none.
+

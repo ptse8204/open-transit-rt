@@ -1,0 +1,43 @@
+name: Docs issue
+description: Report unclear, missing, or inaccurate documentation.
+title: "[Docs]: "
+labels:
+  - documentation
+  - good first issue
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Documentation issues are a good way to help. Do not paste tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, or unredacted operator artifacts.
+
+        Prefer public-safe examples, redacted logs, and exact page references. Maintainers may add `security-review-needed` if the docs issue concerns redaction, evidence handling, private deployment details, or unsupported claims.
+  - type: input
+    id: page
+    attributes:
+      label: Page or file
+      description: Which docs page or file needs work?
+      placeholder: docs/README.md
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is confusing or incorrect?
+      description: Explain the docs problem.
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested fix
+      description: Optional wording, link, or structure suggestion.
+  - type: checkboxes
+    id: claims
+    attributes:
+      label: Claim and secret safety
+      options:
+        - label: This docs issue does not introduce unsupported compliance, consumer acceptance, agency endorsement, hosted SaaS, paid support, SLA, vendor-equivalence, or production-readiness claims.
+          required: true
+        - label: I did not include secrets or unredacted operator artifacts.
+          required: true
+

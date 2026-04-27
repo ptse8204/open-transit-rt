@@ -4,6 +4,8 @@ Use this page to find the right guide without reading the whole repository histo
 
 If you are new to Open Transit RT, start with the public guides. If you are maintaining the repo, reviewing evidence, or continuing implementation work, use the deeper reference sections below.
 
+![Illustrative contribution paths: report a bug, improve docs, suggest a feature, submit code, and help with evidence runbooks.](assets/how-to-contribute-paths.png)
+
 ## Start Here
 
 | Need | Guide |
@@ -16,6 +18,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🚀 Plan a small deployment | [Deployment Guide](../wiki/deployment-guide.md) |
 | ✅ Review readiness and evidence | [Readiness And Evidence](../wiki/readiness-and-evidence.md) |
 | 🤝 Support or contribute | [Support And Contribute](../wiki/support-and-contribute.md) |
+| 🧑‍💻 Contribute safely | [Contributing](../CONTRIBUTING.md) |
 
 ## Practical Guides
 
@@ -59,6 +62,13 @@ Use these when checking product boundaries, integration points, and design decis
 
 These pages preserve detailed project state and history for maintainers and future agents:
 
+- [Contributing](../CONTRIBUTING.md)
+- [Code Of Conduct](../CODE_OF_CONDUCT.md)
+- [Governance](governance.md)
+- [Release Process](release-process.md)
+- [Support Boundaries](support-boundaries.md)
+- [Multi-Agency Strategy](multi-agency-strategy.md)
+- [Roadmap Status](roadmap-status.md)
 - [Current Status](current-status.md)
 - [Latest Continuation Notes](handoffs/latest.md)
 - [Maintainer History](handoffs/)

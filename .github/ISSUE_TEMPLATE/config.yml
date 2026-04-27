@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security or leaked secret report
+    url: https://github.com/ptse8204/open-transit-rt/security/advisories/new
+    about: Do not open a public issue for suspected vulnerabilities, leaked secrets, credentials, private keys, or unsafe evidence artifacts.
+  - name: Contributor guide
+    url: https://github.com/ptse8204/open-transit-rt/blob/main/CONTRIBUTING.md
+    about: Read contribution scope, checks, and secret-safety rules before opening an issue or PR.
+

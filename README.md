@@ -73,6 +73,8 @@ For a guided version, start with the [Agency First Run](docs/tutorials/agency-fi
 | 📚 Browse all documentation | [Documentation Home](docs/README.md) |
 | 🤝 Support or contribute | [Support And Contribute](wiki/support-and-contribute.md) |
 
+Community/process links: [Contributing](CONTRIBUTING.md), [Code Of Conduct](CODE_OF_CONDUCT.md), [Support Boundaries](docs/support-boundaries.md), [Governance](docs/governance.md), and [Roadmap Status](docs/roadmap-status.md).
+
 ## Evidence And Boundaries
 
 This repo includes local validation workflows, an executable agency demo, a repeatable pilot operations guide, and captured OCI pilot evidence. These are useful signals for evaluating the project.

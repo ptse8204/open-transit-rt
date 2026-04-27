@@ -1,0 +1,76 @@
+name: Bug report
+description: Report a reproducible Open Transit RT problem without posting secrets.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Do not paste tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, or unredacted operator artifacts.
+
+        Prefer redacted logs, public-safe evidence, exact commands, and a minimal reproduction. If the issue may involve leaked secrets or private deployment artifacts, follow SECURITY.md instead of posting publicly. Maintainers may add `security-review-needed` when a public report needs extra secret/evidence review.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Include exact commands, endpoint names, fixture paths, or local demo steps. Redact secrets.
+      placeholder: |
+        1. Run ...
+        2. Request ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include redacted output or public-safe evidence only.
+    validations:
+      required: true
+  - type: checkboxes
+    id: secret_safety
+    attributes:
+      label: Secret safety
+      options:
+        - label: I did not include tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, or unredacted operator artifacts.
+          required: true
+        - label: I used redacted logs or public-safe evidence where needed.
+          required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - GTFS import or Studio
+        - Telemetry ingest
+        - Trip matching
+        - Vehicle Positions
+        - Trip Updates
+        - Alerts
+        - Validation or scorecard
+        - Docs or evidence
+        - Local app or deployment scripts
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Go version, Docker version, command target, and non-secret config summary.
+

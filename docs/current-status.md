@@ -48,11 +48,15 @@ Phase 19 is complete for the Realtime Quality and ETA Improvement measurement-fi
 
 Phase 20 is complete for the Consumer Submission Execution and CAL-ITP Readiness Program docs/evidence scope. The repo now has complete prepared consumer/aggregator packet drafts for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land under `docs/evidence/consumer-submissions/packets/`; a machine-readable tracker snapshot at `docs/evidence/consumer-submissions/status.json`; a California readiness summary at `docs/california-readiness-summary.md`; and a marketplace/vendor gap review at `docs/marketplace-vendor-gap-review.md`. All seven consumer records are `prepared` only. No external portal was contacted, no submission was automated, no submission path was guessed, and no submission, under-review, acceptance, rejection, consumer-ingestion, compliance, marketplace-equivalence, hosted SaaS, agency-endorsement, or production-grade ETA claim was added.
 
+Phase 21 is complete for the Community, Governance, and Multi-Agency Scale docs/process scope. The repo now has contributor guidance, a code of conduct, GitHub issue and PR templates, governance authority docs, release process docs, support boundaries, multi-agency strategy, roadmap/status communication, and teaching visuals under `docs/assets/`. Phase 21 did not change backend behavior, API contracts, database schema, public feed URLs, consumer-submission statuses, external integrations, or evidence claims.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
 The repo has:
 - `AGENTS.md`
+- `CONTRIBUTING.md`
+- `CODE_OF_CONDUCT.md`
 - `docs/codex-task.md`
 - `docs/architecture.md`
 - `docs/conversation-summary.md`
@@ -63,6 +67,11 @@ The repo has:
 - `docs/README.md`
 - `wiki/README.md`
 - `docs/dependencies.md`
+- `docs/governance.md`
+- `docs/release-process.md`
+- `docs/support-boundaries.md`
+- `docs/multi-agency-strategy.md`
+- `docs/roadmap-status.md`
 - `docs/compliance-evidence-checklist.md`
 - `docs/phase-plan.md`
 - `docs/decisions.md`
@@ -83,6 +92,7 @@ The repo has:
 - `docs/handoffs/phase-17.md`
 - `docs/handoffs/phase-19.md`
 - `docs/handoffs/phase-20.md`
+- `docs/handoffs/phase-21.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -248,7 +258,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 20 — Consumer Submission Execution And CAL-ITP Readiness Program is complete for the documented docs/evidence packet-preparation scope. Phases 12 through 19 remain closed for their documented scopes.
+**Active phase:** Phase 21 — Community, Governance, And Multi-Agency Scale is complete for the documented docs/process/governance/teaching-visual scope. Phases 12 through 20 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -256,7 +266,7 @@ Phase 13 added documentation-only consumer submission records and templates. Pha
 
 Phase 14 added documentation-only public-facing polish. It did not change backend runtime behavior, API contracts, database schema, public feed URLs, external integrations, evidence claims, or consumer-submission status.
 
-Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. Phase 19 added replay measurement, explicit quality metrics, diagnostics, and safe Operations Console quality summaries. Phase 20 added prepared consumer packet docs, `status.json`, California readiness summary, and marketplace/vendor gap review. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, portal automation, guessed submission paths, or unsupported acceptance/compliance claims.
+Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. Phase 19 added replay measurement, explicit quality metrics, diagnostics, and safe Operations Console quality summaries. Phase 20 added prepared consumer packet docs, `status.json`, California readiness summary, and marketplace/vendor gap review. Phase 21 added community contribution, governance, support, release, multi-agency, roadmap/status, GitHub template, and teaching-visual documentation. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, portal automation, guessed submission paths, backend behavior changes, or unsupported acceptance/compliance claims.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -633,9 +643,23 @@ Phase 20 is complete for the consumer packet preparation and California readines
 - added `docs/marketplace-vendor-gap-review.md`
 - did not contact external portals, automate submissions, guess submission paths, add backend API behavior, or claim acceptance, compliance, consumer ingestion, marketplace equivalence, hosted SaaS availability, agency endorsement, or production-grade ETA quality
 
+## Phase 21 Progress
+
+Phase 21 is complete for the community/governance/multi-agency docs and process scope:
+- added `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, GitHub issue templates, and a PR template
+- added `docs/governance.md`, `docs/release-process.md`, `docs/support-boundaries.md`, `docs/multi-agency-strategy.md`, and `docs/roadmap-status.md`
+- documented maintainer authority for PR merges, releases, docs/evidence wording, and competing design decisions
+- documented support boundaries without paid support, SLA, hosted SaaS, agency endorsement, vendor equivalence, or production-readiness claims
+- documented current single-agency/pilot assumptions and what would need code changes before true multi-tenant hosting
+- added teaching visuals for contribution paths, community workflow, single-vs-multi-agency strategy, evidence maturity, and support boundaries
+- updated `docs/assets/README.md` with filename, purpose, usage, alt text, generation method, prompt/spec, and truthfulness notes for the new visuals
+- did not change backend behavior, API contracts, database schema, public feed URLs, consumer-submission statuses, external integrations, or evidence claims
+
 ## Next Recommended Step
 
-Move to operator collection only when real external artifacts exist:
+Choose the next roadmap phase explicitly. A practical next step is a maintainer-approved post-Phase-21 roadmap update that decides whether to prioritize multi-agency isolation tests, production operations hardening, or real consumer-submission evidence intake after target-originated artifacts exist.
+
+Consumer/aggregator status should still move only when real external artifacts exist:
 1. review the prepared target-specific packet under `docs/evidence/consumer-submissions/packets/`
 2. verify the target's current official submission path outside the repo
 3. confirm agency identity, feed URLs, license/contact metadata, validation status, consumer-specific requirements, and redactions

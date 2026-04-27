@@ -4,6 +4,8 @@ This document is the Phase 11 evidence package for Open Transit RT. It separates
 
 It uses the truthfulness guardrail in `docs/prompts/calitp-truthfulness.md`: the repo may be described as supporting deployment toward Caltrans/CAL-ITP-style readiness, but it must not be described as fully compliant, consumer-accepted, production ready for all agencies, or equivalent to a marketplace vendor without external evidence.
 
+![Illustrative evidence maturity ladder showing code exists, hosted evidence, prepared packet, submitted, under review, and accepted as separate evidence stages.](assets/evidence-maturity-ladder.png)
+
 ## External Reference Points
 
 Use these official sources when discussing California-facing readiness:

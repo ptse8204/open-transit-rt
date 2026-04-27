@@ -1,0 +1,65 @@
+# Roadmap Status
+
+This page gives a public-readable status summary without requiring readers to understand every phase handoff.
+
+It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endorsement, hosted SaaS availability, paid support, SLA coverage, marketplace/vendor equivalence, production-grade ETA quality, or universal production readiness.
+
+![Illustrative evidence maturity ladder from code exists to hosted evidence, prepared packet, submitted, under review, and accepted.](assets/evidence-maturity-ladder.png)
+
+## What Works Today
+
+Open Transit RT has technical foundations for:
+
+- importing static GTFS ZIP files;
+- editing typed GTFS Studio drafts;
+- publishing public schedule and GTFS Realtime feed paths;
+- ingesting authenticated vehicle telemetry;
+- conservative trip matching;
+- Vehicle Positions publication;
+- Trip Updates behind a prediction adapter;
+- basic Alerts authoring and publication;
+- validation records and scorecard workflows;
+- local app packaging and pilot operations helpers;
+- consumer packet preparation workflows.
+
+## Evidence That Exists
+
+Current evidence includes:
+
+- local demo and validation workflows;
+- hosted/operator evidence for the OCI pilot;
+- replay fixtures and metrics that measure current realtime behavior;
+- prepared consumer and aggregator packet drafts for seven targets;
+- redaction and evidence policies.
+
+OCI pilot evidence is useful pilot evidence. It is not agency-owned production proof.
+
+## What Remains Missing
+
+The repo does not currently have:
+
+- third-party consumer submission, review, acceptance, rejection, or blocker evidence;
+- agency-owned stable URL/domain proof for the OCI pilot feed set;
+- production-grade ETA quality evidence;
+- full hosted multi-tenant implementation;
+- paid support or SLA commitments;
+- marketplace/vendor-equivalent service packaging.
+
+## How To Interpret Prepared Packets
+
+Prepared means a packet draft exists for operator review. Prepared does not mean submitted, under review, accepted, rejected, listed, ingested, or compliant.
+
+Target status can move beyond `prepared` only when retained, redacted, target-originated evidence exists for that specific target and feed scope.
+
+## How To Interpret Replay Metrics
+
+Phase 19 replay metrics measure current behavior against committed fixtures. They help catch regressions and document conservative handling of stale, ambiguous, and withheld cases.
+
+Replay metrics do not prove production-grade ETA quality or consumer acceptance.
+
+## Future Roadmap Meaning
+
+Future phases describe intended work. They are not commitments to hosted service, support coverage, agency endorsement, or consumer acceptance.
+
+Use `docs/roadmap-post-phase-14.md` for the phase sequence and `docs/handoffs/latest.md` for the current handoff state.
+

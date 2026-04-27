@@ -151,3 +151,122 @@ Alt text:
 
 Prompt/spec:
 - Clean two-column endpoint boundary. Public side includes `schedule.zip`, `feeds.json`, `vehicle_positions.pb`, `trip_updates.pb`, and `alerts.pb`. Protected side includes examples such as GTFS Studio, JSON debug feeds, telemetry events, validation, and scorecard. Keep labels bounded and readable.
+
+### `how-to-contribute-paths.png`
+
+Source/generation method:
+- Generated with the image generation tool, copied into `docs/assets/`, and manually reviewed for label truthfulness.
+
+Type:
+- Illustrative teaching graphic, not a screenshot.
+
+Purpose:
+- Show contribution paths such as reporting a bug, improving docs, suggesting a feature, submitting code, and helping with evidence/runbooks.
+
+Used in:
+- `CONTRIBUTING.md`
+- `docs/README.md`
+
+Alt text:
+- Illustrative contribution paths: report a bug, improve docs, suggest a feature, submit code, and help with evidence runbooks.
+
+Prompt/spec:
+- Create an illustrative infographic showing contribution paths for an open-source transit backend project. Use a clean horizontal map of five paths leading into a central project hub. Include labels: Report Bug, Improve Docs, Suggest Feature, Submit Code, Evidence Runbooks. Keep it polished, flat, readable, and not a fake UI screenshot.
+
+Truthfulness notes:
+- The visual shows ways to contribute only. It does not imply compliance, consumer acceptance, agency endorsement, hosted SaaS availability, paid support, SLA coverage, vendor equivalence, or production readiness.
+
+### `community-workflow.png`
+
+Source/generation method:
+- Generated with the image generation tool, copied into `docs/assets/`, and manually reviewed for label truthfulness.
+
+Type:
+- Illustrative teaching graphic, not a screenshot.
+
+Purpose:
+- Show the community workflow from issue discussion through implementation, testing, PR review, merge, and release/docs update.
+
+Used in:
+- `CONTRIBUTING.md`
+- `docs/governance.md`
+
+Alt text:
+- Illustrative community workflow: Issue, Discuss, Implement, Test, PR, Review, Merge, Release Docs Update.
+
+Prompt/spec:
+- Create an illustrative workflow graphic for open-source governance. Show connected stations on a transit line labeled Issue, Discuss, Implement, Test, PR, Review, Merge, Release Docs Update. Use a polished flat style and avoid browser chrome or fake product UI.
+
+Truthfulness notes:
+- The visual illustrates process only. It does not imply merge entitlement, release timing, compliance, consumer acceptance, agency endorsement, hosted SaaS availability, paid support, or production readiness.
+
+### `single-vs-multi-agency.png`
+
+Source/generation method:
+- Generated with the image generation tool, copied into `docs/assets/`, and manually reviewed for label truthfulness.
+
+Type:
+- Illustrative teaching graphic, not a screenshot.
+
+Purpose:
+- Compare the current single-agency/local-demo/pilot deployment model with possible future multi-agency hosted options.
+
+Used in:
+- `docs/multi-agency-strategy.md`
+
+Alt text:
+- Illustrative comparison of the current single-agency/local-demo/pilot model and future multi-agency hosted options that require code changes.
+
+Prompt/spec:
+- Create a two-column comparison graphic. Left column: Current Single Agency, Local Demo, Pilot Host, One Feed Root. Right column: Future Multi Agency Options, Agency Boundary, Shared Infrastructure, Separate Feed Roots, Code Changes Needed. Make the future side conditional/planned and avoid fake UI.
+
+Truthfulness notes:
+- The visual explicitly marks future multi-agency hosting as requiring code changes. It does not imply hosted SaaS availability, agency endorsement, consumer acceptance, compliance, paid support, SLA coverage, vendor equivalence, or production readiness.
+
+### `evidence-maturity-ladder.png`
+
+Source/generation method:
+- Generated with the image generation tool, copied into `docs/assets/`, and manually reviewed for label truthfulness.
+
+Type:
+- Illustrative teaching graphic, not a screenshot or evidence artifact.
+
+Purpose:
+- Show evidence maturity stages from code existence through hosted evidence, prepared packet, submitted, under review, and accepted.
+
+Used in:
+- `docs/roadmap-status.md`
+- `docs/compliance-evidence-checklist.md`
+
+Alt text:
+- Illustrative evidence maturity ladder showing code exists, hosted evidence, prepared packet, submitted, under review, and accepted as separate evidence stages.
+
+Prompt/spec:
+- Create an evidence maturity ladder with steps labeled Code Exists, Hosted Evidence, Prepared Packet, Submitted, Under Review, Accepted. Make the latter stages visually neutral and evidence-required, not completed. Include the idea that claims need evidence.
+
+Truthfulness notes:
+- The visual separates prepared packets from submitted, under-review, and accepted states. It does not imply current acceptance, compliance, consumer ingestion, agency endorsement, hosted SaaS availability, paid support, SLA coverage, vendor equivalence, or production readiness.
+
+### `support-boundaries.png`
+
+Source/generation method:
+- Generated with the image generation tool, copied into `docs/assets/`, and manually reviewed for label truthfulness.
+
+Type:
+- Illustrative teaching graphic, not a screenshot.
+
+Purpose:
+- Explain maintainer help, operator-owned responsibilities, and community-only support boundaries.
+
+Used in:
+- `docs/support-boundaries.md`
+- `wiki/support-and-contribute.md`
+
+Alt text:
+- Illustrative support boundary diagram showing maintainer help, operator-owned responsibilities, and community-only support.
+
+Prompt/spec:
+- Create a three-column support boundaries diagram with headings Maintainer Help, Operator Owned, Community Only. Include maintainer items such as code review, docs, reproducible bugs; operator-owned items such as secrets, DNS/TLS, deployments, private logs; community-only items such as ideas, peer notes, examples. Include "No paid support or SLA."
+
+Truthfulness notes:
+- The visual states that support is bounded and does not promise paid support, SLA coverage, hosted SaaS availability, agency endorsement, consumer acceptance, compliance, vendor equivalence, or universal production readiness.
