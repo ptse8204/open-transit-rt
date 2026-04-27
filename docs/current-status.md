@@ -32,7 +32,7 @@ Phase 11 compliance evidence and optional external integration review is complet
 
 Phase 12 is closed for the OCI pilot evidence scope. Step 1 (repo-side deployment evidence scaffolding), Step 2 (local demo evidence packet), Step 3 (hosted closure tooling hardening), and the hosted OCI pilot evidence packet are complete. The hosted packet lives at `docs/evidence/captured/oci-pilot/2026-04-24/` and passed `EVIDENCE_PACKET_DIR=docs/evidence/captured/oci-pilot/2026-04-24 make audit-hosted-evidence`. A final current-live recheck on April 24, 2026 refreshed the packet with active `gtfs-import-3`, passed schedule/Vehicle Positions/Trip Updates/Alerts validation, and `canonical_validation_complete=true`.
 
-Phase 13 is complete for the initial consumer-submission evidence structure. The tracker lives at `docs/evidence/consumer-submissions/README.md`, with current records and templates for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land. All current target records are `not_started`; no repo evidence currently supports submitted, under-review, accepted, rejected, or blocked claims for any target.
+Phase 13 is complete for the initial consumer-submission evidence structure. The tracker lives at `docs/evidence/consumer-submissions/README.md`, with current records and templates for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land. Phase 20 later moved all current target records to `prepared` only because complete packet drafts exist; no repo evidence currently supports submitted, under-review, accepted, rejected, or blocked claims for any target.
 
 Phase 14 is complete for the public launch polish and repo simplification scope. The README is now a concise public front door with a short "what this is / what this is not" block, a single illustrative main visual, quick trial commands, bounded evidence links, quick-action links, and plain-language star/support wording. Public reader guides live under `wiki/`, while `docs/README.md` works as the documentation hub for public guides, practical tutorials, evidence records, architecture references, dependencies, decisions, and maintainer notes. `docs/assets/README.md` records generated-assisted visual specs plus the manual review rule for label accuracy, truthful captions, and useful alt text.
 
@@ -45,6 +45,8 @@ Phase 17 is complete for the deployment automation and pilot operations scope. T
 Phase 18 is complete for the Admin UX and Agency Operations Console scope. `cmd/agency-config` now serves authenticated server-rendered operations pages under `/admin/operations` for dashboard, feed URL/validation state, telemetry freshness, device rotate/rebind, consumer evidence status, evidence links, and setup checklist views. `cmd/feed-alerts` now has `/admin/alerts/console` for simple alert listing, create/update, publish, and archive flows. GTFS Studio links back to the Operations Console, and the local app output prints `/admin/operations`. The console shows `PUBLICATION_ENVIRONMENT`/feed environment context and section last-updated timestamps where available. It does not add new public feed URLs, protobuf contracts, external consumer APIs, consumer-status claims, or production public-edge admin exposure.
 
 Phase 19 is complete for the Realtime Quality and ETA Improvement measurement-first scope. The repo now has deterministic replay evaluation under `internal/realtimequality`, documented replay fixture schema under `testdata/replay/README.md`, baseline replay fixtures for matched, stale, ambiguous, low-confidence, manual override, canceled-trip, added-trip, short-turn, and detour cases, explicit quality metrics with denominators and `not_applicable` zero-denominator handling, regression guards that keep unknown/ambiguous/stale/withheld/degraded uncertainty visible, and authenticated Operations Console Trip Updates quality summaries from recorded `feed_health_snapshot` diagnostics. Phase 19 did not integrate TheTransitClock or another external predictor, did not claim production-grade ETA quality, and did not change public feed URLs, GTFS-RT protobuf contracts, unauthenticated surfaces, consumer statuses, or evidence claims.
+
+Phase 20 is complete for the Consumer Submission Execution and CAL-ITP Readiness Program docs/evidence scope. The repo now has complete prepared consumer/aggregator packet drafts for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land under `docs/evidence/consumer-submissions/packets/`; a machine-readable tracker snapshot at `docs/evidence/consumer-submissions/status.json`; a California readiness summary at `docs/california-readiness-summary.md`; and a marketplace/vendor gap review at `docs/marketplace-vendor-gap-review.md`. All seven consumer records are `prepared` only. No external portal was contacted, no submission was automated, no submission path was guessed, and no submission, under-review, acceptance, rejection, consumer-ingestion, compliance, marketplace-equivalence, hosted SaaS, agency-endorsement, or production-grade ETA claim was added.
 
 ## What Exists Now
 
@@ -70,12 +72,17 @@ The repo has:
 - `docs/assets/`
 - `docs/evidence/redaction-policy.md`
 - `docs/evidence/archive-inventory.md`
+- `docs/evidence/consumer-submissions/status.json`
+- `docs/evidence/consumer-submissions/packets/`
+- `docs/california-readiness-summary.md`
+- `docs/marketplace-vendor-gap-review.md`
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-14.md`
 - `docs/handoffs/phase-15.md`
 - `docs/handoffs/phase-16.md`
 - `docs/handoffs/phase-17.md`
 - `docs/handoffs/phase-19.md`
+- `docs/handoffs/phase-20.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -236,18 +243,20 @@ The following are still missing or incomplete unless a later handoff says otherw
 - external predictor adapters such as TheTransitClock
 - external consumer submission API integrations
 - consumer submission, review, acceptance, rejection, or blocker evidence from third parties
+- agency-owned stable URL/domain proof for the OCI pilot feed set
+- marketplace/vendor-equivalent service packaging and support commitments
 
 ## Current Phase
 
-**Active phase:** Phase 19 — Realtime Quality And ETA Improvement is complete for the documented measurement-first scope. Phases 12 through 18 remain closed for their documented scopes.
+**Active phase:** Phase 20 — Consumer Submission Execution And CAL-ITP Readiness Program is complete for the documented docs/evidence packet-preparation scope. Phases 12 through 19 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
-Phase 13 added documentation-only consumer submission records and templates. It did not add runtime/product changes or consumer submission APIs.
+Phase 13 added documentation-only consumer submission records and templates. Phase 20 added complete prepared packet drafts and moved all seven current records to `prepared` only. Neither phase added runtime/product changes, consumer submission APIs, portal automation, or consumer acceptance claims.
 
 Phase 14 added documentation-only public-facing polish. It did not change backend runtime behavior, API contracts, database schema, public feed URLs, external integrations, evidence claims, or consumer-submission status.
 
-Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. Phase 19 added replay measurement, explicit quality metrics, diagnostics, and safe Operations Console quality summaries. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, or new evidence claims.
+Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. Phase 19 added replay measurement, explicit quality metrics, diagnostics, and safe Operations Console quality summaries. Phase 20 added prepared consumer packet docs, `status.json`, California readiness summary, and marketplace/vendor gap review. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, portal automation, guessed submission paths, or unsupported acceptance/compliance claims.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -613,13 +622,26 @@ Phase 13 is complete for the initial consumer submission evidence layer:
 - kept all current records at `not_started` because no redacted real submission, review, acceptance, rejection, or blocker evidence is present in the repo
 - documented that validator success and public fetch proof are supporting evidence only, not consumer acceptance
 
+## Phase 20 Progress
+
+Phase 20 is complete for the consumer packet preparation and California readiness evidence scope:
+- added complete prepared packet drafts for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land under `docs/evidence/consumer-submissions/packets/`
+- added packet evidence freshness fields, submission-method fields marked `not verified`, operator warnings, redaction notes, next actions, and allowed wording
+- added `docs/evidence/consumer-submissions/status.json` and kept it aligned with the human-readable tracker for target name, status, packet path, prepared timestamp, and evidence references
+- updated all current target records to `prepared` only because complete packets exist
+- added `docs/california-readiness-summary.md`, including the agency-owned stable URL/domain gap
+- added `docs/marketplace-vendor-gap-review.md`
+- did not contact external portals, automate submissions, guess submission paths, add backend API behavior, or claim acceptance, compliance, consumer ingestion, marketplace equivalence, hosted SaaS availability, agency endorsement, or production-grade ETA quality
+
 ## Next Recommended Step
 
 Move to operator collection only when real external artifacts exist:
-1. prepare the target-specific packet using `docs/evidence/consumer-submissions/templates/`
-2. submit through the named consumer or aggregator workflow outside the repo
-3. add only redacted correspondence, receipt, ticket, portal screenshot, rejection, blocker, or acceptance evidence
-4. keep the OCI pilot operator jobs and validator tooling maintained if the pilot remains live
+1. review the prepared target-specific packet under `docs/evidence/consumer-submissions/packets/`
+2. verify the target's current official submission path outside the repo
+3. confirm agency identity, feed URLs, license/contact metadata, validation status, consumer-specific requirements, and redactions
+4. submit through the named consumer or aggregator workflow outside the repo only when authorized
+5. add only redacted correspondence, receipt, ticket, portal screenshot, rejection, blocker, or acceptance evidence
+6. keep the OCI pilot operator jobs and validator tooling maintained if the pilot remains live
 
 ## What Not To Do Next
 
@@ -631,3 +653,5 @@ Do not:
 - tightly couple to an external predictor
 - merge draft GTFS and published GTFS into one model
 - leave placeholder sample feed data in production paths once real feed generation starts
+- contact external consumer portals from repo automation
+- claim submitted, under-review, accepted, rejected, or blocked consumer status without retained target-originated evidence

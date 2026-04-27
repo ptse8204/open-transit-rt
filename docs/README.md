@@ -34,8 +34,12 @@ These are command-level references for people running or evaluating the project:
 These pages explain what evidence exists and what it can, and cannot, prove:
 
 - [Compliance Evidence Checklist](compliance-evidence-checklist.md)
+- [California Readiness Summary](california-readiness-summary.md)
 - [Consumer Submission Evidence](consumer-submission-evidence.md)
 - [Consumer Submission Tracker](evidence/consumer-submissions/README.md)
+- [Consumer Packet Index](evidence/consumer-submissions/packets/README.md)
+- [Consumer Status JSON](evidence/consumer-submissions/status.json)
+- [Marketplace And Vendor Gap Review](marketplace-vendor-gap-review.md)
 - [OCI Pilot Evidence Packet](evidence/captured/oci-pilot/2026-04-24/README.md)
 - [Captured Evidence Index](evidence/captured/README.md)
 

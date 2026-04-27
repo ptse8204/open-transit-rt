@@ -1,12 +1,14 @@
 # Consumer Submission Evidence Tracker
 
-This directory contains Phase 13 consumer and aggregator submission evidence records.
+This directory contains Phase 13 and Phase 20 consumer and aggregator submission evidence records.
 
-Tracker last reviewed timestamp: `2026-04-26T02:10:56Z`
+Tracker last reviewed timestamp: `2026-04-27T04:42:17Z`
 
-Reviewed by: Codex documentation pass
+Reviewed by: Codex Phase 20 docs/evidence pass
 
 Linked Phase 12 evidence packet: `docs/evidence/captured/oci-pilot/2026-04-24/`
+
+Machine-readable tracker snapshot: `docs/evidence/consumer-submissions/status.json`
 
 ## Claim Boundary
 
@@ -16,15 +18,28 @@ Validator success and public fetch proof are supporting evidence only. They are 
 
 ## Current Records
 
-| Target | Current status | Current record | Next action |
-| --- | --- | --- | --- |
-| Google Maps | `not_started` | `current/google-maps.md` | Operator prepares and submits the packet through the official Google transit partner workflow, then stores redacted receipt evidence. |
-| Apple Maps | `not_started` | `current/apple-maps.md` | Operator prepares and submits the packet through the official Apple Maps transit data workflow, then stores redacted receipt evidence. |
-| Transit App | `not_started` | `current/transit-app.md` | Operator prepares and submits the packet through the official Transit data partner workflow, then stores redacted receipt evidence. |
-| Bing Maps | `not_started` | `current/bing-maps.md` | Operator prepares and submits the packet through the official Microsoft/Bing Maps transit data workflow, then stores redacted receipt evidence. |
-| Moovit | `not_started` | `current/moovit.md` | Operator prepares and submits the packet through the official Moovit data partner workflow, then stores redacted receipt evidence. |
-| Mobility Database | `not_started` | `current/mobility-database.md` | Operator prepares and submits or registers the feed through the Mobility Database workflow, then stores redacted receipt evidence. |
-| transit.land | `not_started` | `current/transit-land.md` | Operator prepares and submits or registers the feed through the transit.land workflow, then stores redacted receipt evidence. |
+The table below must agree exactly with `docs/evidence/consumer-submissions/status.json` for target name, status, packet path, prepared timestamp, and evidence reference values.
+
+Evidence references for every prepared target:
+
+- `oci_packet`: `docs/evidence/captured/oci-pilot/2026-04-24/`
+- `feeds_json_snapshot`: `docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json`
+- `validator_records`: `docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md`
+- `phase_19_replay_quality_summary`: `docs/handoffs/phase-19.md`
+
+| Target name | Status | Current record | Packet path | Prepared timestamp | Next action |
+| --- | --- | --- | --- | --- | --- |
+| Google Maps | `prepared` | `current/google-maps.md` | `docs/evidence/consumer-submissions/packets/google-maps/README.md` | `2026-04-27T04:42:17Z` | Operator reviews packet, verifies official submission path outside the repo, submits only if authorized, then stores redacted receipt evidence before changing status. |
+| Apple Maps | `prepared` | `current/apple-maps.md` | `docs/evidence/consumer-submissions/packets/apple-maps/README.md` | `2026-04-27T04:42:17Z` | Operator reviews packet, verifies official submission path outside the repo, submits only if authorized, then stores redacted receipt evidence before changing status. |
+| Transit App | `prepared` | `current/transit-app.md` | `docs/evidence/consumer-submissions/packets/transit-app/README.md` | `2026-04-27T04:42:17Z` | Operator reviews packet, verifies official submission path outside the repo, submits only if authorized, then stores redacted receipt evidence before changing status. |
+| Bing Maps | `prepared` | `current/bing-maps.md` | `docs/evidence/consumer-submissions/packets/bing-maps/README.md` | `2026-04-27T04:42:17Z` | Operator reviews packet, verifies official submission path outside the repo, submits only if authorized, then stores redacted receipt evidence before changing status. |
+| Moovit | `prepared` | `current/moovit.md` | `docs/evidence/consumer-submissions/packets/moovit/README.md` | `2026-04-27T04:42:17Z` | Operator reviews packet, verifies official submission path outside the repo, submits only if authorized, then stores redacted receipt evidence before changing status. |
+| Mobility Database | `prepared` | `current/mobility-database.md` | `docs/evidence/consumer-submissions/packets/mobility-database/README.md` | `2026-04-27T04:42:17Z` | Operator reviews packet, verifies official submission/registration path outside the repo, submits only if authorized, then stores redacted receipt evidence before changing status. |
+| transit.land | `prepared` | `current/transit-land.md` | `docs/evidence/consumer-submissions/packets/transit-land/README.md` | `2026-04-27T04:42:17Z` | Operator reviews packet, verifies official submission/registration path outside the repo, submits only if authorized, then stores redacted receipt evidence before changing status. |
+
+## Prepared Packets
+
+Packet completeness is tracked in `docs/evidence/consumer-submissions/packets/README.md`. A target may use `prepared` only when the packet includes all five public feed URLs, license/contact metadata, Phase 12 evidence link, validator evidence link, redaction note, next action, and allowed wording.
 
 ## Templates
 

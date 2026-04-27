@@ -13,7 +13,7 @@ Use these official sources when discussing California-facing readiness:
 - [Cal-ITP GTFS overview](https://dot.ca.gov/cal-itp/cal-itp-gtfs)
 - [GTFS Realtime Best Practices](https://gtfs.org/documentation/realtime/realtime-best-practices/)
 
-The Caltrans guidelines describe GTFS Schedule and GTFS Realtime compliance in terms that include stable public URLs, regular canonical validation with no errors, open licensing, and ingestion by major trip planners. For realtime completeness, the guidelines identify all three standard GTFS Realtime feed types: Trip Updates, Vehicle Positions, and Alerts.
+The Phase 20 prompt identifies the current Caltrans California Transit Data Guidelines v4.0 context as describing GTFS Schedule and GTFS Realtime compliance in terms that include stable public URLs, regular canonical validation with no errors, open licensing, and ingestion by major trip planners. For realtime completeness, that context includes all three standard GTFS Realtime feed types: Trip Updates, Vehicle Positions, and Alerts.
 
 ## Evidence Categories
 
@@ -142,3 +142,26 @@ What Phase 13 does not prove:
 - CAL-ITP compliance.
 
 Hosted/operator evidence completed in Phase 12 remains separate from consumer submission evidence collected in Phase 13. Validator success and public fetch proof are supporting evidence only, not consumer acceptance.
+
+## Phase 20 Consumer Submission Packet Result
+
+Phase 20 adds target-specific prepared packets under `docs/evidence/consumer-submissions/packets/` and a machine-readable status snapshot at `docs/evidence/consumer-submissions/status.json`.
+
+What Phase 20 currently proves:
+
+- complete packet drafts exist for Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, and transit.land;
+- each prepared packet includes all five public feed URLs, license/contact metadata, Phase 12 hosted evidence, validator evidence, redaction notes, next action, and allowed wording;
+- each packet includes evidence freshness fields and marks official submission method/contact as `not verified`;
+- all seven current records are `prepared` only.
+
+What Phase 20 does not prove:
+
+- submission to any consumer or aggregator;
+- review by any consumer or aggregator;
+- acceptance, ingestion, listing, display, or production use by any consumer or aggregator;
+- agency-owned domain proof, because the OCI pilot DuckDNS domain is pilot evidence and not agency-domain production proof;
+- CAL-ITP/Caltrans compliance;
+- marketplace/vendor equivalence;
+- production-grade ETA quality.
+
+The California readiness summary is `docs/california-readiness-summary.md`. The marketplace/vendor gap review is `docs/marketplace-vendor-gap-review.md`.

@@ -1,0 +1,92 @@
+{
+  "tracker_last_reviewed_timestamp": "2026-04-27T04:42:17Z",
+  "reviewed_by": "Codex Phase 20 docs/evidence pass",
+  "linked_phase_12_evidence_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+  "evidence_snapshot": "OCI pilot final current-live recheck at 2026-04-24T16:38:46Z",
+  "targets": [
+    {
+      "target": "Google Maps",
+      "status": "prepared",
+      "packet_path": "docs/evidence/consumer-submissions/packets/google-maps/README.md",
+      "prepared_timestamp": "2026-04-27T04:42:17Z",
+      "evidence_references": {
+        "oci_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+        "feeds_json_snapshot": "docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json",
+        "validator_records": "docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md",
+        "phase_19_replay_quality_summary": "docs/handoffs/phase-19.md"
+      }
+    },
+    {
+      "target": "Apple Maps",
+      "status": "prepared",
+      "packet_path": "docs/evidence/consumer-submissions/packets/apple-maps/README.md",
+      "prepared_timestamp": "2026-04-27T04:42:17Z",
+      "evidence_references": {
+        "oci_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+        "feeds_json_snapshot": "docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json",
+        "validator_records": "docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md",
+        "phase_19_replay_quality_summary": "docs/handoffs/phase-19.md"
+      }
+    },
+    {
+      "target": "Transit App",
+      "status": "prepared",
+      "packet_path": "docs/evidence/consumer-submissions/packets/transit-app/README.md",
+      "prepared_timestamp": "2026-04-27T04:42:17Z",
+      "evidence_references": {
+        "oci_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+        "feeds_json_snapshot": "docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json",
+        "validator_records": "docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md",
+        "phase_19_replay_quality_summary": "docs/handoffs/phase-19.md"
+      }
+    },
+    {
+      "target": "Bing Maps",
+      "status": "prepared",
+      "packet_path": "docs/evidence/consumer-submissions/packets/bing-maps/README.md",
+      "prepared_timestamp": "2026-04-27T04:42:17Z",
+      "evidence_references": {
+        "oci_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+        "feeds_json_snapshot": "docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json",
+        "validator_records": "docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md",
+        "phase_19_replay_quality_summary": "docs/handoffs/phase-19.md"
+      }
+    },
+    {
+      "target": "Moovit",
+      "status": "prepared",
+      "packet_path": "docs/evidence/consumer-submissions/packets/moovit/README.md",
+      "prepared_timestamp": "2026-04-27T04:42:17Z",
+      "evidence_references": {
+        "oci_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+        "feeds_json_snapshot": "docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json",
+        "validator_records": "docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md",
+        "phase_19_replay_quality_summary": "docs/handoffs/phase-19.md"
+      }
+    },
+    {
+      "target": "Mobility Database",
+      "status": "prepared",
+      "packet_path": "docs/evidence/consumer-submissions/packets/mobility-database/README.md",
+      "prepared_timestamp": "2026-04-27T04:42:17Z",
+      "evidence_references": {
+        "oci_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+        "feeds_json_snapshot": "docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json",
+        "validator_records": "docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md",
+        "phase_19_replay_quality_summary": "docs/handoffs/phase-19.md"
+      }
+    },
+    {
+      "target": "transit.land",
+      "status": "prepared",
+      "packet_path": "docs/evidence/consumer-submissions/packets/transit-land/README.md",
+      "prepared_timestamp": "2026-04-27T04:42:17Z",
+      "evidence_references": {
+        "oci_packet": "docs/evidence/captured/oci-pilot/2026-04-24/",
+        "feeds_json_snapshot": "docs/evidence/captured/oci-pilot/2026-04-24/artifacts/public/public_feeds.json",
+        "validator_records": "docs/evidence/captured/oci-pilot/2026-04-24/validator-record-2026-04-24.md",
+        "phase_19_replay_quality_summary": "docs/handoffs/phase-19.md"
+      }
+    }
+  ]
+}

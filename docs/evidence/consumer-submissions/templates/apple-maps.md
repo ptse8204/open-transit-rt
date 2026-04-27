@@ -6,12 +6,21 @@
 - Status: `not_started` / `prepared` / `submitted` / `under_review` / `accepted` / `rejected` / `blocked`
 - Status effective timestamp:
 - Operator:
+- Prepared timestamp:
+- Packet path:
+- Evidence snapshot:
 - Feed root submitted:
 - Exact feed URLs submitted:
 - Submission packet artifact:
 - Validation evidence reference:
 - Phase 12 evidence packet reference:
+- `feeds.json` snapshot reference:
+- Phase 19 replay/quality summary reference:
 - Correspondence / receipt / ticket / portal screenshot reference, if any:
+- Submission method:
+- Official submission URL/contact:
+- Verified as current:
+- Notes:
 - Redaction notes:
 - Next action:
 - Allowed public wording:
