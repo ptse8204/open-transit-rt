@@ -78,7 +78,7 @@ type telemetryView struct {
 
 type evidenceLink struct {
 	Label     string
-	URL       string
+	Path      string
 	UpdatedAt string
 }
 
@@ -159,11 +159,11 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		Section:          section,
 		StaleThreshold:   staleThreshold(),
 		Links: []evidenceLink{
-			{Label: "OCI hosted evidence packet", URL: "/docs/evidence/captured/oci-pilot/2026-04-24/README.md", UpdatedAt: "2026-04-24"},
-			{Label: "Consumer submission tracker", URL: "/docs/evidence/consumer-submissions/README.md", UpdatedAt: "2026-04-26"},
-			{Label: "Compliance evidence checklist", URL: "/docs/compliance-evidence-checklist.md", UpdatedAt: "repo docs"},
-			{Label: "Small-agency pilot operations runbook", URL: "/docs/runbooks/small-agency-pilot-operations.md", UpdatedAt: "Phase 17"},
-			{Label: "Evidence redaction policy", URL: "/docs/evidence/redaction-policy.md", UpdatedAt: "Phase 15"},
+			{Label: "OCI hosted evidence packet", Path: "docs/evidence/captured/oci-pilot/2026-04-24/README.md", UpdatedAt: "2026-04-24"},
+			{Label: "Consumer submission tracker", Path: "docs/evidence/consumer-submissions/README.md", UpdatedAt: "2026-04-26"},
+			{Label: "Compliance evidence checklist", Path: "docs/compliance-evidence-checklist.md", UpdatedAt: "repo docs"},
+			{Label: "Small-agency pilot operations runbook", Path: "docs/runbooks/small-agency-pilot-operations.md", UpdatedAt: "Phase 17"},
+			{Label: "Evidence redaction policy", Path: "docs/evidence/redaction-policy.md", UpdatedAt: "Phase 15"},
 		},
 		EvidenceUpdatedAt: "2026-04-26",
 	}
@@ -514,19 +514,20 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Consumer Submission Evidence</h2>
 <p class="muted">Statuses are evidence records only. They are not consumer acceptance unless retained third-party evidence exists for the named consumer.</p>
-{{if .ConsumerError}}<p class="warning">{{.ConsumerError}}. Next action: review <code>docs/evidence/consumer-submissions/README.md</code>.</p>{{else if not .Consumers}}<p class="warning">No consumer evidence records are available. Next action: review the docs tracker before making any submission claims.</p>{{else}}
+{{if .ConsumerError}}<p class="warning">{{.ConsumerError}}. Next action: review repo file path <code>docs/evidence/consumer-submissions/README.md</code>.</p>{{else if not .Consumers}}<p class="warning">No consumer evidence records are available. Next action: review the docs tracker in the repository before making any submission claims.</p>{{else}}
 <table><thead><tr><th>Target</th><th>Status</th><th>Source</th><th>Updated</th><th>Notes</th></tr></thead><tbody>
 {{range .Consumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{formatTimePtr .UpdatedAt}}</td><td>{{.Notes}}</td></tr>{{end}}
 </tbody></table>{{end}}
-<p>Docs tracker: <code>docs/evidence/consumer-submissions/README.md</code></p>
+<p>Docs tracker repo file path: <code>docs/evidence/consumer-submissions/README.md</code></p>
 {{template "layoutEnd" .}}
 {{end}}
 
 {{define "evidence"}}
 {{template "layoutStart" .}}
 <h2>Evidence And Runbook Links</h2>
-<table><thead><tr><th>Record</th><th>Location</th><th>Last updated</th></tr></thead><tbody>
-{{range .Links}}<tr><td>{{.Label}}</td><td><code>{{.URL}}</code></td><td>{{.UpdatedAt}}</td></tr>{{end}}
+<p class="muted">These markdown files are repository file paths, not web routes served by this app.</p>
+<table><thead><tr><th>Record</th><th>Repo file path</th><th>Last updated</th></tr></thead><tbody>
+{{range .Links}}<tr><td>{{.Label}}</td><td><code>{{.Path}}</code></td><td>{{.UpdatedAt}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">These links help operators find repo/deployment evidence. They do not assert consumer acceptance, hosted SaaS availability, agency endorsement, or universal production readiness.</p>
 {{template "layoutEnd" .}}
