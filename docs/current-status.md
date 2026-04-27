@@ -50,6 +50,8 @@ Phase 20 is complete for the Consumer Submission Execution and CAL-ITP Readiness
 
 Phase 21 is complete for the Community, Governance, and Multi-Agency Scale docs/process scope. The repo now has contributor guidance, a code of conduct, GitHub issue and PR templates, governance authority docs, release process docs, support boundaries, multi-agency strategy, roadmap/status communication, and teaching visuals under `docs/assets/`. Phase 21 did not change backend behavior, API contracts, database schema, public feed URLs, consumer-submission statuses, external integrations, or evidence claims.
 
+Track A — External Proof And Adoption is complete for the docs-only operator workflow scope. The repo now has an official submission-path verification workflow, pre-submission checklist, evidence intake/status-transition rules, README-only per-target artifact intake directories, and an agency-owned domain readiness checklist. Track A did not contact portals, automate submissions, add backend behavior, add helper scripts, change public feed URLs, change consumer statuses, or introduce submission, review, acceptance, ingestion, compliance, agency-endorsement, hosted-SaaS, vendor-equivalence, or production-grade ETA claims. All seven consumer and aggregator targets remain `prepared` only.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -73,6 +75,7 @@ The repo has:
 - `docs/multi-agency-strategy.md`
 - `docs/roadmap-status.md`
 - `docs/compliance-evidence-checklist.md`
+- `docs/agency-owned-domain-readiness.md`
 - `docs/phase-plan.md`
 - `docs/decisions.md`
 - `docs/backlog.md`
@@ -82,6 +85,8 @@ The repo has:
 - `docs/evidence/redaction-policy.md`
 - `docs/evidence/archive-inventory.md`
 - `docs/evidence/consumer-submissions/status.json`
+- `docs/evidence/consumer-submissions/submission-workflow.md`
+- `docs/evidence/consumer-submissions/artifacts/`
 - `docs/evidence/consumer-submissions/packets/`
 - `docs/california-readiness-summary.md`
 - `docs/marketplace-vendor-gap-review.md`
@@ -93,6 +98,7 @@ The repo has:
 - `docs/handoffs/phase-19.md`
 - `docs/handoffs/phase-20.md`
 - `docs/handoffs/phase-21.md`
+- `docs/handoffs/track-a-external-proof.md`
 
 ### Phase 0 scaffolding
 The repo now has:
@@ -258,7 +264,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 21 — Community, Governance, And Multi-Agency Scale is complete for the documented docs/process/governance/teaching-visual scope. Phases 12 through 20 remain closed for their documented scopes.
+**Active phase:** Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 21 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -267,6 +273,8 @@ Phase 13 added documentation-only consumer submission records and templates. Pha
 Phase 14 added documentation-only public-facing polish. It did not change backend runtime behavior, API contracts, database schema, public feed URLs, external integrations, evidence claims, or consumer-submission status.
 
 Phase 15 completed targeted public repo hygiene and evidence redaction review. Phase 16 completed local agency onboarding packaging. Phase 17 added deployment/operator automation and documentation only. Phase 18 added authenticated minimal admin UX for existing operational state. Phase 19 added replay measurement, explicit quality metrics, diagnostics, and safe Operations Console quality summaries. Phase 20 added prepared consumer packet docs, `status.json`, California readiness summary, and marketplace/vendor gap review. Phase 21 added community contribution, governance, support, release, multi-agency, roadmap/status, GitHub template, and teaching-visual documentation. It did not add hosted SaaS behavior, Kubernetes, external predictors, consumer submission APIs, public feed URL changes, protobuf changes, portal automation, guessed submission paths, backend behavior changes, or unsupported acceptance/compliance claims.
+
+Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -655,9 +663,19 @@ Phase 21 is complete for the community/governance/multi-agency docs and process 
 - updated `docs/assets/README.md` with filename, purpose, usage, alt text, generation method, prompt/spec, and truthfulness notes for the new visuals
 - did not change backend behavior, API contracts, database schema, public feed URLs, consumer-submission statuses, external integrations, or evidence claims
 
+## Track A Progress
+
+Track A is complete for the external-proof/adoption workflow scope:
+- added `docs/evidence/consumer-submissions/submission-workflow.md` for official-path verification, pre-submission checks, evidence intake, and status transition rules
+- added README-only target artifact directories under `docs/evidence/consumer-submissions/artifacts/`
+- added `docs/agency-owned-domain-readiness.md`
+- updated evidence, readiness, roadmap, docs index, status, and handoff docs to point operators to the workflow
+- kept all seven consumer and aggregator targets at `prepared` only
+- did not add placeholder artifacts, helper scripts, portal automation, backend behavior, public feed URL changes, or external evidence claims
+
 ## Next Recommended Step
 
-Choose the next roadmap phase explicitly. A practical next step is a maintainer-approved post-Phase-21 roadmap update that decides whether to prioritize multi-agency isolation tests, production operations hardening, or real consumer-submission evidence intake after target-originated artifacts exist.
+Use the Track A workflow when a human operator is ready to verify an official target path or record real target-originated evidence. If no real third-party artifacts are available, keep every target at `prepared`.
 
 Consumer/aggregator status should still move only when real external artifacts exist:
 1. review the prepared target-specific packet under `docs/evidence/consumer-submissions/packets/`

@@ -30,6 +30,8 @@ Current evidence includes:
 - hosted/operator evidence for the OCI pilot;
 - replay fixtures and metrics that measure current realtime behavior;
 - prepared consumer and aggregator packet drafts for seven targets;
+- an operator workflow for official-path verification, pre-submission checks,
+  evidence intake, and artifact redaction;
 - redaction and evidence policies.
 
 OCI pilot evidence is useful pilot evidence. It is not agency-owned production proof.
@@ -51,6 +53,9 @@ Prepared means a packet draft exists for operator review. Prepared does not mean
 
 Target status can move beyond `prepared` only when retained, redacted, target-originated evidence exists for that specific target and feed scope.
 
+Artifact directories for target-originated evidence must remain README-only
+until real redacted evidence exists.
+
 ## How To Interpret Replay Metrics
 
 Phase 19 replay metrics measure current behavior against committed fixtures. They help catch regressions and document conservative handling of stale, ambiguous, and withheld cases.
@@ -62,4 +67,3 @@ Replay metrics do not prove production-grade ETA quality or consumer acceptance.
 Future phases describe intended work. They are not commitments to hosted service, support coverage, agency endorsement, or consumer acceptance.
 
 Use `docs/roadmap-post-phase-14.md` for the phase sequence and `docs/handoffs/latest.md` for the current handoff state.
-

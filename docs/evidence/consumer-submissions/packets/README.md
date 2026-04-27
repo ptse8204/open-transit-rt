@@ -8,6 +8,10 @@ These packets do not submit feeds, automate portal workflows, verify consumer-sp
 
 Do not submit from repo docs alone. Before any actual submission, the operator must review feed URLs, license/contact metadata, validation status, agency identity, consumer-specific requirements, and redactions.
 
+Use `../submission-workflow.md` before any real submission. The workflow
+explains official-path verification, pre-submission checks, evidence intake,
+status transitions, and artifact storage.
+
 ## Completeness Rule
 
 A target may move to `prepared` only when its packet includes:
@@ -43,3 +47,9 @@ If any of these are missing, the target must remain `not_started`.
 - `moovit/README.md`
 - `mobility-database/README.md`
 - `transit-land/README.md`
+
+## Artifact Paths
+
+Target-specific artifact intake directories live under `../artifacts/`.
+They must contain only README files unless real redacted target-originated
+evidence exists.

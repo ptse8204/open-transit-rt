@@ -10,11 +10,19 @@ Linked Phase 12 evidence packet: `docs/evidence/captured/oci-pilot/2026-04-24/`
 
 Machine-readable tracker snapshot: `docs/evidence/consumer-submissions/status.json`
 
+Operator workflow: `docs/evidence/consumer-submissions/submission-workflow.md`
+
+Target artifact intake: `docs/evidence/consumer-submissions/artifacts/`
+
 ## Claim Boundary
 
 The OCI pilot hosted/operator evidence packet supports public URL, validation, TLS/auth-boundary, monitoring, backup/restore, and scorecard job-history claims for the OCI pilot. It does not prove consumer submission or third-party acceptance.
 
 Validator success and public fetch proof are supporting evidence only. They are not consumer acceptance, consumer ingestion, CAL-ITP compliance, marketplace listing, or vendor equivalence.
+
+Prepared packets are not submissions. Status may move beyond `prepared` only
+when retained redacted target-originated evidence exists for the named target
+and feed scope.
 
 ## Current Records
 
@@ -41,6 +49,27 @@ Evidence references for every prepared target:
 
 Packet completeness is tracked in `docs/evidence/consumer-submissions/packets/README.md`. A target may use `prepared` only when the packet includes all five public feed URLs, license/contact metadata, Phase 12 evidence link, validator evidence link, redaction note, next action, and allowed wording.
 
+## Submission Workflow
+
+Before any real submission, use
+`docs/evidence/consumer-submissions/submission-workflow.md` to verify the
+official target path, complete the pre-submission checklist, and decide what
+evidence must be retained before a status change.
+
+Official submission paths are not verified in the current records. Do not add a
+target URL or contact path unless it comes from a current official source or
+operator-retained target evidence.
+
+## Artifact Intake
+
+Target-specific artifact directories live under
+`docs/evidence/consumer-submissions/artifacts/`. They contain README files only
+until real redacted target-originated evidence exists.
+
+Do not commit placeholder screenshots, fake receipts, fake tickets, fake
+emails, example correspondence, private portal data, credentials, or personal
+data.
+
 ## Templates
 
 Reusable target templates live in `templates/`:
@@ -64,6 +93,19 @@ Reusable target templates live in `templates/`:
 | `accepted` | Acceptance may be claimed only for the named consumer, feed scope, URL root, and evidence date. |
 | `rejected` | Rejection documented, no acceptance claim. |
 | `blocked` | Submission blocked by named missing evidence/action. |
+
+## Status Transition Evidence
+
+The submission workflow defines the required evidence for each status
+transition. In short:
+
+- `submitted` requires retained redacted proof that a submission was sent to the
+  named target.
+- `under_review` requires target-originated review acknowledgement.
+- `accepted` requires target-originated acceptance confirmation for the exact
+  feed scope and URL root.
+- `rejected` requires a target-originated rejection or change-request reason.
+- `blocked` requires a blocker note naming the missing evidence or action.
 
 ## Current OCI Pilot Feed URLs For Submission Packets
 

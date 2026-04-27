@@ -4,6 +4,14 @@ This Phase 20 summary separates Open Transit RT capability from deployment evide
 
 It supports California-facing readiness review. It does not claim CAL-ITP/Caltrans compliance, consumer ingestion, consumer acceptance, marketplace/vendor equivalence, hosted SaaS availability, agency endorsement, or production-grade ETA quality.
 
+Agency-owned domain readiness is tracked separately in
+`docs/agency-owned-domain-readiness.md`.
+
+Official Caltrans reference points:
+
+- [California Transit Data Guidelines v4.0](https://dot.ca.gov/cal-itp/california-minimum-general-transit-feed-specification-gtfs-guidelines)
+- [California Transit Data Guidelines FAQ](https://dot.ca.gov/cal-itp/california-transit-data-guidelines-faqs)
+
 ## Code-Complete Capability
 
 The repository has code and workflow foundations for:
@@ -49,6 +57,11 @@ The packet index and completeness checklist live at `docs/evidence/consumer-subm
 The machine-readable status snapshot lives at `docs/evidence/consumer-submissions/status.json`.
 
 All seven targets are `prepared` only. Prepared means a complete reviewable packet exists; it does not mean a submission was made.
+
+The submission workflow lives at
+`docs/evidence/consumer-submissions/submission-workflow.md`. It documents how
+operators verify official paths, complete pre-submission checks, retain evidence,
+and update statuses without overclaiming.
 
 ## Submitted Evidence
 

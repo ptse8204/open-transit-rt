@@ -4,9 +4,9 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 21 — Community, Governance, And Multi-Agency Scale is complete for the approved docs/process/governance/teaching-visual scope.
+Track A — External Proof And Adoption is complete for the approved docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope.
 
-Phases 0 through 21 are closed for their documented scopes. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, or submission-readiness issue directly requires it.
+Phases 0 through 21 are closed for their documented scopes. Track A is also closed for its documented scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, or submission-readiness issue directly requires it.
 
 ## Phase Status
 
@@ -16,6 +16,10 @@ Phases 0 through 21 are closed for their documented scopes. Do not reopen earlie
 - Issue templates warn users not to paste tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, or unredacted operator artifacts.
 - Teaching visuals were generated under `docs/assets/` and documented in `docs/assets/README.md`.
 - Phase 21 did not change backend behavior, API contracts, database schema, public feed URLs, consumer-submission statuses, external integrations, or evidence claims.
+- Track A added `docs/evidence/consumer-submissions/submission-workflow.md`.
+- Track A added README-only target artifact directories under `docs/evidence/consumer-submissions/artifacts/`.
+- Track A added `docs/agency-owned-domain-readiness.md`.
+- Track A added no helper scripts, no backend behavior, no portal automation, no public feed URL changes, and no consumer status changes.
 - All seven consumer and aggregator targets remain `prepared` only. No target has submitted, under-review, accepted, rejected, or blocked evidence.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - No unsupported compliance, consumer-ingestion, marketplace-equivalence, hosted SaaS, paid support/SLA, agency-endorsement, or production-grade ETA claim was added.
@@ -24,27 +28,27 @@ Phases 0 through 21 are closed for their documented scopes. Do not reopen earlie
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-21.md`
-4. `CONTRIBUTING.md`
-5. `docs/governance.md`
-6. `docs/support-boundaries.md`
-7. `docs/multi-agency-strategy.md`
-8. `docs/roadmap-status.md`
-9. `docs/evidence/consumer-submissions/README.md`
-10. `docs/evidence/consumer-submissions/status.json`
-11. `docs/california-readiness-summary.md`
-12. `docs/marketplace-vendor-gap-review.md`
-13. `docs/compliance-evidence-checklist.md`
-14. `docs/prompts/calitp-truthfulness.md`
-15. `docs/evidence/redaction-policy.md`
-16. `README.md`
-17. `SECURITY.md`
+3. `docs/handoffs/track-a-external-proof.md`
+4. `docs/handoffs/phase-21.md`
+5. `docs/evidence/consumer-submissions/README.md`
+6. `docs/evidence/consumer-submissions/submission-workflow.md`
+7. `docs/evidence/consumer-submissions/status.json`
+8. `docs/evidence/consumer-submissions/artifacts/README.md`
+9. `docs/agency-owned-domain-readiness.md`
+10. `docs/california-readiness-summary.md`
+11. `docs/marketplace-vendor-gap-review.md`
+12. `docs/compliance-evidence-checklist.md`
+13. `docs/prompts/calitp-truthfulness.md`
+14. `docs/evidence/redaction-policy.md`
+15. `SECURITY.md`
+16. `docs/roadmap-status.md`
+17. `README.md`
 18. `docs/dependencies.md`
 19. `docs/decisions.md`
 
 ## Current Objective
 
-The next planned work should be selected explicitly by maintainers. A practical next step is a post-Phase-21 roadmap update that decides whether to prioritize multi-agency isolation tests, production operations hardening, or real consumer-submission evidence intake after target-originated artifacts exist.
+The next planned work should be selected explicitly by maintainers. For external proof work, use the Track A workflow before verifying official paths, submitting packets, or recording target-originated evidence.
 
 If real consumer or aggregator artifacts arrive, update only the named target record, `docs/evidence/consumer-submissions/status.json`, and the human-readable tracker to the evidence-backed status. Do not infer submission, review, acceptance, rejection, blocker status, ingestion, or compliance from validator success, public fetch proof, OCI pilot evidence, replay metrics, or prepared packets.
 
@@ -77,6 +81,7 @@ docker compose -f deploy/docker-compose.yml --profile app config
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
 - Phase 20 prepared packets are operator review artifacts only; they are not submissions.
+- Track A artifact directories are README-only until real redacted target-originated evidence exists.
 - Replay fixtures measure current realtime behavior only; they are not consumer acceptance, production-grade ETA proof, or CAL-ITP/Caltrans compliance.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
@@ -85,9 +90,10 @@ docker compose -f deploy/docker-compose.yml --profile app config
 
 ## First Files Likely To Edit
 
-- `docs/roadmap-post-phase-14.md` if maintainers define the post-Phase-21 roadmap.
+- `docs/roadmap-post-phase-14.md` if maintainers define the post-Track-A roadmap.
 - `docs/handoffs/latest.md` and `docs/current-status.md` when the next phase starts or closes.
 - `docs/evidence/consumer-submissions/current/<target>.md` only after real target-originated evidence exists.
+- `docs/evidence/consumer-submissions/artifacts/<target>/` only after real redacted target-originated evidence exists.
 - `.github/ISSUE_TEMPLATE/*.yml` or `.github/pull_request_template.md` only if maintainers adjust triage process.
 
 ## Constraints To Preserve
@@ -98,6 +104,7 @@ docker compose -f deploy/docker-compose.yml --profile app config
 - Do not expose admin/debug/JSON surfaces on the production public edge.
 - Do not add consumer submission APIs, automate submissions, contact external portals, guess submission paths, or invent acceptance/rejection/compliance evidence.
 - Keep `prepared` conditional on packet completeness.
+- Keep artifact directories empty except README files unless real redacted target-originated evidence is provided.
 - Keep `status.json` and the human-readable tracker aligned for target name, status, packet path, prepared timestamp, and evidence references.
 - Keep local `http://localhost:8080` wording scoped to local-demo packaging only.
 - Do not describe Open Transit RT as hosted SaaS, paid support, SLA-backed, agency-endorsed, marketplace/vendor equivalent, or universally production ready.
@@ -110,4 +117,4 @@ All future phase handoff files must use `docs/handoffs/template.md` unless the p
 
 Use `docs/roadmap-post-phase-14.md` as the roadmap source of truth until maintainers update it.
 
-No post-Phase-21 phase is selected in this handoff.
+No post-Track-A phase is selected in this handoff.

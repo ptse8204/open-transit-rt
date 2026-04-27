@@ -20,11 +20,21 @@ Phase 13 links consumer submission evidence back to the OCI pilot hosted/operato
 
 Phase 20 adds prepared packet drafts under `docs/evidence/consumer-submissions/packets/` and a machine-readable tracker snapshot at `docs/evidence/consumer-submissions/status.json`.
 
+Track A adds the operator workflow at
+`docs/evidence/consumer-submissions/submission-workflow.md` and target-specific
+artifact intake directories under
+`docs/evidence/consumer-submissions/artifacts/`.
+
 ## Truthfulness Boundary
 
 Validator success and public fetch proof are supporting evidence only. They show that a deployed feed was reachable or validator-clean at a recorded time. They are not consumer acceptance, consumer ingestion, CAL-ITP compliance, marketplace listing, or vendor equivalence.
 
 Consumer-ingestion workflow records in the Open Transit RT database are internal/operator records. They are not third-party acceptance unless the evidence packet includes retained proof from the named consumer or aggregator.
+
+Prepared packets are not submissions. Terms such as `submitted`,
+`under_review`, `accepted`, `rejected`, `blocked`, `ingested`, or `compliant`
+may appear in definitions, warnings, and transition rules, but they must not be
+used as current claims for any target without retained evidence.
 
 ## Statuses
 
@@ -139,6 +149,15 @@ Acceptance may be claimed only for the exact target, feed types, environment, UR
 5. Update the tracker freshness fields in `docs/evidence/consumer-submissions/README.md`.
 6. Update `docs/evidence/consumer-submissions/status.json` when tracker values change.
 7. Update handoff/status docs when the next action changes.
+
+Use `docs/evidence/consumer-submissions/submission-workflow.md` for the
+official-path verification checklist, pre-submission checklist, evidence intake
+rules, and status transition requirements.
+
+Target artifact directories must remain empty except README files until real
+redacted target-originated evidence is available. Do not create sample
+correspondence, fake receipts, fake tickets, fake emails, or placeholder portal
+screenshots.
 
 ## Current Phase 20 Result
 
