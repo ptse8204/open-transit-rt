@@ -40,6 +40,15 @@ The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` provides 
 
 This is pilot deployment evidence for `https://open-transit-pilot.duckdns.org`, not agency-domain production proof.
 
+## Phase 23 Agency-Domain Result
+
+Phase 23 closed as blocker-documented only because no agency-owned or
+agency-approved final public feed root was available.
+
+No final-root public fetch evidence, DNS proof, TLS/redirect proof, validator
+records, evidence packet, migration proof, or prepared packet refreshes were
+collected. The OCI pilot remains labeled as hosted/operator pilot evidence only.
+
 ## Prepared Packet Evidence
 
 Phase 20 prepared target-specific packets for:
@@ -85,9 +94,11 @@ No consumer or aggregator acceptance, ingestion, listing, display, or production
 
 The following evidence remains missing before stronger CAL-ITP/Caltrans readiness or compliance language would be justified:
 
-- agency-owned stable URL/domain proof; the DuckDNS OCI pilot is useful pilot evidence, but an agency-owned domain or provider-approved stable URL remains unproven;
+- agency-owned stable URL/domain proof; Phase 23 documented this as blocked
+  because no agency-owned or provider-approved stable URL root is available;
 - agency-approved identity, license, and contact metadata for any real provider submission;
-- current production validation records for the final agency-owned URL root;
+- current production validation records for the final agency-owned or
+  agency-approved URL root;
 - retained redacted submission receipts or tickets for each named consumer or aggregator;
 - retained under-review, rejection, blocker, or acceptance evidence from each named consumer or aggregator when such status is claimed;
 - consumer acceptance or ingestion proof for the exact feed scope and URL root being claimed;

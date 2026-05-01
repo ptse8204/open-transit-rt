@@ -4,9 +4,9 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 22 — Release And Distribution Hardening is complete.
+Phase 23 — Agency-Owned Deployment Proof is complete as blocker-documented closure only.
 
-Phases 0 through 22 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, or submission-readiness issue directly requires it.
+Phases 0 through 23 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, agency-domain, or submission-readiness issue directly requires it.
 
 ## Phase Status
 
@@ -26,7 +26,9 @@ Phases 0 through 22 are closed for their documented scopes. Track A is also clos
 - Phase 22 added `CHANGELOG.md`, `docs/release-checklist.md`, `docs/upgrade-and-rollback.md`, and `docs/release-notes-template.md`.
 - Phase 22 expanded `docs/release-process.md` with release-from-main, tag, version verification, artifact, install, upgrade, rollback, release note, and evidence packet version-linkage guidance.
 - Phase 22 explicitly documents that current distribution guidance supports source tags and local Docker builds only; published/versioned production Docker images are deferred.
-- Phase 23 — Agency-Owned Deployment Proof is the recommended next implementation phase.
+- Phase 23 — Agency-Owned Deployment Proof closed as blocker-documented only because no agency-owned or agency-approved final feed root is available.
+- No Phase 23 final-root evidence, validator records, evidence packet, migration proof, or prepared packet refreshes were collected.
+- Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase.
 - Track B must preserve truthfulness, redaction, and security boundaries.
 - All seven consumer and aggregator targets remain `prepared` only. No target has submitted, under-review, accepted, rejected, or blocked evidence.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
@@ -42,30 +44,32 @@ Phases 0 through 22 are closed for their documented scopes. Track A is also clos
 6. `docs/phase-22-release-distribution-hardening.md`
 7. `docs/handoffs/phase-22.md`
 8. `docs/phase-23-agency-owned-deployment-proof.md`
-9. `docs/release-process.md`
-10. `docs/release-checklist.md`
-11. `docs/upgrade-and-rollback.md`
-12. `docs/release-notes-template.md`
-13. `CHANGELOG.md`
-14. `docs/evidence/consumer-submissions/README.md`
-15. `docs/evidence/consumer-submissions/submission-workflow.md`
-16. `docs/evidence/consumer-submissions/status.json`
-17. `docs/evidence/consumer-submissions/artifacts/README.md`
-18. `docs/agency-owned-domain-readiness.md`
-19. `docs/california-readiness-summary.md`
-20. `docs/marketplace-vendor-gap-review.md`
-21. `docs/compliance-evidence-checklist.md`
-22. `docs/prompts/calitp-truthfulness.md`
-23. `docs/evidence/redaction-policy.md`
-24. `SECURITY.md`
-25. `docs/roadmap-status.md`
-26. `README.md`
-27. `docs/dependencies.md`
-28. `docs/decisions.md`
+9. `docs/handoffs/phase-23.md`
+10. `docs/phase-24-real-agency-data-onboarding.md`
+11. `docs/release-process.md`
+12. `docs/release-checklist.md`
+13. `docs/upgrade-and-rollback.md`
+14. `docs/release-notes-template.md`
+15. `CHANGELOG.md`
+16. `docs/evidence/consumer-submissions/README.md`
+17. `docs/evidence/consumer-submissions/submission-workflow.md`
+18. `docs/evidence/consumer-submissions/status.json`
+19. `docs/evidence/consumer-submissions/artifacts/README.md`
+20. `docs/agency-owned-domain-readiness.md`
+21. `docs/california-readiness-summary.md`
+22. `docs/marketplace-vendor-gap-review.md`
+23. `docs/compliance-evidence-checklist.md`
+24. `docs/prompts/calitp-truthfulness.md`
+25. `docs/evidence/redaction-policy.md`
+26. `SECURITY.md`
+27. `docs/roadmap-status.md`
+28. `README.md`
+29. `docs/dependencies.md`
+30. `docs/decisions.md`
 
 ## Current Objective
 
-The recommended next implementation phase is Phase 23 — Agency-Owned Deployment Proof. Do not implement the next Track B phase until maintainers explicitly start it.
+The recommended next implementation phase is Phase 24 — Real Agency Data Onboarding. Do not implement the next Track B phase until maintainers explicitly start it.
 
 For external proof work, use the Track A workflow before verifying official paths, submitting packets, or recording target-originated evidence. Track B productization work must not advance consumer statuses unless retained, redacted, target-originated evidence exists for the named target.
 
@@ -94,9 +98,10 @@ docker compose -f deploy/docker-compose.yml --profile app config
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
+- Phase 23 did not create final-root evidence. No agency-owned or agency-approved final public feed root is available in repo evidence.
 - Phase 20 prepared packets are operator review artifacts only; they are not submissions.
 - Track A artifact directories are README-only until real redacted target-originated evidence exists.
-- Track B roadmap docs and Phase 22 release docs do not prove compliance, acceptance, hosted service, paid support, SLA coverage, agency endorsement, vendor equivalence, or production-grade ETA quality.
+- Track B roadmap docs, Phase 22 release docs, and Phase 23 blocker docs do not prove compliance, acceptance, hosted service, paid support, SLA coverage, agency endorsement, vendor equivalence, or production-grade ETA quality.
 - Replay fixtures measure current realtime behavior only; they are not consumer acceptance, production-grade ETA proof, or CAL-ITP/Caltrans compliance.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
@@ -105,7 +110,7 @@ docker compose -f deploy/docker-compose.yml --profile app config
 
 ## First Files Likely To Edit
 
-- `docs/phase-23-agency-owned-deployment-proof.md` when maintainers begin Phase 23 implementation.
+- `docs/phase-24-real-agency-data-onboarding.md` when maintainers begin Phase 24 implementation.
 - `docs/handoffs/latest.md` and `docs/current-status.md` when the next phase starts or closes.
 - `docs/roadmap-post-phase-14.md` only if maintainers revise the roadmap structure.
 - `docs/evidence/consumer-submissions/current/<target>.md` only after real target-originated evidence exists.
@@ -133,7 +138,7 @@ All future phase handoff files must use `docs/handoffs/template.md` unless the p
 
 Use `docs/track-b-productization-roadmap.md` as the forward roadmap source of truth for Track B. Use `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context.
 
-Phase 23 — Agency-Owned Deployment Proof is the recommended next implementation phase.
+Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase.
 
 ## Checks Run For Phase 22
 
@@ -146,3 +151,20 @@ Phase 23 — Agency-Owned Deployment Proof is the recommended next implementatio
 - `make smoke` — passed.
 - `docker compose -f deploy/docker-compose.yml config` — passed.
 - `git diff --check` — passed.
+
+## Checks Run For Phase 23
+
+- pre-edit `make validate` — passed.
+- pre-edit `make test` — passed.
+- pre-edit `make realtime-quality` — passed.
+- pre-edit `make smoke` — passed.
+- pre-edit `docker compose -f deploy/docker-compose.yml config` — passed.
+- pre-edit `git diff --check` — passed.
+- post-edit `python3 -m json.tool docs/evidence/consumer-submissions/status.json` — passed.
+- post-edit tracker/status consistency check — passed.
+- post-edit `make validate` — passed.
+- post-edit `make test` — passed.
+- post-edit `make realtime-quality` — passed.
+- post-edit `make smoke` — passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config` — passed.
+- post-edit `git diff --check` — passed.

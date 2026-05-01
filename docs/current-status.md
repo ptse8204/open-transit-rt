@@ -56,6 +56,8 @@ Track B — Agency Productization, Release, And Real-World Adoption has started.
 
 Phase 22 did not change backend behavior, API contracts, database schema, public feed URLs, consumer-submission statuses, external integrations, or evidence claims. Track B must preserve Track A truthfulness boundaries: consumer targets remain `prepared` only unless retained, redacted, target-originated evidence supports a target-specific status change.
 
+Phase 23 — Agency-Owned Deployment Proof is closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. The DuckDNS OCI pilot remains hosted/operator pilot evidence only, not agency-owned production-domain proof.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -108,6 +110,7 @@ The repo has:
 - `docs/handoffs/phase-20.md`
 - `docs/handoffs/phase-21.md`
 - `docs/handoffs/phase-22.md`
+- `docs/handoffs/phase-23.md`
 - `docs/handoffs/track-a-external-proof.md`
 - `docs/handoffs/track-b-roadmap.md`
 
@@ -270,12 +273,12 @@ The following are still missing or incomplete unless a later handoff says otherw
 - external predictor adapters such as TheTransitClock
 - external consumer submission API integrations
 - consumer submission, review, acceptance, rejection, or blocker evidence from third parties
-- agency-owned stable URL/domain proof for the OCI pilot feed set
+- agency-owned or agency-approved stable URL/domain proof for a final public feed root
 - marketplace/vendor-equivalent service packaging and support commitments
 
 ## Current Phase
 
-**Active phase:** Phase 22 — Release And Distribution Hardening is complete. Phase 23 — Agency-Owned Deployment Proof is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 22 remain closed for their documented scopes.
+**Active phase:** Phase 23 — Agency-Owned Deployment Proof is complete as blocker-documented closure only. Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 23 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -287,7 +290,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 — Agency-Owned Deployment Proof is the recommended next implementation phase. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -302,6 +305,31 @@ The codebase must preserve these long-term rules:
 - conservative matching
 - external dependencies isolated behind adapters
 - no rider apps, payments, passenger accounts, or dispatcher CAD scope
+
+## Phase 23 Closure Audit Results
+
+Checked during Phase 23 closure:
+- pre-edit `make validate`: passed.
+- pre-edit `make test`: passed.
+- pre-edit `make realtime-quality`: passed.
+- pre-edit `make smoke`: passed.
+- pre-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- pre-edit `git diff --check`: passed.
+- post-edit `python3 -m json.tool docs/evidence/consumer-submissions/status.json`: passed.
+- post-edit tracker/status consistency check: passed for target name, status, packet path, prepared timestamp, and evidence references.
+- post-edit `make validate`: passed.
+- post-edit `make test`: passed.
+- post-edit `make realtime-quality`: passed.
+- post-edit `make smoke`: passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- post-edit `git diff --check`: passed.
+
+Phase 23 implementation results:
+- closed Phase 23 as blocker-documented only because no agency-owned or agency-approved final feed root is available.
+- added a Phase 23 blocker record and future operator next-actions checklist for agency-owned domain proof.
+- kept DuckDNS labeled as hosted/operator pilot evidence only.
+- did not create final-root evidence, validator records, evidence packets, migration proof, packet refreshes, consumer status changes, or unsupported readiness/compliance claims.
+- did not run `EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence` because no final-root evidence packet was created.
 
 ## Phase 22 Closure Audit Results
 
@@ -707,9 +735,21 @@ Track A is complete for the external-proof/adoption workflow scope:
 - kept all seven consumer and aggregator targets at `prepared` only
 - did not add placeholder artifacts, helper scripts, portal automation, backend behavior, public feed URL changes, or external evidence claims
 
+## Phase 23 Progress
+
+Phase 23 is complete as blocker-documented closure only:
+- updated `docs/phase-23-agency-owned-deployment-proof.md` with Outcome B blocker status
+- updated `docs/agency-owned-domain-readiness.md` with the Phase 23 blocker record and future operator next-actions checklist
+- updated `docs/california-readiness-summary.md` and `docs/compliance-evidence-checklist.md` to keep final-root evidence listed as missing before stronger California readiness language
+- added `docs/handoffs/phase-23.md`
+- did not create a final-root evidence packet
+- did not run hosted evidence audit for a final-root packet
+- did not refresh prepared consumer packets or update `docs/evidence/consumer-submissions/status.json`
+- did not claim compliance, consumer acceptance, agency endorsement, hosted SaaS, marketplace equivalence, or production-grade ETA quality
+
 ## Next Recommended Step
 
-Start Phase 22 — Release And Distribution Hardening when maintainers are ready to begin Track B implementation. Phase 22 should create the release, changelog, install, upgrade, rollback, and release-validation structure without changing backend behavior, API contracts, database schema, public feed URLs, consumer statuses, or external integrations.
+Start Phase 24 — Real Agency Data Onboarding when maintainers are ready to continue Track B implementation. Phase 24 should focus on real GTFS import, validation triage, metadata, and publish workflow without changing consumer statuses or making unsupported readiness claims.
 
 Use the Track A workflow when a human operator is ready to verify an official target path or record real target-originated evidence. If no real third-party artifacts are available, keep every target at `prepared`.
 

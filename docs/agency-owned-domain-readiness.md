@@ -49,12 +49,44 @@ Before claiming agency-owned production-domain readiness, collect evidence for:
    only when authorized.
 8. Record target-originated evidence before changing any target status.
 
+## Phase 23 Blocker Record
+
+Phase 23 closed as blocker-documented only. No agency-owned or
+agency-approved final public feed root was available or approved, so final-root
+evidence was not collected.
+
+| Area | Phase 23 status |
+| --- | --- |
+| Candidate final root | Blocked — not available. |
+| Domain owner / approving operator | Blocked — no final root or approval artifact available. |
+| DNS proof | Not collected — final root unavailable. |
+| TLS proof | Not collected — final root unavailable. |
+| HTTP to HTTPS redirect proof | Not collected — final root unavailable. |
+| All five final feed URLs | Not collected — final root unavailable. |
+| Final-root validator records | Not collected — final root unavailable. |
+| Prepared packet refresh | Not performed — final-root evidence unavailable. |
+| Migration / redirect proof from DuckDNS | Not collected — no final root exists to migrate to. |
+
+## Future Agency-Owned Domain Next Actions
+
+1. Identify the candidate agency-owned or agency-approved root.
+2. Confirm agency/operator approval for that root and for use in submissions.
+3. Configure DNS.
+4. Configure TLS.
+5. Deploy all five public feed URLs at the final root.
+6. Run validators against the final root.
+7. Collect the final-root evidence packet.
+8. Refresh prepared packets with final-root evidence.
+9. Update the Track A submission workflow/status only with retained evidence.
+
 ## Claim Boundary
 
 Allowed now:
 
 - "The DuckDNS OCI pilot provides pilot evidence for the recorded URL root."
 - "Agency-owned domain readiness requirements are documented."
+- "Phase 23 documented that final-root proof is blocked because no
+  agency-owned or agency-approved root is available."
 
 Not supported yet:
 

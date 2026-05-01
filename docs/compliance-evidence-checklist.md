@@ -167,3 +167,27 @@ What Phase 20 does not prove:
 - production-grade ETA quality.
 
 The California readiness summary is `docs/california-readiness-summary.md`. The marketplace/vendor gap review is `docs/marketplace-vendor-gap-review.md`.
+
+## Phase 23 Agency-Owned Deployment Proof Result
+
+Phase 23 closed as blocker-documented only because no agency-owned or
+agency-approved final public feed root was available.
+
+What Phase 23 currently proves:
+
+- the final-root evidence gap is explicitly documented;
+- the DuckDNS OCI pilot remains labeled as hosted/operator pilot evidence only;
+- the future agency-owned domain checklist and migration template are recorded.
+
+What Phase 23 does not prove:
+
+- agency-owned or agency-approved domain/root ownership;
+- DNS, TLS, redirect, or public fetch behavior at a final root;
+- validator-clean final-root schedule, Vehicle Positions, Trip Updates, or
+  Alerts records;
+- refreshed prepared packets for a final root;
+- consumer submission, review, acceptance, ingestion, listing, display, or
+  production use;
+- CAL-ITP/Caltrans compliance;
+- marketplace/vendor equivalence;
+- production-grade ETA quality.
