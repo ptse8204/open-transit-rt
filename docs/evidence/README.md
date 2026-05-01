@@ -1,6 +1,6 @@
-# Deployment Evidence Folder
+# Evidence Folder
 
-This folder is the Phase 12 Step 1 evidence scaffold.
+This folder holds repo-owned evidence templates, captured evidence packets, and later-phase evidence scaffolds.
 
 ## Structure
 
