@@ -52,13 +52,16 @@ Phase 21 is complete for the Community, Governance, and Multi-Agency Scale docs/
 
 Track A — External Proof And Adoption is complete for the docs-only operator workflow scope. The repo now has an official submission-path verification workflow, pre-submission checklist, evidence intake/status-transition rules, README-only per-target artifact intake directories, and an agency-owned domain readiness checklist. Track A did not contact portals, automate submissions, add backend behavior, add helper scripts, change public feed URLs, change consumer statuses, or introduce submission, review, acceptance, ingestion, compliance, agency-endorsement, hosted-SaaS, vendor-equivalence, or production-grade ETA claims. All seven consumer and aggregator targets remain `prepared` only.
 
-Track B — Agency Productization, Release, And Real-World Adoption roadmap context has been added. Track B implementation has not started. The roadmap docs now live in `docs/track-b-productization-roadmap.md`, with planned Phase 22 through Phase 32 docs and `docs/handoffs/track-b-roadmap.md`. Phase 22 — Release And Distribution Hardening is the recommended next implementation phase. Track B must preserve Track A truthfulness boundaries: consumer targets remain `prepared` only unless retained, redacted, target-originated evidence supports a target-specific status change.
+Track B — Agency Productization, Release, And Real-World Adoption has started. Phase 22 — Release And Distribution Hardening is complete for the docs/process scope. The repo now has a changelog, release checklist, release notes template, install/upgrade/rollback guidance, source tag and commit pinning guidance, local Docker build-from-tag guidance, evidence packet version-linkage guidance, and release validation checks that include `make realtime-quality`. Current distribution guidance supports source tags and local Docker builds only; published/versioned production Docker images remain deferred.
+
+Phase 22 did not change backend behavior, API contracts, database schema, public feed URLs, consumer-submission statuses, external integrations, or evidence claims. Track B must preserve Track A truthfulness boundaries: consumer targets remain `prepared` only unless retained, redacted, target-originated evidence supports a target-specific status change.
 
 ## What Exists Now
 
 ### Repo guidance and architecture docs
 The repo has:
 - `AGENTS.md`
+- `CHANGELOG.md`
 - `CONTRIBUTING.md`
 - `CODE_OF_CONDUCT.md`
 - `docs/codex-task.md`
@@ -73,6 +76,9 @@ The repo has:
 - `docs/dependencies.md`
 - `docs/governance.md`
 - `docs/release-process.md`
+- `docs/release-checklist.md`
+- `docs/upgrade-and-rollback.md`
+- `docs/release-notes-template.md`
 - `docs/support-boundaries.md`
 - `docs/multi-agency-strategy.md`
 - `docs/roadmap-status.md`
@@ -101,6 +107,7 @@ The repo has:
 - `docs/handoffs/phase-19.md`
 - `docs/handoffs/phase-20.md`
 - `docs/handoffs/phase-21.md`
+- `docs/handoffs/phase-22.md`
 - `docs/handoffs/track-a-external-proof.md`
 - `docs/handoffs/track-b-roadmap.md`
 
@@ -268,7 +275,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Track B roadmap context is added, but no Track B implementation phase is active yet. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 21 remain closed for their documented scopes.
+**Active phase:** Phase 22 — Release And Distribution Hardening is complete. Phase 23 — Agency-Owned Deployment Proof is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 22 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -280,7 +287,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 32 without implementing those phases. Phase 22 — Release And Distribution Hardening is the recommended next implementation phase. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 — Agency-Owned Deployment Proof is the recommended next implementation phase. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -295,6 +302,27 @@ The codebase must preserve these long-term rules:
 - conservative matching
 - external dependencies isolated behind adapters
 - no rider apps, payments, passenger accounts, or dispatcher CAD scope
+
+## Phase 22 Closure Audit Results
+
+Checked during Phase 22 closure:
+- pre-edit `make validate`: passed.
+- pre-edit `make test`: passed.
+- pre-edit `git diff --check`: passed.
+- post-edit `make validate`: passed.
+- post-edit `make test`: passed.
+- post-edit `make realtime-quality`: passed.
+- post-edit `make smoke`: passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- post-edit `git diff --check`: passed.
+
+Phase 22 implementation results:
+- added `CHANGELOG.md`, `docs/release-checklist.md`, `docs/upgrade-and-rollback.md`, and `docs/release-notes-template.md`.
+- expanded `docs/release-process.md` with release-from-main, tag, version verification, artifact, release note, install, upgrade, rollback, and evidence version-linkage guidance.
+- documented clean install from a source tag, local app verification, local Docker image builds from tags, required release checks, backup-before-upgrade, migration run order, migration status checks, rollback limits, and restore-procedure links.
+- documented version pinning by source tag, commit SHA, local Docker image tag, and artifact checksum when generated.
+- explicitly deferred published/versioned production Docker images; current distribution guidance supports source tags and local Docker builds only.
+- did not add backend behavior, `/version`, binary `--version`, OCI image labels, migrations, public feed URL changes, consumer status changes, external integrations, production Docker image claims, compliance claims, consumer acceptance claims, hosted-SaaS claims, or vendor-equivalence claims.
 
 ## Phase 0 Closure Audit Results
 

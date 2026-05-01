@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned Track B phase. Not implemented until `docs/handoffs/latest.md` marks it active.
+Complete. Phase 22 added release, install, upgrade, rollback, version-pinning, and release-note documentation only.
 
 ## Purpose
 
@@ -107,15 +107,10 @@ Phase 22 is complete only when:
 ```bash
 make validate
 make test
-git diff --check
-```
-
-If deployment/release docs change materially, also run:
-
-```bash
 make realtime-quality
 make smoke
 docker compose -f deploy/docker-compose.yml config
+git diff --check
 ```
 
 ## Explicit Non-Goals
@@ -130,13 +125,19 @@ Phase 22 does not:
 - claim consumer acceptance or compliance;
 - add external integrations.
 
-## Likely Files
+## Implemented Files
 
 - `CHANGELOG.md`
 - `docs/release-process.md`
 - `docs/release-checklist.md`
 - `docs/upgrade-and-rollback.md`
+- `docs/release-notes-template.md`
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-22.md`
-- `README.md` only for a short release/install link if needed
+- `README.md`
+- `docs/README.md`
+
+## Distribution Boundary
+
+Current distribution guidance supports source tags, exact commit SHAs, local Docker image builds from tags, and checksums for generated artifacts. Published/versioned production Docker images are deferred and are not claimed by this phase.

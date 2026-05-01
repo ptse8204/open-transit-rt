@@ -32,6 +32,17 @@ These are command-level references for people running or evaluating the project:
 - [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 
+## Release And Upgrade
+
+These pages explain how maintainers cut releases and how operators pin,
+install, upgrade, and roll back a tagged version:
+
+- [Changelog](../CHANGELOG.md)
+- [Release Process](release-process.md)
+- [Release Checklist](release-checklist.md)
+- [Upgrade And Rollback](upgrade-and-rollback.md)
+- [Release Notes Template](release-notes-template.md)
+
 ## Readiness And Evidence
 
 These pages explain what evidence exists and what it can, and cannot, prove:

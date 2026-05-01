@@ -75,6 +75,8 @@ For a guided version, start with the [Agency First Run](docs/tutorials/agency-fi
 
 Community/process links: [Contributing](CONTRIBUTING.md), [Code Of Conduct](CODE_OF_CONDUCT.md), [Support Boundaries](docs/support-boundaries.md), [Governance](docs/governance.md), and [Roadmap Status](docs/roadmap-status.md).
 
+Release and install links: [Changelog](CHANGELOG.md), [Release Process](docs/release-process.md), [Release Checklist](docs/release-checklist.md), and [Upgrade And Rollback](docs/upgrade-and-rollback.md).
+
 ## Evidence And Boundaries
 
 This repo includes local validation workflows, an executable agency demo, a repeatable pilot operations guide, and captured OCI pilot evidence. These are useful signals for evaluating the project.
