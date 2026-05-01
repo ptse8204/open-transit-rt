@@ -4,9 +4,9 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Track A — External Proof And Adoption is complete for the approved docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope.
+Track B roadmap context is added. No Track B implementation phase is active yet.
 
-Phases 0 through 21 are closed for their documented scopes. Track A is also closed for its documented scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, or submission-readiness issue directly requires it.
+Phases 0 through 21 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, or submission-readiness issue directly requires it.
 
 ## Phase Status
 
@@ -20,6 +20,11 @@ Phases 0 through 21 are closed for their documented scopes. Track A is also clos
 - Track A added README-only target artifact directories under `docs/evidence/consumer-submissions/artifacts/`.
 - Track A added `docs/agency-owned-domain-readiness.md`.
 - Track A added no helper scripts, no backend behavior, no portal automation, no public feed URL changes, and no consumer status changes.
+- Track B roadmap docs have been added for Phase 22 through Phase 32.
+- `docs/track-b-productization-roadmap.md` is the Track B roadmap source.
+- `docs/handoffs/track-b-roadmap.md` records the Track B roadmap handoff.
+- Phase 22 — Release And Distribution Hardening is the recommended next implementation phase.
+- Track B must preserve truthfulness, redaction, and security boundaries.
 - All seven consumer and aggregator targets remain `prepared` only. No target has submitted, under-review, accepted, rejected, or blocked evidence.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - No unsupported compliance, consumer-ingestion, marketplace-equivalence, hosted SaaS, paid support/SLA, agency-endorsement, or production-grade ETA claim was added.
@@ -29,26 +34,31 @@ Phases 0 through 21 are closed for their documented scopes. Track A is also clos
 1. `AGENTS.md`
 2. `docs/current-status.md`
 3. `docs/handoffs/track-a-external-proof.md`
-4. `docs/handoffs/phase-21.md`
-5. `docs/evidence/consumer-submissions/README.md`
-6. `docs/evidence/consumer-submissions/submission-workflow.md`
-7. `docs/evidence/consumer-submissions/status.json`
-8. `docs/evidence/consumer-submissions/artifacts/README.md`
-9. `docs/agency-owned-domain-readiness.md`
-10. `docs/california-readiness-summary.md`
-11. `docs/marketplace-vendor-gap-review.md`
-12. `docs/compliance-evidence-checklist.md`
-13. `docs/prompts/calitp-truthfulness.md`
-14. `docs/evidence/redaction-policy.md`
-15. `SECURITY.md`
-16. `docs/roadmap-status.md`
-17. `README.md`
-18. `docs/dependencies.md`
-19. `docs/decisions.md`
+4. `docs/handoffs/track-b-roadmap.md`
+5. `docs/track-b-productization-roadmap.md`
+6. `docs/phase-22-release-distribution-hardening.md`
+7. `docs/handoffs/phase-21.md`
+8. `docs/evidence/consumer-submissions/README.md`
+9. `docs/evidence/consumer-submissions/submission-workflow.md`
+10. `docs/evidence/consumer-submissions/status.json`
+11. `docs/evidence/consumer-submissions/artifacts/README.md`
+12. `docs/agency-owned-domain-readiness.md`
+13. `docs/california-readiness-summary.md`
+14. `docs/marketplace-vendor-gap-review.md`
+15. `docs/compliance-evidence-checklist.md`
+16. `docs/prompts/calitp-truthfulness.md`
+17. `docs/evidence/redaction-policy.md`
+18. `SECURITY.md`
+19. `docs/roadmap-status.md`
+20. `README.md`
+21. `docs/dependencies.md`
+22. `docs/decisions.md`
 
 ## Current Objective
 
-The next planned work should be selected explicitly by maintainers. For external proof work, use the Track A workflow before verifying official paths, submitting packets, or recording target-originated evidence.
+The recommended next implementation phase is Phase 22 — Release And Distribution Hardening. Do not implement Track B until maintainers explicitly start a Track B phase.
+
+For external proof work, use the Track A workflow before verifying official paths, submitting packets, or recording target-originated evidence. Track B productization work must not advance consumer statuses unless retained, redacted, target-originated evidence exists for the named target.
 
 If real consumer or aggregator artifacts arrive, update only the named target record, `docs/evidence/consumer-submissions/status.json`, and the human-readable tracker to the evidence-backed status. Do not infer submission, review, acceptance, rejection, blocker status, ingestion, or compliance from validator success, public fetch proof, OCI pilot evidence, replay metrics, or prepared packets.
 
@@ -82,6 +92,7 @@ docker compose -f deploy/docker-compose.yml --profile app config
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
 - Phase 20 prepared packets are operator review artifacts only; they are not submissions.
 - Track A artifact directories are README-only until real redacted target-originated evidence exists.
+- Track B roadmap docs are planned implementation context only; they do not prove compliance, acceptance, hosted service, paid support, SLA coverage, agency endorsement, vendor equivalence, or production-grade ETA quality.
 - Replay fixtures measure current realtime behavior only; they are not consumer acceptance, production-grade ETA proof, or CAL-ITP/Caltrans compliance.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
@@ -90,8 +101,9 @@ docker compose -f deploy/docker-compose.yml --profile app config
 
 ## First Files Likely To Edit
 
-- `docs/roadmap-post-phase-14.md` if maintainers define the post-Track-A roadmap.
+- `docs/phase-22-release-distribution-hardening.md` when maintainers begin Phase 22 implementation.
 - `docs/handoffs/latest.md` and `docs/current-status.md` when the next phase starts or closes.
+- `docs/roadmap-post-phase-14.md` only if maintainers revise the roadmap structure.
 - `docs/evidence/consumer-submissions/current/<target>.md` only after real target-originated evidence exists.
 - `docs/evidence/consumer-submissions/artifacts/<target>/` only after real redacted target-originated evidence exists.
 - `.github/ISSUE_TEMPLATE/*.yml` or `.github/pull_request_template.md` only if maintainers adjust triage process.
@@ -115,6 +127,16 @@ All future phase handoff files must use `docs/handoffs/template.md` unless the p
 
 ## Future Roadmap
 
-Use `docs/roadmap-post-phase-14.md` as the roadmap source of truth until maintainers update it.
+Use `docs/track-b-productization-roadmap.md` as the forward roadmap source of truth for Track B. Use `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context.
 
-No post-Track-A phase is selected in this handoff.
+Phase 22 — Release And Distribution Hardening is the recommended next implementation phase.
+
+## Checks Run For Track B Roadmap Context
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed.
+- `make realtime-quality` — passed.
+- `make smoke` — passed.
+- `docker compose -f deploy/docker-compose.yml config` — passed.
+- `git diff -- docs/evidence/consumer-submissions/status.json docs/evidence/consumer-submissions/current` — passed with no diff.

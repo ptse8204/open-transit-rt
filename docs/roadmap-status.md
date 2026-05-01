@@ -66,4 +66,8 @@ Replay metrics do not prove production-grade ETA quality or consumer acceptance.
 
 Future phases describe intended work. They are not commitments to hosted service, support coverage, agency endorsement, or consumer acceptance.
 
-Use `docs/roadmap-post-phase-14.md` for the phase sequence and `docs/handoffs/latest.md` for the current handoff state.
+Track B is the planned productization path for release, agency-owned deployment proof, real agency data onboarding, device/AVL integration guidance, setup UX, multi-agency isolation proof, operations hardening, realtime quality expansion, authorized consumer submissions, agency pilot packaging, and public ecosystem outreach.
+
+Phase 22 — Release And Distribution Hardening is the recommended next implementation phase. It is planned work, not evidence of release availability, hosted service, compliance, or consumer acceptance.
+
+Use `docs/track-b-productization-roadmap.md` for the forward roadmap, `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context, and `docs/handoffs/latest.md` for the current handoff state.

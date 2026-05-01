@@ -1,13 +1,15 @@
 # Post-Phase-14 Roadmap
 
-This roadmap extends Open Transit RT beyond the current Phase 14 public-launch polish track. It is designed to give future Codex instances durable repo-native context so work can continue phase-by-phase without relying on chat history.
+This roadmap preserves the historical post-Phase-14 sequence through Track A. The forward roadmap source of truth is now `docs/track-b-productization-roadmap.md`.
 
 ## Current State Assumption
 
-- Phases 0 through 17 are closed for their documented scope.
-- Phase 18 is the next planned phase unless `docs/handoffs/latest.md` says otherwise.
+- Phases 0 through 21 are closed for their documented scope.
+- Track A is closed for its docs-only external-proof workflow scope.
+- Track B roadmap docs have been added, but Track B implementation has not started.
+- Phase 22 — Release And Distribution Hardening is the recommended next implementation phase unless `docs/handoffs/latest.md` says otherwise.
 - Phase 12 produced hosted/operator evidence for the OCI pilot.
-- Phase 13 created the consumer-submission evidence layer, but all consumer/aggregator records remain `not_started` until real third-party artifacts exist.
+- Phase 13 created the consumer-submission evidence layer, and Phase 20 prepared packets for seven targets. All consumer/aggregator records remain `prepared` unless real target-originated evidence supports a target-specific status change.
 
 ## Roadmap Principles
 
@@ -74,18 +76,37 @@ Goal: prepare the project for outside contributors and multiple agencies. Add co
 
 Plan doc: `docs/phase-21-community-governance-multi-agency.md`.
 
+### Track A — External Proof And Adoption
+
+Status: complete for the docs-only operator workflow scope.
+
+Goal: define how operators verify official target submission paths, retain redacted target-originated evidence, update only evidence-backed consumer statuses, and preserve agency-owned domain readiness boundaries.
+
+Handoff: `docs/handoffs/track-a-external-proof.md`.
+
+### Track B — Agency Productization, Release, And Real-World Adoption
+
+Status: planned roadmap context added. Track B implementation has not started.
+
+Goal: make Open Transit RT practical for real small-agency pilots and eventual production use while preserving truthfulness, redaction, security, and consumer-status boundaries.
+
+Roadmap: `docs/track-b-productization-roadmap.md`.
+
+Recommended first implementation phase: Phase 22 — Release And Distribution Hardening.
+
 ## How Future Codex Instances Should Use This Roadmap
 
 For each phase:
 
 1. Read `AGENTS.md` first.
 2. Read `docs/current-status.md` and `docs/handoffs/latest.md`.
-3. Read this roadmap.
-4. Read the phase-specific plan doc.
-5. Execute only that phase.
-6. Update status and handoff docs.
-7. Run the required checks.
-8. Do not mark the phase closed unless acceptance criteria are met.
+3. Read this roadmap for historical context.
+4. Read `docs/track-b-productization-roadmap.md` for the forward roadmap.
+5. Read the phase-specific plan doc.
+6. Execute only that phase.
+7. Update status and handoff docs.
+8. Run the required checks.
+9. Do not mark the phase closed unless acceptance criteria are met.
 
 ## Important Non-Goals Across Future Phases
 

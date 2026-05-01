@@ -72,6 +72,8 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Support Boundaries](support-boundaries.md)
 - [Multi-Agency Strategy](multi-agency-strategy.md)
 - [Roadmap Status](roadmap-status.md)
+- [Track B Productization Roadmap](track-b-productization-roadmap.md)
+- [Track B Roadmap Handoff](handoffs/track-b-roadmap.md)
 - [Current Status](current-status.md)
 - [Latest Continuation Notes](handoffs/latest.md)
 - [Maintainer History](handoffs/)
