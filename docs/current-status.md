@@ -58,6 +58,8 @@ Phase 22 did not change backend behavior, API contracts, database schema, public
 
 Phase 23 — Agency-Owned Deployment Proof is closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. The DuckDNS OCI pilot remains hosted/operator pilot evidence only, not agency-owned production-domain proof.
 
+Phase 24 — Real Agency Data Onboarding is complete for the docs/process and evidence-template scope. The repo now has a real-agency GTFS onboarding guide, GTFS validation triage guide, metadata approval checklist, publish review checklist, Phase 23-aware final public-feed review guidance, and template-only future real-agency import evidence scaffold. No real agency data, fake evidence, backend behavior, public feed URLs, consumer statuses, final-root evidence, or unsupported readiness claims were added.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -278,7 +280,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 23 — Agency-Owned Deployment Proof is complete as blocker-documented closure only. Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 23 remain closed for their documented scopes.
+**Active phase:** Phase 24 — Real Agency Data Onboarding is complete for the docs/process and evidence-template scope. Phase 25 — Device And AVL Integration Kit is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 24 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -290,7 +292,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -305,6 +307,29 @@ The codebase must preserve these long-term rules:
 - conservative matching
 - external dependencies isolated behind adapters
 - no rider apps, payments, passenger accounts, or dispatcher CAD scope
+
+## Phase 24 Closure Audit Results
+
+Checked during Phase 24 closure:
+- pre-edit `make validate`: passed.
+- pre-edit `make test`: passed.
+- pre-edit `make realtime-quality`: passed.
+- pre-edit `make smoke`: passed.
+- pre-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- pre-edit `git diff --check`: passed.
+- post-edit `make validate`: passed.
+- post-edit `make test`: passed.
+- post-edit `make realtime-quality`: passed.
+- post-edit `make smoke`: passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- post-edit `git diff --check`: passed.
+
+Phase 24 implementation results:
+- added `docs/tutorials/real-agency-gtfs-onboarding.md` for real-agency GTFS intake, metadata approval, import/publish review, redaction, and Phase 23-aware final public-feed review.
+- added `docs/tutorials/gtfs-validation-triage.md` for plain-language importer and validator issue triage, including when to ask for technical help.
+- added template-only real-agency GTFS evidence scaffolding under `docs/evidence/real-agency-gtfs/`.
+- linked the new onboarding and evidence docs from tutorial, evidence, production checklist, first-run, README, status, and handoff docs.
+- did not add real GTFS data, fake validation outputs, fake approvals, fake import evidence, backend behavior, public feed URL changes, consumer status changes, final-root proof, or unsupported compliance/readiness claims.
 
 ## Phase 23 Closure Audit Results
 
@@ -747,9 +772,22 @@ Phase 23 is complete as blocker-documented closure only:
 - did not refresh prepared consumer packets or update `docs/evidence/consumer-submissions/status.json`
 - did not claim compliance, consumer acceptance, agency endorsement, hosted SaaS, marketplace equivalence, or production-grade ETA quality
 
+## Phase 24 Progress
+
+Phase 24 is complete for the docs/process and evidence-template scope:
+- added `docs/tutorials/real-agency-gtfs-onboarding.md`
+- added `docs/tutorials/gtfs-validation-triage.md`
+- added `docs/evidence/real-agency-gtfs/README.md`
+- added `docs/evidence/real-agency-gtfs/templates/import-review-template.md`
+- updated first-run, production checklist, tutorial index, evidence index, README, phase status, current status, and latest handoff docs
+- added `docs/handoffs/phase-24.md`
+- kept the evidence scaffold template-only until real agency-approved, public-safe evidence exists
+- kept Phase 23 final-root status unchanged: no agency-owned or agency-approved final public feed root is available in repo evidence
+- did not add real agency data, placeholder artifacts, fake evidence, backend behavior, public feed URL changes, consumer status changes, or unsupported readiness/compliance claims
+
 ## Next Recommended Step
 
-Start Phase 24 — Real Agency Data Onboarding when maintainers are ready to continue Track B implementation. Phase 24 should focus on real GTFS import, validation triage, metadata, and publish workflow without changing consumer statuses or making unsupported readiness claims.
+Start Phase 25 — Device And AVL Integration Kit when maintainers are ready to continue Track B implementation. Phase 25 should focus on real device/vendor telemetry onboarding and support materials without changing consumer statuses, public feed URLs, final-root evidence, or unsupported readiness claims.
 
 Use the Track A workflow when a human operator is ready to verify an official target path or record real target-originated evidence. If no real third-party artifacts are available, keep every target at `prepared`.
 

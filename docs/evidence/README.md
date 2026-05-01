@@ -6,6 +6,7 @@ This folder is the Phase 12 Step 1 evidence scaffold.
 
 - `templates/`: repo-owned templates and checklists committed to git.
 - `captured/`: location for captured evidence packets. Existing local packets may be partial; hosted deployment artifacts should be added here when available.
+- `real-agency-gtfs/`: templates for future real-agency GTFS import review packets. It contains templates only until real agency-approved, public-safe evidence exists.
 
 Current captured packet:
 

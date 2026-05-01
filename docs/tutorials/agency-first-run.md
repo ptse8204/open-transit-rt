@@ -42,6 +42,8 @@ GTFS is the schedule data format used by trip planners. It describes routes, sto
 
 In this repo, a GTFS ZIP can be imported, validated by the internal importer, and published as the active schedule feed. The local app imports the small committed fixture so you can see the feed URLs work.
 
+For a real agency ZIP, use [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md) before importing. That guide covers source permission, metadata approval, validation triage, publish review, privacy/redaction checks, and the Phase 23 final-root boundary. Do not treat the local demo fixture or demo metadata as agency-approved.
+
 ## What GTFS Realtime Means
 
 GTFS Realtime is the live data format used beside the static GTFS schedule. Open Transit RT publishes:
@@ -122,6 +124,8 @@ The executable agency demo runs the validation workflow:
 ```bash
 make demo-agency-flow
 ```
+
+For common real GTFS import and validator failures, see [GTFS Validation Triage](gtfs-validation-triage.md).
 
 ## What Consumers Still Need To Accept Separately
 

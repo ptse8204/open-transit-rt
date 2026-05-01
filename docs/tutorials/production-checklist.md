@@ -77,11 +77,14 @@ Production deployments must choose their own admin network boundary. The local a
 ## Publication Workflow
 
 - Import or publish an active GTFS feed.
+- For real agency GTFS, complete the [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md) intake, metadata approval, redaction review, and publish review before treating the feed as production-directed.
+- Confirm approved values for agency name, agency URL, timezone, technical contact email, license name, license URL, public feed root, approver, approval date, and notes.
 - Bootstrap publication metadata through `/admin/publication/bootstrap`.
 - Verify `/public/feeds.json` lists schedule, Vehicle Positions, Trip Updates, and Alerts.
 - Confirm license and contact fields are complete.
 - Confirm `schedule.zip` returns `ETag`, `Last-Modified`, and `X-Checksum-SHA256`.
 - Confirm realtime feed timestamps and health records are fresh enough for the agency’s operating model.
+- If no agency-owned or agency-approved feed root exists, keep final public-feed review limited to local/demo or pilot evidence. Do not claim agency-domain production proof.
 
 ## Telemetry And Devices
 

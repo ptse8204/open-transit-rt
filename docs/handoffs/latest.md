@@ -4,9 +4,9 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 23 — Agency-Owned Deployment Proof is complete as blocker-documented closure only.
+Phase 24 — Real Agency Data Onboarding is complete for the docs/process and evidence-template scope.
 
-Phases 0 through 23 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, agency-domain, or submission-readiness issue directly requires it.
+Phases 0 through 24 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, agency-domain, or submission-readiness issue directly requires it.
 
 ## Phase Status
 
@@ -28,7 +28,9 @@ Phases 0 through 23 are closed for their documented scopes. Track A is also clos
 - Phase 22 explicitly documents that current distribution guidance supports source tags and local Docker builds only; published/versioned production Docker images are deferred.
 - Phase 23 — Agency-Owned Deployment Proof closed as blocker-documented only because no agency-owned or agency-approved final feed root is available.
 - No Phase 23 final-root evidence, validator records, evidence packet, migration proof, or prepared packet refreshes were collected.
-- Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase.
+- Phase 24 — Real Agency Data Onboarding added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding.
+- Phase 24 did not add real agency data, fake validation outputs, fake approvals, fake import evidence, backend behavior, public feed URL changes, consumer status changes, final-root proof, or unsupported readiness/compliance claims.
+- Phase 25 — Device And AVL Integration Kit is the recommended next implementation phase.
 - Track B must preserve truthfulness, redaction, and security boundaries.
 - All seven consumer and aggregator targets remain `prepared` only. No target has submitted, under-review, accepted, rejected, or blocked evidence.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
@@ -46,30 +48,35 @@ Phases 0 through 23 are closed for their documented scopes. Track A is also clos
 8. `docs/phase-23-agency-owned-deployment-proof.md`
 9. `docs/handoffs/phase-23.md`
 10. `docs/phase-24-real-agency-data-onboarding.md`
-11. `docs/release-process.md`
-12. `docs/release-checklist.md`
-13. `docs/upgrade-and-rollback.md`
-14. `docs/release-notes-template.md`
-15. `CHANGELOG.md`
-16. `docs/evidence/consumer-submissions/README.md`
-17. `docs/evidence/consumer-submissions/submission-workflow.md`
-18. `docs/evidence/consumer-submissions/status.json`
-19. `docs/evidence/consumer-submissions/artifacts/README.md`
-20. `docs/agency-owned-domain-readiness.md`
-21. `docs/california-readiness-summary.md`
-22. `docs/marketplace-vendor-gap-review.md`
-23. `docs/compliance-evidence-checklist.md`
-24. `docs/prompts/calitp-truthfulness.md`
-25. `docs/evidence/redaction-policy.md`
-26. `SECURITY.md`
-27. `docs/roadmap-status.md`
-28. `README.md`
-29. `docs/dependencies.md`
-30. `docs/decisions.md`
+11. `docs/handoffs/phase-24.md`
+12. `docs/tutorials/real-agency-gtfs-onboarding.md`
+13. `docs/tutorials/gtfs-validation-triage.md`
+14. `docs/evidence/real-agency-gtfs/README.md`
+15. `docs/evidence/real-agency-gtfs/templates/import-review-template.md`
+16. `docs/release-process.md`
+17. `docs/release-checklist.md`
+18. `docs/upgrade-and-rollback.md`
+19. `docs/release-notes-template.md`
+20. `CHANGELOG.md`
+21. `docs/evidence/consumer-submissions/README.md`
+22. `docs/evidence/consumer-submissions/submission-workflow.md`
+23. `docs/evidence/consumer-submissions/status.json`
+24. `docs/evidence/consumer-submissions/artifacts/README.md`
+25. `docs/agency-owned-domain-readiness.md`
+26. `docs/california-readiness-summary.md`
+27. `docs/marketplace-vendor-gap-review.md`
+28. `docs/compliance-evidence-checklist.md`
+29. `docs/prompts/calitp-truthfulness.md`
+30. `docs/evidence/redaction-policy.md`
+31. `SECURITY.md`
+32. `docs/roadmap-status.md`
+33. `README.md`
+34. `docs/dependencies.md`
+35. `docs/decisions.md`
 
 ## Current Objective
 
-The recommended next implementation phase is Phase 24 — Real Agency Data Onboarding. Do not implement the next Track B phase until maintainers explicitly start it.
+The recommended next implementation phase is Phase 25 — Device And AVL Integration Kit. Do not implement the next Track B phase until maintainers explicitly start it.
 
 For external proof work, use the Track A workflow before verifying official paths, submitting packets, or recording target-originated evidence. Track B productization work must not advance consumer statuses unless retained, redacted, target-originated evidence exists for the named target.
 
@@ -99,9 +106,11 @@ docker compose -f deploy/docker-compose.yml --profile app config
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
 - Phase 23 did not create final-root evidence. No agency-owned or agency-approved final public feed root is available in repo evidence.
+- Phase 24 real-agency GTFS evidence scaffolding is template-only until real agency-approved, public-safe evidence exists.
 - Phase 20 prepared packets are operator review artifacts only; they are not submissions.
 - Track A artifact directories are README-only until real redacted target-originated evidence exists.
 - Track B roadmap docs, Phase 22 release docs, and Phase 23 blocker docs do not prove compliance, acceptance, hosted service, paid support, SLA coverage, agency endorsement, vendor equivalence, or production-grade ETA quality.
+- Phase 24 onboarding docs explain how to import, validate, review, and publish real GTFS safely, but they do not prove a real agency import, agency endorsement, final-root proof, consumer acceptance, or compliance.
 - Replay fixtures measure current realtime behavior only; they are not consumer acceptance, production-grade ETA proof, or CAL-ITP/Caltrans compliance.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
@@ -110,9 +119,10 @@ docker compose -f deploy/docker-compose.yml --profile app config
 
 ## First Files Likely To Edit
 
-- `docs/phase-24-real-agency-data-onboarding.md` when maintainers begin Phase 24 implementation.
+- `docs/phase-25-device-avl-integration-kit.md` when maintainers begin Phase 25 implementation.
 - `docs/handoffs/latest.md` and `docs/current-status.md` when the next phase starts or closes.
 - `docs/roadmap-post-phase-14.md` only if maintainers revise the roadmap structure.
+- `docs/tutorials/real-agency-gtfs-onboarding.md` or `docs/evidence/real-agency-gtfs/` only if real agency-approved, public-safe GTFS import evidence arrives.
 - `docs/evidence/consumer-submissions/current/<target>.md` only after real target-originated evidence exists.
 - `docs/evidence/consumer-submissions/artifacts/<target>/` only after real redacted target-originated evidence exists.
 - `.github/ISSUE_TEMPLATE/*.yml` or `.github/pull_request_template.md` only if maintainers adjust triage process.
@@ -138,7 +148,7 @@ All future phase handoff files must use `docs/handoffs/template.md` unless the p
 
 Use `docs/track-b-productization-roadmap.md` as the forward roadmap source of truth for Track B. Use `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context.
 
-Phase 24 — Real Agency Data Onboarding is the recommended next implementation phase.
+Phase 25 — Device And AVL Integration Kit is the recommended next implementation phase.
 
 ## Checks Run For Phase 22
 
@@ -162,6 +172,21 @@ Phase 24 — Real Agency Data Onboarding is the recommended next implementation 
 - pre-edit `git diff --check` — passed.
 - post-edit `python3 -m json.tool docs/evidence/consumer-submissions/status.json` — passed.
 - post-edit tracker/status consistency check — passed.
+- post-edit `make validate` — passed.
+- post-edit `make test` — passed.
+- post-edit `make realtime-quality` — passed.
+- post-edit `make smoke` — passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config` — passed.
+- post-edit `git diff --check` — passed.
+
+## Checks Run For Phase 24
+
+- pre-edit `make validate` — passed.
+- pre-edit `make test` — passed.
+- pre-edit `make realtime-quality` — passed.
+- pre-edit `make smoke` — passed.
+- pre-edit `docker compose -f deploy/docker-compose.yml config` — passed.
+- pre-edit `git diff --check` — passed.
 - post-edit `make validate` — passed.
 - post-edit `make test` — passed.
 - post-edit `make realtime-quality` — passed.
