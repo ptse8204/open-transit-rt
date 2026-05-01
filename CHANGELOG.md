@@ -8,7 +8,7 @@ as `v0.22.0`.
 
 ## Unreleased
 
-- Release and distribution hardening documentation is in progress.
+- Added release and distribution hardening documentation, including release checklist, release notes template, upgrade/rollback guide, version pinning guidance, and evidence version-linkage guidance.
 
 ## Release Note Rules
 
