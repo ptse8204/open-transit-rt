@@ -13,6 +13,8 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Agency First Run](agency-first-run.md): start the full local app package and understand the outputs.
 - [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md): prepare, validate, review, and publish a real agency GTFS ZIP safely.
 - [GTFS Validation Triage](gtfs-validation-triage.md): understand common import and validation failures in plain language.
+- [Device And AVL Integration](device-avl-integration.md): send authenticated telemetry from devices, vendors, adapters, or no-hardware simulator flows.
+- [Device Token Lifecycle](device-token-lifecycle.md): rotate, rebind, store, and troubleshoot device bearer credentials safely.
 - [Local Quickstart](local-quickstart.md): bring up the local development environment.
 - [Agency Demo Flow](agency-demo-flow.md): run the executable agency/evaluator demo.
 - [Deploy With Docker Compose](deploy-with-docker-compose.md): understand the current deployment path.

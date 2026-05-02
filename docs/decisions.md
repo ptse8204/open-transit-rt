@@ -207,3 +207,11 @@ Every helper subcommand supports `--dry-run`, prints the target environment befo
 Systemd examples use `EnvironmentFile=` and never inline live secrets. Raw backups, admin tokens, database URLs with passwords, webhook URLs, notification credentials, TLS private material, and unredacted operator artifacts are never public evidence. Missing notification destinations are recorded as `notification not configured`, not as feed failure.
 
 Phase 17 evidence refresh must end with `EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence`; refreshed evidence is not complete unless that audit passes. Passing evidence audit remains deployment/operator proof only and does not establish CAL-ITP/Caltrans compliance, consumer acceptance, agency endorsement, or hosted SaaS availability.
+
+## ADR-0026 — Keep device and AVL vendor integrations at the telemetry adapter boundary
+
+Phase 25 documents device and AVL onboarding without adding a named vendor dependency or runtime adapter implementation. Vendor-specific payloads should be transformed into Open Transit RT telemetry events before calling `/v1/telemetry`.
+
+Vendor credentials, private AVL payloads, private device identifiers, private vehicle identifiers, and private logs must stay outside this public repo unless reviewed and explicitly approved as public-safe. Vendor-specific assumptions must not be embedded into core matching, Vehicle Positions generation, or Trip Updates prediction logic.
+
+Acceptable integration shapes include agency-owned adapter scripts, deployment-owned sidecar services, vendor-owned middleware, or private operator integration processes. These integrations must preserve the existing telemetry contract, validate required fields before forwarding, and avoid claiming certified vendor support or production AVL reliability without retained evidence.

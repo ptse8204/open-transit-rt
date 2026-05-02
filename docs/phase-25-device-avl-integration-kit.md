@@ -2,13 +2,15 @@
 
 ## Status
 
-Planned Track B phase. Not implemented until selected in `docs/handoffs/latest.md`.
+Complete for the docs/process and template-only evidence scope.
 
 ## Purpose
 
 Make real vehicle telemetry onboarding practical for agency devices, vendors, or simple GPS emitters.
 
 Open Transit RT can ingest authenticated telemetry and publish realtime feeds, but agencies and vendors need clear integration guidance, token lifecycle docs, payload examples, and troubleshooting.
+
+Phase 25 added that integration kit without changing backend API behavior, protobuf contracts, prediction logic, public feed URLs, consumer statuses, vendor-support claims, dependencies, or evidence claims.
 
 ## Scope
 
@@ -80,27 +82,30 @@ Document common failures:
 
 Phase 25 is complete only when:
 
-- an agency or vendor can understand how to send telemetry;
-- token lifecycle is clear and safe;
-- examples are reproducible and redacted;
-- simulator/demo is clearly labeled;
-- no production AVL quality claim is introduced.
+- an agency or vendor can understand how to send telemetry — covered by `docs/tutorials/device-avl-integration.md`;
+- token lifecycle is clear and safe — covered by `docs/tutorials/device-token-lifecycle.md`;
+- examples are reproducible and redacted — examples use synthetic demo identifiers only;
+- simulator/demo is clearly labeled — helper and evidence docs label simulator/no-hardware scope explicitly;
+- no production AVL quality claim is introduced — evidence scaffold is template-only and the docs preserve proof boundaries.
 
-## Required Checks
+## Checks
 
 ```bash
 make validate
 make test
+make realtime-quality
+make smoke
+docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```
 
-If telemetry scripts or local app helpers change:
+Telemetry scripts and local app helpers were not changed. The helper was still checked with:
 
 ```bash
-make smoke
-make demo-agency-flow
-make agency-app-up
-make agency-app-down
+sh -n scripts/device-onboarding.sh
+scripts/device-onboarding.sh help
+scripts/device-onboarding.sh sample --dry-run
+scripts/device-onboarding.sh simulate --dry-run
 ```
 
 ## Explicit Non-Goals
@@ -117,7 +122,8 @@ Phase 25 does not:
 
 - `docs/tutorials/device-avl-integration.md`
 - `docs/tutorials/device-token-lifecycle.md`
-- `scripts/device-onboarding.sh` only if safe improvements are needed
+- `docs/evidence/device-avl/README.md`
+- `docs/evidence/device-avl/templates/integration-review-template.md`
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-25.md`

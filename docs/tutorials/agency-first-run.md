@@ -74,6 +74,8 @@ scripts/device-onboarding.sh simulate --dry-run
 scripts/device-onboarding.sh simulate
 ```
 
+For payload fields, response behavior, troubleshooting, and vendor adapter boundaries, see [Device And AVL Integration](device-avl-integration.md). For rotation, rebinding, secure storage, and compromise response, see [Device Token Lifecycle](device-token-lifecycle.md).
+
 To rotate or bind a local device token:
 
 ```bash

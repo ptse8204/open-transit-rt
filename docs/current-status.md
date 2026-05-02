@@ -60,6 +60,8 @@ Phase 23 — Agency-Owned Deployment Proof is closed as blocker-documented only 
 
 Phase 24 — Real Agency Data Onboarding is complete for the docs/process and evidence-template scope. The repo now has a real-agency GTFS onboarding guide, GTFS validation triage guide, metadata approval checklist, publish review checklist, Phase 23-aware final public-feed review guidance, and template-only future real-agency import evidence scaffold. No real agency data, fake evidence, backend behavior, public feed URLs, consumer statuses, final-root evidence, or unsupported readiness claims were added.
 
+Phase 25 — Device And AVL Integration Kit is complete for the docs/process and template-only evidence scope. The repo now has a telemetry API and AVL integration guide, device token lifecycle guide, vendor AVL adapter boundary guidance, simulator/no-hardware testing guidance, clock/timezone/GPS quality expectations, troubleshooting table, and template-only future device/AVL evidence scaffold. No backend API behavior, protobuf contract, prediction logic, public feed URL, consumer status, named vendor dependency, real device data, vendor payload, credential, hardware certification, fake evidence, or production AVL reliability claim was added.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -113,6 +115,8 @@ The repo has:
 - `docs/handoffs/phase-21.md`
 - `docs/handoffs/phase-22.md`
 - `docs/handoffs/phase-23.md`
+- `docs/handoffs/phase-24.md`
+- `docs/handoffs/phase-25.md`
 - `docs/handoffs/track-a-external-proof.md`
 - `docs/handoffs/track-b-roadmap.md`
 
@@ -276,11 +280,12 @@ The following are still missing or incomplete unless a later handoff says otherw
 - external consumer submission API integrations
 - consumer submission, review, acceptance, rejection, or blocker evidence from third parties
 - agency-owned or agency-approved stable URL/domain proof for a final public feed root
+- real device or vendor AVL integration evidence beyond local simulator/no-hardware examples and templates
 - marketplace/vendor-equivalent service packaging and support commitments
 
 ## Current Phase
 
-**Active phase:** Phase 24 — Real Agency Data Onboarding is complete for the docs/process and evidence-template scope. Phase 25 — Device And AVL Integration Kit is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 24 remain closed for their documented scopes.
+**Active phase:** Phase 25 — Device And AVL Integration Kit is complete for the docs/process and template-only evidence scope. Phase 26 — Admin UX Setup Wizard is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 25 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -292,7 +297,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -330,6 +335,40 @@ Phase 24 implementation results:
 - added template-only real-agency GTFS evidence scaffolding under `docs/evidence/real-agency-gtfs/`.
 - linked the new onboarding and evidence docs from tutorial, evidence, production checklist, first-run, README, status, and handoff docs.
 - did not add real GTFS data, fake validation outputs, fake approvals, fake import evidence, backend behavior, public feed URL changes, consumer status changes, final-root proof, or unsupported compliance/readiness claims.
+
+## Phase 25 Closure Audit Results
+
+Checked during Phase 25 closure:
+- pre-edit/planning `make validate`: passed.
+- pre-edit/planning `make test`: passed.
+- pre-edit/planning `make realtime-quality`: passed.
+- pre-edit/planning `make smoke`: passed.
+- pre-edit/planning `docker compose -f deploy/docker-compose.yml config`: passed.
+- pre-edit/planning `git diff --check`: passed.
+- pre-edit/planning `sh -n scripts/device-onboarding.sh`: passed.
+- pre-edit/planning `scripts/device-onboarding.sh help`: passed.
+- pre-edit/planning `scripts/device-onboarding.sh sample --dry-run`: passed.
+- pre-edit/planning `scripts/device-onboarding.sh simulate --dry-run`: passed.
+- post-edit `make validate`: passed.
+- post-edit `make test`: passed.
+- post-edit `make realtime-quality`: passed.
+- post-edit `make smoke`: passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config`: passed.
+- post-edit `git diff --check`: passed.
+- post-edit `sh -n scripts/device-onboarding.sh`: passed.
+- post-edit `scripts/device-onboarding.sh help`: passed.
+- post-edit `scripts/device-onboarding.sh sample --dry-run`: passed.
+- post-edit `scripts/device-onboarding.sh simulate --dry-run`: passed.
+- post-edit targeted docs secret/example scan: passed.
+
+Phase 25 implementation results:
+- added `docs/tutorials/device-avl-integration.md` for telemetry endpoint, payload fields, timestamp/GPS expectations, response behavior confirmed from code/tests, simulator/no-hardware usage, vendor AVL adapter boundaries, troubleshooting, and redaction rules.
+- added `docs/tutorials/device-token-lifecycle.md` for bearer token handling, local seeded demo token behavior, rotate/rebind, one-time token display, secure storage, compromise rotation, binding rules, and operator responsibilities.
+- added template-only device/AVL evidence scaffolding under `docs/evidence/device-avl/`.
+- documented the vendor AVL telemetry adapter boundary in `docs/decisions.md` without adding a named vendor dependency or runtime integration.
+- linked the new device/AVL docs from tutorial, evidence, production checklist, first-run, README, status, and handoff docs.
+- did not change `scripts/device-onboarding.sh`, backend API behavior, protobuf contracts, prediction logic, public feed URLs, consumer statuses, dependencies, or evidence claims.
+- did not add real agency device data, vendor payloads, credentials, hardware certifications, fake evidence, or production AVL reliability claims.
 
 ## Phase 23 Closure Audit Results
 
@@ -785,9 +824,24 @@ Phase 24 is complete for the docs/process and evidence-template scope:
 - kept Phase 23 final-root status unchanged: no agency-owned or agency-approved final public feed root is available in repo evidence
 - did not add real agency data, placeholder artifacts, fake evidence, backend behavior, public feed URL changes, consumer status changes, or unsupported readiness/compliance claims
 
+## Phase 25 Progress
+
+Phase 25 is complete for the docs/process and template-only evidence scope:
+- added `docs/tutorials/device-avl-integration.md`
+- added `docs/tutorials/device-token-lifecycle.md`
+- added `docs/evidence/device-avl/README.md`
+- added `docs/evidence/device-avl/templates/integration-review-template.md`
+- updated first-run, production checklist, tutorial index, evidence index, README, phase status, current status, decisions, and latest handoff docs
+- added `docs/handoffs/phase-25.md`
+- kept the evidence scaffold template-only until real public-safe device or AVL integration evidence exists
+- kept response examples limited to telemetry-ingest behavior confirmed by code and tests
+- kept `/v1/events` documented as an authenticated admin/debug path, not a public or consumer-facing feed
+- kept `docs/dependencies.md` unchanged because no named external vendor, adapter implementation, or dependency status changed
+- did not add real device data, private vendor payloads, credentials, hardware certifications, fake evidence, backend behavior, public feed URL changes, consumer status changes, or unsupported AVL reliability/compliance claims
+
 ## Next Recommended Step
 
-Start Phase 25 — Device And AVL Integration Kit when maintainers are ready to continue Track B implementation. Phase 25 should focus on real device/vendor telemetry onboarding and support materials without changing consumer statuses, public feed URLs, final-root evidence, or unsupported readiness claims.
+Start Phase 26 — Admin UX Setup Wizard when maintainers are ready to continue Track B implementation. Phase 26 should turn the existing GTFS, device token, telemetry, validation, and Operations Console workflows into a clearer browser-guided setup path without changing consumer statuses, public feed URLs, final-root evidence, or unsupported readiness claims.
 
 Use the Track A workflow when a human operator is ready to verify an official target path or record real target-originated evidence. If no real third-party artifacts are available, keep every target at `prepared`.
 

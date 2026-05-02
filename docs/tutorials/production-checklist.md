@@ -93,6 +93,9 @@ Production deployments must choose their own admin network boundary. The local a
 - Use `/admin/devices/rebind` to rotate a device token or change a vehicle binding.
 - Confirm old tokens fail immediately after rebinding.
 - Confirm telemetry payloads use RFC3339 timestamps with timezone or offset.
+- Follow the [Device And AVL Integration](device-avl-integration.md) guide for endpoint, payload, clock, GPS quality, simulator, vendor adapter, and troubleshooting expectations.
+- Follow the [Device Token Lifecycle](device-token-lifecycle.md) guide for one-time token display, secure storage, compromise rotation, and public-safe identifier handling.
+- Keep vendor credentials, private AVL payloads, private device IDs, private vehicle IDs, raw private telemetry, and private logs out of committed evidence.
 
 ## Operations
 
