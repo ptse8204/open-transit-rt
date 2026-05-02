@@ -215,12 +215,12 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		discoveryErr: errors.New("no feed config"),
 		scorecardErr: errors.New("no scorecard"),
 	}
-	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
 	}})
 	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
 	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
@@ -229,6 +229,191 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
+	}
+}
+
+func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
+	store := &fakePublicationStore{
+		discoveryErr:         errors.New("no feed config"),
+		scorecardErr:         errors.New("no scorecard"),
+		publicationConfigErr: errors.New("no publication config"),
+	}
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, telemetry: fakeTelemetryRepository{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/setup", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Guided Setup Checklist",
+		"publication metadata",
+		"validation records",
+		"device bindings",
+		"telemetry repository",
+		"docs/evidence tracker",
+		"not observed yet",
+		"prepared is not submitted or accepted",
+		"Browser ZIP upload is deferred",
+		"Validation is supporting evidence only",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"accepted by", "CAL-ITP/Caltrans compliant", "consumer ingestion confirmed"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("body overclaims %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestOperationsSetupPublicationFormRequiresAdminAndDerivesAgencyID(t *testing.T) {
+	store := &fakePublicationStore{}
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	form := "action=publication_bootstrap&public_base_url=https%3A%2F%2Fagency.example&feed_base_url=https%3A%2F%2Fagency.example%2Ffeeds"
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/setup", strings.NewReader(form))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rr.Code)
+	}
+
+	srv = newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/setup", strings.NewReader(form+"&technical_contact_email= ops%40agency.example &license_name= CC-BY &license_url=https%3A%2F%2Fagency.example%2Flicense&publication_environment= pilot "))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.bootstrapInput.AgencyID != "demo-agency" || store.bootstrapInput.ActorID != "admin@example.com" {
+		t.Fatalf("bootstrap input identity = %+v, want authenticated principal", store.bootstrapInput)
+	}
+	if store.bootstrapInput.TechnicalContactEmail != "ops@agency.example" || store.bootstrapInput.PublicationEnvironment != "pilot" {
+		t.Fatalf("bootstrap input not trimmed = %+v", store.bootstrapInput)
+	}
+}
+
+func TestOperationsSetupPublicationFormRejectsConflictingAgencyID(t *testing.T) {
+	store := &fakePublicationStore{}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, telemetry: fakeTelemetryRepository{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	form := "action=publication_bootstrap&agency_id=other-agency&public_base_url=https%3A%2F%2Fagency.example&feed_base_url=https%3A%2F%2Fagency.example%2Ffeeds"
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/setup", strings.NewReader(form))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rr.Code)
+	}
+	if store.bootstrapInput.AgencyID != "" {
+		t.Fatalf("bootstrap should not run on agency conflict: %+v", store.bootstrapInput)
+	}
+}
+
+func TestOperationsSetupValidationFormMapsFeedTypeServerSide(t *testing.T) {
+	validatorPath := writeRealtimeValidator(t)
+	t.Setenv("GTFS_RT_VALIDATOR_PATH", validatorPath)
+	t.Setenv("GTFS_RT_VALIDATOR_VERSION", "test-validator")
+	t.Setenv("GTFS_RT_VALIDATOR_ARGS", "")
+
+	store := &fakePublicationStore{}
+	artifacts := &fakeRealtimeArtifacts{payloads: map[string][]byte{"alerts": []byte("protobuf-alerts")}}
+	handler := newOperationsTestHandler(&handler{
+		store:    store,
+		schedule: fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-demo", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip bytes")}},
+		realtime: artifacts,
+		devices:  fakeDeviceStore{},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	form := "action=run_validation&feed_type=alerts"
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/setup", strings.NewReader(form))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if artifacts.calls["alerts"] != 1 {
+		t.Fatalf("artifact calls = %+v, want alerts validation via server mapping", artifacts.calls)
+	}
+	if store.result.FeedType != "alerts" || store.result.ValidatorName != "mobilitydata-gtfs-realtime-validator" {
+		t.Fatalf("stored validation result = %+v, want realtime validator selected by feed type", store.result)
+	}
+	body := rr.Body.String()
+	for _, forbidden := range []string{"validator_id", "argv"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("setup validation response leaks browser-supplied or raw validator detail %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestOperationsSetupValidationFormRejectsUnsafeBrowserFields(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{
+		store:    &fakePublicationStore{},
+		schedule: fakeScheduleBuilder{},
+		realtime: &fakeRealtimeArtifacts{},
+		devices:  fakeDeviceStore{},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	for _, form := range []string{
+		"action=run_validation&feed_type=alerts&validator_id=realtime-mobilitydata",
+		"action=run_validation&feed_type=alerts&realtime_pb_path=%2Ftmp%2Fevil.pb",
+		"action=run_validation&feed_type=schedule&output_path=%2Ftmp%2Freport",
+	} {
+		req := httptest.NewRequest(http.MethodPost, "/admin/operations/setup", strings.NewReader(form))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("status = %d, want 200 with safe rendered form error: %s", rr.Code, rr.Body.String())
+		}
+		body := rr.Body.String()
+		if !strings.Contains(body, "validation setup form only accepts feed type") {
+			t.Fatalf("body does not contain safe form error: %s", body)
+		}
+		if strings.Contains(body, "/tmp/evil.pb") || strings.Contains(body, "/tmp/report") {
+			t.Fatalf("body leaks browser-supplied path: %s", body)
+		}
+	}
+}
+
+func TestOperationsSetupCookiePostRequiresCSRF(t *testing.T) {
+	cfg := auth.JWTConfig{Secrets: []string{"test-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour}
+	signer, err := auth.NewSigner(cfg)
+	if err != nil {
+		t.Fatalf("signer: %v", err)
+	}
+	token, _, err := signer.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign token: %v", err)
+	}
+	verifier, err := auth.NewVerifier(cfg)
+	if err != nil {
+		t.Fatalf("verifier: %v", err)
+	}
+	middleware := auth.NewMiddleware(verifier, auth.StaticRoleStore{Roles: []auth.Role{auth.RoleAdmin}}, "csrf-secret")
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, csrfSecret: "csrf-secret"}, middleware)
+	form := "action=publication_bootstrap&public_base_url=https%3A%2F%2Fagency.example&feed_base_url=https%3A%2F%2Fagency.example%2Ffeeds"
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/setup", strings.NewReader(form))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: token})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403 for missing CSRF", rr.Code)
 	}
 }
 
@@ -422,7 +607,7 @@ func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Google Maps", "not_started", "Mobility Database", "transit.land", "docs tracker"} {
+	for _, want := range []string{"Google Maps", "not_started", "Mobility Database", "transit.land", "docs/evidence tracker"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -565,19 +750,34 @@ func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersi
 }
 
 type fakePublicationStore struct {
-	result             compliance.ValidationResult
-	discovery          compliance.FeedDiscovery
-	discoveryErr       error
-	scorecard          compliance.Scorecard
-	scorecardErr       error
-	consumers          []compliance.ConsumerRecord
-	consumersErr       error
-	tripDiagnostics    compliance.TripUpdatesDiagnosticsSummary
-	tripDiagnosticsErr error
+	result               compliance.ValidationResult
+	bootstrapInput       compliance.BootstrapInput
+	bootstrapErr         error
+	publicationConfig    compliance.PublicationConfig
+	publicationConfigErr error
+	discovery            compliance.FeedDiscovery
+	discoveryErr         error
+	scorecard            compliance.Scorecard
+	scorecardErr         error
+	consumers            []compliance.ConsumerRecord
+	consumersErr         error
+	tripDiagnostics      compliance.TripUpdatesDiagnosticsSummary
+	tripDiagnosticsErr   error
 }
 
-func (f *fakePublicationStore) BootstrapPublication(context.Context, compliance.BootstrapInput) error {
+func (f *fakePublicationStore) BootstrapPublication(_ context.Context, input compliance.BootstrapInput) error {
+	f.bootstrapInput = input
+	if f.bootstrapErr != nil {
+		return f.bootstrapErr
+	}
 	return nil
+}
+
+func (f *fakePublicationStore) PublicationConfig(context.Context, string) (compliance.PublicationConfig, error) {
+	if f.publicationConfigErr != nil {
+		return compliance.PublicationConfig{}, f.publicationConfigErr
+	}
+	return f.publicationConfig, nil
 }
 
 func (f *fakePublicationStore) FeedDiscovery(context.Context, string, time.Time) (compliance.FeedDiscovery, error) {

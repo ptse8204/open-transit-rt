@@ -37,6 +37,16 @@ type BootstrapInput struct {
 	ActorID                string `json:"actor_id"`
 }
 
+type PublicationConfig struct {
+	AgencyID               string `json:"agency_id"`
+	PublicBaseURL          string `json:"public_base_url"`
+	FeedBaseURL            string `json:"feed_base_url"`
+	TechnicalContactEmail  string `json:"technical_contact_email"`
+	LicenseName            string `json:"license_name"`
+	LicenseURL             string `json:"license_url"`
+	PublicationEnvironment string `json:"publication_environment"`
+}
+
 type FeedDiscovery struct {
 	AgencyID               string         `json:"agency_id"`
 	AgencyName             string         `json:"agency_name"`

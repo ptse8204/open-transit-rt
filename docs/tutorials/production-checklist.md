@@ -79,7 +79,8 @@ Production deployments must choose their own admin network boundary. The local a
 - Import or publish an active GTFS feed.
 - For real agency GTFS, complete the [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md) intake, metadata approval, redaction review, and publish review before treating the feed as production-directed.
 - Confirm approved values for agency name, agency URL, timezone, technical contact email, license name, license URL, public feed root, approver, approval date, and notes.
-- Bootstrap publication metadata through `/admin/publication/bootstrap`.
+- Review `/admin/operations/setup` for the browser-guided setup checklist and status sources.
+- Bootstrap or update publication metadata through the setup checklist form or the existing `/admin/publication/bootstrap` JSON API.
 - Verify `/public/feeds.json` lists schedule, Vehicle Positions, Trip Updates, and Alerts.
 - Confirm license and contact fields are complete.
 - Confirm `schedule.zip` returns `ETag`, `Last-Modified`, and `X-Checksum-SHA256`.
@@ -96,6 +97,7 @@ Production deployments must choose their own admin network boundary. The local a
 - Follow the [Device And AVL Integration](device-avl-integration.md) guide for endpoint, payload, clock, GPS quality, simulator, vendor adapter, and troubleshooting expectations.
 - Follow the [Device Token Lifecycle](device-token-lifecycle.md) guide for one-time token display, secure storage, compromise rotation, and public-safe identifier handling.
 - Keep vendor credentials, private AVL payloads, private device IDs, private vehicle IDs, raw private telemetry, and private logs out of committed evidence.
+- Use `/admin/operations/setup` and `/admin/operations/devices` to confirm device binding and latest telemetry status without exposing token hashes or raw telemetry payloads.
 
 ## Operations
 
@@ -121,6 +123,8 @@ Before claiming a deployment is compliant or consumer-ready, collect evidence fo
 - current `/public/feeds.json`
 - scorecard status and validation history
 - external consumer submission or acceptance evidence, if claimed
+
+The `/admin/operations/setup` checklist helps locate these records, but a checked or recorded setup signal is still only repository/deployment evidence. It is not consumer acceptance, third-party ingestion, agency-owned final-root proof, or CAL-ITP/Caltrans compliance by itself.
 
 Without that evidence, use wording such as "supports deployment toward CAL-ITP/Caltrans-style readiness."
 

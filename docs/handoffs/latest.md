@@ -4,9 +4,9 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 25 — Device And AVL Integration Kit is complete for the docs/process and template-only evidence scope.
+Phase 26 — Admin UX Setup Wizard is complete for the server-rendered Operations Console setup checklist scope.
 
-Phases 0 through 25 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, agency-domain, device/AVL onboarding, or submission-readiness issue directly requires it.
+Phases 0 through 26 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, governance, multi-agency, agency-domain, device/AVL onboarding, admin-UX, or submission-readiness issue directly requires it.
 
 ## Phase Status
 
@@ -33,7 +33,13 @@ Phases 0 through 25 are closed for their documented scopes. Track A is also clos
 - Phase 25 — Device And AVL Integration Kit added telemetry API integration guidance, device token lifecycle guidance, vendor AVL adapter boundary guidance, simulator/no-hardware guidance, clock/timezone/GPS quality guidance, troubleshooting, and template-only evidence scaffolding.
 - Phase 25 did not change backend API behavior, protobuf contracts, prediction logic, public feed URLs, consumer statuses, dependencies, or evidence claims.
 - Phase 25 did not add real device data, vendor payloads, credentials, hardware certifications, fake evidence, certified vendor support, or production AVL reliability claims.
-- Phase 26 — Admin UX Setup Wizard is the recommended next implementation phase.
+- Phase 26 — Admin UX Setup Wizard expanded `/admin/operations/setup` into a browser-guided checklist with explicit status sources for publication metadata, feed discovery, validation records, device bindings, telemetry repository state, docs/evidence tracker records, and evidence links.
+- Phase 26 added an admin-only browser publication metadata form that uses existing `BootstrapPublication` upsert behavior, trims and bounds fields, requires CSRF for cookie-authenticated form posts, and derives `agency_id` from the authenticated principal.
+- Phase 26 added an admin-only validation form where the browser supplies only feed type; the server maps schedule to `static-mobilitydata` and realtime feeds to `realtime-mobilitydata`.
+- Phase 26 improved consumer setup visibility by rendering all seven Phase 20 docs/evidence tracker targets as `prepared` only and showing runtime DB consumer workflow records separately.
+- Phase 26 deferred browser GTFS ZIP upload and manual assignment override/review UI rather than adding risky upload, mutation, persistence, or raw diagnostic surfaces.
+- Phase 26 did not change public feed URLs, GTFS-RT protobuf contracts, telemetry/device APIs, Trip Updates adapter boundaries, consumer statuses, external integrations, or evidence claims.
+- Phase 27 is the recommended next implementation phase.
 - Track B must preserve truthfulness, redaction, and security boundaries.
 - All seven consumer and aggregator targets remain `prepared` only. No target has submitted, under-review, accepted, rejected, or blocked evidence.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
@@ -56,34 +62,36 @@ Phases 0 through 25 are closed for their documented scopes. Track A is also clos
 13. `docs/tutorials/gtfs-validation-triage.md`
 14. `docs/tutorials/device-avl-integration.md`
 15. `docs/tutorials/device-token-lifecycle.md`
-16. `docs/evidence/device-avl/README.md`
-17. `docs/evidence/device-avl/templates/integration-review-template.md`
-18. `docs/evidence/real-agency-gtfs/README.md`
-19. `docs/evidence/real-agency-gtfs/templates/import-review-template.md`
-20. `docs/release-process.md`
-21. `docs/release-checklist.md`
-22. `docs/upgrade-and-rollback.md`
-23. `docs/release-notes-template.md`
-24. `CHANGELOG.md`
-25. `docs/evidence/consumer-submissions/README.md`
-26. `docs/evidence/consumer-submissions/submission-workflow.md`
-27. `docs/evidence/consumer-submissions/status.json`
-28. `docs/evidence/consumer-submissions/artifacts/README.md`
-29. `docs/agency-owned-domain-readiness.md`
-30. `docs/california-readiness-summary.md`
-31. `docs/marketplace-vendor-gap-review.md`
-32. `docs/compliance-evidence-checklist.md`
-33. `docs/prompts/calitp-truthfulness.md`
-34. `docs/evidence/redaction-policy.md`
-35. `SECURITY.md`
-36. `docs/roadmap-status.md`
-37. `README.md`
-38. `docs/dependencies.md`
-39. `docs/decisions.md`
+16. `docs/phase-26-admin-ux-setup-wizard.md`
+17. `docs/handoffs/phase-26.md`
+18. `docs/evidence/device-avl/README.md`
+19. `docs/evidence/device-avl/templates/integration-review-template.md`
+20. `docs/evidence/real-agency-gtfs/README.md`
+21. `docs/evidence/real-agency-gtfs/templates/import-review-template.md`
+22. `docs/release-process.md`
+23. `docs/release-checklist.md`
+24. `docs/upgrade-and-rollback.md`
+25. `docs/release-notes-template.md`
+26. `CHANGELOG.md`
+27. `docs/evidence/consumer-submissions/README.md`
+28. `docs/evidence/consumer-submissions/submission-workflow.md`
+29. `docs/evidence/consumer-submissions/status.json`
+30. `docs/evidence/consumer-submissions/artifacts/README.md`
+31. `docs/agency-owned-domain-readiness.md`
+32. `docs/california-readiness-summary.md`
+33. `docs/marketplace-vendor-gap-review.md`
+34. `docs/compliance-evidence-checklist.md`
+35. `docs/prompts/calitp-truthfulness.md`
+36. `docs/evidence/redaction-policy.md`
+37. `SECURITY.md`
+38. `docs/roadmap-status.md`
+39. `README.md`
+40. `docs/dependencies.md`
+41. `docs/decisions.md`
 
 ## Current Objective
 
-The recommended next implementation phase is Phase 26 — Admin UX Setup Wizard. Do not implement the next Track B phase until maintainers explicitly start it.
+The recommended next implementation phase is Phase 27 — Multi-Agency Isolation Prototype. Do not implement the next Track B phase until maintainers explicitly start it.
 
 For external proof work, use the Track A workflow before verifying official paths, submitting packets, or recording target-originated evidence. Track B productization work must not advance consumer statuses unless retained, redacted, target-originated evidence exists for the named target.
 
@@ -128,11 +136,10 @@ docker compose -f deploy/docker-compose.yml --profile app config
 
 ## First Files Likely To Edit
 
-- `docs/phase-26-admin-ux-setup-wizard.md` when maintainers begin Phase 26 implementation.
+- Phase 27 docs/tests selected from `docs/track-b-productization-roadmap.md`.
 - `docs/handoffs/latest.md` and `docs/current-status.md` when the next phase starts or closes.
+- Multi-agency isolation code paths only if Phase 27 starts: likely admin/public handler auth checks, repository agency filters, device/telemetry/compliance/state boundaries, and focused tests.
 - `docs/roadmap-post-phase-14.md` only if maintainers revise the roadmap structure.
-- `docs/tutorials/real-agency-gtfs-onboarding.md` or `docs/evidence/real-agency-gtfs/` only if real agency-approved, public-safe GTFS import evidence arrives.
-- `docs/tutorials/device-avl-integration.md`, `docs/tutorials/device-token-lifecycle.md`, or `docs/evidence/device-avl/` only if real public-safe device/AVL evidence or a confirmed onboarding correction arrives.
 - `docs/evidence/consumer-submissions/current/<target>.md` only after real target-originated evidence exists.
 - `docs/evidence/consumer-submissions/artifacts/<target>/` only after real redacted target-originated evidence exists.
 - `.github/ISSUE_TEMPLATE/*.yml` or `.github/pull_request_template.md` only if maintainers adjust triage process.
@@ -159,7 +166,7 @@ All future phase handoff files must use `docs/handoffs/template.md` unless the p
 
 Use `docs/track-b-productization-roadmap.md` as the forward roadmap source of truth for Track B. Use `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context.
 
-Phase 26 — Admin UX Setup Wizard is the recommended next implementation phase.
+Phase 27 is the recommended next implementation phase. It should start from the Track B roadmap and Phase 26 handoff, and should not revisit Phase 26 unless a blocking security, truthfulness, or setup-UX issue is found.
 
 ## Checks Run For Phase 22
 
@@ -228,3 +235,25 @@ Phase 26 — Admin UX Setup Wizard is the recommended next implementation phase.
 - post-edit `scripts/device-onboarding.sh sample --dry-run` — passed.
 - post-edit `scripts/device-onboarding.sh simulate --dry-run` — passed.
 - post-edit targeted docs secret/example scan — passed.
+
+## Checks Run For Phase 26
+
+- pre-edit/planning `make validate` — passed.
+- pre-edit/planning `make test` — passed.
+- pre-edit/planning `make smoke` — passed.
+- pre-edit/planning `make demo-agency-flow` — passed.
+- pre-edit/planning `make realtime-quality` — passed.
+- pre-edit/planning `docker compose -f deploy/docker-compose.yml config` — passed.
+- pre-edit/planning `git diff --check` — passed.
+- focused implementation `go test ./cmd/agency-config` — passed.
+- post-edit `make validate` — passed.
+- post-edit `make test` — passed.
+- post-edit `make smoke` — passed.
+- post-edit `make demo-agency-flow` — passed.
+- post-edit `make realtime-quality` — passed.
+- post-edit `docker compose -f deploy/docker-compose.yml config` — passed.
+- post-edit `git diff --check` — passed.
+- local app profile `make agency-app-up` — passed.
+- local app profile `make agency-app-down` — passed.
+- local app profile `docker compose -f deploy/docker-compose.yml --profile app config` — passed.
+- blocked commands — none.

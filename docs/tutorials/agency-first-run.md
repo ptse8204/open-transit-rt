@@ -108,7 +108,13 @@ The local app exposes the authenticated Operations Console at:
 http://localhost:8080/admin/operations
 ```
 
-It shows feed URLs, validation status, telemetry freshness, safe device binding information, Alerts links, consumer evidence status, and setup next actions. Admin routes still require an admin token; the local proxy does not make them public.
+The guided setup checklist is available at:
+
+```text
+http://localhost:8080/admin/operations/setup
+```
+
+It shows feed URLs, validation status, telemetry freshness, safe device binding information, Alerts links, consumer evidence status, setup next actions, and the status source for each setup step. Admin routes still require an admin token; the local proxy does not make them public.
 
 ## Why Validation Matters
 

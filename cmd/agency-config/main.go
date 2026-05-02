@@ -376,6 +376,61 @@ func (h *handler) runValidation(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+func (h *handler) runValidationForFeed(r *http.Request, principal auth.Principal, feedType string, feedVersionID string) (compliance.ValidationResult, error) {
+	validatorID, ok := setupValidatorForFeed(feedType)
+	if !ok {
+		return compliance.ValidationResult{}, fmt.Errorf("unknown feed type for setup validation")
+	}
+	runInput := compliance.ValidationRunInput{
+		AgencyID:      principal.AgencyID,
+		FeedType:      feedType,
+		FeedVersionID: feedVersionID,
+		ValidatorID:   validatorID,
+	}
+	registry := compliance.ValidatorRegistryFromEnv()
+	spec, ok := registry[runInput.ValidatorID]
+	if !ok || runInput.ValidatorID == "" {
+		return compliance.ValidationResult{}, fmt.Errorf("allowlisted validator is not configured")
+	}
+	if !spec.Supports(runInput.FeedType) {
+		return compliance.ValidationResult{}, fmt.Errorf("allowlisted validator does not support feed type")
+	}
+	if spec.RequiresSchedule {
+		snapshot, err := h.schedule.SnapshotForFeedVersion(r.Context(), runInput.FeedVersionID, time.Now().UTC().Truncate(time.Second))
+		if err != nil {
+			return compliance.ValidationResult{}, fmt.Errorf("build schedule zip for validation")
+		}
+		runInput.ScheduleZIPPayload = snapshot.Payload
+		if runInput.FeedVersionID == "" {
+			runInput.FeedVersionID = snapshot.FeedVersionID
+		}
+	}
+	if spec.RequiresRealtime {
+		payload, source, err := h.realtime.RealtimePB(r.Context(), runInput.FeedType)
+		if err != nil {
+			return compliance.ValidationResult{}, fmt.Errorf("load realtime protobuf for validation")
+		}
+		runInput.RealtimePBPayload = payload
+		runInput.RealtimeArtifactSource = source
+	}
+	result, err := compliance.RunValidation(r.Context(), h.store, registry, runInput)
+	if err != nil {
+		return compliance.ValidationResult{}, fmt.Errorf("run validation")
+	}
+	return result, nil
+}
+
+func setupValidatorForFeed(feedType string) (string, bool) {
+	switch strings.TrimSpace(feedType) {
+	case "schedule":
+		return "static-mobilitydata", true
+	case "vehicle_positions", "trip_updates", "alerts":
+		return "realtime-mobilitydata", true
+	default:
+		return "", false
+	}
+}
+
 type validationRunRequest struct {
 	FeedType      string `json:"feed_type"`
 	FeedVersionID string `json:"feed_version_id"`

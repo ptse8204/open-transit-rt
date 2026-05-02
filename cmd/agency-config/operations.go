@@ -31,6 +31,12 @@ type operationsPage struct {
 	CSRFToken          string
 	Discovery          compliance.FeedDiscovery
 	DiscoveryError     string
+	PublicationConfig  compliance.PublicationConfig
+	PublicationError   string
+	SetupNotice        string
+	SetupError         string
+	SetupSteps         []setupStepView
+	ValidationResult   *compliance.ValidationResult
 	ActiveFeedVersion  string
 	FeedsUpdatedAt     *time.Time
 	TelemetryUpdatedAt *time.Time
@@ -41,6 +47,7 @@ type operationsPage struct {
 	Scorecard          *compliance.Scorecard
 	ScorecardError     string
 	Consumers          []consumerStatusView
+	RuntimeConsumers   []consumerStatusView
 	ConsumerError      string
 	Telemetry          []telemetryView
 	TelemetryError     string
@@ -55,11 +62,22 @@ type operationsPage struct {
 }
 
 type consumerStatusView struct {
-	Name      string
-	Status    string
-	UpdatedAt *time.Time
-	Source    string
-	Notes     string
+	Name        string
+	Status      string
+	UpdatedAt   *time.Time
+	Source      string
+	Notes       string
+	PacketPath  string
+	CurrentPath string
+}
+
+type setupStepView struct {
+	Name       string
+	Status     string
+	Source     string
+	Evidence   string
+	NextAction string
+	ActionURL  string
 }
 
 type telemetryView struct {
@@ -119,6 +137,10 @@ type tripUpdatesDiagnosticsReader interface {
 	LatestTripUpdatesDiagnostics(ctx context.Context, agencyID string) (compliance.TripUpdatesDiagnosticsSummary, error)
 }
 
+type publicationConfigReader interface {
+	PublicationConfig(ctx context.Context, agencyID string) (compliance.PublicationConfig, error)
+}
+
 func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/admin/operations" {
 		if r.Method != http.MethodGet {
@@ -133,6 +155,10 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
+			return
+		}
+		if trimmed == "setup" && r.Method == http.MethodPost {
+			h.operationsSetupPost(w, r)
 			return
 		}
 		if r.Method != http.MethodGet {
@@ -185,6 +211,131 @@ func (h *handler) operationsDeviceRebind(w http.ResponseWriter, r *http.Request)
 	renderOperationsTemplate(w, "devices", page)
 }
 
+func (h *handler) operationsSetupPost(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleAdmin)
+	if !ok {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+	if auth.RejectAgencyConflict(w, r.FormValue("agency_id"), principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "setup")
+	switch strings.TrimSpace(r.FormValue("action")) {
+	case "publication_bootstrap":
+		input, err := setupPublicationInput(r, principal)
+		if err != nil {
+			page.SetupError = err.Error()
+			renderOperationsTemplate(w, "setup", page)
+			return
+		}
+		if err := h.store.BootstrapPublication(r.Context(), input); err != nil {
+			page.SetupError = "publication metadata could not be stored"
+			renderOperationsTemplate(w, "setup", page)
+			return
+		}
+		page = h.buildOperationsPage(r, principal, "setup")
+		page.SetupNotice = "Publication metadata was stored using the existing bootstrap/update workflow."
+		renderOperationsTemplate(w, "setup", page)
+	case "run_validation":
+		if err := rejectSetupValidationUnsafeFields(r); err != nil {
+			page.SetupError = err.Error()
+			renderOperationsTemplate(w, "setup", page)
+			return
+		}
+		feedType := strings.TrimSpace(r.FormValue("feed_type"))
+		result, err := h.runValidationForFeed(r, principal, feedType, "")
+		if err != nil {
+			page.SetupError = err.Error()
+			renderOperationsTemplate(w, "setup", page)
+			return
+		}
+		page = h.buildOperationsPage(r, principal, "setup")
+		page.ValidationResult = &result
+		page.SetupNotice = "Validation finished and was stored as supporting evidence only."
+		renderOperationsTemplate(w, "setup", page)
+	default:
+		http.Error(w, "unknown setup action", http.StatusBadRequest)
+	}
+}
+
+func rejectSetupValidationUnsafeFields(r *http.Request) error {
+	for _, name := range []string{
+		"validator_id",
+		"validator_command",
+		"validator_path",
+		"output_path",
+		"artifact_path",
+		"realtime_pb_path",
+		"schedule_zip_path",
+		"report_path",
+		"argv",
+		"args",
+	} {
+		if _, ok := r.Form[name]; ok {
+			return fmt.Errorf("validation setup form only accepts feed type")
+		}
+	}
+	return nil
+}
+
+func setupPublicationInput(r *http.Request, principal auth.Principal) (compliance.BootstrapInput, error) {
+	publicBaseURL, err := setupFormValue(r, "public_base_url", 2048)
+	if err != nil {
+		return compliance.BootstrapInput{}, err
+	}
+	feedBaseURL, err := setupFormValue(r, "feed_base_url", 2048)
+	if err != nil {
+		return compliance.BootstrapInput{}, err
+	}
+	technicalContactEmail, err := setupFormValue(r, "technical_contact_email", 320)
+	if err != nil {
+		return compliance.BootstrapInput{}, err
+	}
+	licenseName, err := setupFormValue(r, "license_name", 160)
+	if err != nil {
+		return compliance.BootstrapInput{}, err
+	}
+	licenseURL, err := setupFormValue(r, "license_url", 2048)
+	if err != nil {
+		return compliance.BootstrapInput{}, err
+	}
+	publicationEnvironment, err := setupFormValue(r, "publication_environment", 64)
+	if err != nil {
+		return compliance.BootstrapInput{}, err
+	}
+	if publicBaseURL == "" {
+		return compliance.BootstrapInput{}, fmt.Errorf("public base URL is required")
+	}
+	if feedBaseURL == "" {
+		return compliance.BootstrapInput{}, fmt.Errorf("feed base URL is required")
+	}
+	if publicationEnvironment == "" || publicationEnvironment == "unknown" {
+		publicationEnvironment = compliance.EnvironmentDev
+	}
+	return compliance.BootstrapInput{
+		AgencyID:               principal.AgencyID,
+		PublicBaseURL:          publicBaseURL,
+		FeedBaseURL:            feedBaseURL,
+		TechnicalContactEmail:  technicalContactEmail,
+		LicenseName:            licenseName,
+		LicenseURL:             licenseURL,
+		PublicationEnvironment: publicationEnvironment,
+		ActorID:                principal.Subject,
+	}, nil
+}
+
+func setupFormValue(r *http.Request, name string, maxLen int) (string, error) {
+	value := strings.TrimSpace(r.FormValue(name))
+	if len(value) > maxLen {
+		return "", fmt.Errorf("%s is too long", strings.ReplaceAll(name, "_", " "))
+	}
+	return value, nil
+}
+
 func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal, section string) operationsPage {
 	now := time.Now().UTC().Truncate(time.Second)
 	page := operationsPage{
@@ -197,12 +348,28 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		StaleThreshold:   staleThreshold(),
 		Links: []evidenceLink{
 			{Label: "OCI hosted evidence packet", Path: "docs/evidence/captured/oci-pilot/2026-04-24/README.md", UpdatedAt: "2026-04-24"},
+			{Label: "Phase 23 agency-owned domain blocker", Path: "docs/agency-owned-domain-readiness.md", UpdatedAt: "Phase 23"},
+			{Label: "Real-agency GTFS evidence scaffold", Path: "docs/evidence/real-agency-gtfs/README.md", UpdatedAt: "Phase 24"},
+			{Label: "Device/AVL evidence scaffold", Path: "docs/evidence/device-avl/README.md", UpdatedAt: "Phase 25"},
 			{Label: "Consumer submission tracker", Path: "docs/evidence/consumer-submissions/README.md", UpdatedAt: "2026-04-26"},
+			{Label: "Consumer packet status JSON", Path: "docs/evidence/consumer-submissions/status.json", UpdatedAt: "2026-04-27"},
+			{Label: "California readiness summary", Path: "docs/california-readiness-summary.md", UpdatedAt: "Phase 20"},
 			{Label: "Compliance evidence checklist", Path: "docs/compliance-evidence-checklist.md", UpdatedAt: "repo docs"},
 			{Label: "Small-agency pilot operations runbook", Path: "docs/runbooks/small-agency-pilot-operations.md", UpdatedAt: "Phase 17"},
 			{Label: "Evidence redaction policy", Path: "docs/evidence/redaction-policy.md", UpdatedAt: "Phase 15"},
 		},
 		EvidenceUpdatedAt: "2026-04-26",
+	}
+
+	if reader, ok := h.store.(publicationConfigReader); ok {
+		cfg, err := reader.PublicationConfig(r.Context(), principal.AgencyID)
+		if err != nil {
+			page.PublicationError = "publication metadata is not configured yet"
+		} else {
+			page.PublicationConfig = cfg
+		}
+	} else {
+		page.PublicationError = "publication metadata config reader is not available in this runtime"
 	}
 
 	discovery, err := h.store.FeedDiscovery(r.Context(), principal.AgencyID, now)
@@ -227,8 +394,10 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	consumers, err := h.store.ListConsumers(r.Context(), principal.AgencyID)
 	if err != nil {
 		page.ConsumerError = "consumer status records are not available"
+		page.Consumers = consumerTrackerStatuses(nil)
 	} else {
-		page.Consumers = consumerStatuses(consumers)
+		page.Consumers = consumerTrackerStatuses(consumers)
+		page.RuntimeConsumers = runtimeConsumerStatuses(consumers)
 		page.ConsumersUpdatedAt = latestConsumerTime(consumers)
 	}
 
@@ -241,6 +410,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	} else {
 		page.Devices = bindings
 	}
+	page.SetupSteps = setupSteps(page)
 	return page
 }
 
@@ -419,22 +589,272 @@ func latestConsumerTime(consumers []compliance.ConsumerRecord) *time.Time {
 	return latest
 }
 
-func consumerStatuses(records []compliance.ConsumerRecord) []consumerStatusView {
+func setupSteps(page operationsPage) []setupStepView {
+	steps := []setupStepView{
+		{
+			Name:       "Agency metadata",
+			Status:     missingOrValue(page.Discovery.AgencyName, "missing"),
+			Source:     "publication metadata",
+			Evidence:   firstNonEmpty(page.Discovery.AgencyName, page.PublicationError, page.DiscoveryError),
+			NextAction: "Review agency name in GTFS Studio and publication metadata before making deployment claims.",
+			ActionURL:  "/admin/operations/setup#publication-metadata",
+		},
+		{
+			Name:       "License and contact metadata",
+			Status:     readinessStatus(page.Discovery.Readiness.LicenseComplete && page.Discovery.Readiness.ContactComplete, page.DiscoveryError),
+			Source:     "publication metadata",
+			Evidence:   licenseContactEvidence(page),
+			NextAction: "Enter an agency-approved open license URL and technical contact, or keep this marked missing.",
+			ActionURL:  "/admin/operations/setup#publication-metadata",
+		},
+		{
+			Name:       "GTFS import or GTFS Studio path",
+			Status:     missingOrValue(page.ActiveFeedVersion, "missing active feed"),
+			Source:     "feed discovery",
+			Evidence:   feedEvidence(page, "schedule"),
+			NextAction: "Use CLI GTFS ZIP import for agency ZIPs or GTFS Studio for typed draft authoring and publish.",
+			ActionURL:  "/admin/gtfs-studio",
+		},
+		{
+			Name:       "Publication bootstrap",
+			Status:     readinessStatus(page.Discovery.Readiness.AllRequiredFeedsListed, page.DiscoveryError),
+			Source:     "feed discovery",
+			Evidence:   allFeedURLsEvidence(page),
+			NextAction: "Use the publication form to store public/feed base URLs and metadata after confirming the values.",
+			ActionURL:  "/admin/operations/setup#publication-metadata",
+		},
+		{
+			Name:       "Device token setup",
+			Status:     countStatus(len(page.Devices), "binding records"),
+			Source:     "device bindings",
+			Evidence:   deviceEvidence(page),
+			NextAction: "Rotate/rebind a one-time device token and store it outside this repo.",
+			ActionURL:  "/admin/operations/devices",
+		},
+		{
+			Name:       "First telemetry event",
+			Status:     telemetryStatus(page),
+			Source:     "telemetry repository",
+			Evidence:   telemetryEvidence(page),
+			NextAction: "Send a sample telemetry event using the device onboarding helper, then review freshness.",
+			ActionURL:  "/admin/operations/telemetry",
+		},
+		{
+			Name:       "First validation run",
+			Status:     validationStatus(page),
+			Source:     "validation records",
+			Evidence:   validationEvidence(page),
+			NextAction: "Run one allowlisted validator from this page or the existing admin validation API.",
+			ActionURL:  "/admin/operations/setup#validation",
+		},
+		{
+			Name:       "Public feed verification",
+			Status:     readinessStatus(page.Discovery.Readiness.AllRequiredFeedsListed, page.DiscoveryError),
+			Source:     "feed discovery",
+			Evidence:   allFeedURLsEvidence(page),
+			NextAction: "Review public feed URLs and health records. Verification is supporting evidence only.",
+			ActionURL:  "/admin/operations/feeds",
+		},
+		{
+			Name:       "Alerts setup",
+			Status:     feedStatus(page, "alerts"),
+			Source:     "feed discovery and Alerts Console",
+			Evidence:   feedEvidence(page, "alerts"),
+			NextAction: "Use the Alerts Console to create, publish, or archive service alerts as needed.",
+			ActionURL:  "/admin/alerts/console",
+		},
+		{
+			Name:       "Consumer packet/status review",
+			Status:     countStatus(len(page.Consumers), "prepared docs tracker targets"),
+			Source:     "docs/evidence tracker",
+			Evidence:   "Phase 20 docs tracker records prepared packets only.",
+			NextAction: "Review packet paths and submission workflow; do not change statuses without target-originated evidence.",
+			ActionURL:  "/admin/operations/consumers",
+		},
+		{
+			Name:       "Evidence/readiness review",
+			Status:     countStatus(len(page.Links), "evidence links"),
+			Source:     "evidence links",
+			Evidence:   "Repo evidence links are navigation aids and do not prove consumer acceptance or compliance.",
+			NextAction: "Review OCI pilot evidence, agency-owned-domain blocker, GTFS/device scaffolds, and readiness docs.",
+			ActionURL:  "/admin/operations/evidence",
+		},
+	}
+	return steps
+}
+
+func missingOrValue(value string, missing string) string {
+	if strings.TrimSpace(value) == "" {
+		return missing
+	}
+	return value
+}
+
+func readinessStatus(ok bool, missingReason string) string {
+	if missingReason != "" {
+		return "missing"
+	}
+	if ok {
+		return "recorded"
+	}
+	return "missing"
+}
+
+func countStatus(count int, label string) string {
+	if count == 0 {
+		return "missing"
+	}
+	return fmt.Sprintf("%d %s", count, label)
+}
+
+func licenseContactEvidence(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	return fmt.Sprintf("license name=%q, license URL=%q, technical contact=%q", page.Discovery.License.Name, page.Discovery.License.URL, page.Discovery.TechnicalContactEmail)
+}
+
+func feedStatus(page operationsPage, feedType string) string {
+	if page.DiscoveryError != "" {
+		return "missing"
+	}
+	for _, feed := range page.Discovery.Feeds {
+		if feed.FeedType == feedType {
+			if feed.CanonicalPublicURL == "" {
+				return "missing URL"
+			}
+			if feed.LastValidationStatus == "" || feed.LastValidationStatus == "not_run" {
+				return "URL listed; validation not run"
+			}
+			return "URL listed; validation " + feed.LastValidationStatus
+		}
+	}
+	return "missing"
+}
+
+func feedEvidence(page operationsPage, feedType string) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	for _, feed := range page.Discovery.Feeds {
+		if feed.FeedType == feedType {
+			return fmt.Sprintf("URL=%q, active feed version=%q, validation=%s at %s", feed.CanonicalPublicURL, feed.ActiveFeedVersionID, firstNonEmpty(feed.LastValidationStatus, "not_run"), formatTimeForText(feed.LastValidationAt))
+		}
+	}
+	return "no " + feedType + " feed metadata record"
+}
+
+func allFeedURLsEvidence(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	return fmt.Sprintf("%d feed discovery records; all required listed=%t", len(page.Discovery.Feeds), page.Discovery.Readiness.AllRequiredFeedsListed)
+}
+
+func deviceEvidence(page operationsPage) string {
+	if page.DeviceError != "" {
+		return page.DeviceError
+	}
+	if len(page.Devices) == 0 {
+		return "no device binding records"
+	}
+	return fmt.Sprintf("%d device binding records; tokens are not rendered", len(page.Devices))
+}
+
+func telemetryStatus(page operationsPage) string {
+	if page.TelemetryError != "" {
+		return "not available"
+	}
+	if len(page.Telemetry) == 0 {
+		return "not observed yet"
+	}
+	if page.StaleCount > 0 {
+		return fmt.Sprintf("%d vehicles observed; %d stale", len(page.Telemetry), page.StaleCount)
+	}
+	return fmt.Sprintf("%d vehicles observed", len(page.Telemetry))
+}
+
+func telemetryEvidence(page operationsPage) string {
+	if page.TelemetryError != "" {
+		return page.TelemetryError
+	}
+	if page.TelemetryUpdatedAt == nil {
+		return "no latest telemetry rows"
+	}
+	return "latest observed telemetry at " + formatTimeForText(page.TelemetryUpdatedAt)
+}
+
+func validationStatus(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return "not run yet"
+	}
+	for _, feed := range page.Discovery.Feeds {
+		if feed.LastValidationAt != nil {
+			return "supporting records exist"
+		}
+	}
+	return "not run yet"
+}
+
+func validationEvidence(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	var parts []string
+	for _, feed := range page.Discovery.Feeds {
+		parts = append(parts, feed.FeedType+"="+firstNonEmpty(feed.LastValidationStatus, "not_run")+" at "+formatTimeForText(feed.LastValidationAt))
+	}
+	if len(parts) == 0 {
+		return "no validation records"
+	}
+	return strings.Join(parts, "; ")
+}
+
+func formatTimeForText(t *time.Time) string {
+	if t == nil || t.IsZero() {
+		return "not available"
+	}
+	return t.UTC().Format(time.RFC3339)
+}
+
+func runtimeConsumerStatuses(records []compliance.ConsumerRecord) []consumerStatusView {
+	statuses := make([]consumerStatusView, 0, len(records))
+	for _, record := range records {
+		updated := record.UpdatedAt.UTC()
+		statuses = append(statuses, consumerStatusView{
+			Name:      record.ConsumerName,
+			Status:    record.Status,
+			UpdatedAt: &updated,
+			Source:    "runtime DB deployment workflow record",
+			Notes:     record.Notes,
+		})
+	}
+	return statuses
+}
+
+func consumerTrackerStatuses(records []compliance.ConsumerRecord) []consumerStatusView {
 	byName := map[string]compliance.ConsumerRecord{}
 	for _, record := range records {
 		byName[record.ConsumerName] = record
 	}
-	names := []string{"Google Maps", "Apple Maps", "Transit App", "Bing Maps", "Moovit", "Mobility Database", "transit.land"}
-	statuses := make([]consumerStatusView, 0, len(names))
-	for _, name := range names {
-		if record, ok := byName[name]; ok {
-			updated := record.UpdatedAt.UTC()
-			statuses = append(statuses, consumerStatusView{Name: name, Status: record.Status, UpdatedAt: &updated, Source: "database record", Notes: record.Notes})
-			continue
-		}
-		statuses = append(statuses, consumerStatusView{Name: name, Status: "not recorded in DB", Source: "docs tracker"})
+	targets := []consumerStatusView{
+		{Name: "Google Maps", Status: "prepared", Source: "docs/evidence tracker", CurrentPath: "docs/evidence/consumer-submissions/current/google-maps.md", PacketPath: "docs/evidence/consumer-submissions/packets/google-maps/README.md"},
+		{Name: "Apple Maps", Status: "prepared", Source: "docs/evidence tracker", CurrentPath: "docs/evidence/consumer-submissions/current/apple-maps.md", PacketPath: "docs/evidence/consumer-submissions/packets/apple-maps/README.md"},
+		{Name: "Transit App", Status: "prepared", Source: "docs/evidence tracker", CurrentPath: "docs/evidence/consumer-submissions/current/transit-app.md", PacketPath: "docs/evidence/consumer-submissions/packets/transit-app/README.md"},
+		{Name: "Bing Maps", Status: "prepared", Source: "docs/evidence tracker", CurrentPath: "docs/evidence/consumer-submissions/current/bing-maps.md", PacketPath: "docs/evidence/consumer-submissions/packets/bing-maps/README.md"},
+		{Name: "Moovit", Status: "prepared", Source: "docs/evidence tracker", CurrentPath: "docs/evidence/consumer-submissions/current/moovit.md", PacketPath: "docs/evidence/consumer-submissions/packets/moovit/README.md"},
+		{Name: "Mobility Database", Status: "prepared", Source: "docs/evidence tracker", CurrentPath: "docs/evidence/consumer-submissions/current/mobility-database.md", PacketPath: "docs/evidence/consumer-submissions/packets/mobility-database/README.md"},
+		{Name: "transit.land", Status: "prepared", Source: "docs/evidence tracker", CurrentPath: "docs/evidence/consumer-submissions/current/transit-land.md", PacketPath: "docs/evidence/consumer-submissions/packets/transit-land/README.md"},
 	}
-	return statuses
+	for i := range targets {
+		targets[i].Notes = "Prepared packet only; not submitted, under review, accepted, or ingested."
+		if record, ok := byName[targets[i].Name]; ok {
+			updated := record.UpdatedAt.UTC()
+			targets[i].UpdatedAt = &updated
+			targets[i].Notes += " Runtime DB workflow record currently says " + record.Status + "."
+		}
+	}
+	return targets
 }
 
 func staleThreshold() time.Duration {
@@ -507,6 +927,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 		out := append([]compliance.FeedMetadata(nil), feeds...)
 		sort.SliceStable(out, func(i, j int) bool { return feedOrder(out[i].FeedType) < feedOrder(out[j].FeedType) })
 		return out
+	},
+	"publicationEnvValue": func(page operationsPage) string {
+		if page.PublicationConfig.PublicationEnvironment != "" {
+			return page.PublicationConfig.PublicationEnvironment
+		}
+		if page.Discovery.PublicationEnvironment != "" {
+			return page.Discovery.PublicationEnvironment
+		}
+		if page.EnvironmentLabel != "unknown" {
+			return page.EnvironmentLabel
+		}
+		return ""
 	},
 }).Parse(`
 {{define "layoutStart"}}
@@ -643,11 +1075,15 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{define "consumers"}}
 {{template "layoutStart" .}}
 <h2>Consumer Submission Evidence</h2>
-<p class="muted">Statuses are evidence records only. They are not consumer acceptance unless retained third-party evidence exists for the named consumer.</p>
-{{if .ConsumerError}}<p class="warning">{{.ConsumerError}}. Next action: review repo file path <code>docs/evidence/consumer-submissions/README.md</code>.</p>{{else if not .Consumers}}<p class="warning">No consumer evidence records are available. Next action: review the docs tracker in the repository before making any submission claims.</p>{{else}}
-<table><thead><tr><th>Target</th><th>Status</th><th>Source</th><th>Updated</th><th>Notes</th></tr></thead><tbody>
-{{range .Consumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{formatTimePtr .UpdatedAt}}</td><td>{{.Notes}}</td></tr>{{end}}
-</tbody></table>{{end}}
+<p class="muted">The Phase 20 docs/evidence tracker is the source for prepared packet state. These statuses are not submission, review, acceptance, or ingestion evidence.</p>
+{{if .ConsumerError}}<p class="warning">{{.ConsumerError}}. The docs/evidence tracker guidance remains visible below.</p>{{end}}
+<table><thead><tr><th>Target</th><th>Docs tracker status</th><th>Source</th><th>Current record</th><th>Packet path</th><th>Notes</th></tr></thead><tbody>
+{{range .Consumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Notes}}</td></tr>{{end}}
+</tbody></table>
+<h3>Runtime Deployment Workflow Records</h3>
+{{if .RuntimeConsumers}}<table><thead><tr><th>Target</th><th>Runtime status</th><th>Source</th><th>Updated</th><th>Notes</th></tr></thead><tbody>
+{{range .RuntimeConsumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{formatTimePtr .UpdatedAt}}</td><td>{{.Notes}}</td></tr>{{end}}
+</tbody></table>{{else}}<p class="warning">No runtime consumer workflow records are available. This does not change the docs tracker prepared packet state.</p>{{end}}
 <p>Docs tracker repo file path: <code>docs/evidence/consumer-submissions/README.md</code></p>
 {{template "layoutEnd" .}}
 {{end}}
@@ -666,13 +1102,78 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{define "setup"}}
 {{template "layoutStart" .}}
 <h2>Guided Setup Checklist</h2>
-<table><thead><tr><th>Step</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
-<tr><td>Agency metadata</td><td>{{if .DiscoveryError}}not configured{{else}}{{.Discovery.AgencyName}}{{end}}</td><td>Use publication bootstrap and GTFS Studio agency metadata.</td></tr>
-<tr><td>GTFS schedule</td><td>{{if .ActiveFeedVersion}}{{.ActiveFeedVersion}}{{else}}no active feed shown{{end}}</td><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> or import a GTFS ZIP with the existing import command.</td></tr>
-<tr><td>Publication URLs</td><td>{{if .Discovery.Readiness.AllRequiredFeedsListed}}listed{{else}}missing{{end}}</td><td><a href="/admin/operations/feeds">Review feed URLs</a>.</td></tr>
-<tr><td>Device token</td><td>{{len .Devices}} binding records</td><td><a href="/admin/operations/devices">Rotate/rebind a token</a> and store it securely.</td></tr>
-<tr><td>Validation</td><td>{{if .Discovery.Readiness.CanonicalValidationComplete}}supporting records exist{{else}}not complete{{end}}</td><td>Run the existing admin validation workflow, then return to the feed view.</td></tr>
-<tr><td>Consumer evidence</td><td>{{len .Consumers}} targets displayed</td><td><a href="/admin/operations/consumers">Review evidence-only statuses</a>.</td></tr>
+{{if .SetupNotice}}<p class="ok">{{.SetupNotice}}</p>{{end}}
+{{if .SetupError}}<p class="bad">{{.SetupError}}</p>{{end}}
+<p class="muted">Each status is tied to a named source. Missing records stay missing until publication metadata, feed discovery, validation records, device bindings, telemetry, docs tracker records, or evidence links support a stronger statement.</p>
+<table><thead><tr><th>Step</th><th>Status</th><th>Status source</th><th>Evidence signal</th><th>Next action</th></tr></thead><tbody>
+{{range .SetupSteps}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{if .ActionURL}}<a href="{{.ActionURL}}">{{.NextAction}}</a>{{else}}{{.NextAction}}{{end}}</td></tr>{{end}}
+</tbody></table>
+
+<h2 id="publication-metadata">Publication Metadata</h2>
+<p class="muted">Source: publication metadata and feed discovery. This form uses the existing publication bootstrap/update repository behavior and derives agency ID from the authenticated admin principal.</p>
+{{if .PublicationError}}<p class="warning">{{.PublicationError}}. Existing JSON admin API path: <code>/admin/publication/bootstrap</code>.</p>{{end}}
+<table><tbody>
+<tr><th>Agency ID</th><td><code>{{.AgencyID}}</code> (read-only authenticated principal)</td></tr>
+<tr><th>Agency name</th><td>{{if .Discovery.AgencyName}}{{.Discovery.AgencyName}}{{else}}missing{{end}}</td></tr>
+<tr><th>Public base URL</th><td>{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else if .Discovery.PublicBaseURL}}{{.Discovery.PublicBaseURL}}{{else}}missing{{end}}</td></tr>
+<tr><th>Feed base URL</th><td>{{if .PublicationConfig.FeedBaseURL}}{{.PublicationConfig.FeedBaseURL}}{{else}}missing{{end}}</td></tr>
+<tr><th>License name</th><td>{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else if .Discovery.License.Name}}{{.Discovery.License.Name}}{{else}}missing{{end}}</td></tr>
+<tr><th>License URL</th><td>{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else if .Discovery.License.URL}}{{.Discovery.License.URL}}{{else}}missing{{end}}</td></tr>
+<tr><th>Technical contact</th><td>{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else if .Discovery.TechnicalContactEmail}}{{.Discovery.TechnicalContactEmail}}{{else}}missing{{end}}</td></tr>
+<tr><th>Publication environment</th><td>{{if .PublicationConfig.PublicationEnvironment}}{{.PublicationConfig.PublicationEnvironment}}{{else if .Discovery.PublicationEnvironment}}{{.Discovery.PublicationEnvironment}}{{else}}missing{{end}}</td></tr>
+</tbody></table>
+<form method="post" action="/admin/operations/setup">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="publication_bootstrap">
+<label>Public base URL <input name="public_base_url" maxlength="2048" required value="{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else}}{{.Discovery.PublicBaseURL}}{{end}}"></label>
+<label>Feed base URL <input name="feed_base_url" maxlength="2048" required value="{{.PublicationConfig.FeedBaseURL}}"></label>
+<label>Technical contact email <input name="technical_contact_email" maxlength="320" value="{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else}}{{.Discovery.TechnicalContactEmail}}{{end}}"></label>
+<label>License name <input name="license_name" maxlength="160" value="{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else}}{{.Discovery.License.Name}}{{end}}"></label>
+<label>License URL <input name="license_url" maxlength="2048" value="{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else}}{{.Discovery.License.URL}}{{end}}"></label>
+<label>Publication environment <input name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}"></label>
+<button>Store publication metadata</button>
+</form>
+
+<h2>GTFS Import And Authoring</h2>
+<p>Source: feed discovery. Browser ZIP upload is deferred in Phase 26 because upload security, size limits, validation, and role checks need a dedicated design.</p>
+<table><tbody>
+<tr><th>CLI ZIP import</th><td>Use the existing GTFS import flow documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
+<tr><th>Typed authoring</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> for draft authoring and publish.</td></tr>
+<tr><th>Validation triage</th><td>Use <code>docs/tutorials/gtfs-validation-triage.md</code> and the validation form below.</td></tr>
+<tr><th>Active feed verification</th><td><a href="/admin/operations/feeds">Review feed discovery and validation records</a>.</td></tr>
+</tbody></table>
+
+<h2 id="validation">Validation</h2>
+<p class="muted">Source: validation records. The browser chooses only feed type; the server maps it to an allowlisted validator. Validation is supporting evidence only, not consumer acceptance or compliance.</p>
+{{if .ValidationResult}}<p class="ok">Last run from this page: {{.ValidationResult.FeedType}} validation {{.ValidationResult.Status}} with {{.ValidationResult.ErrorCount}} errors and {{.ValidationResult.WarningCount}} warnings.</p>{{end}}
+<form method="post" action="/admin/operations/setup">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="run_validation">
+<label>Feed type <select name="feed_type">
+<option value="schedule">schedule</option>
+<option value="vehicle_positions">vehicle_positions</option>
+<option value="trip_updates">trip_updates</option>
+<option value="alerts">alerts</option>
+</select></label>
+<button>Run allowlisted validation</button>
+</form>
+{{if .DiscoveryError}}<p class="warning">No validation records are available because publication metadata is missing.</p>{{else}}{{template "feedTable" .}}{{end}}
+
+<h2>Device And Telemetry Setup</h2>
+<p>Source: device bindings and telemetry repository. Device tokens are one-time secrets and are only shown by the existing rotate/rebind flow.</p>
+<table><tbody>
+<tr><th>Device bindings</th><td>{{if .DeviceError}}{{.DeviceError}}{{else}}{{len .Devices}} binding records{{end}}</td></tr>
+<tr><th>Latest telemetry</th><td>{{if .TelemetryError}}{{.TelemetryError}}{{else if .TelemetryUpdatedAt}}{{formatTimePtr .TelemetryUpdatedAt}}{{else}}not observed yet{{end}}</td></tr>
+<tr><th>Stale telemetry</th><td>{{if .TelemetryError}}not available{{else}}{{.StaleCount}} stale latest rows using threshold {{.StaleThreshold}}{{end}}</td></tr>
+<tr><th>Next action</th><td><a href="/admin/operations/devices">Manage device bindings</a>; use <code>scripts/device-onboarding.sh sample --dry-run</code> or <code>simulate --dry-run</code> to preview helper calls.</td></tr>
+</tbody></table>
+
+<h2>Alerts, Overrides, Consumers, Evidence</h2>
+<table><tbody>
+<tr><th>Alerts</th><td>Source: feed discovery and Alerts Console. <a href="/admin/alerts/console">Create, publish, or archive alerts</a>. Alerts feed availability does not prove consumer acceptance.</td></tr>
+<tr><th>Manual overrides/review</th><td>Deferred in Phase 26 because a safe browser view would need carefully bounded summaries and must avoid raw diagnostics or new mutation semantics.</td></tr>
+<tr><th>Consumer packets</th><td>Source: docs/evidence tracker. <a href="/admin/operations/consumers">Review all seven prepared packet records</a>; prepared is not submitted or accepted.</td></tr>
+<tr><th>Evidence/readiness</th><td>Source: evidence links. <a href="/admin/operations/evidence">Open evidence link index</a>.</td></tr>
 </tbody></table>
 {{template "layoutEnd" .}}
 {{end}}

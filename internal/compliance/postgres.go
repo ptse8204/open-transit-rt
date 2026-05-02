@@ -157,6 +157,22 @@ func (r *PostgresRepository) FeedDiscovery(ctx context.Context, agencyID string,
 	}, nil
 }
 
+func (r *PostgresRepository) PublicationConfig(ctx context.Context, agencyID string) (PublicationConfig, error) {
+	cfg, err := r.feedConfig(ctx, agencyID)
+	if err != nil {
+		return PublicationConfig{}, err
+	}
+	return PublicationConfig{
+		AgencyID:               agencyID,
+		PublicBaseURL:          cfg.PublicBaseURL,
+		FeedBaseURL:            cfg.FeedBaseURL,
+		TechnicalContactEmail:  cfg.TechnicalContactEmail,
+		LicenseName:            cfg.LicenseName,
+		LicenseURL:             cfg.LicenseURL,
+		PublicationEnvironment: cfg.PublicationEnvironment,
+	}, nil
+}
+
 func (r *PostgresRepository) UpsertConsumer(ctx context.Context, input ConsumerInput) (ConsumerRecord, error) {
 	if input.Status == "" {
 		input.Status = "not_started"
