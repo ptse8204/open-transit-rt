@@ -90,6 +90,26 @@ func tripCandidateFromFixture(scenario Scenario, fixture TripFixture) (gtfs.Trip
 			HasDistance:  true,
 		})
 	}
+	frequencies := make([]gtfs.Frequency, 0, len(fixture.Frequencies))
+	for _, frequency := range fixture.Frequencies {
+		start, err := gtfs.ParseGTFSTime(frequency.StartTime)
+		if err != nil {
+			return gtfs.TripCandidate{}, fmt.Errorf("parse frequency start for %s: %w", fixture.TripID, err)
+		}
+		end, err := gtfs.ParseGTFSTime(frequency.EndTime)
+		if err != nil {
+			return gtfs.TripCandidate{}, fmt.Errorf("parse frequency end for %s: %w", fixture.TripID, err)
+		}
+		frequencies = append(frequencies, gtfs.Frequency{
+			TripID:       fixture.TripID,
+			StartSeconds: start,
+			EndSeconds:   end,
+			HeadwaySecs:  frequency.HeadwaySecs,
+			ExactTimes:   frequency.ExactTimes,
+			StartTime:    frequency.StartTime,
+			EndTime:      frequency.EndTime,
+		})
+	}
 	return gtfs.TripCandidate{
 		AgencyID:      scenario.AgencyID,
 		FeedVersionID: scenario.FeedVersionID,
@@ -101,6 +121,7 @@ func tripCandidateFromFixture(scenario Scenario, fixture TripFixture) (gtfs.Trip
 		ShapeID:       "shape-" + fixture.TripID,
 		StopTimes:     stopTimes,
 		ShapePoints:   shapePoints,
+		Frequencies:   frequencies,
 	}, nil
 }
 
@@ -128,15 +149,19 @@ func newReplayStateRepository(scenario Scenario) *replayStateRepository {
 			StartTime: fixture.StartTime,
 			State:     state.VehicleServiceState(fixture.State),
 			Reason:    fixture.Reason,
+			ExpiresAt: fixture.ExpiresAt,
 			CreatedAt: scenario.GeneratedAt,
 		}
 	}
 	return repo
 }
 
-func (r *replayStateRepository) ActiveManualOverride(_ context.Context, _ string, vehicleID string, _ time.Time) (*state.ManualOverride, error) {
+func (r *replayStateRepository) ActiveManualOverride(_ context.Context, _ string, vehicleID string, at time.Time) (*state.ManualOverride, error) {
 	override, ok := r.manualOverrides[vehicleID]
 	if !ok {
+		return nil, nil
+	}
+	if override.ExpiresAt != nil && !at.Before(*override.ExpiresAt) {
 		return nil, nil
 	}
 	return &override, nil
@@ -189,16 +214,35 @@ func (r replayTelemetryRepository) Store(context.Context, telemetry.Event, json.
 }
 
 func (r replayTelemetryRepository) LatestByVehicle(_ context.Context, _ string, vehicleID string) (telemetry.StoredEvent, error) {
+	var latest telemetry.StoredEvent
+	found := false
 	for _, event := range r.events {
-		if event.VehicleID == vehicleID {
-			return event, nil
+		if event.VehicleID != vehicleID {
+			continue
 		}
+		if !found || isNewerTelemetry(event, latest) {
+			latest = event
+			found = true
+		}
+	}
+	if found {
+		return latest, nil
 	}
 	return telemetry.StoredEvent{}, fmt.Errorf("vehicle %s not found", vehicleID)
 }
 
 func (r replayTelemetryRepository) ListLatestByAgency(_ context.Context, _ string, limit int) ([]telemetry.StoredEvent, error) {
-	latest := append([]telemetry.StoredEvent(nil), r.events...)
+	byVehicle := map[string]telemetry.StoredEvent{}
+	for _, event := range r.events {
+		current, ok := byVehicle[event.VehicleID]
+		if !ok || isNewerTelemetry(event, current) {
+			byVehicle[event.VehicleID] = event
+		}
+	}
+	latest := make([]telemetry.StoredEvent, 0, len(byVehicle))
+	for _, event := range byVehicle {
+		latest = append(latest, event)
+	}
 	sort.SliceStable(latest, func(i int, j int) bool {
 		if latest[i].Timestamp.Equal(latest[j].Timestamp) {
 			return latest[i].ID > latest[j].ID
@@ -209,6 +253,13 @@ func (r replayTelemetryRepository) ListLatestByAgency(_ context.Context, _ strin
 		latest = latest[:limit]
 	}
 	return latest, nil
+}
+
+func isNewerTelemetry(candidate telemetry.StoredEvent, current telemetry.StoredEvent) bool {
+	if candidate.Timestamp.Equal(current.Timestamp) {
+		return candidate.ID > current.ID
+	}
+	return candidate.Timestamp.After(current.Timestamp)
 }
 
 func (r replayTelemetryRepository) ListEvents(_ context.Context, _ string, limit int) ([]telemetry.StoredEvent, error) {

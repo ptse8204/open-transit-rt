@@ -34,13 +34,14 @@ type Scenario struct {
 }
 
 type TripFixture struct {
-	ServiceDate string        `json:"service_date"`
-	RouteID     string        `json:"route_id"`
-	TripID      string        `json:"trip_id"`
-	BlockID     string        `json:"block_id,omitempty"`
-	StartTime   string        `json:"start_time"`
-	StopTimes   []StopFixture `json:"stop_times"`
-	ShapePoints []ShapePoint  `json:"shape_points,omitempty"`
+	ServiceDate string             `json:"service_date"`
+	RouteID     string             `json:"route_id"`
+	TripID      string             `json:"trip_id"`
+	BlockID     string             `json:"block_id,omitempty"`
+	StartTime   string             `json:"start_time"`
+	StopTimes   []StopFixture      `json:"stop_times"`
+	ShapePoints []ShapePoint       `json:"shape_points,omitempty"`
+	Frequencies []FrequencyFixture `json:"frequencies,omitempty"`
 }
 
 type StopFixture struct {
@@ -56,6 +57,13 @@ type ShapePoint struct {
 	Lon          float64 `json:"lon"`
 	Sequence     int     `json:"sequence"`
 	DistTraveled float64 `json:"dist_traveled"`
+}
+
+type FrequencyFixture struct {
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	HeadwaySecs int    `json:"headway_secs"`
+	ExactTimes  int    `json:"exact_times"`
 }
 
 type TelemetryFixture struct {
@@ -85,15 +93,16 @@ type AssignmentFixture struct {
 }
 
 type ManualOverrideFixture struct {
-	ID        int64  `json:"id"`
-	VehicleID string `json:"vehicle_id"`
-	Type      string `json:"type"`
-	RouteID   string `json:"route_id,omitempty"`
-	TripID    string `json:"trip_id,omitempty"`
-	StartDate string `json:"start_date,omitempty"`
-	StartTime string `json:"start_time,omitempty"`
-	State     string `json:"state"`
-	Reason    string `json:"reason,omitempty"`
+	ID        int64      `json:"id"`
+	VehicleID string     `json:"vehicle_id"`
+	Type      string     `json:"type"`
+	RouteID   string     `json:"route_id,omitempty"`
+	TripID    string     `json:"trip_id,omitempty"`
+	StartDate string     `json:"start_date,omitempty"`
+	StartTime string     `json:"start_time,omitempty"`
+	State     string     `json:"state"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Reason    string     `json:"reason,omitempty"`
 }
 
 type PredictionOverrideFixture struct {
@@ -140,21 +149,28 @@ type TripUpdateExpectation struct {
 }
 
 type MetricsExpectation struct {
-	TelemetryRowsConsidered      int             `json:"telemetry_rows_considered"`
-	AssignmentsConsidered        int             `json:"assignments_considered"`
-	UnknownAssignments           int             `json:"unknown_assignments"`
-	AmbiguousAssignments         int             `json:"ambiguous_assignments"`
-	DegradedAssignments          int             `json:"degraded_assignments"`
-	StaleTelemetryRows           int             `json:"stale_telemetry_rows"`
-	ManualOverrideAssignments    int             `json:"manual_override_assignments"`
-	EligiblePredictionCandidates int             `json:"eligible_prediction_candidates"`
-	TripUpdatesEmitted           int             `json:"trip_updates_emitted"`
-	WithheldByReason             map[string]int  `json:"withheld_by_reason,omitempty"`
-	UnknownAssignmentRate        RateExpectation `json:"unknown_assignment_rate"`
-	AmbiguousAssignmentRate      RateExpectation `json:"ambiguous_assignment_rate"`
-	StaleTelemetryRate           RateExpectation `json:"stale_telemetry_rate"`
-	TripUpdatesCoverageRate      RateExpectation `json:"trip_updates_coverage_rate"`
-	FutureStopCoverageRate       RateExpectation `json:"future_stop_coverage_rate"`
+	TelemetryRowsConsidered        int             `json:"telemetry_rows_considered"`
+	AssignmentsConsidered          int             `json:"assignments_considered"`
+	UnknownAssignments             int             `json:"unknown_assignments"`
+	AmbiguousAssignments           int             `json:"ambiguous_assignments"`
+	DegradedAssignments            int             `json:"degraded_assignments"`
+	StaleTelemetryRows             int             `json:"stale_telemetry_rows"`
+	ManualOverrideAssignments      int             `json:"manual_override_assignments"`
+	EligiblePredictionCandidates   int             `json:"eligible_prediction_candidates"`
+	TripUpdatesEmitted             int             `json:"trip_updates_emitted"`
+	CanceledTripsEmitted           int             `json:"canceled_trips_emitted"`
+	CancellationAlertLinksExpected int             `json:"cancellation_alert_links_expected"`
+	CancellationAlertLinksMissing  int             `json:"cancellation_alert_links_missing"`
+	AddedTripsWithheld             int             `json:"added_trips_withheld"`
+	ShortTurnsWithheld             int             `json:"short_turns_withheld"`
+	DetoursWithheld                int             `json:"detours_withheld"`
+	WithheldByReason               map[string]int  `json:"withheld_by_reason,omitempty"`
+	DegradedByReason               map[string]int  `json:"degraded_by_reason,omitempty"`
+	UnknownAssignmentRate          RateExpectation `json:"unknown_assignment_rate"`
+	AmbiguousAssignmentRate        RateExpectation `json:"ambiguous_assignment_rate"`
+	StaleTelemetryRate             RateExpectation `json:"stale_telemetry_rate"`
+	TripUpdatesCoverageRate        RateExpectation `json:"trip_updates_coverage_rate"`
+	FutureStopCoverageRate         RateExpectation `json:"future_stop_coverage_rate"`
 }
 
 type RateExpectation struct {
@@ -324,11 +340,20 @@ func Compare(report Report, expected Expectations) []string {
 		metrics.StaleTelemetryRows != want.StaleTelemetryRows ||
 		metrics.ManualOverrideAssignments != want.ManualOverrideAssignments ||
 		metrics.EligiblePredictionCandidates != want.EligiblePredictionCandidates ||
-		metrics.TripUpdatesEmitted != want.TripUpdatesEmitted {
+		metrics.TripUpdatesEmitted != want.TripUpdatesEmitted ||
+		metrics.CanceledTripsEmitted != want.CanceledTripsEmitted ||
+		metrics.CancellationAlertLinksExpected != want.CancellationAlertLinksExpected ||
+		metrics.CancellationAlertLinksMissing != want.CancellationAlertLinksMissing ||
+		metrics.AddedTripsWithheld != want.AddedTripsWithheld ||
+		metrics.ShortTurnsWithheld != want.ShortTurnsWithheld ||
+		metrics.DetoursWithheld != want.DetoursWithheld {
 		mismatches = append(mismatches, fmt.Sprintf("metrics counts got %+v want %+v", metrics, want))
 	}
-	if !reflect.DeepEqual(metrics.WithheldByReason, want.WithheldByReason) {
+	if !intMapsEqual(metrics.WithheldByReason, want.WithheldByReason) {
 		mismatches = append(mismatches, fmt.Sprintf("withheld_by_reason got %+v want %+v", metrics.WithheldByReason, want.WithheldByReason))
+	}
+	if !intMapsEqual(metrics.DegradedByReason, want.DegradedByReason) {
+		mismatches = append(mismatches, fmt.Sprintf("degraded_by_reason got %+v want %+v", metrics.DegradedByReason, want.DegradedByReason))
 	}
 	checkRate := func(name string, got prediction.RateMetric, want RateExpectation) {
 		if got.Numerator != want.Numerator || got.Denominator != want.Denominator || got.Status != want.Status {
@@ -351,6 +376,13 @@ func Compare(report Report, expected Expectations) []string {
 	checkRate("trip_updates_coverage_rate", metrics.TripUpdatesCoverageRate, want.TripUpdatesCoverageRate)
 	checkRate("future_stop_coverage_rate", metrics.FutureStopCoverageRate, want.FutureStopCoverageRate)
 	return mismatches
+}
+
+func intMapsEqual(got map[string]int, want map[string]int) bool {
+	if len(got) == 0 && len(want) == 0 {
+		return true
+	}
+	return reflect.DeepEqual(got, want)
 }
 
 func replayEvents(scenario Scenario) []telemetry.StoredEvent {

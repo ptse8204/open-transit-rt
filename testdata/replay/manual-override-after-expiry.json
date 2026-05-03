@@ -1,0 +1,60 @@
+{
+  "name": "manual-override-after-expiry",
+  "input_fixture": "inline-synthetic-manual-override-after-expiry-replay",
+  "agency_id": "agency-replay",
+  "timezone": "America/Vancouver",
+  "feed_version_id": "feed-replay-phase-29",
+  "generated_at": "2026-04-20T15:05:00Z",
+  "trips": [
+    {
+      "service_date": "20260420",
+      "route_id": "route-replay-90",
+      "trip_id": "trip-override-0800",
+      "block_id": "block-replay-90",
+      "start_time": "08:00:00",
+      "stop_times": [
+        {"stop_id": "stop-override-1", "stop_sequence": 1, "arrival_time": "08:00:00", "departure_time": "08:00:00", "shape_dist_traveled": 0},
+        {"stop_id": "stop-override-2", "stop_sequence": 2, "arrival_time": "08:10:00", "departure_time": "08:10:00", "shape_dist_traveled": 1000}
+      ],
+      "shape_points": [
+        {"lat": 49.2827, "lon": -123.1207, "sequence": 1, "dist_traveled": 0},
+        {"lat": 49.2927, "lon": -123.1207, "sequence": 2, "dist_traveled": 1000}
+      ]
+    }
+  ],
+  "telemetry_events": [
+    {"id": 2991, "device_id": "device-override-expired", "vehicle_id": "bus-override-expired", "timestamp": "2026-04-20T15:05:00Z", "lat": 49.2827, "lon": -123.1207, "trip_hint": "trip-override-0800"}
+  ],
+  "manual_overrides": [
+    {"id": 300, "vehicle_id": "bus-override-expired", "type": "trip_assignment", "route_id": "route-replay-90", "trip_id": "trip-override-0800", "start_date": "20260420", "start_time": "08:00:00", "state": "in_service", "expires_at": "2026-04-20T15:00:00Z", "reason": "synthetic expired override"}
+  ],
+  "expected": {
+    "assignments": [
+      {"vehicle_id": "bus-override-expired", "state": "in_service", "source": "automatic", "degraded_state": "none", "trip_id": "trip-override-0800", "reason_codes": ["schedule_fit_match", "shape_proximity_match", "stop_progress_match", "trip_hint_match"]}
+    ],
+    "vehicle_positions": [
+      {"vehicle_id": "bus-override-expired", "included": true, "trip_descriptor": true, "trip_omission_reason": "none"}
+    ],
+    "trip_updates": [
+      {"entity_id": "trip_update:trip-override-0800:20260420:08:00:00", "trip_id": "trip-override-0800", "schedule_relationship": "scheduled", "future_stop_updates": 1}
+    ],
+    "withheld_reasons": {},
+    "metrics": {
+      "telemetry_rows_considered": 1,
+      "assignments_considered": 1,
+      "unknown_assignments": 0,
+      "ambiguous_assignments": 0,
+      "degraded_assignments": 0,
+      "stale_telemetry_rows": 0,
+      "manual_override_assignments": 0,
+      "eligible_prediction_candidates": 1,
+      "trip_updates_emitted": 1,
+      "withheld_by_reason": {},
+      "unknown_assignment_rate": {"numerator": 0, "denominator": 1, "status": "measured", "percent": 0},
+      "ambiguous_assignment_rate": {"numerator": 0, "denominator": 1, "status": "measured", "percent": 0},
+      "stale_telemetry_rate": {"numerator": 0, "denominator": 1, "status": "measured", "percent": 0},
+      "trip_updates_coverage_rate": {"numerator": 1, "denominator": 1, "status": "measured", "percent": 100},
+      "future_stop_coverage_rate": {"numerator": 1, "denominator": 1, "status": "measured", "percent": 100}
+    }
+  }
+}

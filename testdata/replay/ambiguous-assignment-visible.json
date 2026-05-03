@@ -58,6 +58,7 @@
       "eligible_prediction_candidates": 0,
       "trip_updates_emitted": 0,
       "withheld_by_reason": {"degraded_assignment": 1},
+      "degraded_by_reason": {"ambiguous": 1},
       "unknown_assignment_rate": {"numerator": 1, "denominator": 1, "status": "measured", "percent": 100},
       "ambiguous_assignment_rate": {"numerator": 1, "denominator": 1, "status": "measured", "percent": 100},
       "stale_telemetry_rate": {"numerator": 0, "denominator": 1, "status": "measured", "percent": 0},

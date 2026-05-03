@@ -1,0 +1,52 @@
+{
+  "name": "cancellation-alert-linkage",
+  "input_fixture": "inline-synthetic-cancellation-alert-replay",
+  "agency_id": "agency-replay",
+  "timezone": "America/Vancouver",
+  "feed_version_id": "feed-replay-phase-29",
+  "generated_at": "2026-04-20T15:05:00Z",
+  "trips": [
+    {
+      "service_date": "20260420",
+      "route_id": "route-replay-80",
+      "trip_id": "trip-cancel-0800",
+      "start_time": "08:00:00",
+      "stop_times": [
+        {"stop_id": "stop-cancel-1", "stop_sequence": 1, "arrival_time": "08:00:00", "departure_time": "08:00:00"},
+        {"stop_id": "stop-cancel-2", "stop_sequence": 2, "arrival_time": "08:10:00", "departure_time": "08:10:00"}
+      ]
+    }
+  ],
+  "telemetry_events": [],
+  "prediction_overrides": [
+    {"id": 2980, "vehicle_id": "bus-cancel-1", "type": "canceled_trip", "route_id": "route-replay-80", "trip_id": "trip-cancel-0800", "start_date": "20260420", "start_time": "08:00:00", "state": "canceled", "reason": "synthetic operator cancellation"}
+  ],
+  "expected": {
+    "assignments": [],
+    "vehicle_positions": [],
+    "trip_updates": [
+      {"entity_id": "trip_update:trip-cancel-0800:20260420:08:00:00", "trip_id": "trip-cancel-0800", "schedule_relationship": "canceled", "future_stop_updates": 0}
+    ],
+    "withheld_reasons": {},
+    "metrics": {
+      "telemetry_rows_considered": 0,
+      "assignments_considered": 0,
+      "unknown_assignments": 0,
+      "ambiguous_assignments": 0,
+      "degraded_assignments": 0,
+      "stale_telemetry_rows": 0,
+      "manual_override_assignments": 0,
+      "eligible_prediction_candidates": 0,
+      "trip_updates_emitted": 1,
+      "canceled_trips_emitted": 1,
+      "cancellation_alert_links_expected": 1,
+      "cancellation_alert_links_missing": 1,
+      "withheld_by_reason": {},
+      "unknown_assignment_rate": {"numerator": 0, "denominator": 0, "status": "not_applicable"},
+      "ambiguous_assignment_rate": {"numerator": 0, "denominator": 0, "status": "not_applicable"},
+      "stale_telemetry_rate": {"numerator": 0, "denominator": 0, "status": "not_applicable"},
+      "trip_updates_coverage_rate": {"numerator": 0, "denominator": 0, "status": "not_applicable"},
+      "future_stop_coverage_rate": {"numerator": 0, "denominator": 0, "status": "not_applicable"}
+    }
+  }
+}
