@@ -602,6 +602,111 @@ func TestPostgresMatcherIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("repository assignment and manual override rows are agency scoped", func(t *testing.T) {
+		resetMatcherData(t, ctx, pool)
+		seedDemoSchedule(t, ctx, pool, true)
+		seedAfterMidnightSchedule(t, ctx, pool)
+
+		sharedVehicle := "bus-shared"
+		agencyBCurrent, err := assignments.SaveAssignment(ctx, Assignment{
+			AgencyID:         "overnight-agency",
+			VehicleID:        sharedVehicle,
+			State:            StateInService,
+			ServiceDate:      "20260420",
+			RouteID:          "night-owl",
+			TripID:           "trip-night-2430",
+			StartDate:        "20260420",
+			StartTime:        "24:30:00",
+			Confidence:       0.91,
+			AssignmentSource: AssignmentSourceAutomatic,
+			ReasonCodes:      []string{ReasonTripHintMatch},
+			DegradedState:    DegradedNone,
+			ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1"},
+			ActiveFrom:       time.Date(2026, 4, 20, 15, 0, 0, 0, time.UTC),
+		}, nil)
+		if err != nil {
+			t.Fatalf("seed overnight-agency assignment: %v", err)
+		}
+		agencyACurrent, err := assignments.SaveAssignment(ctx, Assignment{
+			AgencyID:         "demo-agency",
+			VehicleID:        sharedVehicle,
+			State:            StateInService,
+			ServiceDate:      "20260420",
+			RouteID:          "route-10",
+			TripID:           "trip-10-0800",
+			StartDate:        "20260420",
+			StartTime:        "08:00:00",
+			Confidence:       0.92,
+			AssignmentSource: AssignmentSourceAutomatic,
+			ReasonCodes:      []string{ReasonTripHintMatch},
+			DegradedState:    DegradedNone,
+			ScoreDetails:     map[string]any{"score_schema": "loose_debug_v1"},
+			ActiveFrom:       time.Date(2026, 4, 20, 15, 1, 0, 0, time.UTC),
+		}, []Incident{{Type: "assignment_review", Severity: "warning", Details: map[string]any{"scope": "agency-a"}}})
+		if err != nil {
+			t.Fatalf("save demo-agency assignment: %v", err)
+		}
+
+		currentA, err := assignments.CurrentAssignment(ctx, "demo-agency", sharedVehicle)
+		if err != nil {
+			t.Fatalf("current assignment agency A: %v", err)
+		}
+		if currentA == nil || currentA.ID != agencyACurrent.ID || currentA.AgencyID != "demo-agency" || currentA.TripID != "trip-10-0800" {
+			t.Fatalf("current assignment agency A = %+v, want agency A row", currentA)
+		}
+		currentB, err := assignments.CurrentAssignment(ctx, "overnight-agency", sharedVehicle)
+		if err != nil {
+			t.Fatalf("current assignment agency B: %v", err)
+		}
+		if currentB == nil || currentB.ID != agencyBCurrent.ID || currentB.AgencyID != "overnight-agency" || currentB.TripID != "trip-night-2430" {
+			t.Fatalf("current assignment agency B = %+v, want original agency B row", currentB)
+		}
+		listA, err := assignments.ListCurrentAssignments(ctx, "demo-agency", []string{sharedVehicle})
+		if err != nil {
+			t.Fatalf("list current agency A: %v", err)
+		}
+		if len(listA) != 1 || listA[sharedVehicle].ID != agencyACurrent.ID {
+			t.Fatalf("list current agency A = %+v, want only agency A current row", listA)
+		}
+
+		if _, err := pool.Exec(ctx, `
+			INSERT INTO manual_override (
+				agency_id, vehicle_id, override_type, route_id, trip_id, start_date, start_time, state, reason, created_by, created_at
+			)
+			VALUES
+				('demo-agency', $1, 'trip_assignment', 'route-10', 'trip-10-0800', '20260420', '08:00:00', 'in_service', 'agency A override', 'admin-a@example.com', '2026-04-20T15:02:00Z'),
+				('overnight-agency', $1, 'trip_assignment', 'night-owl', 'trip-night-2430', '20260420', '24:30:00', 'in_service', 'agency B override', 'admin-b@example.com', '2026-04-20T15:03:00Z')
+		`, sharedVehicle); err != nil {
+			t.Fatalf("seed scoped manual overrides: %v", err)
+		}
+		overrideA, err := assignments.ActiveManualOverride(ctx, "demo-agency", sharedVehicle, time.Date(2026, 4, 20, 15, 4, 0, 0, time.UTC))
+		if err != nil {
+			t.Fatalf("active override agency A: %v", err)
+		}
+		if overrideA == nil || overrideA.AgencyID != "demo-agency" || overrideA.TripID != "trip-10-0800" {
+			t.Fatalf("override agency A = %+v, want agency A override", overrideA)
+		}
+		overrideB, err := assignments.ActiveManualOverride(ctx, "overnight-agency", sharedVehicle, time.Date(2026, 4, 20, 15, 4, 0, 0, time.UTC))
+		if err != nil {
+			t.Fatalf("active override agency B: %v", err)
+		}
+		if overrideB == nil || overrideB.AgencyID != "overnight-agency" || overrideB.TripID != "trip-night-2430" {
+			t.Fatalf("override agency B = %+v, want agency B override", overrideB)
+		}
+
+		var incidentAgency string
+		if err := pool.QueryRow(ctx, `
+			SELECT agency_id
+			FROM incident
+			WHERE vehicle_trip_assignment_id = $1
+		`, agencyACurrent.ID).Scan(&incidentAgency); err != nil {
+			t.Fatalf("query assignment incident agency: %v", err)
+		}
+		if incidentAgency != "demo-agency" {
+			t.Fatalf("incident agency = %q, want demo-agency", incidentAgency)
+		}
+	})
+
 	t.Run("concurrent assignment writes leave one active row", func(t *testing.T) {
 		resetMatcherData(t, ctx, pool)
 		seedDemoSchedule(t, ctx, pool, true)

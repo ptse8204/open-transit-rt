@@ -12,7 +12,7 @@ Phase 27 — Multi-Agency Isolation Prototype
 ## What Was Implemented
 
 - Added synthetic multi-agency fixture notes and public-safe fixture metadata under `testdata/multi-agency/`.
-- Added repository and handler tests proving selected agency boundaries for auth, publication metadata, feed discovery, validation, scorecards, consumers, devices, telemetry, Operations Console, GTFS Studio, Alerts, prediction operations, and audit-row writes.
+- Added repository and handler tests proving selected agency boundaries for auth, publication metadata, feed discovery, validation, scorecards, consumers, devices, telemetry, state assignments/overrides, GTFS imports/feed versions/draft listings, Operations Console, GTFS Studio, Alerts, prediction operations, and audit-row writes.
 - Added narrow protected-debug fixes for Vehicle Positions, Trip Updates, and Alerts JSON debug handlers so cross-agency admin principals cannot read another service instance's debug snapshot.
 - Documented current public endpoint scope and agency-id persistence audit as current isolation review, not production multi-tenant certification.
 
@@ -51,7 +51,7 @@ Phase 27 — Multi-Agency Isolation Prototype
   - DB-backed `PostgresRoleStore` scopes roles by claim agency, even when subject/email exists in multiple agencies.
   - Protected admin paths reject conflicting query/body/form `agency_id` and derive agency from the authenticated principal.
 - Data-isolation tests:
-  - publication metadata, feed discovery, validation status, scorecards, consumer records, device bindings, telemetry events, prediction operations, and audit rows are scoped by agency for selected workflows.
+  - publication metadata, feed discovery, validation status, scorecards, consumer records, device bindings, telemetry events, state current assignments, state manual overrides, GTFS imported feed versions, GTFS trip candidates, GTFS draft listings, prediction operations, and audit/incident rows are scoped by agency for selected workflows.
 - Feed-discovery/public-feed behavior:
   - `/public/feeds.json` is query-routed by `agency_id`; omitted query uses configured `AGENCY_ID`.
   - `/public/gtfs/schedule.zip`, `/public/gtfsrt/vehicle_positions.pb`, `/public/gtfsrt/trip_updates.pb`, and `/public/gtfsrt/alerts.pb` remain service-instance scoped by configured `AGENCY_ID`.
@@ -59,6 +59,13 @@ Phase 27 — Multi-Agency Isolation Prototype
   - `/admin/operations` and feeds/telemetry/devices/consumers/evidence/setup sections reject conflicting `agency_id`.
   - telemetry and devices views are tested against mixed synthetic agency data.
   - setup publication and validation forms remain principal-derived and conflict-bounded.
+- GTFS isolation behavior:
+  - Repository-level tests cover active feed lookup by agency, trip candidate lookup by agency/feed version, import row agency IDs, and `DraftService.ListDrafts` agency scoping.
+  - GTFS Studio handler tests cover list/create/draft summary/publish/discard/entity edit agency boundaries.
+  - `DraftService.GetDraft(ctx, draftID)` remains an ID-only repository method that returns the draft agency for caller enforcement; repository-level denial for cross-agency draft ID lookup is deferred unless a future API adds an agency parameter.
+- State isolation behavior:
+  - Repository-level tests cover `CurrentAssignment`, `ListCurrentAssignments`, `SaveAssignment`, `ActiveManualOverride`, and incident rows written by assignment saves.
+  - `internal/state` does not currently write `audit_log` rows directly; audit coverage for manual override workflows is in prediction operations tests.
 - Alerts admin/console isolation behavior:
   - `/admin/alerts`, `/admin/alerts/console`, `/admin/alerts/{id}/publish`, `/admin/alerts/{id}/archive`, and `/admin/alerts/reconcile-cancellations` are covered for list/mutation/reconcile agency boundaries and body/form/query conflicts.
 - Device/telemetry isolation behavior:
@@ -100,6 +107,7 @@ Final checks after editing:
 ```bash
 go test ./cmd/agency-config ./cmd/feed-alerts ./cmd/feed-trip-updates ./cmd/feed-vehicle-positions ./cmd/gtfs-studio ./cmd/telemetry-ingest
 go test ./internal/auth ./internal/compliance ./internal/devices ./internal/telemetry ./internal/alerts ./internal/prediction
+go test ./internal/state ./internal/gtfs
 make validate
 make test
 make test-integration
@@ -122,7 +130,7 @@ Blocked commands: none.
 - Phase 27 proves repository-level isolation for selected workflows, not production hosted multi-tenant readiness.
 - Public schedule ZIP and GTFS-RT protobuf endpoints are still service-instance scoped by configured `AGENCY_ID`.
 - Backup, restore, export, deletion, and evidence packet generation are not tenant-safe multi-agency workflows yet.
-- Full GTFS Studio entity isolation coverage remains limited to current minimal handler semantics and does not include a broad multi-draft/entity fixture matrix.
+- Full GTFS Studio entity isolation coverage remains limited to current minimal handler semantics and selected repository tests. `DraftService.GetDraft` is ID-only and returns the agency for handler enforcement; repository-level cross-agency denial for direct draft ID lookup remains deferred.
 - There is no global admin model; Phase 27 intentionally did not invent one.
 - No audit-log read surface exists; tests inspect written rows directly where needed.
 

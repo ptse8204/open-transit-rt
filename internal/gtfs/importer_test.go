@@ -177,6 +177,94 @@ func TestImportServiceIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("repository feed versions imports and draft listings are agency scoped", func(t *testing.T) {
+		resetGTFSImportData(t, ctx, pool)
+		demoResult, err := service.ImportZip(ctx, ImportOptions{AgencyID: "demo-agency", ZipPath: writeZipFixture(t, "../../testdata/gtfs/valid-small", nil), ActorID: "admin-a@example.com"})
+		if err != nil {
+			t.Fatalf("import demo-agency: %v", err)
+		}
+		agencyBZip := writeZipFixture(t, "../../testdata/gtfs/valid-small", map[string]string{
+			"agency.txt": "agency_id,agency_name,agency_url,agency_timezone,agency_lang\nagency-b,Agency B,http://agency-b.example,America/Vancouver,en\n",
+			"routes.txt": "route_id,agency_id,route_short_name,route_long_name,route_type\nroute-b-20,agency-b,20,Agency B Route,3\n",
+			"trips.txt":  "route_id,service_id,trip_id,trip_headsign,direction_id,block_id,shape_id\nroute-b-20,weekday,trip-b-20,Agency B,0,block-b-20,shape-10\n",
+			"stop_times.txt": "trip_id,arrival_time,departure_time,stop_id,stop_sequence,shape_dist_traveled\n" +
+				"trip-b-20,08:00:00,08:00:00,stop-1,1,0\n" +
+				"trip-b-20,08:10:00,08:10:00,stop-2,2,1200\n" +
+				"trip-b-20,08:20:00,08:20:00,stop-3,3,2500\n",
+		})
+		agencyBResult, err := service.ImportZip(ctx, ImportOptions{AgencyID: "agency-b", ZipPath: agencyBZip, ActorID: "admin-b@example.com"})
+		if err != nil {
+			t.Fatalf("import agency-b: %v", err)
+		}
+
+		repo := NewPostgresRepository(pool)
+		activeA, err := repo.ActiveFeedVersion(ctx, "demo-agency")
+		if err != nil {
+			t.Fatalf("active feed demo-agency: %v", err)
+		}
+		if activeA.ID != demoResult.FeedVersionID || activeA.AgencyID != "demo-agency" {
+			t.Fatalf("active demo-agency feed = %+v, want %s", activeA, demoResult.FeedVersionID)
+		}
+		activeB, err := repo.ActiveFeedVersion(ctx, "agency-b")
+		if err != nil {
+			t.Fatalf("active feed agency-b: %v", err)
+		}
+		if activeB.ID != agencyBResult.FeedVersionID || activeB.AgencyID != "agency-b" {
+			t.Fatalf("active agency-b feed = %+v, want %s", activeB, agencyBResult.FeedVersionID)
+		}
+
+		candidatesA, err := repo.ListTripCandidates(ctx, "demo-agency", demoResult.FeedVersionID, "20260420")
+		if err != nil {
+			t.Fatalf("list demo-agency candidates: %v", err)
+		}
+		if len(candidatesA) != 1 || candidatesA[0].AgencyID != "demo-agency" || candidatesA[0].TripID != "trip-10-0800" {
+			t.Fatalf("demo-agency candidates = %+v, want only demo trip", candidatesA)
+		}
+		crossCandidates, err := repo.ListTripCandidates(ctx, "demo-agency", agencyBResult.FeedVersionID, "20260420")
+		if err != nil {
+			t.Fatalf("list cross-agency candidates: %v", err)
+		}
+		if len(crossCandidates) != 0 {
+			t.Fatalf("cross-agency candidates = %+v, want none", crossCandidates)
+		}
+
+		var importAgency string
+		if err := pool.QueryRow(ctx, `
+			SELECT agency_id
+			FROM gtfs_import
+			WHERE feed_version_id = $1
+		`, demoResult.FeedVersionID).Scan(&importAgency); err != nil {
+			t.Fatalf("query demo import agency: %v", err)
+		}
+		if importAgency != "demo-agency" {
+			t.Fatalf("demo import agency = %q, want demo-agency", importAgency)
+		}
+
+		drafts := NewDraftService(pool)
+		draftA, err := drafts.CreateDraft(ctx, CreateDraftOptions{AgencyID: "demo-agency", Name: "Agency A draft", ActorID: "admin-a@example.com", Blank: true})
+		if err != nil {
+			t.Fatalf("create demo-agency draft: %v", err)
+		}
+		draftB, err := drafts.CreateDraft(ctx, CreateDraftOptions{AgencyID: "agency-b", Name: "Agency B draft", ActorID: "admin-b@example.com", Blank: true})
+		if err != nil {
+			t.Fatalf("create agency-b draft: %v", err)
+		}
+		draftsA, err := drafts.ListDrafts(ctx, "demo-agency", true)
+		if err != nil {
+			t.Fatalf("list demo-agency drafts: %v", err)
+		}
+		if len(draftsA) != 1 || draftsA[0].ID != draftA.ID || draftsA[0].ID == draftB.ID {
+			t.Fatalf("demo-agency drafts = %+v, want only %s", draftsA, draftA.ID)
+		}
+		draftsB, err := drafts.ListDrafts(ctx, "agency-b", true)
+		if err != nil {
+			t.Fatalf("list agency-b drafts: %v", err)
+		}
+		if len(draftsB) != 1 || draftsB[0].ID != draftB.ID || draftsB[0].ID == draftA.ID {
+			t.Fatalf("agency-b drafts = %+v, want only %s", draftsB, draftB.ID)
+		}
+	})
+
 	t.Run("failed import stores report and leaves no staged feed version", func(t *testing.T) {
 		resetGTFSImportData(t, ctx, pool)
 		path := writeZipFixture(t, "../../testdata/gtfs/malformed", nil)
