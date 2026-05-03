@@ -138,6 +138,24 @@ func TestTripUpdatesDebugRejectsUnauthenticatedAccess(t *testing.T) {
 	}
 }
 
+func TestTripUpdatesDebugRejectsCrossAgencyPrincipal(t *testing.T) {
+	handler := newHandlerWithAuth(&fakeTripUpdatesBuilder{snapshot: tripupdates.Snapshot{
+		AgencyID:    "agency-a",
+		GeneratedAt: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC),
+	}}, okPinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "admin-b@example.com",
+		AgencyID: "agency-b",
+		Roles:    []auth.Role{auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/debug/gtfsrt/trip_updates.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rr.Code)
+	}
+}
+
 func TestTripUpdatesHandlersRejectWrongMethodAndSurfaceSnapshotErrors(t *testing.T) {
 	handler := newHandler(&fakeTripUpdatesBuilder{err: errors.New("database down")}, okPinger{})
 	req := httptest.NewRequest(http.MethodPost, "/public/gtfsrt/trip_updates.pb", nil)

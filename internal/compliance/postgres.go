@@ -188,6 +188,7 @@ func (r *PostgresRepository) UpsertConsumer(ctx context.Context, input ConsumerI
 	}
 	var record ConsumerRecord
 	var submitted sql.NullTime
+	var notes sql.NullString
 	var packetBytes []byte
 	err = r.pool.QueryRow(ctx, `
 		INSERT INTO consumer_ingestion (agency_id, consumer_name, status, submitted_at, updated_at, notes, packet_json)
@@ -200,7 +201,7 @@ func (r *PostgresRepository) UpsertConsumer(ctx context.Context, input ConsumerI
 		    packet_json = EXCLUDED.packet_json
 		RETURNING consumer_name, status, submitted_at, updated_at, notes, packet_json
 	`, input.AgencyID, input.ConsumerName, input.Status, submittedAt, now, nullString(input.Notes), string(packet)).
-		Scan(&record.ConsumerName, &record.Status, &submitted, &record.UpdatedAt, &record.Notes, &packetBytes)
+		Scan(&record.ConsumerName, &record.Status, &submitted, &record.UpdatedAt, &notes, &packetBytes)
 	if err != nil {
 		return ConsumerRecord{}, fmt.Errorf("upsert consumer ingestion: %w", err)
 	}
@@ -208,6 +209,7 @@ func (r *PostgresRepository) UpsertConsumer(ctx context.Context, input ConsumerI
 		t := submitted.Time
 		record.SubmittedAt = &t
 	}
+	record.Notes = notes.String
 	record.Packet = map[string]any{}
 	_ = json.Unmarshal(packetBytes, &record.Packet)
 	return record, nil
@@ -228,14 +230,16 @@ func (r *PostgresRepository) ListConsumers(ctx context.Context, agencyID string)
 	for rows.Next() {
 		var record ConsumerRecord
 		var submitted sql.NullTime
+		var notes sql.NullString
 		var packetBytes []byte
-		if err := rows.Scan(&record.ConsumerName, &record.Status, &submitted, &record.UpdatedAt, &record.Notes, &packetBytes); err != nil {
+		if err := rows.Scan(&record.ConsumerName, &record.Status, &submitted, &record.UpdatedAt, &notes, &packetBytes); err != nil {
 			return nil, fmt.Errorf("scan consumer ingestion: %w", err)
 		}
 		if submitted.Valid {
 			t := submitted.Time
 			record.SubmittedAt = &t
 		}
+		record.Notes = notes.String
 		record.Packet = map[string]any{}
 		_ = json.Unmarshal(packetBytes, &record.Packet)
 		records = append(records, record)

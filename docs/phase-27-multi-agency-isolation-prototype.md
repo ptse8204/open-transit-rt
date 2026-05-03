@@ -2,109 +2,84 @@
 
 ## Status
 
-Planned Track B phase. Not implemented until selected in `docs/handoffs/latest.md`.
+Complete for the Phase 27 prototype scope.
 
-## Purpose
+Phase 27 adds tests and documentation for selected agency-isolation boundaries. It does not claim production multi-tenant hosting, hosted SaaS availability, paid support or SLA coverage, agency endorsement, consumer acceptance, CAL-ITP/Caltrans compliance, marketplace/vendor equivalence, or production-grade ETA quality.
 
-Move from documented multi-agency strategy to testable isolation foundations.
+## What Phase 27 Proves
 
-The project currently supports agency-scoped records and auth concepts, but true multi-agency hosting requires stronger proof that data, admin actions, feeds, and evidence cannot leak across agencies.
+Phase 27 adds synthetic two-agency fixtures under `testdata/multi-agency/` and focused tests proving that selected workflows derive agency from trusted server/auth context instead of browser-supplied agency IDs.
 
-## Scope
+Test-proven surfaces include:
 
-1. Multi-agency fixtures.
-2. Agency-scoped auth tests.
-3. Data isolation tests.
-4. Per-agency feed discovery tests.
-5. Public feed root strategy for multiple agencies.
-6. Backup/restore implications.
-7. Consumer packet implications.
-8. Documentation of remaining true multi-tenant gaps.
+- DB-backed auth role loading: a shared subject receives only roles for the JWT claim agency.
+- Publication metadata, scorecard, validation, consumer, device-rebind, and Operations Console handler boundaries.
+- Public `/public/feeds.json` query routing for synthetic agencies and omission behavior using configured `AGENCY_ID`.
+- Public feed discovery JSON shape stays limited to public metadata fields.
+- Device credential verification, device binding listing, and device rebind audit rows.
+- Telemetry ingest token binding, debug event listing, latest-telemetry summaries, and Operations Console telemetry views.
+- Compliance publication metadata, validation status, scorecards, consumer records, and audit rows.
+- Alerts admin JSON and Alerts Console list/create/update/publish/archive/reconcile agency boundaries.
+- GTFS Studio list/create/draft summary/publish/discard/entity edit boundaries for the current minimal Studio handler.
+- Prediction operations records and audit rows for override/review workflows.
 
-## Required Work
+## Public Endpoint Scope
 
-### 1) Test Fixtures
+Current public endpoint routing is mixed:
 
-Create two or more agency fixtures with distinct:
+| Endpoint | Current scope | Phase 27 status |
+| --- | --- | --- |
+| `/public/feeds.json` | Query-routed by `agency_id`; omitted query uses configured `AGENCY_ID`. | Handler-tested for query routing and public metadata only. |
+| `/public/gtfs/schedule.zip` | Service-instance scoped by configured `AGENCY_ID` through the schedule builder. | Documented as single service-instance scoped. Query params are not per-agency routing. |
+| `/public/gtfsrt/vehicle_positions.pb` | Service-instance scoped by configured `AGENCY_ID`. | Public protobuf behavior unchanged. Protected JSON debug now rejects cross-agency principals. |
+| `/public/gtfsrt/trip_updates.pb` | Service-instance scoped by configured `AGENCY_ID`. | Public protobuf behavior unchanged. Protected JSON debug now rejects cross-agency principals. |
+| `/public/gtfsrt/alerts.pb` | Service-instance scoped by configured `AGENCY_ID`. | Public protobuf behavior unchanged. Protected JSON debug now rejects cross-agency principals. |
 
-- agency IDs;
-- GTFS feed versions;
-- vehicle IDs;
-- device IDs;
-- telemetry events;
-- public metadata.
+Do not infer that one service instance can safely serve multiple public agency roots from Phase 27. Only `/public/feeds.json` has query-routed behavior today. Schedule ZIP and GTFS-RT protobuf feeds remain service-instance scoped unless a future phase adds explicit per-agency public routing, tests, and a migration plan.
 
-### 2) Auth Boundary Tests
+## Agency-ID Persistence Audit
 
-Test that users for one agency cannot access or mutate another agency’s:
+This is a current isolation review, not production multi-tenant certification.
 
-- publication metadata;
-- device bindings;
-- validation records;
-- scorecards;
-- consumer records;
-- operations console data.
+Tables currently carrying `agency_id` include:
 
-### 3) Feed Isolation
+- `agency_user`, `role_binding`
+- `device_credential`
+- `feed_config`, `feed_version`, `published_feed`
+- published GTFS tables such as `gtfs_agency`, `gtfs_route`, `gtfs_stop`, `gtfs_trip`, `gtfs_stop_time`, `gtfs_calendar`, `gtfs_calendar_date`, `gtfs_shape_point`, and `gtfs_frequency`
+- GTFS Studio draft tables such as `gtfs_draft`, `gtfs_draft_agency`, and typed draft entity tables where agency-level scoping is represented through the draft and agency rows
+- `gtfs_import`, `gtfs_draft_publish`
+- `telemetry_event`
+- `manual_override`, `vehicle_trip_assignment`, `incident`
+- `validation_report`, `feed_health_snapshot`
+- `consumer_ingestion`, `marketplace_gap`, `compliance_scorecard_snapshot`
+- `service_alert`, `service_alert_informed_entity`
+- `audit_log`
 
-Test or document:
+Global or shared objects that still require operational review before any hosted multi-tenant claim include:
 
-- per-agency `feeds.json` behavior;
-- per-agency feed roots or query strategy;
-- public URL implications;
-- consumer packet implications.
+- the `agency` root table and `goose_db_version`
+- deployment environment variables such as `AGENCY_ID`, public roots, admin secrets, and validator paths
+- backup/restore/export tooling
+- evidence packet directories and generated operator artifacts
+- validator temporary files and external tool outputs
+- reverse proxy routing and public feed-root ownership
+- any future audit-log read surface
 
-### 4) Operations Isolation
+## Remaining Gaps
 
-Document:
+True hosted multi-tenant service remains deferred. Missing or incomplete areas include:
 
-- backup/restore per agency versus whole database;
-- evidence packets per agency;
-- monitoring per agency;
-- incident response implications.
+- explicit per-agency routing for public schedule ZIP and GTFS-RT protobuf feeds;
+- tenant-aware backup, restore, export, deletion, and restore-drill evidence;
+- a reviewed global-admin model, if ever needed;
+- broader GTFS Studio entity isolation with richer multi-draft fixtures;
+- end-to-end browser tests for every Operations Console and Alerts Console role combination;
+- deployment evidence proving one hosted stack can safely operate multiple agency roots;
+- evidence packet and consumer packet generation that proves per-agency redaction and artifact separation.
 
-## Acceptance Criteria
+## Consumer And Evidence Boundary
 
-Phase 27 is complete only when:
+Runtime DB consumer records remain agency-scoped operational records. They do not override the Phase 20 docs/evidence tracker. The tracker and `docs/evidence/consumer-submissions/status.json` remain prepared-only records unless retained, redacted, target-originated evidence supports a target-specific status change.
 
-- multi-agency assumptions are backed by tests or explicit documented gaps;
-- agency-scoped auth boundary tests exist for key admin workflows;
-- feed discovery isolation is tested or blocked with clear reason;
-- docs truthfully state whether multi-agency support is prototype or production-ready.
-
-## Required Checks
-
-```bash
-make validate
-make test
-make test-integration
-git diff --check
-```
-
-If console/local app behavior changes:
-
-```bash
-make smoke
-make agency-app-up
-make agency-app-down
-```
-
-## Explicit Non-Goals
-
-Phase 27 does not:
-
-- claim production multi-tenant hosting;
-- implement hosted SaaS;
-- create paid support or SLA commitments;
-- change consumer statuses;
-- weaken agency auth boundaries.
-
-## Likely Files
-
-- `internal/*_test.go`
-- `cmd/agency-config/*_test.go`
-- `testdata/`
-- `docs/multi-agency-strategy.md`
-- `docs/current-status.md`
-- `docs/handoffs/latest.md`
-- `docs/handoffs/phase-27.md`
+Evidence packets for future multi-agency operation must be generated and redacted per agency. One agency's validation, consumer packet, device telemetry, incident, scorecard, or operator evidence must not be copied into another agency packet.

@@ -64,6 +64,8 @@ Phase 25 — Device And AVL Integration Kit is complete for the docs/process and
 
 Phase 26 — Admin UX Setup Wizard is complete for the server-rendered Operations Console setup checklist scope. `/admin/operations/setup` now shows a browser-guided checklist with explicit status sources for publication metadata, feed discovery, validation records, device bindings, telemetry repository state, docs/evidence tracker records, and evidence links. Admins can store publication metadata through the existing bootstrap/update repository behavior with agency ID derived from the authenticated principal, and can run validation from the browser by choosing only feed type while the server maps to allowlisted validator IDs. Browser GTFS ZIP upload and manual assignment override/review UI were intentionally deferred. Consumer packet state remains sourced from the Phase 20 docs/evidence tracker and all seven targets remain `prepared` only. Phase 26 did not change public feed URLs, GTFS-RT protobuf contracts, telemetry/device APIs, Trip Updates adapter boundaries, external integrations, consumer statuses, or evidence claims.
 
+Phase 27 — Multi-Agency Isolation Prototype is complete for the test-and-documentation scope. The repo now has synthetic multi-agency fixture notes under `testdata/multi-agency/` and focused tests for DB-backed role loading, protected admin agency conflicts, Operations Console data views, GTFS Studio draft boundaries, Alerts admin/console boundaries, device credential bindings, telemetry ingest/debug listings, compliance publication/validation/scorecard/consumer records, prediction operations/audit rows, and protected realtime JSON debug surfaces. `/public/feeds.json` is tested as query-routed by `agency_id` with omitted query defaulting to configured `AGENCY_ID`; public `schedule.zip` and GTFS-RT protobuf feeds remain service-instance scoped by configured `AGENCY_ID`. Phase 27 is repository-level isolation evidence for selected workflows, not production multi-tenant hosting, hosted SaaS availability, consumer acceptance, agency endorsement, CAL-ITP/Caltrans compliance, or production-grade ETA proof.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -120,6 +122,7 @@ The repo has:
 - `docs/handoffs/phase-24.md`
 - `docs/handoffs/phase-25.md`
 - `docs/handoffs/phase-26.md`
+- `docs/handoffs/phase-27.md`
 - `docs/handoffs/track-a-external-proof.md`
 - `docs/handoffs/track-b-roadmap.md`
 

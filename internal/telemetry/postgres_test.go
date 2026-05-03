@@ -224,6 +224,40 @@ func TestPostgresRepositoryIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("multi agency telemetry listings are isolated", func(t *testing.T) {
+		resetTelemetry(t, ctx, pool)
+		if _, err := pool.Exec(ctx, `
+			INSERT INTO agency (id, name, timezone)
+			VALUES ('agency-a', 'Agency A', 'America/Los_Angeles'),
+			       ('agency-b', 'Agency B', 'America/Los_Angeles')
+			ON CONFLICT (id) DO NOTHING
+		`); err != nil {
+			t.Fatalf("seed multi-agency telemetry agencies: %v", err)
+		}
+		eventA := Event{AgencyID: "agency-a", DeviceID: "device-a-1", VehicleID: "bus-a-1", Timestamp: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC), Lat: 34.05, Lon: -118.25}
+		eventB := Event{AgencyID: "agency-b", DeviceID: "device-b-1", VehicleID: "bus-b-1", Timestamp: time.Date(2026, 5, 2, 12, 1, 0, 0, time.UTC), Lat: 37.77, Lon: -122.42}
+		storeFixtureEvent(t, ctx, repo, eventA)
+		storeFixtureEvent(t, ctx, repo, eventB)
+
+		latestA, err := repo.ListLatestByAgency(ctx, "agency-a", 10)
+		if err != nil {
+			t.Fatalf("list latest agency-a: %v", err)
+		}
+		if len(latestA) != 1 || latestA[0].VehicleID != "bus-a-1" || latestA[0].AgencyID != "agency-a" {
+			t.Fatalf("latest agency-a = %+v, want only bus-a-1", latestA)
+		}
+		eventsA, err := repo.ListEvents(ctx, "agency-a", 10)
+		if err != nil {
+			t.Fatalf("list events agency-a: %v", err)
+		}
+		if len(eventsA) != 1 || eventsA[0].VehicleID != "bus-a-1" || eventsA[0].AgencyID != "agency-a" {
+			t.Fatalf("events agency-a = %+v, want only bus-a-1", eventsA)
+		}
+		if _, err := repo.LatestByVehicle(ctx, "agency-a", "bus-b-1"); err == nil {
+			t.Fatalf("agency-a latest lookup found agency-b vehicle")
+		}
+	})
+
 	t.Run("unknown agency rejection", func(t *testing.T) {
 		resetTelemetry(t, ctx, pool)
 		event := loadFixture(t, "../../testdata/telemetry/matched-vehicle.json")[0]

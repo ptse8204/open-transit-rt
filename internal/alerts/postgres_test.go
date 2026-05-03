@@ -26,9 +26,11 @@ func TestPostgresAlertsRepositoryIntegration(t *testing.T) {
 
 	_, err := pool.Exec(ctx, `
 		INSERT INTO agency (id, name, timezone)
-		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver');
+		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver'),
+		       ('other-agency', 'Other Agency', 'America/Vancouver');
 		INSERT INTO feed_version (id, agency_id, source_type, lifecycle_state, is_active, activated_at)
-		VALUES ('feed-demo', 'demo-agency', 'seed', 'active', true, '2026-04-21T12:00:00Z');
+		VALUES ('feed-demo', 'demo-agency', 'seed', 'active', true, '2026-04-21T12:00:00Z'),
+		       ('feed-other', 'other-agency', 'seed', 'active', true, '2026-04-21T12:00:00Z');
 	`)
 	if err != nil {
 		t.Fatalf("seed alerts database: %v", err)
@@ -59,6 +61,23 @@ func TestPostgresAlertsRepositoryIntegration(t *testing.T) {
 	if len(alerts) != 1 || alerts[0].AlertKey != "alert-1" {
 		t.Fatalf("alerts = %+v, want alert-1", alerts)
 	}
+	if _, err := repo.UpsertAlert(ctx, UpsertInput{
+		AgencyID:   "other-agency",
+		AlertKey:   "other-alert",
+		HeaderText: "Other agency alert",
+		ActorID:    "operator@example.com",
+		Publish:    true,
+		Now:        now,
+	}); err != nil {
+		t.Fatalf("upsert other agency alert: %v", err)
+	}
+	alerts, err = repo.ListAlerts(ctx, ListFilter{AgencyID: "demo-agency", PublishedOnly: true, At: now})
+	if err != nil {
+		t.Fatalf("list scoped alerts after other agency insert: %v", err)
+	}
+	if len(alerts) != 1 || alerts[0].AgencyID != "demo-agency" || alerts[0].AlertKey != "alert-1" {
+		t.Fatalf("scoped alerts = %+v, want only demo-agency alert", alerts)
+	}
 
 	_, err = pool.Exec(ctx, `
 		INSERT INTO manual_override (
@@ -72,6 +91,18 @@ func TestPostgresAlertsRepositoryIntegration(t *testing.T) {
 			agency_id, incident_type, severity, route_id, vehicle_id, trip_id, status, details_json
 		)
 		VALUES ('demo-agency', 'prediction_review', 'warning', 'route-10', 'bus-10', 'trip-10',
+			'open', '{"expected_alert_missing":true,"start_date":"20260421","start_time":"08:00:00"}'::jsonb);
+		INSERT INTO manual_override (
+			agency_id, vehicle_id, override_type, route_id, trip_id, start_date,
+			start_time, state, expires_at, reason, created_by
+		)
+		VALUES ('other-agency', 'bus-other', 'canceled_trip', 'route-other', 'trip-other',
+			'20260421', '08:00:00', 'canceled', '2026-04-21T14:00:00Z',
+			'operator cancellation', 'operator@example.com');
+		INSERT INTO incident (
+			agency_id, incident_type, severity, route_id, vehicle_id, trip_id, status, details_json
+		)
+		VALUES ('other-agency', 'prediction_review', 'warning', 'route-other', 'bus-other', 'trip-other',
 			'open', '{"expected_alert_missing":true,"start_date":"20260421","start_time":"08:00:00"}'::jsonb);
 	`)
 	if err != nil {
@@ -89,12 +120,26 @@ func TestPostgresAlertsRepositoryIntegration(t *testing.T) {
 	if err := pool.QueryRow(ctx, `
 		SELECT status, (details_json->>'service_alert_id')::float8
 		FROM incident
-		WHERE incident_type = 'prediction_review'
+		WHERE agency_id = 'demo-agency'
+		  AND incident_type = 'prediction_review'
 	`).Scan(&linkedStatus, &linkedAlertID); err != nil {
 		t.Fatalf("query linked review: %v", err)
 	}
 	if linkedStatus != "resolved" || linkedAlertID == 0 {
 		t.Fatalf("linked review status/id = %s/%v, want resolved linked alert", linkedStatus, linkedAlertID)
+	}
+	var otherOpen int
+	if err := pool.QueryRow(ctx, `
+		SELECT count(*)
+		FROM incident
+		WHERE agency_id = 'other-agency'
+		  AND incident_type = 'prediction_review'
+		  AND status = 'open'
+	`).Scan(&otherOpen); err != nil {
+		t.Fatalf("query other-agency review: %v", err)
+	}
+	if otherOpen != 1 {
+		t.Fatalf("other-agency open reviews = %d, want untouched by demo-agency reconciliation", otherOpen)
 	}
 }
 

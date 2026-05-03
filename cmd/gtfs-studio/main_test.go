@@ -101,6 +101,99 @@ func TestGTFSStudioAdminRejectsUnauthenticatedAccess(t *testing.T) {
 	}
 }
 
+func TestGTFSStudioRejectsConflictingAgencyQuery(t *testing.T) {
+	store := &fakeDraftStore{}
+	handler := newHandlerWithAuth(store, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}}, "test-csrf")
+	resp := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/admin/gtfs-studio?agency_id=agency-b", nil)
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", resp.Code)
+	}
+	if store.listAgencyID != "" {
+		t.Fatalf("list drafts ran despite agency conflict for %q", store.listAgencyID)
+	}
+}
+
+func TestGTFSStudioCreateDraftDerivesPrincipalAgencyAndRejectsConflict(t *testing.T) {
+	store := &fakeDraftStore{createdDraft: gtfs.Draft{ID: "draft-a", AgencyID: "agency-a", Name: "Draft A"}}
+	handler := newHandlerWithAuth(store, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "editor-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleEditor}, Method: auth.MethodBearer,
+	}}, "test-csrf")
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/gtfs-studio/drafts", strings.NewReader("agency_id=agency-b&name=Bad"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusForbidden {
+		t.Fatalf("conflict status = %d, want 403", resp.Code)
+	}
+	if store.createOptions.AgencyID != "" {
+		t.Fatalf("create ran despite conflict: %+v", store.createOptions)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/gtfs-studio/drafts", strings.NewReader("agency_id=agency-a&name=Draft+A&mode=blank"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp = httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusSeeOther {
+		t.Fatalf("create status = %d, want 303: %s", resp.Code, resp.Body.String())
+	}
+	if store.createOptions.AgencyID != "agency-a" || store.createOptions.ActorID != "editor-a@example.com" || !store.createOptions.Blank {
+		t.Fatalf("create options = %+v, want principal agency/actor", store.createOptions)
+	}
+}
+
+func TestGTFSStudioRejectsCrossAgencyDraftAccessAndMutation(t *testing.T) {
+	store := &fakeDraftStore{draft: gtfs.Draft{ID: "draft-b", AgencyID: "agency-b", Name: "Agency B draft", Status: gtfs.DraftStatusDraft}}
+	handler := newHandlerWithAuth(store, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}}, "test-csrf")
+
+	for _, tc := range []struct {
+		name   string
+		method string
+		path   string
+		body   string
+	}{
+		{name: "summary", method: http.MethodGet, path: "/admin/gtfs-studio/drafts/draft-b"},
+		{name: "publish", method: http.MethodPost, path: "/admin/gtfs-studio/drafts/draft-b/publish", body: "notes=bad"},
+		{name: "discard", method: http.MethodPost, path: "/admin/gtfs-studio/drafts/draft-b/discard", body: "reason=bad"},
+		{name: "list entity", method: http.MethodGet, path: "/admin/gtfs-studio/drafts/draft-b/routes"},
+		{name: "upsert entity", method: http.MethodPost, path: "/admin/gtfs-studio/drafts/draft-b/routes", body: "id=route-a&route_type=3"},
+		{name: "remove entity", method: http.MethodPost, path: "/admin/gtfs-studio/drafts/draft-b/routes/remove", body: "id=route-a"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+			if resp.Code != http.StatusForbidden {
+				t.Fatalf("status = %d, want 403: %s", resp.Code, resp.Body.String())
+			}
+		})
+	}
+}
+
+func TestGTFSStudioEntityUpsertRejectsConflictingAgencyID(t *testing.T) {
+	store := &fakeDraftStore{draft: gtfs.Draft{ID: "draft-a", AgencyID: "agency-a", Name: "Agency A draft", Status: gtfs.DraftStatusDraft}}
+	handler := newHandlerWithAuth(store, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "editor-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleEditor}, Method: auth.MethodBearer,
+	}}, "test-csrf")
+	req := httptest.NewRequest(http.MethodPost, "/admin/gtfs-studio/drafts/draft-a/agency", strings.NewReader("agency_id=agency-b&name=Wrong&timezone=America%2FLos_Angeles"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", resp.Code)
+	}
+	if store.upsertAgency.DraftID != "" {
+		t.Fatalf("upsert agency ran despite conflict: %+v", store.upsertAgency)
+	}
+}
+
 type fakePinger struct{}
 
 func (fakePinger) Ping(context.Context) error { return nil }
@@ -119,12 +212,18 @@ type fakeDraftStore struct {
 	drafts           []gtfs.DraftSummary
 	draft            gtfs.Draft
 	includeDiscarded bool
+	listAgencyID     string
+	createdDraft     gtfs.Draft
+	createOptions    gtfs.CreateDraftOptions
+	upsertAgency     gtfs.DraftAgency
 }
 
-func (f *fakeDraftStore) CreateDraft(context.Context, gtfs.CreateDraftOptions) (gtfs.Draft, error) {
-	return gtfs.Draft{}, nil
+func (f *fakeDraftStore) CreateDraft(_ context.Context, options gtfs.CreateDraftOptions) (gtfs.Draft, error) {
+	f.createOptions = options
+	return f.createdDraft, nil
 }
-func (f *fakeDraftStore) ListDrafts(_ context.Context, _ string, includeDiscarded bool) ([]gtfs.DraftSummary, error) {
+func (f *fakeDraftStore) ListDrafts(_ context.Context, agencyID string, includeDiscarded bool) ([]gtfs.DraftSummary, error) {
+	f.listAgencyID = agencyID
 	f.includeDiscarded = includeDiscarded
 	if includeDiscarded {
 		return f.drafts, nil
@@ -146,7 +245,10 @@ func (f *fakeDraftStore) DiscardDraft(context.Context, gtfs.DiscardDraftOptions)
 func (f *fakeDraftStore) PublishDraft(context.Context, gtfs.PublishDraftOptions) (gtfs.PublishDraftResult, error) {
 	return gtfs.PublishDraftResult{}, nil
 }
-func (f *fakeDraftStore) UpsertAgency(context.Context, gtfs.DraftAgency) error { return nil }
+func (f *fakeDraftStore) UpsertAgency(_ context.Context, agency gtfs.DraftAgency) error {
+	f.upsertAgency = agency
+	return nil
+}
 func (f *fakeDraftStore) GetAgency(context.Context, string) (gtfs.DraftAgency, error) {
 	return gtfs.DraftAgency{}, nil
 }

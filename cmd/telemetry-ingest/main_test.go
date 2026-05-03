@@ -187,6 +187,61 @@ func TestTelemetryPostRejectsDeviceBindingMismatchWhenHardened(t *testing.T) {
 	}
 }
 
+func TestTelemetryPostDeviceTokenCannotSubmitCrossAgencyOrVehiclePayload(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		verifyAgency  string
+		verifyDevice  string
+		verifyVehicle string
+		body          string
+	}{
+		{
+			name:          "agency mismatch",
+			verifyAgency:  "agency-a",
+			verifyDevice:  "device-a-1",
+			verifyVehicle: "bus-a-1",
+			body:          `{"agency_id":"agency-b","device_id":"device-a-1","vehicle_id":"bus-a-1","timestamp":"2026-04-20T15:02:00Z","lat":49.2,"lon":-123.1}`,
+		},
+		{
+			name:          "vehicle mismatch",
+			verifyAgency:  "agency-a",
+			verifyDevice:  "device-a-1",
+			verifyVehicle: "bus-a-1",
+			body:          `{"agency_id":"agency-a","device_id":"device-a-1","vehicle_id":"bus-b-1","timestamp":"2026-04-20T15:02:00Z","lat":49.2,"lon":-123.1}`,
+		},
+		{
+			name:          "device mismatch",
+			verifyAgency:  "agency-a",
+			verifyDevice:  "device-a-1",
+			verifyVehicle: "bus-a-1",
+			body:          `{"agency_id":"agency-a","device_id":"device-b-1","vehicle_id":"bus-a-1","timestamp":"2026-04-20T15:02:00Z","lat":49.2,"lon":-123.1}`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			storeCalled := false
+			handler := newHandlerWithSecurity(fakeRepo{
+				storeFn: func(context.Context, telemetry.Event, json.RawMessage) (telemetry.StoreResult, error) {
+					storeCalled = true
+					return telemetry.StoreResult{}, nil
+				},
+				listFn: func(context.Context, string, int) ([]telemetry.StoredEvent, error) { return nil, nil },
+			}, boundDeviceStore{agencyID: tc.verifyAgency, deviceID: tc.verifyDevice, vehicleID: tc.verifyVehicle}, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "admin-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleAdmin, auth.RoleReadOnly}, Method: auth.MethodBearer,
+			}}, true)
+			req := httptest.NewRequest(http.MethodPost, "/v1/telemetry", strings.NewReader(tc.body))
+			req.Header.Set("Authorization", "Bearer agency-a-token")
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+			if rec.Code != http.StatusUnauthorized {
+				t.Fatalf("status code = %d, want 401; body=%s", rec.Code, rec.Body.String())
+			}
+			if storeCalled {
+				t.Fatalf("store called for rejected cross-agency or cross-binding telemetry")
+			}
+		})
+	}
+}
+
 func TestEventsEndpointRequiresAgencyAndBoundedLimit(t *testing.T) {
 	var gotAgency string
 	var gotLimit int
@@ -230,6 +285,48 @@ func TestEventsEndpointRequiresAgencyAndBoundedLimit(t *testing.T) {
 	}
 	if gotAgency != "demo-agency" || gotLimit != 25 {
 		t.Fatalf("repo called with agency=%q limit=%d", gotAgency, gotLimit)
+	}
+}
+
+func TestEventsDebugEndpointUsesPrincipalAgencyAndRejectsConflict(t *testing.T) {
+	var gotAgency string
+	handler := newHandlerWithSecurity(fakeRepo{
+		storeFn: func(context.Context, telemetry.Event, json.RawMessage) (telemetry.StoreResult, error) {
+			return telemetry.StoreResult{}, nil
+		},
+		listFn: func(_ context.Context, agencyID string, _ int) ([]telemetry.StoredEvent, error) {
+			gotAgency = agencyID
+			return []telemetry.StoredEvent{{
+				ID: 1,
+				Event: telemetry.Event{
+					AgencyID: "agency-a", DeviceID: "device-a-1", VehicleID: "bus-a-1",
+					Timestamp: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC), Lat: 1, Lon: 2,
+				},
+				ReceivedAt: time.Date(2026, 5, 2, 12, 0, 1, 0, time.UTC), IngestStatus: telemetry.IngestStatusAccepted,
+			}}, nil
+		},
+	}, acceptingDeviceStore{}, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}}, false)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/debug/telemetry/events?agency_id=agency-b&limit=25", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("conflict status = %d, want 403", rec.Code)
+	}
+	if gotAgency != "" {
+		t.Fatalf("repo called despite conflict with agency %q", gotAgency)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/debug/telemetry/events?limit=25", nil)
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rec.Code, rec.Body.String())
+	}
+	if gotAgency != "agency-a" || strings.Contains(rec.Body.String(), "agency-b") {
+		t.Fatalf("events debug agency=%q body=%s, want principal agency only", gotAgency, rec.Body.String())
 	}
 }
 
@@ -279,5 +376,26 @@ func (rejectingDeviceStore) Rebind(context.Context, devices.RebindInput) (device
 }
 
 func (rejectingDeviceStore) ListBindings(context.Context, string) ([]devices.Binding, error) {
+	return nil, nil
+}
+
+type boundDeviceStore struct {
+	agencyID  string
+	deviceID  string
+	vehicleID string
+}
+
+func (s boundDeviceStore) Verify(_ context.Context, input devices.VerifyInput) (devices.Credential, error) {
+	if input.AgencyID != s.agencyID || input.DeviceID != s.deviceID || input.VehicleID != s.vehicleID {
+		return devices.Credential{}, errors.New("binding mismatch")
+	}
+	return devices.Credential{AgencyID: input.AgencyID, DeviceID: input.DeviceID, VehicleID: input.VehicleID, Status: "active"}, nil
+}
+
+func (s boundDeviceStore) Rebind(context.Context, devices.RebindInput) (devices.RebindResult, error) {
+	return devices.RebindResult{}, nil
+}
+
+func (s boundDeviceStore) ListBindings(context.Context, string) ([]devices.Binding, error) {
 	return nil, nil
 }

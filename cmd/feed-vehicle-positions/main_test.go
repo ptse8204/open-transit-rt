@@ -112,6 +112,24 @@ func TestVehiclePositionsDebugRejectsUnauthenticatedAccess(t *testing.T) {
 	}
 }
 
+func TestVehiclePositionsDebugRejectsCrossAgencyPrincipal(t *testing.T) {
+	handler := newHandlerWithAuth(&fakeSnapshotBuilder{snapshot: feed.VehiclePositionsSnapshot{
+		AgencyID:    "agency-a",
+		GeneratedAt: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC),
+	}}, okPinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "admin-b@example.com",
+		AgencyID: "agency-b",
+		Roles:    []auth.Role{auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/debug/gtfsrt/vehicle_positions.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rr.Code)
+	}
+}
+
 func TestVehiclePositionsHandlersRejectWrongMethodAndSurfaceSnapshotErrors(t *testing.T) {
 	handler := newHandler(&fakeSnapshotBuilder{err: errors.New("database down")}, okPinger{})
 

@@ -19,6 +19,8 @@ The current repository supports local evaluation and a pilot-style single-agency
 
 Some schema and auth concepts are agency-scoped, but that is not the same as a production multi-tenant hosted service.
 
+Phase 27 adds prototype tests that exercise multiple synthetic agencies in one database for selected auth, admin, device, telemetry, compliance, GTFS Studio, Alerts, and operations workflows. Those tests prove current repository-level isolation for the tested paths only. They do not certify production multi-tenant hosting.
+
 ## Possible Multi-Agency Options
 
 Future operators could evaluate:
@@ -47,7 +49,19 @@ Authorization must not rely on client-supplied `agency_id` alone. Operators also
 
 Multi-agency deployments should use clear per-agency public feed roots. Shared infrastructure should not force consumers to infer agency identity from unstable paths.
 
+Current public endpoint scope is:
+
+- `/public/feeds.json`: query-routed by `agency_id`; omitted `agency_id` uses configured `AGENCY_ID`.
+- `/public/gtfs/schedule.zip`: service-instance scoped by configured `AGENCY_ID`.
+- `/public/gtfsrt/vehicle_positions.pb`: service-instance scoped by configured `AGENCY_ID`.
+- `/public/gtfsrt/trip_updates.pb`: service-instance scoped by configured `AGENCY_ID`.
+- `/public/gtfsrt/alerts.pb`: service-instance scoped by configured `AGENCY_ID`.
+
+Only `feeds.json` has query-routed multi-agency behavior today. The schedule ZIP and GTFS-RT protobuf endpoints must not be described as one-instance multi-agency public feed roots until explicit routing and tests exist.
+
 Prepared consumer packets remain packet drafts until the operator submits through a verified target workflow and stores redacted evidence. One agency's submission, review, rejection, or acceptance evidence must not be copied to another agency.
+
+Runtime DB consumer records are agency-scoped operational records. They do not override `docs/evidence/consumer-submissions/status.json` or the human tracker, which remain the source for prepared-only packet status unless real target-originated evidence is added.
 
 ## Backup And Restore
 
@@ -73,3 +87,8 @@ Before claiming true hosted multi-tenant readiness, the project would need:
 
 Until that work exists, describe the repo as having agency-scoped foundations and single-agency/pilot deployment support, not as a hosted multi-tenant service.
 
+## Phase 27 Current Isolation Review
+
+Tables with direct or inherited agency scoping currently include auth users/roles, device credentials, feed configuration, published feed metadata, GTFS published and draft records, imports, telemetry events, assignments, overrides, incidents, validation reports, feed health snapshots, consumer records, marketplace gaps, compliance scorecards, alerts, informed entities, and audit logs.
+
+Global or shared areas that still require future review include deployment environment variables, reverse-proxy routing, backup/restore/export tooling, evidence packet directories, validator temp outputs, generated operator artifacts, and any future audit-log reader. This audit is a current isolation review, not production multi-tenant certification.

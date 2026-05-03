@@ -27,7 +27,8 @@ func TestPostgresDiagnosticsRepositoryIntegration(t *testing.T) {
 
 	_, err := pool.Exec(ctx, `
 		INSERT INTO agency (id, name, timezone)
-		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver')
+		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver'),
+		       ('other-agency', 'Other Agency', 'America/Vancouver')
 	`)
 	if err != nil {
 		t.Fatalf("seed agency: %v", err)
@@ -100,7 +101,8 @@ func TestPostgresOperationsRepositoryIntegration(t *testing.T) {
 
 	_, err := pool.Exec(ctx, `
 		INSERT INTO agency (id, name, timezone)
-		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver')
+		VALUES ('demo-agency', 'Demo Agency', 'America/Vancouver'),
+		       ('other-agency', 'Other Agency', 'America/Vancouver')
 	`)
 	if err != nil {
 		t.Fatalf("seed agency: %v", err)
@@ -135,6 +137,27 @@ func TestPostgresOperationsRepositoryIntegration(t *testing.T) {
 	}
 	if len(active) != 1 || active[0].TripID != "trip-10" {
 		t.Fatalf("active overrides = %+v, want created override", active)
+	}
+	if _, err := repo.CreatePredictionOverride(ctx, OverrideInput{
+		AgencyID:     "other-agency",
+		VehicleID:    "bus-other",
+		OverrideType: "trip_assignment",
+		TripID:       "trip-other",
+		StartDate:    "20260421",
+		StartTime:    "09:00:00",
+		State:        "in_service",
+		Reason:       "other agency override",
+		ActorID:      "operator@example.com",
+		Now:          now,
+	}); err != nil {
+		t.Fatalf("create other-agency override: %v", err)
+	}
+	active, err = repo.ListActivePredictionOverrides(ctx, "demo-agency", now.Add(time.Second))
+	if err != nil {
+		t.Fatalf("list active overrides after other agency insert: %v", err)
+	}
+	if len(active) != 1 || active[0].VehicleID != "bus-10" || active[0].AgencyID != "demo-agency" {
+		t.Fatalf("active overrides after other agency insert = %+v, want demo-agency only", active)
 	}
 
 	replaced, err := repo.ReplacePredictionOverride(ctx, OverrideInput{
@@ -200,6 +223,18 @@ func TestPostgresOperationsRepositoryIntegration(t *testing.T) {
 	}
 	if auditRows < 4 {
 		t.Fatalf("audit rows = %d, want create/replace/clear coverage", auditRows)
+	}
+	var otherAuditRows int
+	if err := pool.QueryRow(ctx, `
+		SELECT count(*)
+		FROM audit_log
+		WHERE agency_id = 'other-agency'
+		  AND action = 'prediction_override.create'
+	`).Scan(&otherAuditRows); err != nil {
+		t.Fatalf("count other-agency audit rows: %v", err)
+	}
+	if otherAuditRows != 1 {
+		t.Fatalf("other-agency audit rows = %d, want isolated written row", otherAuditRows)
 	}
 
 	if err := repo.SavePredictionReviewItems(ctx, []ReviewItem{{

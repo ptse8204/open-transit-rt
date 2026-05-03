@@ -1,0 +1,28 @@
+{
+  "agencies": [
+    {
+      "agency_id": "agency-a",
+      "name": "Agency A",
+      "timezone": "America/Los_Angeles",
+      "feed_version_id": "feed-a",
+      "public_base_url": "https://agency-a.example",
+      "feed_base_url": "https://agency-a.example/public",
+      "vehicle_id": "bus-a-1",
+      "device_id": "device-a-1",
+      "route_id": "route-a-10",
+      "trip_id": "trip-a-10"
+    },
+    {
+      "agency_id": "agency-b",
+      "name": "Agency B",
+      "timezone": "America/Los_Angeles",
+      "feed_version_id": "feed-b",
+      "public_base_url": "https://agency-b.example",
+      "feed_base_url": "https://agency-b.example/public",
+      "vehicle_id": "bus-b-1",
+      "device_id": "device-b-1",
+      "route_id": "route-b-20",
+      "trip_id": "trip-b-20"
+    }
+  ]
+}

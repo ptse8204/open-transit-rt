@@ -91,6 +91,65 @@ func TestPostgresDeviceRebindInvalidatesOldTokenImmediately(t *testing.T) {
 	}
 }
 
+func TestPostgresDeviceTokensAndBindingsAreAgencyScoped(t *testing.T) {
+	ctx := context.Background()
+	pool, cleanup := setupDeviceIntegrationDB(t)
+	defer cleanup()
+
+	store := NewPostgresStore(pool, Config{TokenPepper: "test-pepper"})
+	tokenA := "agency-a-device-token"
+	tokenB := "agency-b-device-token"
+	if _, err := pool.Exec(ctx, `
+		INSERT INTO agency (id, name, timezone)
+		VALUES ('agency-a', 'Agency A', 'America/Los_Angeles'),
+		       ('agency-b', 'Agency B', 'America/Los_Angeles')
+	`); err != nil {
+		t.Fatalf("seed scoped agencies: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `
+		INSERT INTO device_credential (agency_id, device_id, vehicle_id, token_hash, status)
+		VALUES ('agency-a', 'device-a-1', 'bus-a-1', $1, 'active'),
+		       ('agency-b', 'device-b-1', 'bus-b-1', $2, 'active')
+	`, store.HashToken(tokenA), store.HashToken(tokenB)); err != nil {
+		t.Fatalf("seed scoped devices: %v", err)
+	}
+
+	if _, err := store.Verify(ctx, VerifyInput{Token: tokenA, AgencyID: "agency-a", DeviceID: "device-a-1", VehicleID: "bus-a-1"}); err != nil {
+		t.Fatalf("agency-a token did not verify for agency-a binding: %v", err)
+	}
+	for _, input := range []VerifyInput{
+		{Token: tokenA, AgencyID: "agency-b", DeviceID: "device-a-1", VehicleID: "bus-a-1"},
+		{Token: tokenA, AgencyID: "agency-a", DeviceID: "device-b-1", VehicleID: "bus-a-1"},
+		{Token: tokenA, AgencyID: "agency-a", DeviceID: "device-a-1", VehicleID: "bus-b-1"},
+	} {
+		if _, err := store.Verify(ctx, input); err == nil {
+			t.Fatalf("agency-a token verified for mismatched binding: %+v", input)
+		}
+	}
+
+	bindingsA, err := store.ListBindings(ctx, "agency-a")
+	if err != nil {
+		t.Fatalf("list agency-a bindings: %v", err)
+	}
+	if len(bindingsA) != 1 || bindingsA[0].DeviceID != "device-a-1" {
+		t.Fatalf("agency-a bindings = %+v, want only device-a-1", bindingsA)
+	}
+	if _, err := store.Rebind(ctx, RebindInput{AgencyID: "agency-a", DeviceID: "device-a-1", VehicleID: "bus-a-2", ActorID: "admin-a@example.com", Reason: "rotation", Now: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC)}); err != nil {
+		t.Fatalf("rebind agency-a: %v", err)
+	}
+	var auditAgency string
+	if err := pool.QueryRow(ctx, `
+		SELECT agency_id
+		FROM audit_log
+		WHERE action = 'device.rebind' AND entity_id = 'device-a-1'
+	`).Scan(&auditAgency); err != nil {
+		t.Fatalf("query device audit row: %v", err)
+	}
+	if auditAgency != "agency-a" {
+		t.Fatalf("audit agency = %q, want agency-a", auditAgency)
+	}
+}
+
 func seedDevice(t *testing.T, ctx context.Context, pool *pgxpool.Pool, store *PostgresStore, token string, vehicleID string) {
 	t.Helper()
 	if _, err := pool.Exec(ctx, `

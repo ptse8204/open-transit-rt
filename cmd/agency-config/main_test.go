@@ -200,6 +200,57 @@ func TestPublicScheduleRemainsAnonymous(t *testing.T) {
 	}
 }
 
+func TestPublicFeedsJSONIsQueryRoutedAndPublicMetadataOnly(t *testing.T) {
+	now := time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{discoveries: map[string]compliance.FeedDiscovery{
+		"agency-a": {
+			AgencyID: "agency-a", AgencyName: "Agency A", GeneratedAt: now, PublicationEnvironment: compliance.EnvironmentDev,
+			PublicBaseURL: "https://agency-a.example",
+			Feeds:         []compliance.FeedMetadata{{FeedType: "schedule", CanonicalPublicURL: "https://agency-a.example/public/gtfs/schedule.zip", ActivationStatus: "active", ActiveFeedVersionID: "feed-a"}},
+		},
+		"agency-b": {
+			AgencyID: "agency-b", AgencyName: "Agency B", GeneratedAt: now, PublicationEnvironment: compliance.EnvironmentDev,
+			PublicBaseURL: "https://agency-b.example",
+			Feeds:         []compliance.FeedMetadata{{FeedType: "schedule", CanonicalPublicURL: "https://agency-b.example/public/gtfs/schedule.zip", ActivationStatus: "active", ActiveFeedVersionID: "feed-b"}},
+		},
+	}}
+	handler := newHandlerWithRealtime(
+		"agency-a",
+		fakeScheduleBuilder{},
+		store,
+		fakeDeviceStore{},
+		fakePinger{},
+		authRejectAll{},
+		&fakeRealtimeArtifacts{},
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/public/feeds.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("default status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.discoveryAgencyID != "agency-a" || strings.Contains(rr.Body.String(), "agency-b.example") {
+		t.Fatalf("default feed discovery agency=%q body=%s, want configured agency only", store.discoveryAgencyID, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/feeds.json?agency_id=agency-b", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("query status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	if store.discoveryAgencyID != "agency-b" || strings.Contains(body, "agency-a.example") || !strings.Contains(body, "agency-b.example") {
+		t.Fatalf("query feed discovery agency=%q body=%s, want requested agency only", store.discoveryAgencyID, body)
+	}
+	for _, forbidden := range []string{"token", "token_hash", "private_notes", "raw_report", "operator_artifact", "evidence/private", "payload_json"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("public feeds.json exposes private/admin field %q: %s", forbidden, body)
+		}
+	}
+}
+
 func TestOperationsConsoleRejectsUnauthenticatedAccess(t *testing.T) {
 	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
 	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
@@ -207,6 +258,78 @@ func TestOperationsConsoleRejectsUnauthenticatedAccess(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusUnauthorized {
 		t.Fatalf("status = %d, want 401", rr.Code)
+	}
+}
+
+func TestAgencyConfigAdminAgencyBoundaries(t *testing.T) {
+	store := &fakePublicationStore{
+		scorecard: compliance.Scorecard{AgencyID: "agency-a", OverallStatus: compliance.StatusYellow},
+		consumers: []compliance.ConsumerRecord{{ConsumerName: "Maps A", Status: "not_started", UpdatedAt: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC)}},
+	}
+	handler := newHandlerWithRealtime(
+		"agency-a",
+		fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "agency-a", FeedVersionID: "feed-a", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip bytes")}},
+		store,
+		fakeDeviceStore{},
+		fakePinger{},
+		auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}},
+		&fakeRealtimeArtifacts{},
+	)
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/publication/bootstrap", bytes.NewReader([]byte(`{"agency_id":"agency-b","public_base_url":"https://agency-b.example"}`)))
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("bootstrap conflict status = %d, want 403", rr.Code)
+	}
+	if store.bootstrapInput.AgencyID != "" {
+		t.Fatalf("bootstrap ran despite conflict: %+v", store.bootstrapInput)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/publication/bootstrap", bytes.NewReader([]byte(`{"public_base_url":"https://agency-a.example","feed_base_url":"https://agency-a.example/public"}`)))
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("bootstrap status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.bootstrapInput.AgencyID != "agency-a" || store.bootstrapInput.ActorID != "admin-a@example.com" {
+		t.Fatalf("bootstrap identity = %+v, want principal agency/actor", store.bootstrapInput)
+	}
+
+	for _, tc := range []struct {
+		name   string
+		method string
+		path   string
+		body   string
+	}{
+		{name: "scorecard get", method: http.MethodGet, path: "/admin/compliance/scorecard?agency_id=agency-b"},
+		{name: "scorecard post", method: http.MethodPost, path: "/admin/compliance/scorecard", body: `{"agency_id":"agency-b"}`},
+		{name: "consumer get", method: http.MethodGet, path: "/admin/consumer-ingestion?agency_id=agency-b"},
+		{name: "consumer post", method: http.MethodPost, path: "/admin/consumer-ingestion", body: `{"agency_id":"agency-b","consumer_name":"Maps B"}`},
+		{name: "device rebind", method: http.MethodPost, path: "/admin/devices/rebind", body: `{"agency_id":"agency-b","device_id":"device-b-1","vehicle_id":"bus-b-1"}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("status = %d, want 403: %s", rr.Code, rr.Body.String())
+			}
+		})
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/compliance/scorecard", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || store.latestScorecardAgencyID != "agency-a" {
+		t.Fatalf("scorecard status=%d agency=%q, want agency-a", rr.Code, store.latestScorecardAgencyID)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/consumer-ingestion", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || store.listConsumersAgencyID != "agency-a" || strings.Contains(rr.Body.String(), "Maps B") {
+		t.Fatalf("consumer status=%d agency=%q body=%s, want agency-a only", rr.Code, store.listConsumersAgencyID, rr.Body.String())
 	}
 }
 
@@ -524,6 +647,56 @@ func TestOperationsConsoleRendersDemoStateWithSafeTelemetryDiagnostics(t *testin
 	}
 }
 
+func TestOperationsConsoleViewsAreAgencyScoped(t *testing.T) {
+	now := time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC)
+	handler := newOperationsTestHandler(&handler{
+		store: &fakePublicationStore{
+			discovery: compliance.FeedDiscovery{
+				AgencyID: "agency-a", AgencyName: "Agency A", GeneratedAt: now,
+				PublicBaseURL: "https://agency-a.example",
+				Feeds:         []compliance.FeedMetadata{{FeedType: "schedule", CanonicalPublicURL: "https://agency-a.example/public/gtfs/schedule.zip"}},
+			},
+			scorecard: compliance.Scorecard{AgencyID: "agency-a", OverallStatus: compliance.StatusYellow},
+			consumers: []compliance.ConsumerRecord{{ConsumerName: "Consumer A", Status: "not_started", UpdatedAt: now}},
+		},
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{
+			{AgencyID: "agency-a", DeviceID: "device-a-1", VehicleID: "bus-a-1", Status: "active", ValidFrom: now, CreatedAt: now},
+			{AgencyID: "agency-b", DeviceID: "device-b-1", VehicleID: "bus-b-1", Status: "active", ValidFrom: now, CreatedAt: now},
+		}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{
+			{Event: telemetry.Event{AgencyID: "agency-a", DeviceID: "device-a-1", VehicleID: "bus-a-1", Timestamp: now, Lat: 1, Lon: 2}, ReceivedAt: now, IngestStatus: telemetry.IngestStatusAccepted},
+			{Event: telemetry.Event{AgencyID: "agency-b", DeviceID: "device-b-1", VehicleID: "bus-b-1", Timestamp: now, Lat: 3, Lon: 4}, ReceivedAt: now, IngestStatus: telemetry.IngestStatusAccepted},
+		}},
+		state: fakeStateRepository{assignments: map[string]state.Assignment{
+			"bus-a-1": {VehicleID: "bus-a-1", State: state.StateInService, RouteID: "route-a-10", TripID: "trip-a-10", Confidence: 0.9, ActiveFrom: now},
+		}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	for _, section := range []string{"", "/feeds", "/telemetry", "/devices", "/consumers", "/evidence", "/setup"} {
+		req := httptest.NewRequest(http.MethodGet, "/admin/operations"+section+"?agency_id=agency-b", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("section %q status = %d, want 403", section, rr.Code)
+		}
+	}
+
+	for _, path := range []string{"/admin/operations/telemetry", "/admin/operations/devices", "/admin/operations/consumers"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		body := rr.Body.String()
+		if strings.Contains(body, "bus-b-1") || strings.Contains(body, "device-b-1") || strings.Contains(body, "Consumer B") {
+			t.Fatalf("%s leaked agency-b data: %s", path, body)
+		}
+	}
+}
+
 func TestOperationsDeviceRebindShowsTokenOnlyOnPost(t *testing.T) {
 	deviceStore := &fakeDeviceStoreWithToken{token: "one-time-token"}
 	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: deviceStore}, auth.TestAuthenticator{Principal: auth.Principal{
@@ -750,19 +923,24 @@ func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersi
 }
 
 type fakePublicationStore struct {
-	result               compliance.ValidationResult
-	bootstrapInput       compliance.BootstrapInput
-	bootstrapErr         error
-	publicationConfig    compliance.PublicationConfig
-	publicationConfigErr error
-	discovery            compliance.FeedDiscovery
-	discoveryErr         error
-	scorecard            compliance.Scorecard
-	scorecardErr         error
-	consumers            []compliance.ConsumerRecord
-	consumersErr         error
-	tripDiagnostics      compliance.TripUpdatesDiagnosticsSummary
-	tripDiagnosticsErr   error
+	result                  compliance.ValidationResult
+	bootstrapInput          compliance.BootstrapInput
+	bootstrapErr            error
+	publicationConfig       compliance.PublicationConfig
+	publicationConfigErr    error
+	discovery               compliance.FeedDiscovery
+	discoveries             map[string]compliance.FeedDiscovery
+	discoveryErr            error
+	discoveryAgencyID       string
+	scorecard               compliance.Scorecard
+	scorecardErr            error
+	latestScorecardAgencyID string
+	buildScorecardAgencyID  string
+	consumers               []compliance.ConsumerRecord
+	consumersErr            error
+	listConsumersAgencyID   string
+	tripDiagnostics         compliance.TripUpdatesDiagnosticsSummary
+	tripDiagnosticsErr      error
 }
 
 func (f *fakePublicationStore) BootstrapPublication(_ context.Context, input compliance.BootstrapInput) error {
@@ -780,9 +958,13 @@ func (f *fakePublicationStore) PublicationConfig(context.Context, string) (compl
 	return f.publicationConfig, nil
 }
 
-func (f *fakePublicationStore) FeedDiscovery(context.Context, string, time.Time) (compliance.FeedDiscovery, error) {
+func (f *fakePublicationStore) FeedDiscovery(_ context.Context, agencyID string, _ time.Time) (compliance.FeedDiscovery, error) {
+	f.discoveryAgencyID = agencyID
 	if f.discoveryErr != nil {
 		return compliance.FeedDiscovery{}, f.discoveryErr
+	}
+	if f.discoveries != nil {
+		return f.discoveries[agencyID], nil
 	}
 	return f.discovery, nil
 }
@@ -791,14 +973,16 @@ func (f *fakePublicationStore) UpsertConsumer(context.Context, compliance.Consum
 	return compliance.ConsumerRecord{}, nil
 }
 
-func (f *fakePublicationStore) ListConsumers(context.Context, string) ([]compliance.ConsumerRecord, error) {
+func (f *fakePublicationStore) ListConsumers(_ context.Context, agencyID string) ([]compliance.ConsumerRecord, error) {
+	f.listConsumersAgencyID = agencyID
 	if f.consumersErr != nil {
 		return nil, f.consumersErr
 	}
 	return f.consumers, nil
 }
 
-func (f *fakePublicationStore) LatestScorecard(context.Context, string) (compliance.Scorecard, error) {
+func (f *fakePublicationStore) LatestScorecard(_ context.Context, agencyID string) (compliance.Scorecard, error) {
+	f.latestScorecardAgencyID = agencyID
 	if f.scorecardErr != nil {
 		return compliance.Scorecard{}, f.scorecardErr
 	}
@@ -812,8 +996,13 @@ func (f *fakePublicationStore) LatestTripUpdatesDiagnostics(context.Context, str
 	return f.tripDiagnostics, nil
 }
 
-func (f *fakePublicationStore) BuildAndStoreScorecard(context.Context, string, time.Time) (compliance.Scorecard, error) {
-	return compliance.Scorecard{}, nil
+func (f *fakePublicationStore) BuildAndStoreScorecard(_ context.Context, agencyID string, _ time.Time) (compliance.Scorecard, error) {
+	f.buildScorecardAgencyID = agencyID
+	scorecard := f.scorecard
+	if scorecard.AgencyID == "" {
+		scorecard.AgencyID = agencyID
+	}
+	return scorecard, nil
 }
 
 func (f *fakePublicationStore) StoreValidationResult(_ context.Context, result compliance.ValidationResult) error {
@@ -863,8 +1052,14 @@ func (f fakeDeviceStoreWithBindings) Rebind(context.Context, devices.RebindInput
 	return devices.RebindResult{}, nil
 }
 
-func (f fakeDeviceStoreWithBindings) ListBindings(context.Context, string) ([]devices.Binding, error) {
-	return f.bindings, nil
+func (f fakeDeviceStoreWithBindings) ListBindings(_ context.Context, agencyID string) ([]devices.Binding, error) {
+	var bindings []devices.Binding
+	for _, binding := range f.bindings {
+		if binding.AgencyID == "" || binding.AgencyID == agencyID {
+			bindings = append(bindings, binding)
+		}
+	}
+	return bindings, nil
 }
 
 type fakeDeviceStoreWithToken struct {
@@ -895,8 +1090,14 @@ func (f fakeTelemetryRepository) LatestByVehicle(context.Context, string, string
 	return telemetry.StoredEvent{}, nil
 }
 
-func (f fakeTelemetryRepository) ListLatestByAgency(context.Context, string, int) ([]telemetry.StoredEvent, error) {
-	return f.latest, nil
+func (f fakeTelemetryRepository) ListLatestByAgency(_ context.Context, agencyID string, _ int) ([]telemetry.StoredEvent, error) {
+	var latest []telemetry.StoredEvent
+	for _, event := range f.latest {
+		if event.Event.AgencyID == "" || event.Event.AgencyID == agencyID {
+			latest = append(latest, event)
+		}
+	}
+	return latest, nil
 }
 
 func (f fakeTelemetryRepository) ListEvents(context.Context, string, int) ([]telemetry.StoredEvent, error) {

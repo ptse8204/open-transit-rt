@@ -155,9 +155,22 @@ func (h *handler) publicJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	principal, ok := auth.PrincipalFromContext(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if h.agencyID != "" && principal.AgencyID != h.agencyID {
+		http.Error(w, "feed debug belongs to another agency", http.StatusForbidden)
+		return
+	}
 	snapshot, err := h.builder.Snapshot(r.Context(), time.Now().UTC())
 	if err != nil {
 		http.Error(w, "build alerts snapshot", http.StatusInternalServerError)
+		return
+	}
+	if snapshot.AgencyID != "" && snapshot.AgencyID != principal.AgencyID {
+		http.Error(w, "feed debug belongs to another agency", http.StatusForbidden)
 		return
 	}
 	payload, err := snapshot.MarshalDebugJSON()

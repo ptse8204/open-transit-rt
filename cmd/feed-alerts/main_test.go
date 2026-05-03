@@ -166,6 +166,165 @@ func TestAlertsConsoleCreatePublishArchiveAndRoleBoundary(t *testing.T) {
 	}
 }
 
+func TestAlertsAdminAndConsoleAreAgencyScoped(t *testing.T) {
+	store := &fakeAlertStore{alerts: []domainalerts.Alert{
+		{ID: 1, AgencyID: "agency-a", AlertKey: "alert-a", HeaderText: "Agency A alert", Status: domainalerts.StatusDraft},
+		{ID: 2, AgencyID: "agency-b", AlertKey: "alert-b", HeaderText: "Agency B alert", Status: domainalerts.StatusDraft},
+	}}
+	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/alerts", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("list status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.listFilter.AgencyID != "agency-a" {
+		t.Fatalf("list filter agency = %q, want agency-a", store.listFilter.AgencyID)
+	}
+	if strings.Contains(rr.Body.String(), "alert-b") || !strings.Contains(rr.Body.String(), "alert-a") {
+		t.Fatalf("admin alerts leaked or omitted agency records: %s", rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/alerts?agency_id=agency-b", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("conflicting list status = %d, want 403", rr.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/alerts/console", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("console status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if strings.Contains(rr.Body.String(), "Agency B alert") || !strings.Contains(rr.Body.String(), "Agency A alert") {
+		t.Fatalf("alerts console leaked or omitted agency records: %s", rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/alerts/console?agency_id=agency-b", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("conflicting console status = %d, want 403", rr.Code)
+	}
+}
+
+func TestAlertsAdminMutationsDerivePrincipalAgencyAndRejectConflicts(t *testing.T) {
+	store := &fakeAlertStore{}
+	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/alerts", bytes.NewReader([]byte(`{"agency_id":"agency-b","alert_key":"bad","header_text":"Wrong"}`)))
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("conflicting create status = %d, want 403", rr.Code)
+	}
+	if store.upsert.AlertKey != "" {
+		t.Fatalf("upsert ran despite conflict: %+v", store.upsert)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts", bytes.NewReader([]byte(`{"alert_key":"alert-a","header_text":"Agency A"}`)))
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("create status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.upsert.AgencyID != "agency-a" || store.upsert.ActorID != "operator-a@example.com" {
+		t.Fatalf("upsert identity = %+v, want principal agency/actor", store.upsert)
+	}
+
+	for _, tc := range []struct {
+		name string
+		path string
+		body string
+	}{
+		{name: "publish json", path: "/admin/alerts/7/publish", body: `{"agency_id":"agency-b"}`},
+		{name: "archive json", path: "/admin/alerts/7/archive", body: `{"agency_id":"agency-b","reason":"done"}`},
+		{name: "reconcile json", path: "/admin/alerts/reconcile-cancellations", body: `{"agency_id":"agency-b"}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, tc.path, strings.NewReader(tc.body))
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("status = %d, want 403: %s", rr.Code, rr.Body.String())
+			}
+		})
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/7/publish", bytes.NewReader([]byte(`{}`)))
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || store.publishedAgency != "agency-a" || store.publishedID != 7 {
+		t.Fatalf("publish status=%d agency=%q id=%d, want agency-a id 7", rr.Code, store.publishedAgency, store.publishedID)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/7/archive", bytes.NewReader([]byte(`{"reason":"done"}`)))
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || store.archivedAgency != "agency-a" || store.archivedID != 7 {
+		t.Fatalf("archive status=%d agency=%q id=%d, want agency-a id 7", rr.Code, store.archivedAgency, store.archivedID)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/reconcile-cancellations", bytes.NewReader([]byte(`{}`)))
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || store.reconcileAgency != "agency-a" {
+		t.Fatalf("reconcile status=%d agency=%q, want agency-a", rr.Code, store.reconcileAgency)
+	}
+}
+
+func TestAlertsConsoleMutationsRejectConflictingAgencyID(t *testing.T) {
+	store := &fakeAlertStore{}
+	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+
+	for _, tc := range []struct {
+		name string
+		path string
+		form string
+	}{
+		{name: "create", path: "/admin/alerts/console", form: "agency_id=agency-b&alert_key=bad&header_text=Wrong"},
+		{name: "publish", path: "/admin/alerts/console/7/publish", form: "agency_id=agency-b"},
+		{name: "archive", path: "/admin/alerts/console/7/archive", form: "agency_id=agency-b&reason=done"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, tc.path, strings.NewReader(tc.form))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("status = %d, want 403", rr.Code)
+			}
+		})
+	}
+}
+
+func TestAlertsDebugRejectsCrossAgencyPrincipal(t *testing.T) {
+	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{snapshot: feedalerts.Snapshot{
+		AgencyID:    "agency-a",
+		GeneratedAt: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC),
+	}}, &fakeAlertStore{}, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject:  "admin-b@example.com",
+		AgencyID: "agency-b",
+		Roles:    []auth.Role{auth.RoleReadOnly},
+		Method:   auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/debug/gtfsrt/alerts.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rr.Code)
+	}
+}
+
 func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 	handler := newHandler(fakeAlertsBuilder{snapshot: feedalerts.Snapshot{GeneratedAt: time.Now().UTC()}}, &fakeAlertStore{}, okPinger{})
 	req := httptest.NewRequest(http.MethodPost, "/public/gtfsrt/alerts.pb", nil)
@@ -217,11 +376,15 @@ func (f fakeAlertsBuilder) Snapshot(context.Context, time.Time) (feedalerts.Snap
 }
 
 type fakeAlertStore struct {
-	upsert      domainalerts.UpsertInput
-	reconciled  bool
-	publishedID int64
-	archivedID  int64
-	alerts      []domainalerts.Alert
+	upsert          domainalerts.UpsertInput
+	reconciled      bool
+	reconcileAgency string
+	publishedID     int64
+	publishedAgency string
+	archivedID      int64
+	archivedAgency  string
+	listFilter      domainalerts.ListFilter
+	alerts          []domainalerts.Alert
 }
 
 func (f *fakeAlertStore) UpsertAlert(_ context.Context, input domainalerts.UpsertInput) (domainalerts.Alert, error) {
@@ -229,21 +392,35 @@ func (f *fakeAlertStore) UpsertAlert(_ context.Context, input domainalerts.Upser
 	return domainalerts.Alert{ID: 1, AgencyID: input.AgencyID, AlertKey: input.AlertKey}, nil
 }
 
-func (f *fakeAlertStore) PublishAlert(_ context.Context, _ string, alertID int64, _ string, _ time.Time) (domainalerts.Alert, error) {
+func (f *fakeAlertStore) PublishAlert(_ context.Context, agencyID string, alertID int64, _ string, _ time.Time) (domainalerts.Alert, error) {
+	f.publishedAgency = agencyID
 	f.publishedID = alertID
-	return domainalerts.Alert{ID: alertID, Status: domainalerts.StatusPublished}, nil
+	return domainalerts.Alert{ID: alertID, AgencyID: agencyID, Status: domainalerts.StatusPublished}, nil
 }
 
-func (f *fakeAlertStore) ArchiveAlert(_ context.Context, _ string, alertID int64, _ string, _ string, _ time.Time) error {
+func (f *fakeAlertStore) ArchiveAlert(_ context.Context, agencyID string, alertID int64, _ string, _ string, _ time.Time) error {
+	f.archivedAgency = agencyID
 	f.archivedID = alertID
 	return nil
 }
 
-func (f *fakeAlertStore) ListAlerts(context.Context, domainalerts.ListFilter) ([]domainalerts.Alert, error) {
-	return f.alerts, nil
+func (f *fakeAlertStore) ListAlerts(_ context.Context, filter domainalerts.ListFilter) ([]domainalerts.Alert, error) {
+	f.listFilter = filter
+	var alerts []domainalerts.Alert
+	for _, alert := range f.alerts {
+		if alert.AgencyID != filter.AgencyID {
+			continue
+		}
+		if filter.Status != "" && alert.Status != filter.Status {
+			continue
+		}
+		alerts = append(alerts, alert)
+	}
+	return alerts, nil
 }
 
-func (f *fakeAlertStore) ReconcileCanceledTripAlerts(context.Context, string, string, time.Time) (domainalerts.ReconcileResult, error) {
+func (f *fakeAlertStore) ReconcileCanceledTripAlerts(_ context.Context, agencyID string, _ string, _ time.Time) (domainalerts.ReconcileResult, error) {
+	f.reconcileAgency = agencyID
 	f.reconciled = true
 	return domainalerts.ReconcileResult{CreatedOrUpdated: 1}, nil
 }
