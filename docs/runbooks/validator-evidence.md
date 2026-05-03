@@ -13,6 +13,8 @@ The local packet contains records for schedule, Vehicle Positions, Trip Updates,
 
 Retain complete validator history for schedule and realtime feeds without selectively omitting warnings or errors.
 
+Validator success is not the same as consumer acceptance or CAL-ITP/Caltrans compliance. Validator failure is an operations finding that must be triaged and retained truthfully.
+
 ## Required Feed Types
 
 Collect records for:
@@ -49,6 +51,32 @@ Each validator record must include:
 
 Do not remove warnings/errors from archived output.
 
+## Validator Failure Response
+
+Use `docs/runbooks/templates/validator-failure-incident-template.md` when validator status is failed, tooling is unavailable, a scheduled validator run is missed, or warnings require operator review.
+
+Triage:
+
+- Schedule validator fails: inspect GTFS import/publish history, active feed version, required files, references, service calendars, and license/contact metadata before re-publishing.
+- Realtime validator fails: inspect the affected feed builder, latest telemetry, active assignments, prediction diagnostics, Alerts lifecycle, and feed headers.
+- Validator tooling unavailable: record `tooling unavailable`, check pinned static validator JAR, Docker-backed realtime wrapper, Java/Docker availability, and `VALIDATOR_TOOLING_MODE`.
+- Warning result: retain the warning output, decide whether warnings are acceptable for the deployment, and record the reason. Do not rewrite a warning as a pass.
+- Failed result: treat as blocking for any validator-clean or compliance wording. Decide whether to continue publishing a valid degraded feed, stop publishing the affected feed, roll back, or restore based on public impact and agency policy.
+
+Rerun validation after:
+
+- a schedule import or GTFS Studio publish;
+- a feed service upgrade;
+- a restore or rollback;
+- a validator tooling change;
+- a fix for a failed or warning result.
+
+Evidence packet implications:
+
+- Missing, warning, failed, or unavailable validator results must remain visible.
+- A refreshed hosted evidence packet is not complete unless `make audit-hosted-evidence` passes for that packet.
+- Validator output may be committed only after redaction review for private paths, internal hosts, tokens, and raw logs.
+
 ## Retention Rules
 
 - Keep latest successful run plus recent failed/warn runs.
@@ -72,3 +100,5 @@ Evidence labels:
 ## Truthfulness Guardrail
 
 Validator success is quality evidence, not consumer acceptance evidence.
+
+Do not use validator success to claim CAL-ITP/Caltrans compliance, consumer ingestion, agency endorsement, hosted SaaS availability, paid support/SLA coverage, marketplace/vendor equivalence, production multi-tenant hosting, or universal production readiness.

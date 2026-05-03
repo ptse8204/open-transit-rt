@@ -19,6 +19,10 @@ Use three evidence buckets in all deployment notes:
 
 Do not merge these categories in the same claim.
 
+## Phase 27 Operations Boundary
+
+Current backup, restore, export, and evidence workflows are deployment/DB scoped. They are not tenant-safe multi-agency workflows. Phase 27 selected isolation tests prove repository-level isolation for selected paths only; they do not prove production multi-tenant operations, hosted SaaS availability, or tenant-safe backup/restore/export/evidence handling.
+
 ## Artifact Locations
 
 Use `docs/evidence/` as the root.
@@ -50,6 +54,19 @@ make audit-hosted-evidence
 ```
 
 The audit fails while pending markers, failed validators, missing public artifacts, missing TLS redirect/certificate evidence, or missing operator-supplied monitoring/backup/scheduler artifacts remain. Refreshed evidence is not complete unless this command passes.
+
+## Evidence Refresh And Redaction
+
+Use this refresh flow:
+
+1. Capture raw helper outputs in private deployment-owned `EVIDENCE_OUTPUT_DIR`.
+2. Review raw outputs for secrets, private paths, raw logs, private operator artifacts, private hostnames, and credentials.
+3. Copy only redacted, operator-approved summaries into `docs/evidence/captured/<environment>/<UTC-date>/`.
+4. Label the packet as local demo, pilot, hosted/operator, agency-owned-domain, or production-directed.
+5. Refresh `SHA256SUMS.txt` and any markdown references when committed artifacts change.
+6. Run `EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence`.
+
+Do not commit fake evidence, placeholder operational artifacts, raw private logs, DB URLs with passwords, webhook URLs, TLS/ACME private material, private backup paths, admin tokens, device tokens, or private operator artifacts.
 
 ## Phase 17 Operational Evidence Locations
 

@@ -56,3 +56,11 @@ EVIDENCE_PACKET_DIR=docs/evidence/captured/<environment>/<UTC-date> make audit-h
 ```
 
 Do not call refreshed evidence complete unless that audit passes.
+
+## Phase 28 Operations Evidence Notes
+
+Use `docs/runbooks/production-operations-hardening.md` for day-to-day operations, alert delivery proof, capacity checks, incident response, secret rotation, restore events, and operator handover.
+
+Template files under `docs/runbooks/templates/` are not evidence by themselves. Do not commit fake incidents, fake alert delivery proof, fake rotation records, fake restore events, or placeholder operational artifacts.
+
+Current backup, restore, export, and evidence workflows are deployment/DB scoped. They are not tenant-safe multi-agency workflows. Phase 27 selected isolation tests do not prove production multi-tenant operations or tenant-safe backup/restore/export/evidence handling.

@@ -16,6 +16,12 @@ The Phase 16 local app package remains a local evaluation path. It uses `http://
 - Private/internal surfaces: keep `/admin/*`, `/admin/debug/*`, `/public/gtfsrt/*.json`, `/v1/events`, and `/metrics` behind admin auth plus deployment network controls.
 - Operator helper: `scripts/pilot-ops.sh` provides `validator-cycle`, `backup`, `restore-drill`, `feed-monitor`, and `scorecard-export` subcommands. Every subcommand supports `--dry-run` and prints its target environment before doing work.
 
+For day-to-day checks, incident templates, capacity guidance, alert delivery proof, secret rotation, and operator handover, use `docs/runbooks/production-operations-hardening.md`.
+
+## Phase 27 Operations Boundary
+
+Current pilot backup, restore, export, and evidence workflows are deployment/DB scoped. They are not tenant-safe multi-agency workflows. Phase 27 selected isolation tests do not prove production multi-tenant operations or tenant-safe backup/restore/export/evidence handling.
+
 ## Environment Variable Matrix
 
 Use a private environment file such as `/opt/open-transit-rt/env` for service runtime and `/opt/open-transit-rt/ops/pilot-ops.env` for scheduled operations. Keep both `0600` and operator-only. Do not commit real values.
@@ -129,6 +135,8 @@ ADMIN_TOKEN=replace-with-redacted-admin-token \
 ```
 
 The restore drill is destructive for `RESTORE_DATABASE_URL`. Live restore requires typed confirmation `restore <ENVIRONMENT_NAME>` unless `--force` is passed by automation.
+
+For incident restores, rollback restores, and restore drills that need a retained operator record, use `docs/runbooks/templates/restore-event-template.md`.
 
 ## Systemd Timer Examples
 

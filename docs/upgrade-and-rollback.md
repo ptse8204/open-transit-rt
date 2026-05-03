@@ -61,6 +61,11 @@ shasum -a 256 path/to/artifact > path/to/artifact.sha256
 Always take a database backup before changing source tags, binaries, images, or
 migrations.
 
+Record the backup timestamp, redacted backup location, checksum, operator, and
+retention policy before proceeding. If no current backup exists, stop the
+upgrade unless the operator explicitly accepts the documented data-loss risk in
+a private operations record.
+
 For the local Compose app, the simplest rollback path is a destructive reset:
 
 ```bash
@@ -96,7 +101,10 @@ Upgrade order:
 6. Run migrations.
 7. Check migration status again.
 8. Start services.
-9. Run install verification checks.
+9. Fetch all public feed URLs.
+10. Run schedule and realtime validator checks.
+11. Review Trip Updates diagnostics and Alerts availability.
+12. Run install verification checks.
 
 For Makefile-based deployments:
 
@@ -126,6 +134,7 @@ If a release includes irreversible or untested migrations:
 - restore the pre-upgrade database backup;
 - redeploy the previous source tag or artifacts;
 - verify public feed URLs still use the same canonical paths.
+- complete `docs/runbooks/templates/restore-event-template.md` for the restore or rollback event.
 
 `make migrate-down` rolls back one migration according to the migration files,
 but it is not a substitute for backup/restore evidence.
@@ -157,6 +166,11 @@ make agency-app-up
 curl -fsS http://localhost:8080/public/feeds.json >/tmp/open-transit-feeds.json
 make agency-app-down
 ```
+
+For deployment-owned environments, also run public feed fetch checks for
+`feeds.json`, schedule ZIP, Vehicle Positions, Trip Updates, and Alerts, then
+rerun schedule and realtime validators. Record restore verification, rollback
+decision, evidence retained, and redaction review in a restore-event record.
 
 ## Evidence Packet Version Linkage
 

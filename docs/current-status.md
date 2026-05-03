@@ -66,6 +66,8 @@ Phase 26 — Admin UX Setup Wizard is complete for the server-rendered Operation
 
 Phase 27 — Multi-Agency Isolation Prototype is complete for the test-and-documentation scope. The repo now has synthetic multi-agency fixture notes under `testdata/multi-agency/` and focused tests for DB-backed role loading, protected admin agency conflicts, Operations Console data views, GTFS Studio draft boundaries, Alerts admin/console boundaries, device credential bindings, telemetry ingest/debug listings, compliance publication/validation/scorecard/consumer records, prediction operations/audit rows, and protected realtime JSON debug surfaces. `/public/feeds.json` is tested as query-routed by `agency_id` with omitted query defaulting to configured `AGENCY_ID`; public `schedule.zip` and GTFS-RT protobuf feeds remain service-instance scoped by configured `AGENCY_ID`. Phase 27 is repository-level isolation evidence for selected workflows, not production multi-tenant hosting, hosted SaaS availability, consumer acceptance, agency endorsement, CAL-ITP/Caltrans compliance, or production-grade ETA proof.
 
+Phase 28 — Production Operations Hardening is complete for the docs-first operations hardening scope. The repo now has `docs/runbooks/production-operations-hardening.md`, template-only incident/response records under `docs/runbooks/templates/`, stronger backup/restore cadence and restore-event guidance, monitoring/alerting alert delivery proof pattern, validator failure response guidance, explicit capacity thresholds, secret rotation guidance, operator handover fields, evidence refresh/redaction guidance, and repeated Phase 27 operations-boundary language for deployment/DB-scoped backup/restore/export/evidence workflows. Phase 28 did not change runtime APIs, database schema, public feed URLs, GTFS-RT contracts, consumer statuses, external integrations, systemd/Docker behavior, or evidence claims.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -123,6 +125,7 @@ The repo has:
 - `docs/handoffs/phase-25.md`
 - `docs/handoffs/phase-26.md`
 - `docs/handoffs/phase-27.md`
+- `docs/handoffs/phase-28.md`
 - `docs/handoffs/track-a-external-proof.md`
 - `docs/handoffs/track-b-roadmap.md`
 
@@ -291,7 +294,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 26 — Admin UX Setup Wizard is complete for the server-rendered Operations Console setup checklist scope. Phase 27 — Multi-Agency Isolation Prototype is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 26 remain closed for their documented scopes.
+**Active phase:** Phase 28 — Production Operations Hardening is complete for the docs-first operations hardening scope. Phase 29 — Real-World Realtime Quality Expansion is the recommended next implementation phase. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 28 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -303,7 +306,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Phase 27 added selected repository-level multi-agency isolation tests and boundary docs without claiming production multi-tenant operations. Phase 28 added docs-first operations hardening, templates, alert delivery proof, capacity guidance, secret rotation, handover, and evidence refresh guidance without runtime or evidence-claim changes. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -847,7 +850,7 @@ Phase 25 is complete for the docs/process and template-only evidence scope:
 
 ## Next Recommended Step
 
-Start Phase 27 — Multi-Agency Isolation Prototype when maintainers are ready to continue Track B implementation. Phase 27 should define and test agency isolation assumptions across public/admin handlers and repository boundaries without claiming multi-tenant production readiness until explicit isolation evidence exists.
+Start Phase 29 — Real-World Realtime Quality Expansion when maintainers are ready to continue Track B implementation. Phase 29 should add richer replay fixtures and repeatable realtime quality metrics while preserving conservative uncertainty and avoiding production-grade ETA claims.
 
 Use the Track A workflow when a human operator is ready to verify an official target path or record real target-originated evidence. If no real third-party artifacts are available, keep every target at `prepared`.
 

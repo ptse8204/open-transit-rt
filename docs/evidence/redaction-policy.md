@@ -48,6 +48,10 @@ If any file under `docs/evidence/captured/**/artifacts/` changes, refresh the
 relevant `SHA256SUMS.txt` or per-file checksum artifact and update markdown that
 references changed hashes, filenames, or contents.
 
+Template files under `docs/runbooks/templates/` are not evidence. Do not fill
+them with fake incidents, fake alert delivery proof, fake rotation records, fake
+restore events, or placeholder operational artifacts.
+
 For the OCI pilot packet, rerun:
 
 ```bash
@@ -63,3 +67,6 @@ If a real secret is found:
 3. Check whether the file was committed in git history.
 4. Record whether history cleanup may be needed.
 5. Do not rewrite git history without explicit maintainer approval.
+
+Deleting a file is not enough when a real secret was exposed. Rotate or revoke
+the credential and verify the old value no longer works.

@@ -62,6 +62,23 @@ git diff --check
 If a check cannot run, record the exact command, failure reason, and whether the
 release is blocked.
 
+For releases that affect operations docs, evidence packets, deployment helpers,
+or runbooks, also perform a context-aware scan of changed docs for:
+
+- tokens or bearer values;
+- DB URLs with passwords;
+- private keys or TLS/ACME private material;
+- webhook URLs or notification credentials;
+- sensitive private backup paths;
+- raw logs or private operator artifacts;
+- unsupported claims such as paid support/SLA coverage, hosted SaaS,
+  CAL-ITP/Caltrans compliance, consumer acceptance, agency endorsement,
+  production multi-tenant hosting, marketplace/vendor equivalence, or
+  production-grade ETA quality.
+
+Negated boundary language such as "no SLA coverage" is allowed and should not
+be treated as a claim.
+
 ## Clean Install Verification
 
 Use a clean checkout of the tag:
@@ -108,6 +125,16 @@ Release notes that mention evidence must follow:
 - `SECURITY.md`;
 - `docs/evidence/redaction-policy.md`;
 - `docs/prompts/calitp-truthfulness.md`.
+
+For operations-impacting releases, release notes should record:
+
+- whether migrations are required;
+- whether a pre-upgrade backup is required and where private backup evidence is retained;
+- migration status before and after upgrade;
+- validator and public feed verification after upgrade;
+- rollback limits, especially irreversible or untested migrations;
+- evidence packet version linkage;
+- any secret rotation, incident, restore, or handover docs changed.
 
 ## Tagging
 

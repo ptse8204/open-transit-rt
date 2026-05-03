@@ -30,6 +30,7 @@ These are command-level references for people running or evaluating the project:
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](tutorials/production-checklist.md)
 - [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md)
+- [Production Operations Hardening](runbooks/production-operations-hardening.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 
 ## Release And Upgrade

@@ -8,6 +8,7 @@ as `v0.22.0`.
 
 ## Unreleased
 
+- Added docs-first production operations hardening guidance, including operations cadence, incident/response templates, alert delivery proof, capacity checks, secret rotation, operator handover, backup/restore hardening, validator failure response, and evidence refresh boundaries.
 - Added release and distribution hardening documentation, including release checklist, release notes template, upgrade/rollback guide, version pinning guidance, and evidence version-linkage guidance.
 
 ## Release Note Rules

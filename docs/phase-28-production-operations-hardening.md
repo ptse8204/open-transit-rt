@@ -2,7 +2,9 @@
 
 ## Status
 
-Planned Track B phase. Not implemented until selected in `docs/handoffs/latest.md`.
+Complete for the docs-first operations hardening scope.
+
+Phase 28 added runbooks and templates for repeatable small-agency pilot operations. It did not change runtime APIs, database schema, public feed URLs, GTFS-RT contracts, consumer statuses, external integrations, systemd/Docker behavior, or evidence claims.
 
 ## Purpose
 
@@ -34,7 +36,8 @@ Document or improve:
 - validation failure alerts;
 - disk/database capacity alerts;
 - notification destination handling;
-- alert lifecycle evidence.
+- alert lifecycle evidence;
+- alert delivery proof pattern without requiring hosted monitoring SaaS or a full Prometheus/Grafana stack.
 
 ### 2) Backup And Restore Cadence
 
@@ -45,7 +48,8 @@ Define:
 - restore drill schedule;
 - restore verification;
 - evidence capture;
-- private dump handling.
+- private dump handling;
+- deployment/DB-scoped backup and restore boundary from Phase 27.
 
 ### 3) Upgrade Operations
 
@@ -56,6 +60,8 @@ Document:
 - post-upgrade validation;
 - rollback/restore decision path;
 - release note review.
+- evidence packet version linkage;
+- irreversible or untested migration handling.
 
 ### 4) Secret Rotation
 
@@ -67,7 +73,10 @@ Create a runbook for rotating:
 - device tokens;
 - database password;
 - TLS/ACME material;
-- notification credentials.
+- optional webhook/notification credentials;
+- Phase 15 `.cache` secret findings.
+
+Deleting a file is not enough when a real secret was exposed. Operators must rotate or revoke the credential, verify the old value no longer works, and assess history/backups.
 
 ### 5) Incident Response
 
@@ -81,6 +90,31 @@ Templates for:
 - consumer complaint or rejection;
 - rollback/restore event.
 
+Each template must include start time, affected environment, affected agency, affected public URLs or services, detection source, operator, severity, timeline, action taken, evidence retained, redaction review, follow-up, and claim boundary.
+
+### 6) Operator Handover
+
+The operator handover template includes:
+
+- current release version;
+- deployment environment;
+- public feed URLs;
+- admin access process without secrets;
+- secret storage location without secrets;
+- backup location;
+- restore process;
+- validator cadence;
+- monitoring cadence;
+- evidence packet location;
+- known blockers;
+- consumer status boundaries;
+- agency-owned-domain status;
+- multi-agency limitations.
+
+### 7) Capacity Guidance
+
+The operations runbook documents disk, database, backup storage, log, and evidence artifact growth thresholds plus next actions when thresholds are crossed.
+
 ## Acceptance Criteria
 
 Phase 28 is complete only when:
@@ -90,6 +124,10 @@ Phase 28 is complete only when:
 - incident templates exist;
 - backup/restore cadence is clear;
 - upgrade operations are tied to release process;
+- alert delivery proof pattern is documented;
+- capacity guidance is documented;
+- operator handover checklist exists;
+- Phase 27 deployment/DB-scoped operations boundary is preserved;
 - no paid SLA or universal readiness is implied.
 
 ## Required Checks
@@ -97,8 +135,14 @@ Phase 28 is complete only when:
 ```bash
 make validate
 make test
+make test-integration
+make realtime-quality
+make smoke
+docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```
+
+Also run a targeted context-aware scan of changed docs for secrets, private operator artifacts, and unsupported claims. Negated boundary language such as "no SLA coverage" is allowed.
 
 If operations scripts change:
 
@@ -121,8 +165,12 @@ Phase 28 does not:
 ## Likely Files
 
 - `docs/runbooks/`
+- `docs/phase-28-production-operations-hardening.md`
 - `docs/support-boundaries.md`
 - `docs/release-process.md`
+- `docs/release-checklist.md`
+- `docs/upgrade-and-rollback.md`
+- `docs/evidence/README.md`
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-28.md`
