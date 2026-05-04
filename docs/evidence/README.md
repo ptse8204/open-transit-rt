@@ -8,6 +8,7 @@ This folder holds repo-owned evidence templates, captured evidence packets, and 
 - `captured/`: location for captured evidence packets. Existing local packets may be partial; hosted deployment artifacts should be added here when available.
 - `real-agency-gtfs/`: templates for future real-agency GTFS import review packets. It contains templates only until real agency-approved, public-safe evidence exists.
 - `device-avl/`: templates for future device, GPS emitter, or vendor AVL integration review packets. It contains templates only until public-safe reviewed evidence exists.
+- `device-avl/templates/integration-review-template.md`: the reusable template for future device, GPS emitter, sidecar, or vendor AVL review records, including Phase 29B dry-run adapter review fields.
 
 Current captured packet:
 

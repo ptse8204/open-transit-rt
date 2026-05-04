@@ -202,6 +202,48 @@ Adapter responsibilities:
 
 Do not add vendor-specific coupling to core matching, Vehicle Positions generation, or Trip Updates prediction. Do not claim certified vendor support, marketplace equivalence, or production hardware compatibility without retained public-safe evidence.
 
+## Synthetic Vendor Adapter Dry Run
+
+Phase 29B includes a dry-run-only synthetic adapter pilot for demonstrating the vendor-to-telemetry transform boundary:
+
+```bash
+go run ./cmd/avl-vendor-adapter --dry-run \
+  --reference-time 2026-05-04T12:00:00Z \
+  --mapping testdata/avl-vendor/mapping.json \
+  testdata/avl-vendor/valid.json
+```
+
+The CLI requires `--dry-run`. Running without it fails because network send mode is not implemented in Phase 29B.
+
+Output streams are intentionally predictable:
+
+- stdout is a JSON array of transformed Open Transit RT telemetry events.
+- stderr is a JSON array of diagnostics with `code`, `severity`, `message`, and `index` when a diagnostic applies to a source record.
+
+If no records transform successfully, stdout is `[]`. If a batch contains both valid and invalid records, valid records are printed to stdout in input order, invalid records are omitted, diagnostics are printed to stderr, and the command exits nonzero when any hard error exists. Any partial stdout from a nonzero exit is dry-run transform output only; it is not submitted telemetry, production integration evidence, successful vendor compatibility proof, or database ingest status.
+
+`testdata/avl-vendor/mapping.json` is the authority for emitted Open Transit RT identifiers. Vendor payload identifiers are lookup keys only and cannot override mapped `agency_id`, `device_id`, or `vehicle_id`.
+
+Mapping rows use:
+
+```json
+{
+  "vendor_source": "vendor-demo",
+  "vendor_device_id": "vendor-device-1",
+  "vendor_vehicle_id": "vendor-vehicle-1",
+  "agency_id": "demo-agency",
+  "device_id": "device-1",
+  "vehicle_id": "bus-1",
+  "notes": "Synthetic Phase 29B mapping for dry-run adapter tests."
+}
+```
+
+Do not put tokens, endpoint URLs, auth headers, passwords, secrets, credentials, database URLs, private keys, real vendor account IDs, private device identifiers, or private vehicle identifiers in adapter mappings or fixtures.
+
+The adapter validates transformed records against the existing telemetry contract. It does not introduce a new request shape. `trip_hint` remains only a hint; it is not assignment proof, ETA proof, consumer-facing correctness proof, or evidence that the vehicle is matched.
+
+Dry-run duplicate and out-of-order diagnostics are batch-level review observations only. They are not `POST /v1/telemetry` ingest results and are not database `accepted`, `duplicate`, or `out_of_order` statuses.
+
 ## Troubleshooting
 
 | Issue | Symptom | Likely cause | How to check | Next action | What not to claim yet |
@@ -235,4 +277,3 @@ Do not commit:
 - `.cache` files.
 
 If device or AVL evidence is collected later, it must record source, permission, redaction review, whether identifiers are public-safe or synthetic, whether data is simulator/pilot/real-device, and what the evidence proves and does not prove.
-

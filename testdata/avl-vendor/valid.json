@@ -1,0 +1,15 @@
+{
+  "vendor_source": "vendor-demo",
+  "records": [
+    {
+      "vendor_device_id": "vendor-device-1",
+      "vendor_vehicle_id": "vendor-vehicle-1",
+      "observed_at": "2026-05-04T12:00:00Z",
+      "lat": 49.2827,
+      "lon": -123.1207,
+      "bearing": 120.0,
+      "speed_mps": 8.4,
+      "accuracy_m": 7.5
+    }
+  ]
+}

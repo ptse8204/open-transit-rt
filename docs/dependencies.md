@@ -64,6 +64,7 @@ This table is the current external dependency and integration status. It separat
 | OpenTelemetry | Deferred optional integration | Phase 11 repo scan found no OpenTelemetry SDK, collector, exporter, trace propagation, or deployment wiring. |
 | TheTransitClock | Deferred optional predictor | Not integrated. Future use must be behind `internal/prediction.Adapter`; Open Transit RT remains source of truth. |
 | Other external predictors | Deferred optional predictors | Same adapter boundary as TheTransitClock. |
+| AVL / vendor adapter pilot | Synthetic dry-run transform only | Phase 29B adds `internal/avladapter` and `cmd/avl-vendor-adapter` for synthetic fixture transforms into the existing telemetry contract. No named vendor, network send mode, credential, runtime dependency, or real vendor compatibility claim is added. |
 | Google Maps, Apple Maps, Transit App, Bing Maps, Moovit | Workflow records and Phase 13 evidence docs only | Default `consumer_ingestion` records can track submission status; Phase 13 docs provide current records and templates. No external API calls or acceptance proof. |
 | Mobility Database, transit.land | Workflow targets and Phase 13 evidence docs only | Documented as possible publication/aggregator targets; Phase 13 docs provide current records and templates. No API integration or acceptance proof. |
 
@@ -476,6 +477,38 @@ Provide the first real Trip Updates behavior behind `internal/prediction.Adapter
 
 ### Replacement strategy
 The adapter can be replaced by TheTransitClock, another external predictor, or a later higher-quality internal ETA engine if the `internal/prediction.Adapter` and operations repository contracts remain stable.
+
+---
+
+## 7C. Phase 29B synthetic AVL / vendor adapter pilot
+
+### Classification
+Synthetic developer/test utility and adapter-boundary example
+
+### Purpose
+Demonstrate how a deployment-owned vendor/AVL adapter can transform external-looking payloads into the existing Open Transit RT telemetry event contract before any later private integration calls `/v1/telemetry`.
+
+### Current status
+Integrated as dry-run-only Go code:
+- `internal/avladapter`
+- `cmd/avl-vendor-adapter`
+- synthetic fixtures under `testdata/avl-vendor/`
+
+No named vendor, real AVL feed, credential, endpoint URL, network send mode, or runtime external dependency is integrated.
+
+### Integration boundary
+- Inputs are synthetic vendor payload fixtures and a strict synthetic mapping file.
+- The mapping file is the authority for emitted `agency_id`, `device_id`, and `vehicle_id`; vendor payload IDs are lookup keys only.
+- Outputs are transformed `telemetry.Event` JSON records that satisfy the existing telemetry contract.
+- Diagnostics are stable JSON-array dry-run review output, not telemetry ingest status.
+
+### Failure behavior
+- Hard errors reject invalid mapping rows, source mismatches, unknown vendor mappings, malformed payloads, missing coordinates, invalid coordinates, or transformed records that do not satisfy `telemetry.Event.Valid()`.
+- Warnings label stale/future timestamps, low GPS accuracy, duplicate dry-run observations, and out-of-order dry-run observations.
+- In mixed batches, valid records may still print to stdout while the command exits nonzero for hard errors. That output is dry-run transform output only.
+
+### Replacement strategy
+Later real adapters may be agency-owned scripts, sidecars, vendor-owned middleware, or private integration processes if they preserve the `/v1/telemetry` contract and keep vendor credentials outside the public repo.
 
 ---
 

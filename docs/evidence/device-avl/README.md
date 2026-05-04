@@ -7,6 +7,7 @@ It does not contain real telemetry evidence, vendor approvals, hardware certific
 ## Contents
 
 - `templates/integration-review-template.md`: reusable review template for future public-safe integration evidence.
+- Phase 29B synthetic adapter fixtures live under `testdata/avl-vendor/`; they are test fixtures, not real device or vendor evidence.
 
 ## Evidence Rules
 
@@ -36,3 +37,4 @@ Future evidence must clearly label whether it comes from:
 
 Every evidence record must state what it proves and what it does not prove. Simulator evidence does not prove production AVL reliability. Validator success does not prove consumer acceptance.
 
+Phase 29B dry-run adapter output is transform-review evidence only when recorded in a future reviewed packet. It is not submitted telemetry, production integration evidence, successful vendor compatibility proof, certified hardware support, or production AVL reliability proof.

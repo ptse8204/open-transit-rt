@@ -96,9 +96,9 @@ Rules:
 
 ## Recommended Next Phase
 
-Start with Phase 29B — AVL / Vendor Adapter Pilot Implementation.
+Start with Phase 30 — Consumer Submission Execution.
 
-Reason: Phase 29A completed the optional external predictor adapter contract review without adding a runtime external predictor dependency. Before Phase 30 consumer submission execution, AVL/vendor integration should be piloted through a synthetic telemetry-bound adapter pattern without changing runtime dependencies, public feed URLs, consumer statuses, or evidence claims.
+Reason: Phase 29B completed the synthetic dry-run AVL/vendor adapter pilot behind the telemetry boundary without adding network send mode, named vendor dependencies, real vendor data, credentials, public feed URL changes, consumer-status changes, or stronger evidence claims. Phase 30 may proceed only with authorized target-specific work and retained, redacted, target-originated evidence.
 
 ## Cross-Phase Constraints
 

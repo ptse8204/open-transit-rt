@@ -146,6 +146,8 @@ validate:
 	@test -f internal/prediction/deterministic.go
 	@test -f internal/prediction/postgres_operations.go
 	@test -f internal/realtimequality/replay.go
+	@test -f internal/avladapter/adapter.go
+	@test -f cmd/avl-vendor-adapter/main.go
 	@test -f internal/gtfs/importer.go
 	@test -f internal/gtfs/draft.go
 	@test -f cmd/feed-vehicle-positions/main.go
@@ -159,6 +161,7 @@ validate:
 	@test -d testdata/gtfs/malformed
 	@test -d testdata/telemetry
 	@test -d testdata/replay
+	@test -d testdata/avl-vendor
 	@echo "Validation smoke passed. Canonical validators run through server-side allowlisted IDs when configured."
 
 # ---------------------------------------------------------------------------

@@ -221,3 +221,13 @@ Acceptable integration shapes include agency-owned adapter scripts, deployment-o
 Phase 29A confirms that external predictors may be evaluated only behind `internal/prediction.Adapter`. The deterministic predictor remains the default runtime Trip Updates adapter, and Vehicle Positions generation remains independent of external predictor availability.
 
 Runtime integration of TheTransitClock or any other external predictor requires a later approved phase, explicit dependency and license review, documented fallback behavior, health/failure semantics, and evidence appropriate to any compatibility or ETA-quality claim. Phase 29A mock adapter tests are contract tests only; they do not prove better ETAs, production-grade ETA quality, real-world predictor compatibility, consumer acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, or vendor equivalence.
+
+## ADR-0028 — Keep AVL vendor adapters outside core telemetry ownership
+
+Phase 29B implements a synthetic, dry-run-only AVL/vendor adapter pilot as an example boundary, not as a runtime vendor integration. Vendor payload identifiers are lookup keys only; a strict mapping file is the authority for emitted Open Transit RT `agency_id`, `device_id`, and `vehicle_id`.
+
+The adapter transforms records into the existing `telemetry.Event` contract and validates the transformed output against `telemetry.Event.Valid()`. It does not introduce a new telemetry request shape, change `/v1/telemetry`, change device token lifecycle, or add network send mode.
+
+Diagnostics are dry-run review output. Duplicate and out-of-order diagnostics from the adapter are batch-level observations only and are not database ingest statuses. Partial stdout from a failed dry run is not submitted telemetry, vendor compatibility proof, production integration evidence, or AVL reliability evidence.
+
+Future real vendor adapters must stay deployment-owned or isolated behind sidecar/middleware boundaries unless a later phase explicitly approves and documents a runtime integration. Vendor credentials, endpoint URLs, private IDs, and real AVL payloads must remain outside the public repo unless reviewed and explicitly approved as public-safe.
