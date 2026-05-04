@@ -7,7 +7,7 @@ Phase 29 — Real-World Realtime Quality Expansion
 ## Status
 
 - Complete for the synthetic replay evidence expansion scope.
-- Active phase after this handoff: Phase 30 — recommended evidence-refresh or adoption-readiness slice.
+- Active phase after this handoff: Phase 29A — External Predictor Adapter Evaluation. Phase 29B — AVL / Vendor Adapter Pilot Implementation follows Phase 29A, and Phase 30 remains later.
 
 ## What Was Implemented
 
@@ -120,6 +120,6 @@ None added. Existing authenticated Operations Console quality summaries remain u
 - Cancellation alert linkage still identifies missing alert linkage; it does not author Service Alerts automatically.
 - Manual override authoring UI remains limited; Phase 29 only expanded replay modeling.
 
-## Exact Recommendation For Phase 30
+## Exact Recommendation After Phase 29
 
-Start Phase 30 with evidence refresh and claim-boundary work, not ETA claim expansion. Recommended first slice: produce an evidence inventory that separates synthetic replay evidence, template-only evidence, hosted/operator pilot evidence, and missing real-world inputs. Explicitly list the real observed-arrival/departure data, real deployment route/time-period coverage, and agency-approved AVL evidence required before any stronger ETA quality or production readiness claim can be considered.
+Start Phase 29A — External Predictor Adapter Evaluation. Use the Phase 29 replay baseline to review optional external predictor adapter feasibility, fallback behavior, and truthfulness boundaries without adding a required runtime dependency or production-grade ETA claim. Phase 29B — AVL / Vendor Adapter Pilot Implementation should follow Phase 29A with a synthetic, telemetry-bound adapter pilot pattern. Phase 30 consumer submission execution remains later and must not advance statuses without target-originated evidence.

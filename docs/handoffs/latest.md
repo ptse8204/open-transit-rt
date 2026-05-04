@@ -8,7 +8,7 @@ Phase 29 — Real-World Realtime Quality Expansion is complete for the synthetic
 
 Phases 0 through 29 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, or submission-readiness issue directly requires it.
 
-The recommended next implementation phase is Phase 30 — Agency Pilot Evidence Refresh, with the evidence and claim boundaries below.
+The recommended next implementation phase is Phase 29A — External Predictor Adapter Evaluation. Phase 29B — AVL / Vendor Adapter Pilot Implementation follows Phase 29A. Phase 30 — Consumer Submission Execution remains later and must not advance statuses without retained, redacted, target-originated evidence.
 
 ## Phase 29 Summary
 
@@ -60,7 +60,7 @@ The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable U
 
 ## Current Objective
 
-Start Phase 30 only when maintainers are ready. Phase 30 should focus on evidence refresh or the next Track B objective without changing consumer statuses, public feed URLs, external integrations, or ETA claims unless retained, redacted evidence supports the change.
+Start Phase 29A only when maintainers are ready. Phase 29A should evaluate optional external prediction adapters through documented contracts, mock/test boundaries, fallback behavior, and replay comparison without adding a production external predictor runtime dependency. Phase 29B should follow with a synthetic AVL/vendor adapter pilot pattern. Phase 30 consumer submission execution remains later and must not advance consumer statuses without retained, redacted, target-originated evidence.
 
 ## Exact First Commands
 
@@ -106,12 +106,14 @@ docker compose -f deploy/docker-compose.yml config
 - Do not rely on old local `.cache` credentials.
 - Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, webhook URLs, notification credentials, raw telemetry payloads, unredacted correspondence, private portal credentials, private ticket links, raw logs with credentials, private backup paths, or raw private operator artifacts.
 
-## First Files Likely To Edit For Phase 30
+## First Files Likely To Edit For Phase 29A
 
 - `docs/handoffs/latest.md`
 - `docs/current-status.md`
 - `docs/track-b-productization-roadmap.md`
-- evidence docs or templates selected by maintainers for Phase 30
+- `docs/phase-29a-external-predictor-adapter-evaluation.md`
+- `docs/handoffs/phase-29a.md`
+- optional adapter contract or replay-comparison docs/tests selected by maintainers for Phase 29A
 
 ## Constraints To Preserve
 
@@ -128,4 +130,4 @@ docker compose -f deploy/docker-compose.yml config
 
 ## Exact Next-Step Recommendation
 
-Start Phase 30 with an evidence-refresh or adoption-readiness slice that preserves Phase 29’s synthetic-only realtime quality boundary. Recommended first slice: refresh the local replay and validation evidence index, identify which evidence remains synthetic/template-only, and document the exact real-world inputs required before stronger production ETA or route/time-period quality claims can be made.
+Start Phase 29A — External Predictor Adapter Evaluation. Keep external integrations adapter-bound, tested, optional, and truthfully described; do not add a required external predictor runtime dependency or stronger ETA-quality claim. Then run Phase 29B — AVL / Vendor Adapter Pilot Implementation. Phase 30 consumer submission execution remains later and must not advance any target beyond `prepared` without target-originated evidence.

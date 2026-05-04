@@ -87,16 +87,18 @@ Rules:
 | 26 | Admin UX Setup Wizard | Browser-guided setup and richer operator workflows. |
 | 27 | Multi-Agency Isolation Prototype | Testable agency isolation and multi-agency deployment assumptions. |
 | 28 | Production Operations Hardening | Longer-running operational proof, rotation, upgrade, incident, and backup practices. |
-| 29 | Real-World Realtime Quality Expansion | Real-world replay fixtures and ETA/matching quality evidence. |
+| 29 | Real-World Realtime Quality Expansion | Synthetic replay quality expansion and conservative ETA/matching evidence boundaries. |
+| 29A | External Predictor Adapter Evaluation | Adapter contract and feasibility review for optional external predictors. |
+| 29B | AVL / Vendor Adapter Pilot Implementation | Synthetic vendor payload adapter pilot pattern behind the telemetry boundary. |
 | 30 | Consumer Submission Execution | Authorized target submissions and retained evidence-based status changes. |
 | 31 | Agency Pilot Program Package | Pilot onboarding kit, training, success criteria, support boundaries. |
 | 32 | Public Launch And Ecosystem Outreach | Public messaging, launch copy, agency one-pager, contributor call-to-action. |
 
-## Recommended First Phase
+## Recommended Next Phase
 
-Start with Phase 22 — Release And Distribution Hardening.
+Start with Phase 29A — External Predictor Adapter Evaluation.
 
-Reason: agencies and contributors need versioned, repeatable releases before deeper adoption work. Without releases, it is hard to know what version is deployed, what changed, how to upgrade, or how to roll back.
+Reason: Phase 29 expanded the synthetic replay baseline. Before Phase 30 consumer submission execution, external prediction and AVL/vendor integration work should be evaluated through optional, adapter-bound, tested contracts without changing runtime dependencies, public feed URLs, consumer statuses, or evidence claims.
 
 ## Cross-Phase Constraints
 

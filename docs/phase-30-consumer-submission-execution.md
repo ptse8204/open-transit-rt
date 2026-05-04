@@ -4,6 +4,8 @@
 
 Planned Track B phase. Not implemented until selected in `docs/handoffs/latest.md` and only when an operator is authorized to proceed.
 
+Phase 29A — External Predictor Adapter Evaluation and Phase 29B — AVL / Vendor Adapter Pilot Implementation now precede this phase in the Track B roadmap. Consumer statuses must still remain unchanged until retained, redacted, target-originated evidence supports a specific target update.
+
 ## Purpose
 
 Move prepared packets to real consumer or aggregator submissions when an operator has permission and retained evidence.
