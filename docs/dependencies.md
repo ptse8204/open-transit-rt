@@ -332,10 +332,15 @@ Generate and serialize official GTFS Realtime `FeedMessage` protobuf payloads.
 ## 6. TheTransitClock
 
 ### Classification
-Optional prediction backend
+Candidate-only optional prediction backend
 
 ### Purpose
 Potential external backend for Trip Updates generation and ETA prediction.
+
+### Current Phase 29A status
+Candidate-only. TheTransitClock is not vendored, not installed, not required for tests, not required at runtime, and not configured by any production runtime toggle in this repository. Phase 29A reviewed public project sources only and added mock/test-only adapter contract checks; it did not integrate or execute TheTransitClock.
+
+The public repository is GPL-3.0 licensed. Vendoring, linking against, distributing, or tightly packaging TheTransitClock code requires explicit maintainer and license review before any future implementation. A later runtime adapter should prefer a process-level or network-level boundary unless maintainers explicitly approve another shape.
 
 ### Important architectural rule
 TheTransitClock is **not** the source of truth for:
@@ -376,6 +381,8 @@ If TheTransitClock is unavailable:
 - Trip Updates endpoint may degrade or report unavailable
 - admin and monitoring must show degraded prediction status
 - no corruption of core internal state is allowed
+
+Phase 29A does not prove runtime compatibility, better ETAs, production-grade ETA quality, consumer acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, or vendor equivalence.
 
 ### Replacement strategy
 The codebase must be able to replace TheTransitClock with:

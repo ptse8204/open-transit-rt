@@ -4,34 +4,37 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 29 — Real-World Realtime Quality Expansion is complete for the synthetic replay evidence expansion scope.
+Phase 29A — External Predictor Adapter Evaluation is complete for the adapter contract documentation, candidate-only TheTransitClock feasibility review, and test-only mock adapter contract checks.
 
-Phases 0 through 29 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, or submission-readiness issue directly requires it.
+Phases 0 through 29A are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, or submission-readiness issue directly requires it.
 
-The recommended next implementation phase is Phase 29A — External Predictor Adapter Evaluation. Phase 29B — AVL / Vendor Adapter Pilot Implementation follows Phase 29A. Phase 30 — Consumer Submission Execution remains later and must not advance statuses without retained, redacted, target-originated evidence.
+The recommended next implementation phase is Phase 29B — AVL / Vendor Adapter Pilot Implementation. Phase 30 — Consumer Submission Execution remains later and must not advance statuses without retained, redacted, target-originated evidence.
 
-## Phase 29 Summary
+## Phase 29A Summary
 
-- Added richer synthetic replay fixtures for after-midnight service, exact and non-exact frequency trips, block continuity, long layover withholding, sparse telemetry, noisy/off-shape GPS, stale/ambiguous hard patterns, cancellation alert linkage, and manual override before/after expiry.
-- Added replay fixture support for `frequencies`.
-- Added optional replay manual override `expires_at` support.
-- Made the replay telemetry repository return the latest telemetry row per vehicle for feed snapshots, matching the production repository contract.
-- Strengthened replay comparison for already-recorded cancellation alert linkage and unsupported disruption-withheld metrics.
-- Added focused realtime-quality tests for Phase 29 scenarios.
-- Updated replay fixture docs, Phase 29 docs, current status, and this handoff.
+- Documented the external predictor adapter contract, including inputs, outputs, diagnostics, failure modes, and strict wrong-agency/wrong-feed handling.
+- Added Trip Updates adapter output validation before normalization/protobuf serialization.
+- Added test-only mock external adapter coverage for happy-path normalization and diagnostics persistence.
+- Added test-only rejection coverage for missing active-feed trips, impossible stop sequences, stale prediction timestamps, wrong agency/feed candidates, unsupported added-trip predictions, and low/missing confidence.
+- Documented Vehicle Positions independence from external predictor availability.
+- Reviewed TheTransitClock as candidate-only from public sources on 2026-05-04.
+- Added `docs/handoffs/phase-29a.md`.
 
 ## Truthfulness And Evidence Boundary
 
-- Phase 29 expands synthetic replay coverage only.
-- No real-world observed-arrival/departure evidence exists in the repo for Phase 29.
-- Do not claim real-world observed-arrival ETA accuracy or production-grade ETA quality.
+- Phase 29A is adapter contract and candidate-feasibility evidence only.
+- No TheTransitClock or external predictor runtime integration exists.
+- No runtime external predictor config, service client, network call, subprocess call, Java/Maven/Tomcat invocation, or external service requirement was added.
+- Vehicle Positions generation remains independent of external predictor availability.
+- Public-source TheTransitClock review is not runtime compatibility proof.
+- Do not claim better ETAs, real-world observed-arrival ETA accuracy, real-world predictor compatibility, or production-grade ETA quality.
 - Real route/time-period quality metrics remain deferred because no real deployment or observed-arrival data exists.
 - No public feed URLs changed.
 - No GTFS-RT protobuf contracts changed.
 - No consumer statuses changed.
 - No auth boundaries changed.
-- No external dependencies or predictor integrations changed.
-- No TheTransitClock or other external predictor was integrated.
+- No database schema changed.
+- No runtime external dependencies or predictor integrations changed.
 - No Operations Console surface changed.
 
 Do not claim hosted SaaS availability, paid support/SLA coverage, universal production readiness, production multi-tenant hosting, consumer acceptance, CAL-ITP/Caltrans compliance, agency endorsement, marketplace/vendor equivalence, real-world ETA accuracy, or production-grade ETA quality.
@@ -44,11 +47,11 @@ The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable U
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-29.md`
-4. `docs/phase-29-realtime-quality-expansion.md`
+3. `docs/handoffs/phase-29a.md`
+4. `docs/phase-29a-external-predictor-adapter-evaluation.md`
 5. `docs/track-b-productization-roadmap.md`
-6. `testdata/replay/README.md`
-7. `docs/runbooks/production-operations-hardening.md`
+6. `docs/phase-29b-avl-vendor-adapter-pilot.md`
+7. `docs/tutorials/device-avl-integration.md`
 8. `docs/evidence/redaction-policy.md`
 9. `SECURITY.md`
 10. `docs/prompts/calitp-truthfulness.md`
@@ -60,7 +63,7 @@ The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable U
 
 ## Current Objective
 
-Start Phase 29A only when maintainers are ready. Phase 29A should evaluate optional external prediction adapters through documented contracts, mock/test boundaries, fallback behavior, and replay comparison without adding a production external predictor runtime dependency. Phase 29B should follow with a synthetic AVL/vendor adapter pilot pattern. Phase 30 consumer submission execution remains later and must not advance consumer statuses without retained, redacted, target-originated evidence.
+Start Phase 29B only when maintainers are ready. Phase 29B should implement a synthetic AVL/vendor adapter pilot pattern behind the existing telemetry boundary without adding real vendor data, credentials, named vendor runtime dependencies, public feed URL changes, consumer-status changes, or unsupported vendor-support claims. Phase 30 consumer submission execution remains later and must not advance consumer statuses without retained, redacted, target-originated evidence.
 
 ## Exact First Commands
 
@@ -74,23 +77,16 @@ git diff --check
 docker compose -f deploy/docker-compose.yml config
 ```
 
-## Checks Run For Phase 29
+## Checks Run For Phase 29A
 
-- Pre-edit/planning `make validate` — passed.
-- Pre-edit/planning `make realtime-quality` — passed.
-- Pre-edit/planning `make test` — passed.
-- Pre-edit/planning `make smoke` — passed.
-- Pre-edit/planning `make test-integration` — passed.
-- Pre-edit/planning `git diff --check` — passed.
-- Pre-edit/planning `docker compose -f deploy/docker-compose.yml config` — passed.
-- Implementation focused `go test ./internal/realtimequality` — passed.
-- Post-edit `make validate` — passed.
-- Post-edit `make realtime-quality` — passed.
-- Post-edit `make test` — passed.
-- Post-edit `make smoke` — passed.
-- Post-edit `make test-integration` — passed.
-- Post-edit `git diff --check` — passed.
-- Post-edit `docker compose -f deploy/docker-compose.yml config` — passed.
+- Focused `go test ./internal/prediction ./internal/feed/tripupdates ./internal/realtimequality` — passed.
+- `make validate` — passed.
+- `make realtime-quality` — passed.
+- `make test` — passed.
+- `make smoke` — passed.
+- `make test-integration` — passed.
+- `docker compose -f deploy/docker-compose.yml config` — passed.
+- `git diff --check` — passed.
 
 ## Current Evidence And Security Boundary
 
@@ -101,23 +97,25 @@ docker compose -f deploy/docker-compose.yml config
 - Phase 27 proves selected repository-level isolation paths with synthetic data only. It does not prove hosted multi-tenant production readiness, one-instance multi-agency public feed roots, or tenant-safe backup/restore/export/evidence operations.
 - Phase 28 templates are templates only and are not evidence by themselves.
 - Phase 29 replay fixtures are synthetic evidence only and are not real-world ETA accuracy evidence.
+- Phase 29A mock adapter tests are contract tests only and are not real-world predictor compatibility or ETA-quality evidence.
 - Phase 20 prepared packets are operator review artifacts only; they are not submissions.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
 - Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, webhook URLs, notification credentials, raw telemetry payloads, unredacted correspondence, private portal credentials, private ticket links, raw logs with credentials, private backup paths, or raw private operator artifacts.
 
-## First Files Likely To Edit For Phase 29A
+## First Files Likely To Edit For Phase 29B
 
+- `docs/phase-29b-avl-vendor-adapter-pilot.md`
+- `docs/handoffs/phase-29b.md`
 - `docs/handoffs/latest.md`
 - `docs/current-status.md`
 - `docs/track-b-productization-roadmap.md`
-- `docs/phase-29a-external-predictor-adapter-evaluation.md`
-- `docs/handoffs/phase-29a.md`
-- optional adapter contract or replay-comparison docs/tests selected by maintainers for Phase 29A
+- optional telemetry adapter test-only helpers selected by maintainers for Phase 29B
 
 ## Constraints To Preserve
 
 - Keep Trip Updates pluggable and Vehicle Positions first.
+- Keep Vehicle Positions independent of external predictor availability.
 - Preserve conservative matching: unknown is better than false certainty.
 - Preserve unknown/withheld/degraded/stale/ambiguous visibility in realtime diagnostics.
 - Preserve admin auth, role checks, CSRF behavior, and token/secret handling.
@@ -130,4 +128,4 @@ docker compose -f deploy/docker-compose.yml config
 
 ## Exact Next-Step Recommendation
 
-Start Phase 29A — External Predictor Adapter Evaluation. Keep external integrations adapter-bound, tested, optional, and truthfully described; do not add a required external predictor runtime dependency or stronger ETA-quality claim. Then run Phase 29B — AVL / Vendor Adapter Pilot Implementation. Phase 30 consumer submission execution remains later and must not advance any target beyond `prepared` without target-originated evidence.
+Start Phase 29B — AVL / Vendor Adapter Pilot Implementation. Keep vendor integrations behind the telemetry boundary, synthetic/test-only unless approved evidence exists, and truthfully described; do not add a named vendor runtime dependency, real private AVL data, credentials, public feed URL changes, consumer-status changes, or stronger vendor-support claims. Phase 30 consumer submission execution remains later and must not advance any target beyond `prepared` without target-originated evidence.

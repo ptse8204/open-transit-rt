@@ -17,6 +17,7 @@ const (
 	ReasonNoopAdapter           = "noop_adapter"
 	ReasonActiveFeedUnavailable = "active_feed_unavailable"
 	ReasonAdapterError          = "adapter_error"
+	ReasonAdapterOutputRejected = "adapter_output_rejected"
 	ReasonPredictionsAvailable  = "predictions_available"
 	ReasonNoEligiblePredictions = "no_eligible_predictions"
 	ReasonPartialPredictions    = "partial_predictions"
@@ -42,6 +43,8 @@ type Result struct {
 }
 
 type TripUpdate struct {
+	AgencyID             string
+	FeedVersionID        string
 	EntityID             string
 	VehicleID            string
 	TripID               string
@@ -50,6 +53,7 @@ type TripUpdate struct {
 	StartTime            string
 	ScheduleRelationship ScheduleRelationship
 	StopTimeUpdates      []StopTimeUpdate
+	Confidence           *float64
 }
 
 type ScheduleRelationship string

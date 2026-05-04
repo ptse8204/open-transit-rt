@@ -215,3 +215,9 @@ Phase 25 documents device and AVL onboarding without adding a named vendor depen
 Vendor credentials, private AVL payloads, private device identifiers, private vehicle identifiers, and private logs must stay outside this public repo unless reviewed and explicitly approved as public-safe. Vendor-specific assumptions must not be embedded into core matching, Vehicle Positions generation, or Trip Updates prediction logic.
 
 Acceptable integration shapes include agency-owned adapter scripts, deployment-owned sidecar services, vendor-owned middleware, or private operator integration processes. These integrations must preserve the existing telemetry contract, validate required fields before forwarding, and avoid claiming certified vendor support or production AVL reliability without retained evidence.
+
+## ADR-0027 — Evaluate external predictors only behind the prediction adapter
+
+Phase 29A confirms that external predictors may be evaluated only behind `internal/prediction.Adapter`. The deterministic predictor remains the default runtime Trip Updates adapter, and Vehicle Positions generation remains independent of external predictor availability.
+
+Runtime integration of TheTransitClock or any other external predictor requires a later approved phase, explicit dependency and license review, documented fallback behavior, health/failure semantics, and evidence appropriate to any compatibility or ETA-quality claim. Phase 29A mock adapter tests are contract tests only; they do not prove better ETAs, production-grade ETA quality, real-world predictor compatibility, consumer acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, or vendor equivalence.

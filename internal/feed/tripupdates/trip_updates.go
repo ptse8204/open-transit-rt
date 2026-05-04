@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	gtfsrt "github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs"
@@ -19,6 +20,20 @@ import (
 
 const DiagnosticsPersistenceStored = "stored"
 const DiagnosticsPersistenceFailed = "failed"
+
+const minAdapterOutputConfidence = 0.50
+
+const (
+	adapterOutputTripNotInActiveFeed   = "adapter_output_trip_not_in_active_feed"
+	adapterOutputWrongAgency           = "adapter_output_wrong_agency"
+	adapterOutputWrongFeedVersion      = "adapter_output_wrong_feed_version"
+	adapterOutputInvalidStopSequence   = "adapter_output_invalid_stop_sequence"
+	adapterOutputStalePrediction       = "adapter_output_stale_prediction"
+	adapterOutputUnsupportedDisruption = "adapter_output_unsupported_disruption"
+	adapterOutputLowConfidence         = "adapter_output_low_confidence"
+	adapterOutputMissingConfidence     = "adapter_output_missing_confidence"
+	adapterOutputMissingTripIdentity   = "adapter_output_missing_trip_identity"
+)
 
 type Config struct {
 	AgencyID            string
@@ -154,8 +169,12 @@ func (b *Builder) Snapshot(ctx context.Context, generatedAt time.Time) (Snapshot
 			Reason: prediction.ReasonAdapterError,
 		}
 	} else {
-		snapshot.TripUpdates = normalizeTripUpdates(result.TripUpdates)
-		snapshot.Diagnostics = result.Diagnostics
+		validated, diagnostics, err := b.validateAdapterResult(ctx, activeFeed, result, generatedAt)
+		if err != nil {
+			return Snapshot{}, err
+		}
+		snapshot.TripUpdates = normalizeTripUpdates(validated)
+		snapshot.Diagnostics = diagnostics
 		if snapshot.Diagnostics.Status == "" {
 			snapshot.Diagnostics.Status = prediction.StatusOK
 		}
@@ -163,6 +182,140 @@ func (b *Builder) Snapshot(ctx context.Context, generatedAt time.Time) (Snapshot
 
 	b.persistDiagnostics(ctx, &snapshot)
 	return snapshot, nil
+}
+
+func (b *Builder) validateAdapterResult(ctx context.Context, activeFeed gtfs.FeedVersion, result prediction.Result, generatedAt time.Time) ([]prediction.TripUpdate, prediction.Diagnostics, error) {
+	diagnostics := result.Diagnostics
+	if diagnostics.Metrics.WithheldByReason == nil {
+		diagnostics.Metrics.WithheldByReason = map[string]int{}
+	}
+	details := copyDetails(diagnostics.Details)
+	rejections := map[string]int{}
+	requireConfidence := adapterOutputRequiresConfidence(b.adapter.Name(), details)
+
+	validated := make([]prediction.TripUpdate, 0, len(result.TripUpdates))
+	for _, update := range result.TripUpdates {
+		if reason, err := b.validateTripUpdate(ctx, activeFeed, update, generatedAt, requireConfidence); err != nil {
+			return nil, prediction.Diagnostics{}, err
+		} else if reason != "" {
+			rejections[reason]++
+			diagnostics.Metrics.WithheldByReason[reason]++
+			continue
+		}
+		validated = append(validated, update)
+	}
+
+	if len(rejections) > 0 {
+		details["adapter_output_rejections"] = rejections
+		details["adapter_output_rejected"] = len(result.TripUpdates) - len(validated)
+		details["adapter_output_accepted"] = len(validated)
+		diagnostics.Details = details
+		if len(validated) == 0 {
+			diagnostics.Status = prediction.StatusError
+			diagnostics.Reason = prediction.ReasonAdapterOutputRejected
+		} else if diagnostics.Reason == prediction.ReasonPredictionsAvailable || diagnostics.Reason == "" {
+			diagnostics.Reason = prediction.ReasonPartialPredictions
+		}
+	}
+	return validated, diagnostics, nil
+}
+
+func (b *Builder) validateTripUpdate(ctx context.Context, activeFeed gtfs.FeedVersion, update prediction.TripUpdate, generatedAt time.Time, requireConfidence bool) (string, error) {
+	if update.ScheduleRelationship == prediction.ScheduleRelationshipAdded {
+		return adapterOutputUnsupportedDisruption, nil
+	}
+	if update.AgencyID != "" && update.AgencyID != activeFeed.AgencyID {
+		return adapterOutputWrongAgency, nil
+	}
+	if update.FeedVersionID != "" && update.FeedVersionID != activeFeed.ID {
+		return adapterOutputWrongFeedVersion, nil
+	}
+	if update.TripID == "" || update.StartDate == "" {
+		return adapterOutputMissingTripIdentity, nil
+	}
+	if requireConfidence && update.Confidence == nil {
+		return adapterOutputMissingConfidence, nil
+	}
+	if update.Confidence != nil && *update.Confidence < minAdapterOutputConfidence {
+		return adapterOutputLowConfidence, nil
+	}
+	candidate, reason, err := b.lookupTripCandidate(ctx, activeFeed, update)
+	if err != nil || reason != "" {
+		return reason, err
+	}
+	if reason := validateStopTimeUpdates(candidate, update, generatedAt); reason != "" {
+		return reason, nil
+	}
+	return "", nil
+}
+
+func (b *Builder) lookupTripCandidate(ctx context.Context, activeFeed gtfs.FeedVersion, update prediction.TripUpdate) (gtfs.TripCandidate, string, error) {
+	candidates, err := b.schedules.ListTripCandidates(ctx, activeFeed.AgencyID, activeFeed.ID, update.StartDate)
+	if err != nil {
+		return gtfs.TripCandidate{}, "", fmt.Errorf("validate adapter output schedule: %w", err)
+	}
+	var wrongAgency bool
+	var wrongFeed bool
+	for _, candidate := range candidates {
+		if candidate.TripID != update.TripID {
+			continue
+		}
+		if candidate.AgencyID != activeFeed.AgencyID {
+			wrongAgency = true
+			continue
+		}
+		if candidate.FeedVersionID != activeFeed.ID {
+			wrongFeed = true
+			continue
+		}
+		return candidate, "", nil
+	}
+	switch {
+	case wrongAgency:
+		return gtfs.TripCandidate{}, adapterOutputWrongAgency, nil
+	case wrongFeed:
+		return gtfs.TripCandidate{}, adapterOutputWrongFeedVersion, nil
+	default:
+		return gtfs.TripCandidate{}, adapterOutputTripNotInActiveFeed, nil
+	}
+}
+
+func validateStopTimeUpdates(candidate gtfs.TripCandidate, update prediction.TripUpdate, generatedAt time.Time) string {
+	validSequences := make(map[int]struct{}, len(candidate.StopTimes))
+	for _, stopTime := range candidate.StopTimes {
+		validSequences[stopTime.StopSequence] = struct{}{}
+	}
+	for _, stopUpdate := range update.StopTimeUpdates {
+		if stopUpdate.StopSequence <= 0 {
+			return adapterOutputInvalidStopSequence
+		}
+		if _, ok := validSequences[stopUpdate.StopSequence]; !ok {
+			return adapterOutputInvalidStopSequence
+		}
+		if stalePredictionTime(stopUpdate.ArrivalTime, generatedAt) || stalePredictionTime(stopUpdate.DepartureTime, generatedAt) {
+			return adapterOutputStalePrediction
+		}
+	}
+	return ""
+}
+
+func stalePredictionTime(t *time.Time, generatedAt time.Time) bool {
+	return t != nil && t.Before(generatedAt)
+}
+
+func adapterOutputRequiresConfidence(adapterName string, details map[string]any) bool {
+	if require, ok := details["require_prediction_confidence"].(bool); ok && require {
+		return true
+	}
+	return strings.Contains(strings.ToLower(adapterName), "external")
+}
+
+func copyDetails(details map[string]any) map[string]any {
+	copied := make(map[string]any, len(details))
+	for key, value := range details {
+		copied[key] = value
+	}
+	return copied
 }
 
 func (b *Builder) Ready(ctx context.Context) error {

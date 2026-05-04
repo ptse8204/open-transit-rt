@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned Track B integration phase. Not implemented until selected in `docs/handoffs/latest.md`.
+Complete for adapter contract documentation, candidate-only TheTransitClock feasibility review, and test-only mock adapter contract checks.
 
 ## Purpose
 
@@ -32,6 +32,85 @@ Open Transit RT's original direction included the ability to connect with outsid
 7. Configuration and dependency boundary documentation.
 8. Security, licensing, and operations review.
 9. Handoff recommendation for whether to implement a runtime adapter later.
+
+## Implemented Scope
+
+Phase 29A added a contract-level validation layer for Trip Updates adapter output and test-only mock external adapter coverage. It did not add runtime external predictor wiring, service clients, environment variables, network calls, subprocess calls, Java/Maven/Tomcat invocation, or TheTransitClock integration.
+
+Vehicle Positions generation remains independent of external predictor availability. External predictor evaluation affects only Trip Updates adapter evaluation paths; telemetry ingest, assignment persistence, and Vehicle Positions publication continue without consulting an external predictor.
+
+## External Adapter Contract
+
+External predictor adapters must implement `internal/prediction.Adapter` and are evaluated through the existing Trip Updates builder. They must accept:
+
+- `agency_id` from the Trip Updates service configuration;
+- active `feed_version_id` and active published GTFS feed metadata;
+- latest vehicle telemetry and assignment context for the agency;
+- telemetry freshness context through observation timestamps and current snapshot time;
+- schedule/static GTFS context available through the active feed version and schedule repository;
+- manual-override effects as represented in current assignments;
+- canceled-trip overrides and unsupported disruption state only through documented prediction-operation inputs or diagnostics, not by mutating assignment state;
+- canonical Vehicle Positions feed URL or equivalent feed data when a later runtime adapter is explicitly approved.
+
+External predictor outputs must return:
+
+- prediction status and reason;
+- `agency_id` and `feed_version_id` scope when the adapter can echo or assert them;
+- Trip Update trip descriptor fields: `trip_id`, `route_id`, `start_date`, `start_time`, and schedule relationship;
+- ordered or orderable `stop_time_update` entries;
+- confidence or an equivalent quality signal when the adapter is external;
+- explicit withheld/degraded reason for unsafe or unsupported cases;
+- diagnostics payload suitable for `feed_health_snapshot` persistence;
+- timeout, error, malformed-response, or unavailable status when predictions cannot be trusted.
+
+Required behavior:
+
+- adapter output must never bypass existing Trip Updates normalization;
+- adapter diagnostics must never bypass diagnostics persistence;
+- stale, ambiguous, unknown, degraded, wrong-agency, wrong-feed, and unsupported cases must remain visible;
+- active manual override authority remains upstream in assignment state and must not be weakened by external predictions;
+- deterministic prediction remains the default and must remain available as fallback;
+- wrong agency or wrong feed-version output must be rejected or withheld, never silently published.
+
+## Adapter Output Validation
+
+The Trip Updates builder now rejects unsafe adapter output before protobuf serialization. Rejected output produces a valid empty or partial Trip Updates feed with diagnostics reason `adapter_output_rejected` or `partial_predictions`, and `withheld_by_reason` records the rejection category.
+
+Validated rejection categories include:
+
+- trip not present in the active feed;
+- adapter-declared or candidate trip scoped to the wrong agency;
+- adapter-declared or candidate trip scoped to the wrong feed version;
+- impossible or missing stop sequence;
+- stale prediction timestamp;
+- unsupported added-trip prediction;
+- low confidence;
+- missing confidence when the adapter declares or is identified as external.
+
+This validation does not change the public GTFS-RT protobuf contract. It only controls which internal adapter results are allowed to reach the existing Trip Updates serializer.
+
+## Failure And Fallback Semantics
+
+Timeout, unavailable service, malformed response, and other adapter errors produce a valid empty Trip Updates feed with visible `adapter_error` diagnostics and persisted diagnostics records. Malformed or conflicting adapter output is rejected or withheld with visible diagnostics. Phase 29A does not add an automatic external-to-deterministic runtime fallback chain because no runtime external adapter exists in this phase; deterministic prediction remains the configured default and the safe fallback path for future approved runtime work.
+
+Tests use only mock/test-only adapters. They do not start TheTransitClock, invoke Java, Maven, or Tomcat, make network calls, or require external services.
+
+## Candidate Review — TheTransitClock
+
+Review date: 2026-05-04.
+
+Public sources reviewed:
+
+- `https://thetransitclock.github.io/`
+- `https://github.com/TheTransitClock/transitime`
+- `https://raw.githubusercontent.com/TheTransitClock/transitime/develop/BUILD.md`
+- `https://raw.githubusercontent.com/TheTransitClock/transitime/develop/LICENSE`
+
+Public project information describes TheTransitClock as open-source arrival prediction software that takes a GTFS-Realtime Vehicle Positions feed as input and produces GTFS-Realtime Trip Updates. The public repository is Java-oriented, built with Maven, includes REST/API and webapp modules, and is licensed under GPL-3.0.
+
+Feasibility conclusion: TheTransitClock remains a plausible candidate for a later process-level or network-level adapter because its stated input/output shape aligns with Open Transit RT's Vehicle Positions-first architecture. It is not suitable for Phase 29A runtime integration because that would introduce Java/service deployment, operational health checks, and GPL-3.0 license-review questions that require a later approved phase.
+
+Public-source review is not runtime compatibility proof. The Phase 29A review and mock adapter tests do not prove better ETAs, production-grade ETA quality, real-world predictor compatibility, consumer acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, or vendor equivalence.
 
 ## Required Work
 
@@ -142,7 +221,7 @@ Include:
 - how to disable the external predictor quickly;
 - how to return to deterministic fallback.
 
-Do not add secrets, credentials, or private predictor configuration.
+Do not add secrets, credentials, private predictor configuration, `TRIP_UPDATES_ADAPTER=external`, production runtime external predictor toggles, service clients, or network calls in Phase 29A.
 
 ### 7) Licensing And Dependency Review
 
