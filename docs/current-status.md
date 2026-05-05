@@ -74,6 +74,8 @@ Phase 29A — External Predictor Adapter Evaluation is complete for the adapter 
 
 Phase 29B — AVL / Vendor Adapter Pilot Implementation is complete for the synthetic dry-run adapter pilot scope. The repo now has a strict mapping-driven `internal/avladapter` package, dry-run-only `cmd/avl-vendor-adapter` CLI, synthetic fixtures under `testdata/avl-vendor/`, stable JSON diagnostics, focused adapter/CLI tests, and updated device/AVL evidence guidance. Phase 29B does not add network send mode, named vendor runtime dependencies, real vendor payloads, credentials, telemetry/device API changes, public feed URL changes, GTFS-RT contract changes, Trip Updates behavior changes, consumer-status changes, or stronger vendor/reliability/compliance claims.
 
+Phase 30 — Consumer Submission Execution is closed as Outcome B — blocker-documented closure only. No authorized submission, official-path verification evidence, or target-originated artifact was available. No Phase 30 target was selected, no external portal was contacted, no submission was automated, no submission path was guessed, and no artifact was added. This is a phase-level blocker-documented closure only; no individual target status changed to `blocked` because no target-specific blocker artifact exists. `docs/evidence/consumer-submissions/status.json` and all current target records were left unchanged, artifact directories remain README-only, and tracker/status consistency still shows all seven targets `prepared`.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -135,6 +137,7 @@ The repo has:
 - `docs/handoffs/phase-29.md`
 - `docs/handoffs/phase-29a.md`
 - `docs/handoffs/phase-29b.md`
+- `docs/handoffs/phase-30.md`
 - `docs/handoffs/track-a-external-proof.md`
 - `docs/handoffs/track-b-roadmap.md`
 
@@ -307,7 +310,7 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 29B — AVL / Vendor Adapter Pilot Implementation is complete for the synthetic dry-run adapter pilot scope. Phase 30 — Consumer Submission Execution is the recommended next implementation phase and must not advance statuses without retained, redacted, target-originated evidence. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 29B remain closed for their documented scopes.
+**Active phase:** Phase 30 — Consumer Submission Execution is closed as Outcome B — blocker-documented closure only. No authorized submission, official-path verification evidence, or target-originated artifact was available. Phase 31 — Agency Pilot Program Package is the recommended next implementation phase and must proceed from the prepared-only consumer state. It must not assume submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 30 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -319,7 +322,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Phase 27 added selected repository-level multi-agency isolation tests and boundary docs without claiming production multi-tenant operations. Phase 28 added docs-first operations hardening, templates, alert delivery proof, capacity guidance, secret rotation, handover, and evidence refresh guidance without runtime or evidence-claim changes. Phase 29 added synthetic replay quality expansion without claiming real-world ETA accuracy, real route/time-period coverage, production-grade ETA quality, external predictor integration, or evidence-claim changes. Phase 29A documented and tested the external predictor adapter boundary without adding runtime external predictor integration, runtime config, external services, public feed URL changes, GTFS-RT contract changes, consumer-status changes, auth-boundary changes, schema changes, or stronger ETA/compliance/vendor-support claims. Phase 29B added a synthetic dry-run AVL/vendor adapter pilot behind the existing telemetry boundary without network send mode, real vendor data, credentials, external dependencies, public feed URL changes, consumer-status changes, API changes, or stronger vendor/reliability claims. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Phase 27 added selected repository-level multi-agency isolation tests and boundary docs without claiming production multi-tenant operations. Phase 28 added docs-first operations hardening, templates, alert delivery proof, capacity guidance, secret rotation, handover, and evidence refresh guidance without runtime or evidence-claim changes. Phase 29 added synthetic replay quality expansion without claiming real-world ETA accuracy, real route/time-period coverage, production-grade ETA quality, external predictor integration, or evidence-claim changes. Phase 29A documented and tested the external predictor adapter boundary without adding runtime external predictor integration, runtime config, external services, public feed URL changes, GTFS-RT contract changes, consumer-status changes, auth-boundary changes, schema changes, or stronger ETA/compliance/vendor-support claims. Phase 29B added a synthetic dry-run AVL/vendor adapter pilot behind the existing telemetry boundary without network send mode, real vendor data, credentials, external dependencies, public feed URL changes, consumer-status changes, API changes, or stronger vendor/reliability claims. Phase 30 closed as Outcome B — blocker-documented closure only at the phase level; no target was selected, no target-specific blocker artifact exists, no target moved to `blocked`, and all seven targets remain `prepared`. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -874,9 +877,41 @@ Phase 29 is complete for the synthetic replay evidence expansion scope:
 - explicitly deferred real route/time-period quality metrics because no real deployment or observed-arrival evidence exists in the repo
 - did not add external predictors, real private telemetry, private agency GTFS, Operations Console changes, public feed URL changes, GTFS-RT contract changes, consumer status changes, auth-boundary changes, dependency changes, production-grade ETA claims, real-world ETA accuracy claims, consumer acceptance claims, agency endorsement claims, hosted SaaS claims, or CAL-ITP/Caltrans compliance claims
 
+## Phase 30 Progress
+
+Phase 30 closed as Outcome B — blocker-documented closure only:
+- no authorized submission, official-path verification evidence, or target-originated artifact was available
+- no Phase 30 target was selected
+- target selection is deferred until an operator is authorized and either official-path verification or target-originated evidence can be retained
+- no individual target status changed to `blocked` because no target-specific blocker artifact exists
+- `docs/evidence/consumer-submissions/status.json` and all current target records were left unchanged
+- tracker/status consistency still shows all seven targets `prepared`
+- artifact directories remain README-only; no receipts, screenshots, tickets, correspondence, blocker notes, or placeholder artifacts were added
+- Mobility Database and transit.land may be considered as future candidate suggestions once authorized, but neither was selected in Phase 30
+- did not contact external portals, automate submissions, guess submission paths, add artifacts, change public feed URLs, change GTFS-RT contracts, change telemetry/device APIs, add consumer submission APIs, or claim submission, review, acceptance, rejection, ingestion, display, compliance, agency endorsement, hosted SaaS availability, marketplace/vendor equivalence, production-grade ETA quality, or consumer adoption
+
+Phase 30 closure audit results:
+- pre-edit `make validate`: passed
+- pre-edit `make test`: passed
+- pre-edit `git diff --check`: passed
+- post-edit `make validate`: passed
+- post-edit `python3 -m json.tool docs/evidence/consumer-submissions/status.json`: passed
+- post-edit tracker/status consistency check: passed; all seven targets remain `prepared`
+- post-edit `make test`: passed
+- post-edit `make realtime-quality`: passed
+- post-edit `make smoke`: passed
+- post-edit `make test-integration`: passed
+- post-edit `docker compose -f deploy/docker-compose.yml config`: passed
+- post-edit `git diff --check`: passed
+- post-edit targeted artifact scan: passed; artifact directories contain README files only
+- post-edit targeted tracker diff check: passed; `status.json`, current target records, and artifact directories were not edited
+- post-edit context-aware forbidden-claim scan: reviewed; matches are negated statements, definitions, transition/future-state wording, or blocker explanations
+- post-edit targeted redaction-sensitive term scan: reviewed; matches are security/redaction rules or existing negative boundary wording, not exposed secrets or private artifacts
+- blocked commands: none
+
 ## Next Recommended Step
 
-Start Phase 30 — Consumer Submission Execution when maintainers are ready to continue Track B implementation. Phase 30 must not advance any consumer or aggregator target beyond `prepared` without retained, redacted, target-originated evidence.
+Start Phase 31 — Agency Pilot Program Package when maintainers are ready to continue Track B implementation. Phase 31 must proceed from the prepared-only consumer state and must not assume submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists.
 
 Use the Track A workflow when a human operator is ready to verify an official target path or record real target-originated evidence. If no real third-party artifacts are available, keep every target at `prepared`.
 

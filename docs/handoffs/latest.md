@@ -4,11 +4,13 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 29B — AVL / Vendor Adapter Pilot Implementation is complete for the synthetic, dry-run-only adapter pilot scope.
+Phase 30 — Consumer Submission Execution is closed as Outcome B — blocker-documented closure only.
 
-Phases 0 through 29B are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, or submission-readiness issue directly requires it.
+No authorized submission, official-path verification evidence, or target-originated artifact was available.
 
-The recommended next implementation phase is Phase 30 — Consumer Submission Execution. Phase 30 must not advance consumer or aggregator statuses without retained, redacted, target-originated evidence.
+Phases 0 through 30 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, or submission-readiness issue directly requires it.
+
+The recommended next implementation phase is Phase 31 — Agency Pilot Program Package. Phase 31 must proceed from the prepared-only consumer state and must not assume submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists.
 
 ## Phase 29B Summary
 
@@ -17,6 +19,17 @@ The recommended next implementation phase is Phase 30 — Consumer Submission Ex
 - Added synthetic fixtures under `testdata/avl-vendor/` for valid, source mismatch, duplicate mapping, empty mapped IDs, missing/invalid coordinate, stale/future timestamps, unknown vendor vehicle, low GPS accuracy, mixed batch, duplicate/out-of-order dry-run observations, optional trip hint, and malformed payload.
 - Added focused adapter and CLI tests.
 - Updated Phase 29B docs, device/AVL tutorial guidance, evidence template/discoverability, decisions, dependencies, and current status.
+
+## Phase 30 Outcome B Summary
+
+- Phase 30 closed as Outcome B — blocker-documented closure only.
+- No authorized submission, official-path verification evidence, or target-originated artifact was available.
+- No Phase 30 target was selected.
+- Target selection is deferred until an operator is authorized and either official-path verification or target-originated evidence can be retained.
+- No individual target status changed to `blocked` because no target-specific blocker artifact exists.
+- `docs/evidence/consumer-submissions/status.json` and all current target records under `docs/evidence/consumer-submissions/current/` were left unchanged.
+- Artifact directories remain README-only; no receipts, screenshots, tickets, correspondence, blocker notes, or placeholder artifacts were added.
+- Mobility Database and transit.land may be considered as future candidate suggestions once authorized, but they were not selected in Phase 30.
 
 ## Truthfulness And Evidence Boundary
 
@@ -44,7 +57,7 @@ The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable U
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-29b.md`
+3. `docs/handoffs/phase-30.md`
 4. `docs/phase-30-consumer-submission-execution.md`
 5. `docs/evidence/consumer-submissions/submission-workflow.md`
 6. `docs/evidence/consumer-submissions/status.json`
@@ -58,7 +71,9 @@ The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable U
 
 ## Current Objective
 
-Start Phase 30 only when maintainers are ready and authorized. Phase 30 should execute consumer or aggregator submission workflows only when official target paths are verified and target-originated evidence can be retained and redacted. Product improvements, validator success, or prepared packets alone must not advance target statuses.
+Start Phase 31 from the prepared-only consumer state. Phase 31 must not assume consumer or aggregator submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists.
+
+Consumer or aggregator submission work remains available only when a future operator is authorized, a target is selected, official target paths are verified, and target-originated evidence can be retained and redacted. Product improvements, validator success, or prepared packets alone must not advance target statuses.
 
 ## Exact First Commands
 
@@ -68,7 +83,7 @@ make test
 git diff --check
 ```
 
-Run these when Phase 30 work touches relevant surfaces:
+Run these when Phase 31 work touches relevant surfaces:
 
 ```bash
 make realtime-quality
@@ -94,6 +109,24 @@ docker compose -f deploy/docker-compose.yml config
 - `git diff --check` — passed.
 - Blocked checks: none.
 
+## Checks Run For Phase 30
+
+- Pre-edit `make validate` — passed.
+- Pre-edit `make test` — passed.
+- Pre-edit `git diff --check` — passed.
+- Post-edit `make validate` — passed.
+- Post-edit `python3 -m json.tool docs/evidence/consumer-submissions/status.json` — passed.
+- Post-edit tracker/status consistency check — passed; all seven targets remain `prepared`.
+- Post-edit `make test` — passed.
+- Post-edit `make realtime-quality` — passed.
+- Post-edit `make smoke` — passed.
+- Post-edit `make test-integration` — passed.
+- Post-edit `docker compose -f deploy/docker-compose.yml config` — passed.
+- Post-edit `git diff --check` — passed.
+- Post-edit targeted artifact/tracker scans — passed.
+- Post-edit context-aware forbidden-claim and redaction-sensitive term scans — reviewed; matches are allowed negative/boundary/security contexts.
+- Blocked commands: none.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -102,19 +135,18 @@ docker compose -f deploy/docker-compose.yml config
 - Phase 25 device/AVL evidence scaffolding is template-only until real public-safe device or AVL integration evidence exists.
 - Phase 29B synthetic fixtures are not real vendor AVL evidence.
 - Phase 20 prepared packets are operator review artifacts only; they are not submissions.
+- Phase 30 did not select a target, verify an official path, submit a packet, add artifacts, or change consumer statuses.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
 - Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, webhook URLs, notification credentials, raw telemetry payloads, unredacted correspondence, private portal credentials, private ticket links, raw logs with credentials, private backup paths, or raw private operator artifacts.
 
-## First Files Likely To Edit For Phase 30
+## First Files Likely To Edit For Phase 31
 
-- `docs/phase-30-consumer-submission-execution.md`
-- `docs/evidence/consumer-submissions/submission-workflow.md`
-- target-specific files under `docs/evidence/consumer-submissions/current/`
-- target-specific packet or artifact directories under `docs/evidence/consumer-submissions/`
-- `docs/handoffs/phase-30.md`
+- `docs/phase-31-agency-pilot-program-package.md`
 - `docs/handoffs/latest.md`
 - `docs/current-status.md`
+
+Do not edit target-specific consumer records, `docs/evidence/consumer-submissions/status.json`, or artifact directories unless retained, redacted, target-originated evidence supports a target-specific status transition.
 
 ## Constraints To Preserve
 
@@ -128,4 +160,4 @@ docker compose -f deploy/docker-compose.yml config
 
 ## Exact Next-Step Recommendation
 
-Start Phase 30 — Consumer Submission Execution only when maintainers have authorized target-specific submission work. Do not advance any target beyond `prepared` without retained, redacted, target-originated evidence.
+Start Phase 31 — Agency Pilot Program Package from the prepared-only consumer state. Do not assume submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists.

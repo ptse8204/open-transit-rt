@@ -4,6 +4,10 @@
 
 Planned Track B phase. Not implemented until selected in `docs/handoffs/latest.md`.
 
+Phase 31 starts from the Phase 30 prepared-only consumer state. It must not
+assume submission, review, acceptance, rejection, blocker, ingestion, listing,
+display, or adoption evidence exists.
+
 ## Purpose
 
 Package Open Transit RT for real-world agency pilot evaluation.
@@ -103,6 +107,8 @@ Phase 31 does not:
 - promise agency endorsement;
 - create legal/procurement commitments;
 - claim compliance or consumer acceptance;
+- assume consumer submission, review, acceptance, rejection, blocker, ingestion,
+  listing, display, or adoption evidence exists;
 - add backend product features.
 
 ## Likely Files

@@ -96,9 +96,9 @@ Rules:
 
 ## Recommended Next Phase
 
-Start with Phase 30 — Consumer Submission Execution.
+Start with Phase 31 — Agency Pilot Program Package.
 
-Reason: Phase 29B completed the synthetic dry-run AVL/vendor adapter pilot behind the telemetry boundary without adding network send mode, named vendor dependencies, real vendor data, credentials, public feed URL changes, consumer-status changes, or stronger evidence claims. Phase 30 may proceed only with authorized target-specific work and retained, redacted, target-originated evidence.
+Reason: Phase 30 closed as Outcome B — blocker-documented closure only because no authorized submission, official-path verification evidence, or target-originated artifact was available. Phase 31 must proceed from the prepared-only consumer state and must not assume submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists.
 
 ## Cross-Phase Constraints
 

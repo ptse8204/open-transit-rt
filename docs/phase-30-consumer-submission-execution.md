@@ -2,15 +2,44 @@
 
 ## Status
 
-Planned Track B phase. Not implemented until selected in `docs/handoffs/latest.md` and only when an operator is authorized to proceed.
+Phase 30 closed as Outcome B — blocker-documented closure only.
 
 Phase 29A — External Predictor Adapter Evaluation and Phase 29B — AVL / Vendor Adapter Pilot Implementation now precede this phase in the Track B roadmap. Consumer statuses must still remain unchanged until retained, redacted, target-originated evidence supports a specific target update.
+
+No authorized submission, official-path verification evidence, or
+target-originated artifact was available.
+
+This is a phase-level blocker-documented closure. No Phase 30 target was
+selected, and no individual target status changes to `blocked` because no
+target-specific blocker artifact exists.
 
 ## Purpose
 
 Move prepared packets to real consumer or aggregator submissions when an operator has permission and retained evidence.
 
 This phase is evidence-first. It does not automate private portals or infer acceptance from validation.
+
+## Outcome B Closure Result
+
+Target selection is deferred until an operator is authorized and either
+official-path verification or target-originated evidence can be retained.
+
+All seven tracked targets remain `prepared`:
+
+- Google Maps;
+- Apple Maps;
+- Transit App;
+- Bing Maps;
+- Moovit;
+- Mobility Database;
+- transit.land.
+
+`docs/evidence/consumer-submissions/status.json` and the current target records
+under `docs/evidence/consumer-submissions/current/` were left unchanged.
+Artifact directories remain README-only.
+
+Mobility Database and transit.land may be considered as future candidate
+suggestions once authorized, but no Phase 30 target is selected.
 
 ## Scope
 
@@ -87,6 +116,10 @@ python3 -m json.tool docs/evidence/consumer-submissions/status.json
 ```
 
 Run redaction scan over new/edited evidence.
+
+Because Outcome B did not add artifacts or change target records, artifact
+redaction review is limited to confirming no receipts, screenshots, tickets,
+correspondence, blocker notes, or placeholder artifacts were added.
 
 ## Explicit Non-Goals
 
