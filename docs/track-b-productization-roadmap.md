@@ -96,9 +96,14 @@ Rules:
 
 ## Recommended Next Phase
 
-Start with Phase 31 — Agency Pilot Program Package.
+Start with Phase 32 — Public Launch And Ecosystem Outreach.
 
-Reason: Phase 30 closed as Outcome B — blocker-documented closure only because no authorized submission, official-path verification evidence, or target-originated artifact was available. Phase 31 must proceed from the prepared-only consumer state and must not assume submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists.
+Reason: Phase 31 closed for the docs-only agency pilot package scope. Phase 32
+must proceed from the prepared-only consumer state and must not assume agency
+adoption, consumer submission, review, acceptance, rejection, blocker,
+ingestion, listing, display, CAL-ITP/Caltrans compliance, hosted SaaS
+availability, paid support/SLA coverage, or production readiness evidence
+exists.
 
 ## Cross-Phase Constraints
 

@@ -15,6 +15,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🚌 Start the local app package | [Agency First Run](tutorials/agency-first-run.md) |
 | 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
 | 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
+| 🧾 Plan an agency pilot | [Agency Pilot Program](agency-pilot-program.md) |
 | 🚀 Plan a small deployment | [Deployment Guide](../wiki/deployment-guide.md) |
 | ✅ Review readiness and evidence | [Readiness And Evidence](../wiki/readiness-and-evidence.md) |
 | 🤝 Support or contribute | [Support And Contribute](../wiki/support-and-contribute.md) |
@@ -27,6 +28,11 @@ These are command-level references for people running or evaluating the project:
 - [Local Quickstart](tutorials/local-quickstart.md)
 - [Agency First Run](tutorials/agency-first-run.md)
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)
+- [Agency Pilot Program](agency-pilot-program.md)
+- [Agency Pilot Kickoff Agenda](agency-pilot-kickoff-agenda.md)
+- [Agency Pilot Checklist](agency-pilot-checklist.md)
+- [Agency Training Outline](agency-training-outline.md)
+- [Agency Feedback Template](agency-feedback-template.md)
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](tutorials/production-checklist.md)
 - [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md)

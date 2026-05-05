@@ -68,6 +68,7 @@ For a guided version, start with the [Agency First Run](docs/tutorials/agency-fi
 | 🚌 Try the full local package | [Agency First Run](docs/tutorials/agency-first-run.md) |
 | 🗂️ Bring a real GTFS ZIP | [Real Agency GTFS Onboarding](docs/tutorials/real-agency-gtfs-onboarding.md) |
 | 📡 Connect device or AVL telemetry | [Device And AVL Integration](docs/tutorials/device-avl-integration.md) |
+| 🧾 Plan an agency pilot | [Agency Pilot Program](docs/agency-pilot-program.md) |
 | 💻 Run it on your machine | [Local Quickstart](wiki/local-quickstart.md) |
 | 🚌 Walk through the agency demo | [Agency Demo](wiki/agency-demo.md) |
 | 🚀 Plan a small deployment | [Deployment Guide](wiki/deployment-guide.md) |
