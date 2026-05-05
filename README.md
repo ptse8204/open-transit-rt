@@ -73,6 +73,7 @@ For a guided version, start with the [Agency First Run](docs/tutorials/agency-fi
 | 🚌 Walk through the agency demo | [Agency Demo](wiki/agency-demo.md) |
 | 🚀 Plan a small deployment | [Deployment Guide](wiki/deployment-guide.md) |
 | ✅ Review readiness and evidence | [Readiness And Evidence](wiki/readiness-and-evidence.md) |
+| 📝 Review public launch materials | [Agency One-Pager](docs/agency-one-pager.md), [Demo Outline](docs/demo-video-outline.md), [Public Launch Checklist](docs/public-launch-checklist.md) |
 | 📚 Browse all documentation | [Documentation Home](docs/README.md) |
 | 🤝 Support or contribute | [Support And Contribute](wiki/support-and-contribute.md) |
 
@@ -96,3 +97,5 @@ For details, see:
 ⭐ **[Star Open Transit RT](https://github.com/ptse8204/open-transit-rt)** if this project is useful to you. A GitHub star is like a like or bookmark: it helps more people discover the project and supports continued independent open-source work. A star is not an official agency endorsement.
 
 Useful contributions include focused issues, reproducible demo failures, validator findings, clearer docs, deployment notes, and small-agency workflow feedback.
+
+Contributor starting points: [Contributing](CONTRIBUTING.md), [issue templates](.github/ISSUE_TEMPLATE/), [docs fixes](docs/README.md), [replay fixtures](testdata/replay/README.md), [agency pilot feedback](docs/agency-feedback-template.md), [AVL/vendor adapter examples](testdata/avl-vendor/), [device/AVL guide](docs/tutorials/device-avl-integration.md), [operations runbooks](docs/runbooks/), and public-safe evidence review with the [redaction policy](docs/evidence/redaction-policy.md) and [compliance evidence checklist](docs/compliance-evidence-checklist.md).

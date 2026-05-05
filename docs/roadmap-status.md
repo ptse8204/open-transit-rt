@@ -32,6 +32,7 @@ Current evidence includes:
 - prepared consumer and aggregator packet drafts for seven targets;
 - an operator workflow for official-path verification, pre-submission checks,
   evidence intake, and artifact redaction;
+- draft public launch materials for review;
 - redaction and evidence policies.
 
 OCI pilot evidence is useful pilot evidence. It is not agency-owned production proof.
@@ -68,6 +69,8 @@ Future phases describe intended work. They are not commitments to hosted service
 
 Track B is the planned productization path for release, agency-owned deployment proof, real agency data onboarding, device/AVL integration guidance, setup UX, multi-agency isolation proof, operations hardening, realtime quality expansion, optional external predictor adapter evaluation, AVL/vendor adapter pilot work, authorized consumer submissions, agency pilot packaging, and public ecosystem outreach.
 
-Phase 29A — External Predictor Adapter Evaluation is complete for contract and candidate-only feasibility review. Phase 29B — AVL / Vendor Adapter Pilot Implementation is complete for the synthetic dry-run adapter pilot scope. Phase 30 — Consumer Submission Execution closed as Outcome B — blocker-documented closure only because no authorized submission, official-path verification evidence, or target-originated artifact was available. Phase 31 — Agency Pilot Program Package is the recommended next implementation phase and must proceed from the prepared-only consumer state. It must not assume submission, review, acceptance, rejection, blocker, ingestion, listing, display, or adoption evidence exists.
+Phase 29A — External Predictor Adapter Evaluation is complete for contract and candidate-only feasibility review. Phase 29B — AVL / Vendor Adapter Pilot Implementation is complete for the synthetic dry-run adapter pilot scope. Phase 30 — Consumer Submission Execution closed as Outcome B — blocker-documented closure only because no authorized submission, official-path verification evidence, or target-originated artifact was available. Phase 31 — Agency Pilot Program Package is complete for the docs-only pilot package scope. Phase 32 — Public Launch And Ecosystem Outreach is complete for draft public launch materials only. Phase 32 did not post announcements, contact agencies, contact consumers, or complete a public launch.
+
+The recommended next step is to pause stronger public claims and pursue real retained evidence: agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, or real deployment operations evidence.
 
 Use `docs/track-b-productization-roadmap.md` for the forward roadmap, `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context, and `docs/handoffs/latest.md` for the current handoff state.

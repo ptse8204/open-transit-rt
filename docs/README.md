@@ -16,6 +16,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
 | 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
 | 🧾 Plan an agency pilot | [Agency Pilot Program](agency-pilot-program.md) |
+| 📝 Review public launch materials | [Agency One-Pager](agency-one-pager.md) |
 | 🚀 Plan a small deployment | [Deployment Guide](../wiki/deployment-guide.md) |
 | ✅ Review readiness and evidence | [Readiness And Evidence](../wiki/readiness-and-evidence.md) |
 | 🤝 Support or contribute | [Support And Contribute](../wiki/support-and-contribute.md) |
@@ -25,6 +26,11 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 
 These are command-level references for people running or evaluating the project:
 
+- [Agency One-Pager](agency-one-pager.md)
+- [Demo Video Outline](demo-video-outline.md)
+- [Public Share Copy](public-share-copy.md)
+- [Ecosystem Positioning](ecosystem-positioning.md)
+- [Public Launch Checklist](public-launch-checklist.md)
 - [Local Quickstart](tutorials/local-quickstart.md)
 - [Agency First Run](tutorials/agency-first-run.md)
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)

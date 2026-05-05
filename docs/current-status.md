@@ -78,6 +78,8 @@ Phase 30 — Consumer Submission Execution is closed as Outcome B — blocker-do
 
 Phase 31 — Agency Pilot Program Package is complete for the docs-only pilot package scope. The repo now has an agency pilot overview, kickoff agenda, pilot checklist, responsibility matrix, suggested non-SLA timeline, training outline, feedback template, risk register, success/failure criteria, public launch readiness checklist, and closeout summary. Phase 31 did not add backend features, runtime integrations, consumer status changes, evidence artifacts, submissions, external contacts, legal/procurement commitments, paid support/SLA promises, agency endorsement claims, consumer acceptance claims, hosted SaaS claims, production-readiness claims, or CAL-ITP/Caltrans compliance claims. All seven consumer and aggregator targets remain `prepared`.
 
+Phase 32 — Public Launch And Ecosystem Outreach is complete for draft public launch materials only. The repo now has an agency one-pager, demo video outline, draft-only public share copy, ecosystem positioning, and a public launch checklist with a claim-to-evidence table and no-logo/no-affiliation rule. README and docs navigation point readers to the new materials and contributor paths without turning the README into a phase ledger. Phase 32 did not post announcements, publish social copy, email agencies, contact reporters, contact consumers or aggregators, or complete a public launch. It did not change backend behavior, runtime integrations, public feed URLs, consumer statuses, evidence artifacts, legal/procurement commitments, paid support/SLA promises, hosted SaaS claims, agency endorsement claims, consumer acceptance claims, production-readiness claims, or CAL-ITP/Caltrans compliance claims.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -111,6 +113,11 @@ The repo has:
 - `docs/agency-pilot-checklist.md`
 - `docs/agency-training-outline.md`
 - `docs/agency-feedback-template.md`
+- `docs/agency-one-pager.md`
+- `docs/demo-video-outline.md`
+- `docs/public-share-copy.md`
+- `docs/ecosystem-positioning.md`
+- `docs/public-launch-checklist.md`
 - `docs/phase-plan.md`
 - `docs/decisions.md`
 - `docs/backlog.md`
@@ -146,6 +153,7 @@ The repo has:
 - `docs/handoffs/phase-29b.md`
 - `docs/handoffs/phase-30.md`
 - `docs/handoffs/phase-31.md`
+- `docs/handoffs/phase-32.md`
 - `docs/handoffs/track-a-external-proof.md`
 - `docs/handoffs/track-b-roadmap.md`
 
@@ -314,11 +322,12 @@ The following are still missing or incomplete unless a later handoff says otherw
 - consumer submission, review, acceptance, rejection, or blocker evidence from third parties
 - agency-owned or agency-approved stable URL/domain proof for a final public feed root
 - real device or vendor AVL integration evidence beyond local simulator/no-hardware examples and templates
+- actual public launch, agency outreach, consumer outreach, or adoption evidence
 - marketplace/vendor-equivalent service packaging and support commitments
 
 ## Current Phase
 
-**Active phase:** Phase 31 — Agency Pilot Program Package is complete for the docs-only pilot package scope. Phase 32 — Public Launch And Ecosystem Outreach is the recommended next implementation phase, but it must not assume agency adoption, consumer submission, review, acceptance, rejection, blocker, ingestion, listing, display, CAL-ITP/Caltrans compliance, hosted SaaS availability, paid support/SLA coverage, or production readiness evidence exists. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 31 remain closed for their documented scopes.
+**Active phase:** Phase 32 — Public Launch And Ecosystem Outreach is complete for the docs-only draft public launch materials scope. The recommended next roadmap step is to pause stronger public claims and pursue real retained evidence: agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, or real deployment operations evidence. Track A — External Proof And Adoption is complete for the documented docs-only operator workflow, evidence intake, artifact-directory, and agency-domain readiness scope. Phases 12 through 32 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -330,7 +339,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Phase 27 added selected repository-level multi-agency isolation tests and boundary docs without claiming production multi-tenant operations. Phase 28 added docs-first operations hardening, templates, alert delivery proof, capacity guidance, secret rotation, handover, and evidence refresh guidance without runtime or evidence-claim changes. Phase 29 added synthetic replay quality expansion without claiming real-world ETA accuracy, real route/time-period coverage, production-grade ETA quality, external predictor integration, or evidence-claim changes. Phase 29A documented and tested the external predictor adapter boundary without adding runtime external predictor integration, runtime config, external services, public feed URL changes, GTFS-RT contract changes, consumer-status changes, auth-boundary changes, schema changes, or stronger ETA/compliance/vendor-support claims. Phase 29B added a synthetic dry-run AVL/vendor adapter pilot behind the existing telemetry boundary without network send mode, real vendor data, credentials, external dependencies, public feed URL changes, consumer-status changes, API changes, or stronger vendor/reliability claims. Phase 30 closed as Outcome B — blocker-documented closure only at the phase level; no target was selected, no target-specific blocker artifact exists, no target moved to `blocked`, and all seven targets remain `prepared`. Phase 31 added agency pilot program docs, kickoff agenda, checklist, training outline, feedback template, risk register, responsibility matrix, public launch readiness boundary, and closeout summary without runtime, evidence, consumer-status, or support-commitment changes. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 32. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Phase 27 added selected repository-level multi-agency isolation tests and boundary docs without claiming production multi-tenant operations. Phase 28 added docs-first operations hardening, templates, alert delivery proof, capacity guidance, secret rotation, handover, and evidence refresh guidance without runtime or evidence-claim changes. Phase 29 added synthetic replay quality expansion without claiming real-world ETA accuracy, real route/time-period coverage, production-grade ETA quality, external predictor integration, or evidence-claim changes. Phase 29A documented and tested the external predictor adapter boundary without adding runtime external predictor integration, runtime config, external services, public feed URL changes, GTFS-RT contract changes, consumer-status changes, auth-boundary changes, schema changes, or stronger ETA/compliance/vendor-support claims. Phase 29B added a synthetic dry-run AVL/vendor adapter pilot behind the existing telemetry boundary without network send mode, real vendor data, credentials, external dependencies, public feed URL changes, consumer-status changes, API changes, or stronger vendor/reliability claims. Phase 30 closed as Outcome B — blocker-documented closure only at the phase level; no target was selected, no target-specific blocker artifact exists, no target moved to `blocked`, and all seven targets remain `prepared`. Phase 31 added agency pilot program docs, kickoff agenda, checklist, training outline, feedback template, risk register, responsibility matrix, public launch readiness boundary, and closeout summary without runtime, evidence, consumer-status, or support-commitment changes. Phase 32 added draft public launch materials, public share copy, ecosystem positioning, and launch truthfulness checklist without outreach, launch, runtime, evidence, consumer-status, or support-commitment changes. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -949,19 +958,49 @@ Phase 31 check results:
 - post-edit `git diff --check`: initially found one extra blank line at EOF in `docs/handoffs/latest.md`; fixed, then final rerun passed
 - blocked commands: none
 
+## Phase 32 Progress
+
+Phase 32 is complete for draft public launch materials only:
+- added `docs/agency-one-pager.md` with the problem, Open Transit RT solution, who it helps, what works today, pilot path, requirements, readiness boundaries, evidence boundaries, and agency next steps
+- added `docs/demo-video-outline.md` with a local startup, GTFS import/demo feed, public feed URL, Operations Console, telemetry or dry-run adapter, validation/evidence, consumer packet boundary, and pilot package script
+- added `docs/public-share-copy.md` with draft-only short, medium, and longer copy for GitHub launch, agency/evaluator, contributor, and transit/open-data audiences
+- added `docs/ecosystem-positioning.md` covering GTFS/GTFS Realtime, validators, Caltrans/CAL-ITP-style readiness, downstream consumers and aggregators, agency-owned domains, TheTransitClock/external predictor adapters, AVL/vendor adapters, and other open-source transit tooling
+- added `docs/public-launch-checklist.md` with truthfulness/security checks, no-logo/no-affiliation rule, and a claim-to-evidence table
+- updated README and docs navigation to point to the new materials and explicit contributor paths
+- added `docs/handoffs/phase-32.md`
+- preserved the prepared-only consumer state; all seven consumer and aggregator targets remain `prepared`
+- did not post an announcement, publish social copy, email agencies, contact reporters, contact consumers or aggregators, submit feeds, verify official consumer paths, add evidence artifacts, or complete a public launch
+- did not add backend features, runtime integrations, consumer status changes, legal/procurement commitments, paid support/SLA promises, agency endorsement claims, consumer acceptance claims, hosted SaaS claims, production-readiness claims, marketplace/vendor-equivalence claims, production-grade ETA claims, or CAL-ITP/Caltrans compliance claims
+
+Phase 32 check results:
+- pre-implementation `make validate`: passed
+- pre-implementation `make test`: passed
+- pre-implementation `git diff --check`: passed
+- post-edit lightweight internal Markdown link/path check: passed
+- post-edit consumer tracker status check: passed; all seven targets remain `prepared`
+- post-edit targeted public-messaging scan: reviewed; matches are negative/boundary wording, current truth-state language, or required claim-to-evidence/checklist wording
+- post-edit targeted secret/private-data scan: reviewed; no committed private artifacts found
+- post-edit `make validate`: passed
+- post-edit `make test`: passed
+- post-edit `make realtime-quality`: passed
+- post-edit `git diff --check`: passed
+- post-edit `make smoke`: passed
+- post-edit `make test-integration`: passed
+- post-edit `docker compose -f deploy/docker-compose.yml config`: passed
+- post-edit final `git diff --check`: passed
+- blocked command: post-edit `make demo-agency-flow` blocked during Docker image pull for the pinned GTFS-RT validator and was interrupted after no progress for several minutes
+
 ## Next Recommended Step
 
-Start Phase 32 — Public Launch And Ecosystem Outreach when maintainers are ready to continue Track B implementation. Phase 32 must proceed from the prepared-only consumer state and must not assume agency adoption, consumer submission, review, acceptance, rejection, blocker, ingestion, listing, display, CAL-ITP/Caltrans compliance, hosted SaaS availability, paid support/SLA coverage, or production readiness evidence exists.
+Pause stronger public claims and pursue real retained evidence before stronger launch, adoption, readiness, or consumer-status wording.
+
+Candidate next work should be one of:
+- agency-owned or agency-approved final-root proof
+- authorized target-specific consumer submission evidence
+- real agency pilot evidence
+- real deployment operations evidence
 
 Use the Track A workflow when a human operator is ready to verify an official target path or record real target-originated evidence. If no real third-party artifacts are available, keep every target at `prepared`.
-
-Consumer/aggregator status should still move only when real external artifacts exist:
-1. review the prepared target-specific packet under `docs/evidence/consumer-submissions/packets/`
-2. verify the target's current official submission path outside the repo
-3. confirm agency identity, feed URLs, license/contact metadata, validation status, consumer-specific requirements, and redactions
-4. submit through the named consumer or aggregator workflow outside the repo only when authorized
-5. add only redacted correspondence, receipt, ticket, portal screenshot, rejection, blocker, or acceptance evidence
-6. keep the OCI pilot operator jobs and validator tooling maintained if the pilot remains live
 
 ## What Not To Do Next
 
