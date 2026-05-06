@@ -29,11 +29,15 @@ only. No active published LA Metro local schedule proof, five-path fetch proof,
 validator proof, telemetry simulator proof, admin/private boundary proof,
 final-root evidence, or consumer evidence was collected.
 
-The recommended next roadmap step is to fix the large public GTFS import/publish
-timeout and retry Phase 33 Outcome C before making stronger public-GTFS handling
-claims. Other retained-evidence paths remain agency-owned/final-root proof,
-authorized target-specific consumer submission evidence, real agency pilot
-evidence, or real deployment operations evidence.
+The large public GTFS import/publish timeout was addressed after Phase 33 by
+adding configurable import timeout handling, bulk loading for large GTFS tables,
+and fresh-context failure reporting. A local post-fix verification import
+published LA Metro Bus GTFS as `gtfs-import-26`, but no full Outcome C packet
+was collected. The recommended next roadmap step is to retry Phase 33 Outcome C
+before making stronger public-GTFS handling claims. Other retained-evidence
+paths remain agency-owned/final-root proof, authorized target-specific consumer
+submission evidence, real agency pilot evidence, or real deployment operations
+evidence.
 
 ## Phase 32 Summary
 
@@ -165,6 +169,30 @@ docker compose -f deploy/docker-compose.yml config
 - Post-edit `make test` — passed.
 - Post-edit `git diff --check` — passed.
 
+## Post-Phase-33 Import Fix Results
+
+- Added configurable `cmd/gtfs-import` timeout through `-timeout` and
+  `GTFS_IMPORT_TIMEOUT`; default is now 15 minutes, and `0` disables the import
+  timeout.
+- Replaced per-row publish inserts for `gtfs_stop_time` and
+  `gtfs_shape_point` with `pgx.CopyFrom`; shape point geometry is populated
+  after bulk load.
+- Changed publish-failure report recording to use a fresh short context, so a
+  canceled import context does not leave the `gtfs_import` row stuck at
+  `started`.
+- Added focused CLI timeout tests and DB-backed timeout failure-report tests.
+- Post-fix focused `go test ./cmd/gtfs-import ./internal/gtfs` — passed.
+- Post-fix `make validate` — passed.
+- Post-fix `make test` — passed.
+- Post-fix `git diff --check` — passed.
+- Post-fix first `make test-integration` attempt — blocked because Postgres was
+  not ready immediately after `make db-up`; rerun after `pg_isready` passed.
+- Post-fix `make test-integration` rerun — passed.
+- Post-fix LA Metro import verification — passed locally; `gtfs-import-26`
+  published with 114 routes, 11,884 stops, 33,642 trips, 2,105,503 stop_times,
+  and 343,530 shape points.
+- Post-fix `make db-down` — passed.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -207,7 +235,8 @@ Do not edit target-specific consumer records, `docs/evidence/consumer-submission
 
 ## Exact Next-Step Recommendation
 
-Fix the large public GTFS import/publish timeout exposed by Phase 33, ensure timeout failures persist a clean failed import report, then retry Phase 33 Outcome C.
+Retry Phase 33 Outcome C with a dated public-safe evidence packet now that the
+large public GTFS import/publish blocker has been fixed.
 
 Other candidate evidence work remains:
 

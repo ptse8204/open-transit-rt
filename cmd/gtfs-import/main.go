@@ -9,19 +9,21 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	appdb "open-transit-rt/internal/db"
 	"open-transit-rt/internal/gtfs"
 )
 
+const defaultImportTimeout = 15 * time.Minute
+
 type importRunner interface {
 	ImportZip(ctx context.Context, opts gtfs.ImportOptions) (gtfs.ImportResult, error)
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+	ctx := context.Background()
 
 	pool, err := appdb.Connect(ctx, appdb.LoadConfigFromEnv())
 	if err != nil {
@@ -42,6 +44,7 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer,
 	zipPath := fs.String("zip", "", "path to gtfs.zip")
 	actorID := fs.String("actor-id", "system", "actor id for audit logging")
 	notes := fs.String("notes", "", "optional import notes")
+	timeout := fs.Duration("timeout", loadImportTimeout(), "import timeout duration; set 0 to disable")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
@@ -58,7 +61,14 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer,
 		return 2
 	}
 
-	result, err := runner.ImportZip(ctx, gtfs.ImportOptions{
+	importCtx := ctx
+	var cancel context.CancelFunc
+	if *timeout > 0 {
+		importCtx, cancel = context.WithTimeout(ctx, *timeout)
+		defer cancel()
+	}
+
+	result, err := runner.ImportZip(importCtx, gtfs.ImportOptions{
 		AgencyID: *agencyID,
 		ZipPath:  *zipPath,
 		ActorID:  *actorID,
@@ -78,4 +88,16 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer,
 		return 1
 	}
 	return 0
+}
+
+func loadImportTimeout() time.Duration {
+	raw := os.Getenv("GTFS_IMPORT_TIMEOUT")
+	if strings.TrimSpace(raw) == "" {
+		return defaultImportTimeout
+	}
+	timeout, err := time.ParseDuration(raw)
+	if err != nil {
+		return defaultImportTimeout
+	}
+	return timeout
 }

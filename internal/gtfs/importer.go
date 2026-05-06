@@ -35,6 +35,28 @@ type ImportService struct {
 	now  func() time.Time
 }
 
+type copyRowSource[T any] struct {
+	rows   []T
+	index  int
+	values func(T) ([]any, error)
+}
+
+func (s *copyRowSource[T]) Next() bool {
+	if s.index >= len(s.rows) {
+		return false
+	}
+	s.index++
+	return true
+}
+
+func (s *copyRowSource[T]) Values() ([]any, error) {
+	return s.values(s.rows[s.index-1])
+}
+
+func (s *copyRowSource[T]) Err() error {
+	return nil
+}
+
 type validationReportLinks struct {
 	ImportID       int64
 	DraftPublishID int64
@@ -176,11 +198,13 @@ func (s *ImportService) ImportZip(ctx context.Context, opts ImportOptions) (Impo
 			Code:    "publish_failed",
 			Message: err.Error(),
 		})
-		if markErr := s.markImportFailed(ctx, importID, failedReport); markErr != nil {
+		reportCtx, cancel := failureReportContext()
+		defer cancel()
+		if markErr := s.markImportFailed(reportCtx, importID, failedReport); markErr != nil {
 			result := reportResult(opts.AgencyID, importID, "", ImportStatusFailed, failedReport, false, "publish failed and failure report could not be stored")
 			return result, &ImportError{Result: result, Err: fmt.Errorf("gtfs import publish failed and failure report could not be stored: publish error: %v; report error: %w", err, markErr)}
 		}
-		if reportErr := s.insertValidationReport(ctx, nil, importID, opts.AgencyID, "", failedReport); reportErr != nil {
+		if reportErr := s.insertValidationReport(reportCtx, nil, importID, opts.AgencyID, "", failedReport); reportErr != nil {
 			result := reportResult(opts.AgencyID, importID, "", ImportStatusFailed, failedReport, false, "publish failed and validation report could not be stored")
 			return result, &ImportError{Result: result, Err: fmt.Errorf("gtfs import publish failed and validation report could not be stored: publish error: %v; report error: %w", err, reportErr)}
 		}
@@ -189,6 +213,10 @@ func (s *ImportService) ImportZip(ctx context.Context, opts ImportOptions) (Impo
 	}
 
 	return reportResult(opts.AgencyID, importID, feedVersionID, ImportStatusPublished, report, true, ""), nil
+}
+
+func failureReportContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 30*time.Second)
 }
 
 type importSource struct {
@@ -540,25 +568,11 @@ func insertFeedRows(ctx context.Context, tx pgx.Tx, agencyID string, feedVersion
 			return fmt.Errorf("insert trip %s: %w", trip.ID, err)
 		}
 	}
-	for _, stopTime := range feed.StopTimes {
-		if _, err := tx.Exec(ctx, `
-			INSERT INTO gtfs_stop_time (
-				trip_id, feed_version_id, agency_id, arrival_time, departure_time, stop_id,
-				stop_sequence, pickup_type, drop_off_type, shape_dist_traveled
-			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-		`, stopTime.TripID, feedVersionID, agencyID, nullString(stopTime.ArrivalTime), nullString(stopTime.DepartureTime),
-			stopTime.StopID, stopTime.StopSequence, stopTime.PickupType, stopTime.DropOffType, stopTime.ShapeDistTraveled); err != nil {
-			return fmt.Errorf("insert stop time %s/%d: %w", stopTime.TripID, stopTime.StopSequence, err)
-		}
+	if err := copyStopTimes(ctx, tx, agencyID, feedVersionID, feed.StopTimes); err != nil {
+		return err
 	}
-	for _, point := range feed.ShapePoints {
-		if _, err := tx.Exec(ctx, `
-			INSERT INTO gtfs_shape_point (shape_id, feed_version_id, agency_id, lat, lon, sequence, dist_traveled, geom)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, ST_SetSRID(ST_MakePoint($5, $4), 4326))
-		`, point.ShapeID, feedVersionID, agencyID, point.Lat, point.Lon, point.Sequence, point.DistTraveled); err != nil {
-			return fmt.Errorf("insert shape point %s/%d: %w", point.ShapeID, point.Sequence, err)
-		}
+	if err := copyShapePoints(ctx, tx, agencyID, feedVersionID, feed.ShapePoints); err != nil {
+		return err
 	}
 	for shapeID, points := range feed.ShapePointsByShape {
 		if len(points) < 2 {
@@ -583,6 +597,89 @@ func insertFeedRows(ctx context.Context, tx pgx.Tx, agencyID string, feedVersion
 		`, frequency.TripID, feedVersionID, agencyID, frequency.StartTime, frequency.EndTime, frequency.HeadwaySecs, frequency.ExactTimes); err != nil {
 			return fmt.Errorf("insert frequency %s/%s: %w", frequency.TripID, frequency.StartTime, err)
 		}
+	}
+	return nil
+}
+
+func copyStopTimes(ctx context.Context, tx pgx.Tx, agencyID string, feedVersionID string, stopTimes []importStopTime) error {
+	source := &copyRowSource[importStopTime]{
+		rows: stopTimes,
+		values: func(stopTime importStopTime) ([]any, error) {
+			return []any{
+				stopTime.TripID,
+				feedVersionID,
+				agencyID,
+				nullString(stopTime.ArrivalTime),
+				nullString(stopTime.DepartureTime),
+				stopTime.StopID,
+				stopTime.StopSequence,
+				stopTime.PickupType,
+				stopTime.DropOffType,
+				stopTime.ShapeDistTraveled,
+			}, nil
+		},
+	}
+	return copyRows(ctx, tx, "stop times", len(stopTimes), pgx.Identifier{"gtfs_stop_time"}, []string{
+		"trip_id",
+		"feed_version_id",
+		"agency_id",
+		"arrival_time",
+		"departure_time",
+		"stop_id",
+		"stop_sequence",
+		"pickup_type",
+		"drop_off_type",
+		"shape_dist_traveled",
+	}, source)
+}
+
+func copyShapePoints(ctx context.Context, tx pgx.Tx, agencyID string, feedVersionID string, shapePoints []importShapePoint) error {
+	source := &copyRowSource[importShapePoint]{
+		rows: shapePoints,
+		values: func(point importShapePoint) ([]any, error) {
+			return []any{
+				point.ShapeID,
+				feedVersionID,
+				agencyID,
+				point.Lat,
+				point.Lon,
+				point.Sequence,
+				point.DistTraveled,
+			}, nil
+		},
+	}
+	if err := copyRows(ctx, tx, "shape points", len(shapePoints), pgx.Identifier{"gtfs_shape_point"}, []string{
+		"shape_id",
+		"feed_version_id",
+		"agency_id",
+		"lat",
+		"lon",
+		"sequence",
+		"dist_traveled",
+	}, source); err != nil {
+		return err
+	}
+	if len(shapePoints) == 0 {
+		return nil
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE gtfs_shape_point
+		SET geom = ST_SetSRID(ST_MakePoint(lon, lat), 4326)
+		WHERE agency_id = $1
+		  AND feed_version_id = $2
+	`, agencyID, feedVersionID); err != nil {
+		return fmt.Errorf("populate shape point geometry: %w", err)
+	}
+	return nil
+}
+
+func copyRows(ctx context.Context, tx pgx.Tx, label string, want int, table pgx.Identifier, columns []string, source pgx.CopyFromSource) error {
+	inserted, err := tx.CopyFrom(ctx, table, columns, source)
+	if err != nil {
+		return fmt.Errorf("copy %s: %w", label, err)
+	}
+	if inserted != int64(want) {
+		return fmt.Errorf("copy %s inserted %d rows, want %d", label, inserted, want)
 	}
 	return nil
 }

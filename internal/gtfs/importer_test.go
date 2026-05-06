@@ -359,6 +359,61 @@ func TestImportServiceIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("publish timeout stores failed import report with fresh context", func(t *testing.T) {
+		resetGTFSImportData(t, ctx, pool)
+		_, err := pool.Exec(ctx, `
+			CREATE OR REPLACE FUNCTION slow_gtfs_import_feed_version_insert()
+			RETURNS trigger AS $$
+			BEGIN
+				PERFORM pg_sleep(0.2);
+				RETURN NEW;
+			END;
+			$$ LANGUAGE plpgsql;
+
+			CREATE TRIGGER slow_gtfs_import_feed_version_insert_trigger
+			BEFORE INSERT ON feed_version
+			FOR EACH ROW EXECUTE FUNCTION slow_gtfs_import_feed_version_insert();
+		`)
+		if err != nil {
+			t.Fatalf("install slow trigger: %v", err)
+		}
+		t.Cleanup(func() {
+			_, _ = pool.Exec(ctx, `
+				DROP TRIGGER IF EXISTS slow_gtfs_import_feed_version_insert_trigger ON feed_version;
+				DROP FUNCTION IF EXISTS slow_gtfs_import_feed_version_insert();
+			`)
+		})
+
+		timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Millisecond)
+		defer cancel()
+		path := writeZipFixture(t, "../../testdata/gtfs/valid-small", nil)
+		result, err := service.ImportZip(timeoutCtx, ImportOptions{AgencyID: "demo-agency", ZipPath: path, ActorID: "test"})
+		if err == nil {
+			t.Fatalf("publish timeout unexpectedly succeeded")
+		}
+		if result.Status != ImportStatusFailed || !result.ReportStored || result.FeedVersionID != "" {
+			t.Fatalf("result = %+v, want failed stored timeout report without feed version", result)
+		}
+
+		var failedImports int
+		if err := pool.QueryRow(ctx, `
+			SELECT count(*)
+			FROM gtfs_import gi
+			JOIN validation_report vr ON vr.gtfs_import_id = gi.id
+			WHERE gi.agency_id = 'demo-agency'
+			  AND gi.status = 'failed'
+			  AND gi.feed_version_id IS NULL
+			  AND vr.feed_version_id IS NULL
+			  AND vr.status = 'failed'
+			  AND vr.report_json::text LIKE '%context deadline exceeded%'
+		`).Scan(&failedImports); err != nil {
+			t.Fatalf("count failed timeout reports: %v", err)
+		}
+		if failedImports != 1 {
+			t.Fatalf("failed timeout reports = %d, want 1 gtfs_import plus validation_report", failedImports)
+		}
+	})
+
 	t.Run("second valid import switches active feed", func(t *testing.T) {
 		resetGTFSImportData(t, ctx, pool)
 		first, err := service.ImportZip(ctx, ImportOptions{AgencyID: "demo-agency", ZipPath: writeZipFixture(t, "../../testdata/gtfs/valid-small", nil), ActorID: "test"})

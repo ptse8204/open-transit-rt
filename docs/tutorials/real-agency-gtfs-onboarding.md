@@ -81,8 +81,12 @@ go run ./cmd/gtfs-import \
   -agency-id <agency-id> \
   -zip /path/to/reviewed-agency-gtfs.zip \
   -actor-id <operator-or-reviewer> \
-  -notes "real agency GTFS import after approval review"
+  -notes "real agency GTFS import after approval review" \
+  -timeout 15m
 ```
+
+The import timeout is configurable with `-timeout` or `GTFS_IMPORT_TIMEOUT`.
+Use a longer timeout for large public feeds with many `stop_times.txt` rows.
 
 Do not commit the ZIP path, raw output, or notes if they reveal private local paths, private contacts, private operator notes, or non-public agency data.
 

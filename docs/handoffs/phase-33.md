@@ -7,8 +7,8 @@ Phase 33 — Public GTFS Local/Pilot Evidence
 ## Status
 
 - Complete as Outcome B — attempted public-GTFS run blocked.
-- Active phase after this handoff: address the large public GTFS import timeout
-  blocker before retrying Outcome C evidence.
+- Active phase after this handoff: retry Outcome C evidence collection after
+  the post-Phase-33 import fix.
 
 Phase 33 added the public GTFS local/pilot evidence docs and templates, then
 attempted the preferred LA Metro Bus GTFS local run. The core run blocked during
@@ -17,6 +17,14 @@ current importer context while inserting `stop_times.txt`.
 
 Do not call Phase 33 evidence completed. This is an attempted-run blocked
 closure only.
+
+Post-Phase-33 implementation note: the large-import blocker was later addressed
+in code by adding configurable import timeout handling, bulk `CopyFrom` loading
+for large GTFS tables, and fresh-context failure reporting. A local post-fix
+verification import published LA Metro Bus GTFS as `gtfs-import-26`, but the
+full Outcome C evidence packet was not collected. Phase 33 remains Outcome B
+until a future run records published schedule proof, five-path fetch proof, and
+claim-boundary summaries.
 
 ## What Was Implemented
 
@@ -112,11 +120,13 @@ Blocked for Outcome C:
 
 ## Known Issues
 
-- The repo importer has a fixed command context that is too short for the
-  current LA Metro Bus GTFS dataset on this local environment.
+- The repo importer had a fixed command context that was too short for the
+  current LA Metro Bus GTFS dataset on this local environment. This was fixed
+  after Phase 33 by making the import timeout configurable and increasing the
+  default.
 - The failed `LACMTA` import left the `gtfs_import` row at `started` because
-  the context expired before the failure update completed. This should be
-  reviewed before a future large-dataset retry.
+  the context expired before the failure update completed. This was fixed after
+  Phase 33 by recording publish failures with a fresh short context.
 - The local Compose app defaults to `AGENCY_ID=demo-agency`; a future Outcome C
   run for public GTFS with a different `agency_id` needs a documented local
   agency setup and service configuration path.
@@ -152,9 +162,10 @@ real-world ETA accuracy, or production-grade ETA quality from Phase 33.
   - `make test`
   - `git diff --check`
 - Known blockers:
-  - large public GTFS import/publish exceeds the current importer context;
+  - Phase 33 still lacks Outcome C evidence collection after the import fix;
   - local app agency configuration defaults to `demo-agency`.
 - Recommended first implementation slice:
-  - make the GTFS import command timeout/configuration suitable for large
-    public datasets and ensure timeout failures persist a clean failed import
-    report, then retry Phase 33 Outcome C.
+  - retry Phase 33 Outcome C with a dated packet that proves the published
+    schedule is the imported public GTFS and records five-path fetch summaries,
+    validators or blockers, telemetry/dry-run status, and admin/private boundary
+    status.

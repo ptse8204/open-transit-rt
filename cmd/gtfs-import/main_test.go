@@ -7,6 +7,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"open-transit-rt/internal/gtfs"
 )
@@ -15,9 +16,11 @@ type fakeImporter struct {
 	result gtfs.ImportResult
 	err    error
 	opts   gtfs.ImportOptions
+	ctx    context.Context
 }
 
-func (f *fakeImporter) ImportZip(_ context.Context, opts gtfs.ImportOptions) (gtfs.ImportResult, error) {
+func (f *fakeImporter) ImportZip(ctx context.Context, opts gtfs.ImportOptions) (gtfs.ImportResult, error) {
+	f.ctx = ctx
 	f.opts = opts
 	return f.result, f.err
 }
@@ -55,6 +58,38 @@ func TestRunOutputsSuccessfulImportResult(t *testing.T) {
 	}
 	if result.Status != gtfs.ImportStatusPublished || result.FeedVersionID != "gtfs-import-7" {
 		t.Fatalf("result = %+v, want published JSON", result)
+	}
+}
+
+func TestRunAppliesConfiguredTimeout(t *testing.T) {
+	fake := &fakeImporter{result: gtfs.ImportResult{
+		AgencyID:     "demo-agency",
+		Status:       gtfs.ImportStatusPublished,
+		ReportStored: true,
+	}}
+	var stdout, stderr bytes.Buffer
+	exitCode := run(context.Background(), []string{"-agency-id", "demo-agency", "-zip", "/tmp/gtfs.zip", "-timeout", "7m"}, &stdout, &stderr, fake)
+	if exitCode != 0 {
+		t.Fatalf("exit code = %d, stderr = %q", exitCode, stderr.String())
+	}
+	deadline, ok := fake.ctx.Deadline()
+	if !ok {
+		t.Fatalf("import context has no deadline")
+	}
+	remaining := time.Until(deadline)
+	if remaining < 6*time.Minute || remaining > 7*time.Minute {
+		t.Fatalf("deadline remaining = %s, want close to 7m", remaining)
+	}
+}
+
+func TestLoadImportTimeoutFromEnv(t *testing.T) {
+	t.Setenv("GTFS_IMPORT_TIMEOUT", "23m")
+	if got := loadImportTimeout(); got != 23*time.Minute {
+		t.Fatalf("loadImportTimeout = %s, want 23m", got)
+	}
+	t.Setenv("GTFS_IMPORT_TIMEOUT", "not-a-duration")
+	if got := loadImportTimeout(); got != defaultImportTimeout {
+		t.Fatalf("invalid loadImportTimeout = %s, want default %s", got, defaultImportTimeout)
 	}
 }
 
