@@ -1,101 +1,63 @@
-# Open Transit RT
+# Open Transit RT — Post-Outcome-C Roadmap Export
 
-[![Star Open Transit RT on GitHub](https://img.shields.io/github/stars/ptse8204/open-transit-rt?style=social)](https://github.com/ptse8204/open-transit-rt)
+Generated: 2026-05-06
 
-Open Transit RT is an open-source backend for small transit agencies that want a practical way to publish GTFS schedules and GTFS Realtime feeds.
+This export updates the prior roadmap package to match the current repo state where **Phase 33 — Public GTFS Local/Pilot Evidence is complete as Outcome C**.
 
-It is for agencies, civic technologists, operators, contributors, and evaluators who want to understand or run a lightweight transit data stack without starting from a large commercial platform.
+Use these files as repo-ready drafts for Codex. They are written to be copied into the project at the paths shown below, but they should still be reviewed before committing.
 
-![Illustrative diagram showing an agency moving from GTFS setup and vehicle telemetry to validation and public GTFS plus GTFS Realtime feeds.](wiki/assets/agency-journey-to-public-feeds.png)
+## Current baseline assumed by this export
 
-*Illustrative teaching graphic, not a product screenshot. It shows the intended project flow at a high level.*
+- Phases 0 through 33 are closed for their documented scopes.
+- Phase 33 is complete as Outcome C for **local/pilot public static GTFS dataset handling**.
+- The LA Metro Bus public GTFS run completed locally with retained public-safe summaries.
+- The large-import blocker exposed during the first LA Metro attempt was fixed inside the Phase 33 work: configurable import timeout, `pgx.CopyFrom` for large stop-time and shape-point publish inserts, and safer failure-report persistence.
+- Phase 33 does **not** prove agency adoption, agency approval, official feed status, agency-owned final-root proof, consumer submission/review/acceptance, Caltrans/CAL-ITP compliance, hosted SaaS, production readiness, real vendor AVL compatibility, real LA Metro realtime data, real-world ETA accuracy, or production-grade ETA quality.
+- Consumer targets remain `prepared` only.
+- The post-Phase-32 final-root blocker remains unresolved.
 
-## What This Is
+## Files in this export
 
-- Open-source tooling to help agencies publish GTFS and GTFS Realtime feeds.
-- A mostly Go backend with Postgres/PostGIS, GTFS import, GTFS Studio drafts, vehicle telemetry ingest, conservative trip assignment, feed publishing, Alerts, validation records, and readiness evidence tracking.
-- A project that can support work toward Caltrans/CAL-ITP-style transit data readiness when paired with real hosting, operations, and evidence.
+Copy or review these files in the corresponding repo locations:
 
-## What This Is Not
-
-- Not a hosted SaaS product.
-- Not a CAD/AVL replacement.
-- Not proof of consumer acceptance by itself.
-- Not a claim of full CAL-ITP/Caltrans compliance or universal production readiness.
-
-## What It Can Do Today
-
-Open Transit RT can help you:
-
-- import an existing static GTFS ZIP or publish typed GTFS Studio drafts
-- receive authenticated vehicle telemetry
-- keep vehicle matching conservative when trip assignment is uncertain
-- publish public GTFS and GTFS Realtime feed outputs
-- keep Trip Updates behind a replaceable prediction adapter
-- author and publish basic service alerts
-- run validation, scorecard, and evidence workflows
-- try the full local agency demo from committed project files
-
-## Try It Locally
-
-Prerequisites for the simplest local trial: Docker with Compose support and `curl`.
-
-```bash
-make agency-app-up
+```text
+docs/handoffs/repo-evaluation-forward-roadmap-2026-05-06-post-outcome-c.md
+docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md
+docs/handoffs/phase-34-kickoff.md
+docs/future-roadmap-post-outcome-c.md
+docs/status-maintenance-patch-post-outcome-c.md
+docs/final-root-operator-request.md
+docs/tutorials/public-gtfs-local-pilot.md
 ```
 
-The local app package starts the full stack behind `http://localhost:8080`, imports the committed sample GTFS, bootstraps feed metadata, verifies public feed URLs, and prints next steps.
+## Recommended use
 
-Validators are optional for startup. To install and check them:
-
-```bash
-make validators-install validators-check
-```
-
-For the deeper executable demo:
+1. Start Codex with `docs/handoffs/phase-34-kickoff.md`.
+2. Treat `docs/handoffs/latest.md` as the source of truth before editing.
+3. Preserve all claim boundaries.
+4. Do not update consumer statuses, final-root evidence, or target-specific artifacts unless retained external evidence exists.
+5. After Codex applies the patch, run:
 
 ```bash
-make demo-agency-flow
+make validate
+make test
+git diff --check
 ```
 
-For a guided version, start with the [Agency First Run](docs/tutorials/agency-first-run.md), [Local Quickstart](wiki/local-quickstart.md), or [Agency Demo](wiki/agency-demo.md).
+Run additional checks when touched surfaces require them:
 
-## Where To Go Next
+```bash
+make realtime-quality
+make smoke
+make test-integration
+docker compose -f deploy/docker-compose.yml config
+```
 
-| Need | Start here |
-| --- | --- |
-| 🧭 Understand the system | [How It Works](wiki/how-it-works.md) |
-| 🚌 Try the full local package | [Agency First Run](docs/tutorials/agency-first-run.md) |
-| 🗂️ Bring a real GTFS ZIP | [Real Agency GTFS Onboarding](docs/tutorials/real-agency-gtfs-onboarding.md) |
-| 📡 Connect device or AVL telemetry | [Device And AVL Integration](docs/tutorials/device-avl-integration.md) |
-| 🧾 Plan an agency pilot | [Agency Pilot Program](docs/agency-pilot-program.md) |
-| 💻 Run it on your machine | [Local Quickstart](wiki/local-quickstart.md) |
-| 🚌 Walk through the agency demo | [Agency Demo](wiki/agency-demo.md) |
-| 🚀 Plan a small deployment | [Deployment Guide](wiki/deployment-guide.md) |
-| ✅ Review readiness and evidence | [Readiness And Evidence](wiki/readiness-and-evidence.md) |
-| 📝 Review public launch materials | [Agency One-Pager](docs/agency-one-pager.md), [Demo Outline](docs/demo-video-outline.md), [Public Launch Checklist](docs/public-launch-checklist.md) |
-| 📚 Browse all documentation | [Documentation Home](docs/README.md) |
-| 🤝 Support or contribute | [Support And Contribute](wiki/support-and-contribute.md) |
+## Why this export exists
 
-Community/process links: [Contributing](CONTRIBUTING.md), [Code Of Conduct](CODE_OF_CONDUCT.md), [Support Boundaries](docs/support-boundaries.md), [Governance](docs/governance.md), and [Roadmap Status](docs/roadmap-status.md).
+The earlier export assumed Phase 33 remained blocked. The repo now documents Outcome C, so the next work should shift away from large-import hardening and toward:
 
-Release and install links: [Changelog](CHANGELOG.md), [Release Process](docs/release-process.md), [Release Checklist](docs/release-checklist.md), and [Upgrade And Rollback](docs/upgrade-and-rollback.md).
-
-## Evidence And Boundaries
-
-This repo includes local validation workflows, an executable agency demo, a repeatable pilot operations guide, and captured OCI pilot evidence. These are useful signals for evaluating the project.
-
-They are not the same as third-party consumer acceptance, an agency endorsement, full CAL-ITP/Caltrans compliance, or a guarantee that every deployment is production-ready. Those claims require deployment-specific records and external confirmation.
-
-For details, see:
-
-- [Readiness And Evidence](wiki/readiness-and-evidence.md)
-- [Documentation Home](docs/README.md)
-
-## Support The Project
-
-⭐ **[Star Open Transit RT](https://github.com/ptse8204/open-transit-rt)** if this project is useful to you. A GitHub star is like a like or bookmark: it helps more people discover the project and supports continued independent open-source work. A star is not an official agency endorsement.
-
-Useful contributions include focused issues, reproducible demo failures, validator findings, clearer docs, deployment notes, and small-agency workflow feedback.
-
-Contributor starting points: [Contributing](CONTRIBUTING.md), [issue templates](.github/ISSUE_TEMPLATE/), [docs fixes](docs/README.md), [replay fixtures](testdata/replay/README.md), [agency pilot feedback](docs/agency-feedback-template.md), [AVL/vendor adapter examples](testdata/avl-vendor/), [device/AVL guide](docs/tutorials/device-avl-integration.md), [operations runbooks](docs/runbooks/), and public-safe evidence review with the [redaction policy](docs/evidence/redaction-policy.md) and [compliance evidence checklist](docs/compliance-evidence-checklist.md).
+1. post-Outcome-C status/docs consistency;
+2. repeatability of the public-GTFS local/pilot run;
+3. final-root operator request packaging;
+4. the next real retained-evidence track.
