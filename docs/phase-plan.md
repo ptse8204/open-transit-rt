@@ -17,6 +17,10 @@ Related binding docs:
 - `docs/requirements-calitp-compliance.md`
 - `docs/dependencies.md`
 
+Post-Outcome-C note: this file preserves the historical implementation phase
+definitions. For the current post-Phase-33 continuation state, use
+`docs/handoffs/latest.md` and `docs/future-roadmap-post-outcome-c.md`.
+
 ## Implementation policy
 
 - `docs/codex-task.md` defines implementation order.
@@ -58,6 +62,7 @@ These constraints apply to every phase:
 | 7 | Prediction quality and operations workflows | Improve ETA quality, overrides, incidents, and realtime coverage |
 | 8 | Compliance and consumer workflow | Add compliance scorecard, validation, discoverability, and ingestion workflows |
 | 33 | Public GTFS local/pilot evidence | Attempt real public GTFS local/pilot handling proof without final-root or consumer overclaims |
+| 34 | Post-Outcome-C status consistency and evidence readiness | Align post-Outcome-C docs, final-root request guidance, and public-GTFS repeatability guidance without creating external evidence |
 
 ---
 
@@ -369,3 +374,29 @@ official agency feed status, agency-owned final-root proof, consumer
 submission/review/acceptance, consumer ingestion/listing/display,
 Caltrans/CAL-ITP compliance, hosted SaaS availability, production readiness,
 real vendor AVL compatibility, or production-grade ETA quality.
+
+## Phase 34 — Post-Outcome-C Status Consistency And Evidence Readiness
+
+### Goal
+Make the repo status, roadmap, final-root request, public-GTFS repeatability,
+and handoff docs consistent after Phase 33 Outcome C.
+
+### Status
+Complete for docs-only status consistency and evidence-readiness scope.
+
+### Definition of done
+Phase 34 is done when:
+
+- status and roadmap docs no longer contradict Phase 33 Outcome C;
+- `docs/final-root-operator-request.md` exists and is clearly not evidence;
+- `docs/tutorials/public-gtfs-local-pilot.md` exists as repeatability guidance
+  only;
+- the Phase 33 static validator blocker remains clear: Java was unavailable,
+  so static validation did not execute;
+- `docs/handoffs/latest.md` identifies the next retained-evidence forks.
+
+### Boundaries
+Phase 34 is docs-only. It does not add scripts, Makefile targets, runtime code,
+schema changes, migrations, APIs, consumer tracker changes, final-root evidence
+packets, target artifacts, OCI pilot final-root wording, or new external
+evidence.

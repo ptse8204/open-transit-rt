@@ -17,6 +17,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Device Token Lifecycle](device-token-lifecycle.md): rotate, rebind, store, and troubleshoot device bearer credentials safely.
 - [Local Quickstart](local-quickstart.md): bring up the local development environment.
 - [Agency Demo Flow](agency-demo-flow.md): run the executable agency/evaluator demo.
+- [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a Phase 33-style public GTFS local/pilot run without implying agency approval.
 - [Deploy With Docker Compose](deploy-with-docker-compose.md): understand the current deployment path.
 - [Production Checklist](production-checklist.md): review operational work still needed for a real deployment.
 - [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md): run the Phase 17 pilot operations profile.

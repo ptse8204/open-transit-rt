@@ -2,7 +2,10 @@
 
 ## Status
 
-Planned roadmap track. Do not implement until `docs/handoffs/latest.md` explicitly selects a Track B phase as active.
+Track B is active as the productization and evidence-readiness roadmap. Phases
+22 through 34 are closed for their documented scopes. Use
+`docs/handoffs/latest.md` and `docs/future-roadmap-post-outcome-c.md` for the
+current continuation state.
 
 ## Purpose
 
@@ -93,17 +96,29 @@ Rules:
 | 30 | Consumer Submission Execution | Authorized target submissions and retained evidence-based status changes. |
 | 31 | Agency Pilot Program Package | Pilot onboarding kit, training, success criteria, support boundaries. |
 | 32 | Public Launch And Ecosystem Outreach | Public messaging, launch copy, agency one-pager, contributor call-to-action. |
+| 33 | Public GTFS Local/Pilot Evidence | Outcome C public-safe local/pilot evidence for a real public static GTFS dataset. |
+| 34 | Post-Outcome-C Status Consistency And Evidence Readiness | Consistent post-Outcome-C docs, final-root request package, and public-GTFS repeatability guide. |
 
 ## Recommended Next Phase
 
-Start with Phase 32 — Public Launch And Ecosystem Outreach.
+Phase 34 is complete. Select the next retained-evidence fork based on available
+operator authorization and artifacts.
 
-Reason: Phase 31 closed for the docs-only agency pilot package scope. Phase 32
-must proceed from the prepared-only consumer state and must not assume agency
-adoption, consumer submission, review, acceptance, rejection, blocker,
-ingestion, listing, display, CAL-ITP/Caltrans compliance, hosted SaaS
-availability, paid support/SLA coverage, or production readiness evidence
-exists.
+Recommended forks:
+
+- agency-owned or agency-approved final-root proof;
+- authorized target-specific consumer submission evidence;
+- real agency pilot evidence;
+- real deployment operations refresh;
+- real device/vendor AVL evidence;
+- real-world realtime quality evidence.
+
+Reason: Phase 33 Outcome C proves only local/pilot public static GTFS handling,
+and Phase 34 only aligned status and evidence-readiness docs. Neither phase
+supports agency adoption, consumer submission, review, acceptance, rejection,
+blocker, ingestion, listing, display, CAL-ITP/Caltrans compliance, hosted SaaS
+availability, paid support/SLA coverage, production readiness, real vendor AVL
+compatibility, real realtime data, or production-grade ETA-quality claims.
 
 ## Cross-Phase Constraints
 

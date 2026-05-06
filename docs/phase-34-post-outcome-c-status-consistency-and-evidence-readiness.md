@@ -8,7 +8,8 @@ Phase 34 should make the repo easier for future Codex agents, maintainers, and a
 
 ## Scope
 
-Phase 34 is primarily a documentation, evidence-readiness, and repeatability phase.
+Phase 34 is a docs-only documentation, evidence-readiness, and repeatability
+phase.
 
 It should cover:
 
@@ -18,7 +19,9 @@ It should cover:
 4. static validator tooling blocker clarification;
 5. forward roadmap selection.
 
-Small scripts or Makefile targets may be added only if they reduce ambiguity and can be tested safely. Do not turn Phase 34 into a major runtime rewrite.
+For this Phase 34 implementation, do not add scripts, Makefile targets, runtime
+code, schema changes, migrations, APIs, consumer tracker changes, final-root
+evidence packets, or target artifacts.
 
 ## Required first reading
 
@@ -103,6 +106,8 @@ docs/track-b-productization-roadmap.md
 docs/repo-gaps.md
 docs/phase-plan.md
 docs/README.md
+docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md
+docs/future-roadmap-post-outcome-c.md
 ```
 
 Minimum expected corrections:
@@ -113,6 +118,11 @@ Minimum expected corrections:
 - `docs/repo-gaps.md` should be refreshed, retired, or clearly marked historical. It should not list already-completed starter scaffolding as current missing work.
 - `docs/phase-plan.md` should point future agents to the post-Outcome-C roadmap and latest handoff.
 - `docs/README.md` should label the public-GTFS evidence packet as Outcome C evidence rather than merely an attempt.
+- `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+  should state Phase 34 is docs-only and should not allow scripts or Makefile
+  targets.
+- `docs/future-roadmap-post-outcome-c.md` should mark Phase 34 complete once
+  closed and make the next path a retained-evidence fork.
 
 ### 2. Add a final-root operator request package
 
@@ -208,7 +218,11 @@ Run:
 make validate
 make test
 git diff --check
+python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
 ```
+
+Also confirm all seven consumer targets remain `prepared` and run a targeted
+wording scan for forbidden positive claims.
 
 Run when touched surfaces require them:
 

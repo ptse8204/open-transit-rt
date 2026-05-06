@@ -1,121 +1,63 @@
-# Repo Gaps for Better Codex Performance
+# Repo Gaps
 
-This document records what is currently missing from the starter repo in order to improve Codex productivity and reduce ambiguity.
+This document is the current gap list after Phase 34.
 
----
+Historical note: the original version of this file described starter-repo gaps
+before Phases 0 through 33. Those starter scaffolding items are no longer the
+current missing work. The repo now has `.env.example`, `cmd/migrate`,
+one-command local bootstrap flows, integration fixtures, `docs/decisions.md`,
+`docs/dependencies.md`, a Makefile, and a Taskfile.
 
-## Present in the starter repo
-- `Makefile`
-- `docs/architecture.md`
-- `docs/codex-task.md`
-- `docs/conversation-summary.md`
-- starter Go service scaffolding
-- starter schema file
-- example telemetry payload
-- docker-compose with Postgres
+Use these files for current status before starting work:
 
----
+- `docs/current-status.md`
+- `docs/roadmap-status.md`
+- `docs/handoffs/latest.md`
+- `docs/future-roadmap-post-outcome-c.md`
 
-## Missing items to add immediately
+## Current Evidence Gaps
 
-### 1. `.env.example`
-Add environment variables for:
-- `DATABASE_URL`
-- `PORT`
-- `AGENCY_ID`
-- `FEED_BASE_URL`
-- `METRICS_ENABLED`
-- `LOG_LEVEL`
-- `JWT_SECRET` or auth placeholder if auth is added later
+- Agency-owned or agency-approved final public feed root proof.
+- Retained final-root approval, DNS, TLS, redirect, public fetch, validator,
+  proxy/config, README, and checksum evidence.
+- Authorized target-specific consumer submission evidence.
+- Consumer review, acceptance, ingestion, listing, display, rejection, or
+  blocker evidence from named targets.
+- Real agency pilot evidence and agency feedback.
+- Real deployment operations refresh evidence beyond the existing OCI pilot
+  packet.
+- Real device or vendor AVL evidence beyond local simulator/no-hardware and
+  synthetic adapter fixtures.
+- Real-world observed-arrival/departure ETA accuracy evidence.
+- Real route/time-period realtime quality metrics.
+- Production-grade ETA quality evidence.
+- Static GTFS validator pass for the Phase 33 public-GTFS packet. The Phase 33
+  run attempted static validation, but Java was unavailable, so static
+  validation did not execute.
 
-### 2. `Taskfile.yml` or a more complete `Makefile`
-Provide one-command workflows for:
-- install/dev setup
-- migrate database
-- run all local services
-- run tests
-- run integration tests
-- seed sample GTFS
-- fetch dependencies
-- lint/format
+## Current Product And Operations Gaps
 
-### 3. `cmd/migrate`
-Provide an explicit migration binary that:
-- applies versioned migrations
-- checks migration status
-- can roll back the latest migration
-- works in CI and local dev
+- Agency-owned final-root deployment flow backed by retained evidence.
+- Hosted login/SSO and server-side admin JWT `jti` replay tracking.
+- Full operator UI for manual override workflows.
+- Production SLO dashboards and alerting beyond current lightweight
+  feed-monitor examples, Operations Console pages, request logs, request IDs,
+  readiness checks, and optional `/metrics`.
+- OpenTelemetry tracing/exporter wiring and Prometheus/Grafana deployment
+  assets.
+- Runtime external predictor integration such as TheTransitClock behind the
+  documented adapter boundary.
+- External consumer submission API integrations, if ever explicitly approved
+  and backed by current target documentation.
+- Production multi-tenant hosting proof.
+- Marketplace/vendor-equivalent service packaging and support commitments.
 
-### 4. One-command dev bootstrap
-Add a script or task that can:
-- start Postgres/PostGIS
-- apply migrations
-- seed a sample agency and GTFS feed
-- start core services
-- print local URLs for feeds and admin UI
+## Claim Boundary
 
-Suggested files:
-- `scripts/bootstrap-dev.sh`
-- or `task dev`
-
-### 5. Integration test fixtures
-Add deterministic fixtures for:
-- small valid GTFS feed
-- after-midnight GTFS feed
-- frequency-based GTFS feed
-- telemetry traces for matched, unmatched, stale, and swapped vehicles
-- expected Vehicle Positions protobuf snapshots
-- expected Trip Updates fixtures later
-
-Suggested directory:
-- `testdata/`
-
-### 6. `docs/decisions.md`
-Record architectural decisions such as:
-- why Go is the main backend language
-- why Postgres/PostGIS is used
-- why Trip Updates is pluggable
-- why GTFS Studio and GTFS import share the same published feed model
-- why conservative matching is preferred over aggressive guessing
-
-### 7. `docs/dependencies.md`
-Document external dependencies and how they are wired in:
-- Postgres
-- PostGIS
-- protobuf generation
-- GTFS validator
-- GTFS Realtime validator
-- TheTransitClock or alternative predictor
-- any optional admin UI framework
-- Prometheus/Grafana if used
-
-For each dependency, include:
-- purpose
-- required version
-- how it is started
-- how the app talks to it
-- how to swap or disable it
-
----
-
-## Why these gaps matter
-
-Without these files and conventions, Codex is more likely to:
-- infer the wrong setup flow
-- guess missing environment variables
-- misunderstand external dependencies
-- skip migration or fixture work
-- overfit to the starter demo instead of building a real runnable system
-
----
-
-## Immediate Codex instruction
-
-Add the missing repo scaffolding before major feature work:
-1. `.env.example`
-2. `cmd/migrate`
-3. `docs/decisions.md`
-4. `docs/dependencies.md`
-5. integration fixtures under `testdata/`
-6. one-command bootstrap
-7. expanded build/test tasks
+These gaps mean the repo must not claim agency adoption, agency endorsement,
+agency approval, official agency feed status, agency-owned final-root proof,
+consumer submission/review/acceptance, consumer ingestion/listing/display,
+Caltrans/CAL-ITP compliance, hosted SaaS availability, paid support/SLA
+coverage, production readiness, production multi-tenant hosting, real vendor
+AVL compatibility, real-world ETA accuracy, production-grade ETA quality, or
+public launch completion without retained evidence for that specific claim.

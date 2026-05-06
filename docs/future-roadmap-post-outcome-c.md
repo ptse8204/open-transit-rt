@@ -13,7 +13,7 @@ This roadmap starts after Outcome C.
 2. Hosted/operator OCI pilot evidence              done for pilot root only
 3. Prepared consumer packets                       done, all targets prepared only
 4. Public GTFS local/pilot evidence                done as Phase 33 Outcome C
-5. Status/repeatability/final-root request patch    next maintenance step
+5. Status/repeatability/final-root request patch    done as Phase 34
 6. Agency-owned/final-root proof                   future external evidence
 7. Real agency pilot                               future external evidence
 8. Real deployment operations refresh              future deployment evidence
@@ -28,7 +28,7 @@ This roadmap starts after Outcome C.
 
 | Phase | Name | When to do it | What it produces | What it must not claim |
 | --- | --- | --- | --- | --- |
-| 34 | Post-Outcome-C Status Consistency And Evidence Readiness | Now | Consistent docs, final-root request package, repeatable public-GTFS local pilot guide, static-validator blocker clarification. | No new external evidence unless actually collected. |
+| 34 | Post-Outcome-C Status Consistency And Evidence Readiness | Complete | Consistent docs, final-root request package, repeatable public-GTFS local pilot guide, static-validator blocker clarification. | No new external evidence was created. |
 | 35 | Agency-Owned Or Agency-Approved Final-Root Proof | When an agency/operator can approve a root | DNS/TLS/redirect/fetch/validator/proxy/checksum packet for an approved final root. | No consumer acceptance or compliance claim from final-root proof alone. |
 | 36 | Real Agency Pilot Execution | When an agency/operator is ready to pilot | Pilot kickoff, agency feedback, local or hosted evidence, closeout, decision record. | No adoption claim unless the agency explicitly supports it with retained evidence. |
 | 37 | Real Deployment Operations Evidence Refresh | When a pilot or hosted environment is running | Backup, restore, monitoring, validator, scorecard, alert lifecycle, role/admin boundary evidence. | No final-root or consumer claim unless those artifacts exist. |
@@ -86,25 +86,15 @@ Go to Phase 40.
 
 Update only the selected target status and only from retained target-originated artifacts.
 
-## Current high-priority maintenance items
+## Current high-priority evidence forks
 
-Before external evidence work, patch these to avoid future-agent drift:
-
-- `docs/current-status.md`: remove or qualify “early-stage starter” opening.
-- `docs/roadmap-status.md`: remove stale attempted-blocker/missing public-GTFS wording.
-- `docs/track-b-productization-roadmap.md`: remove Phase 32 as recommended next phase.
-- `docs/repo-gaps.md`: mark historical or replace with current gaps.
-- `docs/phase-plan.md`: reference post-Outcome-C roadmap.
-- `docs/README.md`: label Phase 33 packet as Outcome C evidence.
-
-## Current high-priority evidence gaps
-
-The highest-value external evidence gaps remain:
+Phase 34 closed the status/repeatability/final-root request maintenance step.
+The next path should be selected from these retained-evidence forks:
 
 1. agency-owned/final-root proof;
-2. real agency pilot evidence;
-3. real deployment operations refresh;
-4. authorized consumer submission evidence;
+2. authorized target-specific consumer submission evidence;
+3. real agency pilot evidence;
+4. real deployment operations refresh;
 5. real device/vendor AVL evidence;
 6. real-world realtime quality evidence.
 

@@ -44,6 +44,8 @@ These are command-level references for people running or evaluating the project:
 - [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md)
 - [Production Operations Hardening](runbooks/production-operations-hardening.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
+- [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md)
+- [Final Public Feed Root Operator Request](final-root-operator-request.md)
 
 ## Release And Upgrade
 
@@ -71,7 +73,7 @@ These pages explain what evidence exists and what it can, and cannot, prove:
 - [Consumer Status JSON](evidence/consumer-submissions/status.json)
 - [Marketplace And Vendor Gap Review](marketplace-vendor-gap-review.md)
 - [OCI Pilot Evidence Packet](evidence/captured/oci-pilot/2026-04-24/README.md)
-- [Public GTFS Local/Pilot Evidence](evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md)
+- [Public GTFS Local/Pilot Outcome C Evidence](evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md)
 - [Public GTFS Local/Pilot Templates](evidence/captured/public-gtfs-local-pilot/templates/README.md)
 - [Captured Evidence Index](evidence/captured/README.md)
 
@@ -99,8 +101,10 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Multi-Agency Strategy](multi-agency-strategy.md)
 - [Roadmap Status](roadmap-status.md)
 - [Track B Productization Roadmap](track-b-productization-roadmap.md)
+- [Future Roadmap Post Outcome C](future-roadmap-post-outcome-c.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
 - [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
+- [Phase 34 Post-Outcome-C Status Consistency](phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md)
 - [Phase 29A External Predictor Adapter Evaluation](phase-29a-external-predictor-adapter-evaluation.md)
 - [Phase 29B AVL / Vendor Adapter Pilot](phase-29b-avl-vendor-adapter-pilot.md)
 - [Track B Roadmap Handoff](handoffs/track-b-roadmap.md)

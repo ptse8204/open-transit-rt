@@ -4,9 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 33 — Public GTFS Local/Pilot Evidence is complete as Outcome C — public-GTFS local/pilot run completed with public-safe retained summaries.
+Phase 34 — Post-Outcome-C Status Consistency And Evidence Readiness is complete
+for the docs-only status consistency and evidence-readiness scope.
 
-Phases 0 through 33 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, pilot-readiness, submission-readiness, public-messaging, or public-GTFS evidence issue directly requires it.
+Phases 0 through 34 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, pilot-readiness, submission-readiness, public-messaging, or public-GTFS evidence issue directly requires it.
 
 Phase 32 produced draft public launch materials only. No announcement was posted, no social copy was published, no agency was contacted, no reporter was contacted, no consumer or aggregator was contacted, and no public launch occurred.
 
@@ -32,6 +33,13 @@ feed status, agency-owned final-root readiness, consumer evidence, compliance,
 hosted SaaS, production readiness, real LA Metro realtime data, real vendor AVL
 compatibility, or ETA quality.
 
+Phase 34 aligned post-Outcome-C status and roadmap docs, kept the Phase 33
+static validator blocker explicit, added/verified final-root request and
+public-GTFS repeatability guidance, and added this phase handoff. Phase 34
+created no external evidence and made no runtime code, script, Makefile target,
+schema, migration, API, consumer tracker, final-root evidence packet, target
+artifact, or OCI pilot final-root wording changes.
+
 ## Phase 32 Summary
 
 - Added `docs/agency-one-pager.md` with problem, solution, audience, current capabilities, pilot path, requirements, readiness boundaries, evidence boundaries, and agency next steps.
@@ -55,6 +63,20 @@ compatibility, or ETA quality.
 - Kept the top-level README unchanged; docs navigation and evidence docs point
   to the retained packet.
 
+## Phase 34 Summary
+
+- Updated post-Outcome-C status and roadmap docs so Phase 33 Outcome C is no
+  longer described as attempted or missing.
+- Refreshed `docs/repo-gaps.md` from historical starter scaffolding gaps to
+  current evidence and product gaps.
+- Updated `docs/phase-plan.md`, `docs/future-roadmap-post-outcome-c.md`, and
+  `docs/track-b-productization-roadmap.md` so the next path is an evidence
+  fork, not another Phase 33 retry or Phase 32.
+- Verified docs navigation links for the final-root request, public-GTFS
+  local/pilot runbook, and Phase 33 Outcome C packet.
+- Fixed final-root example URLs to use clear placeholder domains.
+- Added `docs/handoffs/phase-34.md`.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -66,6 +88,8 @@ compatibility, or ETA quality.
   does not prove agency adoption, official agency feed status, final-root proof,
   consumer evidence, compliance, production readiness, real realtime data, or
   ETA quality.
+- Phase 34 is status consistency and evidence-readiness only. It created no new
+  external evidence and does not strengthen Phase 33 claims.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -103,10 +127,15 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 25. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
 26. `docs/handoffs/phase-33.md`
 27. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+28. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+29. `docs/handoffs/phase-34.md`
+30. `docs/future-roadmap-post-outcome-c.md`
+31. `docs/final-root-operator-request.md`
+32. `docs/tutorials/public-gtfs-local-pilot.md`
 
 ## Current Objective
 
-Do not make stronger public claims than the retained evidence supports. The next useful work should target another concrete evidence gap: agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, or real deployment operations evidence.
+Do not make stronger public claims than the retained evidence supports. The next useful work should target another concrete evidence gap: agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, real deployment operations refresh, real device/vendor AVL evidence, or real-world realtime quality evidence.
 
 Consumer or aggregator submission work remains available only when a future operator is authorized, a target is selected, official target paths are verified, and target-originated evidence can be retained and redacted. Product improvements, validator success, pilot packaging, prepared packets, and draft launch materials alone must not advance target statuses.
 
@@ -220,6 +249,20 @@ docker compose -f deploy/docker-compose.yml config
 - Final post-Outcome-C-docs `make test` — passed.
 - Final post-Outcome-C-docs `git diff --check` — passed.
 
+## Checks Run For Phase 34
+
+- `make validate` — blocked because the pinned GTFS-RT validator image was not
+  installed locally.
+- `make validators-install` — blocked because the Docker daemon was not
+  reachable at `unix:///Users/edwintse/.docker/run/docker.sock`.
+- `make test` — passed.
+- `git diff --check` — passed.
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
+- Consumer tracker status check — passed; all seven targets remain `prepared`.
+- Targeted wording scan — reviewed; matches are negated/boundary wording,
+  historical phase names, or allowed evidence-boundary language. See
+  `docs/handoffs/phase-34.md` for terms.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -247,7 +290,9 @@ Choose files based on the evidence target selected next:
 - Authorized target-specific consumer submission: `docs/evidence/consumer-submissions/submission-workflow.md`, the selected packet under `docs/evidence/consumer-submissions/packets/`, and only real redacted target-originated artifacts.
 - Real agency pilot evidence: `docs/agency-pilot-program.md`, `docs/agency-pilot-checklist.md`, `docs/agency-feedback-template.md`, and a future public-safe agency pilot evidence packet.
 - Real deployment operations evidence: `docs/runbooks/`, `docs/compliance-evidence-checklist.md`, and a future public-safe operations evidence packet.
-- Public GTFS local/pilot retry: `docs/phase-33-public-gtfs-local-pilot-evidence.md`, `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`, `cmd/gtfs-import/main.go`, and `internal/gtfs/importer.go`.
+- Real device/vendor AVL evidence: `docs/evidence/device-avl/`, `docs/tutorials/device-avl-integration.md`, and a future public-safe device/AVL evidence packet.
+- Real-world realtime quality evidence: `internal/realtimequality`, `testdata/replay/`, `docs/phase-19-realtime-quality-eta-improvement.md`, and a future retained real-world quality evidence packet.
+- Public GTFS local/pilot repeatability guidance only: `docs/tutorials/public-gtfs-local-pilot.md` and `docs/phase-33-public-gtfs-local-pilot-evidence.md`, unless a new evidence run is intentionally selected and can retain public-safe artifacts.
 
 Do not edit target-specific consumer records, `docs/evidence/consumer-submissions/status.json`, or artifact directories unless retained, redacted, target-originated evidence supports a target-specific status transition.
 
@@ -268,4 +313,6 @@ Candidate evidence work remains:
 - agency-owned or agency-approved final-root proof;
 - authorized target-specific consumer submission evidence;
 - real agency pilot evidence;
-- real deployment operations evidence.
+- real deployment operations refresh;
+- real device/vendor AVL evidence;
+- real-world realtime quality evidence.

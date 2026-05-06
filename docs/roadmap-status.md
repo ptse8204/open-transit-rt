@@ -28,8 +28,8 @@ Current evidence includes:
 
 - local demo and validation workflows;
 - hosted/operator evidence for the OCI pilot;
-- attempted public GTFS local/pilot blocker evidence for the May 6, 2026 LA
-  Metro Bus GTFS run;
+- Phase 33 Outcome C public GTFS local/pilot evidence for the May 6, 2026 LA
+  Metro Bus GTFS run, with public-safe retained summaries;
 - replay fixtures and metrics that measure current realtime behavior;
 - prepared consumer and aggregator packet drafts for seven targets;
 - an operator workflow for official-path verification, pre-submission checks,
@@ -45,7 +45,8 @@ The repo does not currently have:
 
 - third-party consumer submission, review, acceptance, rejection, or blocker evidence;
 - agency-owned stable URL/domain proof for the OCI pilot feed set;
-- completed public-GTFS local/pilot evidence for a real public agency dataset;
+- a static GTFS validator pass for the Phase 33 public-GTFS packet; Java was
+  unavailable in that local environment, so static validation did not execute;
 - production-grade ETA quality evidence;
 - full hosted multi-tenant implementation;
 - paid support or SLA commitments;
@@ -72,8 +73,12 @@ Future phases describe intended work. They are not commitments to hosted service
 
 Track B is the planned productization path for release, agency-owned deployment proof, real agency data onboarding, device/AVL integration guidance, setup UX, multi-agency isolation proof, operations hardening, realtime quality expansion, optional external predictor adapter evaluation, AVL/vendor adapter pilot work, authorized consumer submissions, agency pilot packaging, and public ecosystem outreach.
 
-Phase 29A — External Predictor Adapter Evaluation is complete for contract and candidate-only feasibility review. Phase 29B — AVL / Vendor Adapter Pilot Implementation is complete for the synthetic dry-run adapter pilot scope. Phase 30 — Consumer Submission Execution closed as Outcome B — blocker-documented closure only because no authorized submission, official-path verification evidence, or target-originated artifact was available. Phase 31 — Agency Pilot Program Package is complete for the docs-only pilot package scope. Phase 32 — Public Launch And Ecosystem Outreach is complete for draft public launch materials only. Phase 32 did not post announcements, contact agencies, contact consumers, or complete a public launch. Phase 33 — Public GTFS Local/Pilot Evidence is complete as Outcome C — public-GTFS local/pilot run completed with public-safe retained summaries for the May 6, 2026 LA Metro Bus GTFS local attempt. The packet proves local/pilot handling of a real public static GTFS dataset only; it does not prove agency adoption, final-root readiness, consumer evidence, compliance, production readiness, real realtime data, or ETA quality.
+Phase 29A — External Predictor Adapter Evaluation is complete for contract and candidate-only feasibility review. Phase 29B — AVL / Vendor Adapter Pilot Implementation is complete for the synthetic dry-run adapter pilot scope. Phase 30 — Consumer Submission Execution closed as Outcome B — blocker-documented closure only because no authorized submission, official-path verification evidence, or target-originated artifact was available. Phase 31 — Agency Pilot Program Package is complete for the docs-only pilot package scope. Phase 32 — Public Launch And Ecosystem Outreach is complete for draft public launch materials only. Phase 32 did not post announcements, contact agencies, contact consumers, or complete a public launch. Phase 33 — Public GTFS Local/Pilot Evidence is complete as Outcome C — public-GTFS local/pilot run completed with public-safe retained summaries for the May 6, 2026 LA Metro Bus GTFS local attempt. The packet proves local/pilot handling of a real public static GTFS dataset only; it does not prove agency adoption, final-root readiness, consumer evidence, compliance, production readiness, real realtime data, or ETA quality. Phase 34 — Post-Outcome-C Status Consistency And Evidence Readiness is complete for docs-only status alignment, final-root request guidance, and public-GTFS repeatability guidance; it created no new external evidence.
 
-The recommended next retained-evidence paths are agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, or real deployment operations evidence. Do not make stronger public claims from Phase 33 beyond local/pilot public-GTFS dataset handling.
+The recommended next retained-evidence paths are agency-owned/final-root proof,
+authorized target-specific consumer submission evidence, real agency pilot
+evidence, real deployment operations refresh, real device/vendor AVL evidence,
+or real-world realtime quality evidence. Do not make stronger public claims
+from Phase 33 beyond local/pilot public-GTFS dataset handling.
 
 Use `docs/track-b-productization-roadmap.md` for the forward roadmap, `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context, and `docs/handoffs/latest.md` for the current handoff state.

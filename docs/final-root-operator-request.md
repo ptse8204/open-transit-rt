@@ -31,16 +31,16 @@ https://gtfs.exampleagency.gov/public/gtfsrt/alerts.pb
 Preferred:
 
 ```text
-https://gtfs.<agency-domain>/
-https://data.<agency-domain>/transit/
-https://transit.<city-or-agency-domain>/feeds/
+https://gtfs.exampleagency.gov
+https://data.exampleagency.gov/transit
+https://transit.exampleagency.gov/feeds
 ```
 
 Potentially acceptable if approved:
 
 ```text
-https://feeds.<regional-partner-domain>/<agency>/
-https://transit-data.<operator-domain>/<agency>/
+https://feeds.example-operator.org/exampleagency
+https://transit-data.example-operator.org/exampleagency
 ```
 
 Not enough by itself:

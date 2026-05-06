@@ -1,6 +1,7 @@
 # Status Maintenance Patch — Post-Outcome-C
 
-This file is a checklist for a Codex agent fixing stale docs after Phase 33 Outcome C.
+This file is the historical checklist used for the Phase 34 stale-docs patch
+after Phase 33 Outcome C.
 
 ## Patch objective
 
@@ -14,6 +15,9 @@ External evidence gaps remain unchanged.
 ```
 
 ## Files to patch
+
+Phase 34 completed this maintenance pass. Keep the notes below as historical
+implementation guidance for why these files were touched.
 
 ### `docs/current-status.md`
 
@@ -43,8 +47,9 @@ Problems to fix:
 
 Suggested corrections:
 
-- Replace “attempted public GTFS local/pilot blocker evidence” with “Phase 33 Outcome C public GTFS local/pilot evidence for the May 6, 2026 LA Metro Bus public GTFS run.”
-- Remove “completed public-GTFS local/pilot evidence for a real public agency dataset” from missing items.
+- Replace stale attempted-blocker wording with “Phase 33 Outcome C public GTFS
+  local/pilot evidence for the May 6, 2026 LA Metro Bus public GTFS run.”
+- Remove stale missing-evidence wording for public-GTFS local/pilot evidence.
 - Add that static GTFS validation for that packet is blocked by unavailable Java and not a pass.
 
 ### `docs/track-b-productization-roadmap.md`
