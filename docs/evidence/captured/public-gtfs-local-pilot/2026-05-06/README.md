@@ -18,6 +18,29 @@ readiness, production multi-tenant hosting, real vendor AVL compatibility, real
 LA Metro realtime data, real-world ETA accuracy, or production-grade ETA
 quality.
 
+## Final Outcome C Retry Summary
+
+- The initial LA Metro local import attempt blocked on a large-import timeout
+  while inserting `stop_times.txt`.
+- The importer was fixed with configurable timeout handling, bulk loading for
+  large GTFS tables, and safer failure-report persistence.
+- The retry imported the LA Metro Bus public GTFS as local `LACMTA` feed
+  version `gtfs-import-1`.
+- The fetched local `/public/gtfs/schedule.zip` was verified as the imported LA
+  Metro public GTFS rather than the repo sample feed.
+- All five public paths were fetched from the local public root.
+- The original static validator attempt failed to execute because
+  `/usr/bin/java` could not locate a Java runtime. A later post-Phase-34 retry
+  used Homebrew Java 17 and produced process exit code `0`, system error count
+  `0`, and 3 warning notices.
+- The GTFS-RT validators passed on empty valid protobuf feeds.
+- Telemetry was dry-run only.
+- Admin/private boundary checks were recorded.
+
+This final retry summary remains local/pilot evidence only. It does not support
+agency, final-root, consumer, compliance, production, real realtime, vendor AVL,
+ETA-quality, validator-clean compliance, or public launch claims.
+
 ## Source And Catalog References
 
 Catalog facts were checked on `2026-05-06T21:15Z` and are time-sensitive.

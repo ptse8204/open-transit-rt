@@ -33,6 +33,10 @@ new evidence and did not strengthen Phase 33 claims.
   `https://feeds.example-operator.org/exampleagency`.
 - Updated `docs/handoffs/latest.md` so future public-GTFS work is framed as
   repeatability guidance unless a new evidence run is intentionally selected.
+- Post-Phase-34 cleanup updated the Phase 33 public-GTFS packet summaries to
+  record the final static validator retry result: process exit code `0`, system
+  error count `0`, and 3 warning notices. This remains local/pilot evidence
+  only and is not a validator-clean or compliance claim.
 
 Changed files:
 
@@ -49,6 +53,9 @@ Changed files:
 - `docs/status-maintenance-patch-post-outcome-c.md`
 - `docs/handoffs/latest.md`
 - `docs/handoffs/phase-34.md`
+- `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+- `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/command-log-inventory-2026-05-06.md`
+- `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/retained-summaries-2026-05-06.md`
 
 ## What Was Designed But Intentionally Not Implemented Yet
 

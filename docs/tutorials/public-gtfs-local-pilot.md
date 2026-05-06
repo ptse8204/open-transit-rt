@@ -80,20 +80,21 @@ The examples below use shell variables so paths and URLs stay consistent:
 RUN_DATE="$(date -u +%F)"
 PILOT_DIR=".cache/public-gtfs-local-pilot/${RUN_DATE}"
 EVIDENCE_DIR="docs/evidence/captured/public-gtfs-local-pilot/${RUN_DATE}"
-PUBLIC_GTFS_URL="https://example.com/path/to/gtfs.zip"
-PUBLIC_GTFS_AGENCY_ID="example-agency"
-LOCAL_PUBLIC_ROOT="http://localhost:19080"
+GTFS_URL="https://example.com/path/to/gtfs.zip"
+AGENCY_ID="example-agency"
+ACTOR_ID="local-public-gtfs-pilot"
+ROOT="http://localhost:19080"
 ```
 
-Set `PUBLIC_GTFS_URL` and `PUBLIC_GTFS_AGENCY_ID` to the selected public GTFS
-dataset before running commands. For a retained evidence packet, use a stable
-`RUN_DATE` value that matches the packet directory.
+Set `GTFS_URL` and `AGENCY_ID` to the selected public GTFS dataset before
+running commands. For a retained evidence packet, use a stable `RUN_DATE` value
+that matches the packet directory.
 
 ### 1. Download the public GTFS ZIP
 
 ```bash
 mkdir -p "${PILOT_DIR}"
-curl -L -o "${PILOT_DIR}/source.zip" "${PUBLIC_GTFS_URL}"
+curl -L -o "${PILOT_DIR}/source.zip" "${GTFS_URL}"
 sha256sum "${PILOT_DIR}/source.zip"
 ```
 
@@ -113,9 +114,9 @@ Use the repo-supported import command.
 
 ```bash
 go run ./cmd/gtfs-import \
-  -agency-id "${PUBLIC_GTFS_AGENCY_ID}" \
+  -agency-id "${AGENCY_ID}" \
   -zip "${PILOT_DIR}/source.zip" \
-  -actor-id local-public-gtfs-pilot \
+  -actor-id "${ACTOR_ID}" \
   -notes "public GTFS local/pilot evaluation only" \
   -timeout 15m
 ```
@@ -136,23 +137,23 @@ Avoid confusing this with the default `make agency-app-up` demo flow if that flo
 
 ```bash
 curl -fsS -D "${PILOT_DIR}/feeds.headers.txt" \
-  "${LOCAL_PUBLIC_ROOT}/public/feeds.json" \
+  "${ROOT}/public/feeds.json" \
   -o "${PILOT_DIR}/feeds.json"
 
 curl -fsS -D "${PILOT_DIR}/schedule.headers.txt" \
-  "${LOCAL_PUBLIC_ROOT}/public/gtfs/schedule.zip" \
+  "${ROOT}/public/gtfs/schedule.zip" \
   -o "${PILOT_DIR}/fetched-schedule.zip"
 
 curl -fsS -D "${PILOT_DIR}/vehicle_positions.headers.txt" \
-  "${LOCAL_PUBLIC_ROOT}/public/gtfsrt/vehicle_positions.pb" \
+  "${ROOT}/public/gtfsrt/vehicle_positions.pb" \
   -o "${PILOT_DIR}/vehicle_positions.pb"
 
 curl -fsS -D "${PILOT_DIR}/trip_updates.headers.txt" \
-  "${LOCAL_PUBLIC_ROOT}/public/gtfsrt/trip_updates.pb" \
+  "${ROOT}/public/gtfsrt/trip_updates.pb" \
   -o "${PILOT_DIR}/trip_updates.pb"
 
 curl -fsS -D "${PILOT_DIR}/alerts.headers.txt" \
-  "${LOCAL_PUBLIC_ROOT}/public/gtfsrt/alerts.pb" \
+  "${ROOT}/public/gtfsrt/alerts.pb" \
   -o "${PILOT_DIR}/alerts.pb"
 ```
 
@@ -205,8 +206,8 @@ If feeds are empty valid protobuf publications, say that. Do not imply real agen
 Use dry-run mode only unless authorized real telemetry is available.
 
 ```bash
-TARGET="${LOCAL_PUBLIC_ROOT}" \
-AGENCY_ID="${PUBLIC_GTFS_AGENCY_ID}" \
+TARGET="${ROOT}" \
+AGENCY_ID="${AGENCY_ID}" \
 DEVICE_ID="public-gtfs-dryrun-device" \
 VEHICLE_ID="public-gtfs-dryrun-vehicle" \
   scripts/device-onboarding.sh simulate --dry-run

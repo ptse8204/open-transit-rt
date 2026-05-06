@@ -72,7 +72,11 @@ The Outcome C packet proves:
 - the fetched schedule was verified as the imported LA Metro public GTFS rather than the repo sample feed;
 - all five local public paths were fetched;
 - realtime protobuf endpoints were valid empty publications;
-- static GTFS validation was attempted but blocked by missing Java;
+- original static GTFS validation was attempted but blocked because
+  `/usr/bin/java` could not locate a Java runtime;
+- a later post-Phase-34 static validator retry used Homebrew Java 17 against the
+  already-fetched schedule ZIP and reported process exit code `0`, system error
+  count `0`, and 3 warning notices;
 - GTFS-RT validation passed for empty valid protobuf feeds;
 - telemetry simulator dry-run printed synthetic payloads and sent no telemetry;
 - public/admin/private boundary checks were recorded.
@@ -184,13 +188,20 @@ It should cover:
 
 ### 4. Clarify static validator environment blocker
 
-The Phase 33 Outcome C packet records that static GTFS validation did not execute because Java was unavailable. Phase 34 should make the next action clearer by documenting one of these paths:
+The Phase 33 Outcome C packet records that the original static GTFS validation
+attempt did not execute because `/usr/bin/java` could not locate a Java runtime.
+After Phase 34, a retry using Homebrew Java 17 executed the pinned static
+validator against the already-fetched schedule ZIP and reported process exit
+code `0`, system error count `0`, and 3 warning notices.
+
+Future runs should make one of these paths explicit:
 
 - install/check Java before static validation; or
 - run the static validator in a known Java-capable environment; or
 - keep the blocker explicitly documented when Java is unavailable.
 
-Do not retroactively claim that the static GTFS validator passed unless a real retained no-error static validator record exists.
+Do not convert an executed validator retry with warnings into a
+validator-clean, no-warning, compliance, or production-readiness claim.
 
 ### 5. Preserve external-evidence boundaries
 
