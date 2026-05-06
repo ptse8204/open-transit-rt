@@ -237,6 +237,11 @@ docker compose -f deploy/docker-compose.yml config
   verified as `LACMTA` public GTFS, not the repo sample feed.
 - Outcome C retry static GTFS validator — attempted but failed to execute
   because Java runtime was unavailable in this local environment.
+- Post-Phase-34 static GTFS validator retry — executed with Homebrew Java 17
+  against the already-fetched local schedule ZIP; process exit code `0`, system
+  error count `0`, and 3 warning notices:
+  `expired_calendar`, `route_short_name_too_long`, and `unused_shape`. This is
+  not a validator-clean or no-warning compliance claim.
 - Outcome C retry Vehicle Positions, Trip Updates, and Alerts GTFS-RT
   validators — passed with 0 errors, 0 warnings, and 0 info notices against
   empty valid protobuf feeds.
@@ -252,12 +257,14 @@ docker compose -f deploy/docker-compose.yml config
 
 ## Checks Run For Phase 34
 
-- `make validate` — blocked because the pinned GTFS-RT validator image was not
-  installed locally.
-- `docker info` — blocked because the Docker client could not connect to the
-  Docker daemon at `unix:///Users/edwintse/.docker/run/docker.sock`.
-- `make validators-install` — blocked because the Docker daemon was not
-  reachable at `unix:///Users/edwintse/.docker/run/docker.sock`.
+- Initial `make validate` — blocked because the pinned GTFS-RT validator image
+  was not installed locally.
+- Initial `docker info` — blocked because the Docker client could not connect
+  to the Docker daemon at `unix:///Users/edwintse/.docker/run/docker.sock`.
+- Retry `docker info` — passed after Docker became reachable.
+- Retry `make validators-install` — passed.
+- Retry `make validators-check` — passed.
+- Retry `make validate` — passed.
 - `make test` — passed.
 - `git diff --check` — passed.
 - `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
@@ -265,9 +272,11 @@ docker compose -f deploy/docker-compose.yml config
 - Targeted wording scan — reviewed; matches are negated/boundary wording,
   historical phase names, or allowed evidence-boundary language. See
   `docs/handoffs/phase-34.md` for terms.
-- Java/static validator probe — blocked. `/usr/bin/java` exists as the macOS
-  shim, but no Java runtime was available, so Phase 33 static GTFS validation
-  was not rerun and no static validator pass was recorded.
+- Direct `/usr/bin/java` probe — still blocked by the macOS shim, but
+  Homebrew Java 17 was available at `/usr/local/opt/openjdk@17/bin/java`.
+- Static GTFS validator retry — executed against the Phase 33 fetched schedule
+  ZIP in ignored `.cache` storage; process exit code `0`, system error count
+  `0`, and 3 warning notices. No validator-clean or no-warning claim was added.
 
 ## Current Evidence And Security Boundary
 

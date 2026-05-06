@@ -143,6 +143,26 @@ After validator attempts, `/public/feeds.json` reported schedule validation
 `failed`, the three realtime feed validations `passed`, and
 `canonical_validation_complete=false`.
 
+### Post-Phase-34 Static Validator Retry
+
+After Docker became reachable and a Homebrew Java 17 runtime was found at
+`/usr/local/opt/openjdk@17/bin/java`, the pinned MobilityData GTFS Validator
+`v7.1.0` was rerun against the already-fetched local
+`/public/gtfs/schedule.zip` artifact in ignored `.cache/` storage.
+
+Public-safe result:
+
+- validator process exit code: `0`;
+- validated at: `2026-05-06T16:19:10-07:00`;
+- system error count: `0`;
+- notices: 3 warnings:
+  - `expired_calendar`: 1;
+  - `route_short_name_too_long`: 1;
+  - `unused_shape`: 1.
+
+This retry means static validation executed after the original Outcome C
+closure. It is not a validator-clean or no-warning compliance claim.
+
 ## Telemetry Dry-Run Summary
 
 `scripts/device-onboarding.sh simulate --dry-run` was run against the local

@@ -190,6 +190,38 @@ Result summary:
 - Trip Updates GTFS-RT validator: passed, 0 errors, 0 warnings, 0 info.
 - Alerts GTFS-RT validator: passed, 0 errors, 0 warnings, 0 info.
 
+## Post-Phase-34 Static Validator Retry
+
+After Docker became reachable and Homebrew Java 17 was available at
+`/usr/local/opt/openjdk@17/bin/java`, the pinned static validator was retried
+against the already-fetched local schedule ZIP in ignored `.cache/` storage.
+
+```bash
+/usr/local/opt/openjdk@17/bin/java \
+  -jar .cache/validators/gtfs-validator-7.1.0-cli.jar \
+  -i .cache/public-gtfs-local-pilot/2026-05-06/fetched/schedule.zip \
+  -o .cache/public-gtfs-local-pilot/2026-05-06/static-validator-rerun-<timestamp> \
+  -v validation_report.json \
+  -e system_errors.json \
+  -r report.html \
+  -t 4 \
+  -svu
+```
+
+Public-safe result summary:
+
+- validator process exit code: `0`;
+- validator version: `7.1.0`;
+- validated at: `2026-05-06T16:19:10-07:00`;
+- system error count: `0`;
+- notices: 3 warnings:
+  - `expired_calendar`: 1;
+  - `route_short_name_too_long`: 1;
+  - `unused_shape`: 1.
+
+This retry is not a validator-clean or no-warning compliance claim. Raw
+validator outputs remain under ignored `.cache/` storage.
+
 ## Telemetry Dry-Run
 
 ```bash

@@ -81,20 +81,26 @@ Changed files:
 
 ## Checks Run And Blocked Checks
 
-- `make validate` — blocked because the pinned GTFS-RT validator image was not
-  installed locally.
-- `docker info` — blocked because the Docker client could not connect to the
-  Docker daemon at `unix:///Users/edwintse/.docker/run/docker.sock`.
-- `make validators-install` — blocked because the Docker daemon was not
-  reachable at `unix:///Users/edwintse/.docker/run/docker.sock`.
+- Initial `make validate` — blocked because the pinned GTFS-RT validator image
+  was not installed locally.
+- Initial `docker info` — blocked because the Docker client could not connect
+  to the Docker daemon at `unix:///Users/edwintse/.docker/run/docker.sock`.
+- Retry `docker info` — passed after Docker became reachable.
+- Retry `make validators-install` — passed.
+- Retry `make validators-check` — passed.
+- Retry `make validate` — passed.
 - `make test` — passed.
 - `git diff --check` — passed.
 - `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
 - Consumer status check — passed; all seven targets remain `prepared`.
 - Targeted wording scan — reviewed.
-- Java/static validator probe — blocked. `/usr/bin/java` exists as the macOS
-  shim, but no Java runtime was available, so Phase 33 static GTFS validation
-  was not rerun and no static validator pass was recorded.
+- Direct `/usr/bin/java` probe — still blocked by the macOS shim, but
+  Homebrew Java 17 was available at `/usr/local/opt/openjdk@17/bin/java`.
+- Static GTFS validator retry — executed against the Phase 33 fetched schedule
+  ZIP in ignored `.cache` storage; process exit code `0`, system error count
+  `0`, and 3 warning notices:
+  `expired_calendar`, `route_short_name_too_long`, and `unused_shape`. No
+  validator-clean or no-warning claim was added.
 
 Targeted wording scan terms used:
 
@@ -112,9 +118,10 @@ validation did not execute. No positive new claim was added.
 
 - The final-root blocker remains unresolved. No agency-owned or
   agency-approved final public feed root exists in repo evidence.
-- Phase 33 static GTFS validation did not pass. It failed to execute because
-  Java was unavailable in that local environment, and the post-Phase-34 cleanup
-  probe still found no runnable Java runtime.
+- Phase 33 original static GTFS validation did not execute because `/usr/bin/java`
+  could not locate a Java runtime. The post-Phase-34 retry executed through
+  Homebrew Java 17 and reported 3 warnings, so there is still no
+  validator-clean or no-warning static GTFS claim.
 - Phase 33 Outcome C remains local/pilot public static GTFS evidence only.
 - Consumer statuses remain unchanged; all seven targets are still `prepared`.
 - No new external evidence was created.

@@ -45,8 +45,9 @@ The repo does not currently have:
 
 - third-party consumer submission, review, acceptance, rejection, or blocker evidence;
 - agency-owned stable URL/domain proof for the OCI pilot feed set;
-- a static GTFS validator pass for the Phase 33 public-GTFS packet; Java was
-  unavailable in that local environment, so static validation did not execute;
+- validator-clean or no-warning static GTFS evidence for the Phase 33
+  public-GTFS packet; a post-Phase-34 retry executed and reported 3 warning
+  notices;
 - production-grade ETA quality evidence;
 - full hosted multi-tenant implementation;
 - paid support or SLA commitments;

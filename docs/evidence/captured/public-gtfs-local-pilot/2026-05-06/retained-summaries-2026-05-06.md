@@ -47,6 +47,20 @@ local schedule as the imported public GTFS rather than the repo sample feed.
 | `trip_updates` | GTFS-RT validator passed with 0 errors, 0 warnings, 0 info. |
 | `alerts` | GTFS-RT validator passed with 0 errors, 0 warnings, 0 info. |
 
+Post-Phase-34 static validator retry:
+
+- MobilityData GTFS Validator `v7.1.0` executed against the already-fetched
+  local schedule ZIP using Homebrew Java 17.
+- Validator process exit code: `0`.
+- Validated at: `2026-05-06T16:19:10-07:00`.
+- System error count: `0`.
+- Notices: 3 warnings:
+  - `expired_calendar`: 1;
+  - `route_short_name_too_long`: 1;
+  - `unused_shape`: 1.
+
+This retry is not a validator-clean or no-warning compliance claim.
+
 ## Dry-Run And Boundary Summary
 
 - Telemetry simulator: `scripts/device-onboarding.sh simulate --dry-run`
