@@ -71,6 +71,8 @@ These pages explain what evidence exists and what it can, and cannot, prove:
 - [Consumer Status JSON](evidence/consumer-submissions/status.json)
 - [Marketplace And Vendor Gap Review](marketplace-vendor-gap-review.md)
 - [OCI Pilot Evidence Packet](evidence/captured/oci-pilot/2026-04-24/README.md)
+- [Public GTFS Local/Pilot Attempt](evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md)
+- [Public GTFS Local/Pilot Templates](evidence/captured/public-gtfs-local-pilot/templates/README.md)
 - [Captured Evidence Index](evidence/captured/README.md)
 
 ## Architecture And Dependencies
@@ -98,6 +100,7 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Roadmap Status](roadmap-status.md)
 - [Track B Productization Roadmap](track-b-productization-roadmap.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
+- [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
 - [Phase 29A External Predictor Adapter Evaluation](phase-29a-external-predictor-adapter-evaluation.md)
 - [Phase 29B AVL / Vendor Adapter Pilot](phase-29b-avl-vendor-adapter-pilot.md)
 - [Track B Roadmap Handoff](handoffs/track-b-roadmap.md)

@@ -4,9 +4,9 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 32 — Public Launch And Ecosystem Outreach is complete for the docs-only draft public launch materials scope.
+Phase 33 — Public GTFS Local/Pilot Evidence is complete as Outcome B — attempted public-GTFS run blocked.
 
-Phases 0 through 32 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, pilot-readiness, submission-readiness, or public-messaging issue directly requires it.
+Phases 0 through 33 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, pilot-readiness, submission-readiness, public-messaging, or public-GTFS evidence issue directly requires it.
 
 Phase 32 produced draft public launch materials only. No announcement was posted, no social copy was published, no agency was contacted, no reporter was contacted, no consumer or aggregator was contacted, and no public launch occurred.
 
@@ -16,7 +16,24 @@ root was available, no root was used, and no owner/approval evidence was
 available. No DNS, TLS, redirect, public feed fetch, validator, proxy/config,
 packet README, or checksum evidence was collected.
 
-The recommended next roadmap step is to pause stronger public claims and pursue real retained evidence. Candidate next work should be one of: agency-owned or agency-approved final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, or real deployment operations evidence.
+Phase 33 added a public GTFS local/pilot evidence phase and templates, then
+attempted the preferred LA Metro Bus GTFS local run. The run downloaded the
+public GTFS ZIP to ignored `.cache/` storage and recorded its checksum, but it
+blocked during repo-supported import/publish. A first import attempt failed
+because the default local app agency `demo-agency` did not match LA Metro
+`agency_id=LACMTA`; a second local `LACMTA` import parsed the large dataset and
+then timed out while inserting `stop_times.txt`.
+
+Do not call Phase 33 evidence completed. It is an attempted-run blocked closure
+only. No active published LA Metro local schedule proof, five-path fetch proof,
+validator proof, telemetry simulator proof, admin/private boundary proof,
+final-root evidence, or consumer evidence was collected.
+
+The recommended next roadmap step is to fix the large public GTFS import/publish
+timeout and retry Phase 33 Outcome C before making stronger public-GTFS handling
+claims. Other retained-evidence paths remain agency-owned/final-root proof,
+authorized target-specific consumer submission evidence, real agency pilot
+evidence, or real deployment operations evidence.
 
 ## Phase 32 Summary
 
@@ -28,6 +45,19 @@ The recommended next roadmap step is to pause stronger public claims and pursue 
 - Updated README, docs navigation, Phase 32 status, roadmap status, current status, and this latest handoff.
 - Added `docs/handoffs/phase-32.md`.
 
+## Phase 33 Summary
+
+- Added `docs/phase-33-public-gtfs-local-pilot-evidence.md` defining Outcome A,
+  Outcome B, and Outcome C.
+- Added template-only evidence packet scaffolding under
+  `docs/evidence/captured/public-gtfs-local-pilot/templates/`.
+- Added Outcome B blocked-run packet at
+  `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/`.
+- Updated docs navigation, roadmap status, phase plan, current status, and this
+  latest handoff.
+- Did not update the top-level README because Outcome C evidence was not
+  completed.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -35,6 +65,8 @@ The recommended next roadmap step is to pause stronger public claims and pursue 
 - No target has submitted, under-review, accepted, rejected, blocked, ingestion, listing, display, or adoption evidence.
 - No agency-owned or agency-approved final public feed root exists in repo evidence.
 - The post-Phase-32 final-root evidence follow-up confirmed the final-root blocker remains unresolved and created no evidence packet.
+- Phase 33 is Outcome B only: attempted public-GTFS local run blocked during
+  import/publish. It does not prove completed public-GTFS local/pilot evidence.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -69,10 +101,13 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 22. `docs/dependencies.md`
 23. `docs/decisions.md`
 24. `docs/handoffs/final-root-evidence-follow-up.md`
+25. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+26. `docs/handoffs/phase-33.md`
+27. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
 
 ## Current Objective
 
-Do not make stronger public claims until real retained evidence exists. The next useful work should target one concrete evidence gap: agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, or real deployment operations evidence.
+Do not make stronger public claims until real retained evidence exists. The next useful work should fix the large public GTFS import/publish timeout exposed by Phase 33 and retry Outcome C, or target another concrete evidence gap: agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, or real deployment operations evidence.
 
 Consumer or aggregator submission work remains available only when a future operator is authorized, a target is selected, official target paths are verified, and target-originated evidence can be retained and redacted. Product improvements, validator success, pilot packaging, prepared packets, and draft launch materials alone must not advance target statuses.
 
@@ -113,6 +148,23 @@ docker compose -f deploy/docker-compose.yml config
 - Post-edit final `git diff --check` — passed.
 - Post-edit `make demo-agency-flow` — blocked during Docker image pull for the pinned GTFS-RT validator and was interrupted after no progress for several minutes. See `docs/handoffs/phase-32.md`.
 
+## Checks Run For Phase 33
+
+- Planning-pass baseline reportedly passed before implementation:
+  `make validate`, `make test`, and `git diff --check`.
+- Phase 33 attempted-run `make agency-app-up` — passed; local app started and
+  imported the repo sample feed before the LA Metro attempt.
+- Phase 33 attempted-run LA Metro source download — passed; raw ZIP kept in
+  ignored `.cache/` storage.
+- Phase 33 attempted-run LA Metro import with `demo-agency` — blocked by
+  expected agency ID mismatch.
+- Phase 33 attempted-run LA Metro import with local `LACMTA` setup — blocked by
+  importer context timeout while inserting `stop_times.txt`.
+- Phase 33 attempted-run `make agency-app-down` — passed.
+- Post-edit `make validate` — passed.
+- Post-edit `make test` — passed.
+- Post-edit `git diff --check` — passed.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -125,6 +177,8 @@ docker compose -f deploy/docker-compose.yml config
 - Phase 31 did not add real pilot evidence, consumer evidence, agency adoption evidence, operations evidence, final-root proof, or device/AVL proof.
 - Phase 32 did not post announcements, contact agencies, contact consumers, launch publicly, add evidence artifacts, or change consumer statuses.
 - The post-Phase-32 final-root evidence follow-up did not create a final-root packet, run hosted packet audit, or refresh prepared packet references.
+- Phase 33 created an Outcome B blocked-run packet only. It did not complete
+  public-GTFS local/pilot evidence.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
 - Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, webhook URLs, notification credentials, raw telemetry payloads, unredacted correspondence, private portal credentials, private ticket links, raw logs with credentials, private backup paths, or raw private operator artifacts.
@@ -137,6 +191,7 @@ Choose files based on the evidence target selected next:
 - Authorized target-specific consumer submission: `docs/evidence/consumer-submissions/submission-workflow.md`, the selected packet under `docs/evidence/consumer-submissions/packets/`, and only real redacted target-originated artifacts.
 - Real agency pilot evidence: `docs/agency-pilot-program.md`, `docs/agency-pilot-checklist.md`, `docs/agency-feedback-template.md`, and a future public-safe agency pilot evidence packet.
 - Real deployment operations evidence: `docs/runbooks/`, `docs/compliance-evidence-checklist.md`, and a future public-safe operations evidence packet.
+- Public GTFS local/pilot retry: `docs/phase-33-public-gtfs-local-pilot-evidence.md`, `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`, `cmd/gtfs-import/main.go`, and `internal/gtfs/importer.go`.
 
 Do not edit target-specific consumer records, `docs/evidence/consumer-submissions/status.json`, or artifact directories unless retained, redacted, target-originated evidence supports a target-specific status transition.
 
@@ -152,9 +207,9 @@ Do not edit target-specific consumer records, `docs/evidence/consumer-submission
 
 ## Exact Next-Step Recommendation
 
-Pause stronger public claims and pursue real retained evidence before any stronger launch, adoption, readiness, or consumer-status wording.
+Fix the large public GTFS import/publish timeout exposed by Phase 33, ensure timeout failures persist a clean failed import report, then retry Phase 33 Outcome C.
 
-Recommended candidate next work should be one of:
+Other candidate evidence work remains:
 
 - agency-owned or agency-approved final-root proof;
 - authorized target-specific consumer submission evidence;

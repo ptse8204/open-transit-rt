@@ -57,6 +57,7 @@ These constraints apply to every phase:
 | 6 | Trip Updates and Alerts architecture | Define pluggable prediction/alerts boundaries and minimal adapters |
 | 7 | Prediction quality and operations workflows | Improve ETA quality, overrides, incidents, and realtime coverage |
 | 8 | Compliance and consumer workflow | Add compliance scorecard, validation, discoverability, and ingestion workflows |
+| 33 | Public GTFS local/pilot evidence | Attempt real public GTFS local/pilot handling proof without final-root or consumer overclaims |
 
 ---
 
@@ -337,3 +338,32 @@ If a phase reveals a conflict with a binding requirement:
 - document it
 - update the relevant docs
 - choose the smallest implementation that preserves the long-term contract
+
+## Phase 33 — Public GTFS Local/Pilot Evidence
+
+### Goal
+Prove, or prepare a repeatable path to prove, that Open Transit RT can ingest,
+publish, validate, and review a real current public agency GTFS dataset in a
+local or pilot environment.
+
+### Status
+Complete as Outcome B — attempted public-GTFS run blocked.
+
+### Definition of done
+Phase 33 must close with exactly one outcome:
+
+- Outcome A: template-only closure.
+- Outcome B: attempted public-GTFS run blocked.
+- Outcome C: public-GTFS local/pilot run completed with public-safe retained
+  summaries.
+
+Only Outcome C may be described as completed public-GTFS local/pilot evidence.
+Outcome B records a blocker and does not support stronger public-GTFS handling
+claims.
+
+### Boundaries
+Phase 33 does not prove agency adoption, agency endorsement, agency approval,
+official agency feed status, agency-owned final-root proof, consumer
+submission/review/acceptance, consumer ingestion/listing/display,
+Caltrans/CAL-ITP compliance, hosted SaaS availability, production readiness,
+real vendor AVL compatibility, or production-grade ETA quality.
