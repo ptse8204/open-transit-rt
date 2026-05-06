@@ -6,49 +6,35 @@ Phase 33 — Public GTFS Local/Pilot Evidence
 
 ## Status
 
-- Complete as Outcome B — attempted public-GTFS run blocked.
-- Active phase after this handoff: retry Outcome C evidence collection after
-  the post-Phase-33 import fix.
+- Complete as Outcome C — public-GTFS local/pilot run completed with
+  public-safe retained summaries.
+- Active phase after this handoff: no new phase selected.
 
-Phase 33 added the public GTFS local/pilot evidence docs and templates, then
-attempted the preferred LA Metro Bus GTFS local run. The core run blocked during
-repo-supported import/publish because the large LA Metro dataset exceeded the
-current importer context while inserting `stop_times.txt`.
+Phase 33 added the public GTFS local/pilot evidence docs and templates,
+attempted the preferred LA Metro Bus GTFS local run, fixed the large-import
+timeout exposed by that run, and retried the Outcome C evidence collection.
 
-Do not call Phase 33 evidence completed. This is an attempted-run blocked
-closure only.
-
-Post-Phase-33 implementation note: the large-import blocker was later addressed
-in code by adding configurable import timeout handling, bulk `CopyFrom` loading
-for large GTFS tables, and fresh-context failure reporting. A local post-fix
-verification import published LA Metro Bus GTFS as `gtfs-import-26`, but the
-full Outcome C evidence packet was not collected. Phase 33 remains Outcome B
-until a future run records published schedule proof, five-path fetch proof, and
-claim-boundary summaries.
+Do not extend Phase 33 beyond its evidence boundary. It proves local/pilot
+handling of a real public static GTFS dataset only.
 
 ## What Was Implemented
 
 - Added `docs/phase-33-public-gtfs-local-pilot-evidence.md`.
 - Added template-only evidence files under
   `docs/evidence/captured/public-gtfs-local-pilot/templates/`.
-- Added a dated Outcome B packet at
+- Added a dated Outcome C packet at
   `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/`.
-- Updated status/navigation docs for Phase 33 and the Outcome B blocker.
+- Updated status/navigation docs for Phase 33 and the Outcome C retry.
+- Fixed the large public-GTFS import blocker:
+  - `cmd/gtfs-import` now supports configurable timeout handling through
+    `-timeout` and `GTFS_IMPORT_TIMEOUT`.
+  - Large `gtfs_stop_time` and `gtfs_shape_point` publish inserts use
+    `pgx.CopyFrom`.
+  - Publish-failure reporting uses a fresh short context.
 
-## What Was Designed But Intentionally Not Implemented Yet
+## Outcome C Evidence Summary
 
-- Outcome C evidence was not completed because import/publish blocked.
-- No public LA Metro local feed fetch evidence was collected after the import
-  blocker.
-- No validator evidence was collected for the LA Metro local run.
-- No telemetry simulator or dry-run evidence was collected for the LA Metro
-  local run.
-- No admin/private/debug boundary evidence was collected for the LA Metro local
-  run.
-
-## Attempted Run Summary
-
-Catalog facts were checked on `2026-05-06T20:35:48Z`.
+Catalog facts were checked on `2026-05-06T21:15Z`.
 
 - Mobility Database was used as the primary catalog reference for official-feed
   status, route count, service range, producer URL, and dataset size.
@@ -58,12 +44,15 @@ Catalog facts were checked on `2026-05-06T20:35:48Z`.
   committed.
 - Source ZIP SHA-256:
   `ce984bb5cc179d814fb0348878a6f7bd9ab6c940aaaec9fd4e97420583a0aa94`.
-- First import attempt with `demo-agency` failed validation because
-  `agency.txt` contains `agency_id=LACMTA`.
-- Second import attempt with local `LACMTA` setup reached publish but blocked:
-  `context deadline exceeded` while inserting `stop_times.txt`.
+- Import through `cmd/gtfs-import -agency-id LACMTA -timeout 15m` published
+  local feed version `gtfs-import-1`.
+- Local public root: `http://localhost:19080`.
+- Fetched schedule ZIP SHA-256:
+  `1819fade012ca53a58d880285bb3ab85a0fce0a1b241d20cf15320e8542503ab`.
+- The fetched schedule was unzipped in ignored `.cache/` storage and verified
+  as the imported LA Metro public GTFS rather than the repo sample feed.
 
-The blocked `LACMTA` import parsed these public-safe counts:
+Imported counts:
 
 | Entity | Count |
 | --- | ---: |
@@ -77,59 +66,74 @@ The blocked `LACMTA` import parsed these public-safe counts:
 | `calendar_dates` | 8432 |
 | `frequencies` | 0 |
 
+Fetched schedule proof:
+
+- `agency.txt`: `agency_id=LACMTA`, `agency_name=Metro - Los Angeles`,
+  timezone `America/Los_Angeles`, URL `https://www.metro.net`.
+- `routes.txt`: 114 bus routes.
+- Service-date coverage: `20251208` through `20270401`.
+
+Five public paths fetched from the local root:
+
+- `/public/feeds.json`
+- `/public/gtfs/schedule.zip`
+- `/public/gtfsrt/vehicle_positions.pb`
+- `/public/gtfsrt/trip_updates.pb`
+- `/public/gtfsrt/alerts.pb`
+
+Validator results:
+
+- Static GTFS validator attempted but failed to execute because Java runtime
+  was unavailable in this local environment.
+- Vehicle Positions, Trip Updates, and Alerts GTFS-RT validators passed with 0
+  errors, 0 warnings, and 0 info notices against empty valid protobuf feeds.
+
+Additional checks:
+
+- `scripts/device-onboarding.sh simulate --dry-run` printed synthetic payloads
+  and sent no telemetry.
+- Public root admin/debug paths returned `404`; direct local admin/debug paths
+  without auth returned `401`; direct local admin operations with a runtime
+  local admin token returned `200`.
+
 ## Schema And Interface Changes
 
-- None.
-
-## Dependency Changes
-
-- None.
-
-The Phase 33 attempt used existing dependencies only: Docker Compose, Postgres,
-the repo importer, `curl`, `unzip`, and `shasum`.
-
-## Migrations Added
-
-- None.
+- No migrations.
+- `cmd/gtfs-import` CLI gained `-timeout`.
+- `GTFS_IMPORT_TIMEOUT` can configure the import timeout; `-timeout 0` disables
+  it.
 
 ## Tests Added And Results
 
-- No code tests were added because this phase changed documentation/evidence
-  files only.
-- The attempted LA Metro run exposed an importer/runtime blocker, not a new
-  committed test case.
+Added focused import timeout and failure-report tests:
 
-## Checks Run And Blocked Checks
+- `cmd/gtfs-import/main_test.go`
+- `internal/gtfs/importer_test.go`
 
-- Planning-pass baseline reportedly passed before implementation:
-  `make validate`, `make test`, and `git diff --check`.
-- Post-edit `make validate` — passed.
-- Post-edit `make test` — passed.
-- Post-edit `git diff --check` — passed.
+## Checks Run
 
-Blocked for Outcome C:
-
-- LA Metro import/publish blocked with `context deadline exceeded` while
-  inserting `stop_times.txt`.
-- Published LA Metro `/public/gtfs/schedule.zip` fetch was not run.
-- Proof that fetched schedule is imported public GTFS was not run.
-- Five-path fetch was not run.
-- Validators were not run for the LA Metro local run.
-- Telemetry simulator/dry-run and admin/private/debug checks were not run for
-  the LA Metro local run.
+- Focused `go test ./cmd/gtfs-import ./internal/gtfs` — passed.
+- `make validate` — passed.
+- `make test` — passed.
+- First `make test-integration` attempt — blocked because Postgres was not
+  ready immediately after startup.
+- `make test-integration` rerun after `pg_isready` — passed.
+- `git diff --check` — passed.
+- Final post-Outcome-C-docs `make validate` — passed.
+- Final post-Outcome-C-docs `make test` — passed.
+- Final post-Outcome-C-docs `git diff --check` — passed.
 
 ## Known Issues
 
-- The repo importer had a fixed command context that was too short for the
-  current LA Metro Bus GTFS dataset on this local environment. This was fixed
-  after Phase 33 by making the import timeout configurable and increasing the
-  default.
-- The failed `LACMTA` import left the `gtfs_import` row at `started` because
-  the context expired before the failure update completed. This was fixed after
-  Phase 33 by recording publish failures with a fresh short context.
-- The local Compose app defaults to `AGENCY_ID=demo-agency`; a future Outcome C
-  run for public GTFS with a different `agency_id` needs a documented local
-  agency setup and service configuration path.
+- Static GTFS validation could not execute in this local environment because
+  Java was unavailable. The schedule validator record is an execution blocker,
+  not a data-quality pass.
+- The local Compose app defaults to `AGENCY_ID=demo-agency`; the Outcome C run
+  used repo service binaries with `AGENCY_ID=LACMTA` and a local public proxy
+  rather than `make agency-app-up`, because `make agency-app-up` imports the
+  repo sample feed.
+- GTFS-RT endpoints were valid empty protobuf publications. They are not real
+  LA Metro realtime data.
 
 ## Truthfulness And Evidence Boundary
 
@@ -144,28 +148,16 @@ Do not claim agency adoption, agency endorsement, agency approval, official
 agency feed status, agency-owned final-root proof, consumer submission/review/
 acceptance, consumer ingestion/listing/display, Caltrans/CAL-ITP compliance,
 hosted SaaS availability, production readiness, real vendor AVL compatibility,
-real-world ETA accuracy, or production-grade ETA quality from Phase 33.
+real-world ETA accuracy, production-grade ETA quality, or real LA Metro
+realtime data from Phase 33.
 
 ## Exact Next-Step Recommendation
 
-- First files to read:
-  - `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-  - `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-  - `cmd/gtfs-import/main.go`
-  - `internal/gtfs/importer.go`
-- First files likely to edit:
-  - `cmd/gtfs-import/main.go`
-  - `internal/gtfs/importer.go`
-  - importer tests under `internal/gtfs/`
-- Commands to run before coding:
-  - `make validate`
-  - `make test`
-  - `git diff --check`
-- Known blockers:
-  - Phase 33 still lacks Outcome C evidence collection after the import fix;
-  - local app agency configuration defaults to `demo-agency`.
-- Recommended first implementation slice:
-  - retry Phase 33 Outcome C with a dated packet that proves the published
-    schedule is the imported public GTFS and records five-path fetch summaries,
-    validators or blockers, telemetry/dry-run status, and admin/private boundary
-    status.
+The next useful retained-evidence targets are:
+
+- agency-owned/final-root proof if an agency-owned or agency-approved final
+  public root becomes available;
+- authorized target-specific consumer submission evidence if an operator
+  selects a target and retains target-originated artifacts;
+- real agency pilot evidence;
+- real deployment operations evidence.

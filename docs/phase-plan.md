@@ -347,7 +347,8 @@ publish, validate, and review a real current public agency GTFS dataset in a
 local or pilot environment.
 
 ### Status
-Complete as Outcome B — attempted public-GTFS run blocked.
+Complete as Outcome C — public-GTFS local/pilot run completed with public-safe
+retained summaries.
 
 ### Definition of done
 Phase 33 must close with exactly one outcome:
@@ -359,7 +360,8 @@ Phase 33 must close with exactly one outcome:
 
 Only Outcome C may be described as completed public-GTFS local/pilot evidence.
 Outcome B records a blocker and does not support stronger public-GTFS handling
-claims.
+claims. The 2026-05-06 packet reached Outcome C after the large-import fix and
+retry, but it remains local/pilot evidence only.
 
 ### Boundaries
 Phase 33 does not prove agency adoption, agency endorsement, agency approval,

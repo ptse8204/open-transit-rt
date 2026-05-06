@@ -71,7 +71,7 @@ These pages explain what evidence exists and what it can, and cannot, prove:
 - [Consumer Status JSON](evidence/consumer-submissions/status.json)
 - [Marketplace And Vendor Gap Review](marketplace-vendor-gap-review.md)
 - [OCI Pilot Evidence Packet](evidence/captured/oci-pilot/2026-04-24/README.md)
-- [Public GTFS Local/Pilot Attempt](evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md)
+- [Public GTFS Local/Pilot Evidence](evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md)
 - [Public GTFS Local/Pilot Templates](evidence/captured/public-gtfs-local-pilot/templates/README.md)
 - [Captured Evidence Index](evidence/captured/README.md)
 

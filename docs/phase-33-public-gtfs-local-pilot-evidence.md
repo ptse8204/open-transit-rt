@@ -2,7 +2,8 @@
 
 ## Status
 
-Complete as Outcome B — attempted public-GTFS run blocked.
+Complete as Outcome C — public-GTFS local/pilot run completed with public-safe
+retained summaries.
 
 Phase 33 is an intermediate development evidence phase. It is meant to prove,
 or prepare a repeatable path to prove, that Open Transit RT can ingest, publish,
@@ -10,9 +11,13 @@ validate, and review a real current public agency GTFS dataset in a local or
 pilot environment.
 
 The 2026-05-06 LA Metro Bus GTFS local attempt is documented at
-`docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/`. It blocked during
-repo-supported import/publish when the large `stop_times.txt` dataset exceeded
-the current importer context. Outcome C evidence was not completed.
+`docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/`. The first pass
+blocked during repo-supported import/publish when the large `stop_times.txt`
+dataset exceeded the old importer context. After the large-import fix, the run
+was retried and completed Outcome C with retained public-safe summaries for
+source metadata, import, published schedule proof, five public fetches,
+validators or blockers, telemetry dry-run, admin/private route boundaries, and
+claim boundaries.
 
 Do not describe Phase 33 as agency adoption, agency endorsement, agency
 approval, official agency feed status, agency-owned final-root proof, consumer
