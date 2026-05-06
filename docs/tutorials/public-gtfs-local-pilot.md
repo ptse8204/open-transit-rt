@@ -59,27 +59,42 @@ Do not commit the raw ZIP unless maintainers have reviewed the license/terms and
 ## Suggested directory layout
 
 ```text
-.cache/public-gtfs-local-pilot/YYYY-MM-DD/
+${PILOT_DIR}/
   source.zip
   source.sha256
   fetched-schedule.zip
   fetched-schedule.sha256
   unpacked-fetched-schedule/
 
-docs/evidence/captured/public-gtfs-local-pilot/YYYY-MM-DD/
+${EVIDENCE_DIR}/
   README.md
-  command-log-inventory-YYYY-MM-DD.md
-  retained-summaries-YYYY-MM-DD.md
+  command-log-inventory-${RUN_DATE}.md
+  retained-summaries-${RUN_DATE}.md
 ```
 
 ## High-level procedure
 
+The examples below use shell variables so paths and URLs stay consistent:
+
+```bash
+RUN_DATE="$(date -u +%F)"
+PILOT_DIR=".cache/public-gtfs-local-pilot/${RUN_DATE}"
+EVIDENCE_DIR="docs/evidence/captured/public-gtfs-local-pilot/${RUN_DATE}"
+PUBLIC_GTFS_URL="https://example.com/path/to/gtfs.zip"
+PUBLIC_GTFS_AGENCY_ID="example-agency"
+LOCAL_PUBLIC_ROOT="http://localhost:19080"
+```
+
+Set `PUBLIC_GTFS_URL` and `PUBLIC_GTFS_AGENCY_ID` to the selected public GTFS
+dataset before running commands. For a retained evidence packet, use a stable
+`RUN_DATE` value that matches the packet directory.
+
 ### 1. Download the public GTFS ZIP
 
 ```bash
-mkdir -p .cache/public-gtfs-local-pilot/YYYY-MM-DD
-curl -L -o .cache/public-gtfs-local-pilot/YYYY-MM-DD/source.zip "<PUBLIC_GTFS_URL>"
-sha256sum .cache/public-gtfs-local-pilot/YYYY-MM-DD/source.zip
+mkdir -p "${PILOT_DIR}"
+curl -L -o "${PILOT_DIR}/source.zip" "${PUBLIC_GTFS_URL}"
+sha256sum "${PILOT_DIR}/source.zip"
 ```
 
 Record the checksum in the evidence packet.
@@ -98,8 +113,8 @@ Use the repo-supported import command.
 
 ```bash
 go run ./cmd/gtfs-import \
-  -agency-id <PUBLIC_GTFS_AGENCY_ID> \
-  -zip .cache/public-gtfs-local-pilot/YYYY-MM-DD/source.zip \
+  -agency-id "${PUBLIC_GTFS_AGENCY_ID}" \
+  -zip "${PILOT_DIR}/source.zip" \
   -actor-id local-public-gtfs-pilot \
   -notes "public GTFS local/pilot evaluation only" \
   -timeout 15m
@@ -120,25 +135,25 @@ Avoid confusing this with the default `make agency-app-up` demo flow if that flo
 ### 5. Fetch the five public paths
 
 ```bash
-curl -fsS -D .cache/public-gtfs-local-pilot/YYYY-MM-DD/feeds.headers.txt \
-  http://localhost:19080/public/feeds.json \
-  -o .cache/public-gtfs-local-pilot/YYYY-MM-DD/feeds.json
+curl -fsS -D "${PILOT_DIR}/feeds.headers.txt" \
+  "${LOCAL_PUBLIC_ROOT}/public/feeds.json" \
+  -o "${PILOT_DIR}/feeds.json"
 
-curl -fsS -D .cache/public-gtfs-local-pilot/YYYY-MM-DD/schedule.headers.txt \
-  http://localhost:19080/public/gtfs/schedule.zip \
-  -o .cache/public-gtfs-local-pilot/YYYY-MM-DD/fetched-schedule.zip
+curl -fsS -D "${PILOT_DIR}/schedule.headers.txt" \
+  "${LOCAL_PUBLIC_ROOT}/public/gtfs/schedule.zip" \
+  -o "${PILOT_DIR}/fetched-schedule.zip"
 
-curl -fsS -D .cache/public-gtfs-local-pilot/YYYY-MM-DD/vehicle_positions.headers.txt \
-  http://localhost:19080/public/gtfsrt/vehicle_positions.pb \
-  -o .cache/public-gtfs-local-pilot/YYYY-MM-DD/vehicle_positions.pb
+curl -fsS -D "${PILOT_DIR}/vehicle_positions.headers.txt" \
+  "${LOCAL_PUBLIC_ROOT}/public/gtfsrt/vehicle_positions.pb" \
+  -o "${PILOT_DIR}/vehicle_positions.pb"
 
-curl -fsS -D .cache/public-gtfs-local-pilot/YYYY-MM-DD/trip_updates.headers.txt \
-  http://localhost:19080/public/gtfsrt/trip_updates.pb \
-  -o .cache/public-gtfs-local-pilot/YYYY-MM-DD/trip_updates.pb
+curl -fsS -D "${PILOT_DIR}/trip_updates.headers.txt" \
+  "${LOCAL_PUBLIC_ROOT}/public/gtfsrt/trip_updates.pb" \
+  -o "${PILOT_DIR}/trip_updates.pb"
 
-curl -fsS -D .cache/public-gtfs-local-pilot/YYYY-MM-DD/alerts.headers.txt \
-  http://localhost:19080/public/gtfsrt/alerts.pb \
-  -o .cache/public-gtfs-local-pilot/YYYY-MM-DD/alerts.pb
+curl -fsS -D "${PILOT_DIR}/alerts.headers.txt" \
+  "${LOCAL_PUBLIC_ROOT}/public/gtfsrt/alerts.pb" \
+  -o "${PILOT_DIR}/alerts.pb"
 ```
 
 Record HTTP status, byte counts, and SHA-256 checksums.
@@ -146,9 +161,9 @@ Record HTTP status, byte counts, and SHA-256 checksums.
 ### 6. Prove the fetched schedule is the imported public GTFS
 
 ```bash
-mkdir -p .cache/public-gtfs-local-pilot/YYYY-MM-DD/unpacked-fetched-schedule
-unzip -q .cache/public-gtfs-local-pilot/YYYY-MM-DD/fetched-schedule.zip \
-  -d .cache/public-gtfs-local-pilot/YYYY-MM-DD/unpacked-fetched-schedule
+mkdir -p "${PILOT_DIR}/unpacked-fetched-schedule"
+unzip -q "${PILOT_DIR}/fetched-schedule.zip" \
+  -d "${PILOT_DIR}/unpacked-fetched-schedule"
 ```
 
 Summarize public-safe facts from:
@@ -190,7 +205,11 @@ If feeds are empty valid protobuf publications, say that. Do not imply real agen
 Use dry-run mode only unless authorized real telemetry is available.
 
 ```bash
-scripts/device-onboarding.sh simulate --dry-run
+TARGET="${LOCAL_PUBLIC_ROOT}" \
+AGENCY_ID="${PUBLIC_GTFS_AGENCY_ID}" \
+DEVICE_ID="public-gtfs-dryrun-device" \
+VEHICLE_ID="public-gtfs-dryrun-vehicle" \
+  scripts/device-onboarding.sh simulate --dry-run
 ```
 
 Record that no telemetry was sent if dry-run was used.

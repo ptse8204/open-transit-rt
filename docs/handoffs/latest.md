@@ -102,36 +102,37 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 
 1. `AGENTS.md`
 2. `docs/current-status.md`
-3. `docs/handoffs/phase-32.md`
-4. `docs/phase-32-public-launch-ecosystem-outreach.md`
-5. `docs/agency-one-pager.md`
-6. `docs/demo-video-outline.md`
-7. `docs/public-share-copy.md`
-8. `docs/ecosystem-positioning.md`
-9. `docs/public-launch-checklist.md`
-10. `docs/agency-pilot-program.md`
-11. `docs/agency-pilot-checklist.md`
-12. `docs/agency-feedback-template.md`
-13. `docs/roadmap-status.md`
-14. `docs/california-readiness-summary.md`
-15. `docs/compliance-evidence-checklist.md`
-16. `docs/agency-owned-domain-readiness.md`
-17. `docs/evidence/consumer-submissions/status.json`
-18. `docs/evidence/consumer-submissions/submission-workflow.md`
-19. `docs/evidence/redaction-policy.md`
-20. `SECURITY.md`
-21. `README.md`
-22. `docs/dependencies.md`
-23. `docs/decisions.md`
-24. `docs/handoffs/final-root-evidence-follow-up.md`
-25. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-26. `docs/handoffs/phase-33.md`
-27. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-28. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-29. `docs/handoffs/phase-34.md`
-30. `docs/future-roadmap-post-outcome-c.md`
-31. `docs/final-root-operator-request.md`
-32. `docs/tutorials/public-gtfs-local-pilot.md`
+3. `docs/handoffs/latest.md`
+4. `docs/handoffs/phase-34.md`
+5. `docs/future-roadmap-post-outcome-c.md`
+6. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+7. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+8. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+9. `docs/final-root-operator-request.md`
+10. `docs/tutorials/public-gtfs-local-pilot.md`
+11. `docs/roadmap-status.md`
+12. `docs/california-readiness-summary.md`
+13. `docs/compliance-evidence-checklist.md`
+14. `docs/agency-owned-domain-readiness.md`
+15. `docs/evidence/consumer-submissions/status.json`
+16. `docs/evidence/consumer-submissions/submission-workflow.md`
+17. `docs/evidence/redaction-policy.md`
+18. `SECURITY.md`
+19. `README.md`
+20. `docs/dependencies.md`
+21. `docs/decisions.md`
+22. `docs/handoffs/final-root-evidence-follow-up.md`
+23. `docs/handoffs/phase-33.md`
+24. `docs/handoffs/phase-32.md`
+25. `docs/phase-32-public-launch-ecosystem-outreach.md`
+26. `docs/agency-one-pager.md`
+27. `docs/demo-video-outline.md`
+28. `docs/public-share-copy.md`
+29. `docs/ecosystem-positioning.md`
+30. `docs/public-launch-checklist.md`
+31. `docs/agency-pilot-program.md`
+32. `docs/agency-pilot-checklist.md`
+33. `docs/agency-feedback-template.md`
 
 ## Current Objective
 
@@ -253,6 +254,8 @@ docker compose -f deploy/docker-compose.yml config
 
 - `make validate` — blocked because the pinned GTFS-RT validator image was not
   installed locally.
+- `docker info` — blocked because the Docker client could not connect to the
+  Docker daemon at `unix:///Users/edwintse/.docker/run/docker.sock`.
 - `make validators-install` — blocked because the Docker daemon was not
   reachable at `unix:///Users/edwintse/.docker/run/docker.sock`.
 - `make test` — passed.
@@ -262,6 +265,9 @@ docker compose -f deploy/docker-compose.yml config
 - Targeted wording scan — reviewed; matches are negated/boundary wording,
   historical phase names, or allowed evidence-boundary language. See
   `docs/handoffs/phase-34.md` for terms.
+- Java/static validator probe — blocked. `/usr/bin/java` exists as the macOS
+  shim, but no Java runtime was available, so Phase 33 static GTFS validation
+  was not rerun and no static validator pass was recorded.
 
 ## Current Evidence And Security Boundary
 

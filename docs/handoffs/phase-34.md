@@ -83,6 +83,8 @@ Changed files:
 
 - `make validate` — blocked because the pinned GTFS-RT validator image was not
   installed locally.
+- `docker info` — blocked because the Docker client could not connect to the
+  Docker daemon at `unix:///Users/edwintse/.docker/run/docker.sock`.
 - `make validators-install` — blocked because the Docker daemon was not
   reachable at `unix:///Users/edwintse/.docker/run/docker.sock`.
 - `make test` — passed.
@@ -90,6 +92,9 @@ Changed files:
 - `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
 - Consumer status check — passed; all seven targets remain `prepared`.
 - Targeted wording scan — reviewed.
+- Java/static validator probe — blocked. `/usr/bin/java` exists as the macOS
+  shim, but no Java runtime was available, so Phase 33 static GTFS validation
+  was not rerun and no static validator pass was recorded.
 
 Targeted wording scan terms used:
 
@@ -108,7 +113,8 @@ validation did not execute. No positive new claim was added.
 - The final-root blocker remains unresolved. No agency-owned or
   agency-approved final public feed root exists in repo evidence.
 - Phase 33 static GTFS validation did not pass. It failed to execute because
-  Java was unavailable in that local environment.
+  Java was unavailable in that local environment, and the post-Phase-34 cleanup
+  probe still found no runnable Java runtime.
 - Phase 33 Outcome C remains local/pilot public static GTFS evidence only.
 - Consumer statuses remain unchanged; all seven targets are still `prepared`.
 - No new external evidence was created.
