@@ -49,6 +49,22 @@ No final-root public fetch evidence, DNS proof, TLS/redirect proof, validator
 records, evidence packet, migration proof, or prepared packet refreshes were
 collected. The OCI pilot remains labeled as hosted/operator pilot evidence only.
 
+## Post-Phase-32 Final-Root Follow-Up Result
+
+The post-Phase-32 final-root evidence follow-up also closed as
+blocker-documented only. No agency-owned or agency-approved final public feed
+root exists in repo evidence, no root was used, and no owner or approval
+artifact was available.
+
+No DNS proof, TLS certificate metadata, HTTP-to-HTTPS redirect proof, public
+feed fetch proof, validator records, redacted proxy/config summary, evidence
+packet README, or checksums were collected. No final-root evidence packet was
+created. Prepared consumer packets and consumer target statuses were not
+changed.
+
+The DuckDNS OCI pilot remains pilot evidence only. It must not be described as
+agency-owned final-root proof, consumer acceptance, or compliance evidence.
+
 ## Prepared Packet Evidence
 
 Phase 20 prepared target-specific packets for:
@@ -95,7 +111,8 @@ No consumer or aggregator acceptance, ingestion, listing, display, or production
 The following evidence remains missing before stronger CAL-ITP/Caltrans readiness or compliance language would be justified:
 
 - agency-owned stable URL/domain proof; Phase 23 documented this as blocked
-  because no agency-owned or provider-approved stable URL root is available;
+  because no agency-owned or provider-approved stable URL root is available,
+  and the post-Phase-32 follow-up confirmed the same blocker remains;
 - agency-approved identity, license, and contact metadata for any real provider submission;
 - current production validation records for the final agency-owned or
   agency-approved URL root;

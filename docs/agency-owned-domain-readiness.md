@@ -67,6 +67,45 @@ evidence was not collected.
 | Prepared packet refresh | Not performed — final-root evidence unavailable. |
 | Migration / redirect proof from DuckDNS | Not collected — no final root exists to migrate to. |
 
+## Post-Phase-32 Follow-Up Blocker Record
+
+The post-Phase-32 final-root evidence follow-up also closed as
+blocker-documented only. The selected status was `No root`: no agency-owned or
+agency-approved final public feed root was available, and no operator approval
+artifact was available for using a candidate root as the final public feed
+root.
+
+No evidence packet was created and no prepared consumer packet references were
+refreshed.
+
+| Area | Follow-up status |
+| --- | --- |
+| Final root exists | No. |
+| Root used | None. |
+| Domain owner / approval evidence | None available. |
+| DNS proof | Not collected - final root unavailable. |
+| TLS certificate metadata | Not collected - final root unavailable. |
+| HTTP to HTTPS redirect proof | Not collected - final root unavailable. |
+| Public feed fetch proof | Not collected - final root unavailable. |
+| All five final feed URLs | Not collected - final root unavailable. |
+| Validator records | Not collected - final root unavailable. |
+| Redacted proxy/config summary | Not collected - final root unavailable. |
+| Evidence packet README/checksums | Not created - no real final-root artifacts exist. |
+| Prepared packet refresh | Not performed - final-root evidence unavailable. |
+
+Exact next actions:
+
+1. Identify a candidate agency-owned or agency-approved root.
+2. Obtain retained operator approval for using that root as the public feed
+   root.
+3. Configure DNS for the approved root.
+4. Configure TLS and HTTP-to-HTTPS redirect behavior if HTTP is exposed.
+5. Deploy all five public feed URLs at the approved root.
+6. Collect DNS, TLS, redirect, public fetch, validator, proxy/config, README,
+   and checksum evidence under a dated final-root evidence packet.
+7. Run the hosted evidence packet audit only after the packet contains real
+   final-root artifacts.
+
 ## Future Agency-Owned Domain Next Actions
 
 1. Identify the candidate agency-owned or agency-approved root.

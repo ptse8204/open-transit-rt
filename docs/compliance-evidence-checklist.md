@@ -191,3 +191,21 @@ What Phase 23 does not prove:
 - CAL-ITP/Caltrans compliance;
 - marketplace/vendor equivalence;
 - production-grade ETA quality.
+
+## Post-Phase-32 Final-Root Follow-Up Result
+
+The post-Phase-32 final-root evidence follow-up also closed as
+blocker-documented only. No agency-owned or agency-approved final public feed
+root was available, no root was used, and no owner or approval evidence was
+available.
+
+No final-root DNS proof, TLS certificate metadata, HTTP-to-HTTPS redirect
+proof, public fetch proof for the five public feed URLs, validator records,
+redacted proxy/config summary, evidence packet README, or checksums were
+collected. No final-root evidence packet was created, and
+`EVIDENCE_PACKET_DIR=<packet> make audit-hosted-evidence` was intentionally not
+run.
+
+This follow-up does not change consumer or aggregator statuses. All target
+records remain `prepared` only unless retained, redacted, target-originated
+evidence supports a target-specific status transition.
