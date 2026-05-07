@@ -8,7 +8,7 @@ Phase 34 — Post-Outcome-C Status Consistency And Evidence Readiness
 
 - Complete for docs-only status consistency and evidence-readiness scope.
 - Active phase after this handoff: no new implementation phase selected; next
-  work should be a retained-evidence fork.
+  work is a retained-evidence fork.
 
 Phase 34 aligned repository status after Phase 33 Outcome C. It did not create
 new evidence and did not strengthen Phase 33 claims.
@@ -117,18 +117,21 @@ agency adoption|agency endorsement|agency approval|official agency feed status|a
 
 Matches were reviewed as negated/boundary wording, historical phase names, or
 allowed evidence-boundary language. Examples include "does not prove",
-"must not claim", "not evidence", "prepared only", "not agency-owned", and the
-Phase 33 static validator blocker wording that Java was unavailable and static
-validation did not execute. No positive new claim was added.
+"must not claim", "not evidence", "prepared only", "not agency-owned", and
+wording that distinguishes the original Phase 33 Java blocker from the later
+Homebrew Java 17 static validator retry. No positive new claim was added.
 
 ## Known Issues
 
 - The final-root blocker remains unresolved. No agency-owned or
   agency-approved final public feed root exists in repo evidence.
-- Phase 33 original static GTFS validation did not execute because `/usr/bin/java`
-  could not locate a Java runtime. The post-Phase-34 retry executed through
-  Homebrew Java 17 and reported 3 warnings, so there is still no
-  validator-clean or no-warning static GTFS claim.
+- The original Outcome C static GTFS validator attempt was blocked because
+  `/usr/bin/java` could not locate a Java runtime.
+- The post-Phase-34 static GTFS validator retry executed successfully through
+  Homebrew Java 17 against the Phase 33 fetched schedule ZIP and reported
+  process exit code `0`, system error count `0`, and 3 warning notices.
+- The retry result is not validator-clean, no-warning, compliance, final-root,
+  consumer, or production evidence.
 - Phase 33 Outcome C remains local/pilot public static GTFS evidence only.
 - Consumer statuses remain unchanged; all seven targets are still `prepared`.
 - No new external evidence was created.

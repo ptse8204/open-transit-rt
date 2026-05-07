@@ -12,14 +12,17 @@ This document is retained as the Phase 34 scope/closure reference.
 
 Phase 33 is now complete as Outcome C. The repo has local/pilot public static GTFS dataset handling evidence for the LA Metro Bus public GTFS run.
 
-Phase 34 should make the repo easier for future Codex agents, maintainers, and agency evaluators to use after Outcome C. It should fix stale status docs, preserve the new truth state, and prepare the next real retained-evidence path without inventing external evidence.
+Phase 34 made the repo easier for future Codex agents, maintainers, and agency
+evaluators to use after Outcome C. It fixed stale status docs, preserved the
+new truth state, and prepared the next real retained-evidence path without
+inventing external evidence.
 
 ## Scope
 
-Phase 34 is a docs-only documentation, evidence-readiness, and repeatability
+Phase 34 was a docs-only documentation, evidence-readiness, and repeatability
 phase.
 
-It should cover:
+The closed scope covered:
 
 1. post-Outcome-C status consistency;
 2. public-GTFS local/pilot repeatability guidance;
@@ -27,13 +30,13 @@ It should cover:
 4. static validator tooling blocker clarification;
 5. forward roadmap selection.
 
-For this Phase 34 implementation, do not add scripts, Makefile targets, runtime
-code, schema changes, migrations, APIs, consumer tracker changes, final-root
-evidence packets, or target artifacts.
+This Phase 34 implementation added no scripts, Makefile targets, runtime code,
+schema changes, migrations, APIs, consumer tracker changes, final-root evidence
+packets, or target artifacts.
 
-## Required first reading
+## Continuation Reading
 
-A fresh Codex agent should read:
+Future continuation read list:
 
 ```text
 AGENTS.md
@@ -83,7 +86,7 @@ The Outcome C packet proves:
 
 ## Non-goals
 
-Phase 34 must not claim or imply:
+Phase 34 added no claim or implication of:
 
 - agency adoption;
 - agency endorsement;
@@ -105,11 +108,11 @@ Phase 34 must not claim or imply:
 - production-grade ETA quality;
 - public launch completion.
 
-## Required implementation
+## Closed Implementation Reference
 
 ### 1. Patch stale status and roadmap docs
 
-Update these files so they consistently reflect Phase 33 Outcome C:
+These files were updated so they consistently reflect Phase 33 Outcome C:
 
 ```text
 docs/current-status.md
@@ -122,29 +125,28 @@ docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md
 docs/future-roadmap-post-outcome-c.md
 ```
 
-Minimum expected corrections:
+Closure corrections:
 
-- `docs/current-status.md` should no longer open by calling the project an early-stage starter without qualification.
-- `docs/roadmap-status.md` should not say public-GTFS evidence is still only an attempted blocker or missing; it should say Outcome C exists and is limited to local/pilot public static GTFS handling.
-- `docs/track-b-productization-roadmap.md` should not recommend Phase 32 as next. It should show Phases 22-33 as closed and Phase 34 or the next evidence fork as the current recommendation.
-- `docs/repo-gaps.md` should be refreshed, retired, or clearly marked historical. It should not list already-completed starter scaffolding as current missing work.
-- `docs/phase-plan.md` should point future agents to the post-Outcome-C roadmap and latest handoff.
-- `docs/README.md` should label the public-GTFS evidence packet as Outcome C evidence rather than merely an attempt.
+- `docs/current-status.md` no longer opens by calling the project an early-stage starter without qualification.
+- `docs/roadmap-status.md` no longer says public-GTFS evidence is only an attempted blocker or missing; it says Outcome C exists and is limited to local/pilot public static GTFS handling.
+- `docs/track-b-productization-roadmap.md` no longer recommends Phase 32 as next. It shows Phases 22-33 as closed and Phase 34 or the next evidence fork as the current recommendation.
+- `docs/repo-gaps.md` was refreshed so it no longer lists already-completed starter scaffolding as current missing work.
+- `docs/phase-plan.md` points future agents to the post-Outcome-C roadmap and latest handoff.
+- `docs/README.md` labels the public-GTFS evidence packet as Outcome C evidence rather than merely an attempt.
 - `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-  should state Phase 34 is docs-only and should not allow scripts or Makefile
-  targets.
-- `docs/future-roadmap-post-outcome-c.md` should mark Phase 34 complete once
-  closed and make the next path a retained-evidence fork.
+  states Phase 34 is docs-only and does not allow scripts or Makefile targets.
+- `docs/future-roadmap-post-outcome-c.md` marks Phase 34 complete and makes the
+  next path a retained-evidence fork.
 
 ### 2. Add a final-root operator request package
 
-Add:
+Added:
 
 ```text
 docs/final-root-operator-request.md
 ```
 
-This should be plain-language and operator-facing. It should explain:
+This plain-language operator-facing request package explains:
 
 - why a final public feed root matters;
 - acceptable examples of agency-owned or agency-approved roots;
@@ -154,22 +156,23 @@ This should be plain-language and operator-facing. It should explain:
 - validator evidence required;
 - redaction and security rules;
 - what not to send;
-- how DuckDNS OCI pilot evidence should remain labeled;
+- how DuckDNS OCI pilot evidence remains labeled;
 - what happens after final-root proof exists.
 
 This file is a request package, not evidence.
 
 ### 3. Add a repeatable public-GTFS local/pilot guide
 
-Add or update:
+Added or updated:
 
 ```text
 docs/tutorials/public-gtfs-local-pilot.md
 ```
 
-This guide should help future maintainers repeat the Phase 33 style run without implying agency approval.
+This guide helps future maintainers repeat the Phase 33 style run without
+implying agency approval.
 
-It should cover:
+It covers:
 
 - choosing a public GTFS dataset;
 - checking source/catalog/license facts;
@@ -194,7 +197,7 @@ After Phase 34, a retry using Homebrew Java 17 executed the pinned static
 validator against the already-fetched schedule ZIP and reported process exit
 code `0`, system error count `0`, and 3 warning notices.
 
-Future runs should make one of these paths explicit:
+Future run guidance requires one of these paths to be explicit:
 
 - install/check Java before static validation; or
 - run the static validator in a known Java-capable environment; or
@@ -205,7 +208,8 @@ validator-clean, no-warning, compliance, or production-readiness claim.
 
 ### 5. Preserve external-evidence boundaries
 
-Do not change these unless real retained external evidence exists:
+These remained unchanged because no real retained external evidence existed for
+them:
 
 ```text
 docs/evidence/consumer-submissions/status.json
@@ -215,23 +219,24 @@ final-root evidence packets
 OCI pilot final-root wording
 ```
 
-## Acceptance criteria
+## Closure Criteria
 
-Phase 34 is complete when:
+Phase 34 closed after:
 
-- stale status/roadmap docs no longer contradict Phase 33 Outcome C;
+- stale status/roadmap docs no longer contradicted Phase 33 Outcome C;
 - a final-root operator request package exists;
 - a public-GTFS local/pilot repeatability guide exists;
-- the Phase 33 static validator blocker is clearly explained and not overclaimed;
-- `docs/handoffs/latest.md` identifies the next retained-evidence fork;
-- no consumer statuses are advanced;
-- no final-root evidence is fabricated;
-- no agency/consumer/compliance/production claims are added;
-- required checks pass or blockers are documented.
+- the original Phase 33 static validator blocker and later Homebrew Java 17
+  retry are clearly explained and not overclaimed;
+- `docs/handoffs/latest.md` identified the next retained-evidence fork;
+- no consumer statuses were advanced;
+- no final-root evidence was fabricated;
+- no agency/consumer/compliance/production claims were added;
+- required checks passed or blockers were documented.
 
-## Required checks
+## Closure Checks
 
-Run:
+Closure checks:
 
 ```bash
 make validate
@@ -240,10 +245,10 @@ git diff --check
 python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
 ```
 
-Also confirm all seven consumer targets remain `prepared` and run a targeted
-wording scan for forbidden positive claims.
+All seven consumer targets remained `prepared`, and a targeted wording scan
+reviewed forbidden positive claims.
 
-Run when touched surfaces require them:
+Additional checks listed for future phases when touched surfaces require them:
 
 ```bash
 make realtime-quality
@@ -252,17 +257,18 @@ make test-integration
 docker compose -f deploy/docker-compose.yml config
 ```
 
-Run local app or public-GTFS pilot commands only if the implementation actually changes those flows.
+Run local app or public-GTFS pilot commands only in future phases that actually
+change those flows.
 
-## Handoff requirement
+## Handoff Record
 
-Add:
+Added:
 
 ```text
 docs/handoffs/phase-34.md
 ```
 
-The handoff should state:
+The handoff states:
 
 - what files changed;
 - which stale docs were corrected;
@@ -270,4 +276,4 @@ The handoff should state:
 - what checks ran;
 - what remained blocked;
 - what evidence was or was not created;
-- which evidence fork should be pursued next.
+- which evidence fork is recommended next.
