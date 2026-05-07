@@ -20,6 +20,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🧾 Plan an agency pilot | [Agency Pilot Program](agency-pilot-program.md) |
 | 📝 Review public launch materials | [Agency One-Pager](agency-one-pager.md) |
 | 🚀 Plan a small deployment | [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md) |
+| 🏗️ Reuse the reference deployment | [OCI/OCL Reference Deployment](deployment/oci-reference-deployment.md) |
 | ✅ Review readiness and evidence | [Readiness And Evidence](../wiki/readiness-and-evidence.md) |
 | 🤝 Support or contribute | [Support And Contribute](../wiki/support-and-contribute.md) |
 | 🧑‍💻 Contribute safely | [Contributing](../CONTRIBUTING.md) |
@@ -44,6 +45,9 @@ These are command-level references for people running or evaluating the project:
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](tutorials/production-checklist.md)
 - [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md)
+- [OCI/OCL Reference Deployment](deployment/oci-reference-deployment.md)
+- [Reference Deployment Env Example](deployment/oci-reference-env.example)
+- [Reference Deployment Smoke Checklist](deployment/oci-reference-smoke-checklist.md)
 - [Self-Hosted Agency Reuse Master Plan](master-plan-self-hosted-agency-reuse.md)
 - [OCI/OCL Reference Deployment Productization](phase-36-oci-reference-deployment-productization.md)
 - [Production Operations Hardening](runbooks/production-operations-hardening.md)
@@ -109,6 +113,7 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Self-Hosted Agency Reuse Master Plan](master-plan-self-hosted-agency-reuse.md)
 - [Phase 35 README And Roadmap Realignment](phase-35-readme-and-roadmap-realignment.md)
 - [Phase 36 OCI/OCL Reference Deployment Productization](phase-36-oci-reference-deployment-productization.md)
+- [Phase 36 Handoff](handoffs/phase-36.md)
 - [Phase 37 Agency Reusable Onboarding Flow](phase-37-agency-reusable-onboarding-flow.md)
 - [Phase 38 Integration Adapter Kit](phase-38-integration-adapter-kit.md)
 - [Phase 39 CAL-ITP Readiness Workflow](phase-39-calitp-readiness-workflow.md)

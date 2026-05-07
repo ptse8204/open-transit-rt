@@ -3,7 +3,7 @@
 ## Status
 
 Track B is active as the productization and self-hosted agency reuse roadmap.
-Phases 22 through 35 are closed for their documented scopes. Use
+Phases 22 through 36 are closed for their documented scopes. Use
 `docs/handoffs/latest.md` and `docs/future-roadmap-post-outcome-c.md` for the
 current continuation state.
 
@@ -105,24 +105,24 @@ Rules:
 | 33 | Public GTFS Local/Pilot Evidence | Outcome C public-safe local/pilot evidence for a real public static GTFS dataset. |
 | 34 | Post-Outcome-C Status Consistency And Evidence Readiness | Consistent post-Outcome-C docs, final-root request package, and public-GTFS repeatability guide. |
 | 35 | README And Roadmap Realignment | Product-front-door README and self-hosted agency reuse continuation path. |
-| 36 | OCI/OCL Reference Deployment Productization | Repeatable self-hosted reference deployment path based on the existing pilot server pattern. |
+| 36 | OCI/OCL Reference Deployment Productization | Complete docs-only self-hosted reference deployment path based on the existing pilot server pattern. |
 | 37 | Agency Reusable Onboarding Flow | Guided agency GTFS onboarding for local and reference-server evaluation. |
 | 38 | Integration Adapter Kit | Reusable AVL/device, predictor, validator, monitoring, and consumer integration boundaries. |
 | 39 | CAL-ITP-Style Readiness Workflow | Product-facing readiness workflow without compliance overclaims. |
 
 ## Recommended Next Phase
 
-Phase 35 is complete. The next recommended phase is Phase 36 — OCI/OCL
-Reference Deployment Productization.
+Phase 36 is complete. The next recommended phase is Phase 37 — Reusable Agency
+Onboarding Flow.
 
-Reason: the repo already has a useful hosted/operator OCI pilot pattern, local
-app packaging, public-GTFS local/pilot proof, and pilot operations helpers. The
-next highest-value product work is to turn that pattern into a repeatable
-self-hosted reference deployment path that agencies and civic technologists can
-adapt. This does not claim agency adoption, consumer acceptance,
-CAL-ITP/Caltrans compliance, hosted SaaS availability, production readiness,
-real vendor AVL compatibility, real realtime data, or production-grade
-ETA-quality.
+Reason: the repo now has a repeatable self-hosted reference deployment path,
+local app packaging, public-GTFS local/pilot proof, and pilot operations
+helpers. The next highest-value product work is to turn agency setup into a
+reusable onboarding flow that can target both local evaluation and the
+reference server path. This does not claim agency adoption, consumer
+acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, production
+readiness, real vendor AVL compatibility, real realtime data, or
+production-grade ETA-quality.
 
 External-proof tracks remain available later when retained, redacted,
 claim-specific artifacts exist. They are not the default Track B roadmap.

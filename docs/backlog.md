@@ -55,9 +55,14 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 - Complete for docs-only README and roadmap realignment. The root README is
   restored as the Open Transit RT product front door, roadmap/status docs now
-  make self-hosted agency reuse the default continuation path, and Phase 36 —
-  OCI/OCL Reference Deployment Productization is the next recommended phase.
-- Remaining later work: productize the OCI/OCL-style reference deployment,
-  create a reusable agency onboarding flow, expand the integration adapter kit,
+  make self-hosted agency reuse the default continuation path.
+
+## Phase 36 — OCI/OCL Reference Deployment Productization
+
+- Complete for docs-only reference deployment productization. The repo now has
+  a self-hosted OCI/OCL-style reference deployment guide, placeholder-only env
+  example, smoke checklist, deployment index, and closed phase handoff.
+- Remaining later work: create a reusable agency onboarding flow, expand the
+  integration adapter kit,
   and make CAL-ITP-style readiness visible in product workflows without
   overclaiming compliance.

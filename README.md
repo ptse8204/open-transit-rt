@@ -77,10 +77,12 @@ monitoring, and scorecard export.
 
 Start with:
 
+- [OCI/OCL Reference Deployment](docs/deployment/oci-reference-deployment.md)
+- [Reference Deployment Env Example](docs/deployment/oci-reference-env.example)
+- [Reference Deployment Smoke Checklist](docs/deployment/oci-reference-smoke-checklist.md)
 - [Small-Agency Pilot Operations](docs/runbooks/small-agency-pilot-operations.md)
 - [Self-Hosted Agency Reuse Master Plan](docs/master-plan-self-hosted-agency-reuse.md)
-- Future Phase 36 reference deployment docs:
-  [OCI/OCL Reference Deployment Productization](docs/phase-36-oci-reference-deployment-productization.md)
+- [Phase 36 Reference Deployment Productization](docs/phase-36-oci-reference-deployment-productization.md)
 
 The existing OCI DuckDNS pilot remains hosted/operator pilot evidence only. It
 is not agency-owned final-root proof.

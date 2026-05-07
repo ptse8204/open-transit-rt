@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 35 — README And Roadmap Realignment is complete for the docs-only
-README/roadmap realignment scope.
+Phase 36 — OCI/OCL Reference Deployment Productization is complete for the
+docs-only reference deployment productization scope.
 
-Phases 0 through 35 are closed for their documented scopes. Track A is also
+Phases 0 through 36 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -56,6 +56,15 @@ claim-specific artifacts exist, but they are not the default roadmap. Phase 35
 created no external evidence and made no runtime code, script, Makefile target,
 schema, migration, API, consumer tracker, final-root evidence packet, target
 artifact, validator artifact, or public feed contract changes.
+
+Phase 36 created the self-hosted OCI/OCL-style reference deployment docs under
+`docs/deployment/`, closed the Phase 36 phase reference, and updated roadmap,
+status, backlog, open-question, tutorial, README, and handoff navigation. Phase
+36 made no runtime behavior, script, Makefile target, schema, migration, API,
+consumer tracker, final-root evidence packet, target artifact, OCI pilot
+evidence packet, validator artifact, or public feed contract changes. No
+external evidence was created and no consumer statuses changed. The next
+recommended phase is Phase 37 — Reusable Agency Onboarding Flow.
 
 ## Phase 32 Summary
 
@@ -110,6 +119,29 @@ artifact, validator artifact, or public feed contract changes.
 - Updated `docs/backlog.md` and `docs/open-questions.md`.
 - Added `docs/handoffs/phase-35.md`.
 
+## Phase 36 Summary
+
+- Added `docs/deployment/README.md` as the deployment index for the
+  self-hosted OCI/OCL-style reference path.
+- Added `docs/deployment/oci-reference-deployment.md` with the operator
+  copy/paste path, server prerequisites, user/group layout,
+  `/opt/open-transit-rt` directory layout, placeholder-only env guidance,
+  secret generation, database setup/migrations, systemd supervision, Caddy or
+  equivalent reverse proxy, public/private route boundaries, validator
+  install/check, GTFS import, five public feed URL verification,
+  backup/restore, feed monitor, scorecard export, update/rollback, and
+  redacted support bundle guidance.
+- Added `docs/deployment/oci-reference-env.example` with grouped placeholder
+  sections and generated-secret placeholders only.
+- Added `docs/deployment/oci-reference-smoke-checklist.md` for repeatable
+  operator verification without converting smoke output into evidence.
+- Updated `docs/phase-36-oci-reference-deployment-productization.md`,
+  `README.md`, `docs/current-status.md`, `docs/README.md`,
+  `docs/tutorials/README.md`, `docs/roadmap-status.md`,
+  `docs/track-b-productization-roadmap.md`, `docs/backlog.md`,
+  `docs/open-questions.md`, and this latest handoff.
+- Added `docs/handoffs/phase-36.md`.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -125,6 +157,9 @@ artifact, validator artifact, or public feed contract changes.
   external evidence and does not strengthen Phase 33 claims.
 - Phase 35 is docs-only README and roadmap realignment. It created no new
   external evidence and does not strengthen any public claim.
+- Phase 36 is docs-only reference deployment productization. It created no new
+  external evidence, did not run a deployment, and does not strengthen any
+  public claim.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -140,35 +175,41 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 3. `docs/handoffs/latest.md`
 4. `docs/handoffs/phase-34.md`
 5. `docs/handoffs/phase-35.md`
-6. `docs/future-roadmap-post-outcome-c.md`
-7. `docs/master-plan-self-hosted-agency-reuse.md`
-8. `docs/phase-36-oci-reference-deployment-productization.md`
-9. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-10. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-11. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-12. `docs/final-root-operator-request.md`
-13. `docs/tutorials/public-gtfs-local-pilot.md`
-14. `docs/runbooks/small-agency-pilot-operations.md`
-15. `docs/roadmap-status.md`
-16. `docs/california-readiness-summary.md`
-17. `docs/compliance-evidence-checklist.md`
-18. `docs/agency-owned-domain-readiness.md`
-19. `docs/evidence/consumer-submissions/status.json`
-20. `docs/evidence/consumer-submissions/submission-workflow.md`
-21. `docs/evidence/redaction-policy.md`
-22. `SECURITY.md`
-23. `README.md`
-24. `docs/dependencies.md`
-25. `docs/decisions.md`
-26. `docs/backlog.md`
-27. `docs/open-questions.md`
+6. `docs/handoffs/phase-36.md`
+7. `docs/deployment/README.md`
+8. `docs/deployment/oci-reference-deployment.md`
+9. `docs/deployment/oci-reference-env.example`
+10. `docs/deployment/oci-reference-smoke-checklist.md`
+11. `docs/future-roadmap-post-outcome-c.md`
+12. `docs/master-plan-self-hosted-agency-reuse.md`
+13. `docs/phase-36-oci-reference-deployment-productization.md`
+14. `docs/phase-37-agency-reusable-onboarding-flow.md`
+15. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+16. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+17. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+18. `docs/final-root-operator-request.md`
+19. `docs/tutorials/public-gtfs-local-pilot.md`
+20. `docs/runbooks/small-agency-pilot-operations.md`
+21. `docs/roadmap-status.md`
+22. `docs/california-readiness-summary.md`
+23. `docs/compliance-evidence-checklist.md`
+24. `docs/agency-owned-domain-readiness.md`
+25. `docs/evidence/consumer-submissions/status.json`
+26. `docs/evidence/consumer-submissions/submission-workflow.md`
+27. `docs/evidence/redaction-policy.md`
+28. `SECURITY.md`
+29. `README.md`
+30. `docs/dependencies.md`
+31. `docs/decisions.md`
+32. `docs/backlog.md`
+33. `docs/open-questions.md`
 
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. The next recommended phase is Phase 36 —
-OCI/OCL Reference Deployment Productization, using the existing OCI/OCL-style
-pilot server as the reference deployment path.
+agencies and civic technologists. The next recommended phase is Phase 37 —
+Reusable Agency Onboarding Flow, using the Phase 36 reference deployment docs
+as the self-hosted server target.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -325,6 +366,15 @@ docker compose -f deploy/docker-compose.yml config
 - Read-only consumer tracker status check — passed; 7 targets found and all
   remain `prepared`.
 
+## Checks Run For Phase 36
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed.
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
+- Read-only consumer tracker status check — passed; 7 targets found and all
+  remain `prepared`.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -340,20 +390,23 @@ docker compose -f deploy/docker-compose.yml config
 - Phase 33 created an Outcome C public-GTFS local/pilot evidence packet only.
   It does not support final-root, consumer, compliance, production, or real
   realtime/ETA-quality claims.
+- Phase 36 created deployment reference documentation only. It did not create
+  external evidence, run a deployment, change consumer statuses, or strengthen
+  final-root, compliance, production-readiness, or consumer claims.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
 - Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, webhook URLs, notification credentials, raw telemetry payloads, unredacted correspondence, private portal credentials, private ticket links, raw logs with credentials, private backup paths, or raw private operator artifacts.
 
 ## First Files Likely To Edit Next
 
-For Phase 36 — OCI/OCL Reference Deployment Productization, first edit:
+For Phase 37 — Reusable Agency Onboarding Flow, first edit:
 
-- `docs/phase-36-oci-reference-deployment-productization.md`
-- `docs/runbooks/small-agency-pilot-operations.md`
-- a future `docs/deployment/oci-reference-deployment.md`, if Phase 36 chooses
-  to create it
-- `docs/dependencies.md` and `docs/decisions.md` only if Phase 36 changes
-  architecture-significant deployment/dependency boundaries
+- `docs/phase-37-agency-reusable-onboarding-flow.md`
+- `docs/deployment/oci-reference-deployment.md`
+- `docs/tutorials/agency-first-run.md`
+- `docs/tutorials/real-agency-gtfs-onboarding.md`
+- `docs/dependencies.md` and `docs/decisions.md` only if Phase 37 changes
+  architecture-significant onboarding/dependency boundaries
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -372,8 +425,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 36 — OCI/OCL Reference Deployment Productization.
+Proceed to Phase 37 — Reusable Agency Onboarding Flow.
 
-Make the existing OCI/OCL-style pilot server pattern repeatable for self-hosted
-agency reuse. External-proof work remains a future optional path, not the
-default roadmap.
+Use the Phase 36 reference deployment docs as the self-hosted server target for
+reusable agency onboarding. External-proof work remains a future optional path,
+not the default roadmap.

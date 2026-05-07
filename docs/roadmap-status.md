@@ -52,7 +52,6 @@ The repo does not currently have:
 - full hosted multi-tenant implementation;
 - paid support or SLA commitments;
 - marketplace/vendor-equivalent service packaging.
-- repeatable OCI/OCL-style reference deployment productization.
 
 ## How To Interpret Prepared Packets
 
@@ -99,10 +98,12 @@ for docs-only status alignment, final-root request guidance, and public-GTFS
 repeatability guidance; it created no new external evidence. Phase 35 — README
 And Roadmap Realignment is complete for docs-only README and roadmap
 realignment; it makes self-hosted agency reuse and OCI/OCL reference deployment
-productization the default continuation path.
+productization the default continuation path. Phase 36 — OCI/OCL Reference
+Deployment Productization is complete for docs-only self-hosted reference
+deployment guidance and created no external evidence.
 
-The recommended next phase is Phase 36 — OCI/OCL Reference Deployment
-Productization. External-proof tracks such as agency-owned/final-root proof,
+The recommended next phase is Phase 37 — Reusable Agency Onboarding Flow.
+External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality
 evidence remain future optional paths when retained claim-specific artifacts are

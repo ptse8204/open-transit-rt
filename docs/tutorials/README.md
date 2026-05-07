@@ -21,12 +21,14 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Deploy With Docker Compose](deploy-with-docker-compose.md): understand the current deployment path.
 - [Production Checklist](production-checklist.md): review operational work still needed for a real deployment.
 - [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md): run the Phase 17 pilot operations profile.
+- [OCI/OCL Reference Deployment](../deployment/oci-reference-deployment.md): reuse the self-hosted reference server pattern.
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md): track readiness without overclaiming compliance.
 
 For self-hosted deployment planning, see
+[OCI/OCL Reference Deployment](../deployment/oci-reference-deployment.md),
 [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md),
 the [Self-Hosted Agency Reuse Master Plan](../master-plan-self-hosted-agency-reuse.md),
-and the future [OCI/OCL Reference Deployment Productization](../phase-36-oci-reference-deployment-productization.md)
+and the closed [OCI/OCL Reference Deployment Productization](../phase-36-oci-reference-deployment-productization.md)
 phase notes.
 
 For broader navigation, see [Docs Home](../README.md). For detailed evidence boundaries, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
