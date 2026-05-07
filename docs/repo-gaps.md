@@ -31,9 +31,12 @@ Use these files for current status before starting work:
 - Real-world observed-arrival/departure ETA accuracy evidence.
 - Real route/time-period realtime quality metrics.
 - Production-grade ETA quality evidence.
-- Static GTFS validator pass for the Phase 33 public-GTFS packet. The Phase 33
-  run attempted static validation, but Java was unavailable, so static
-  validation did not execute.
+- Validator-clean or no-warning static GTFS evidence for the Phase 33
+  public-GTFS packet. The original Outcome C static validator attempt was
+  blocked because Java was unavailable; a later post-Phase-34 retry executed
+  with Homebrew Java 17 and reported process exit code `0`, system error count
+  `0`, and 3 warning notices. That retry is not validator-clean or compliance
+  evidence.
 
 ## Current Product And Operations Gaps
 
