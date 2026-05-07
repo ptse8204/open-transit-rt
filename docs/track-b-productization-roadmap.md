@@ -2,8 +2,8 @@
 
 ## Status
 
-Track B is active as the productization and evidence-readiness roadmap. Phases
-22 through 34 are closed for their documented scopes. Use
+Track B is active as the productization and self-hosted agency reuse roadmap.
+Phases 22 through 35 are closed for their documented scopes. Use
 `docs/handoffs/latest.md` and `docs/future-roadmap-post-outcome-c.md` for the
 current continuation state.
 
@@ -11,17 +11,21 @@ current continuation state.
 
 Track B turns Open Transit RT from a technically capable open-source backend into an agency-adoptable pilot and release package.
 
-The project now has core GTFS/GTFS Realtime publication, local app packaging, hosted OCI pilot evidence, consumer packet preparation, governance docs, and external-proof workflow. Track B focuses on the next practical barriers to real adoption:
+The project now has core GTFS/GTFS Realtime publication, local app packaging,
+hosted OCI pilot evidence, consumer packet preparation, governance docs,
+external-proof workflow, and a self-hosted agency reuse master plan. Track B
+now focuses on making the working code easier for agencies and implementers to
+reuse:
 
 - versioned releases;
-- agency-owned deployment proof;
-- onboarding real agency GTFS data;
-- real device / AVL integration;
+- OCI/OCL-style reference deployment productization;
+- reusable agency GTFS onboarding;
+- device / AVL integration boundaries;
 - setup and operator UX;
 - multi-agency isolation proof;
 - stronger operations hardening;
 - real-world realtime quality evidence;
-- actual consumer submissions when authorized;
+- optional consumer submissions when authorized and evidenced;
 - agency pilot packaging;
 - public ecosystem launch messaging.
 
@@ -33,7 +37,7 @@ Track B should help operators answer:
 
 - What version should I install?
 - How do I upgrade or roll back?
-- How do I deploy on an agency-owned or agency-approved domain?
+- How do I deploy the OCI/OCL-style reference pattern?
 - How do I import real GTFS and fix validation failures?
 - How do I connect real telemetry devices or vendors?
 - How do I complete setup without deep developer knowledge?
@@ -70,7 +74,9 @@ Allowed language includes:
 
 Track A is the external-proof workflow. It explains how an operator verifies official submission paths, submits only when authorized, records target-originated evidence, and updates a specific consumer target safely.
 
-Track B is the productization path. It makes the product mature enough that agencies can produce the evidence Track A needs.
+Track B is the productization path. It makes the product easier to self-host,
+adapt, and operate. Track A remains available later when an operator has
+claim-specific external artifacts.
 
 Rules:
 
@@ -98,27 +104,28 @@ Rules:
 | 32 | Public Launch And Ecosystem Outreach | Public messaging, launch copy, agency one-pager, contributor call-to-action. |
 | 33 | Public GTFS Local/Pilot Evidence | Outcome C public-safe local/pilot evidence for a real public static GTFS dataset. |
 | 34 | Post-Outcome-C Status Consistency And Evidence Readiness | Consistent post-Outcome-C docs, final-root request package, and public-GTFS repeatability guide. |
+| 35 | README And Roadmap Realignment | Product-front-door README and self-hosted agency reuse continuation path. |
+| 36 | OCI/OCL Reference Deployment Productization | Repeatable self-hosted reference deployment path based on the existing pilot server pattern. |
+| 37 | Agency Reusable Onboarding Flow | Guided agency GTFS onboarding for local and reference-server evaluation. |
+| 38 | Integration Adapter Kit | Reusable AVL/device, predictor, validator, monitoring, and consumer integration boundaries. |
+| 39 | CAL-ITP-Style Readiness Workflow | Product-facing readiness workflow without compliance overclaims. |
 
 ## Recommended Next Phase
 
-Phase 34 is complete. Select the next retained-evidence fork based on available
-operator authorization and artifacts.
+Phase 35 is complete. The next recommended phase is Phase 36 — OCI/OCL
+Reference Deployment Productization.
 
-Recommended forks:
+Reason: the repo already has a useful hosted/operator OCI pilot pattern, local
+app packaging, public-GTFS local/pilot proof, and pilot operations helpers. The
+next highest-value product work is to turn that pattern into a repeatable
+self-hosted reference deployment path that agencies and civic technologists can
+adapt. This does not claim agency adoption, consumer acceptance,
+CAL-ITP/Caltrans compliance, hosted SaaS availability, production readiness,
+real vendor AVL compatibility, real realtime data, or production-grade
+ETA-quality.
 
-- agency-owned or agency-approved final-root proof;
-- authorized target-specific consumer submission evidence;
-- real agency pilot evidence;
-- real deployment operations refresh;
-- real device/vendor AVL evidence;
-- real-world realtime quality evidence.
-
-Reason: Phase 33 Outcome C proves only local/pilot public static GTFS handling,
-and Phase 34 only aligned status and evidence-readiness docs. Neither phase
-supports agency adoption, consumer submission, review, acceptance, rejection,
-blocker, ingestion, listing, display, CAL-ITP/Caltrans compliance, hosted SaaS
-availability, paid support/SLA coverage, production readiness, real vendor AVL
-compatibility, real realtime data, or production-grade ETA-quality claims.
+External-proof tracks remain available later when retained, redacted,
+claim-specific artifacts exist. They are not the default Track B roadmap.
 
 ## Cross-Phase Constraints
 

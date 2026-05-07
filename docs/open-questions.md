@@ -4,7 +4,9 @@ These questions do not block the next phase.
 
 ## Deployment
 
-- What production hosting target should be documented first: single VM, managed container platform, or Kubernetes?
+- Answered for the next roadmap step in Phase 35: document the OCI/OCL-style
+  single-server pilot pattern first as the reference self-hosted deployment.
+  Managed container platforms and Kubernetes remain later options.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

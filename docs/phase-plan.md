@@ -63,6 +63,11 @@ These constraints apply to every phase:
 | 8 | Compliance and consumer workflow | Add compliance scorecard, validation, discoverability, and ingestion workflows |
 | 33 | Public GTFS local/pilot evidence | Attempt real public GTFS local/pilot handling proof without final-root or consumer overclaims |
 | 34 | Post-Outcome-C status consistency and evidence readiness | Align post-Outcome-C docs, final-root request guidance, and public-GTFS repeatability guidance without creating external evidence |
+| 35 | README and roadmap realignment | Restore the root README as the product front door and make self-hosted agency reuse the default roadmap |
+| 36 | OCI/OCL reference deployment productization | Turn the existing OCI/OCL-style pilot server pattern into a repeatable reference deployment path |
+| 37 | Agency reusable onboarding flow | Make agency GTFS onboarding and self-hosted first run repeatable without manual DB surgery |
+| 38 | Integration adapter kit | Make AVL/device, predictor, validator, monitoring, and consumer integration boundaries reusable |
+| 39 | CAL-ITP-style readiness workflow | Make readiness support visible in product workflows without claiming compliance |
 
 ---
 
@@ -391,12 +396,122 @@ Phase 34 is done when:
 - `docs/final-root-operator-request.md` exists and is clearly not evidence;
 - `docs/tutorials/public-gtfs-local-pilot.md` exists as repeatability guidance
   only;
-- the Phase 33 static validator blocker remains clear: Java was unavailable,
-  so static validation did not execute;
-- `docs/handoffs/latest.md` identifies the next retained-evidence forks.
+- the Phase 33 static validator history remains clear: the original static
+  validator attempt was blocked because Java was unavailable, and the later
+  Homebrew Java 17 retry executed with exit code `0`, system error count `0`,
+  and 3 warning notices;
+- the later retry is not described as validator-clean, no-warning, compliance,
+  final-root, consumer, or production evidence;
+- `docs/handoffs/latest.md` identifies the self-hosted continuation path and
+  keeps external proof as a future optional track.
 
 ### Boundaries
 Phase 34 is docs-only. It does not add scripts, Makefile targets, runtime code,
 schema changes, migrations, APIs, consumer tracker changes, final-root evidence
 packets, target artifacts, OCI pilot final-root wording, or new external
 evidence.
+
+## Phase 35 — README And Roadmap Realignment
+
+### Goal
+Restore the root README as the Open Transit RT product front door and align the
+default roadmap around self-hosted agency reuse instead of external-proof
+chasing.
+
+### Status
+Complete for docs-only README and roadmap realignment.
+
+### Definition of done
+Phase 35 is done when:
+
+- the root `README.md` explains the product, audience, current capabilities,
+  three evaluation/deployment paths, integration boundaries, readiness pointers,
+  and claim boundaries;
+- roadmap/status docs identify self-hosted agency reuse and OCI/OCL reference
+  deployment productization as the default next path;
+- `docs/handoffs/latest.md` recommends Phase 36 — OCI/OCL Reference Deployment
+  Productization next;
+- `docs/backlog.md` and `docs/open-questions.md` are updated or explicitly
+  reviewed in the Phase 35 handoff;
+- external-proof docs remain available as future optional tracks, not the
+  default roadmap;
+- consumer statuses remain unchanged.
+
+### Boundaries
+Phase 35 is docs-only. It does not change runtime code, schemas, migrations,
+APIs, consumer tracker statuses, final-root evidence, external evidence packets,
+validator artifacts, or public feed contracts.
+
+## Phase 36 — OCI/OCL Reference Deployment Productization
+
+### Goal
+Make the existing OCI/OCL-style pilot server pattern a repeatable self-hosted
+reference deployment path.
+
+### Required work
+- add or refine reference deployment docs with placeholder-only environment
+  values;
+- document install, update, rollback, service supervision, reverse-proxy
+  public/private routing, validator install/check, backup/restore, feed monitor,
+  scorecard export, and server smoke checks;
+- keep the OCI DuckDNS pilot labeled as hosted/operator pilot evidence only.
+
+### Boundaries
+Phase 36 must not claim hosted SaaS availability, agency-owned final-root proof,
+consumer acceptance, CAL-ITP/Caltrans compliance, production readiness, paid
+support/SLA coverage, or production multi-tenant hosting.
+
+## Phase 37 — Agency Reusable Onboarding Flow
+
+### Goal
+Make local and server agency onboarding repeatable for a supplied agency ID,
+GTFS URL, metadata, and import timeout.
+
+### Required work
+- create or refine a guided one-command agency onboarding path;
+- download GTFS only to ignored storage;
+- import and publish through existing GTFS paths;
+- print feed URLs, admin URL, validator status or blocker, device/AVL next
+  steps, and support summary;
+- add tests for argument validation where practical.
+
+### Boundaries
+Phase 37 must not claim agency approval, agency adoption, official feed status,
+consumer acceptance, or compliance from tooling alone.
+
+## Phase 38 — Integration Adapter Kit
+
+### Goal
+Make integration with existing systems first-class through documented adapters.
+
+### Required work
+- expand AVL/device adapter guidance and fixtures without naming unsupported
+  vendors;
+- document external predictor adapter lifecycle behind
+  `internal/prediction.Adapter`;
+- keep validators behind pinned/allowlisted tooling;
+- clarify monitoring and consumer integration boundaries;
+- add conformance tests or fixtures where practical.
+
+### Boundaries
+Phase 38 must not add certified vendor compatibility, production AVL
+reliability, production-grade ETA quality, or consumer acceptance claims without
+retained evidence.
+
+## Phase 39 — CAL-ITP-Style Readiness Workflow
+
+### Goal
+Make readiness support visible in product workflows while preserving evidence
+boundaries.
+
+### Required work
+- expose or refine a readiness checklist for stable URLs, metadata,
+  validation, freshness, GTFS-RT completeness, and consumer packet state;
+- add plain-language remediation steps;
+- keep wording as readiness support or technical foundations unless retained
+  evidence supports stronger language.
+
+### Boundaries
+Phase 39 must not claim CAL-ITP/Caltrans compliance, consumer acceptance,
+agency endorsement, production readiness, hosted SaaS availability, or
+marketplace/vendor equivalence.

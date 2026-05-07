@@ -50,3 +50,14 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 
 - Complete for the selected evidence-only path. The Phase 11 evidence checklist, dependency reality table, README/tutorial truthfulness links, current-status update, and Phase 11 handoff are implemented.
 - Remaining later work: deployment evidence hardening, real HTTPS feed proof, production validator records, monitored operations evidence, scorecard export, and third-party submission or acceptance records where they exist.
+
+## Phase 35 — README And Roadmap Realignment
+
+- Complete for docs-only README and roadmap realignment. The root README is
+  restored as the Open Transit RT product front door, roadmap/status docs now
+  make self-hosted agency reuse the default continuation path, and Phase 36 —
+  OCI/OCL Reference Deployment Productization is the next recommended phase.
+- Remaining later work: productize the OCI/OCL-style reference deployment,
+  create a reusable agency onboarding flow, expand the integration adapter kit,
+  and make CAL-ITP-style readiness visible in product workflows without
+  overclaiming compliance.

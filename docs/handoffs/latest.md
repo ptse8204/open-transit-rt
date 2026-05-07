@@ -4,10 +4,16 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 34 — Post-Outcome-C Status Consistency And Evidence Readiness is complete
-for the docs-only status consistency and evidence-readiness scope.
+Phase 35 — README And Roadmap Realignment is complete for the docs-only
+README/roadmap realignment scope.
 
-Phases 0 through 34 are closed for their documented scopes. Track A is also closed for its docs-only external-proof workflow scope. Do not reopen earlier phases unless a blocking truthfulness, safety, security, realtime-quality, evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL onboarding, admin-UX, operations-hardening, pilot-readiness, submission-readiness, public-messaging, or public-GTFS evidence issue directly requires it.
+Phases 0 through 35 are closed for their documented scopes. Track A is also
+closed for its docs-only external-proof workflow scope. Do not reopen earlier
+phases unless a blocking truthfulness, safety, security, realtime-quality,
+evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
+onboarding, admin-UX, operations-hardening, pilot-readiness,
+submission-readiness, public-messaging, public-GTFS evidence, or
+self-hosted-reuse issue directly requires it.
 
 Phase 32 produced draft public launch materials only. No announcement was posted, no social copy was published, no agency was contacted, no reporter was contacted, no consumer or aggregator was contacted, and no public launch occurred.
 
@@ -41,6 +47,15 @@ added this phase handoff. Phase 34 created no external evidence and made no
 runtime code, script, Makefile target, schema, migration, API, consumer tracker,
 final-root evidence packet, target artifact, or OCI pilot final-root wording
 changes.
+
+Phase 35 restored the root README as the Open Transit RT product front door and
+realigned roadmap/handoff docs around self-hosted agency reuse. The default next
+work is now Phase 36 — OCI/OCL Reference Deployment Productization. External
+proof tracks remain documented as future optional paths when retained,
+claim-specific artifacts exist, but they are not the default roadmap. Phase 35
+created no external evidence and made no runtime code, script, Makefile target,
+schema, migration, API, consumer tracker, final-root evidence packet, target
+artifact, validator artifact, or public feed contract changes.
 
 ## Phase 32 Summary
 
@@ -79,6 +94,22 @@ changes.
 - Fixed final-root example URLs to use clear placeholder domains.
 - Added `docs/handoffs/phase-34.md`.
 
+## Phase 35 Summary
+
+- Replaced the roadmap-export root README with an Open Transit RT product front
+  door.
+- Added clear README paths for local evaluation, public-GTFS local/pilot runs,
+  and the OCI/OCL-style reference deployment path.
+- Updated roadmap/status docs so self-hosted agency reuse and OCI/OCL reference
+  deployment productization are the default continuation path.
+- Reframed external-proof tracks as future optional paths without deleting the
+  existing external-proof docs.
+- Patched `docs/phase-plan.md` so Phase 34 records both the original missing
+  Java static-validator blocker and the later Homebrew Java 17 retry result
+  without calling it validator-clean or compliance evidence.
+- Updated `docs/backlog.md` and `docs/open-questions.md`.
+- Added `docs/handoffs/phase-35.md`.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -92,6 +123,8 @@ changes.
   ETA quality.
 - Phase 34 is status consistency and evidence-readiness only. It created no new
   external evidence and does not strengthen Phase 33 claims.
+- Phase 35 is docs-only README and roadmap realignment. It created no new
+  external evidence and does not strengthen any public claim.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -106,41 +139,44 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 2. `docs/current-status.md`
 3. `docs/handoffs/latest.md`
 4. `docs/handoffs/phase-34.md`
-5. `docs/future-roadmap-post-outcome-c.md`
-6. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-7. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-8. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-9. `docs/final-root-operator-request.md`
-10. `docs/tutorials/public-gtfs-local-pilot.md`
-11. `docs/roadmap-status.md`
-12. `docs/california-readiness-summary.md`
-13. `docs/compliance-evidence-checklist.md`
-14. `docs/agency-owned-domain-readiness.md`
-15. `docs/evidence/consumer-submissions/status.json`
-16. `docs/evidence/consumer-submissions/submission-workflow.md`
-17. `docs/evidence/redaction-policy.md`
-18. `SECURITY.md`
-19. `README.md`
-20. `docs/dependencies.md`
-21. `docs/decisions.md`
-22. `docs/handoffs/final-root-evidence-follow-up.md`
-23. `docs/handoffs/phase-33.md`
-24. `docs/handoffs/phase-32.md`
-25. `docs/phase-32-public-launch-ecosystem-outreach.md`
-26. `docs/agency-one-pager.md`
-27. `docs/demo-video-outline.md`
-28. `docs/public-share-copy.md`
-29. `docs/ecosystem-positioning.md`
-30. `docs/public-launch-checklist.md`
-31. `docs/agency-pilot-program.md`
-32. `docs/agency-pilot-checklist.md`
-33. `docs/agency-feedback-template.md`
+5. `docs/handoffs/phase-35.md`
+6. `docs/future-roadmap-post-outcome-c.md`
+7. `docs/master-plan-self-hosted-agency-reuse.md`
+8. `docs/phase-36-oci-reference-deployment-productization.md`
+9. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+10. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+11. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+12. `docs/final-root-operator-request.md`
+13. `docs/tutorials/public-gtfs-local-pilot.md`
+14. `docs/runbooks/small-agency-pilot-operations.md`
+15. `docs/roadmap-status.md`
+16. `docs/california-readiness-summary.md`
+17. `docs/compliance-evidence-checklist.md`
+18. `docs/agency-owned-domain-readiness.md`
+19. `docs/evidence/consumer-submissions/status.json`
+20. `docs/evidence/consumer-submissions/submission-workflow.md`
+21. `docs/evidence/redaction-policy.md`
+22. `SECURITY.md`
+23. `README.md`
+24. `docs/dependencies.md`
+25. `docs/decisions.md`
+26. `docs/backlog.md`
+27. `docs/open-questions.md`
 
 ## Current Objective
 
-Do not make stronger public claims than the retained evidence supports. The next useful work should target another concrete evidence gap: agency-owned/final-root proof, authorized target-specific consumer submission evidence, real agency pilot evidence, real deployment operations refresh, real device/vendor AVL evidence, or real-world realtime quality evidence.
+Make Open Transit RT easier to self-host, adapt, and integrate for small
+agencies and civic technologists. The next recommended phase is Phase 36 —
+OCI/OCL Reference Deployment Productization, using the existing OCI/OCL-style
+pilot server as the reference deployment path.
 
-Consumer or aggregator submission work remains available only when a future operator is authorized, a target is selected, official target paths are verified, and target-originated evidence can be retained and redacted. Product improvements, validator success, pilot packaging, prepared packets, and draft launch materials alone must not advance target statuses.
+External-proof tracks remain available later when a future operator is
+authorized and retained claim-specific artifacts exist. Consumer or aggregator
+submission work remains available only when a future operator is authorized, a
+target is selected, official target paths are verified, and target-originated
+evidence can be retained and redacted. Product improvements, validator success,
+pilot packaging, prepared packets, and draft launch materials alone must not
+advance target statuses.
 
 ## Exact First Commands
 
@@ -280,6 +316,15 @@ docker compose -f deploy/docker-compose.yml config
   ZIP in ignored `.cache` storage; process exit code `0`, system error count
   `0`, and 3 warning notices. No validator-clean or no-warning claim was added.
 
+## Checks Run For Phase 35
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed.
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
+- Read-only consumer tracker status check — passed; 7 targets found and all
+  remain `prepared`.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -301,17 +346,19 @@ docker compose -f deploy/docker-compose.yml config
 
 ## First Files Likely To Edit Next
 
-Choose files based on the evidence target selected next:
+For Phase 36 — OCI/OCL Reference Deployment Productization, first edit:
 
-- Agency-owned/final-root proof: `docs/agency-owned-domain-readiness.md`, `docs/california-readiness-summary.md`, `docs/compliance-evidence-checklist.md`, and a future redacted evidence packet.
-- Authorized target-specific consumer submission: `docs/evidence/consumer-submissions/submission-workflow.md`, the selected packet under `docs/evidence/consumer-submissions/packets/`, and only real redacted target-originated artifacts.
-- Real agency pilot evidence: `docs/agency-pilot-program.md`, `docs/agency-pilot-checklist.md`, `docs/agency-feedback-template.md`, and a future public-safe agency pilot evidence packet.
-- Real deployment operations evidence: `docs/runbooks/`, `docs/compliance-evidence-checklist.md`, and a future public-safe operations evidence packet.
-- Real device/vendor AVL evidence: `docs/evidence/device-avl/`, `docs/tutorials/device-avl-integration.md`, and a future public-safe device/AVL evidence packet.
-- Real-world realtime quality evidence: `internal/realtimequality`, `testdata/replay/`, `docs/phase-19-realtime-quality-eta-improvement.md`, and a future retained real-world quality evidence packet.
-- Public GTFS local/pilot repeatability guidance only: `docs/tutorials/public-gtfs-local-pilot.md` and `docs/phase-33-public-gtfs-local-pilot-evidence.md`, unless a new evidence run is intentionally selected and can retain public-safe artifacts.
+- `docs/phase-36-oci-reference-deployment-productization.md`
+- `docs/runbooks/small-agency-pilot-operations.md`
+- a future `docs/deployment/oci-reference-deployment.md`, if Phase 36 chooses
+  to create it
+- `docs/dependencies.md` and `docs/decisions.md` only if Phase 36 changes
+  architecture-significant deployment/dependency boundaries
 
-Do not edit target-specific consumer records, `docs/evidence/consumer-submissions/status.json`, or artifact directories unless retained, redacted, target-originated evidence supports a target-specific status transition.
+External-proof docs remain available for later optional tracks. Do not edit
+target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
+final-root evidence packets, or artifact directories unless retained, redacted,
+target-originated evidence supports a target-specific status transition.
 
 ## Constraints To Preserve
 
@@ -325,11 +372,8 @@ Do not edit target-specific consumer records, `docs/evidence/consumer-submission
 
 ## Exact Next-Step Recommendation
 
-Candidate evidence work remains:
+Proceed to Phase 36 — OCI/OCL Reference Deployment Productization.
 
-- agency-owned or agency-approved final-root proof;
-- authorized target-specific consumer submission evidence;
-- real agency pilot evidence;
-- real deployment operations refresh;
-- real device/vendor AVL evidence;
-- real-world realtime quality evidence.
+Make the existing OCI/OCL-style pilot server pattern repeatable for self-hosted
+agency reuse. External-proof work remains a future optional path, not the
+default roadmap.

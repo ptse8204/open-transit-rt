@@ -12,16 +12,22 @@ They document what the current repo can run today. They do not claim hosted prod
 
 - [Agency First Run](agency-first-run.md): start the full local app package and understand the outputs.
 - [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md): prepare, validate, review, and publish a real agency GTFS ZIP safely.
+- [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a real public GTFS local/pilot run without implying agency approval.
 - [GTFS Validation Triage](gtfs-validation-triage.md): understand common import and validation failures in plain language.
 - [Device And AVL Integration](device-avl-integration.md): send authenticated telemetry from devices, vendors, adapters, or no-hardware simulator flows.
 - [Device Token Lifecycle](device-token-lifecycle.md): rotate, rebind, store, and troubleshoot device bearer credentials safely.
 - [Local Quickstart](local-quickstart.md): bring up the local development environment.
 - [Agency Demo Flow](agency-demo-flow.md): run the executable agency/evaluator demo.
-- [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a Phase 33-style public GTFS local/pilot run without implying agency approval.
 - [Deploy With Docker Compose](deploy-with-docker-compose.md): understand the current deployment path.
 - [Production Checklist](production-checklist.md): review operational work still needed for a real deployment.
 - [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md): run the Phase 17 pilot operations profile.
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md): track readiness without overclaiming compliance.
+
+For self-hosted deployment planning, see
+[Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md),
+the [Self-Hosted Agency Reuse Master Plan](../master-plan-self-hosted-agency-reuse.md),
+and the future [OCI/OCL Reference Deployment Productization](../phase-36-oci-reference-deployment-productization.md)
+phase notes.
 
 For broader navigation, see [Docs Home](../README.md). For detailed evidence boundaries, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
 

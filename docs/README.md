@@ -13,11 +13,13 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🧭 Understand the project | [Wiki Home](../wiki/README.md) |
 | 🧩 See how the pieces fit together | [How It Works](../wiki/how-it-works.md) |
 | 🚌 Start the local app package | [Agency First Run](tutorials/agency-first-run.md) |
+| 🧪 Try a real public GTFS feed | [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md) |
 | 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
 | 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
+| 🛠️ Reuse the self-hosted roadmap | [Self-Hosted Agency Reuse Master Plan](master-plan-self-hosted-agency-reuse.md) |
 | 🧾 Plan an agency pilot | [Agency Pilot Program](agency-pilot-program.md) |
 | 📝 Review public launch materials | [Agency One-Pager](agency-one-pager.md) |
-| 🚀 Plan a small deployment | [Deployment Guide](../wiki/deployment-guide.md) |
+| 🚀 Plan a small deployment | [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md) |
 | ✅ Review readiness and evidence | [Readiness And Evidence](../wiki/readiness-and-evidence.md) |
 | 🤝 Support or contribute | [Support And Contribute](../wiki/support-and-contribute.md) |
 | 🧑‍💻 Contribute safely | [Contributing](../CONTRIBUTING.md) |
@@ -42,6 +44,8 @@ These are command-level references for people running or evaluating the project:
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Production Checklist](tutorials/production-checklist.md)
 - [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md)
+- [Self-Hosted Agency Reuse Master Plan](master-plan-self-hosted-agency-reuse.md)
+- [OCI/OCL Reference Deployment Productization](phase-36-oci-reference-deployment-productization.md)
 - [Production Operations Hardening](runbooks/production-operations-hardening.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md)
@@ -102,6 +106,12 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Roadmap Status](roadmap-status.md)
 - [Track B Productization Roadmap](track-b-productization-roadmap.md)
 - [Future Roadmap Post Outcome C](future-roadmap-post-outcome-c.md)
+- [Self-Hosted Agency Reuse Master Plan](master-plan-self-hosted-agency-reuse.md)
+- [Phase 35 README And Roadmap Realignment](phase-35-readme-and-roadmap-realignment.md)
+- [Phase 36 OCI/OCL Reference Deployment Productization](phase-36-oci-reference-deployment-productization.md)
+- [Phase 37 Agency Reusable Onboarding Flow](phase-37-agency-reusable-onboarding-flow.md)
+- [Phase 38 Integration Adapter Kit](phase-38-integration-adapter-kit.md)
+- [Phase 39 CAL-ITP Readiness Workflow](phase-39-calitp-readiness-workflow.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
 - [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
 - [Phase 34 Post-Outcome-C Status Consistency](phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md)
