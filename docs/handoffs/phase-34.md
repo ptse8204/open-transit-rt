@@ -86,20 +86,23 @@ Changed files:
 - Consumer tracker JSON was validated.
 - Consumer tracker status check confirmed all seven targets remain `prepared`.
 
-## Checks Run And Blocked Checks
+## Checks Run, Initial Blockers, And Final Retry Results
 
-- Initial `make validate` — blocked because the pinned GTFS-RT validator image
-  was not installed locally.
-- Initial `docker info` — blocked because the Docker client could not connect
-  to the Docker daemon at `unix:///Users/edwintse/.docker/run/docker.sock`.
-- Retry `docker info` — passed after Docker became reachable.
-- Retry `make validators-install` — passed.
-- Retry `make validators-check` — passed.
-- Retry `make validate` — passed.
-- `make test` — passed.
-- `git diff --check` — passed.
-- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
-- Consumer status check — passed; all seven targets remain `prepared`.
+- Initial `make validate` historical blocker — blocked because the pinned
+  GTFS-RT validator image was not installed locally.
+- Initial `docker info` historical blocker — blocked because the Docker client
+  could not connect to the Docker daemon at
+  `unix:///Users/edwintse/.docker/run/docker.sock`.
+- Final retry `docker info` — passed after Docker became reachable.
+- Final retry `make validators-install` — passed.
+- Final retry `make validators-check` — passed.
+- Final retry `make validate` — passed.
+- Final `make test` — passed.
+- Final `git diff --check` — passed.
+- Final consumer tracker JSON validation:
+  `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`
+  — passed.
+- Final consumer status check — passed; all seven targets remain `prepared`.
 - Targeted wording scan — reviewed.
 - Direct `/usr/bin/java` probe — still blocked by the macOS shim, but
   Homebrew Java 17 was available at `/usr/local/opt/openjdk@17/bin/java`.

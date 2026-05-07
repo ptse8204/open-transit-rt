@@ -35,11 +35,12 @@ compatibility, or ETA quality.
 
 Phase 34 aligned post-Outcome-C status and roadmap docs, documented the
 original Phase 33 static validator blocker, recorded the later Homebrew Java 17
-static validator retry result, added/verified final-root request and public-GTFS
-repeatability guidance, and added this phase handoff. Phase 34 created no
-external evidence and made no runtime code, script, Makefile target, schema,
-migration, API, consumer tracker, final-root evidence packet, target artifact,
-or OCI pilot final-root wording changes.
+static validator retry result with 0 system errors and 3 warnings,
+added/verified final-root request and public-GTFS repeatability guidance, and
+added this phase handoff. Phase 34 created no external evidence and made no
+runtime code, script, Makefile target, schema, migration, API, consumer tracker,
+final-root evidence packet, target artifact, or OCI pilot final-root wording
+changes.
 
 ## Phase 32 Summary
 

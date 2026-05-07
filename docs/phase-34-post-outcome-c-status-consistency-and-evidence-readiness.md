@@ -189,7 +189,7 @@ It covers:
 - retaining public-safe summaries;
 - preserving claim boundaries.
 
-### 4. Clarify static validator environment blocker
+### 4. Clarified static validator environment and retry result
 
 The Phase 33 Outcome C packet records that the original static GTFS validation
 attempt did not execute because `/usr/bin/java` could not locate a Java runtime.
@@ -197,7 +197,7 @@ After Phase 34, a retry using Homebrew Java 17 executed the pinned static
 validator against the already-fetched schedule ZIP and reported process exit
 code `0`, system error count `0`, and 3 warning notices.
 
-Future run guidance requires one of these paths to be explicit:
+Future run guidance records one of these paths explicitly:
 
 - install/check Java before static validation; or
 - run the static validator in a known Java-capable environment; or
