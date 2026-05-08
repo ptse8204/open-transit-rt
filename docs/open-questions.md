@@ -16,6 +16,11 @@ These questions do not block the next phase.
   a local/reference app is running and `make support-bundle` when a maintainer
   needs redaction-safe diagnostics. These outputs are private diagnostics, not
   evidence packets.
+- Answered in Phase 42 for current reference deployment diagnostics: use
+  `make deployment-doctor` for a read-only OCI/OCL-style reference deployment
+  doctor. Default mode exits `0` in a local checkout without deployment env
+  while reporting blockers/skips/unavailable checks; `STRICT_DOCTOR=true` is
+  the mode that fails on blockers. Output is private diagnostics, not evidence.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

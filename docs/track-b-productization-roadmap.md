@@ -3,7 +3,7 @@
 ## Status
 
 Track B is active as the productization and self-hosted agency reuse roadmap.
-Phases 22 through 41 are closed for their documented scopes. Use
+Phases 22 through 42 are closed for their documented scopes. Use
 `docs/handoffs/latest.md` and `docs/future-roadmap-post-outcome-c.md` for the
 current continuation state.
 
@@ -111,11 +111,12 @@ Rules:
 | 39 | CAL-ITP-Style Readiness Workflow | Complete. Product-facing readiness workflow without compliance overclaims. |
 | 40 | Guided Self-Hosted Operator Trial | Complete. Docs/navigation checklist tying reference deployment, reusable onboarding, readiness review, validators, and synthetic AVL dry-run together. |
 | 41 | Operator Smoke And Support Bundle | Complete. Repeatable local/reference smoke helper and redaction-safe support bundle. |
+| 42 | Reference Deployment Doctor | Complete. Read-only OCI/OCL-style reference deployment diagnostics for env, routes, services, DB, validators, backups, restore readiness, and claim boundaries. |
 
 ## Recommended Next Phase
 
-Phase 41 is complete. The next recommended phase is Phase 42 — Reference
-Deployment Doctor, continuing self-hosted agency reuse productization from the
+Phase 42 is complete. The next recommended phase is Phase 43 — Operator UX
+Setup V2, continuing self-hosted agency reuse productization from the
 latest handoff.
 
 Reason: the repo now has local app packaging, self-hosted reference deployment
@@ -123,10 +124,11 @@ docs, public-GTFS local/pilot proof, pilot operations helpers, a reusable
 agency onboarding command, a central adapter kit for integration boundaries,
 an authenticated readiness workflow that makes CAL-ITP-style gaps visible
 without claiming compliance, a guided local/reference operator trial, and
-repeatable operator diagnostics/support bundles. This does not claim agency adoption, consumer
-acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, production
-readiness, real vendor AVL compatibility, real realtime data, or
-production-grade ETA-quality.
+repeatable operator diagnostics/support bundles, plus a read-only reference
+deployment doctor. This does not claim agency adoption, consumer acceptance,
+CAL-ITP/Caltrans compliance, hosted SaaS availability, production readiness,
+real vendor AVL compatibility, real realtime data, or production-grade
+ETA-quality.
 
 External-proof tracks remain available later when retained, redacted,
 claim-specific artifacts exist. They are not the default Track B roadmap.

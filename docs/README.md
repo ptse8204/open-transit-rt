@@ -16,6 +16,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🧰 Onboard a GTFS URL | [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md) |
 | 🧭 Run the guided operator trial | [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md) |
 | 🧯 Collect safe diagnostics | [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md) |
+| 🩺 Check reference deployment posture | [Reference Deployment Doctor](deployment/reference-deployment-doctor.md) |
 | 🧪 Try a real public GTFS feed | [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md) |
 | 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
 | 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
@@ -42,6 +43,7 @@ These are command-level references for people running or evaluating the project:
 - [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md)
 - [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
 - [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md)
+- [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)
 - [Agency Pilot Program](agency-pilot-program.md)
 - [Agency Pilot Kickoff Agenda](agency-pilot-kickoff-agenda.md)
@@ -54,6 +56,7 @@ These are command-level references for people running or evaluating the project:
 - [OCI/OCL Reference Deployment](deployment/oci-reference-deployment.md)
 - [Reference Deployment Env Example](deployment/oci-reference-env.example)
 - [Reference Deployment Smoke Checklist](deployment/oci-reference-smoke-checklist.md)
+- [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)
 - [Self-Hosted Agency Reuse Master Plan](master-plan-self-hosted-agency-reuse.md)
 - [OCI/OCL Reference Deployment Productization](phase-36-oci-reference-deployment-productization.md)
 - [Production Operations Hardening](runbooks/production-operations-hardening.md)
@@ -133,6 +136,8 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Phase 40 Handoff](handoffs/phase-40.md)
 - [Phase 41 Operator Smoke And Support Bundle](phase-41-operator-smoke-support-bundle.md)
 - [Phase 41 Handoff](handoffs/phase-41.md)
+- [Phase 42 Reference Deployment Doctor](phase-42-reference-deployment-doctor.md)
+- [Phase 42 Handoff](handoffs/phase-42.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
 - [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
 - [Phase 34 Post-Outcome-C Status Consistency](phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md)

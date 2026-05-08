@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up operator-smoke support-bundle collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up operator-smoke support-bundle deployment-doctor collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -67,6 +67,9 @@ operator-smoke:
 
 support-bundle:
 	@./scripts/support-bundle.sh
+
+deployment-doctor:
+	@./scripts/deployment-doctor.sh
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -148,13 +151,16 @@ validate:
 	@test -f scripts/agency-pilot-onboard.sh
 	@test -f scripts/operator-smoke.sh
 	@test -f scripts/support-bundle.sh
+	@test -f scripts/deployment-doctor.sh
 	@sh -n scripts/agency-pilot-onboard.sh
 	@sh -n scripts/operator-smoke.sh
 	@sh -n scripts/support-bundle.sh
+	@sh -n scripts/deployment-doctor.sh
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
 	@scripts/agency-pilot-onboard.sh --agency-id dryrun-agency --gtfs-url http://127.0.0.1/example.zip --dry-run >/dev/null
 	@scripts/operator-smoke.sh --help >/dev/null
 	@scripts/support-bundle.sh --help >/dev/null
+	@scripts/deployment-doctor.sh --help >/dev/null
 	@test -f docs/integration-adapter-kit.md
 	@test -f docs/phase-39-calitp-readiness-workflow.md
 	@test -f docs/handoffs/phase-39.md
@@ -165,6 +171,9 @@ validate:
 	@test -f docs/phase-41-operator-smoke-support-bundle.md
 	@test -f docs/tutorials/operator-smoke-and-support-bundle.md
 	@test -f docs/handoffs/phase-41.md
+	@test -f docs/deployment/reference-deployment-doctor.md
+	@test -f docs/phase-42-reference-deployment-doctor.md
+	@test -f docs/handoffs/phase-42.md
 	@test -f testdata/avl-vendor/README.md
 	@test -f testdata/avl-vendor/minimal-gps.json
 	@test -f testdata/avl-vendor/full-gps.json

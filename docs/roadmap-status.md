@@ -122,9 +122,11 @@ through Phase 39 workflows into one local/reference operator path without
 creating evidence or stronger claims. Phase 41 — Operator Smoke And Support
 Bundle is complete for repeatable local/reference smoke checks and
 redaction-safe support bundles without creating evidence or stronger claims.
+Phase 42 — Reference Deployment Doctor is complete for read-only OCI/OCL-style
+reference deployment diagnostics without creating evidence or stronger claims.
 
-The recommended next phase is Phase 42 — Reference Deployment Doctor,
-continuing the self-hosted agency reuse roadmap from the updated handoff.
+The recommended next phase is Phase 43 — Operator UX Setup V2, continuing the
+self-hosted agency reuse roadmap from the updated handoff.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

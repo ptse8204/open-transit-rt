@@ -102,7 +102,14 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   `scripts/operator-smoke.sh`, `scripts/support-bundle.sh`, `make
   operator-smoke`, `make support-bundle`, an operator tutorial, a Phase 41
   handoff, and validation checks for those files.
-- Remaining later work: Phase 42 reference deployment doctor/preflight, plus
-  only future optional retained-evidence paths such as final-root proof, real
-  agency pilot evidence, real device/vendor AVL evidence, consumer submissions,
-  or real-world realtime quality evidence when claim-specific artifacts exist.
+
+## Phase 42 — Reference Deployment Doctor
+
+- Complete for the read-only reference deployment diagnostic scope. The repo
+  now has `scripts/deployment-doctor.sh`, `make deployment-doctor`,
+  `docs/deployment/reference-deployment-doctor.md`, a Phase 42 handoff, and
+  validation checks for those files.
+- Remaining later work: Phase 43 operator UX setup improvements, plus only
+  future optional retained-evidence paths such as final-root proof, real agency
+  pilot evidence, real device/vendor AVL evidence, consumer submissions, or
+  real-world realtime quality evidence when claim-specific artifacts exist.

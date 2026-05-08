@@ -437,6 +437,8 @@ For the full guided trial around this readiness review, see
 [Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md).
 For repeatable smoke checks and redaction-safe diagnostics, see
 [Operator Smoke And Support Bundle](../tutorials/operator-smoke-and-support-bundle.md).
+For read-only reference deployment preflight diagnostics, see
+[Reference Deployment Doctor](reference-deployment-doctor.md).
 
 ## Update And Rollback
 

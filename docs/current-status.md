@@ -21,7 +21,8 @@ only. Phase 35 is complete for docs-only README and roadmap realignment. Phase
 complete for integration adapter kit productization. Phase 39 is complete for
 CAL-ITP-style readiness workflow productization. Phase 40 is complete for the
 docs/navigation guided self-hosted operator trial. Phase 41 is complete for
-operator smoke checks and redaction-safe support bundles.
+operator smoke checks and redaction-safe support bundles. Phase 42 is complete
+for the read-only reference deployment doctor.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -190,6 +191,21 @@ URL, pinned validator tooling state, optional allowlisted validation API
 summaries, and the deterministic synthetic AVL dry-run fixture. Support bundles
 record safe summaries and run a final redaction scan while succeeding without a
 running app by recording unavailable checks. Phase 41 created no external
+evidence, did not create final-root proof, did not change consumer statuses,
+and added no compliance, consumer acceptance, agency approval/adoption, hosted
+SaaS, production-readiness, vendor-compatibility, or production-grade ETA
+claim.
+
+Phase 42 — Reference Deployment Doctor is closed for the read-only reference
+deployment diagnostic scope. The repo now has `scripts/deployment-doctor.sh`,
+`make deployment-doctor`, and a deployment doctor guide for OCI/OCL-style
+reference deployments. The doctor checks reference env presence without values,
+generated-secret status, public feed edge metadata, private/admin route
+boundaries, loopback health endpoints, read-only DB/migration/PostGIS status
+when supplied, pinned validators, backup and restore-drill readiness,
+release/git identity, and the prepared-only consumer tracker guard. It writes
+private diagnostics under ignored `.cache/deployment-doctor/`, validates JSON
+outputs, and runs a final redaction scan. Phase 42 created no external
 evidence, did not create final-root proof, did not change consumer statuses,
 and added no compliance, consumer acceptance, agency approval/adoption, hosted
 SaaS, production-readiness, vendor-compatibility, or production-grade ETA

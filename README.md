@@ -35,6 +35,7 @@ The repository has code and docs for:
 - Local app packaging through `make agency-app-up`.
 - Small-agency pilot operations helpers for validation, backup, restore drills,
   feed monitoring, and scorecard export.
+- Read-only reference deployment diagnostics through `make deployment-doctor`.
 - Documentation for CAL-ITP-style readiness workflows without claiming
   compliance.
 
@@ -96,6 +97,7 @@ Start with:
 - [OCI/OCL Reference Deployment](docs/deployment/oci-reference-deployment.md)
 - [Reference Deployment Env Example](docs/deployment/oci-reference-env.example)
 - [Reference Deployment Smoke Checklist](docs/deployment/oci-reference-smoke-checklist.md)
+- [Reference Deployment Doctor](docs/deployment/reference-deployment-doctor.md)
 - [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
 - [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
 - [Small-Agency Pilot Operations](docs/runbooks/small-agency-pilot-operations.md)

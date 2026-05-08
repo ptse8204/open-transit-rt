@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 41 — Operator Smoke And Support Bundle is complete for the
-local/reference operator diagnostics scope.
+Phase 42 — Reference Deployment Doctor is complete for the read-only
+reference deployment diagnostic scope.
 
-Phases 0 through 41 are closed for their documented scopes. Track A is also
+Phases 0 through 42 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -119,6 +119,25 @@ only non-doc file changed was `Makefile` validation scaffolding. It created no
 external evidence, changed no consumer statuses, and added no compliance,
 consumer acceptance, agency approval/adoption, final-root, hosted SaaS,
 production-readiness, vendor-compatibility, or production-grade ETA claim.
+
+Phase 41 added strict operator smoke checks and redaction-safe support bundles
+for local/reference diagnostics. It created no external evidence, changed no
+consumer statuses, and added no compliance, consumer acceptance, agency
+approval/adoption, final-root, hosted SaaS, production-readiness,
+vendor-compatibility, or production-grade ETA claim.
+
+Phase 42 added `scripts/deployment-doctor.sh`, `make deployment-doctor`, and
+reference deployment doctor docs for read-only OCI/OCL-style deployment
+diagnostics. The doctor inspects already-exported env vars only, records
+env/secret presence without values, checks public feed metadata, public/private
+route boundaries, loopback health endpoints, read-only DB/migration/PostGIS
+status when supplied, validator tooling, backup/restore readiness, git/release
+identity, and the prepared-only consumer tracker guard. Default mode exits `0`
+while reporting blockers/skips/unavailable checks; `STRICT_DOCTOR=true` is the
+mode that fails on blockers. Phase 42 created no external evidence, changed no
+consumer statuses, and added no compliance, consumer acceptance, agency
+approval/adoption, final-root, hosted SaaS, production-readiness,
+vendor-compatibility, or production-grade ETA claim.
 
 ## Phase 32 Summary
 
@@ -276,6 +295,29 @@ production-readiness, vendor-compatibility, or production-grade ETA claim.
 - Updated `make validate` to check Phase 41 scripts and docs.
 - Created no external evidence and changed no consumer statuses.
 
+## Phase 42 Summary
+
+- Added `scripts/deployment-doctor.sh` and `make deployment-doctor` for
+  read-only OCI/OCL-style reference deployment diagnostics.
+- Added `docs/deployment/reference-deployment-doctor.md`,
+  `docs/phase-42-reference-deployment-doctor.md`, and
+  `docs/handoffs/phase-42.md`.
+- The doctor inspects already-exported env vars only and does not source
+  private env files.
+- It writes `summary.json`, `summary.md`, `manifest.json`, and `manifest.md`
+  under ignored `.cache/deployment-doctor/<timestamp>/`.
+- It checks reference env key presence, generated-secret status, URL safety,
+  public feed fetch metadata, public/private route boundaries, optional
+  authenticated readiness, HTTPS/redirect posture, service health,
+  read-only DB/migration/PostGIS status, validator tooling, backup/restore
+  readiness, git identity, and prepared-only consumer tracker status.
+- Default mode exits `0` while reporting blockers/skips/unavailable checks;
+  `STRICT_DOCTOR=true` fails on blockers.
+- Updated README, docs index, tutorial/deployment navigation, roadmap/status,
+  backlog, open-question, current-status, and handoff docs.
+- Updated `make validate` to check the Phase 42 script, help path, and docs.
+- Created no external evidence and changed no consumer statuses.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -309,6 +351,11 @@ production-readiness, vendor-compatibility, or production-grade ETA claim.
   statuses, and does not strengthen compliance, consumer acceptance, agency
   adoption, hosted SaaS, production-readiness, vendor-compatibility, or
   production ETA-quality claims.
+- Phase 42 is reference deployment diagnostic tooling. It created no external
+  evidence, did not create final-root proof, did not change consumer statuses,
+  and does not strengthen compliance, consumer acceptance, agency adoption,
+  hosted SaaS, production-readiness, vendor-compatibility, or production
+  ETA-quality claims.
 - Phase 40 is docs/navigation guided operator trial productization. It created
   no external evidence, did not create final-root proof, did not change
   consumer statuses, and does not strengthen compliance, consumer acceptance,
@@ -354,34 +401,37 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 23. `docs/phase-41-operator-smoke-support-bundle.md`
 24. `docs/tutorials/operator-smoke-and-support-bundle.md`
 25. `docs/handoffs/phase-41.md`
-26. `docs/integration-adapter-kit.md`
-27. `docs/tutorials/reusable-agency-onboarding.md`
-28. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-29. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-30. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-31. `docs/final-root-operator-request.md`
-32. `docs/tutorials/public-gtfs-local-pilot.md`
-33. `docs/runbooks/small-agency-pilot-operations.md`
-34. `docs/roadmap-status.md`
-35. `docs/california-readiness-summary.md`
-36. `docs/compliance-evidence-checklist.md`
-37. `docs/agency-owned-domain-readiness.md`
-38. `docs/evidence/consumer-submissions/status.json`
-39. `docs/evidence/consumer-submissions/submission-workflow.md`
-40. `docs/evidence/redaction-policy.md`
-41. `SECURITY.md`
-42. `README.md`
-43. `docs/dependencies.md`
-44. `docs/decisions.md`
-45. `docs/backlog.md`
-46. `docs/open-questions.md`
+26. `docs/deployment/reference-deployment-doctor.md`
+27. `docs/phase-42-reference-deployment-doctor.md`
+28. `docs/handoffs/phase-42.md`
+29. `docs/integration-adapter-kit.md`
+30. `docs/tutorials/reusable-agency-onboarding.md`
+31. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+32. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+33. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+34. `docs/final-root-operator-request.md`
+35. `docs/tutorials/public-gtfs-local-pilot.md`
+36. `docs/runbooks/small-agency-pilot-operations.md`
+37. `docs/roadmap-status.md`
+38. `docs/california-readiness-summary.md`
+39. `docs/compliance-evidence-checklist.md`
+40. `docs/agency-owned-domain-readiness.md`
+41. `docs/evidence/consumer-submissions/status.json`
+42. `docs/evidence/consumer-submissions/submission-workflow.md`
+43. `docs/evidence/redaction-policy.md`
+44. `SECURITY.md`
+45. `README.md`
+46. `docs/dependencies.md`
+47. `docs/decisions.md`
+48. `docs/backlog.md`
+49. `docs/open-questions.md`
 
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 41 is complete; the next recommended
-phase is Phase 42 — Reference Deployment Doctor, continuing the self-hosted
-agency reuse roadmap without weakening the evidence boundaries.
+agencies and civic technologists. Phase 42 is complete; the next recommended
+phase is Phase 43 — Operator UX Setup V2, continuing the self-hosted agency
+reuse roadmap without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -590,6 +640,26 @@ docker compose -f deploy/docker-compose.yml config
   local/reference app was running at `http://localhost:8080`; direct
   `/public/feeds.json` probe returned curl connection failure / HTTP `000`.
 
+## Checks Run For Phase 42
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed.
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
+- Exact seven-target consumer tracker check — passed; Google Maps, Apple Maps,
+  Transit App, Bing Maps, Moovit, Mobility Database, and transit.land all
+  remain `prepared`.
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json` —
+  passed; the tracker file is unchanged.
+- `docker compose -f deploy/docker-compose.yml config` — passed.
+- `make deployment-doctor` — passed. With no local/reference deployment env or
+  running app exported in this checkout, the doctor exited `0` as designed and
+  reported 44 blockers, 0 warnings, and 12 unavailable checks. Public feed,
+  admin boundary, database, migration, and PostGIS checks were skipped because
+  no deployment values were supplied; validator tooling passed; backup and
+  restore readiness reported blockers because deployment-owned paths/targets
+  were not supplied.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -627,9 +697,9 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 40 is closed; do not reopen Phase 39 or Phase 40 unless
-a concrete readiness-workflow or guided-trial documentation regression is
-found.
+choosing files. Phase 42 is closed; do not reopen Phase 39, Phase 40, Phase
+41, or Phase 42 unless a concrete readiness-workflow, guided-trial,
+diagnostics, support-bundle, or deployment-doctor regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -651,6 +721,7 @@ target-originated evidence supports a target-specific status transition.
 Continue the self-hosted agency reuse roadmap from this handoff.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
-Phase 38 adapter kit, Phase 39 readiness workflow, and Phase 40 guided operator
-trial as the self-hosted/integration baseline.
+Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
+trial, Phase 41 diagnostics, and Phase 42 deployment doctor as the
+self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

@@ -3,7 +3,7 @@
 **Status:** proposed review draft, not yet committed  
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`  
 **Generated for review:** 2026-05-08  
-**Current repo baseline:** Phase 41 closed for the operator smoke and support bundle scope
+**Current repo baseline:** Phase 42 closed for the reference deployment doctor scope
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -48,7 +48,7 @@ Open Transit RT is production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 41, Open Transit RT has:
+As of Phase 42, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -70,6 +70,7 @@ As of Phase 41, Open Transit RT has:
 - a CAL-ITP-style Operations Console readiness page;
 - a guided self-hosted operator trial;
 - operator smoke checks and redaction-safe support bundles;
+- a read-only OCI/OCL-style reference deployment doctor;
 - synthetic AVL adapter fixtures;
 - deterministic realtime-quality replay fixtures;
 - prepared consumer packets for seven targets;
@@ -191,7 +192,7 @@ phase handoff is created.
 | Phase | Name | Primary outcome |
 | --- | --- | --- |
 | 41 | Operator Smoke And Support Bundle | Complete. Repeatable local/reference smoke helper and redaction-safe support bundle. |
-| 42 | Reference Deployment Doctor | Preflight checks for env, services, reverse proxy, validators, DB, backups, and route boundaries. |
+| 42 | Reference Deployment Doctor | Complete. Read-only checks for env, services, reverse proxy posture, validators, DB, backups, restore readiness, and route boundaries. |
 | 43 | Operator UX Setup V2 | Stronger setup/readiness UI with grouped remediation and exportable operator checklist. |
 | 44 | Telemetry Simulator And Device Trial | Safe simulator path that sends synthetic telemetry through real device-token ingest. |
 | 45 | GTFS Quality Triage Loop | Operator-facing static GTFS validator warning/error triage linked to import/Studio actions. |
@@ -341,6 +342,14 @@ deployment from being used for a pilot.
 
 No final-root evidence is created. No deployment is called production-ready from
 preflight success alone.
+
+### Phase 42 Closeout
+
+Phase 42 is complete for the read-only diagnostic tooling scope. The doctor
+does not source private env files, does not run migrations/backups/restores,
+does not write to `EVIDENCE_OUTPUT_DIR`, and does not create evidence or
+change consumer statuses. Default mode reports blockers while exiting `0`;
+`STRICT_DOCTOR=true` is the mode that fails on blockers.
 
 ## Phase 43 — Operator UX Setup V2
 
@@ -895,8 +904,8 @@ No aspirational language disguised as evidence.
 
 ### Near-term product hardening
 
-1. Phase 41 — Operator Smoke And Support Bundle
-2. Phase 42 — Reference Deployment Doctor
+1. Phase 41 — Operator Smoke And Support Bundle — complete
+2. Phase 42 — Reference Deployment Doctor — complete
 3. Phase 43 — Operator UX Setup V2
 4. Phase 44 — Telemetry Simulator And Device Trial
 5. Phase 45 — GTFS Quality Triage Loop

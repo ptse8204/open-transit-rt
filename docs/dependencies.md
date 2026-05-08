@@ -921,6 +921,46 @@ Raw backups, private env files, admin tokens, database URLs with passwords, webh
 
 ---
 
+## Phase 42 reference deployment doctor
+
+### Classification
+Local/reference operator diagnostics tooling
+
+### Purpose
+Provide a read-only OCI/OCL-style reference deployment doctor for:
+
+- reference env key presence and placeholder status;
+- generated-secret presence and minimum length status;
+- public feed edge checks;
+- public/private route boundary checks;
+- service health endpoint checks;
+- read-only database, migration, and PostGIS status when configured;
+- pinned validator tooling status;
+- backup and restore-drill readiness checks;
+- release/git identity reporting;
+- consumer tracker prepared-only guard.
+
+### Startup / provisioning
+- `scripts/deployment-doctor.sh` is exposed through `make deployment-doctor`.
+- Output defaults to ignored `.cache/deployment-doctor/<timestamp>/`.
+
+### Integration boundary
+- The doctor inspects already-exported environment variables only and does not
+  source private env files.
+- The doctor does not run migrations, create backups, restore databases,
+  contact consumers, create evidence packets, or change consumer statuses.
+- Admin calls use only `Authorization: Bearer "$ADMIN_TOKEN"` when a token is
+  supplied and never send auth headers to `PUBLIC_BASE_URL`.
+
+### Failure behavior
+- Default mode exits `0` while reporting blockers, skipped checks, and
+  unavailable checks.
+- `STRICT_DOCTOR=true` exits nonzero when blockers are present.
+- Generated JSON is validated and generated output is scanned for
+  secret-shaped values before the command completes.
+
+---
+
 ## Phase 41 operator diagnostics helpers
 
 ### Classification
