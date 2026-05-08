@@ -15,30 +15,45 @@ import (
 var referenceTime = time.Date(2026, 5, 4, 12, 0, 0, 0, time.UTC)
 
 func TestTransformValidPayloadUsesMappingAuthorityAndTelemetryContract(t *testing.T) {
-	result := transformFixture(t, "mapping.json", "valid.json")
-	if HasHardErrors(result.Diagnostics) {
-		t.Fatalf("diagnostics contain hard errors: %+v", result.Diagnostics)
-	}
-	if len(result.Events) != 1 {
-		t.Fatalf("events len = %d, want 1", len(result.Events))
-	}
-	event := result.Events[0]
-	if event.AgencyID != "demo-agency" || event.DeviceID != "device-1" || event.VehicleID != "bus-1" {
-		t.Fatalf("mapped ids = %s/%s/%s", event.AgencyID, event.DeviceID, event.VehicleID)
-	}
-	if !roundTripsAsTelemetryEvent(event) || !event.Valid() {
-		t.Fatalf("event does not satisfy telemetry contract: %+v", event)
-	}
-	raw, err := json.Marshal(event)
-	if err != nil {
-		t.Fatalf("marshal event: %v", err)
-	}
-	var decoded telemetry.Event
-	if err := json.Unmarshal(raw, &decoded); err != nil {
-		t.Fatalf("unmarshal event: %v", err)
-	}
-	if !decoded.Valid() {
-		t.Fatalf("decoded event invalid: %+v", decoded)
+	for _, tc := range []struct {
+		name       string
+		mapping    string
+		payload    string
+		wantEvents int
+	}{
+		{name: "legacy valid", mapping: "mapping.json", payload: "valid.json", wantEvents: 1},
+		{name: "minimal gps", mapping: "mapping.json", payload: "minimal-gps.json", wantEvents: 1},
+		{name: "full gps", mapping: "mapping.json", payload: "full-gps.json", wantEvents: 1},
+		{name: "multi vehicle", mapping: "multi-vehicle-mapping.json", payload: "multi-vehicle-gps.json", wantEvents: 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := transformFixture(t, tc.mapping, tc.payload)
+			if HasHardErrors(result.Diagnostics) {
+				t.Fatalf("diagnostics contain hard errors: %+v", result.Diagnostics)
+			}
+			if len(result.Events) != tc.wantEvents {
+				t.Fatalf("events len = %d, want %d", len(result.Events), tc.wantEvents)
+			}
+			for _, event := range result.Events {
+				if event.AgencyID != "demo-agency" || event.DeviceID == "" || event.VehicleID == "" {
+					t.Fatalf("mapped ids = %s/%s/%s", event.AgencyID, event.DeviceID, event.VehicleID)
+				}
+				if !roundTripsAsTelemetryEvent(event) || !event.Valid() {
+					t.Fatalf("event does not satisfy telemetry contract: %+v", event)
+				}
+				raw, err := json.Marshal(event)
+				if err != nil {
+					t.Fatalf("marshal event: %v", err)
+				}
+				var decoded telemetry.Event
+				if err := json.Unmarshal(raw, &decoded); err != nil {
+					t.Fatalf("unmarshal event: %v", err)
+				}
+				if !decoded.Valid() {
+					t.Fatalf("decoded event invalid: %+v", decoded)
+				}
+			}
+		})
 	}
 }
 
@@ -156,6 +171,25 @@ func TestDuplicateAndOutOfOrderAreDryRunWarnings(t *testing.T) {
 	assertDiagnostic(t, result.Diagnostics, CodeOutOfOrderObservation, SeverityWarning)
 	if HasHardErrors(result.Diagnostics) {
 		t.Fatalf("duplicate/out-of-order dry-run observations should not be hard errors: %+v", result.Diagnostics)
+	}
+}
+
+func TestSeparateDuplicateAndOutOfOrderFixtures(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		payload string
+		code    string
+	}{
+		{name: "duplicate", payload: "duplicate-batch.json", code: CodeDuplicateObservation},
+		{name: "out of order", payload: "out-of-order-batch.json", code: CodeOutOfOrderObservation},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := transformFixture(t, "mapping.json", tc.payload)
+			assertDiagnostic(t, result.Diagnostics, tc.code, SeverityWarning)
+			if HasHardErrors(result.Diagnostics) {
+				t.Fatalf("dry-run review observations should not be hard errors: %+v", result.Diagnostics)
+			}
+		})
 	}
 }
 

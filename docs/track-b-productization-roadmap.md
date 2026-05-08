@@ -107,22 +107,22 @@ Rules:
 | 35 | README And Roadmap Realignment | Product-front-door README and self-hosted agency reuse continuation path. |
 | 36 | OCI/OCL Reference Deployment Productization | Complete docs-only self-hosted reference deployment path based on the existing pilot server pattern. |
 | 37 | Agency Reusable Onboarding Flow | Complete. Guided agency GTFS onboarding for local and reference-server evaluation. |
-| 38 | Integration Adapter Kit | Reusable AVL/device, predictor, validator, monitoring, and consumer integration boundaries. |
+| 38 | Integration Adapter Kit | Complete. Central adapter map, synthetic fixture manifest, and dry-run adapter conformance tests. |
 | 39 | CAL-ITP-Style Readiness Workflow | Product-facing readiness workflow without compliance overclaims. |
 
 ## Recommended Next Phase
 
-Phase 37 is complete. The next recommended phase is Phase 38 — Integration
-Adapter Kit.
+Phase 38 is complete. The next recommended phase is Phase 39 —
+CAL-ITP-Style Readiness Workflow.
 
 Reason: the repo now has local app packaging, self-hosted reference deployment
-docs, public-GTFS local/pilot proof, pilot operations helpers, and a reusable
-agency onboarding command. The next highest-value product work is to make the
-integration boundaries easier to reuse for devices/AVL, predictors,
-validators, monitoring, and consumer workflow adapters. This does not claim
-agency adoption, consumer acceptance, CAL-ITP/Caltrans compliance, hosted SaaS
-availability, production readiness, real vendor AVL compatibility, real
-realtime data, or production-grade ETA-quality.
+docs, public-GTFS local/pilot proof, pilot operations helpers, a reusable
+agency onboarding command, and a central adapter kit for integration
+boundaries. The next highest-value product work is to make CAL-ITP-style
+readiness visible in product workflows without claiming compliance. This does
+not claim agency adoption, consumer acceptance, CAL-ITP/Caltrans compliance,
+hosted SaaS availability, production readiness, real vendor AVL compatibility,
+real realtime data, or production-grade ETA-quality.
 
 External-proof tracks remain available later when retained, redacted,
 claim-specific artifacts exist. They are not the default Track B roadmap.

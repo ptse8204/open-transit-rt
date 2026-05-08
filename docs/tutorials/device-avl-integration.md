@@ -6,6 +6,11 @@ It documents the current repository API. It does not prove real-world device rel
 
 All identifiers and tokens below are synthetic demo values. Do not commit real private device IDs, vehicle IDs, vendor IDs, tokens, raw private telemetry, private logs, or vendor payloads in public docs.
 
+For the higher-level integration map across telemetry adapters, predictor
+adapters, validators, monitoring, and consumer workflows, start with the
+[Integration Adapter Kit](../integration-adapter-kit.md). This file remains the
+detailed operator tutorial for `/v1/telemetry` and AVL/device troubleshooting.
+
 ## Telemetry Endpoint
 
 Send one vehicle observation at a time:
@@ -204,16 +209,17 @@ Do not add vendor-specific coupling to core matching, Vehicle Positions generati
 
 ## Synthetic Vendor Adapter Dry Run
 
-Phase 29B includes a dry-run-only synthetic adapter pilot for demonstrating the vendor-to-telemetry transform boundary:
+The integration adapter kit includes a dry-run-only synthetic adapter example
+for demonstrating the vendor-to-telemetry transform boundary:
 
 ```bash
 go run ./cmd/avl-vendor-adapter --dry-run \
   --reference-time 2026-05-04T12:00:00Z \
   --mapping testdata/avl-vendor/mapping.json \
-  testdata/avl-vendor/valid.json
+  testdata/avl-vendor/minimal-gps.json
 ```
 
-The CLI requires `--dry-run`. Running without it fails because network send mode is not implemented in Phase 29B.
+The CLI requires `--dry-run`. Running without it fails because network send mode is not implemented.
 
 Output streams are intentionally predictable:
 
@@ -234,7 +240,7 @@ Mapping rows use:
   "agency_id": "demo-agency",
   "device_id": "device-1",
   "vehicle_id": "bus-1",
-  "notes": "Synthetic Phase 29B mapping for dry-run adapter tests."
+  "notes": "Synthetic mapping for dry-run adapter kit tests."
 }
 ```
 

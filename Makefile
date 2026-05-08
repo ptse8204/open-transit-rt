@@ -139,6 +139,14 @@ validate:
 	@sh -n scripts/agency-pilot-onboard.sh
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
 	@scripts/agency-pilot-onboard.sh --agency-id dryrun-agency --gtfs-url http://127.0.0.1/example.zip --dry-run >/dev/null
+	@test -f docs/integration-adapter-kit.md
+	@test -f testdata/avl-vendor/README.md
+	@test -f testdata/avl-vendor/minimal-gps.json
+	@test -f testdata/avl-vendor/full-gps.json
+	@test -f testdata/avl-vendor/multi-vehicle-mapping.json
+	@test -f testdata/avl-vendor/multi-vehicle-gps.json
+	@test -f testdata/avl-vendor/duplicate-batch.json
+	@test -f testdata/avl-vendor/out-of-order-batch.json
 	@test -f scripts/device-onboarding.sh
 	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local

@@ -1,0 +1,213 @@
+# Integration Adapter Kit
+
+This guide is the central map for integrating Open Transit RT with telemetry
+sources, prediction engines, validators, monitoring, and feed-consumer
+workflows.
+
+It points to the detailed operator guides instead of duplicating them. It does
+not prove certified vendor compatibility, production AVL reliability,
+production-grade ETA quality, consumer acceptance, CAL-ITP/Caltrans compliance,
+agency adoption, hosted SaaS availability, or final-root proof.
+
+## Adapter Decision Tree
+
+Use the existing boundary that matches the system being integrated:
+
+| Need | Boundary | Detailed docs |
+| --- | --- | --- |
+| Import a specific agency GTFS ZIP first | `make agency-pilot-up` / `scripts/agency-pilot-onboard.sh` | [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md) |
+| Send device, GPS, or AVL observations | Transform to `POST /v1/telemetry` | [Device And AVL Integration](tutorials/device-avl-integration.md) |
+| Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
+| Swap or evaluate Trip Updates prediction | `internal/prediction.Adapter` | [Dependencies](dependencies.md), [Trip Updates requirements](requirements-trip-updates.md) |
+| Validate GTFS or GTFS-Realtime artifacts | Server-side allowlisted validator IDs | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md), [Dependencies](dependencies.md) |
+| Monitor feeds or operations | Deployment-owned monitoring around existing endpoints/helpers | [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md) |
+| Prepare consumer/aggregator workflow | Public feed URLs and prepared packet records | [Consumer submission workflow](evidence/consumer-submissions/submission-workflow.md) |
+
+## Practical Usage Path
+
+1. Import and publish GTFS with `make agency-pilot-up`.
+2. Review the printed feed URLs and `/public/feeds.json` metadata.
+3. Choose a telemetry adapter path: direct device POST, agency-owned script,
+   sidecar service, vendor-owned middleware, or private operator process.
+4. Run the synthetic AVL dry-run adapter against committed fixtures to verify
+   the transform pattern and diagnostics shape.
+5. Map real private AVL payloads outside this public repo.
+6. Send only validated telemetry to `/v1/telemetry` with deployment-owned
+   device credentials.
+7. Review the Operations Console and public Vehicle Positions output.
+
+The Phase 37 onboarding flow establishes the active schedule/feed baseline.
+Phase 38 integration work starts after that baseline exists; it does not
+replace GTFS import, feed publication metadata review, or device credential
+management.
+
+## Telemetry Adapter Path
+
+Telemetry integrations should transform external payloads into the existing
+Open Transit RT telemetry event shape before calling `/v1/telemetry`.
+
+Acceptable adapter ownership patterns are:
+
+- agency-owned adapter scripts;
+- deployment-owned sidecar services;
+- vendor-owned middleware that calls Open Transit RT;
+- private operator integration processes.
+
+The detailed contract, payload fields, response behavior, token handling,
+Operations Console checks, and troubleshooting matrix live in
+[Device And AVL Integration](tutorials/device-avl-integration.md). That guide
+is the source for operator-level telemetry instructions.
+
+## `/v1/telemetry` Contract Pointer
+
+Adapters call:
+
+```text
+POST /v1/telemetry
+Authorization: Bearer <device-token>
+Content-Type: application/json
+```
+
+Required payload fields are `agency_id`, `device_id`, `vehicle_id`,
+`timestamp`, `lat`, and `lon`. Optional fields include `driver_id`, `bearing`,
+`speed_mps`, `accuracy_m`, and `trip_hint`.
+
+Do not treat this summary as a second API definition. Use
+[Device And AVL Integration](tutorials/device-avl-integration.md) for the
+current confirmed request and response details.
+
+## Synthetic AVL Adapter Examples
+
+`internal/avladapter` and `cmd/avl-vendor-adapter` provide a dry-run adapter
+kit example. The command reads a synthetic mapping file and a synthetic payload
+fixture, then prints transformed Open Transit RT telemetry JSON to stdout and
+diagnostics JSON to stderr.
+
+Example:
+
+```bash
+go run ./cmd/avl-vendor-adapter --dry-run \
+  --reference-time 2026-05-04T12:00:00Z \
+  --mapping testdata/avl-vendor/mapping.json \
+  testdata/avl-vendor/minimal-gps.json
+```
+
+The command requires `--dry-run`. Network send mode is not implemented. The
+output is transform output only; it is not telemetry ingest status and it is
+not vendor compatibility proof.
+
+See [testdata/avl-vendor/README.md](../testdata/avl-vendor/README.md) for the
+fixture manifest and exact diagnostic codes.
+
+## Mapping And Diagnostics Contract
+
+The mapping file is the authority for emitted `agency_id`, `device_id`, and
+`vehicle_id`. Vendor-looking identifiers in payload fixtures are lookup keys
+only and cannot override mapped Open Transit RT identifiers.
+
+Dry-run diagnostics are stable JSON objects with:
+
+- `code`
+- `severity`
+- `message`
+- optional `index`
+
+Diagnostic codes are defined in `internal/avladapter`. Duplicate and
+out-of-order dry-run diagnostics are batch-level review observations only.
+They are not database ingest statuses such as `accepted`, `duplicate`, or
+`out_of_order`.
+
+Do not put tokens, endpoint URLs, auth headers, passwords, private keys,
+database URLs, real vendor account IDs, private device identifiers, private
+vehicle identifiers, or raw private telemetry in mappings or fixtures.
+
+## External Predictor Lifecycle
+
+External predictors must stay behind `internal/prediction.Adapter`. Vehicle
+Positions, telemetry ingest, GTFS import, assignments, and audit state remain
+owned by Open Transit RT.
+
+A future external predictor phase should follow this lifecycle:
+
+1. Candidate review: document the predictor role, inputs, outputs, deployment
+   shape, and replacement path.
+2. Dependency and license review: update `docs/dependencies.md` before adding
+   runtime coupling, vendored code, packaged services, or deployment assets.
+3. Adapter contract tests: prove request construction, output normalization,
+   wrong-agency/wrong-feed rejection, stale output rejection, and failure
+   diagnostics.
+4. Shadow or dry-run evaluation: compare outputs without changing public feed
+   behavior unless explicitly approved.
+5. Output validation: validate Trip Updates against active GTFS and GTFS-RT
+   protobuf requirements before serialization.
+6. Failure fallback: Vehicle Positions, telemetry ingest, assignments, admin
+   workflows, and static GTFS publication must continue when the predictor is
+   unavailable.
+7. Evidence review: retain claim-specific evidence before making any stronger
+   ETA quality, compatibility, compliance, or consumer-readiness claim.
+
+TheTransitClock and other predictors remain deferred optional integrations
+unless a later phase explicitly implements and documents runtime integration.
+
+## Validator Integration Boundary
+
+Validators are external tooling invoked through server-side allowlisted
+validator IDs. Open Transit RT derives artifacts and normalizes reports; request
+callers do not supply arbitrary commands, paths, argv, or output directories.
+
+Validator success helps assess feed quality, but it is not consumer acceptance,
+CAL-ITP/Caltrans compliance, agency approval, or production readiness proof by
+itself.
+
+## Monitoring Integration Boundary
+
+Monitoring remains deployment-owned. The repo exposes readiness checks,
+lightweight metrics when enabled, Operations Console views, and pilot
+operations helpers.
+
+Phase 38 does not add Prometheus/Grafana deployment assets, OpenTelemetry
+SDK/exporter wiring, production SLO dashboards, or alert delivery proof.
+
+## Consumer And Feed Workflow Boundary
+
+Consumers and aggregators use the public GTFS and GTFS-Realtime URLs, plus
+discoverability metadata such as `/public/feeds.json`. The repo has prepared
+packet drafts and workflow records, but all current consumer and aggregator
+targets remain `prepared`.
+
+Do not add consumer submission APIs, runtime calls to external consumers,
+portal automation, guessed submission paths, or target status changes without
+retained target-originated evidence.
+
+For detailed workflow rules, see
+[Consumer Submission Workflow](evidence/consumer-submissions/submission-workflow.md)
+and [California Readiness Summary](california-readiness-summary.md).
+
+## Redaction And Evidence Boundary
+
+Follow [Evidence Redaction Policy](evidence/redaction-policy.md) before
+capturing or committing any integration material.
+
+Never commit real device tokens, API keys, vendor credentials, private
+identifiers, raw private payloads, unredacted logs, private portal
+correspondence, webhook URLs, private database URLs, or private infrastructure
+details.
+
+Synthetic fixtures and dry-run output are examples and conformance aids. They
+are not external evidence packets.
+
+## What This Does Not Prove
+
+This kit does not prove:
+
+- certified vendor compatibility;
+- real vendor AVL integration;
+- production AVL reliability;
+- production-grade ETA quality;
+- runtime external predictor compatibility;
+- consumer submission, review, acceptance, listing, or ingestion;
+- CAL-ITP/Caltrans compliance;
+- agency adoption, approval, or endorsement;
+- agency-owned final-root proof;
+- hosted SaaS availability.
+

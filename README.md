@@ -106,7 +106,9 @@ is not agency-owned final-root proof.
 
 - AVL/device data should enter through the existing telemetry contract or an
   adapter that transforms external payloads before calling telemetry ingest.
-  See [Device And AVL Integration](docs/tutorials/device-avl-integration.md).
+  Start with the [Integration Adapter Kit](docs/integration-adapter-kit.md),
+  then use [Device And AVL Integration](docs/tutorials/device-avl-integration.md)
+  for the detailed telemetry tutorial.
 - External predictors must stay behind `internal/prediction.Adapter`. Vehicle
   Positions generation remains independent of external predictor availability.
 - Validators are pinned tooling invoked through allowlisted validator IDs and

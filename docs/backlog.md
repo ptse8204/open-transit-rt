@@ -74,6 +74,15 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   checks, schedule identity summary verification, metadata placeholder
   warnings, best-effort validator/blocker reporting, and a closed phase
   handoff.
-- Remaining later work: Phase 38 integration adapter kit and Phase 39
-  CAL-ITP-style readiness workflow, without overclaiming compliance or
-  consumer acceptance.
+- Remaining later work: Phase 39 CAL-ITP-style readiness workflow, without
+  overclaiming compliance or consumer acceptance.
+
+## Phase 38 — Integration Adapter Kit
+
+- Complete for the navigation and conformance scope. The repo now has the
+  central integration adapter kit, synthetic AVL fixture manifest, neutral
+  dry-run fixture examples, CLI boundary wording, focused adapter tests, and
+  dependency docs noting synthetic dry-run/developer support only.
+- Remaining later work: Phase 39 CAL-ITP-style readiness workflow, without
+  overclaiming compliance, consumer acceptance, real vendor compatibility, or
+  production-grade ETA quality.

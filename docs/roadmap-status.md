@@ -21,6 +21,8 @@ Open Transit RT has technical foundations for:
 - validation records and scorecard workflows;
 - local app packaging and pilot operations helpers;
 - reusable agency GTFS onboarding from an agency ID and GTFS URL;
+- an integration adapter kit that maps telemetry, AVL, predictor, validator,
+  monitoring, and consumer workflow boundaries;
 - consumer packet preparation workflows.
 
 ## Evidence That Exists
@@ -103,9 +105,11 @@ productization the default continuation path. Phase 36 — OCI/OCL Reference
 Deployment Productization is complete for docs-only self-hosted reference
 deployment guidance and created no external evidence. Phase 37 — Reusable
 Agency Onboarding Flow is complete for the opt-in local/reference onboarding
-command and docs.
+command and docs. Phase 38 — Integration Adapter Kit is complete for the
+central adapter map, synthetic fixture manifest, dry-run AVL examples, and
+focused adapter conformance tests.
 
-The recommended next phase is Phase 38 — Integration Adapter Kit.
+The recommended next phase is Phase 39 — CAL-ITP-Style Readiness Workflow.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

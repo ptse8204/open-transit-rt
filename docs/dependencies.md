@@ -64,7 +64,7 @@ This table is the current external dependency and integration status. It separat
 | OpenTelemetry | Deferred optional integration | Phase 11 repo scan found no OpenTelemetry SDK, collector, exporter, trace propagation, or deployment wiring. |
 | TheTransitClock | Deferred optional predictor | Not integrated. Future use must be behind `internal/prediction.Adapter`; Open Transit RT remains source of truth. |
 | Other external predictors | Deferred optional predictors | Same adapter boundary as TheTransitClock. |
-| AVL / vendor adapter pilot | Synthetic dry-run transform only | Phase 29B adds `internal/avladapter` and `cmd/avl-vendor-adapter` for synthetic fixture transforms into the existing telemetry contract. No named vendor, network send mode, credential, runtime dependency, or real vendor compatibility claim is added. |
+| AVL / vendor adapter kit support | Synthetic dry-run/developer integration support only | Phase 29B added `internal/avladapter` and `cmd/avl-vendor-adapter`; Phase 38 packages them with central docs and additional synthetic fixtures for transform conformance against the existing telemetry contract. No named vendor, network send mode, credential, runtime dependency, or real vendor compatibility claim is added. |
 | Google Maps, Apple Maps, Transit App, Bing Maps, Moovit | Workflow records and Phase 13 evidence docs only | Default `consumer_ingestion` records can track submission status; Phase 13 docs provide current records and templates. No external API calls or acceptance proof. |
 | Mobility Database, transit.land | Workflow targets and Phase 13 evidence docs only | Documented as possible publication/aggregator targets; Phase 13 docs provide current records and templates. No API integration or acceptance proof. |
 
@@ -480,7 +480,7 @@ The adapter can be replaced by TheTransitClock, another external predictor, or a
 
 ---
 
-## 7C. Phase 29B synthetic AVL / vendor adapter pilot
+## 7C. Phase 29B and Phase 38 synthetic AVL / vendor adapter kit support
 
 ### Classification
 Synthetic developer/test utility and adapter-boundary example
@@ -489,12 +489,19 @@ Synthetic developer/test utility and adapter-boundary example
 Demonstrate how a deployment-owned vendor/AVL adapter can transform external-looking payloads into the existing Open Transit RT telemetry event contract before any later private integration calls `/v1/telemetry`.
 
 ### Current status
-Integrated as dry-run-only Go code:
+Integrated as dry-run-only Go code and documentation:
 - `internal/avladapter`
 - `cmd/avl-vendor-adapter`
 - synthetic fixtures under `testdata/avl-vendor/`
+- central adapter map at `docs/integration-adapter-kit.md`
+- fixture manifest at `testdata/avl-vendor/README.md`
 
-No named vendor, real AVL feed, credential, endpoint URL, network send mode, or runtime external dependency is integrated.
+No named vendor, real AVL feed, credential, endpoint URL, network send mode,
+runtime external dependency, or runtime integration is integrated.
+
+Phase 38 did not change the telemetry API, device credential lifecycle,
+Vehicle Positions generation, Trip Updates prediction behavior, public feed
+URLs, or consumer workflow state.
 
 ### Integration boundary
 - Inputs are synthetic vendor payload fixtures and a strict synthetic mapping file.

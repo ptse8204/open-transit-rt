@@ -8,6 +8,15 @@
       "device_id": "device-1",
       "vehicle_id": "bus-1",
       "notes": "Synthetic mapping for dry-run adapter kit tests."
+    },
+    {
+      "vendor_source": "vendor-demo",
+      "vendor_device_id": "vendor-device-2",
+      "vendor_vehicle_id": "vendor-vehicle-2",
+      "agency_id": "demo-agency",
+      "device_id": "device-2",
+      "vehicle_id": "bus-2",
+      "notes": "Synthetic second vehicle mapping for dry-run adapter kit tests."
     }
   ]
 }

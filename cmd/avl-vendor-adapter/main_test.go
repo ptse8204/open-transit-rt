@@ -16,7 +16,8 @@ func TestRunHelp(t *testing.T) {
 	if err := run([]string{"help"}, &stdout, &stderr); err != nil {
 		t.Fatalf("run help: %v", err)
 	}
-	if !strings.Contains(stdout.String(), "Usage:") || !strings.Contains(stdout.String(), "--dry-run") {
+	assertHelpBoundary(t, stdout.String())
+	if !strings.Contains(stdout.String(), "Usage:") {
 		t.Fatalf("help output missing usage: %s", stdout.String())
 	}
 	if stderr.Len() != 0 {
@@ -63,6 +64,74 @@ func TestRunDryRunWritesTelemetryToStdoutAndDiagnosticsToStderr(t *testing.T) {
 			t.Fatalf("dry-run output contains forbidden secret-like word %q: stdout=%s stderr=%s", forbidden, stdout.String(), stderr.String())
 		}
 	}
+}
+
+func TestRunDryRunBoundaryHelpDoesNotDependOnPhase29B(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"--help"}, &stdout, &stderr); err != nil {
+		t.Fatalf("run help: %v", err)
+	}
+	assertHelpBoundary(t, stdout.String())
+	if strings.Contains(stdout.String(), "Phase 29B") {
+		t.Fatalf("help should use adapter-kit wording, got: %s", stdout.String())
+	}
+}
+
+func TestRunReviewDiagnosticsForSeparateBatchFixtures(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		fixture string
+		code    string
+	}{
+		{name: "stale", fixture: "stale-timestamp.json", code: avladapter.CodeStaleTimestamp},
+		{name: "future", fixture: "future-timestamp.json", code: avladapter.CodeFutureTimestamp},
+		{name: "low accuracy", fixture: "low-gps-accuracy.json", code: avladapter.CodeLowGPSAccuracy},
+		{name: "duplicate", fixture: "duplicate-batch.json", code: avladapter.CodeDuplicateObservation},
+		{name: "out of order", fixture: "out-of-order-batch.json", code: avladapter.CodeOutOfOrderObservation},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			err := run([]string{
+				"--dry-run",
+				"--reference-time", "2026-05-04T12:00:00Z",
+				"--mapping", "../../testdata/avl-vendor/mapping.json",
+				"../../testdata/avl-vendor/" + tc.fixture,
+			}, &stdout, &stderr)
+			if err != nil {
+				t.Fatalf("run dry-run: %v; stderr=%s", err, stderr.String())
+			}
+			var diagnostics []avladapter.Diagnostic
+			if err := json.Unmarshal(stderr.Bytes(), &diagnostics); err != nil {
+				t.Fatalf("stderr is not diagnostics JSON: %v; stderr=%s", err, stderr.String())
+			}
+			assertCLIDiagnostic(t, diagnostics, tc.code)
+		})
+	}
+}
+
+func assertHelpBoundary(t *testing.T, help string) {
+	t.Helper()
+	lower := strings.Join(strings.Fields(strings.ToLower(help)), " ")
+	for _, phrase := range []string{
+		"--dry-run",
+		"network send mode is not implemented",
+		"not telemetry ingest status",
+		"not vendor compatibility proof",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("help output missing boundary phrase %q: %s", phrase, help)
+		}
+	}
+}
+
+func assertCLIDiagnostic(t *testing.T, diagnostics []avladapter.Diagnostic, code string) {
+	t.Helper()
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code == code {
+			return
+		}
+	}
+	t.Fatalf("diagnostic code %q not found in %+v", code, diagnostics)
 }
 
 func TestRunHardErrorsPrintPartialDryRunOutputAndExitNonzero(t *testing.T) {

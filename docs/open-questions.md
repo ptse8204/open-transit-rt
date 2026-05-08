@@ -33,6 +33,10 @@ These questions do not block the next phase.
 ## Prediction Backends
 
 - Phase 7 chose an internal deterministic predictor as the first real Trip Updates adapter. Should a later phase add TheTransitClock as an alternate adapter, and what deployment profile should own it?
+- Phase 38 documented the required external predictor lifecycle: candidate
+  review, dependency/license review, adapter contract tests, shadow/dry-run
+  evaluation, output validation, failure fallback, and retained evidence before
+  stronger ETA claims.
 - What quality threshold should be required before claiming production-grade ETA quality rather than conservative schedule-deviation predictions?
 - What historical telemetry retention and backtesting workflow should support MAE by route, stop, and time of day?
 

@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 37 — Reusable Agency Onboarding Flow is complete for the local/reference
-onboarding scope.
+Phase 38 — Integration Adapter Kit is complete for the navigation and
+conformance scope.
 
-Phases 0 through 37 are closed for their documented scopes. Track A is also
+Phases 0 through 38 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -79,8 +79,20 @@ external or final-root evidence, and does not change consumer statuses. The
 post-completion hardening patch makes running mode upsert agency/admin rows via
 `DATABASE_URL`, requires explicit running-mode `ADMIN_BASE_URL`, rejects
 `.`/`..`/leading-dot agency IDs, adds a no-network dry-run validation check,
-and passes advanced options through `make agency-pilot-up`. The next
-recommended phase is Phase 38 — Integration Adapter Kit.
+and passes advanced options through `make agency-pilot-up`. At Phase 37 close,
+the recommended next phase was Phase 38 — Integration Adapter Kit.
+
+Phase 38 added `docs/integration-adapter-kit.md` as the central adapter map,
+linked it from onboarding/tutorial/navigation docs, added neutral synthetic AVL
+fixtures and `testdata/avl-vendor/README.md`, refreshed the dry-run adapter CLI
+help boundary wording, added focused fixture/help diagnostics tests, updated
+`make validate` to check the adapter kit files, and recorded the synthetic
+dry-run/developer support status in `docs/dependencies.md`. Phase 38 did not
+add network send mode, named vendor support, real vendor payloads, credentials,
+runtime external predictor integration, Prometheus/Grafana assets,
+OpenTelemetry wiring, consumer APIs, final-root evidence, external evidence
+packets, or consumer status changes. The next recommended phase is Phase 39 —
+CAL-ITP-Style Readiness Workflow.
 
 ## Phase 32 Summary
 
@@ -176,6 +188,22 @@ recommended phase is Phase 38 — Integration Adapter Kit.
   running-mode admin URL requirements, agency ID validation, no-network dry-run
   validation, and Makefile option pass-through.
 
+## Phase 38 Summary
+
+- Added `docs/integration-adapter-kit.md` as the central map for telemetry,
+  synthetic AVL, predictor, validator, monitoring, consumer/feed workflow, and
+  redaction/evidence boundaries.
+- Linked the kit from the root README, docs index, tutorials index, reusable
+  agency onboarding guide, and device/AVL tutorial.
+- Added neutral synthetic AVL fixtures and `testdata/avl-vendor/README.md`
+  with fixture purposes, expected diagnostic codes, and evidence boundaries.
+- Refreshed `cmd/avl-vendor-adapter` help text to dry-run adapter kit wording
+  and added focused help/diagnostic/no-send-mode tests.
+- Updated `docs/dependencies.md`, `docs/phase-38-integration-adapter-kit.md`,
+  roadmap/status/backlog/open-question docs, `make validate`, and this handoff.
+- Reviewed `docs/decisions.md`; no architecture-significant decision changed,
+  so no edits were needed.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -199,6 +227,11 @@ recommended phase is Phase 38 — Integration Adapter Kit.
   statuses, and does not strengthen agency approval, consumer acceptance,
   compliance, production-readiness, vendor-compatibility, or ETA-quality
   claims.
+- Phase 38 is integration adapter kit productization. It created no external
+  evidence, did not create final-root proof, did not change consumer statuses,
+  and does not strengthen vendor-compatibility, production AVL reliability,
+  production ETA quality, consumer acceptance, compliance, agency adoption, or
+  final-root claims.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -224,33 +257,36 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 13. `docs/phase-36-oci-reference-deployment-productization.md`
 14. `docs/phase-37-agency-reusable-onboarding-flow.md`
 15. `docs/handoffs/phase-37.md`
-16. `docs/tutorials/reusable-agency-onboarding.md`
-17. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-18. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-19. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-20. `docs/final-root-operator-request.md`
-21. `docs/tutorials/public-gtfs-local-pilot.md`
-22. `docs/runbooks/small-agency-pilot-operations.md`
-23. `docs/roadmap-status.md`
-24. `docs/california-readiness-summary.md`
-25. `docs/compliance-evidence-checklist.md`
-26. `docs/agency-owned-domain-readiness.md`
-27. `docs/evidence/consumer-submissions/status.json`
-28. `docs/evidence/consumer-submissions/submission-workflow.md`
-29. `docs/evidence/redaction-policy.md`
-30. `SECURITY.md`
-31. `README.md`
-32. `docs/dependencies.md`
-33. `docs/decisions.md`
-34. `docs/backlog.md`
-35. `docs/open-questions.md`
+16. `docs/phase-38-integration-adapter-kit.md`
+17. `docs/handoffs/phase-38.md`
+18. `docs/integration-adapter-kit.md`
+19. `docs/tutorials/reusable-agency-onboarding.md`
+20. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+21. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+22. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+23. `docs/final-root-operator-request.md`
+24. `docs/tutorials/public-gtfs-local-pilot.md`
+25. `docs/runbooks/small-agency-pilot-operations.md`
+26. `docs/roadmap-status.md`
+27. `docs/california-readiness-summary.md`
+28. `docs/compliance-evidence-checklist.md`
+29. `docs/agency-owned-domain-readiness.md`
+30. `docs/evidence/consumer-submissions/status.json`
+31. `docs/evidence/consumer-submissions/submission-workflow.md`
+32. `docs/evidence/redaction-policy.md`
+33. `SECURITY.md`
+34. `README.md`
+35. `docs/dependencies.md`
+36. `docs/decisions.md`
+37. `docs/backlog.md`
+38. `docs/open-questions.md`
 
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. The next recommended phase is Phase 38 —
-Integration Adapter Kit, building on the Phase 37 reusable onboarding flow and
-the Phase 36 reference deployment docs.
+agencies and civic technologists. The next recommended phase is Phase 39 —
+CAL-ITP-Style Readiness Workflow, building on the Phase 37 reusable onboarding
+flow, Phase 36 reference deployment docs, and Phase 38 adapter kit.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -459,13 +495,13 @@ docker compose -f deploy/docker-compose.yml config
 
 ## First Files Likely To Edit Next
 
-For Phase 38 — Integration Adapter Kit, first edit:
+For Phase 39 — CAL-ITP-Style Readiness Workflow, first edit:
 
-- `docs/phase-38-integration-adapter-kit.md`
-- `docs/dependencies.md`
-- `docs/decisions.md` only if Phase 38 changes architecture-significant
-  integration boundaries
-- adapter-related tutorials under `docs/tutorials/` as needed
+- `docs/phase-39-calitp-readiness-workflow.md`
+- `docs/california-readiness-summary.md`
+- `docs/compliance-evidence-checklist.md`
+- `docs/roadmap-status.md`
+- readiness-related tutorials under `docs/tutorials/` as needed
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -484,8 +520,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 38 — Integration Adapter Kit.
+Proceed to Phase 39 — CAL-ITP-Style Readiness Workflow.
 
-Use the Phase 36 reference deployment docs and Phase 37 reusable onboarding
-flow as the self-hosted baseline. External-proof work remains a future optional
-path, not the default roadmap.
+Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
+and Phase 38 adapter kit as the self-hosted/integration baseline.
+External-proof work remains a future optional path, not the default roadmap.

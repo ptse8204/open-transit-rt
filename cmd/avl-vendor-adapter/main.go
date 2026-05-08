@@ -14,16 +14,18 @@ import (
 
 const usageText = `Usage:
   go run ./cmd/avl-vendor-adapter help
-  go run ./cmd/avl-vendor-adapter --dry-run --mapping testdata/avl-vendor/mapping.json [--reference-time RFC3339] testdata/avl-vendor/valid.json
+  go run ./cmd/avl-vendor-adapter --dry-run --mapping testdata/avl-vendor/mapping.json [--reference-time RFC3339] testdata/avl-vendor/minimal-gps.json
 
-Phase 29B supports dry-run transforms only. Running without --dry-run fails
-because network send mode is not implemented.
+This is a dry-run adapter kit example. --dry-run is required, and network send
+mode is not implemented.
 
 Output streams:
-  stdout: transformed Open Transit RT telemetry JSON array. If no records
+  stdout: transformed Open Transit RT telemetry JSON array only. If no records
           transform successfully, stdout is [].
   stderr: diagnostics as one stable JSON array. Diagnostics are dry-run review
-          output only and are not telemetry ingest acceptance status.
+          output only and are not telemetry ingest status.
+
+Synthetic fixtures and dry-run output are not vendor compatibility proof.
 `
 
 func main() {
@@ -52,7 +54,7 @@ func run(args []string, stdout io.Writer, stderr io.Writer) error {
 		return err
 	}
 	if !*dryRun {
-		return fmt.Errorf("send mode is not implemented in Phase 29B; rerun with --dry-run to print transformed telemetry JSON")
+		return fmt.Errorf("network send mode is not implemented; rerun with --dry-run to print transformed telemetry JSON")
 	}
 	if *mappingPath == "" {
 		return fmt.Errorf("--mapping is required")

@@ -36,6 +36,18 @@ scripts/agency-pilot-onboard.sh \
 The script does not call `make agency-app-up` and does not import the demo
 sample feed.
 
+## Next Integration Step
+
+After the requested GTFS imports and the five public feed paths verify, use the
+[Integration Adapter Kit](../integration-adapter-kit.md) to choose the next
+telemetry path. The usual progression is to connect a private telemetry source
+or run the synthetic AVL dry-run adapter, then send only validated observations
+through the existing `/v1/telemetry` contract.
+
+That next step still does not prove real vendor compatibility, production AVL
+reliability, consumer acceptance, CAL-ITP/Caltrans compliance, agency adoption,
+or production-grade ETA quality.
+
 ## Required Inputs
 
 `AGENCY_ID` must match the `agency_id` in the GTFS `agency.txt` file. It may
