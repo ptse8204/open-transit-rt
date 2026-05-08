@@ -25,6 +25,11 @@ production-grade ETA-quality claims.
 - Added `docs/tutorials/reusable-agency-onboarding.md`.
 - Updated README, deployment, tutorial, roadmap, backlog, current-status,
   open-question, phase-reference, and latest-handoff docs.
+- Post-completion hardening patched running-mode behavior so it safely upserts
+  the requested agency/admin roles through `DATABASE_URL`, requires an explicit
+  running-mode `ADMIN_BASE_URL`, rejects `.`/`..`/leading-dot agency IDs, adds
+  a no-network dry-run check to `make validate`, and passes additional
+  advanced options through `make agency-pilot-up`.
 
 The onboarding script:
 
@@ -73,8 +78,9 @@ The onboarding script:
 ## Tests Added And Results
 
 - `make validate` now checks that `scripts/agency-pilot-onboard.sh` exists,
-  parses with `sh -n`, and that `--help` exits successfully without requiring
-  Docker, network, database, validators, or secrets.
+  parses with `sh -n`, that `--help` exits successfully without requiring
+  Docker, network, database, validators, or secrets, and that a no-network
+  `--dry-run` invocation succeeds.
 - Optional local fixture smoke passed using a generated ZIP from
   `testdata/gtfs/valid-small` served from ignored `.cache/` storage at
   `http://127.0.0.1:18080/valid-small.zip`. The run used `--skip-validators`,
@@ -102,6 +108,8 @@ otherwise.
   `FEED_LICENSE_URL` values.
 - Validator tooling remains optional for onboarding unless
   `--strict-validators` is supplied.
+- Running mode requires `--admin-base-url` or `ADMIN_BASE_URL`; use a loopback,
+  VPN, SSH tunnel, or otherwise private/admin-protected URL.
 - Agency-owned final-root proof, consumer acceptance, production readiness,
   vendor compatibility, and production-grade ETA quality remain unproven.
 

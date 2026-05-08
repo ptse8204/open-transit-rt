@@ -76,7 +76,11 @@ paths, checks the fetched schedule summary against the imported source, and
 runs validators or reports blockers/skips. Phase 37 does not call
 `make agency-app-up`, does not import the demo sample feed, does not create
 external or final-root evidence, and does not change consumer statuses. The
-next recommended phase is Phase 38 — Integration Adapter Kit.
+post-completion hardening patch makes running mode upsert agency/admin rows via
+`DATABASE_URL`, requires explicit running-mode `ADMIN_BASE_URL`, rejects
+`.`/`..`/leading-dot agency IDs, adds a no-network dry-run validation check,
+and passes advanced options through `make agency-pilot-up`. The next
+recommended phase is Phase 38 — Integration Adapter Kit.
 
 ## Phase 32 Summary
 
@@ -168,6 +172,9 @@ next recommended phase is Phase 38 — Integration Adapter Kit.
 - Updated README, tutorial, deployment, roadmap, backlog, status, and handoff
   navigation.
 - Added `docs/handoffs/phase-37.md`.
+- Post-completion hardening patched running-mode agency/admin upsert,
+  running-mode admin URL requirements, agency ID validation, no-network dry-run
+  validation, and Makefile option pass-through.
 
 ## Truthfulness And Evidence Boundary
 
@@ -421,6 +428,8 @@ docker compose -f deploy/docker-compose.yml config
 - Optional local fixture smoke — passed using a generated ZIP from
   `testdata/gtfs/valid-small` served from ignored `.cache/` storage, with
   validators skipped.
+- Post-completion hardening re-ran the required checks and preserved all seven
+  consumer statuses as `prepared`.
 
 ## Current Evidence And Security Boundary
 

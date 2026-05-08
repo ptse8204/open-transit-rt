@@ -22,8 +22,8 @@ FEED_LICENSE_URL="${FEED_LICENSE_URL:-https://example.invalid/replace-with-agenc
 PUBLICATION_ENVIRONMENT="${PUBLICATION_ENVIRONMENT:-dev}"
 RESET_LOCAL_STATE="false"
 FORCE_RESET="false"
-STRICT_VALIDATORS="false"
-SKIP_VALIDATORS="false"
+STRICT_VALIDATORS="${STRICT_VALIDATORS:-false}"
+SKIP_VALIDATORS="${SKIP_VALIDATORS:-false}"
 DRY_RUN="${DRY_RUN:-false}"
 
 usage() {
@@ -38,7 +38,7 @@ Required:
 Options:
   --mode MODE                 local-compose or running (default: local-compose)
   --public-base-url URL       public root, default http://localhost:8080
-  --admin-base-url URL        admin API root; defaults to public base URL
+  --admin-base-url URL        admin API root; defaults to public base URL in local-compose mode only
   --admin-token TOKEN         required in running mode unless already available
   --admin-subject SUBJECT     local admin JWT subject, default admin@example.com
   --import-timeout DURATION   0, 90s, 15m, or 1h style duration, default 15m
@@ -55,12 +55,17 @@ Options:
 Environment fallbacks:
   AGENCY_ID, GTFS_URL, PUBLIC_BASE_URL, ADMIN_BASE_URL, ADMIN_TOKEN,
   GTFS_IMPORT_TIMEOUT, TECHNICAL_CONTACT_EMAIL, FEED_LICENSE_NAME,
-  FEED_LICENSE_URL, PUBLICATION_ENVIRONMENT, ADMIN_SUBJECT, MODE
+  FEED_LICENSE_URL, PUBLICATION_ENVIRONMENT, ADMIN_SUBJECT, MODE,
+  STRICT_VALIDATORS, SKIP_VALIDATORS
 
 Notes:
   local-compose mode starts/builds/migrates/services directly and imports only
   the requested GTFS. It does not call make agency-app-up or import the demo
   sample feed.
+
+  running mode requires --admin-base-url or ADMIN_BASE_URL. The running-mode
+  admin URL should normally be loopback, VPN, SSH tunnel, or another
+  private/admin-protected URL.
 
   Publication metadata is local/reference placeholder metadata unless the operator supplied agency-approved values.
 EOF
@@ -136,6 +141,11 @@ validate_inputs() {
     fail "--agency-id or AGENCY_ID is required"
   fi
   case "$AGENCY_ID" in
+    .|..|.*)
+      fail "AGENCY_ID must not be '.', '..', or start with a dot"
+      ;;
+  esac
+  case "$AGENCY_ID" in
     *[!A-Za-z0-9._-]*)
       fail "AGENCY_ID may contain only letters, numbers, dot, underscore, and hyphen"
       ;;
@@ -147,15 +157,30 @@ validate_inputs() {
   validate_url "PUBLIC_BASE_URL" "$PUBLIC_BASE_URL"
   validate_url "FEED_LICENSE_URL" "$FEED_LICENSE_URL"
   if [ -z "$ADMIN_BASE_URL" ]; then
+    if [ "$MODE" = "running" ]; then
+      fail "running mode requires --admin-base-url or ADMIN_BASE_URL; use a loopback, VPN, SSH tunnel, or otherwise private/admin-protected URL"
+    fi
     ADMIN_BASE_URL="$PUBLIC_BASE_URL"
   fi
   validate_url "ADMIN_BASE_URL" "$ADMIN_BASE_URL"
+  if [ "$MODE" = "running" ]; then
+    case "$ADMIN_BASE_URL" in
+      http://127.0.0.1:*|http://localhost:*|https://127.0.0.1:*|https://localhost:*) ;;
+      *) warn "running-mode admin URL should normally be loopback, VPN, SSH tunnel, or another private/admin-protected URL" ;;
+    esac
+  fi
   if ! printf "%s" "$IMPORT_TIMEOUT" | grep -Eq '^(0|[0-9]+(ns|us|ms|s|m|h))$'; then
     fail "--import-timeout must be 0 or a simple Go duration such as 90s, 15m, or 1h"
   fi
   if [ "$MODE" = "running" ] && [ -z "$ADMIN_TOKEN" ]; then
     fail "running mode requires --admin-token or ADMIN_TOKEN"
   fi
+  case "$STRICT_VALIDATORS" in true|false) ;;
+    *) fail "STRICT_VALIDATORS must be true or false" ;;
+  esac
+  case "$SKIP_VALIDATORS" in true|false) ;;
+    *) fail "SKIP_VALIDATORS must be true or false" ;;
+  esac
   if [ "$STRICT_VALIDATORS" = "true" ] && [ "$SKIP_VALIDATORS" = "true" ]; then
     fail "--strict-validators and --skip-validators cannot be used together"
   fi
@@ -368,6 +393,38 @@ ON CONFLICT (agency_id, agency_user_id, role) DO NOTHING;
 SQL
 }
 
+seed_agency_admin_running() {
+  need psql
+  : "${DATABASE_URL:?running mode requires DATABASE_URL for agency/admin upsert and gtfs-import}"
+  log "Upsert requested agency and admin roles through DATABASE_URL"
+  agency_sql="$(sql_quote "$AGENCY_ID")"
+  subject_sql="$(sql_quote "$ADMIN_SUBJECT")"
+  contact_sql="$(sql_quote "$TECHNICAL_CONTACT_EMAIL")"
+  public_base_sql="$(sql_quote "$PUBLIC_BASE_URL")"
+  psql "$DATABASE_URL" <<SQL
+INSERT INTO agency (id, name, timezone, contact_email, public_url)
+VALUES ('$agency_sql', '$agency_sql local/reference placeholder', 'Etc/UTC', '$contact_sql', '$public_base_sql')
+ON CONFLICT (id) DO UPDATE
+SET contact_email = COALESCE(agency.contact_email, EXCLUDED.contact_email),
+    public_url = EXCLUDED.public_url,
+    updated_at = now();
+
+WITH upserted AS (
+  INSERT INTO agency_user (agency_id, email, display_name, auth_subject)
+  VALUES ('$agency_sql', '$subject_sql', 'Agency Pilot Admin', '$subject_sql')
+  ON CONFLICT (agency_id, email) DO UPDATE
+  SET display_name = EXCLUDED.display_name,
+      auth_subject = EXCLUDED.auth_subject
+  RETURNING id, agency_id
+)
+INSERT INTO role_binding (agency_id, agency_user_id, role)
+SELECT agency_id, id, role
+FROM upserted
+CROSS JOIN (VALUES ('admin'), ('editor'), ('operator'), ('read_only')) AS roles(role)
+ON CONFLICT (agency_id, agency_user_id, role) DO NOTHING;
+SQL
+}
+
 import_local_compose() {
   log "Copy GTFS ZIP into agency-config container"
   container_id="$(dc ps -q agency-config)"
@@ -411,6 +468,12 @@ import_running() {
     cat "$import_output" >&2 || true
     fail "GTFS import did not publish successfully"
   fi
+}
+
+preflight_running() {
+  : "${DATABASE_URL:?running mode requires DATABASE_URL for agency/admin upsert and gtfs-import}"
+  need go
+  need psql
 }
 
 admin_token_local_compose() {
@@ -655,6 +718,10 @@ main() {
   need python3
   need unzip
 
+  if [ "$MODE" = "running" ]; then
+    preflight_running
+  fi
+
   download_gtfs
 
   if [ "$MODE" = "local-compose" ]; then
@@ -662,6 +729,7 @@ main() {
     import_local_compose
     admin_token_local_compose
   else
+    seed_agency_admin_running
     import_running
     wait_for_url "$PUBLIC_BASE_URL/public/feeds.json" "public feed discovery"
   fi

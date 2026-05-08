@@ -110,8 +110,11 @@ scripts/agency-pilot-onboard.sh \
   --admin-base-url http://127.0.0.1:8081
 ```
 
-Running mode requires `ADMIN_TOKEN` unless the operator has another safe token
-generation path.
+Running mode requires `ADMIN_TOKEN`, `DATABASE_URL`, and an explicit
+`--admin-base-url` or `ADMIN_BASE_URL`. The admin base URL should normally be a
+loopback, VPN, SSH tunnel, or otherwise private/admin-protected URL. The script
+uses `DATABASE_URL` to upsert the requested agency/admin rows before import; it
+does not reuse `scripts/seed-dev.sql`.
 
 ## Local State
 

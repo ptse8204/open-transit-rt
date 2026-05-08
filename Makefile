@@ -56,7 +56,7 @@ agency-app-reset:
 	./scripts/agency-local-app.sh reset
 
 agency-pilot-up:
-	$(if $(AGENCY_ID),AGENCY_ID="$(AGENCY_ID)",) $(if $(GTFS_URL),GTFS_URL="$(GTFS_URL)",) $(if $(PUBLIC_BASE_URL),PUBLIC_BASE_URL="$(PUBLIC_BASE_URL)",) $(if $(ADMIN_BASE_URL),ADMIN_BASE_URL="$(ADMIN_BASE_URL)",) $(if $(GTFS_IMPORT_TIMEOUT),GTFS_IMPORT_TIMEOUT="$(GTFS_IMPORT_TIMEOUT)",) $(if $(DRY_RUN),DRY_RUN="$(DRY_RUN)",) ./scripts/agency-pilot-onboard.sh
+	$(if $(AGENCY_ID),AGENCY_ID="$(AGENCY_ID)",) $(if $(GTFS_URL),GTFS_URL="$(GTFS_URL)",) $(if $(PUBLIC_BASE_URL),PUBLIC_BASE_URL="$(PUBLIC_BASE_URL)",) $(if $(ADMIN_BASE_URL),ADMIN_BASE_URL="$(ADMIN_BASE_URL)",) $(if $(ADMIN_TOKEN),ADMIN_TOKEN="$(ADMIN_TOKEN)",) $(if $(ADMIN_SUBJECT),ADMIN_SUBJECT="$(ADMIN_SUBJECT)",) $(if $(GTFS_IMPORT_TIMEOUT),GTFS_IMPORT_TIMEOUT="$(GTFS_IMPORT_TIMEOUT)",) $(if $(MODE),MODE="$(MODE)",) $(if $(TECHNICAL_CONTACT_EMAIL),TECHNICAL_CONTACT_EMAIL="$(TECHNICAL_CONTACT_EMAIL)",) $(if $(FEED_LICENSE_NAME),FEED_LICENSE_NAME="$(FEED_LICENSE_NAME)",) $(if $(FEED_LICENSE_URL),FEED_LICENSE_URL="$(FEED_LICENSE_URL)",) $(if $(STRICT_VALIDATORS),STRICT_VALIDATORS="$(STRICT_VALIDATORS)",) $(if $(SKIP_VALIDATORS),SKIP_VALIDATORS="$(SKIP_VALIDATORS)",) $(if $(DRY_RUN),DRY_RUN="$(DRY_RUN)",) ./scripts/agency-pilot-onboard.sh
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -138,6 +138,7 @@ validate:
 	@test -f scripts/agency-pilot-onboard.sh
 	@sh -n scripts/agency-pilot-onboard.sh
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
+	@scripts/agency-pilot-onboard.sh --agency-id dryrun-agency --gtfs-url http://127.0.0.1/example.zip --dry-run >/dev/null
 	@test -f scripts/device-onboarding.sh
 	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local
