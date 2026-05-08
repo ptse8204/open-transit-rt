@@ -5,7 +5,11 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-integration: export DATABASE_URL := $(DATABASE_URL)
+migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
+test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
+
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up operator-smoke support-bundle collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -23,16 +27,16 @@ db-down:
 	$(DOCKER_COMPOSE) down
 
 migrate-up:
-	DATABASE_URL="$(DATABASE_URL)" MIGRATIONS_DIR="$(MIGRATIONS_DIR)" go run ./cmd/migrate up
+	@go run ./cmd/migrate up
 
 migrate-down:
-	DATABASE_URL="$(DATABASE_URL)" MIGRATIONS_DIR="$(MIGRATIONS_DIR)" go run ./cmd/migrate down
+	@go run ./cmd/migrate down
 
 migrate-status:
-	DATABASE_URL="$(DATABASE_URL)" MIGRATIONS_DIR="$(MIGRATIONS_DIR)" go run ./cmd/migrate status
+	@go run ./cmd/migrate status
 
 migrate-redo:
-	DATABASE_URL="$(DATABASE_URL)" MIGRATIONS_DIR="$(MIGRATIONS_DIR)" go run ./cmd/migrate redo
+	@go run ./cmd/migrate redo
 
 seed:
 	$(DOCKER_COMPOSE) exec -T postgres psql -U postgres -d open_transit_rt < scripts/seed-dev.sql
@@ -56,7 +60,13 @@ agency-app-reset:
 	./scripts/agency-local-app.sh reset
 
 agency-pilot-up:
-	$(if $(AGENCY_ID),AGENCY_ID="$(AGENCY_ID)",) $(if $(GTFS_URL),GTFS_URL="$(GTFS_URL)",) $(if $(PUBLIC_BASE_URL),PUBLIC_BASE_URL="$(PUBLIC_BASE_URL)",) $(if $(ADMIN_BASE_URL),ADMIN_BASE_URL="$(ADMIN_BASE_URL)",) $(if $(ADMIN_TOKEN),ADMIN_TOKEN="$(ADMIN_TOKEN)",) $(if $(ADMIN_SUBJECT),ADMIN_SUBJECT="$(ADMIN_SUBJECT)",) $(if $(GTFS_IMPORT_TIMEOUT),GTFS_IMPORT_TIMEOUT="$(GTFS_IMPORT_TIMEOUT)",) $(if $(MODE),MODE="$(MODE)",) $(if $(TECHNICAL_CONTACT_EMAIL),TECHNICAL_CONTACT_EMAIL="$(TECHNICAL_CONTACT_EMAIL)",) $(if $(FEED_LICENSE_NAME),FEED_LICENSE_NAME="$(FEED_LICENSE_NAME)",) $(if $(FEED_LICENSE_URL),FEED_LICENSE_URL="$(FEED_LICENSE_URL)",) $(if $(STRICT_VALIDATORS),STRICT_VALIDATORS="$(STRICT_VALIDATORS)",) $(if $(SKIP_VALIDATORS),SKIP_VALIDATORS="$(SKIP_VALIDATORS)",) $(if $(DRY_RUN),DRY_RUN="$(DRY_RUN)",) ./scripts/agency-pilot-onboard.sh
+	@./scripts/agency-pilot-onboard.sh
+
+operator-smoke:
+	@./scripts/operator-smoke.sh
+
+support-bundle:
+	@./scripts/support-bundle.sh
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -71,7 +81,7 @@ run-agency-config:
 	PORT=8081 go run ./cmd/agency-config
 
 run-telemetry-ingest:
-	DATABASE_URL="$(DATABASE_URL)" PORT=8082 go run ./cmd/telemetry-ingest
+	@PORT=8082 go run ./cmd/telemetry-ingest
 
 run-feed-vehicle-positions:
 	PORT=8083 go run ./cmd/feed-vehicle-positions
@@ -96,7 +106,7 @@ realtime-quality:
 
 test-integration: migrate-status
 	@echo "Phase 9 production-closure integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, device auth, assignment race, and hardening tests use isolated temporary databases when supported."
-	INTEGRATION_TESTS=1 TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...
+	@INTEGRATION_TESTS=1 go test ./...
 
 validators-install:
 	./scripts/install-validators.sh
@@ -136,9 +146,15 @@ validate:
 	@test -f scripts/check-validators.sh
 	@test -f scripts/agency-local-app.sh
 	@test -f scripts/agency-pilot-onboard.sh
+	@test -f scripts/operator-smoke.sh
+	@test -f scripts/support-bundle.sh
 	@sh -n scripts/agency-pilot-onboard.sh
+	@sh -n scripts/operator-smoke.sh
+	@sh -n scripts/support-bundle.sh
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
 	@scripts/agency-pilot-onboard.sh --agency-id dryrun-agency --gtfs-url http://127.0.0.1/example.zip --dry-run >/dev/null
+	@scripts/operator-smoke.sh --help >/dev/null
+	@scripts/support-bundle.sh --help >/dev/null
 	@test -f docs/integration-adapter-kit.md
 	@test -f docs/phase-39-calitp-readiness-workflow.md
 	@test -f docs/handoffs/phase-39.md
@@ -146,6 +162,9 @@ validate:
 	@test -f docs/phase-40-guided-self-hosted-operator-trial.md
 	@test -f docs/tutorials/self-hosted-operator-trial.md
 	@test -f docs/handoffs/phase-40.md
+	@test -f docs/phase-41-operator-smoke-support-bundle.md
+	@test -f docs/tutorials/operator-smoke-and-support-bundle.md
+	@test -f docs/handoffs/phase-41.md
 	@test -f testdata/avl-vendor/README.md
 	@test -f testdata/avl-vendor/minimal-gps.json
 	@test -f testdata/avl-vendor/full-gps.json

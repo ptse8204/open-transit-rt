@@ -435,6 +435,8 @@ agency-owned final root, or claim CAL-ITP/Caltrans compliance.
 
 For the full guided trial around this readiness review, see
 [Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md).
+For repeatable smoke checks and redaction-safe diagnostics, see
+[Operator Smoke And Support Bundle](../tutorials/operator-smoke-and-support-bundle.md).
 
 ## Update And Rollback
 
@@ -461,6 +463,18 @@ Do not claim rollback proof from documentation alone. Retained operator output
 must be reviewed and redacted before it becomes evidence.
 
 ## Redacted Support Bundle Guidance
+
+The Phase 41 helper can collect a redaction-safe default bundle:
+
+```sh
+PUBLIC_BASE_URL=https://feeds.example.org \
+ADMIN_BASE_URL=https://admin.example.org \
+make support-bundle
+```
+
+Only set `ADMIN_TOKEN` and `INCLUDE_ADMIN_READINESS=true` when the admin URL is
+private/safe and the summary is needed. The script uses bearer auth only and
+does not support cookies.
 
 A support bundle may include:
 

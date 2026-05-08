@@ -28,6 +28,8 @@ Open Transit RT has technical foundations for:
 - a guided self-hosted operator trial that ties reference deployment,
   reusable onboarding, readiness review, validators, and the synthetic AVL
   dry-run together without creating evidence;
+- operator smoke checks and redaction-safe support bundles for local/reference
+  diagnostics without creating evidence;
 - consumer packet preparation workflows.
 
 ## Evidence That Exists
@@ -117,10 +119,12 @@ Workflow is complete for the authenticated Operations Console readiness page
 and documentation/navigation updates. Phase 40 — Guided Self-Hosted Operator
 Trial is complete for the docs/navigation trial checklist that ties Phase 36
 through Phase 39 workflows into one local/reference operator path without
-creating evidence or stronger claims.
+creating evidence or stronger claims. Phase 41 — Operator Smoke And Support
+Bundle is complete for repeatable local/reference smoke checks and
+redaction-safe support bundles without creating evidence or stronger claims.
 
-The recommended next phase is to continue the self-hosted agency reuse roadmap
-from the updated handoff.
+The recommended next phase is Phase 42 — Reference Deployment Doctor,
+continuing the self-hosted agency reuse roadmap from the updated handoff.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

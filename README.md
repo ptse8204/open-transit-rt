@@ -78,6 +78,7 @@ guide without implying agency approval or consumer acceptance:
 
 - [Reusable Agency Onboarding](docs/tutorials/reusable-agency-onboarding.md)
 - [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
+- [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
 - [Public GTFS Local/Pilot Runbook](docs/tutorials/public-gtfs-local-pilot.md)
 
 That guide records source URL, checksum, import summary, fetched schedule proof,
@@ -96,6 +97,7 @@ Start with:
 - [Reference Deployment Env Example](docs/deployment/oci-reference-env.example)
 - [Reference Deployment Smoke Checklist](docs/deployment/oci-reference-smoke-checklist.md)
 - [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
+- [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
 - [Small-Agency Pilot Operations](docs/runbooks/small-agency-pilot-operations.md)
 - [Self-Hosted Agency Reuse Master Plan](docs/master-plan-self-hosted-agency-reuse.md)
 - [Phase 36 Reference Deployment Productization](docs/phase-36-oci-reference-deployment-productization.md)

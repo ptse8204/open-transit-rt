@@ -3,7 +3,7 @@
 **Status:** proposed review draft, not yet committed  
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`  
 **Generated for review:** 2026-05-08  
-**Current repo baseline:** Phase 40 closed for the guided self-hosted operator trial scope
+**Current repo baseline:** Phase 41 closed for the operator smoke and support bundle scope
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -48,7 +48,7 @@ Open Transit RT is production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 40, Open Transit RT has:
+As of Phase 41, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -69,6 +69,7 @@ As of Phase 40, Open Transit RT has:
 - an Integration Adapter Kit;
 - a CAL-ITP-style Operations Console readiness page;
 - a guided self-hosted operator trial;
+- operator smoke checks and redaction-safe support bundles;
 - synthetic AVL adapter fixtures;
 - deterministic realtime-quality replay fixtures;
 - prepared consumer packets for seven targets;
@@ -189,7 +190,7 @@ phase handoff is created.
 
 | Phase | Name | Primary outcome |
 | --- | --- | --- |
-| 41 | Operator Smoke And Support Bundle | Repeatable local/reference smoke helper and redaction-safe support bundle. |
+| 41 | Operator Smoke And Support Bundle | Complete. Repeatable local/reference smoke helper and redaction-safe support bundle. |
 | 42 | Reference Deployment Doctor | Preflight checks for env, services, reverse proxy, validators, DB, backups, and route boundaries. |
 | 43 | Operator UX Setup V2 | Stronger setup/readiness UI with grouped remediation and exportable operator checklist. |
 | 44 | Telemetry Simulator And Device Trial | Safe simulator path that sends synthetic telemetry through real device-token ingest. |

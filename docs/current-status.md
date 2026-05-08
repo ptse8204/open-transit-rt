@@ -20,7 +20,8 @@ only. Phase 35 is complete for docs-only README and roadmap realignment. Phase
 37 is complete for reusable agency onboarding flow productization. Phase 38 is
 complete for integration adapter kit productization. Phase 39 is complete for
 CAL-ITP-style readiness workflow productization. Phase 40 is complete for the
-docs/navigation guided self-hosted operator trial.
+docs/navigation guided self-hosted operator trial. Phase 41 is complete for
+operator smoke checks and redaction-safe support bundles.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -178,6 +179,21 @@ no runtime service code, schema, migration, API, public feed contract, evidence
 packet, or consumer status, and added no compliance, consumer acceptance,
 agency approval/adoption, final-root, hosted SaaS, production-readiness,
 vendor-compatibility, or production-grade ETA claim.
+
+Phase 41 — Operator Smoke And Support Bundle is closed for the local/reference
+diagnostic tooling scope. The repo now has `scripts/operator-smoke.sh`,
+`scripts/support-bundle.sh`, `make operator-smoke`, `make support-bundle`, and
+an operator tutorial for strict smoke checks and redaction-safe support
+bundles. Operator smoke checks the five public feed paths, unauthenticated
+admin boundary behavior, optional authenticated readiness through a safe admin
+URL, pinned validator tooling state, optional allowlisted validation API
+summaries, and the deterministic synthetic AVL dry-run fixture. Support bundles
+record safe summaries and run a final redaction scan while succeeding without a
+running app by recording unavailable checks. Phase 41 created no external
+evidence, did not create final-root proof, did not change consumer statuses,
+and added no compliance, consumer acceptance, agency approval/adoption, hosted
+SaaS, production-readiness, vendor-compatibility, or production-grade ETA
+claim.
 
 ## What Exists Now
 
@@ -450,8 +466,10 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 40 — Guided Self-Hosted Operator Trial is complete for
-its docs/navigation guided trial scope. Phase 39 — CAL-ITP-Style Readiness
+**Active phase:** Phase 41 — Operator Smoke And Support Bundle is complete for
+its local/reference diagnostic tooling scope. Phase 40 — Guided Self-Hosted
+Operator Trial remains complete for its docs/navigation guided trial scope.
+Phase 39 — CAL-ITP-Style Readiness
 Workflow remains complete for its product-facing readiness workflow scope.
 Phase 38 — Integration Adapter Kit remains complete for its navigation and
 conformance scope. Phase 37 — Reusable Agency Onboarding Flow remains complete
@@ -466,7 +484,7 @@ self-hosted agency reuse roadmap from the latest handoff. Track A — External P
 complete for the documented docs-only operator workflow, evidence intake,
 artifact-directory, and agency-domain readiness scope, and remains available as
 a future optional proof path when retained claim-specific artifacts exist.
-Phases 12 through 40 remain closed for their documented scopes.
+Phases 12 through 41 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 

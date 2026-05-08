@@ -919,6 +919,55 @@ Provide repeatable pilot operations for:
 
 Raw backups, private env files, admin tokens, database URLs with passwords, webhook URLs, notification credentials, private keys, and unredacted operator artifacts are never public evidence.
 
+---
+
+## Phase 41 operator diagnostics helpers
+
+### Classification
+Local/reference operator diagnostics tooling
+
+### Purpose
+Provide repeatable, redaction-bounded diagnostics for:
+
+- strict public feed smoke checks;
+- public/admin boundary checks;
+- optional authenticated readiness summaries;
+- pinned validator tooling status;
+- optional allowlisted validation API summaries;
+- synthetic AVL dry-run fixture status;
+- support bundles that can be shared with maintainers after review.
+
+### Startup / provisioning
+- `scripts/operator-smoke.sh` is exposed through `make operator-smoke`.
+- `scripts/support-bundle.sh` is exposed through `make support-bundle`.
+- Output defaults to ignored `.cache/operator-smoke/<timestamp>/` and
+  `.cache/support-bundles/<timestamp>/`.
+
+### Integration boundary
+- These helpers call existing public and admin endpoints; they do not change
+  backend API contracts, database schema, public feed URLs, GTFS-RT contracts,
+  or consumer-submission statuses.
+- Admin calls use only `Authorization: Bearer "$ADMIN_TOKEN"` and never cookie
+  auth.
+- `PUBLIC_BASE_URL` is never used with auth headers.
+- `ADMIN_BASE_URL` must be loopback HTTP/HTTPS or explicitly supplied HTTPS.
+- Validation API calls use only server-side allowlisted validator IDs and store
+  summary fields by default.
+
+### Failure behavior
+- Operator smoke fails on unavailable/empty/too-large public feeds, unsafe
+  admin token configuration, unexpected public admin `2xx`, strict validator
+  tooling failures, strict validation failures, or synthetic AVL dry-run
+  failure.
+- Support bundles record unavailable app/admin/database/validator checks as
+  skipped, unavailable, or blocker and continue unless output safety or
+  redaction scanning fails.
+
+### Evidence boundary
+Smoke output and support bundles are private diagnostics by default. They are
+not evidence packets unless a later evidence phase reviews, redacts, inventories,
+retains, and claim-maps specific artifacts.
+
 ### Failure behavior
 - Missing required environment variables fail clearly instead of assuming deployment defaults.
 - Missing webhook/email notification destinations are recorded as `notification not configured`, not as feed failures.

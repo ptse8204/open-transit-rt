@@ -95,7 +95,14 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 - Complete for the docs/navigation guided trial scope. The repo now has
   `docs/tutorials/self-hosted-operator-trial.md`, a Phase 40 status doc,
   handoff, navigation updates, and validation checks for those files.
-- Remaining later work: only future optional retained-evidence paths such as
-  final-root proof, real agency pilot evidence, real device/vendor AVL
-  evidence, consumer submissions, or real-world realtime quality evidence when
-  claim-specific artifacts exist.
+
+## Phase 41 — Operator Smoke And Support Bundle
+
+- Complete for the local/reference diagnostic tooling scope. The repo now has
+  `scripts/operator-smoke.sh`, `scripts/support-bundle.sh`, `make
+  operator-smoke`, `make support-bundle`, an operator tutorial, a Phase 41
+  handoff, and validation checks for those files.
+- Remaining later work: Phase 42 reference deployment doctor/preflight, plus
+  only future optional retained-evidence paths such as final-root proof, real
+  agency pilot evidence, real device/vendor AVL evidence, consumer submissions,
+  or real-world realtime quality evidence when claim-specific artifacts exist.

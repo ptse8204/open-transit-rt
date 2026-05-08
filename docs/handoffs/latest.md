@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 40 — Guided Self-Hosted Operator Trial is complete for the
-docs/navigation guided operator trial scope.
+Phase 41 — Operator Smoke And Support Bundle is complete for the
+local/reference operator diagnostics scope.
 
-Phases 0 through 40 are closed for their documented scopes. Track A is also
+Phases 0 through 41 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -256,6 +256,26 @@ production-readiness, vendor-compatibility, or production-grade ETA claim.
 - Updated `make validate` to check Phase 40 docs/handoff files.
 - Created no external evidence and changed no consumer statuses.
 
+## Phase 41 Summary
+
+- Added `scripts/operator-smoke.sh` and `make operator-smoke` for strict
+  local/reference smoke checks.
+- Added `scripts/support-bundle.sh` and `make support-bundle` for
+  redaction-safe diagnostics that can run even when the app is unavailable.
+- Added `docs/tutorials/operator-smoke-and-support-bundle.md` and
+  `docs/handoffs/phase-41.md`.
+- Operator smoke checks the five public feed paths, unauthenticated admin
+  boundary behavior, optional authenticated readiness through a safe admin URL,
+  validator tooling state, optional allowlisted validation API summaries, and
+  the deterministic synthetic AVL dry-run fixture.
+- Support bundles store summaries, not raw feed bodies or full validation
+  reports, and run a final redaction scan for secret-shaped values.
+- Updated README, docs index, tutorial index, deployment navigation,
+  integration adapter navigation, roadmap/status, backlog, open-question,
+  current-status, and handoff docs.
+- Updated `make validate` to check Phase 41 scripts and docs.
+- Created no external evidence and changed no consumer statuses.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -294,6 +314,11 @@ production-readiness, vendor-compatibility, or production-grade ETA claim.
   consumer statuses, and does not strengthen compliance, consumer acceptance,
   agency approval/adoption, hosted SaaS, production-readiness,
   vendor-compatibility, or production ETA-quality claims.
+- Phase 41 is local/reference diagnostic tooling. It created no external
+  evidence, did not create final-root proof, did not change consumer statuses,
+  and does not strengthen compliance, consumer acceptance, agency
+  approval/adoption, hosted SaaS, production-readiness, vendor-compatibility,
+  or production ETA-quality claims.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -326,34 +351,37 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 20. `docs/phase-40-guided-self-hosted-operator-trial.md`
 21. `docs/tutorials/self-hosted-operator-trial.md`
 22. `docs/handoffs/phase-40.md`
-23. `docs/integration-adapter-kit.md`
-24. `docs/tutorials/reusable-agency-onboarding.md`
-25. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-26. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-27. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-28. `docs/final-root-operator-request.md`
-29. `docs/tutorials/public-gtfs-local-pilot.md`
-30. `docs/runbooks/small-agency-pilot-operations.md`
-31. `docs/roadmap-status.md`
-32. `docs/california-readiness-summary.md`
-33. `docs/compliance-evidence-checklist.md`
-34. `docs/agency-owned-domain-readiness.md`
-35. `docs/evidence/consumer-submissions/status.json`
-36. `docs/evidence/consumer-submissions/submission-workflow.md`
-37. `docs/evidence/redaction-policy.md`
-38. `SECURITY.md`
-39. `README.md`
-40. `docs/dependencies.md`
-41. `docs/decisions.md`
-42. `docs/backlog.md`
-43. `docs/open-questions.md`
+23. `docs/phase-41-operator-smoke-support-bundle.md`
+24. `docs/tutorials/operator-smoke-and-support-bundle.md`
+25. `docs/handoffs/phase-41.md`
+26. `docs/integration-adapter-kit.md`
+27. `docs/tutorials/reusable-agency-onboarding.md`
+28. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+29. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+30. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+31. `docs/final-root-operator-request.md`
+32. `docs/tutorials/public-gtfs-local-pilot.md`
+33. `docs/runbooks/small-agency-pilot-operations.md`
+34. `docs/roadmap-status.md`
+35. `docs/california-readiness-summary.md`
+36. `docs/compliance-evidence-checklist.md`
+37. `docs/agency-owned-domain-readiness.md`
+38. `docs/evidence/consumer-submissions/status.json`
+39. `docs/evidence/consumer-submissions/submission-workflow.md`
+40. `docs/evidence/redaction-policy.md`
+41. `SECURITY.md`
+42. `README.md`
+43. `docs/dependencies.md`
+44. `docs/decisions.md`
+45. `docs/backlog.md`
+46. `docs/open-questions.md`
 
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 40 is complete; the next recommended
-phase should continue the self-hosted agency reuse roadmap without weakening
-the evidence boundaries.
+agencies and civic technologists. Phase 41 is complete; the next recommended
+phase is Phase 42 — Reference Deployment Doctor, continuing the self-hosted
+agency reuse roadmap without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -542,6 +570,25 @@ docker compose -f deploy/docker-compose.yml config
 - `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
 - Read-only consumer tracker status check — passed; 7 targets found and all
   remain `prepared`.
+
+## Checks Run For Phase 41
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed after fixing one trailing-space issue.
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
+- Exact seven-target consumer status check — passed; Google Maps, Apple Maps,
+  Transit App, Bing Maps, Moovit, Mobility Database, and transit.land all
+  remain `prepared`.
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json` —
+  passed; the tracker file is unchanged.
+- `docker compose -f deploy/docker-compose.yml config` — passed.
+- `make smoke` — passed.
+- `make support-bundle` — passed with no local/reference app running; the
+  bundle recorded public checks as unavailable and passed redaction scanning.
+- `make operator-smoke SKIP_VALIDATORS=true` — blocked because no
+  local/reference app was running at `http://localhost:8080`; direct
+  `/public/feeds.json` probe returned curl connection failure / HTTP `000`.
 
 ## Current Evidence And Security Boundary
 

@@ -16,6 +16,7 @@ Use the existing boundary that matches the system being integrated:
 | Need | Boundary | Detailed docs |
 | --- | --- | --- |
 | Run one guided local/reference operator trial | Deployment + onboarding + readiness + synthetic AVL dry-run | [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md) |
+| Run smoke checks or collect safe diagnostics | Public feed checks + admin boundary checks + support bundle redaction | [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md) |
 | Import a specific agency GTFS ZIP first | `make agency-pilot-up` / `scripts/agency-pilot-onboard.sh` | [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md) |
 | Send device, GPS, or AVL observations | Transform to `POST /v1/telemetry` | [Device And AVL Integration](tutorials/device-avl-integration.md) |
 | Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
@@ -29,17 +30,19 @@ Use the existing boundary that matches the system being integrated:
 
 1. Use [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
    when you want the complete guided local/reference path.
-2. Import and publish GTFS with `make agency-pilot-up`.
-3. Review the printed feed URLs and `/public/feeds.json` metadata.
-4. Choose a telemetry adapter path: direct device POST, agency-owned script,
+2. Use [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md)
+   when you need repeatable smoke output or a redaction-safe support bundle.
+3. Import and publish GTFS with `make agency-pilot-up`.
+4. Review the printed feed URLs and `/public/feeds.json` metadata.
+5. Choose a telemetry adapter path: direct device POST, agency-owned script,
    sidecar service, vendor-owned middleware, or private operator process.
-5. Run the synthetic AVL dry-run adapter against committed fixtures to verify
+6. Run the synthetic AVL dry-run adapter against committed fixtures to verify
    the transform pattern and diagnostics shape.
-6. Map real private AVL payloads outside this public repo.
-7. Send only validated telemetry to `/v1/telemetry` with deployment-owned
+7. Map real private AVL payloads outside this public repo.
+8. Send only validated telemetry to `/v1/telemetry` with deployment-owned
    device credentials.
-8. Review the Operations Console and public Vehicle Positions output.
-9. Use `/admin/operations/readiness` to review CAL-ITP-style readiness gaps
+9. Review the Operations Console and public Vehicle Positions output.
+10. Use `/admin/operations/readiness` to review CAL-ITP-style readiness gaps
    without converting workflow status into a compliance or acceptance claim.
 
 The Phase 37 onboarding flow establishes the active schedule/feed baseline.

@@ -3,7 +3,7 @@
 ## Status
 
 Track B is active as the productization and self-hosted agency reuse roadmap.
-Phases 22 through 39 are closed for their documented scopes. Use
+Phases 22 through 41 are closed for their documented scopes. Use
 `docs/handoffs/latest.md` and `docs/future-roadmap-post-outcome-c.md` for the
 current continuation state.
 
@@ -110,18 +110,20 @@ Rules:
 | 38 | Integration Adapter Kit | Complete. Central adapter map, synthetic fixture manifest, and dry-run adapter conformance tests. |
 | 39 | CAL-ITP-Style Readiness Workflow | Complete. Product-facing readiness workflow without compliance overclaims. |
 | 40 | Guided Self-Hosted Operator Trial | Complete. Docs/navigation checklist tying reference deployment, reusable onboarding, readiness review, validators, and synthetic AVL dry-run together. |
+| 41 | Operator Smoke And Support Bundle | Complete. Repeatable local/reference smoke helper and redaction-safe support bundle. |
 
 ## Recommended Next Phase
 
-Phase 40 is complete. The next recommended phase should continue self-hosted
-agency reuse productization from the latest handoff.
+Phase 41 is complete. The next recommended phase is Phase 42 — Reference
+Deployment Doctor, continuing self-hosted agency reuse productization from the
+latest handoff.
 
 Reason: the repo now has local app packaging, self-hosted reference deployment
 docs, public-GTFS local/pilot proof, pilot operations helpers, a reusable
 agency onboarding command, a central adapter kit for integration boundaries,
 an authenticated readiness workflow that makes CAL-ITP-style gaps visible
-without claiming compliance, and a guided local/reference operator trial. This
-does not claim agency adoption, consumer
+without claiming compliance, a guided local/reference operator trial, and
+repeatable operator diagnostics/support bundles. This does not claim agency adoption, consumer
 acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, production
 readiness, real vendor AVL compatibility, real realtime data, or
 production-grade ETA-quality.

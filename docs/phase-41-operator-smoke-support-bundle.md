@@ -1,6 +1,6 @@
 # Phase 41 — Operator Smoke And Support Bundle
 
-**Status:** proposed kickoff artifact, not implemented  
+**Status:** implemented
 **Previous phase:** Phase 40 — Guided Self-Hosted Operator Trial  
 **Primary goal:** make the Phase 40 trial repeatable, diagnosable, and safe to share with maintainers without creating external evidence or leaking private data.
 
@@ -25,14 +25,14 @@ production evidence.
 
 ### 1. Add operator smoke helper
 
-Add:
+Added:
 
 ```text
 scripts/operator-smoke.sh
 make operator-smoke
 ```
 
-The helper should support local/reference deployments with environment
+The helper supports local/reference deployments with environment
 variables such as:
 
 ```text
@@ -44,7 +44,7 @@ STRICT_VALIDATORS=true|false
 OUTPUT_DIR=.cache/operator-smoke/<timestamp>
 ```
 
-Required smoke checks:
+Implemented smoke checks:
 
 - fetch `/public/feeds.json`;
 - fetch `/public/gtfs/schedule.zip`;
@@ -52,9 +52,12 @@ Required smoke checks:
 - fetch `/public/gtfsrt/trip_updates.pb`;
 - fetch `/public/gtfsrt/alerts.pb`;
 - write checksums and sizes for fetched public files;
+- check the unauthenticated admin boundary at
+  `/admin/operations/readiness`, where `401`, `403`, or `404` is expected and
+  any `2xx` response fails smoke;
 - check pinned validator tooling state through `scripts/check-validators.sh`;
-- when `ADMIN_TOKEN` is available, call allowlisted validation APIs or record a
-  clear skipped/blocker status;
+- when `ADMIN_TOKEN` is available and `ADMIN_BASE_URL` is safe, call only
+  allowlisted validation APIs or record a clear skipped/blocker status;
 - when `ADMIN_TOKEN` is available, check `/admin/operations/readiness` through
   `ADMIN_BASE_URL` and record only status/summary output;
 - run the synthetic AVL dry-run fixture from `cmd/avl-vendor-adapter`;
@@ -64,14 +67,14 @@ Required smoke checks:
 
 ### 2. Add redaction-safe support bundle helper
 
-Add:
+Added:
 
 ```text
 scripts/support-bundle.sh
 make support-bundle
 ```
 
-The helper should collect only safe diagnostics by default:
+The helper collects only safe diagnostics by default:
 
 - command versions;
 - git commit SHA or release version;
@@ -82,6 +85,7 @@ The helper should collect only safe diagnostics by default:
 - selected service health endpoint results;
 - migration status summary when `DATABASE_URL` is explicitly supplied;
 - support manifest with included/excluded files.
+- final redaction scan over generated files for secret-shaped values.
 
 It must exclude:
 
@@ -109,7 +113,7 @@ Output must go under ignored local storage, for example:
 
 ### 3. Add operator docs
 
-Add:
+Added:
 
 ```text
 docs/tutorials/operator-smoke-and-support-bundle.md
@@ -126,7 +130,7 @@ The tutorial should explain:
 
 ### 4. Update navigation and handoffs
 
-Update after implementation:
+Updated after implementation:
 
 - `README.md`
 - `docs/README.md`

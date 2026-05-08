@@ -19,6 +19,9 @@ packet, and not final-root proof.
   guided local/reference evaluation path tying deployment prep, GTFS
   onboarding, readiness review, validators, and the synthetic AVL dry-run
   together without creating evidence.
+- [Operator Smoke And Support Bundle](../tutorials/operator-smoke-and-support-bundle.md) -
+  repeatable smoke checks and redaction-safe diagnostics for local/reference
+  operators.
 
 Review `docs/evidence/redaction-policy.md` before turning any operator output
 from this path into public evidence.

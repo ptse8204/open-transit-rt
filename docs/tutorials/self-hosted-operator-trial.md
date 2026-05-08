@@ -21,6 +21,7 @@ ETA quality.
 - [OCI/OCL Reference Deployment](../deployment/oci-reference-deployment.md)
 - [Reusable Agency Onboarding](reusable-agency-onboarding.md)
 - [Integration Adapter Kit](../integration-adapter-kit.md)
+- [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md)
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md)
 - [Evidence Redaction Policy](../evidence/redaction-policy.md)
 
@@ -80,6 +81,11 @@ agency proof, agency approval, official agency feed status, final-root proof,
 or consumer evidence.
 
 ## 3. Verify The Five Public Paths
+
+For a repeatable command that fetches these paths, records sizes/checksums,
+checks the admin boundary, records validator tooling state, and runs the
+synthetic AVL dry-run fixture, use
+[Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md).
 
 The onboarding output prints the public base URL. Verify that these paths
 return non-empty responses:
