@@ -23,6 +23,8 @@ Open Transit RT has technical foundations for:
 - reusable agency GTFS onboarding from an agency ID and GTFS URL;
 - an integration adapter kit that maps telemetry, AVL, predictor, validator,
   monitoring, and consumer workflow boundaries;
+- an authenticated CAL-ITP-style readiness workflow that shows readiness gaps,
+  status sources, and next actions without compliance overclaims;
 - consumer packet preparation workflows.
 
 ## Evidence That Exists
@@ -107,9 +109,12 @@ deployment guidance and created no external evidence. Phase 37 — Reusable
 Agency Onboarding Flow is complete for the opt-in local/reference onboarding
 command and docs. Phase 38 — Integration Adapter Kit is complete for the
 central adapter map, synthetic fixture manifest, dry-run AVL examples, and
-focused adapter conformance tests.
+focused adapter conformance tests. Phase 39 — CAL-ITP-Style Readiness
+Workflow is complete for the authenticated Operations Console readiness page
+and documentation/navigation updates.
 
-The recommended next phase is Phase 39 — CAL-ITP-Style Readiness Workflow.
+The recommended next phase is to continue the self-hosted agency reuse roadmap
+from the updated handoff.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

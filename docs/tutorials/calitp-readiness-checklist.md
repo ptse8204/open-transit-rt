@@ -21,6 +21,17 @@ Avoid unless backed by deployment evidence:
 
 ## Technical Readiness Areas
 
+The productized readiness workflow is available in the authenticated
+Operations Console:
+
+```text
+/admin/operations/readiness
+```
+
+It shows each area below with a status source, current evidence/signal, next
+action, and claim boundary. The page supports CAL-ITP-style readiness
+workflows; it does not claim CAL-ITP/Caltrans compliance.
+
 | Area | Current repo support | Evidence still needed for a deployment |
 | --- | --- | --- |
 | Static GTFS URL | `/public/gtfs/schedule.zip` from active published GTFS | Public HTTPS fetch proof, current active feed, validator result |
@@ -32,6 +43,20 @@ Avoid unless backed by deployment evidence:
 | License/contact workflow | `feed_config` and `published_feed` metadata | Agency-approved open license and technical contact |
 | Consumer workflow records | `consumer_ingestion` records | Actual submissions, responses, and acceptance evidence |
 | Scorecard | `/admin/compliance/scorecard` | Current production-mode scorecard with supporting validation records |
+
+## Operations Console Workflow
+
+Use the readiness page after publication metadata and at least one GTFS import
+or Studio publish exist.
+
+1. Open `/admin/operations/readiness` through the private admin boundary.
+2. Review the ten rows for URL, feed, metadata, validation, telemetry,
+   operations, and consumer packet gaps.
+3. Use the row-level next actions to move missing items into recorded state.
+4. Run validators or operational helpers from their existing workflows; the
+   readiness page itself is read-only.
+5. Keep any deployment output private until reviewed against
+   `docs/evidence/redaction-policy.md`.
 
 ## Local Evidence Commands
 

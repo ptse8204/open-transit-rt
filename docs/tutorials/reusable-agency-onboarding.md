@@ -44,6 +44,11 @@ telemetry path. The usual progression is to connect a private telemetry source
 or run the synthetic AVL dry-run adapter, then send only validated observations
 through the existing `/v1/telemetry` contract.
 
+After publication metadata, feed URLs, and telemetry setup begin to exist,
+review `/admin/operations/readiness` in the authenticated Operations Console.
+It shows CAL-ITP-style readiness gaps with status sources and next actions,
+but it does not create external evidence or claim CAL-ITP/Caltrans compliance.
+
 That next step still does not prove real vendor compatibility, production AVL
 reliability, consumer acceptance, CAL-ITP/Caltrans compliance, agency adoption,
 or production-grade ETA quality.

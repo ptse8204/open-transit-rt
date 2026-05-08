@@ -54,6 +54,7 @@ These are command-level references for people running or evaluating the project:
 - [OCI/OCL Reference Deployment Productization](phase-36-oci-reference-deployment-productization.md)
 - [Production Operations Hardening](runbooks/production-operations-hardening.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
+- [Phase 39 CAL-ITP-Style Readiness Workflow](phase-39-calitp-readiness-workflow.md)
 - [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md)
 - [Final Public Feed Root Operator Request](final-root-operator-request.md)
 
@@ -74,6 +75,7 @@ These pages explain what evidence exists and what it can, and cannot, prove:
 
 - [Compliance Evidence Checklist](compliance-evidence-checklist.md)
 - [California Readiness Summary](california-readiness-summary.md)
+- [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Agency-Owned Domain Readiness](agency-owned-domain-readiness.md)
 - [Consumer Submission Evidence](consumer-submission-evidence.md)
 - [Consumer Submission Tracker](evidence/consumer-submissions/README.md)
@@ -121,7 +123,8 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Integration Adapter Kit](integration-adapter-kit.md)
 - [Phase 38 Integration Adapter Kit](phase-38-integration-adapter-kit.md)
 - [Phase 38 Handoff](handoffs/phase-38.md)
-- [Phase 39 CAL-ITP Readiness Workflow](phase-39-calitp-readiness-workflow.md)
+- [Phase 39 CAL-ITP-Style Readiness Workflow](phase-39-calitp-readiness-workflow.md)
+- [Phase 39 Handoff](handoffs/phase-39.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
 - [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
 - [Phase 34 Post-Outcome-C Status Consistency](phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md)

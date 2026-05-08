@@ -1,31 +1,57 @@
 # Phase 39 — CAL-ITP-Style Readiness Workflow
 
-## Goal
+## Status
 
-Make CAL-ITP-style readiness visible and actionable for agency operators.
+Complete for the productized readiness-workflow scope.
 
-## Product workflow
+Phase 39 makes CAL-ITP-style readiness gaps visible and actionable for
+self-hosted agency operators. It does not claim CAL-ITP/Caltrans compliance,
+consumer acceptance, agency adoption or approval, agency-owned final-root proof,
+hosted SaaS availability, production readiness, vendor compatibility, or
+production-grade ETA quality.
 
-Show readiness around:
+## What Changed
 
-- stable public URLs;
-- static GTFS feed;
-- Vehicle Positions;
-- Trip Updates;
-- Alerts;
-- license/contact metadata;
-- validation status;
-- telemetry freshness;
-- operations status;
-- consumer packet preparedness.
+- Added an authenticated Operations Console page at
+  `/admin/operations/readiness`.
+- The readiness page shows ten operator-facing rows:
+  - stable public URLs;
+  - static GTFS feed;
+  - Vehicle Positions;
+  - Trip Updates;
+  - Alerts;
+  - license/contact metadata;
+  - validation status;
+  - telemetry freshness;
+  - operations status;
+  - consumer packet preparedness.
+- Each row includes status, status source, current evidence/signal, next
+  action, and claim boundary.
+- Added the readiness page to the Operations Console navigation and dashboard.
+- Updated docs and validation checks so the workflow is discoverable from
+  onboarding, deployment, readiness, and handoff paths.
 
-## UI/docs output
+## Source Boundaries
 
-- plain-language checklist;
-- status source for every item;
-- next action for every missing item;
-- clear claim boundary.
+The page uses existing local/deployment state only:
 
-## Boundary
+- `FeedDiscovery` and `published_feed` metadata;
+- validation records;
+- feed health snapshots;
+- latest telemetry and assignment summaries;
+- Trip Updates diagnostics;
+- scorecard snapshots;
+- runtime consumer workflow records;
+- docs/evidence tracker paths.
 
-Use “supports CAL-ITP-style readiness workflows.” Do not claim CAL-ITP/Caltrans compliance.
+Viewing the page creates no external evidence, contacts no consumers or
+agencies, runs no validators, and changes no consumer statuses.
+
+## Consumer Status
+
+All seven consumer and aggregator targets remain `prepared` only. Prepared
+packet records are not submitted, under review, accepted, listed, displayed, or
+ingested.
+
+Consumer statuses may move only when retained, redacted, target-originated
+evidence supports a target-specific transition.

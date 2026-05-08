@@ -413,6 +413,21 @@ ADMIN_TOKEN=replace-with-generated-secret \
 Do not expose `ADMIN_TOKEN` in public logs, issue comments, terminal captures,
 or committed artifacts.
 
+## Readiness Workflow
+
+After the five public feed URLs, publication metadata, validation records,
+telemetry, and operations helpers are in place, review the authenticated
+Operations Console readiness page:
+
+```text
+/admin/operations/readiness
+```
+
+The page shows CAL-ITP-style readiness rows with status sources, current
+signals, next actions, and claim boundaries. It is an operator workflow view
+only. It does not create external evidence, submit to consumers, prove an
+agency-owned final root, or claim CAL-ITP/Caltrans compliance.
+
 ## Update And Rollback
 
 Before an update:

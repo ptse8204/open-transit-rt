@@ -48,6 +48,7 @@ type operationsPage struct {
 	ScorecardError     string
 	Consumers          []consumerStatusView
 	RuntimeConsumers   []consumerStatusView
+	ReadinessItems     []readinessItemView
 	ConsumerError      string
 	Telemetry          []telemetryView
 	TelemetryError     string
@@ -78,6 +79,15 @@ type setupStepView struct {
 	Evidence   string
 	NextAction string
 	ActionURL  string
+}
+
+type readinessItemView struct {
+	Name          string
+	Status        string
+	Source        string
+	Evidence      string
+	NextAction    string
+	ClaimBoundary string
 }
 
 type telemetryView struct {
@@ -152,7 +162,7 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	trimmed := strings.Trim(strings.TrimPrefix(r.URL.Path, "/admin/operations/"), "/")
 	switch trimmed {
-	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup":
+	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup", "readiness":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
 			return
@@ -411,6 +421,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		page.Devices = bindings
 	}
 	page.SetupSteps = setupSteps(page)
+	page.ReadinessItems = readinessItems(page)
 	return page
 }
 
@@ -683,6 +694,98 @@ func setupSteps(page operationsPage) []setupStepView {
 	return steps
 }
 
+func readinessItems(page operationsPage) []readinessItemView {
+	consumerEvidence := "docs tracker targets are prepared packet records only"
+	if len(page.Consumers) > 0 {
+		consumerEvidence = fmt.Sprintf("%d docs tracker targets shown as prepared packet records only", len(page.Consumers))
+	}
+	if len(page.RuntimeConsumers) > 0 {
+		consumerEvidence += fmt.Sprintf("; %d runtime deployment workflow records are visible separately", len(page.RuntimeConsumers))
+	}
+	return []readinessItemView{
+		{
+			Name:          "Stable public URLs",
+			Status:        readinessStatus(page.Discovery.Readiness.AllRequiredFeedsListed && page.Discovery.Readiness.HTTPSURLs, page.DiscoveryError),
+			Source:        "feed discovery and published_feed records",
+			Evidence:      stableURLEvidence(page),
+			NextAction:    "Confirm every public URL is stable, HTTPS in deployment, and served through the intended public feed root.",
+			ClaimBoundary: "URL records are readiness signals, not agency-owned-domain or consumer acceptance evidence.",
+		},
+		{
+			Name:          "Static GTFS feed",
+			Status:        feedStatus(page, "schedule"),
+			Source:        "published_feed schedule record and validation records",
+			Evidence:      feedEvidence(page, "schedule"),
+			NextAction:    "Import or publish the agency schedule, then run the allowlisted static GTFS validator.",
+			ClaimBoundary: "A listed schedule feed is not a CAL-ITP/Caltrans compliance claim by itself.",
+		},
+		{
+			Name:          "Vehicle Positions",
+			Status:        feedStatus(page, "vehicle_positions"),
+			Source:        "published_feed Vehicle Positions record, validation records, and feed health snapshots",
+			Evidence:      feedEvidence(page, "vehicle_positions"),
+			NextAction:    "Verify fresh telemetry, public protobuf output, feed health, and GTFS-Realtime validation.",
+			ClaimBoundary: "Vehicle Positions readiness does not prove real device reliability or consumer acceptance.",
+		},
+		{
+			Name:          "Trip Updates",
+			Status:        feedStatus(page, "trip_updates"),
+			Source:        "published_feed Trip Updates record, validation records, and Trip Updates diagnostics",
+			Evidence:      tripUpdatesReadinessEvidence(page),
+			NextAction:    "Review prediction diagnostics, coverage, withheld cases, and GTFS-Realtime validation.",
+			ClaimBoundary: "Trip Updates diagnostics are not production-grade ETA quality evidence.",
+		},
+		{
+			Name:          "Alerts",
+			Status:        feedStatus(page, "alerts"),
+			Source:        "published_feed Alerts record, validation records, and Alerts Console workflow",
+			Evidence:      feedEvidence(page, "alerts"),
+			NextAction:    "Use the Alerts Console for lifecycle checks, then validate the public Alerts feed.",
+			ClaimBoundary: "Alert feed availability does not prove consumer display or agency approval.",
+		},
+		{
+			Name:          "License/contact metadata",
+			Status:        readinessStatus(page.Discovery.Readiness.LicenseComplete && page.Discovery.Readiness.ContactComplete, page.DiscoveryError),
+			Source:        "feed_config, published_feed, and /public/feeds.json metadata",
+			Evidence:      licenseContactEvidence(page),
+			NextAction:    "Replace placeholders with agency-approved open license and monitored technical contact values.",
+			ClaimBoundary: "Metadata completeness is not agency approval unless separate retained approval exists.",
+		},
+		{
+			Name:          "Validation status",
+			Status:        validationStatus(page),
+			Source:        "validation records",
+			Evidence:      validationEvidence(page),
+			NextAction:    "Run allowlisted validators for schedule, Vehicle Positions, Trip Updates, and Alerts.",
+			ClaimBoundary: "Validator results support readiness review, but do not prove consumer acceptance.",
+		},
+		{
+			Name:          "Telemetry freshness",
+			Status:        telemetryStatus(page),
+			Source:        "telemetry latest rows and current assignment summaries",
+			Evidence:      telemetryEvidence(page),
+			NextAction:    "Send validated telemetry through device credentials and resolve stale or unmatched vehicles.",
+			ClaimBoundary: "Fresh local telemetry is not real vendor compatibility or fleet reliability proof.",
+		},
+		{
+			Name:          "Operations status",
+			Status:        operationsStatus(page),
+			Source:        "scorecard snapshots and Operations Console summaries",
+			Evidence:      operationsEvidence(page),
+			NextAction:    "Run scorecard export, feed monitor, backup, and restore-drill workflows in the operator environment.",
+			ClaimBoundary: "Operations records are deployment health signals, not managed hosting or universal deployment claims.",
+		},
+		{
+			Name:          "Consumer packet preparedness",
+			Status:        countStatus(len(page.Consumers), "prepared docs tracker targets"),
+			Source:        "docs/evidence tracker paths and runtime consumer workflow records",
+			Evidence:      consumerEvidence,
+			NextAction:    "Review packet paths and official submission workflow; change statuses only with target-originated evidence.",
+			ClaimBoundary: "Prepared packets are not submitted, under review, accepted, listed, displayed, or ingested.",
+		},
+	}
+}
+
 func missingOrValue(value string, missing string) string {
 	if strings.TrimSpace(value) == "" {
 		return missing
@@ -751,6 +854,13 @@ func allFeedURLsEvidence(page operationsPage) string {
 	return fmt.Sprintf("%d feed discovery records; all required listed=%t", len(page.Discovery.Feeds), page.Discovery.Readiness.AllRequiredFeedsListed)
 }
 
+func stableURLEvidence(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	return fmt.Sprintf("%d feed discovery records; all required listed=%t; all HTTPS=%t", len(page.Discovery.Feeds), page.Discovery.Readiness.AllRequiredFeedsListed, page.Discovery.Readiness.HTTPSURLs)
+}
+
 func deviceEvidence(page operationsPage) string {
 	if page.DeviceError != "" {
 		return page.DeviceError
@@ -808,6 +918,38 @@ func validationEvidence(page operationsPage) string {
 		return "no validation records"
 	}
 	return strings.Join(parts, "; ")
+}
+
+func tripUpdatesReadinessEvidence(page operationsPage) string {
+	feed := feedEvidence(page, "trip_updates")
+	if !page.TripUpdatesQuality.Recorded {
+		return feed + "; diagnostics=" + page.TripUpdatesQuality.Message
+	}
+	return fmt.Sprintf("%s; diagnostics=%s/%s at %s; coverage=%s; future stops=%s",
+		feed,
+		page.TripUpdatesQuality.DiagnosticsStatus,
+		page.TripUpdatesQuality.DiagnosticsReason,
+		formatTimeForText(page.TripUpdatesQuality.SnapshotAt),
+		page.TripUpdatesQuality.TripUpdatesCoverageRate,
+		page.TripUpdatesQuality.FutureStopCoverageRate,
+	)
+}
+
+func operationsStatus(page operationsPage) string {
+	if page.Scorecard != nil {
+		return page.Scorecard.OverallStatus
+	}
+	if page.ScorecardError != "" {
+		return "missing scorecard"
+	}
+	return "not available"
+}
+
+func operationsEvidence(page operationsPage) string {
+	if page.Scorecard != nil {
+		return fmt.Sprintf("latest scorecard overall=%s at %s", page.Scorecard.OverallStatus, formatTimeForText(page.ScorecardUpdatedAt))
+	}
+	return firstNonEmpty(page.ScorecardError, "no scorecard snapshot available")
 }
 
 func formatTimeForText(t *time.Time) string {
@@ -954,6 +1096,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p>Agency: <strong>{{.AgencyID}}</strong> · environment: <span class="pill">{{.EnvironmentLabel}}</span> · generated: {{formatTime .GeneratedAt}}</p>
 <nav>
 <a href="/admin/operations">Dashboard</a>
+<a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
 <a href="/admin/operations/telemetry">Telemetry</a>
 <a href="/admin/operations/devices">Devices</a>
@@ -982,6 +1125,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Dashboard Sections</h2>
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
+<tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessItems}} checklist items</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
 <tr><td>Scorecard</td><td>{{if .Scorecard}}{{.Scorecard.OverallStatus}}{{else}}{{.ScorecardError}}{{end}}</td><td>{{formatTimePtr .ScorecardUpdatedAt}}</td><td><a href="/admin/operations/evidence">find scorecard evidence</a></td></tr>
@@ -993,6 +1137,18 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{if .DiscoveryError}}<p>No public feed metadata is available yet.</p>{{else}}{{template "feedTable" .}}{{end}}
 {{template "tripUpdatesQuality" .}}
 <p class="muted">Validation and public fetch records are supporting evidence only. They are not consumer acceptance or CAL-ITP/Caltrans compliance by themselves.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "readiness"}}
+{{template "layoutStart" .}}
+<h2>CAL-ITP-Style Readiness Workflow</h2>
+<p class="warning">Open Transit RT supports CAL-ITP-style readiness workflows. This page does not claim CAL-ITP/Caltrans compliance.</p>
+<p class="muted">Each row ties the status to an existing source and gives the next operator action for missing or weak signals. Consumer statuses remain prepared unless retained target-originated evidence supports a target-specific change.</p>
+<table><thead><tr><th>Readiness item</th><th>Status</th><th>Status source</th><th>Current evidence/signal</th><th>Next action</th><th>Claim boundary</th></tr></thead><tbody>
+{{range .ReadinessItems}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+<p class="muted">No external evidence is created by viewing this page, and this workflow does not contact consumers, validators, agency systems, or external portals.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

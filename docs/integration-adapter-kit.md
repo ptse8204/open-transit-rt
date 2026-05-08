@@ -21,6 +21,7 @@ Use the existing boundary that matches the system being integrated:
 | Swap or evaluate Trip Updates prediction | `internal/prediction.Adapter` | [Dependencies](dependencies.md), [Trip Updates requirements](requirements-trip-updates.md) |
 | Validate GTFS or GTFS-Realtime artifacts | Server-side allowlisted validator IDs | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md), [Dependencies](dependencies.md) |
 | Monitor feeds or operations | Deployment-owned monitoring around existing endpoints/helpers | [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md) |
+| Review readiness gaps and next actions | `/admin/operations/readiness` | [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md) |
 | Prepare consumer/aggregator workflow | Public feed URLs and prepared packet records | [Consumer submission workflow](evidence/consumer-submissions/submission-workflow.md) |
 
 ## Practical Usage Path
@@ -35,6 +36,8 @@ Use the existing boundary that matches the system being integrated:
 6. Send only validated telemetry to `/v1/telemetry` with deployment-owned
    device credentials.
 7. Review the Operations Console and public Vehicle Positions output.
+8. Use `/admin/operations/readiness` to review CAL-ITP-style readiness gaps
+   without converting workflow status into a compliance or acceptance claim.
 
 The Phase 37 onboarding flow establishes the active schedule/feed baseline.
 Phase 38 integration work starts after that baseline exists; it does not
@@ -210,4 +213,3 @@ This kit does not prove:
 - agency adoption, approval, or endorsement;
 - agency-owned final-root proof;
 - hosted SaaS availability.
-

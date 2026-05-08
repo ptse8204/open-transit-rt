@@ -3,7 +3,7 @@
 ## Status
 
 Track B is active as the productization and self-hosted agency reuse roadmap.
-Phases 22 through 37 are closed for their documented scopes. Use
+Phases 22 through 39 are closed for their documented scopes. Use
 `docs/handoffs/latest.md` and `docs/future-roadmap-post-outcome-c.md` for the
 current continuation state.
 
@@ -108,21 +108,21 @@ Rules:
 | 36 | OCI/OCL Reference Deployment Productization | Complete docs-only self-hosted reference deployment path based on the existing pilot server pattern. |
 | 37 | Agency Reusable Onboarding Flow | Complete. Guided agency GTFS onboarding for local and reference-server evaluation. |
 | 38 | Integration Adapter Kit | Complete. Central adapter map, synthetic fixture manifest, and dry-run adapter conformance tests. |
-| 39 | CAL-ITP-Style Readiness Workflow | Product-facing readiness workflow without compliance overclaims. |
+| 39 | CAL-ITP-Style Readiness Workflow | Complete. Product-facing readiness workflow without compliance overclaims. |
 
 ## Recommended Next Phase
 
-Phase 38 is complete. The next recommended phase is Phase 39 —
-CAL-ITP-Style Readiness Workflow.
+Phase 39 is complete. The next recommended phase should continue self-hosted
+agency reuse productization from the latest handoff.
 
 Reason: the repo now has local app packaging, self-hosted reference deployment
 docs, public-GTFS local/pilot proof, pilot operations helpers, a reusable
-agency onboarding command, and a central adapter kit for integration
-boundaries. The next highest-value product work is to make CAL-ITP-style
-readiness visible in product workflows without claiming compliance. This does
-not claim agency adoption, consumer acceptance, CAL-ITP/Caltrans compliance,
-hosted SaaS availability, production readiness, real vendor AVL compatibility,
-real realtime data, or production-grade ETA-quality.
+agency onboarding command, a central adapter kit for integration boundaries,
+and an authenticated readiness workflow that makes CAL-ITP-style gaps visible
+without claiming compliance. This does not claim agency adoption, consumer
+acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, production
+readiness, real vendor AVL compatibility, real realtime data, or
+production-grade ETA-quality.
 
 External-proof tracks remain available later when retained, redacted,
 claim-specific artifacts exist. They are not the default Track B roadmap.

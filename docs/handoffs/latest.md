@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 38 — Integration Adapter Kit is complete for the navigation and
-conformance scope.
+Phase 39 — CAL-ITP-Style Readiness Workflow is complete for the
+product-facing readiness workflow scope.
 
-Phases 0 through 38 are closed for their documented scopes. Track A is also
+Phases 0 through 39 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -91,8 +91,22 @@ dry-run/developer support status in `docs/dependencies.md`. Phase 38 did not
 add network send mode, named vendor support, real vendor payloads, credentials,
 runtime external predictor integration, Prometheus/Grafana assets,
 OpenTelemetry wiring, consumer APIs, final-root evidence, external evidence
-packets, or consumer status changes. The next recommended phase is Phase 39 —
-CAL-ITP-Style Readiness Workflow.
+packets, or consumer status changes. At Phase 38 close, the recommended next
+phase was Phase 39 — CAL-ITP-Style Readiness Workflow.
+
+Phase 39 added an authenticated Operations Console readiness page at
+`/admin/operations/readiness`. The page shows CAL-ITP-style readiness rows for
+stable public URLs, static GTFS, Vehicle Positions, Trip Updates, Alerts,
+license/contact metadata, validation status, telemetry freshness, operations
+status, and consumer packet preparedness. Each row includes a status, status
+source, current evidence/signal, next action, and claim boundary. Phase 39
+updated readiness, onboarding, deployment, adapter, roadmap, and handoff docs
+and added validation checks for the Phase 39 docs/handoff. Phase 39 did not
+create external evidence, did not change consumer statuses, did not add a
+public unauthenticated route, and did not add any CAL-ITP/Caltrans compliance,
+consumer acceptance, agency adoption, final-root proof, hosted SaaS,
+production-readiness, vendor-compatibility, or production-grade ETA-quality
+claim.
 
 ## Phase 32 Summary
 
@@ -204,6 +218,20 @@ CAL-ITP-Style Readiness Workflow.
 - Reviewed `docs/decisions.md`; no architecture-significant decision changed,
   so no edits were needed.
 
+## Phase 39 Summary
+
+- Added `/admin/operations/readiness` as an authenticated Operations Console
+  page.
+- Rendered ten readiness rows with status source, evidence/signal, next action,
+  and claim boundary.
+- Added explicit wording that the page supports CAL-ITP-style readiness
+  workflows and does not claim CAL-ITP/Caltrans compliance.
+- Added focused Operations Console tests for routing, agency scoping, row
+  rendering, claim boundaries, and prepared-only consumer packet semantics.
+- Updated readiness, deployment, onboarding, adapter, roadmap/status, and
+  handoff docs.
+- Updated `make validate` to check Phase 39 docs/handoff files.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -232,6 +260,11 @@ CAL-ITP-Style Readiness Workflow.
   and does not strengthen vendor-compatibility, production AVL reliability,
   production ETA quality, consumer acceptance, compliance, agency adoption, or
   final-root claims.
+- Phase 39 is CAL-ITP-style readiness workflow productization. It created no
+  external evidence, did not create final-root proof, did not change consumer
+  statuses, and does not strengthen compliance, consumer acceptance, agency
+  adoption, hosted SaaS, production-readiness, vendor-compatibility, or
+  production ETA-quality claims.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -259,34 +292,36 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 15. `docs/handoffs/phase-37.md`
 16. `docs/phase-38-integration-adapter-kit.md`
 17. `docs/handoffs/phase-38.md`
-18. `docs/integration-adapter-kit.md`
-19. `docs/tutorials/reusable-agency-onboarding.md`
-20. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-21. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-22. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-23. `docs/final-root-operator-request.md`
-24. `docs/tutorials/public-gtfs-local-pilot.md`
-25. `docs/runbooks/small-agency-pilot-operations.md`
-26. `docs/roadmap-status.md`
-27. `docs/california-readiness-summary.md`
-28. `docs/compliance-evidence-checklist.md`
-29. `docs/agency-owned-domain-readiness.md`
-30. `docs/evidence/consumer-submissions/status.json`
-31. `docs/evidence/consumer-submissions/submission-workflow.md`
-32. `docs/evidence/redaction-policy.md`
-33. `SECURITY.md`
-34. `README.md`
-35. `docs/dependencies.md`
-36. `docs/decisions.md`
-37. `docs/backlog.md`
-38. `docs/open-questions.md`
+18. `docs/phase-39-calitp-readiness-workflow.md`
+19. `docs/handoffs/phase-39.md`
+20. `docs/integration-adapter-kit.md`
+21. `docs/tutorials/reusable-agency-onboarding.md`
+22. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+23. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+24. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+25. `docs/final-root-operator-request.md`
+26. `docs/tutorials/public-gtfs-local-pilot.md`
+27. `docs/runbooks/small-agency-pilot-operations.md`
+28. `docs/roadmap-status.md`
+29. `docs/california-readiness-summary.md`
+30. `docs/compliance-evidence-checklist.md`
+31. `docs/agency-owned-domain-readiness.md`
+32. `docs/evidence/consumer-submissions/status.json`
+33. `docs/evidence/consumer-submissions/submission-workflow.md`
+34. `docs/evidence/redaction-policy.md`
+35. `SECURITY.md`
+36. `README.md`
+37. `docs/dependencies.md`
+38. `docs/decisions.md`
+39. `docs/backlog.md`
+40. `docs/open-questions.md`
 
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. The next recommended phase is Phase 39 —
-CAL-ITP-Style Readiness Workflow, building on the Phase 37 reusable onboarding
-flow, Phase 36 reference deployment docs, and Phase 38 adapter kit.
+agencies and civic technologists. Phase 39 is complete; the next recommended
+phase should continue the self-hosted agency reuse roadmap without weakening
+the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -489,19 +524,19 @@ docker compose -f deploy/docker-compose.yml config
   create external evidence, run a final-root proof, change consumer statuses,
   or strengthen agency, consumer, compliance, production-readiness, vendor, or
   ETA-quality claims.
+- Phase 39 created an authenticated readiness workflow only. It did not create
+  external evidence, run final-root proof, change consumer statuses, contact
+  external parties, or strengthen agency, consumer, compliance,
+  production-readiness, vendor, or ETA-quality claims.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
 - Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, webhook URLs, notification credentials, raw telemetry payloads, unredacted correspondence, private portal credentials, private ticket links, raw logs with credentials, private backup paths, or raw private operator artifacts.
 
 ## First Files Likely To Edit Next
 
-For Phase 39 — CAL-ITP-Style Readiness Workflow, first edit:
-
-- `docs/phase-39-calitp-readiness-workflow.md`
-- `docs/california-readiness-summary.md`
-- `docs/compliance-evidence-checklist.md`
-- `docs/roadmap-status.md`
-- readiness-related tutorials under `docs/tutorials/` as needed
+Use the next approved phase document and `docs/handoffs/latest.md` before
+choosing files. Phase 39 is closed; do not reopen it unless a concrete
+readiness-workflow regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -520,8 +555,9 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 39 — CAL-ITP-Style Readiness Workflow.
+Continue the self-hosted agency reuse roadmap from this handoff.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
-and Phase 38 adapter kit as the self-hosted/integration baseline.
+Phase 38 adapter kit, and Phase 39 readiness workflow as the
+self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

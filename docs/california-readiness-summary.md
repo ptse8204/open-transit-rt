@@ -27,6 +27,29 @@ The repository has code and workflow foundations for:
 
 These are implementation capabilities, not proof that any specific agency deployment is compliant or accepted by consumers.
 
+## Productized Readiness Workflow
+
+Phase 39 adds an authenticated Operations Console page at
+`/admin/operations/readiness`. The page turns the evidence categories in this
+summary into a plain-language operator checklist with a status source, current
+signal, next action, and claim boundary for:
+
+- stable public URLs;
+- static GTFS;
+- Vehicle Positions;
+- Trip Updates;
+- Alerts;
+- license/contact metadata;
+- validation;
+- telemetry freshness;
+- operations status;
+- consumer packet preparedness.
+
+The page supports CAL-ITP-style readiness workflows. It does not create
+external evidence and does not claim CAL-ITP/Caltrans compliance, consumer
+acceptance, agency adoption, final-root proof, hosted SaaS availability,
+production readiness, vendor compatibility, or production-grade ETA quality.
+
 ## Deployment-Proven Evidence
 
 The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` provides hosted/operator evidence for the recorded pilot scope:

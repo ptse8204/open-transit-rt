@@ -394,6 +394,110 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 	}
 }
 
+func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
+	now := time.Date(2026, 5, 7, 12, 0, 0, 0, time.UTC)
+	coverage := 75.0
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: "Demo Agency", GeneratedAt: now, PublicationEnvironment: "dev",
+			PublicBaseURL:         "https://feeds.example.org",
+			TechnicalContactEmail: "ops@example.org",
+			License:               compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"},
+			Feeds: []compliance.FeedMetadata{
+				{FeedType: "schedule", CanonicalPublicURL: "https://feeds.example.org/public/gtfs/schedule.zip", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "passed", LastValidationAt: &now, LastHealthStatus: "ok", LastHealthAt: &now},
+				{FeedType: "vehicle_positions", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/vehicle_positions.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "passed", LastValidationAt: &now, LastHealthStatus: "ok", LastHealthAt: &now},
+				{FeedType: "trip_updates", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/trip_updates.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "warning", LastValidationAt: &now, LastHealthStatus: "ok", LastHealthAt: &now},
+				{FeedType: "alerts", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/alerts.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "passed", LastValidationAt: &now, LastHealthStatus: "ok", LastHealthAt: &now},
+			},
+			Readiness: compliance.Readiness{
+				Discoverable: true, HTTPSURLs: true, LicenseComplete: true, ContactComplete: true,
+				AllRequiredFeedsListed: true, CanonicalValidationComplete: true,
+			},
+		},
+		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
+		consumers: []compliance.ConsumerRecord{{ConsumerName: "Google Maps", Status: "not_started", UpdatedAt: now}},
+		tripDiagnostics: compliance.TripUpdatesDiagnosticsSummary{
+			Recorded: true, SnapshotAt: now, AdapterName: "deterministic", DiagnosticsStatus: prediction.StatusOK,
+			DiagnosticsReason: prediction.ReasonPartialPredictions,
+			Metrics: prediction.Metrics{
+				TripUpdatesCoverageRate: prediction.RateMetric{Numerator: 3, Denominator: 4, Percent: &coverage, Status: "measured"},
+				FutureStopCoverageRate:  prediction.RateMetric{Numerator: 3, Denominator: 4, Percent: &coverage, Status: "measured"},
+			},
+		},
+	}
+	handler := newOperationsTestHandler(&handler{
+		store: store,
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{
+			AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now, CreatedAt: now,
+		}}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+			Event:      telemetry.Event{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now.Add(-30 * time.Second), Lat: 1, Lon: 2},
+			ReceivedAt: now.Add(-29 * time.Second), IngestStatus: telemetry.IngestStatusAccepted,
+		}}},
+		state: fakeStateRepository{assignments: map[string]state.Assignment{"bus-1": {
+			VehicleID: "bus-1", State: state.StateInService, TripID: "trip-1", Confidence: 0.9, ActiveFrom: now,
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/readiness", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"CAL-ITP-Style Readiness Workflow",
+		"supports CAL-ITP-style readiness workflows",
+		"does not claim CAL-ITP/Caltrans compliance",
+		"Status source",
+		"Next action",
+		"Claim boundary",
+		"Stable public URLs",
+		"Static GTFS feed",
+		"Vehicle Positions",
+		"Trip Updates",
+		"Alerts",
+		"License/contact metadata",
+		"Validation status",
+		"Telemetry freshness",
+		"Operations status",
+		"Consumer packet preparedness",
+		"feed discovery and published_feed records",
+		"validation records",
+		"telemetry latest rows",
+		"scorecard snapshots",
+		"docs/evidence tracker paths",
+		"target-originated evidence",
+		"Prepared packets are not submitted, under review, accepted, listed, displayed, or ingested.",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{
+		"CAL-ITP/Caltrans compliant",
+		"accepted by",
+		"consumer ingestion confirmed",
+		"production ready",
+		"proves final-root",
+		"hosted SaaS",
+	} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("body overclaims %q: %s", forbidden, body)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/readiness?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict status = %d, want 403", rr.Code)
+	}
+}
+
 func TestOperationsSetupPublicationFormRequiresAdminAndDerivesAgencyID(t *testing.T) {
 	store := &fakePublicationStore{}
 	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
@@ -674,7 +778,7 @@ func TestOperationsConsoleViewsAreAgencyScoped(t *testing.T) {
 		Subject: "reader-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
 	}})
 
-	for _, section := range []string{"", "/feeds", "/telemetry", "/devices", "/consumers", "/evidence", "/setup"} {
+	for _, section := range []string{"", "/readiness", "/feeds", "/telemetry", "/devices", "/consumers", "/evidence", "/setup"} {
 		req := httptest.NewRequest(http.MethodGet, "/admin/operations"+section+"?agency_id=agency-b", nil)
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)

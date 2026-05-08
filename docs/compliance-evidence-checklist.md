@@ -31,6 +31,7 @@ The Phase 20 prompt identifies the current Caltrans California Transit Data Guid
 | Canonical validator workflow | Pinned MobilityData static validator install/check path, Docker-backed pinned GTFS-RT validator wrapper, allowlisted `/admin/validation/run`, and normalized `validation_report` records are implemented. | Latest production validation records for schedule, Vehicle Positions, Trip Updates, and Alerts; no-error results before making compliance claims. | Consumer acceptance is separate from validation and must not be inferred from validator success alone. |
 | Consumer-ingestion workflow records | `consumer_ingestion` records and admin APIs track workflow status and packet JSON. Default seeded consumers are Google Maps, Apple Maps, Transit App, Bing Maps, and Moovit. | Actual submitted packet, submission dates, rejection/accepted notes, and operator-maintained records. Mobility Database and transit.land may be tracked as workflow records but are not seeded default integrations. | Only the named consumer or aggregator can confirm acceptance, ingestion, or production use. |
 | Deployment, security, and operations | Production secret checks, admin JWT/cookie auth, CSRF for browser unsafe methods, device token binding, request IDs, readiness checks, and optional `/metrics` output are implemented. | HTTPS/TLS, backups, process supervision, log retention, monitoring/alerting, incident response, key rotation, role assignments, and deployment runbooks. | Third parties do not prove these items except where a consumer requires operational evidence. |
+| Readiness workflow | `/admin/operations/readiness` shows CAL-ITP-style readiness rows with status source, current evidence/signal, next action, and claim boundary. | Operators must supply deployment-specific URL, validation, metadata, telemetry, operations, and consumer artifacts before making stronger claims. | Third parties must still confirm submission, review, acceptance, ingestion, listing, or display when those statuses are claimed. |
 | Marketplace or vendor-equivalent capability | The repo records marketplace gaps and supports technical workflow evidence. | Service packaging, support runbooks, onboarding templates, SLA/KPI reporting, hardware/BYOD strategy, procurement artifacts, and operations staffing. | Marketplace listing, vendor approval, or consumer partnership status must come from the relevant external program or customer. |
 
 ## California Readiness Mapping
@@ -47,6 +48,7 @@ Open Transit RT currently supports the technical foundations for the Caltrans/CA
 Truthful wording:
 
 - Allowed: "supports deployment toward Caltrans/CAL-ITP-style readiness."
+- Allowed: "supports CAL-ITP-style readiness workflows."
 - Allowed: "implements technical foundations for stable URLs, validation workflow, license/contact metadata, and consumer-ingestion records."
 - Not supported by repo-only evidence: "is CAL-ITP compliant," "is accepted by Google Maps or Apple Maps," "is production ready for every agency," or "is a marketplace vendor equivalent."
 
