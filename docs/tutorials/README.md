@@ -11,6 +11,7 @@ They document what the current repo can run today. They do not claim hosted prod
 ## Start Here
 
 - [Agency First Run](agency-first-run.md): start the full local app package and understand the outputs.
+- [Reusable Agency Onboarding](reusable-agency-onboarding.md): provide an agency ID and GTFS URL for local/reference onboarding without manual database edits.
 - [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md): prepare, validate, review, and publish a real agency GTFS ZIP safely.
 - [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a real public GTFS local/pilot run without implying agency approval.
 - [GTFS Validation Triage](gtfs-validation-triage.md): understand common import and validation failures in plain language.

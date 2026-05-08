@@ -20,6 +20,7 @@ Open Transit RT has technical foundations for:
 - basic Alerts authoring and publication;
 - validation records and scorecard workflows;
 - local app packaging and pilot operations helpers;
+- reusable agency GTFS onboarding from an agency ID and GTFS URL;
 - consumer packet preparation workflows.
 
 ## Evidence That Exists
@@ -100,9 +101,11 @@ And Roadmap Realignment is complete for docs-only README and roadmap
 realignment; it makes self-hosted agency reuse and OCI/OCL reference deployment
 productization the default continuation path. Phase 36 — OCI/OCL Reference
 Deployment Productization is complete for docs-only self-hosted reference
-deployment guidance and created no external evidence.
+deployment guidance and created no external evidence. Phase 37 — Reusable
+Agency Onboarding Flow is complete for the opt-in local/reference onboarding
+command and docs.
 
-The recommended next phase is Phase 37 — Reusable Agency Onboarding Flow.
+The recommended next phase is Phase 38 — Integration Adapter Kit.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

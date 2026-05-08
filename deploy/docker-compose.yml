@@ -3,14 +3,14 @@ x-app-environment: &app-environment
   MIGRATIONS_DIR: /app/db/migrations
   APP_ENV: dev
   BIND_ADDR: 0.0.0.0
-  AGENCY_ID: demo-agency
-  PUBLIC_BASE_URL: http://localhost:8080
-  FEED_BASE_URL: http://localhost:8080/public
-  VEHICLE_POSITIONS_FEED_URL: http://localhost:8080/public/gtfsrt/vehicle_positions.pb
-  SCHEDULE_FEED_URL: http://localhost:8080/public/gtfs/schedule.zip
-  TECHNICAL_CONTACT_EMAIL: dev@example.com
-  FEED_LICENSE_NAME: CC BY 4.0
-  FEED_LICENSE_URL: https://creativecommons.org/licenses/by/4.0/
+  AGENCY_ID: ${AGENCY_ID:-demo-agency}
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+  FEED_BASE_URL: ${FEED_BASE_URL:-http://localhost:8080/public}
+  VEHICLE_POSITIONS_FEED_URL: ${VEHICLE_POSITIONS_FEED_URL:-http://localhost:8080/public/gtfsrt/vehicle_positions.pb}
+  SCHEDULE_FEED_URL: ${SCHEDULE_FEED_URL:-http://localhost:8080/public/gtfs/schedule.zip}
+  TECHNICAL_CONTACT_EMAIL: ${TECHNICAL_CONTACT_EMAIL:-dev@example.com}
+  FEED_LICENSE_NAME: ${FEED_LICENSE_NAME:-CC BY 4.0}
+  FEED_LICENSE_URL: ${FEED_LICENSE_URL:-https://creativecommons.org/licenses/by/4.0/}
   PUBLICATION_ENVIRONMENT: dev
   ADMIN_JWT_SECRET: dev-admin-jwt-secret-change-me
   ADMIN_JWT_ISSUER: open-transit-rt-local
@@ -32,10 +32,10 @@ x-app-environment: &app-environment
   TRIP_UPDATES_DUPLICATE_CONFIDENCE_GAP: "0.05"
   VALIDATOR_STRICTNESS: warn
   VALIDATOR_TOOLING_MODE: pinned
-  REALTIME_VALIDATION_BASE_URL: http://localhost:8080/public
+  REALTIME_VALIDATION_BASE_URL: ${REALTIME_VALIDATION_BASE_URL:-http://localhost:8080/public}
   REALTIME_VALIDATION_MAX_BYTES: "10485760"
-  TRIP_UPDATES_FEED_URL: http://localhost:8080/public/gtfsrt/trip_updates.pb
-  ALERTS_FEED_URL: http://localhost:8080/public/gtfsrt/alerts.pb
+  TRIP_UPDATES_FEED_URL: ${TRIP_UPDATES_FEED_URL:-http://localhost:8080/public/gtfsrt/trip_updates.pb}
+  ALERTS_FEED_URL: ${ALERTS_FEED_URL:-http://localhost:8080/public/gtfsrt/alerts.pb}
 
 services:
   postgres:

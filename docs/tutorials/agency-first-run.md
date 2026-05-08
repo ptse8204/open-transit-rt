@@ -44,6 +44,10 @@ In this repo, a GTFS ZIP can be imported, validated by the internal importer, an
 
 For a real agency ZIP, use [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md) before importing. That guide covers source permission, metadata approval, validation triage, publish review, privacy/redaction checks, and the Phase 23 final-root boundary. Do not treat the local demo fixture or demo metadata as agency-approved.
 
+If you already have a reviewed agency ID and GTFS URL, use
+[Reusable Agency Onboarding](reusable-agency-onboarding.md). That flow imports
+the requested GTFS without running the demo sample import path.
+
 ## What GTFS Realtime Means
 
 GTFS Realtime is the live data format used beside the static GTFS schedule. Open Transit RT publishes:

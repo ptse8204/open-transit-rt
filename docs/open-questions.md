@@ -25,6 +25,10 @@ These questions do not block the next phase.
 ## Static GTFS Publication
 
 - Phase 8 serves `/public/gtfs/schedule.zip` on demand from active published GTFS tables with deterministic bytes. Should a later phase add materialized ZIP caching or checksum comparison against original uploaded ZIP bytes?
+- Answered for Phase 37 onboarding: reusable local/reference onboarding stores
+  the downloaded source ZIP and checksum under ignored `.cache/` storage and
+  compares public-safe source/fetched schedule summaries. This is an
+  onboarding verification, not materialized production ZIP caching.
 
 ## Prediction Backends
 

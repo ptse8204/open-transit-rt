@@ -90,6 +90,14 @@ Use a longer timeout for large public feeds with many `stop_times.txt` rows.
 
 Do not commit the ZIP path, raw output, or notes if they reveal private local paths, private contacts, private operator notes, or non-public agency data.
 
+For a reusable local/reference flow that downloads a GTFS URL, imports it,
+bootstraps publication metadata, verifies all five public paths, and records
+checksums under ignored storage, use
+[Reusable Agency Onboarding](reusable-agency-onboarding.md). Supply
+agency-approved `TECHNICAL_CONTACT_EMAIL`, `FEED_LICENSE_NAME`, and
+`FEED_LICENSE_URL` values when the feed discovery metadata should represent an
+approved public agency setup.
+
 ## Publish Review Checklist
 
 Complete this before treating a real GTFS import as ready for public feed review.

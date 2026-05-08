@@ -60,9 +60,23 @@ make agency-app-down
 
 ### 2. Try A Real Public GTFS Feed
 
-Use the public-GTFS local/pilot runbook when you want to test a real public
-static GTFS ZIP without implying agency approval or consumer acceptance:
+Use the reusable agency onboarding helper when you want to provide an agency ID
+and public GTFS ZIP URL without manual database edits:
 
+```bash
+make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip
+```
+
+The helper downloads the GTFS ZIP into ignored `.cache/` storage, imports it,
+verifies the five public feed paths, checks that the fetched schedule matches
+the imported GTFS, and prints validator status or blockers. Publication
+metadata is local/reference placeholder metadata unless the operator supplies
+agency-approved values.
+
+Use the public-GTFS local/pilot runbook when you need a fuller repeatability
+guide without implying agency approval or consumer acceptance:
+
+- [Reusable Agency Onboarding](docs/tutorials/reusable-agency-onboarding.md)
 - [Public GTFS Local/Pilot Runbook](docs/tutorials/public-gtfs-local-pilot.md)
 
 That guide records source URL, checksum, import summary, fetched schedule proof,
@@ -83,6 +97,7 @@ Start with:
 - [Small-Agency Pilot Operations](docs/runbooks/small-agency-pilot-operations.md)
 - [Self-Hosted Agency Reuse Master Plan](docs/master-plan-self-hosted-agency-reuse.md)
 - [Phase 36 Reference Deployment Productization](docs/phase-36-oci-reference-deployment-productization.md)
+- [Phase 37 Reusable Agency Onboarding Flow](docs/phase-37-agency-reusable-onboarding-flow.md)
 
 The existing OCI DuckDNS pilot remains hosted/operator pilot evidence only. It
 is not agency-owned final-root proof.

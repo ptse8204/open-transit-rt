@@ -5,7 +5,7 @@ TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_r
 MIGRATIONS_DIR ?= db/migrations
 DOCKER_COMPOSE ?= docker compose -f deploy/docker-compose.yml
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -54,6 +54,9 @@ agency-app-logs:
 
 agency-app-reset:
 	./scripts/agency-local-app.sh reset
+
+agency-pilot-up:
+	$(if $(AGENCY_ID),AGENCY_ID="$(AGENCY_ID)",) $(if $(GTFS_URL),GTFS_URL="$(GTFS_URL)",) $(if $(PUBLIC_BASE_URL),PUBLIC_BASE_URL="$(PUBLIC_BASE_URL)",) $(if $(ADMIN_BASE_URL),ADMIN_BASE_URL="$(ADMIN_BASE_URL)",) $(if $(GTFS_IMPORT_TIMEOUT),GTFS_IMPORT_TIMEOUT="$(GTFS_IMPORT_TIMEOUT)",) $(if $(DRY_RUN),DRY_RUN="$(DRY_RUN)",) ./scripts/agency-pilot-onboard.sh
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -132,6 +135,9 @@ validate:
 	@test -f scripts/install-validators.sh
 	@test -f scripts/check-validators.sh
 	@test -f scripts/agency-local-app.sh
+	@test -f scripts/agency-pilot-onboard.sh
+	@sh -n scripts/agency-pilot-onboard.sh
+	@scripts/agency-pilot-onboard.sh --help >/dev/null
 	@test -f scripts/device-onboarding.sh
 	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local

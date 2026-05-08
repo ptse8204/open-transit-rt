@@ -313,6 +313,30 @@ sudo -u open-transit sh -lc '
 Raw GTFS ZIPs should remain private unless licensing and redaction have been
 reviewed.
 
+For local/reference deployments where the operator has an `AGENCY_ID` and
+public GTFS URL, the reusable onboarding helper can perform the download,
+checksum, import, metadata bootstrap, five-path fetch, and validator/blocker
+summary:
+
+```sh
+scripts/agency-pilot-onboard.sh \
+  --mode running \
+  --agency-id "$AGENCY_ID" \
+  --gtfs-url https://example.org/gtfs.zip \
+  --public-base-url https://feeds.example.org \
+  --admin-base-url http://127.0.0.1:8081 \
+  --admin-token "$ADMIN_TOKEN" \
+  --technical-contact-email ops@example.org \
+  --feed-license-name "replace-with-approved-license" \
+  --feed-license-url https://example.org/license
+```
+
+Publication metadata is local/reference placeholder metadata unless the
+operator supplies agency-approved values. The helper writes raw GTFS and fetch
+summaries under ignored `.cache/` storage by default; that output is not
+final-root evidence unless a future evidence phase explicitly reviews,
+redacts, and retains it.
+
 ## Five Public Feed URL Verification
 
 After migrations, service start, metadata bootstrap, and GTFS import, verify

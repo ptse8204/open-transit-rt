@@ -13,6 +13,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🧭 Understand the project | [Wiki Home](../wiki/README.md) |
 | 🧩 See how the pieces fit together | [How It Works](../wiki/how-it-works.md) |
 | 🚌 Start the local app package | [Agency First Run](tutorials/agency-first-run.md) |
+| 🧰 Onboard a GTFS URL | [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md) |
 | 🧪 Try a real public GTFS feed | [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md) |
 | 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
 | 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
@@ -36,6 +37,7 @@ These are command-level references for people running or evaluating the project:
 - [Public Launch Checklist](public-launch-checklist.md)
 - [Local Quickstart](tutorials/local-quickstart.md)
 - [Agency First Run](tutorials/agency-first-run.md)
+- [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md)
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)
 - [Agency Pilot Program](agency-pilot-program.md)
 - [Agency Pilot Kickoff Agenda](agency-pilot-kickoff-agenda.md)
@@ -115,6 +117,7 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Phase 36 OCI/OCL Reference Deployment Productization](phase-36-oci-reference-deployment-productization.md)
 - [Phase 36 Handoff](handoffs/phase-36.md)
 - [Phase 37 Agency Reusable Onboarding Flow](phase-37-agency-reusable-onboarding-flow.md)
+- [Phase 37 Handoff](handoffs/phase-37.md)
 - [Phase 38 Integration Adapter Kit](phase-38-integration-adapter-kit.md)
 - [Phase 39 CAL-ITP Readiness Workflow](phase-39-calitp-readiness-workflow.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)

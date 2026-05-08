@@ -62,7 +62,18 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 - Complete for docs-only reference deployment productization. The repo now has
   a self-hosted OCI/OCL-style reference deployment guide, placeholder-only env
   example, smoke checklist, deployment index, and closed phase handoff.
-- Remaining later work: create a reusable agency onboarding flow, expand the
-  integration adapter kit,
+- Remaining later work: expand the integration adapter kit
   and make CAL-ITP-style readiness visible in product workflows without
   overclaiming compliance.
+
+## Phase 37 — Reusable Agency Onboarding Flow
+
+- Complete for the opt-in local/reference onboarding scope. The repo now has
+  `scripts/agency-pilot-onboard.sh`, `make agency-pilot-up`, explicit Compose
+  env interpolation defaults, reusable GTFS download/import/five-path fetch
+  checks, schedule identity summary verification, metadata placeholder
+  warnings, best-effort validator/blocker reporting, and a closed phase
+  handoff.
+- Remaining later work: Phase 38 integration adapter kit and Phase 39
+  CAL-ITP-style readiness workflow, without overclaiming compliance or
+  consumer acceptance.

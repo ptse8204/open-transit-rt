@@ -4,6 +4,12 @@ This guide explains how to repeat a Phase 33-style public GTFS local/pilot run.
 
 It is for development and evaluation only. It does not imply agency approval, official feed status, consumer acceptance, Caltrans/CAL-ITP compliance, production readiness, real realtime data, or ETA-quality proof.
 
+For a command-level helper that performs the reusable local/reference import
+and five-path verification flow, see
+[Reusable Agency Onboarding](reusable-agency-onboarding.md). Use this runbook
+when you need retained public-safe summaries or a fuller manual repeatability
+record.
+
 ## What this run can prove
 
 A completed local/pilot run can prove:
