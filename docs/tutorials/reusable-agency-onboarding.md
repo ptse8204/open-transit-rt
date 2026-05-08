@@ -75,10 +75,12 @@ If these are not supplied, the script uses obvious local/reference placeholders
 and prints:
 
 ```text
-Publication metadata is local/reference placeholder metadata unless the operator supplies agency-approved values.
+Publication metadata is local/reference placeholder metadata unless the operator supplied agency-approved values.
 ```
 
 Replace placeholders before treating feed discovery metadata as agency-approved.
+Do not treat placeholder metadata as agency-approved, final-root evidence,
+consumer evidence, CAL-ITP/Caltrans compliance, or production readiness.
 
 ## Modes
 

@@ -62,8 +62,7 @@ Notes:
   the requested GTFS. It does not call make agency-app-up or import the demo
   sample feed.
 
-  Publication metadata is local/reference placeholder metadata unless the
-  operator supplies agency-approved values.
+  Publication metadata is local/reference placeholder metadata unless the operator supplied agency-approved values.
 EOF
 }
 
@@ -189,7 +188,7 @@ Agency pilot onboarding plan:
   reset_local_state: $RESET_LOCAL_STATE
   validators: $(if [ "$SKIP_VALIDATORS" = "true" ]; then printf 'skipped'; elif [ "$STRICT_VALIDATORS" = "true" ]; then printf 'strict'; else printf 'best-effort'; fi)
 
-Publication metadata is local/reference placeholder metadata unless the operator supplies agency-approved values.
+Publication metadata is local/reference placeholder metadata unless the operator supplied agency-approved values.
 
 No download, import, database write, service start, validator run, or evidence creation was performed.
 EOF
@@ -619,7 +618,8 @@ Validator status:
   $VALIDATOR_STATUS
 
 Metadata warning:
-  Publication metadata is local/reference placeholder metadata unless the operator supplies agency-approved values.
+  Publication metadata is local/reference placeholder metadata unless the operator supplied agency-approved values.
+  Do not treat placeholder metadata as agency-approved, final-root evidence, consumer evidence, CAL-ITP/Caltrans compliance, or production readiness.
 
 Next steps:
   1. Review $PUBLIC_BASE_URL/public/feeds.json for agency-approved contact and license metadata.

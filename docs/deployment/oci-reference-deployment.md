@@ -332,10 +332,12 @@ scripts/agency-pilot-onboard.sh \
 ```
 
 Publication metadata is local/reference placeholder metadata unless the
-operator supplies agency-approved values. The helper writes raw GTFS and fetch
+operator supplied agency-approved values. Do not treat placeholder metadata as
+agency-approved, final-root evidence, consumer evidence, CAL-ITP/Caltrans
+compliance, or production readiness. The helper writes raw GTFS and fetch
 summaries under ignored `.cache/` storage by default; that output is not
-final-root evidence unless a future evidence phase explicitly reviews,
-redacts, and retains it.
+final-root evidence unless a future evidence phase explicitly reviews, redacts,
+and retains it.
 
 ## Five Public Feed URL Verification
 
