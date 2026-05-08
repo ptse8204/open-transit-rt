@@ -49,6 +49,11 @@ workflows; it does not claim CAL-ITP/Caltrans compliance.
 Use the readiness page after publication metadata and at least one GTFS import
 or Studio publish exist.
 
+For a guided local/reference path that prepares those inputs through
+`make agency-pilot-up`, verifies the five public paths, handles validators,
+runs the synthetic AVL dry-run, and then reviews this page, see
+[Self-Hosted Operator Trial](self-hosted-operator-trial.md).
+
 1. Open `/admin/operations/readiness` through the private admin boundary.
 2. Review the ten rows for URL, feed, metadata, validation, telemetry,
    operations, and consumer packet gaps.

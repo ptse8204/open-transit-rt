@@ -8,6 +8,10 @@ These questions do not block the next phase.
   OCI/OCL-style single-server pilot pattern first as the self-hosted reference
   deployment under `docs/deployment/`.
   Managed container platforms and Kubernetes remain later options.
+- Answered in Phase 40 for the current guided evaluation path: use
+  `docs/tutorials/self-hosted-operator-trial.md` to run one local/reference
+  trial across reference deployment prep, reusable onboarding, readiness
+  review, validators, and the synthetic AVL dry-run without creating evidence.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

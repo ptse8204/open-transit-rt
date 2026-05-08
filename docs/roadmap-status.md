@@ -25,6 +25,9 @@ Open Transit RT has technical foundations for:
   monitoring, and consumer workflow boundaries;
 - an authenticated CAL-ITP-style readiness workflow that shows readiness gaps,
   status sources, and next actions without compliance overclaims;
+- a guided self-hosted operator trial that ties reference deployment,
+  reusable onboarding, readiness review, validators, and the synthetic AVL
+  dry-run together without creating evidence;
 - consumer packet preparation workflows.
 
 ## Evidence That Exists
@@ -111,7 +114,10 @@ command and docs. Phase 38 — Integration Adapter Kit is complete for the
 central adapter map, synthetic fixture manifest, dry-run AVL examples, and
 focused adapter conformance tests. Phase 39 — CAL-ITP-Style Readiness
 Workflow is complete for the authenticated Operations Console readiness page
-and documentation/navigation updates.
+and documentation/navigation updates. Phase 40 — Guided Self-Hosted Operator
+Trial is complete for the docs/navigation trial checklist that ties Phase 36
+through Phase 39 workflows into one local/reference operator path without
+creating evidence or stronger claims.
 
 The recommended next phase is to continue the self-hosted agency reuse roadmap
 from the updated handoff.

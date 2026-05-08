@@ -8,6 +8,11 @@ approval, agency adoption, consumer acceptance, CAL-ITP/Caltrans compliance,
 production readiness, vendor compatibility, final-root ownership, real
 realtime data, or production-grade ETA quality.
 
+For the complete guided local/reference operator trial that includes this
+onboarding command, five public feed checks, `/admin/operations/readiness`,
+validator handling, synthetic AVL dry-run, and cleanup, see
+[Self-Hosted Operator Trial](self-hosted-operator-trial.md).
+
 ## Command
 
 For local Compose evaluation:

@@ -143,6 +143,9 @@ validate:
 	@test -f docs/phase-39-calitp-readiness-workflow.md
 	@test -f docs/handoffs/phase-39.md
 	@test -f docs/tutorials/calitp-readiness-checklist.md
+	@test -f docs/phase-40-guided-self-hosted-operator-trial.md
+	@test -f docs/tutorials/self-hosted-operator-trial.md
+	@test -f docs/handoffs/phase-40.md
 	@test -f testdata/avl-vendor/README.md
 	@test -f testdata/avl-vendor/minimal-gps.json
 	@test -f testdata/avl-vendor/full-gps.json

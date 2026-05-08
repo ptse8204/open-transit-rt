@@ -15,6 +15,10 @@ packet, and not final-root proof.
   environment file structure.
 - [Reference Smoke Checklist](oci-reference-smoke-checklist.md) - repeatable
   verification checklist for an operator-run deployment.
+- [Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md) -
+  guided local/reference evaluation path tying deployment prep, GTFS
+  onboarding, readiness review, validators, and the synthetic AVL dry-run
+  together without creating evidence.
 
 Review `docs/evidence/redaction-policy.md` before turning any operator output
 from this path into public evidence.

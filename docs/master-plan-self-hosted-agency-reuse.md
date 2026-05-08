@@ -203,7 +203,7 @@ Required work:
 - add plain-language remediation steps;
 - keep wording as “readiness support,” not compliance.
 
-### Phase 40 — Server-Based Regression Evidence
+### Future Phase — Server-Based Regression Evidence
 
 Goal: use the OCI/OCL server as the recurring proof target for code health.
 

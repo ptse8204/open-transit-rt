@@ -29,6 +29,11 @@ Use the detailed sections below for the exact boundaries and checks. The
 helpers for the current reference path. They are not hosted product automation
 and do not prove a deployment was run.
 
+For one guided local/reference evaluation that combines this deployment path,
+`make agency-pilot-up`, five public feed checks, readiness review, validator
+handling, and the synthetic AVL dry-run adapter, use
+[Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md).
+
 ## Server Prerequisites
 
 Target one operator-owned Linux server with:
@@ -427,6 +432,9 @@ The page shows CAL-ITP-style readiness rows with status sources, current
 signals, next actions, and claim boundaries. It is an operator workflow view
 only. It does not create external evidence, submit to consumers, prove an
 agency-owned final root, or claim CAL-ITP/Caltrans compliance.
+
+For the full guided trial around this readiness review, see
+[Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md).
 
 ## Update And Rollback
 

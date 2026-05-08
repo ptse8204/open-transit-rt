@@ -68,6 +68,7 @@ These constraints apply to every phase:
 | 37 | Agency reusable onboarding flow | Make agency GTFS onboarding and self-hosted first run repeatable without manual DB surgery |
 | 38 | Integration adapter kit | Make AVL/device, predictor, validator, monitoring, and consumer integration boundaries reusable |
 | 39 | CAL-ITP-style readiness workflow | Make readiness support visible in product workflows without claiming compliance |
+| 40 | Guided self-hosted operator trial | Tie reference deployment, reusable onboarding, adapter dry-run, and readiness review into one evidence-bounded operator checklist |
 
 ---
 
@@ -515,3 +516,25 @@ boundaries.
 Phase 39 must not claim CAL-ITP/Caltrans compliance, consumer acceptance,
 agency endorsement, production readiness, hosted SaaS availability, or
 marketplace/vendor equivalence.
+
+## Phase 40 — Guided Self-Hosted Operator Trial
+
+### Goal
+Give operators one guided local/reference trial that ties the reference
+deployment docs, reusable agency onboarding, adapter kit, and readiness
+workflow together.
+
+### Required work
+- add an operator trial tutorial covering local/reference prep,
+  `make agency-pilot-up`, no-external-network fixture setup, five public feed
+  checks, `/admin/operations/readiness`, validators, synthetic AVL dry-run,
+  next actions, and teardown;
+- update docs navigation, status docs, and handoffs;
+- add validation checks for the Phase 40 phase doc, tutorial, and handoff.
+
+### Boundaries
+Phase 40 must not create external evidence, final-root evidence, consumer
+submission APIs, real vendor payloads, consumer status changes, hosted SaaS
+claims, CAL-ITP/Caltrans compliance claims, consumer acceptance claims, agency
+approval/adoption claims, production-readiness claims, vendor-compatibility
+claims, or production-grade ETA-quality claims.

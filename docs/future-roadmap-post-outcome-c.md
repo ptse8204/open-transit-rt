@@ -88,7 +88,7 @@ Compare behavior against real observations, document fallback behavior, and pres
 
 ### If a consumer target is selected and official path is verified
 
-Go to Phase 40.
+Use a future optional consumer-submission evidence phase.
 
 Update only the selected target status and only from retained target-originated artifacts.
 

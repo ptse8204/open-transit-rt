@@ -83,6 +83,19 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   central integration adapter kit, synthetic AVL fixture manifest, neutral
   dry-run fixture examples, CLI boundary wording, focused adapter tests, and
   dependency docs noting synthetic dry-run/developer support only.
-- Remaining later work: Phase 39 CAL-ITP-style readiness workflow, without
-  overclaiming compliance, consumer acceptance, real vendor compatibility, or
-  production-grade ETA quality.
+
+## Phase 39 — CAL-ITP-Style Readiness Workflow
+
+- Complete for the product-facing readiness workflow scope. The authenticated
+  Operations Console now has `/admin/operations/readiness` with ten
+  evidence-bounded readiness rows and next actions.
+
+## Phase 40 — Guided Self-Hosted Operator Trial
+
+- Complete for the docs/navigation guided trial scope. The repo now has
+  `docs/tutorials/self-hosted-operator-trial.md`, a Phase 40 status doc,
+  handoff, navigation updates, and validation checks for those files.
+- Remaining later work: only future optional retained-evidence paths such as
+  final-root proof, real agency pilot evidence, real device/vendor AVL
+  evidence, consumer submissions, or real-world realtime quality evidence when
+  claim-specific artifacts exist.

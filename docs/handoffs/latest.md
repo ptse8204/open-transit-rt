@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 39 — CAL-ITP-Style Readiness Workflow is complete for the
-product-facing readiness workflow scope.
+Phase 40 — Guided Self-Hosted Operator Trial is complete for the
+docs/navigation guided operator trial scope.
 
-Phases 0 through 39 are closed for their documented scopes. Track A is also
+Phases 0 through 40 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -107,6 +107,18 @@ public unauthenticated route, and did not add any CAL-ITP/Caltrans compliance,
 consumer acceptance, agency adoption, final-root proof, hosted SaaS,
 production-readiness, vendor-compatibility, or production-grade ETA-quality
 claim.
+
+Phase 40 added a guided self-hosted operator trial tutorial that ties together
+the Phase 36 reference deployment docs, Phase 37 reusable agency onboarding
+flow, Phase 38 integration adapter kit, and Phase 39 readiness workflow. The
+trial covers local/reference prep, `make agency-pilot-up`, a no-external-network
+`demo-agency` fixture option, five public feed checks,
+`/admin/operations/readiness`, validator run/skip/blocker handling, synthetic
+AVL dry-run, next actions, and teardown. Phase 40 was docs/navigation only; the
+only non-doc file changed was `Makefile` validation scaffolding. It created no
+external evidence, changed no consumer statuses, and added no compliance,
+consumer acceptance, agency approval/adoption, final-root, hosted SaaS,
+production-readiness, vendor-compatibility, or production-grade ETA claim.
 
 ## Phase 32 Summary
 
@@ -232,6 +244,18 @@ claim.
   handoff docs.
 - Updated `make validate` to check Phase 39 docs/handoff files.
 
+## Phase 40 Summary
+
+- Added `docs/tutorials/self-hosted-operator-trial.md` as a guided
+  local/reference operator checklist.
+- Added `docs/phase-40-guided-self-hosted-operator-trial.md` and
+  `docs/handoffs/phase-40.md`.
+- Linked the trial from README, docs index, tutorial index, deployment,
+  onboarding, adapter, readiness, roadmap/status, backlog, open-question, phase
+  plan, and handoff navigation.
+- Updated `make validate` to check Phase 40 docs/handoff files.
+- Created no external evidence and changed no consumer statuses.
+
 ## Truthfulness And Evidence Boundary
 
 - All seven consumer and aggregator targets remain `prepared` only.
@@ -265,6 +289,11 @@ claim.
   statuses, and does not strengthen compliance, consumer acceptance, agency
   adoption, hosted SaaS, production-readiness, vendor-compatibility, or
   production ETA-quality claims.
+- Phase 40 is docs/navigation guided operator trial productization. It created
+  no external evidence, did not create final-root proof, did not change
+  consumer statuses, and does not strengthen compliance, consumer acceptance,
+  agency approval/adoption, hosted SaaS, production-readiness,
+  vendor-compatibility, or production ETA-quality claims.
 - The OCI pilot DuckDNS hostname remains pilot evidence, not agency-owned stable URL/domain proof.
 - Phase 29A is adapter evaluation evidence only, not production ETA proof.
 - Phase 29B is synthetic dry-run transform evidence only, not real vendor compatibility proof, production integration evidence, or AVL reliability evidence.
@@ -294,32 +323,35 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 17. `docs/handoffs/phase-38.md`
 18. `docs/phase-39-calitp-readiness-workflow.md`
 19. `docs/handoffs/phase-39.md`
-20. `docs/integration-adapter-kit.md`
-21. `docs/tutorials/reusable-agency-onboarding.md`
-22. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
-23. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
-24. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
-25. `docs/final-root-operator-request.md`
-26. `docs/tutorials/public-gtfs-local-pilot.md`
-27. `docs/runbooks/small-agency-pilot-operations.md`
-28. `docs/roadmap-status.md`
-29. `docs/california-readiness-summary.md`
-30. `docs/compliance-evidence-checklist.md`
-31. `docs/agency-owned-domain-readiness.md`
-32. `docs/evidence/consumer-submissions/status.json`
-33. `docs/evidence/consumer-submissions/submission-workflow.md`
-34. `docs/evidence/redaction-policy.md`
-35. `SECURITY.md`
-36. `README.md`
-37. `docs/dependencies.md`
-38. `docs/decisions.md`
-39. `docs/backlog.md`
-40. `docs/open-questions.md`
+20. `docs/phase-40-guided-self-hosted-operator-trial.md`
+21. `docs/tutorials/self-hosted-operator-trial.md`
+22. `docs/handoffs/phase-40.md`
+23. `docs/integration-adapter-kit.md`
+24. `docs/tutorials/reusable-agency-onboarding.md`
+25. `docs/phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md`
+26. `docs/phase-33-public-gtfs-local-pilot-evidence.md`
+27. `docs/evidence/captured/public-gtfs-local-pilot/2026-05-06/README.md`
+28. `docs/final-root-operator-request.md`
+29. `docs/tutorials/public-gtfs-local-pilot.md`
+30. `docs/runbooks/small-agency-pilot-operations.md`
+31. `docs/roadmap-status.md`
+32. `docs/california-readiness-summary.md`
+33. `docs/compliance-evidence-checklist.md`
+34. `docs/agency-owned-domain-readiness.md`
+35. `docs/evidence/consumer-submissions/status.json`
+36. `docs/evidence/consumer-submissions/submission-workflow.md`
+37. `docs/evidence/redaction-policy.md`
+38. `SECURITY.md`
+39. `README.md`
+40. `docs/dependencies.md`
+41. `docs/decisions.md`
+42. `docs/backlog.md`
+43. `docs/open-questions.md`
 
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 39 is complete; the next recommended
+agencies and civic technologists. Phase 40 is complete; the next recommended
 phase should continue the self-hosted agency reuse roadmap without weakening
 the evidence boundaries.
 
@@ -502,6 +534,15 @@ docker compose -f deploy/docker-compose.yml config
 - Post-completion hardening re-ran the required checks and preserved all seven
   consumer statuses as `prepared`.
 
+## Checks Run For Phase 40
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed.
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
+- Read-only consumer tracker status check — passed; 7 targets found and all
+  remain `prepared`.
+
 ## Current Evidence And Security Boundary
 
 - The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` remains the current hosted/operator evidence packet.
@@ -528,6 +569,10 @@ docker compose -f deploy/docker-compose.yml config
   external evidence, run final-root proof, change consumer statuses, contact
   external parties, or strengthen agency, consumer, compliance,
   production-readiness, vendor, or ETA-quality claims.
+- Phase 40 created guided trial docs/navigation only. It did not create
+  external evidence, run final-root proof, change consumer statuses, contact
+  external parties, or strengthen agency, consumer, compliance,
+  production-readiness, vendor, or ETA-quality claims.
 - Consumer-ingestion workflow records and docs tracker records are not third-party acceptance unless retained evidence from the named target exists.
 - Do not rely on old local `.cache` credentials.
 - Do not commit secrets, generated tokens, private keys, ACME material, admin tokens, device tokens, JWT secrets, CSRF secrets, DB passwords, webhook URLs, notification credentials, raw telemetry payloads, unredacted correspondence, private portal credentials, private ticket links, raw logs with credentials, private backup paths, or raw private operator artifacts.
@@ -535,8 +580,9 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 39 is closed; do not reopen it unless a concrete
-readiness-workflow regression is found.
+choosing files. Phase 40 is closed; do not reopen Phase 39 or Phase 40 unless
+a concrete readiness-workflow or guided-trial documentation regression is
+found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -558,6 +604,6 @@ target-originated evidence supports a target-specific status transition.
 Continue the self-hosted agency reuse roadmap from this handoff.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
-Phase 38 adapter kit, and Phase 39 readiness workflow as the
-self-hosted/integration baseline.
+Phase 38 adapter kit, Phase 39 readiness workflow, and Phase 40 guided operator
+trial as the self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

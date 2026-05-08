@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 39 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 40 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -19,7 +19,8 @@ only. Phase 35 is complete for docs-only README and roadmap realignment. Phase
 36 is complete for docs-only OCI/OCL reference deployment productization. Phase
 37 is complete for reusable agency onboarding flow productization. Phase 38 is
 complete for integration adapter kit productization. Phase 39 is complete for
-CAL-ITP-style readiness workflow productization.
+CAL-ITP-style readiness workflow productization. Phase 40 is complete for the
+docs/navigation guided self-hosted operator trial.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -164,6 +165,19 @@ no public unauthenticated route, changed no consumer statuses, and added no
 CAL-ITP/Caltrans compliance, consumer acceptance, agency adoption, final-root,
 hosted SaaS, production-readiness, vendor-compatibility, or production-grade
 ETA-quality claim.
+
+Phase 40 — Guided Self-Hosted Operator Trial is closed for the docs/navigation
+scope. The repo now has a guided tutorial that ties the Phase 36 reference
+deployment docs, Phase 37 reusable agency onboarding flow, Phase 38 integration
+adapter kit, and Phase 39 readiness workflow into one local/reference
+evaluation path. The tutorial covers local/reference prep, `make
+agency-pilot-up`, a no-external-network `demo-agency` fixture option, five
+public feed checks, `/admin/operations/readiness`, validator run/skip/blocker
+handling, synthetic AVL dry-run, next actions, and teardown. Phase 40 changed
+no runtime service code, schema, migration, API, public feed contract, evidence
+packet, or consumer status, and added no compliance, consumer acceptance,
+agency approval/adoption, final-root, hosted SaaS, production-readiness,
+vendor-compatibility, or production-grade ETA claim.
 
 ## What Exists Now
 
@@ -436,11 +450,12 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 39 — CAL-ITP-Style Readiness Workflow is complete for
-its product-facing readiness workflow scope. Phase 38 — Integration Adapter Kit
-remains complete for its navigation and conformance scope. Phase 37 — Reusable
-Agency Onboarding Flow
-remains complete for its local/reference onboarding scope. Phase 33 remains
+**Active phase:** Phase 40 — Guided Self-Hosted Operator Trial is complete for
+its docs/navigation guided trial scope. Phase 39 — CAL-ITP-Style Readiness
+Workflow remains complete for its product-facing readiness workflow scope.
+Phase 38 — Integration Adapter Kit remains complete for its navigation and
+conformance scope. Phase 37 — Reusable Agency Onboarding Flow remains complete
+for its local/reference onboarding scope. Phase 33 remains
 complete as Outcome C — public-GTFS local/pilot run completed with public-safe
 retained summaries — and proves local/pilot handling of a real public static
 GTFS dataset only. Phase 34 remains complete for docs-only
@@ -451,7 +466,7 @@ self-hosted agency reuse roadmap from the latest handoff. Track A — External P
 complete for the documented docs-only operator workflow, evidence intake,
 artifact-directory, and agency-domain readiness scope, and remains available as
 a future optional proof path when retained claim-specific artifacts exist.
-Phases 12 through 39 remain closed for their documented scopes.
+Phases 12 through 40 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 

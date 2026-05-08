@@ -109,17 +109,19 @@ Rules:
 | 37 | Agency Reusable Onboarding Flow | Complete. Guided agency GTFS onboarding for local and reference-server evaluation. |
 | 38 | Integration Adapter Kit | Complete. Central adapter map, synthetic fixture manifest, and dry-run adapter conformance tests. |
 | 39 | CAL-ITP-Style Readiness Workflow | Complete. Product-facing readiness workflow without compliance overclaims. |
+| 40 | Guided Self-Hosted Operator Trial | Complete. Docs/navigation checklist tying reference deployment, reusable onboarding, readiness review, validators, and synthetic AVL dry-run together. |
 
 ## Recommended Next Phase
 
-Phase 39 is complete. The next recommended phase should continue self-hosted
+Phase 40 is complete. The next recommended phase should continue self-hosted
 agency reuse productization from the latest handoff.
 
 Reason: the repo now has local app packaging, self-hosted reference deployment
 docs, public-GTFS local/pilot proof, pilot operations helpers, a reusable
 agency onboarding command, a central adapter kit for integration boundaries,
-and an authenticated readiness workflow that makes CAL-ITP-style gaps visible
-without claiming compliance. This does not claim agency adoption, consumer
+an authenticated readiness workflow that makes CAL-ITP-style gaps visible
+without claiming compliance, and a guided local/reference operator trial. This
+does not claim agency adoption, consumer
 acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, production
 readiness, real vendor AVL compatibility, real realtime data, or
 production-grade ETA-quality.
