@@ -32,8 +32,11 @@ diagnostics. Phase 48 is complete for the private AVL adapter runtime send
 path through authenticated `/v1/telemetry` with redacted private diagnostics.
 Phase 49 is complete for the optional disabled-by-default generic external
 HTTP predictor runtime adapter path behind `internal/prediction.Adapter`.
-Phase 50 planning is approved for private realtime quality backtesting;
-implementation has not started.
+Phase 50 implementation is complete for the private realtime quality
+backtesting CLI/library workflow. It adds local aggregate diagnostics only and
+does not add DB persistence, migrations, Operations Console changes, public
+APIs, evidence writes, consumer tracker changes, or stronger ETA/readiness
+claims.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -133,6 +136,20 @@ produce valid empty Trip Updates with `adapter_error` diagnostics, while
 diagnostics. Phase 49 adds no named predictor runtime, TheTransitClock process,
 external service packaging, evidence packet, consumer status change,
 compliance claim, vendor-compatibility claim, or production-grade ETA claim.
+
+Phase 50 adds `internal/realtimequality` backtesting support and
+`cmd/realtime-quality-backtest` for private local comparison of versioned
+observed stop events against prediction samples. It writes exactly
+`summary.json`, `summary.md`, `metrics.json`, `metrics.md`, and
+`manifest.json` under `.cache/realtime-quality-backtest/<timestamp>` by
+default, rejects evidence-like and unsafe output paths, and stores only bounded
+aggregate metrics and redacted manifest metadata. Metrics include MAE, median
+and p90 absolute error, aggregate lead time, prediction coverage, future stop
+coverage, stale/missing/withheld counts, and diagnostic maturity gates across
+overall, route, agency-local time period, and route plus time period groups.
+Phase 50 adds no DB persistence, migration, Operations Console view, public
+API, consumer tracker change, external predictor runtime, evidence packet,
+publish gate, production ETA proof, or readiness claim.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
@@ -1322,9 +1339,8 @@ Final-root evidence follow-up check results:
 
 ## Next Recommended Step
 
-Continue the self-hosted agency reuse roadmap from `docs/handoffs/latest.md`.
-Phase 47 is complete. Continue with the next deployment-hardening or operations
-phase while preserving the evidence and claim boundaries.
+Start Phase 51 planning from `docs/handoffs/latest.md` while preserving the
+evidence and claim boundaries.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

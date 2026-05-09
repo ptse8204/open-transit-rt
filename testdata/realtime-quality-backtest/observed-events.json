@@ -1,0 +1,110 @@
+{
+  "schema_version": "realtime-quality-observed.v1",
+  "agency_timezone": "America/Los_Angeles",
+  "records": [
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-10",
+      "trip_id": "trip-morning",
+      "start_date": "20260509",
+      "start_time": "08:00:00",
+      "stop_id": "stop-1",
+      "stop_sequence": 1,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T15:05:30Z",
+      "service_pattern_label": "weekday"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-10",
+      "trip_id": "trip-morning",
+      "start_date": "20260509",
+      "start_time": "08:00:00",
+      "stop_id": "stop-2",
+      "stop_sequence": 2,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T15:12:00Z",
+      "service_pattern_label": "weekday"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-20",
+      "trip_id": "trip-withheld",
+      "start_date": "20260509",
+      "start_time": "09:00:00",
+      "stop_id": "stop-3",
+      "stop_sequence": 3,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T16:20:00Z",
+      "service_pattern_label": "manual_override"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-night",
+      "trip_id": "trip-after-midnight",
+      "start_date": "20260509",
+      "start_time": "25:10:00",
+      "stop_id": "night-stop",
+      "stop_sequence": 4,
+      "event_type": "arrival",
+      "observed_time": "2026-05-10T08:18:00Z",
+      "service_pattern_label": "after_midnight"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-frequency",
+      "trip_id": "trip-frequency",
+      "start_date": "20260509",
+      "start_time": "12:15:00",
+      "stop_id": "freq-stop",
+      "stop_sequence": 5,
+      "event_type": "departure",
+      "observed_time": "2026-05-09T19:25:20Z",
+      "service_pattern_label": "frequency"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-block",
+      "trip_id": "trip-block-next",
+      "start_date": "20260509",
+      "start_time": "15:30:00",
+      "stop_id": "block-stop",
+      "stop_sequence": 6,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T22:34:45Z",
+      "service_pattern_label": "block_transition"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-stale",
+      "trip_id": "trip-stale",
+      "start_date": "20260509",
+      "start_time": "11:00:00",
+      "stop_id": "stale-stop",
+      "stop_sequence": 8,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T18:10:00Z",
+      "service_pattern_label": "stale_prediction"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-missing",
+      "trip_id": "trip-missing",
+      "start_date": "20260509",
+      "start_time": "18:00:00",
+      "stop_id": "missing-stop",
+      "stop_sequence": 7,
+      "event_type": "arrival",
+      "observed_time": "2026-05-10T01:05:00Z",
+      "service_pattern_label": "missing_prediction"
+    }
+  ]
+}

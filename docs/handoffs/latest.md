@@ -4,10 +4,9 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 50 — Realtime Quality Backtesting is planned and approved.
-Implementation has not started.
+Phase 51 — Operations Reliability And SLO Readiness is next for planning.
 
-Phases 0 through 49 are closed for their documented scopes. Track A is also
+Phases 0 through 50 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -107,11 +106,17 @@ runtime, named service call, external process manager, evidence writes,
 consumer status changes, compliance claim, vendor compatibility claim, or
 production-grade ETA claim.
 
-The next step is Phase 50 execution against
-`docs/phase-50-realtime-quality-backtesting.md`. Execution must stay inside
-that approved plan. Do not expand Phase 49 into a named predictor runtime,
-process manager, TheTransitClock integration, evidence workflow, consumer
-status change, or production-grade ETA/compliance claim.
+Phase 50 added `internal/realtimequality` backtesting support,
+`cmd/realtime-quality-backtest`, synthetic fixtures under
+`testdata/realtime-quality-backtest`, and `make realtime-quality-backtest`.
+The workflow writes only private `.cache/realtime-quality-backtest/<timestamp>`
+diagnostics with exactly `summary.json`, `summary.md`, `metrics.json`,
+`metrics.md`, and `manifest.json`. It rejects evidence-like paths, unsafe
+traversal, and symlink ancestors, and does not copy raw inputs or persist raw
+rows. Phase 50 is local engineering diagnostics only and does not add DB
+persistence, migrations, Operations Console routes, public APIs, evidence
+writes, consumer tracker changes, publish gates, or stronger ETA/readiness
+claims.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
@@ -895,11 +900,13 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 47 is closed; do not reopen Phase 39, Phase 40, Phase
-41, Phase 42, Phase 43, Phase 44, Phase 45, Phase 46, or Phase 47 unless a
+choosing files. Phase 50 is closed; do not
+reopen Phase 39, Phase 40, Phase 41, Phase 42, Phase 43, Phase 44, Phase 45,
+Phase 46, Phase 47, Phase 48, Phase 49, or Phase 50 unless a
 concrete readiness-workflow, guided-trial, diagnostics, support-bundle,
 deployment-doctor, local-routing, checklist, telemetry-simulator, GTFS quality
-triage, validator-health, or operations-notification regression is found.
+triage, validator-health, operations-notification, AVL send, predictor adapter,
+or backtesting regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -918,7 +925,10 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the self-hosted agency reuse roadmap from this handoff.
+Start Phase 51 planning for Operations Reliability And SLO Readiness. Preserve
+the no-SLA, no-production-readiness, no-evidence-writing, no-consumer-status,
+and no-public-unauthenticated-route boundaries unless a later approved
+evidence-backed phase explicitly changes them.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator

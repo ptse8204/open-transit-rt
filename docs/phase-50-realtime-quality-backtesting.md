@@ -2,7 +2,7 @@
 
 ## Status
 
-Planning approved. Implementation has not started.
+Closed for the approved private CLI/library scope.
 
 ## Goal
 
@@ -10,6 +10,10 @@ Phase 50 adds a private CLI/library workflow for comparing synthetic or
 operator-supplied observed stop arrivals/departures against prediction samples.
 It produces route/time-period ETA quality diagnostics and maturity gates as
 local engineering output only.
+
+Implementation note: lead-time diagnostics are emitted as bounded aggregate
+fields only and are based on matched, non-stale predictions whose
+`predicted_time` is after `generated_time`.
 
 Phase 50 must not persist backtest history in the database, add Operations
 Console storage, create evidence, block publishing, or claim production-grade

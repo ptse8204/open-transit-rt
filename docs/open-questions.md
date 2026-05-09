@@ -74,7 +74,12 @@ These questions do not block the next phase.
   Named predictor integration, external process ownership, deployment
   packaging, and ETA-quality evidence remain open for later approved phases.
 - What quality threshold should be required before claiming production-grade ETA quality rather than conservative schedule-deviation predictions?
-- What historical telemetry retention and backtesting workflow should support MAE by route, stop, and time of day?
+- Answered for Phase 50 private diagnostics: use
+  `cmd/realtime-quality-backtest` with versioned local observed-stop-event and
+  prediction-sample files to compute aggregate MAE, median, p90, coverage,
+  stale/missing/withheld counts, and diagnostic maturity gates by route and
+  agency-local time period. This is local engineering diagnostics only, not a
+  database retention model or production ETA proof.
 
 ## Alerts
 

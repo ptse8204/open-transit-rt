@@ -187,3 +187,12 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 - Remaining later work: any named predictor such as TheTransitClock still
   requires a separately approved runtime phase with dependency/license review
   and claim-specific evidence before compatibility or ETA-quality claims.
+
+## Phase 50 — Realtime Quality Backtesting
+
+- Complete for the approved private local diagnostics scope. The repo now has
+  a versioned observed-stop-event and prediction-sample backtesting library,
+  `cmd/realtime-quality-backtest`, synthetic public-safe fixtures under
+  `testdata/realtime-quality-backtest`, and `make realtime-quality-backtest`.
+- Remaining later work: real-world observed arrival/departure quality review
+  only when approved inputs and claim-specific evidence boundaries exist.

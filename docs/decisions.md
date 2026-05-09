@@ -294,3 +294,20 @@ IDs, audit fields, raw override reasons, credentials, headers, and cookies.
 public and records only bounded redacted shadow counts/status. This phase does
 not add TheTransitClock-specific runtime code, start external services, create
 evidence, change consumer statuses, or make stronger ETA/compliance claims.
+
+## ADR-0032 — Keep realtime quality backtesting private and aggregate-only
+
+Phase 50 adds local backtesting for observed stop events and prediction samples
+under `internal/realtimequality` plus `cmd/realtime-quality-backtest`. The
+workflow is a private engineering diagnostic, not a runtime service.
+
+Inputs are versioned local JSON files. Outputs are bounded aggregates and
+redacted manifest metadata under `.cache/realtime-quality-backtest/` by
+default. The command writes exactly `summary.json`, `summary.md`,
+`metrics.json`, `metrics.md`, and `manifest.json`.
+
+The backtest workflow must not persist rows in Postgres, add migrations, add an
+Operations Console view, add public routes, block publishing, create evidence
+packets, update consumer statuses, or copy raw operator input files. Maturity
+gate labels remain diagnostic-only: `insufficient_data`, `diagnostic_pass`, and
+`diagnostic_watch`.

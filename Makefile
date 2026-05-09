@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -116,6 +116,9 @@ test:
 realtime-quality:
 	go test ./internal/realtimequality
 
+realtime-quality-backtest:
+	go run ./cmd/realtime-quality-backtest --observed testdata/realtime-quality-backtest/observed-events.json --predictions testdata/realtime-quality-backtest/prediction-samples.json
+
 test-integration: migrate-status
 	@echo "Phase 9 production-closure integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, device auth, assignment race, and hardening tests use isolated temporary databases when supported."
 	@INTEGRATION_TESTS=1 go test ./...
@@ -164,6 +167,7 @@ validate:
 	@test -f scripts/validator-health.sh
 	@test -f scripts/operations-notify.sh
 	@test -f scripts/telemetry-simulator.sh
+	@test -f cmd/realtime-quality-backtest/main.go
 	@sh -n scripts/agency-pilot-onboard.sh
 	@sh -n scripts/operator-smoke.sh
 	@sh -n scripts/support-bundle.sh
@@ -184,6 +188,9 @@ validate:
 	@scripts/telemetry-simulator.sh --help >/dev/null
 	@scripts/telemetry-simulator.sh --list-scenarios >/dev/null
 	@OUTPUT_DIR=.cache/validate/telemetry-simulator scripts/telemetry-simulator.sh --scenario on-route --dry-run --force >/dev/null
+	@go run ./cmd/realtime-quality-backtest --help >/dev/null
+	@rm -rf .cache/validate/realtime-quality-backtest
+	@go run ./cmd/realtime-quality-backtest --observed testdata/realtime-quality-backtest/observed-events.json --predictions testdata/realtime-quality-backtest/prediction-samples.json --output-dir .cache/validate/realtime-quality-backtest --generated-at 2026-05-09T20:00:00Z >/dev/null
 	@test -f docs/integration-adapter-kit.md
 	@test -f docs/phase-39-calitp-readiness-workflow.md
 	@test -f docs/handoffs/phase-39.md
@@ -248,6 +255,7 @@ validate:
 	@test -f internal/prediction/deterministic.go
 	@test -f internal/prediction/postgres_operations.go
 	@test -f internal/realtimequality/replay.go
+	@test -f internal/realtimequality/backtest.go
 	@test -f internal/avladapter/adapter.go
 	@test -f cmd/avl-vendor-adapter/main.go
 	@test -f internal/gtfs/importer.go
@@ -263,6 +271,7 @@ validate:
 	@test -d testdata/gtfs/malformed
 	@test -d testdata/telemetry
 	@test -d testdata/replay
+	@test -d testdata/realtime-quality-backtest
 	@test -d testdata/avl-vendor
 	@echo "Validation smoke passed. Canonical validators run through server-side allowlisted IDs when configured."
 
