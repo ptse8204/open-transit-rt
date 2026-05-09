@@ -25,10 +25,25 @@ The current supported distribution anchors are:
 
 - source tags;
 - exact commit SHAs;
+- local release packages from `make release-package`;
 - local Docker image builds from a checked-out tag;
 - checksums for any generated release artifact.
 
 Published/versioned production Docker images are deferred. Do not claim a production image exists unless a future release adds and documents one.
+
+Phase 57 adds a local package helper:
+
+```bash
+make release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/<version> make audit-release-package
+```
+
+The helper creates a source archive from `git archive HEAD`, SHA-256 checksums,
+SBOM metadata, provenance metadata, and optional local image metadata when
+`RELEASE_PACKAGE_IMAGE_TAG` is supplied. It writes ignored `.cache` output and
+does not publish artifacts, push images, sign releases, contact registries, or
+create evidence. Dirty packages are diagnostics only and are marked not
+release-ready.
 
 Operators can pin a local Docker image to the release tag:
 
@@ -49,6 +64,7 @@ make validate
 make test
 make realtime-quality
 make smoke
+make test-release-package
 docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```

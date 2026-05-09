@@ -14,6 +14,8 @@ Source:
 - Dirty/clean state: `<output of git describe --tags --always --dirty>`
 - Release notes link: `<link>`
 - Artifact checksums: `<links or None>`
+- Release package: `<.cache path, release asset link, or None>`
+- SBOM/provenance: `<status or None>`
 
 ## Summary
 
@@ -27,6 +29,7 @@ Source:
 
 - Clean install from source tag: `<supported / notes>`
 - Local app verification: `<commands or link>`
+- Local release package: `<package path and audit result or None>`
 - Local Docker image build: `<image tag or None>`
 - Published production Docker image: `None; deferred unless a future release says otherwise.`
 
@@ -77,6 +80,7 @@ Record final check results:
 ```bash
 make validate
 make test
+make test-release-package
 make realtime-quality
 make smoke
 docker compose -f deploy/docker-compose.yml config

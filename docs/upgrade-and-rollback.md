@@ -56,6 +56,18 @@ If an artifact file is generated, produce and retain a checksum:
 shasum -a 256 path/to/artifact > path/to/artifact.sha256
 ```
 
+Phase 57 adds a local release package helper that creates a source archive,
+checksums, SBOM metadata, and provenance metadata under ignored `.cache`:
+
+```bash
+RELEASE_PACKAGE_VERSION=v0.22.0 make release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 make audit-release-package
+```
+
+Release packages are install/review artifacts only. They are not retained
+evidence, hosted service proof, production-readiness proof, consumer acceptance
+proof, or compliance proof.
+
 ## Backup Before Upgrade
 
 Always take a database backup before changing source tags, binaries, images, or
@@ -153,6 +165,7 @@ After restore, rerun the minimum verification commands:
 ```bash
 make validate
 make test
+make test-release-package
 make realtime-quality
 make smoke
 docker compose -f deploy/docker-compose.yml config

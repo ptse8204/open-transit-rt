@@ -2,9 +2,10 @@
 
 ## Status
 
-Planning accepted. Execution may add local release package generation, release
-package audit tooling, checksums, SBOM/provenance metadata, tests, Make targets,
-and docs/status/handoff updates. It must not publish artifacts, push images,
+Complete for the approved local release packaging and supply-chain scaffolding
+scope. Phase 57 added local release package generation, release package audit
+tooling, checksums, SBOM/provenance metadata, tests, Make targets, and
+docs/status/handoff updates. It does not publish artifacts, push images,
 contact external services, or claim hosted service availability.
 
 ## Goal
@@ -225,6 +226,35 @@ scaffolding only and no hosted service, production image publication,
 production-readiness, compliance, consumer acceptance, agency adoption,
 marketplace approval, vendor compatibility, SLA/uptime, retained evidence, or
 production-grade ETA claim.
+
+## Implementation Summary
+
+Phase 57 added:
+
+- `scripts/release-package.sh`
+- `scripts/audit-release-package.sh`
+- `scripts/test-release-package.sh`
+- `make release-package`
+- `make audit-release-package`
+- `make test-release-package`
+
+The generator creates local ignored `.cache/release-package/<version>/` output
+from `git archive HEAD`. It writes source archive, checksums, provenance,
+SBOM, image metadata, manifest, and summary files. The default Make target
+allows dirty local diagnostics but marks dirty packages as not release-ready;
+strict release use can set `RELEASE_PACKAGE_ALLOW_DIRTY=false` and
+`RELEASE_PACKAGE_STRICT=true`.
+
+The audit helper validates the exact package file set, JSON structure,
+checksums, false claim flags, unsafe/private strings, unsupported positive
+claim wording, and the seven-target prepared-only consumer tracker. It does not
+publish, upload, sign, retain evidence, or modify repository files.
+
+Phase 57 created no retained evidence, wrote nothing under `docs/evidence`,
+changed no consumer tracker state, published no artifacts, pushed no image, and
+made no hosted SaaS, hosted service, production-readiness, compliance, agency
+adoption, consumer acceptance, vendor compatibility, marketplace approval,
+SLA/uptime, or production-grade ETA claim.
 
 ## Required Verification Commands
 

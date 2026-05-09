@@ -1125,3 +1125,49 @@ Phase 56 diagnostics are private engineering diagnostics only. They do not
 prove hosted SaaS availability, production multi-tenant hosting, SLA/uptime,
 production readiness, compliance, agency adoption, consumer acceptance, vendor
 compatibility, marketplace approval, or production-grade ETA quality.
+
+---
+
+## Phase 57 release package tooling
+
+### Classification
+Local release packaging and supply-chain review tooling
+
+### Purpose
+Create a local source release package with checksums, provenance metadata,
+Go-module SBOM metadata, and optional local image metadata for maintainer
+review.
+
+### Startup / provisioning
+- `scripts/release-package.sh` is exposed through `make release-package`.
+- `scripts/audit-release-package.sh` is exposed through
+  `make audit-release-package`.
+- `scripts/test-release-package.sh` is exposed through
+  `make test-release-package`.
+- Output defaults to ignored `.cache/release-package/<version>/`.
+
+### Integration boundary
+- The generator uses `git archive HEAD` for source archives and does not walk
+  the working tree.
+- The generator uses `go list -m -json all` for local Go-module SBOM metadata.
+- Optional image metadata is collected only when `RELEASE_PACKAGE_IMAGE_TAG` is
+  supplied; no image is built, pushed, signed, or published by default.
+- The tooling does not contact consumers, create retained evidence, write
+  `docs/evidence`, change consumer statuses, upload release assets, or create
+  external attestations.
+
+### Failure behavior
+- The generator fails on unsafe versions, unsafe output paths, evidence-like
+  output paths, symlink ancestors, non-empty output reuse without force, dirty
+  checkout when dirty diagnostics are not explicitly allowed, and strict-mode
+  metadata failures.
+- The audit fails on file-set drift, invalid JSON, checksum drift, true claim
+  flags, unsafe/private strings, unsupported positive claim wording, and
+  consumer tracker drift.
+
+### Claim boundary
+Release package output is local install/review metadata only. It does not prove
+hosted SaaS availability, hosted service operation, production image
+publication, production readiness, compliance, agency adoption, consumer
+acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
+production-grade ETA quality.

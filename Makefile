@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-package audit-release-package test-release-package collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -88,6 +88,15 @@ multi-agency-hosting:
 
 test-multi-agency-hosting:
 	@./scripts/test-multi-agency-hosting.sh
+
+release-package:
+	@RELEASE_PACKAGE_ALLOW_DIRTY=$${RELEASE_PACKAGE_ALLOW_DIRTY:-true} ./scripts/release-package.sh
+
+audit-release-package:
+	@./scripts/audit-release-package.sh
+
+test-release-package:
+	@./scripts/test-release-package.sh
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -196,6 +205,9 @@ validate:
 	@test -f scripts/operations-reliability.sh
 	@test -f scripts/multi-agency-hosting.sh
 	@test -f scripts/test-multi-agency-hosting.sh
+	@test -f scripts/release-package.sh
+	@test -f scripts/audit-release-package.sh
+	@test -f scripts/test-release-package.sh
 	@test -f scripts/collect-final-root-evidence.sh
 	@test -f scripts/audit-final-root-evidence.sh
 	@test -f scripts/test-final-root-evidence.sh
@@ -213,6 +225,9 @@ validate:
 	@sh -n scripts/operations-reliability.sh
 	@sh -n scripts/multi-agency-hosting.sh
 	@sh -n scripts/test-multi-agency-hosting.sh
+	@sh -n scripts/release-package.sh
+	@sh -n scripts/audit-release-package.sh
+	@sh -n scripts/test-release-package.sh
 	@sh -n scripts/collect-final-root-evidence.sh
 	@sh -n scripts/audit-final-root-evidence.sh
 	@sh -n scripts/test-final-root-evidence.sh
@@ -234,6 +249,11 @@ validate:
 	@OUTPUT_DIR=.cache/validate/operations-reliability FORCE=true VALIDATOR_HEALTH_SUMMARY=.cache/validate/missing-validator/summary.json DEPLOYMENT_DOCTOR_SUMMARY=.cache/validate/missing-doctor/summary.json OPERATIONS_NOTIFY_SUMMARY=.cache/validate/missing-notify/summary.json scripts/operations-reliability.sh --dry-run >/dev/null
 	@scripts/multi-agency-hosting.sh --help >/dev/null
 	@OUTPUT_DIR=.cache/validate/multi-agency-hosting FORCE=true scripts/multi-agency-hosting.sh >/dev/null
+	@scripts/release-package.sh --help >/dev/null
+	@scripts/audit-release-package.sh --help >/dev/null
+	@rm -rf .cache/validate/release-package
+	@RELEASE_PACKAGE_VERSION=v0.0.0-validate RELEASE_PACKAGE_OUTPUT_DIR=.cache/validate/release-package RELEASE_PACKAGE_FORCE=true RELEASE_PACKAGE_ALLOW_DIRTY=true scripts/release-package.sh >/dev/null
+	@RELEASE_PACKAGE_DIR=.cache/validate/release-package scripts/audit-release-package.sh >/dev/null
 	@scripts/collect-final-root-evidence.sh --help >/dev/null
 	@scripts/audit-final-root-evidence.sh --help >/dev/null
 	@rm -rf .cache/validate/final-root-evidence
@@ -248,6 +268,7 @@ validate:
 	@test -f docs/handoffs/phase-55.md
 	@test -f docs/phase-56-multi-agency-hosting-hardening.md
 	@test -f docs/handoffs/phase-56.md
+	@test -f docs/phase-57-release-packaging-and-supply-chain.md
 	@test -f docs/evidence/templates/final-root-approval-template.md
 	@test -f docs/evidence/templates/final-root-public-fetch-template.md
 	@test -f docs/evidence/templates/final-root-validator-template.md

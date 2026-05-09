@@ -233,7 +233,7 @@ phase handoff is created.
 | 54 | Official Requirements Refresh | Complete. Re-checked current official public sources and updated requirement mapping without creating evidence or compliance claims. |
 | 55 | Compliance Evidence Packet Generator | Complete. Generates ignored `.cache` blocker/draft readiness packets with strict claim-gated audit. |
 | 56 | Multi-Agency Hosting Hardening | Complete. Tenant-safe public feed routing, proxy checks, private diagnostics, and backup/restore/export/evidence boundaries without hosted SaaS or production multi-tenant claims. |
-| 57 | Release Packaging And Supply Chain | Versioned install artifacts, optional images, checksums, SBOM/provenance where practical. |
+| 57 | Release Packaging And Supply Chain | Complete. Local `.cache` source packages with checksums, SBOM/provenance metadata, optional local image metadata, and audit checks; no hosted service or production image claim. |
 | 58 | Optional Marketplace / Vendor-Equivalent Pack | BYOD/hardware path, support boundaries, implementation templates, SLA/KPI templates. |
 | 59 | Real Pilot Closeout | Run a real authorized pilot and retain public-safe feedback, operations, and blocker/continue evidence. |
 | 60 | Final Claim Review And Public Closeout | Decide exactly what may be claimed after evidence and official requirements review. |
@@ -903,7 +903,30 @@ approval, or compliance claim.
 
 ### Goal
 
-Make installation and upgrade practical from versioned releases.
+Make installation and upgrade practical from versioned local release packages.
+
+### Artifacts
+
+- complete for the current scope: local source package generation from
+  `git archive HEAD`;
+- complete for the current scope: SHA-256 checksum manifest;
+- complete for the current scope: Go-module SBOM metadata;
+- complete for the current scope: local provenance metadata;
+- complete for the current scope: optional local image metadata when an
+  operator supplies an image tag;
+- complete for the current scope: audit and mutation tests.
+
+### Definition Of Done
+
+Maintainers can create and audit a local release package without publishing
+artifacts or making hosted-service claims.
+
+### Non-Goals
+
+No registry push, production image publication, hosted service claim,
+production-readiness claim, compliance claim, consumer acceptance claim, agency
+adoption claim, marketplace approval, vendor compatibility claim, SLA/uptime
+claim, or retained evidence creation.
 
 ### Artifacts
 

@@ -374,3 +374,24 @@ blocked until a later approved phase defines a safe tested contract.
 This decision does not create a hosted SaaS, production multi-tenant hosting,
 SLA/uptime, compliance, agency adoption, consumer acceptance, vendor
 compatibility, marketplace approval, or production-grade ETA claim.
+
+## ADR-0036 — Keep release packages local and auditable
+
+Phase 57 adds local release package generation and audit tooling. The package
+source archive is created from `git archive HEAD` so it does not recursively
+copy `.env`, `.cache`, raw logs, private operator artifacts, generated evidence,
+or other working-tree-only files.
+
+Release packages include checksums, provenance metadata, Go-module SBOM
+metadata, and optional local image metadata when an operator supplies an image
+tag. The tooling does not build or push images by default, upload artifacts,
+create GitHub releases, contact registries, sign attestations, or create
+retained evidence.
+
+Dirty packages are allowed for local diagnostics through the Make target and
+are marked not release-ready. Actual release use should run from a clean
+checkout with strict settings and an audited checksum manifest.
+
+This decision does not create a hosted service, production image publication,
+production-readiness, compliance, agency adoption, consumer acceptance, vendor
+compatibility, marketplace approval, SLA/uptime, or production-grade ETA claim.

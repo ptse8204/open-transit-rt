@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 56 — Multi-Agency Hosting Hardening is closed for the approved
-repository-boundary hardening scope.
+Phase 57 — Release Packaging And Supply Chain is closed for the approved local
+release packaging and supply-chain scaffolding scope.
 
-Phases 0 through 56 are closed for their documented scopes. Track A is also
+Phases 0 through 57 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -15,33 +15,31 @@ onboarding, admin-UX, operations-hardening, pilot-readiness,
 submission-readiness, public-messaging, public-GTFS evidence, or
 self-hosted-reuse issue directly requires it.
 
-Phase 56 added `internal/tenant`, validated path-routed public feed endpoints,
-local/OCI Caddy route matchers, `scripts/multi-agency-hosting.sh`,
-`scripts/test-multi-agency-hosting.sh`, Make targets, validation scaffolding,
-and `docs/handoffs/phase-56.md`. Existing single-agency public feed routes are
-preserved, and the new public route contract is:
+Phase 57 added `scripts/release-package.sh`,
+`scripts/audit-release-package.sh`, `scripts/test-release-package.sh`, Make
+targets, validation scaffolding, and `docs/handoffs/phase-57.md`. The generator
+creates ignored `.cache/release-package/<version>/` packages from
+`git archive HEAD` with:
 
-- `/public/agencies/{agency_id}/feeds.json`
-- `/public/agencies/{agency_id}/gtfs/schedule.zip`
-- `/public/agencies/{agency_id}/gtfsrt/vehicle_positions.pb`
-- `/public/agencies/{agency_id}/gtfsrt/trip_updates.pb`
-- `/public/agencies/{agency_id}/gtfsrt/alerts.pb`
+- source archive;
+- `checksums/SHA256SUMS.txt`;
+- provenance metadata;
+- Go-module SBOM metadata;
+- optional local image metadata when `RELEASE_PACKAGE_IMAGE_TAG` is supplied;
+- summary and manifest files.
 
-Per-agency public JSON/debug routes were not added. Existing JSON debug routes
-remain authenticated. The OCI public edge exposes only public feed paths.
-`scripts/multi-agency-hosting.sh` writes exactly `summary.json`, `summary.md`,
-`manifest.json`, and `manifest.md` under ignored
-`.cache/multi-agency-hosting/<UTC timestamp>/` by default, rejects symlink,
-traversal, and evidence-like output paths, records false claim flags, and
-documents tenant restore into a shared live database as blocked.
+The audit helper validates exact file sets, JSON, checksums, false claim flags,
+unsafe/private strings, unsupported positive claim wording, and the
+seven-target prepared-only consumer tracker.
 
-Phase 56 created no retained evidence, contacted no consumers, changed no
+Phase 57 created no retained evidence, published no artifacts, pushed no
+images, created no GitHub release, contacted no consumers, changed no
 consumer-submission current records or artifact directories, changed no
 `docs/evidence/consumer-submissions/status.json`, wrote nothing under
-`docs/evidence/captured`, enabled no tenant restore into a shared live
-database, and made no hosted SaaS, production multi-tenant hosting, SLA/uptime,
-production-readiness, compliance, agency adoption, consumer acceptance, vendor
-compatibility, marketplace approval, or production-grade ETA claim.
+`docs/evidence/captured`, and made no hosted service, hosted SaaS, production
+image publication, production-readiness, compliance, agency adoption, consumer
+acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
+production-grade ETA claim.
 
 Phase 32 produced draft public launch materials only. No announcement was posted, no social copy was published, no agency was contacted, no reporter was contacted, no consumer or aggregator was contacted, and no public launch occurred.
 
@@ -1000,7 +998,9 @@ operations-notification, AVL send, predictor adapter, backtesting,
 operations-reliability, final-root workflow, or authorized consumer-submission
 boundary regression is found. Do not reopen Phase 56 unless a concrete
 tenant-route, proxy exposure, backup/restore/export, evidence-boundary, or
-hosted-claim regression is found.
+hosted-claim regression is found. Do not reopen Phase 57 unless a concrete
+release package, checksum, SBOM/provenance, image metadata, audit, or
+hosted-service claim regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -1019,11 +1019,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 57 -- Release Packaging And Supply Chain. Preserve
-supply-chain, release, image, checksum, SBOM/provenance, and hosted-service
-claim boundaries. Do not introduce a hosted service, production-readiness,
-agency adoption, consumer acceptance, marketplace approval, vendor
-compatibility, SLA, or compliance claim.
+Proceed to Phase 58 -- Optional Marketplace / Vendor-Equivalent Pack. Preserve
+BYOD/hardware, support, SLA/KPI template, procurement, marketplace approval,
+paid support, vendor compatibility, and hosted-service claim boundaries. Do not
+introduce a marketplace approval, paid support, hosted service,
+production-readiness, agency adoption, consumer acceptance, SLA, vendor
+compatibility, or compliance claim.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted
@@ -1041,7 +1042,7 @@ trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
 operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
 Phase 46 validator health, Phase 47 operations notification summaries, Phase
 50 realtime quality backtesting, Phase 51 operations reliability diagnostics,
-Phase 52 final-root workflow tooling, and Phase 56 multi-agency route/proxy
-diagnostics as the
+Phase 52 final-root workflow tooling, Phase 56 multi-agency route/proxy
+diagnostics, and Phase 57 release package tooling as the
 self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

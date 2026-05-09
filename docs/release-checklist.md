@@ -29,6 +29,7 @@ Choose a tag such as `v0.22.0` and record:
 - source tag, for example `v0.22.0`;
 - commit SHA from `git rev-parse HEAD`;
 - dirty/clean state from `git describe --tags --always --dirty`;
+- local release package directory and checksum manifest, if generated;
 - local Docker image tag, if built;
 - artifact checksum, if generated.
 
@@ -46,6 +47,16 @@ docker build -f deploy/Dockerfile.local \
 Published/versioned production Docker images are deferred. Current distribution
 guidance supports source tags and local Docker builds only.
 
+Phase 57 adds local release packages:
+
+```bash
+RELEASE_PACKAGE_VERSION=v0.22.0 make release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 make audit-release-package
+```
+
+Actual release packages should be generated from a clean checkout. Dirty
+packages are local diagnostics and are marked not release-ready.
+
 ## Required Final Checks
 
 Run and record all required checks:
@@ -53,6 +64,7 @@ Run and record all required checks:
 ```bash
 make validate
 make test
+make test-release-package
 make realtime-quality
 make smoke
 docker compose -f deploy/docker-compose.yml config
@@ -135,6 +147,11 @@ For operations-impacting releases, release notes should record:
 - rollback limits, especially irreversible or untested migrations;
 - evidence packet version linkage;
 - any secret rotation, incident, restore, or handover docs changed.
+
+For packaged releases, include the release package path, source archive
+checksum, SBOM status, provenance status, and whether any local image metadata
+was recorded. Do not describe local package generation as a hosted service,
+production image publication, or production-readiness proof.
 
 ## Tagging
 

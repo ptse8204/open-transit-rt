@@ -75,6 +75,12 @@ These questions do not block the next phase.
   diagnostics do not create evidence, do not prove hosted SaaS or production
   multi-tenant readiness, and tenant restore into a shared live database
   remains blocked.
+- Answered in Phase 57 for current release packaging: use
+  `make release-package` and `RELEASE_PACKAGE_DIR=<dir> make
+  audit-release-package` to create and audit local `.cache` source packages
+  with checksums, SBOM, and provenance metadata. These packages do not publish
+  artifacts, push images, create retained evidence, prove production readiness,
+  or prove hosted service availability.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

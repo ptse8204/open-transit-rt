@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 56 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 57 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -75,6 +75,14 @@ did not create retained evidence, change consumer statuses, enable tenant
 restore into a shared live database, or claim hosted SaaS, production
 multi-tenant hosting, SLA/uptime, production readiness, compliance, agency
 adoption, consumer acceptance, vendor compatibility, marketplace approval, or
+production-grade ETA quality. Phase 57 is complete for local release packaging
+and supply-chain scaffolding. It added ignored `.cache` source package
+generation from `git archive HEAD`, checksum manifests, SBOM/provenance
+metadata, optional local image metadata, release package audit tooling, and
+local tests. Phase 57 did not publish artifacts, push images, create retained
+evidence, write `docs/evidence`, change consumer statuses, or claim hosted
+service availability, production readiness, compliance, agency adoption,
+consumer acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
 production-grade ETA quality.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
@@ -702,15 +710,15 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 56 — Multi-Agency Hosting Hardening is complete for
-the approved repository-boundary hardening scope. Phases 0 through 56 are
-closed for their documented scopes. Phase 56 added tenant-safe public feed
-route validation, path-routed public feed endpoints, proxy route checks,
-private `.cache` diagnostics, and operations-boundary docs. It did not create
-retained evidence, change consumer statuses, contact consumers, enable tenant
-restore into a shared live database, or claim hosted SaaS, production
-multi-tenant hosting, SLA/uptime, production readiness, compliance, agency
-adoption, consumer acceptance, vendor compatibility, marketplace approval, or
+**Active phase:** Phase 57 — Release Packaging And Supply Chain is complete
+for the approved local packaging and supply-chain scaffolding scope. Phases 0
+through 57 are closed for their documented scopes. Phase 57 added local
+`.cache` source release package generation, checksum manifests,
+SBOM/provenance metadata, optional local image metadata, audit tooling, and
+tests. It did not publish artifacts, push images, create retained evidence,
+change consumer statuses, contact consumers, or claim hosted service
+availability, production readiness, compliance, agency adoption, consumer
+acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
 production-grade ETA quality. The next recommended phase should continue from
 the latest handoff and preserve the same evidence and claim boundaries. Track A —
 External Proof And Adoption is complete for the documented docs-only operator
@@ -1551,10 +1559,53 @@ Phase 56 master verification:
 - `docker compose -f deploy/docker-compose.yml config`: passed
 - `INTEGRATION_TESTS=1 make test-integration`: passed
 
+## Phase 57 Progress
+
+Phase 57 closed for the local release packaging and supply-chain scaffolding
+scope:
+- added `scripts/release-package.sh`
+- added `scripts/audit-release-package.sh`
+- added `scripts/test-release-package.sh`
+- added Make targets for generation, audit, and local script tests
+- release packages default to ignored `.cache/release-package/<version>/`
+- source archives are created from `git archive HEAD`
+- generated packages include SHA-256 checksums, provenance metadata,
+  Go-module SBOM metadata, optional local image metadata, summary, and manifest
+- no artifact was published
+- no image was pushed
+- no retained evidence packet was created
+- no consumer was contacted and no consumer tracker status changed
+- `docs/evidence/consumer-submissions/status.json`, current target records,
+  target artifact directories, packets, and `docs/evidence/captured` were left
+  unchanged
+- all seven consumer and aggregator targets remain `prepared`
+- did not add or claim hosted service availability, hosted SaaS, production
+  image publication, production readiness, compliance, agency adoption,
+  consumer acceptance, vendor compatibility, marketplace approval, SLA/uptime,
+  or production-grade ETA quality
+
+Phase 57 master verification:
+- `sh -n scripts/release-package.sh scripts/audit-release-package.sh scripts/test-release-package.sh`: passed
+- `./scripts/test-release-package.sh`: passed
+- `make release-package`: passed
+- `RELEASE_PACKAGE_DIR=<generated-dir> make audit-release-package`: passed
+- `make validate`: passed
+- `make test`: passed
+- `make smoke`: passed
+- `git diff --check`: passed
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`: passed
+- exact seven-target prepared-only consumer tracker check: passed
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json`: passed
+- `git diff --exit-code -- docs/evidence/consumer-submissions/current docs/evidence/consumer-submissions/artifacts docs/evidence/consumer-submissions/packets docs/evidence/captured`: passed
+- `find docs/evidence/consumer-submissions/artifacts -mindepth 2 -maxdepth 2 -type f ! -name README.md -print`: passed; printed no files
+- `docker compose -f deploy/docker-compose.yml config`: passed
+- `INTEGRATION_TESTS=1 make test-integration`: passed
+
 ## Next Recommended Step
 
-Proceed to Phase 57 -- Release Packaging And Supply Chain while preserving the
-evidence, supply-chain, and hosted-service claim boundaries.
+Proceed to Phase 58 -- Optional Marketplace / Vendor-Equivalent Pack while
+preserving BYOD/hardware, support, SLA/KPI template, procurement, and
+marketplace/vendor claim boundaries.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof
