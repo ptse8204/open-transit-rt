@@ -55,6 +55,13 @@ These questions do not block the next phase.
   artifact, and target-originated or operator-retained submission artifact, no
   target is selected, no submission is made, no artifact is added, and all seven
   consumer and aggregator targets remain `prepared`.
+- Answered in Phase 54 for official-source mapping: current Caltrans /
+  Cal-ITP and FTA source mappings were refreshed as docs-only requirements
+  context. The refresh does not create evidence, change consumer statuses,
+  prove compliance, prove consumer acceptance, prove final-root readiness,
+  prove hosted SaaS availability, prove production readiness, prove vendor
+  compatibility, create SLA/uptime evidence, or prove production-grade ETA
+  quality.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 
@@ -67,6 +74,10 @@ These questions do not block the next phase.
 ## Validation Tooling
 
 - Answered for the repo-supported path in Phase 9: MobilityData GTFS Validator `v7.1.0` and Docker-backed MobilityData GTFS-RT validator image digest in `tools/validators/validators.lock.json`.
+- Answered for Phase 54 source mapping: current official guidance still maps
+  compliant GTFS Schedule and GTFS Realtime wording to regular canonical
+  validation with no errors, but validation success remains separate from
+  consumer acceptance and compliance evidence for a specific deployment.
 - Open for deployments: whether a production environment should use the repo-supported Docker-backed GTFS-RT wrapper or document an equivalent checksum/digest contract for a native executable.
 
 ## Static GTFS Publication

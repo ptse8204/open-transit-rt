@@ -1,9 +1,10 @@
 # Roadmap To Cal-ITP Compliance And GTFS-RT Gap Closure
 
-**Status:** proposed review draft, not yet committed  
-**Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`  
-**Generated for review:** 2026-05-08  
-**Current repo baseline:** Phase 47 closed for private local operations notification summaries
+**Status:** proposed review draft, Phase 54 official-source mapping refreshed
+**Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`
+**Generated for review:** 2026-05-08
+**Phase 54 refresh date:** 2026-05-09
+**Current repo baseline:** Phase 54 closed for docs-only official-source requirement mapping refresh
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -25,10 +26,18 @@ docs, especially:
 - `docs/compliance-evidence-checklist.md`
 - `docs/master-plan-self-hosted-agency-reuse.md`
 - `docs/handoffs/latest.md`
+- `docs/phase-54-official-requirements-refresh.md`
+
+Phase 54 re-checked current official public sources on May 9, 2026. The
+Caltrans California Transit Data Guidelines page was current as Version 4.0
+with visible date December 11, 2024, and the FAQ was current as Version 4.0.
+The refresh mapped current guidance to repo requirements only. It did not
+create compliance evidence, consumer evidence, final-root evidence, or a
+readiness claim.
 
 Before any public compliance claim or final compliance closeout, a maintainer
-must re-check the current official Caltrans / Cal-ITP guidance and update this
-roadmap if the requirements have changed.
+must re-check the official Caltrans / Cal-ITP and FTA sources again and update
+this roadmap if the requirements have changed.
 
 The repo should keep using this wording until retained evidence supports more:
 
@@ -48,7 +57,7 @@ Open Transit RT is production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 47, Open Transit RT has:
+As of Phase 54, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -80,6 +89,11 @@ As of Phase 47, Open Transit RT has:
 - deterministic realtime-quality replay fixtures;
 - prepared consumer packets for seven targets;
 - hosted/operator OCI pilot evidence for the recorded pilot root.
+- current official-source requirement mappings for stable public schedule and
+  realtime URLs, all three realtime feed types, canonical no-error validation,
+  open licensing, major trip-planner acceptance as a third-party requirement,
+  provider website source-of-truth links, technical/feed contact, Transitland
+  and Mobility Database availability, and API-key registration constraints.
 
 The repo still lacks retained proof for:
 
@@ -95,6 +109,8 @@ The repo still lacks retained proof for:
 - production multi-tenant hosting;
 - hosted SaaS availability;
 - paid support/SLA commitments.
+
+Phase 54 does not reduce any of these evidence gaps.
 
 ## End State
 
@@ -180,11 +196,11 @@ RQ-4G. The roadmap below closes those requirements in stages.
 
 | Requirement | Current status | Roadmap closure path |
 | --- | --- | --- |
-| RQ-4A complete realtime feed set | all three GTFS-RT feed paths exist | Phases 44, 46, 50, 51 prove freshness, validation, and quality for real deployments |
-| RQ-4B stable public production URLs | stable paths exist; final root missing | Phases 42 and 52 create preflight and final-root evidence workflow |
-| RQ-4C validator-clean feeds | tooling exists; final no-error production evidence missing | Phases 45, 46, and 55 add triage, scheduled validators, and compliance packet generation |
-| RQ-4D open license and discoverability | metadata model exists; agency-approved metadata missing | Phases 43, 52, and 55 harden metadata workflow and final-root public discovery proof |
-| RQ-4E consumer ingestion workflow | prepared packets exist; no submissions or acceptance | Phases 53 and 55 handle authorized target submission and artifact-backed statuses |
+| RQ-4A complete realtime feed set | all three GTFS-RT feed paths exist; Phase 54 confirms Caltrans completeness maps to Trip Updates, Vehicle Positions, and Service Alerts | Phases 44, 46, 50, 51 prove freshness, validation, and quality for real deployments |
+| RQ-4B stable public production URLs | stable paths exist; final root missing; Phase 54 confirms stable public schedule and realtime URLs remain official-source requirements | Phases 42 and 52 create preflight and final-root evidence workflow |
+| RQ-4C validator-clean feeds | tooling exists; final no-error production evidence missing; Phase 54 confirms regular canonical validation with no errors remains required for compliant wording | Phases 45, 46, and 55 add triage, scheduled validators, and compliance packet generation |
+| RQ-4D open license and discoverability | metadata model exists; agency-approved metadata and source-of-truth website proof are missing; Phase 54 confirms provider/regional website links, technical contact, Transitland, and Mobility Database availability mappings | Phases 43, 52, and 55 harden metadata workflow and final-root public discovery proof |
+| RQ-4E consumer ingestion workflow | prepared packets exist; no submissions or acceptance; Phase 54 confirms major trip-planner acceptance is a separate third-party requirement | Phases 53 and 55 handle authorized target submission and artifact-backed statuses |
 | RQ-4F marketplace/vendor equivalence | explicitly not claimed | Phase 58 creates optional service/procurement pack without turning repo into SaaS |
 | RQ-4G dashboard and scorecard | readiness page exists | Phases 43, 51, and 55 improve operator remediation and exportable compliance reporting |
 
@@ -209,7 +225,7 @@ phase handoff is created.
 | 51 | Operations Reliability And SLO Readiness | Feed freshness, incident, backup/restore, alerting, and uptime evidence workflow. |
 | 52 | Final Public Root Evidence Workflow | Agency-owned or agency-approved root acquisition, DNS/TLS/public fetch/validator evidence. |
 | 53 | Authorized Consumer Submission Execution | Target-specific submission only with authorization and retained target-originated artifacts. |
-| 54 | Official Requirements Refresh | Re-check current Caltrans / Cal-ITP guidance and update requirement mapping. |
+| 54 | Official Requirements Refresh | Complete. Re-checked current official public sources and updated requirement mapping without creating evidence or compliance claims. |
 | 55 | Compliance Evidence Packet Generator | Generate deployment-specific compliance/readiness packets with strict claim gating. |
 | 56 | Multi-Agency Hosting Hardening | Tenant-safe routing, backup/restore/export/evidence, and operations model. |
 | 57 | Release Packaging And Supply Chain | Versioned install artifacts, optional images, checksums, SBOM/provenance where practical. |

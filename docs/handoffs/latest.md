@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 53 — Authorized Consumer Submission Execution is closed blocker-only for
-the approved scope.
+Phase 54 — Official Requirements Refresh is closed for the approved docs-only
+scope.
 
-Phases 0 through 53 are closed for their documented scopes. Track A is also
+Phases 0 through 54 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -159,6 +159,22 @@ artifact was added. All seven consumer and aggregator targets remain
 `prepared`. Phase 53 did not change
 `docs/evidence/consumer-submissions/status.json`, current target records,
 target artifact directories, or `docs/evidence/captured`.
+
+Phase 54 closed the official requirements refresh scope as docs-only. It
+re-checked current public Caltrans / Cal-ITP and FTA sources and refreshed
+requirement mappings for stable public GTFS Schedule and GTFS Realtime URLs,
+all three standard realtime feed types, canonical no-error validation, major
+trip-planner acceptance as a separate third-party requirement, open license
+visibility, provider or regional source-of-truth website links, technical/feed
+contact, Transitland and Mobility Database availability, and realtime API-key
+registration constraints. Phase 54 did not change code, migrations, runtime
+behavior, public routes, auth, validators, evidence files, consumer current
+records, consumer artifact directories, or
+`docs/evidence/consumer-submissions/status.json`. It did not create
+compliance evidence, change consumer statuses, or claim compliance, consumer
+acceptance, final-root readiness, agency adoption, hosted SaaS availability,
+production readiness, vendor compatibility, SLA/uptime, marketplace approval,
+or production-grade ETA quality.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
@@ -972,10 +988,10 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 54 -- Official Requirements Refresh. Use current official
-Caltrans / Cal-ITP sources where available, document any source-access blocker
-truthfully, and do not turn refreshed requirement mappings into a compliance
-claim.
+Proceed to Phase 55 -- Compliance Evidence Packet Generator. Use the Phase 54
+official-source mapping as requirements context only; packet generation must be
+deployment-specific, evidence-gated, human-reviewed, and must not create an
+automatic compliance claim.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

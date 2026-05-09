@@ -9,8 +9,50 @@ Agency-owned domain readiness is tracked separately in
 
 Official Caltrans reference points:
 
-- [California Transit Data Guidelines v4.0](https://dot.ca.gov/cal-itp/california-minimum-general-transit-feed-specification-gtfs-guidelines)
-- [California Transit Data Guidelines FAQ](https://dot.ca.gov/cal-itp/california-transit-data-guidelines-faqs)
+- [California Transit Data Guidelines, Version 4.0](https://dot.ca.gov/cal-itp/california-transit-data-guidelines)
+- [California Transit Data Guidelines FAQ, Version 4.0](https://dot.ca.gov/cal-itp/california-transit-data-guidelines-faqs-v4_0)
+- [Cal-ITP GTFS overview](https://dot.ca.gov/cal-itp/cal-itp-gtfs)
+- [Critical GTFS Validation Errors](https://dot.ca.gov/cal-itp/critical-gtfs-validation-errors)
+- [Website Model Language](https://dot.ca.gov/cal-itp/website-model-language)
+- [FTA 2025 NTD Reporting Policy Manual](https://www.transit.dot.gov/ntd/2025-ntd-reporting-policy-manual)
+
+Phase 54 re-checked these official public sources on May 9, 2026 and refreshed
+requirement mappings only. The refresh did not create evidence, change
+consumer statuses, or prove compliance.
+
+## Phase 54 Official-Source Mapping
+
+The current Caltrans Guidelines page identifies itself as Version 4.0, dated
+December 11, 2024. The FAQ page identifies itself as Version 4.0.
+
+Current official-source mappings recorded by Phase 54:
+
+- GTFS Schedule compliance characteristics include public availability at a
+  stable URL, regular canonical validation with no errors, acceptance by major
+  trip planners, and an explicit open data license.
+- GTFS Realtime compliance characteristics include public availability at
+  stable URLs, regular canonical validation with no errors, acceptance by major
+  trip planners, and an explicit open data license.
+- Complete realtime availability includes all three standard GTFS Realtime
+  feed types: Trip Updates, Vehicle Positions, and Service Alerts.
+- Data availability expectations include provider or regional website
+  source-of-truth links for GTFS Schedule and all three realtime feeds,
+  technical contact or online contact routing, optional `feed_info.txt`
+  feed-contact fields, and availability through Transitland and Mobility
+  Database.
+- If a deployment chooses API-key authentication for realtime feeds, the
+  registration process must be easy to discover, quick, automated,
+  transparent about terms and rate limits, and suitable for HTTPS requests.
+- The FTA 2025 NTD Reporting Policy Manual requires applicable fixed-route NTD
+  reporters to maintain a public-domain GTFS dataset and a publicly accessible,
+  persistent, machine-readable, non-password-protected link for collecting the
+  GTFS ZIP.
+
+These mappings are requirements context only. They are not retained deployment
+evidence and do not prove agency adoption, final-root readiness, consumer
+acceptance, hosted SaaS availability, production readiness,
+marketplace/vendor equivalence, SLA/uptime, vendor compatibility, or
+production-grade ETA quality.
 
 ## Code-Complete Capability
 
@@ -139,6 +181,13 @@ The following evidence remains missing before stronger CAL-ITP/Caltrans readines
 - agency-approved identity, license, and contact metadata for any real provider submission;
 - current production validation records for the final agency-owned or
   agency-approved URL root;
+- provider or agreed regional source-of-truth pages that publish the canonical
+  GTFS Schedule and all three GTFS Realtime links;
+- public technical contact or online contact workflow for GTFS data quality
+  matters, plus feed contact fields where supported;
+- Transitland and Mobility Database availability records if discoverability
+  through those aggregators is being claimed;
+- documented API-key registration terms if realtime authentication is used;
 - retained redacted submission receipts or tickets for each named consumer or aggregator;
 - retained under-review, rejection, blocker, or acceptance evidence from each named consumer or aggregator when such status is claimed;
 - consumer acceptance or ingestion proof for the exact feed scope and URL root being claimed;

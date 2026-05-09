@@ -10,26 +10,44 @@ It uses the truthfulness guardrail in `docs/prompts/calitp-truthfulness.md`: the
 
 Use these official sources when discussing California-facing readiness:
 
-- [Caltrans California Transit Data Guidelines v3.1](https://dot.ca.gov/cal-itp/california-transit-data-guidelines-v3_1)
-- [Caltrans California Transit Data Guidelines FAQ](https://dot.ca.gov/cal-itp/california-transit-data-guidelines-faqs-v3_0)
+- [Caltrans California Transit Data Guidelines, Version 4.0](https://dot.ca.gov/cal-itp/california-transit-data-guidelines)
+- [Caltrans California Transit Data Guidelines FAQ, Version 4.0](https://dot.ca.gov/cal-itp/california-transit-data-guidelines-faqs-v4_0)
 - [Cal-ITP GTFS overview](https://dot.ca.gov/cal-itp/cal-itp-gtfs)
-- [GTFS Realtime Best Practices](https://gtfs.org/documentation/realtime/realtime-best-practices/)
+- [Caltrans Critical GTFS Validation Errors](https://dot.ca.gov/cal-itp/critical-gtfs-validation-errors)
+- [Caltrans Website Model Language](https://dot.ca.gov/cal-itp/website-model-language)
+- [FTA 2025 NTD Reporting Policy Manual](https://www.transit.dot.gov/ntd/2025-ntd-reporting-policy-manual)
 
-The Phase 20 prompt identifies the current Caltrans California Transit Data Guidelines v4.0 context as describing GTFS Schedule and GTFS Realtime compliance in terms that include stable public URLs, regular canonical validation with no errors, open licensing, and ingestion by major trip planners. For realtime completeness, that context includes all three standard GTFS Realtime feed types: Trip Updates, Vehicle Positions, and Alerts.
+Phase 54 re-checked these official public sources on May 9, 2026. The current
+Caltrans Guidelines page identifies itself as Version 4.0, dated December 11,
+2024, and the FAQ identifies itself as Version 4.0. This source refresh updates
+requirement mapping only; it is not compliance evidence.
+
+The current Caltrans California Transit Data Guidelines describe GTFS Schedule
+and GTFS Realtime compliance in terms that include stable public URLs, regular
+canonical validation with no errors, open licensing, and ingestion by major trip
+planners. For realtime completeness, that context includes all three standard
+GTFS Realtime feed types: Trip Updates, Vehicle Positions, and Service Alerts.
+The Guidelines also map data availability to provider or regional
+source-of-truth website links, a technical contact or online contact workflow,
+aggregator availability through Transitland and Mobility Database, and
+transparent API-key registration constraints if realtime authentication is
+used. The FTA 2025 NTD manual separately requires applicable fixed-route NTD
+reporters to maintain a public-domain GTFS dataset and a publicly accessible,
+persistent, machine-readable, non-password-protected GTFS ZIP link.
 
 ## Evidence Categories
 
 | Area | Implemented in repo | Requires deployment/operator proof | Requires third-party confirmation |
 | --- | --- | --- | --- |
-| Stable public feed URLs | Stable public paths exist for `/public/gtfs/schedule.zip`, `/public/feeds.json`, `/public/gtfsrt/vehicle_positions.pb`, `/public/gtfsrt/trip_updates.pb`, and `/public/gtfsrt/alerts.pb`. `published_feed` stores canonical URLs. | Public HTTPS host, reverse proxy routing, anonymous fetch proof, URL permanence across schedule updates and rollback. | Consumers must confirm they can fetch the deployment URLs if acceptance is claimed. |
+| Stable public feed URLs | Stable public paths exist for `/public/gtfs/schedule.zip`, `/public/feeds.json`, `/public/gtfsrt/vehicle_positions.pb`, `/public/gtfsrt/trip_updates.pb`, and `/public/gtfsrt/alerts.pb`. `published_feed` stores canonical URLs. | Public HTTPS host, reverse proxy routing, anonymous fetch proof, URL permanence across schedule updates and rollback. If realtime API keys are used, registration must be discoverable, automated, transparent, and nondiscriminatory. | Consumers must confirm they can fetch the deployment URLs if acceptance is claimed. |
 | Public publication | Public protobuf and schedule ZIP endpoints are anonymous by design; the Phase 10 demo fetches them through a local public proxy. | Internet-reachable HTTPS deployment, no login wall, uptime evidence, cache/header behavior verified against the live host. | Major consumers must confirm successful automated fetches when claiming ingestion. |
-| Open license and contact metadata | `feed_config`, `published_feed`, `/public/feeds.json`, and scorecards carry license/contact fields. | Agency-approved open data license, monitored technical contact, provider website or metadata page exposing those values publicly. | Consumers or aggregators may request confirmation that license/contact metadata is acceptable. |
+| Open license and contact metadata | `feed_config`, `published_feed`, `/public/feeds.json`, and scorecards carry license/contact fields. | Agency-approved open data license, monitored technical contact, provider or agreed regional website exposing feed links and metadata publicly, and feed contact fields where supported by the active GTFS feed. | Consumers or aggregators may request confirmation that license/contact metadata is acceptable. |
 | Static GTFS Schedule | ZIP import, GTFS Studio publish, active feed versions, and `/public/gtfs/schedule.zip` are implemented from database-backed published GTFS. | Current active agency schedule, public fetch evidence, canonical validator result for the deployed schedule, operational publish/rollback procedure. | Trip planners must accept or ingest the static GTFS feed before acceptance can be claimed. |
 | Vehicle Positions | DB-backed GTFS-RT Vehicle Positions protobuf generation from latest accepted telemetry plus current assignments is implemented. | Real device telemetry, freshness monitoring, validator result for the deployed feed, evidence that stale/unmatched behavior matches agency policy. | Trip planners must accept or ingest the deployed Vehicle Positions feed if that is claimed. |
 | Trip Updates | Stable Trip Updates endpoint and internal deterministic `internal/prediction.Adapter` implementation exist; weak or unsupported cases are withheld. | Real operating data, coverage review, validator result, quality review, and agency approval that conservative schedule-deviation predictions are acceptable for the pilot. | Trip planners must accept or ingest the deployed Trip Updates feed; production-grade ETA quality requires additional evidence beyond repo tests. |
 | Alerts | Persisted Service Alerts authoring/lifecycle state and public GTFS-RT Alerts publication are implemented. | Operator workflow proof, live alert lifecycle evidence, validator result, and process for cancellations, disruptions, and expired alerts. | Consumers must accept or ingest the deployed Alerts feed if that is claimed. |
 | Canonical validator workflow | Pinned MobilityData static validator install/check path, Docker-backed pinned GTFS-RT validator wrapper, allowlisted `/admin/validation/run`, and normalized `validation_report` records are implemented. | Latest production validation records for schedule, Vehicle Positions, Trip Updates, and Alerts; no-error results before making compliance claims. | Consumer acceptance is separate from validation and must not be inferred from validator success alone. |
-| Consumer-ingestion workflow records | `consumer_ingestion` records and admin APIs track workflow status and packet JSON. Default seeded consumers are Google Maps, Apple Maps, Transit App, Bing Maps, and Moovit. | Actual submitted packet, submission dates, rejection/accepted notes, and operator-maintained records. Mobility Database and transit.land may be tracked as workflow records but are not seeded default integrations. | Only the named consumer or aggregator can confirm acceptance, ingestion, or production use. |
+| Consumer-ingestion workflow records | `consumer_ingestion` records and admin APIs track workflow status and packet JSON. Default seeded consumers are Google Maps, Apple Maps, Transit App, Bing Maps, and Moovit. | Actual submitted packet, submission dates, rejection/accepted notes, and operator-maintained records. Mobility Database and Transitland availability require retained records before being claimed. | Only the named consumer or aggregator can confirm acceptance, ingestion, listing, display, or production use. |
 | Deployment, security, and operations | Production secret checks, admin JWT/cookie auth, CSRF for browser unsafe methods, device token binding, request IDs, readiness checks, and optional `/metrics` output are implemented. | HTTPS/TLS, backups, process supervision, log retention, monitoring/alerting, incident response, key rotation, role assignments, and deployment runbooks. | Third parties do not prove these items except where a consumer requires operational evidence. |
 | Readiness workflow | `/admin/operations/readiness` shows CAL-ITP-style readiness rows with status source, current evidence/signal, next action, and claim boundary. | Operators must supply deployment-specific URL, validation, metadata, telemetry, operations, and consumer artifacts before making stronger claims. | Third parties must still confirm submission, review, acceptance, ingestion, listing, or display when those statuses are claimed. |
 | Marketplace or vendor-equivalent capability | The repo records marketplace gaps and supports technical workflow evidence. | Service packaging, support runbooks, onboarding templates, SLA/KPI reporting, hardware/BYOD strategy, procurement artifacts, and operations staffing. | Marketplace listing, vendor approval, or consumer partnership status must come from the relevant external program or customer. |
@@ -41,9 +59,10 @@ Open Transit RT currently supports the technical foundations for the Caltrans/CA
 - Stable URL foundation: implemented as stable paths plus `published_feed.canonical_public_url`; deployment must prove real HTTPS permanence.
 - Public GTFS Schedule and GTFS Realtime publication: implemented locally for schedule, Vehicle Positions, Trip Updates, and Alerts; deployment must prove public reachability and no login wall.
 - Canonical validation workflow: implemented through pinned tooling and allowlisted validator IDs; deployment must run and store current no-error validation results before any compliant wording is justified.
-- Open license/contact metadata: implemented as metadata storage and `/public/feeds.json`; deployment must provide agency-approved values and public visibility.
+- Open license/contact metadata: implemented as metadata storage and `/public/feeds.json`; deployment must provide agency-approved values, provider or regional source-of-truth website visibility, and a technical contact or online contact workflow.
 - Consumer-ingestion workflow: implemented as records and packet storage; third-party acceptance must come from the specific consumer or aggregator.
 - Realtime completeness: all three standard GTFS-RT feed paths exist; deployment must prove live, validator-clean, fresh, and operationally useful feeds.
+- Aggregator availability: workflow records and prepared packet docs exist; deployment must retain records before claiming Transitland or Mobility Database availability.
 
 Truthful wording:
 

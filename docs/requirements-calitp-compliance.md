@@ -4,13 +4,47 @@ These requirements formalize the gap between the current starter plan and a syst
 
 ---
 
+## Phase 54 official-source refresh
+
+Phase 54 refreshed this mapping against official public sources available on
+May 9, 2026. This refresh records requirement mappings only. It is not
+deployment evidence, does not prove compliance, and does not change consumer
+submission status.
+
+| Source | URL | Visible version/date | Guidance category | Mapping impact |
+| --- | --- | --- | --- | --- |
+| Caltrans, California Transit Data Guidelines | `https://dot.ca.gov/cal-itp/california-transit-data-guidelines` | Version 4.0, December 11, 2024 | Current Caltrans guidance | Confirms the compliance characteristics for GTFS Schedule and GTFS Realtime: stable public URL, regular canonical validation with no errors, major trip-planner acceptance, and open license. Confirms realtime completeness covers Trip Updates, Vehicle Positions, and Service Alerts. |
+| Caltrans, California Transit Data Guidelines FAQ | `https://dot.ca.gov/cal-itp/california-transit-data-guidelines-faqs-v4_0` | Version 4.0 | Current Caltrans FAQ | Confirms aggregator publication paths, trip-planner publication guidance, open-license guidance, validator references, and public-data rationale. |
+| Caltrans, California Integrated Travel Project GTFS overview | `https://dot.ca.gov/cal-itp/cal-itp-gtfs` | No page-level version visible during Phase 54 review | Cal-ITP overview | Confirms GTFS/GTFS-RT as the California transit-data standard context and Cal-ITP assistance/contact framing. |
+| Caltrans, Critical GTFS Validation Errors | `https://dot.ca.gov/cal-itp/critical-gtfs-validation-errors` | No page-level version visible during Phase 54 review | Validator context | Confirms Caltrans-recognized validator tooling context and critical-error framing. |
+| Caltrans, Website Model Language | `https://dot.ca.gov/cal-itp/website-model-language` | No page-level version visible during Phase 54 review | Website/source-of-truth and licensing model language | Confirms stable feed URL, provider website listing, open usage terms, and designated technical-contact expectations. |
+| FTA, 2025 NTD Reporting Policy Manual | `https://www.transit.dot.gov/ntd/2025-ntd-reporting-policy-manual` | Page last updated April 15, 2026; PDF applies to Report Year 2025 | Federal GTFS reporting context | Confirms applicable NTD reporters with fixed-route modes must maintain a public-domain GTFS dataset and a publicly accessible persistent, machine-readable, non-password-protected link for GTFS ZIP collection. |
+
+Phase 54 also keeps the following separations explicit:
+
+- Caltrans compliance mapping is separate from marketplace/vendor-equivalence
+  positioning.
+- Major trip-planner acceptance is a third-party outcome, not something repo
+  code or validator results can prove.
+- Transitland and Mobility Database availability are data-availability and
+  discoverability recommendations, not evidence that a consumer accepted a
+  feed.
+- If realtime API keys are used, registration must be straightforward,
+  automated, transparent, and suitable for HTTPS request use; authenticated
+  realtime access still must not become a login wall or arbitrary approval
+  gate.
+
+---
+
 ## Scope clarification
 
 There are two separate targets:
 
 1. **Technical compliance target**
    - Static GTFS and GTFS-Realtime feeds meet Caltrans data-guideline expectations.
-   - Feeds are public, stable, validator-clean, openly licensed, and acceptable to major trip-planning consumers.
+   - Feeds are public, stable, regularly validator-clean with no errors,
+     openly licensed, discoverable from provider or regional source-of-truth
+     pages, and accepted by major trip-planning consumers.
 
 2. **Marketplace-vendor equivalence target**
    - The product also behaves like a California Mobility Marketplace vendor offering, including support, integrations, optional hardware path, documentation, and service packaging.
@@ -32,6 +66,8 @@ Publish the full GTFS-Realtime feed set expected for completeness:
 - Keep them publicly available.
 - Keep them synchronized against the same active published GTFS feed version.
 - Track health, freshness, and coverage for all three.
+- Preserve trip ID consistency across GTFS Schedule, Vehicle Positions, Trip
+  Updates, and Alerts where GTFS-RT references scheduled service.
 
 ### Acceptance criteria
 - All three feed URLs are live and documented.
@@ -54,6 +90,9 @@ Meet the requirement that feeds are publicly available at stable URLs and fetcha
 - URL permanence across dataset refreshes
 - HTTPS only
 - no login wall
+- if optional realtime API keys are used, registration is automated,
+  nondiscriminatory, transparent about terms/rate limits, and discoverable from
+  the provider or regional partner website
 - support provider-domain hosting or an operationally equivalent stable hostname
 - publish metadata page that lists:
   - feed URLs
@@ -94,7 +133,8 @@ Public datasets should regularly pass canonical validators with no errors.
 ## RQ-4D — Open license and discoverability
 
 ### Goal
-Meet expectations for open publication and clear licensing.
+Meet expectations for open publication, source-of-truth visibility, aggregator
+availability, and clear licensing.
 
 ### Required behaviors
 - Associate each published feed with an explicit open license.
@@ -103,8 +143,17 @@ Meet expectations for open publication and clear licensing.
   - feed URLs
   - provider name
   - technical contact
+  - feed contact in `feed_info.txt` when supported by the active GTFS feed
   - update timestamp
   - license
+- Publish or link the GTFS Schedule dataset from the provider website or a
+  regional partner website that is in agreement with the provider's canonical
+  feed.
+- Publish or link all three GTFS Realtime datasets from the provider website or
+  agreed regional partner website:
+  - Trip Updates
+  - Vehicle Positions
+  - Service Alerts
 - Support publishing or registration workflows for:
   - Mobility Database
   - transit.land
@@ -113,6 +162,8 @@ Meet expectations for open publication and clear licensing.
 - A public page exists for the feed set with license and contact info.
 - Feed metadata is sufficient to register with aggregators.
 - License is visible without logging in.
+- Provider or regional source-of-truth pages list the canonical schedule and
+  realtime feeds.
 
 ---
 

@@ -15,6 +15,10 @@ Use these files for current status before starting work:
 - `docs/handoffs/latest.md`
 - `docs/future-roadmap-post-outcome-c.md`
 
+Phase 54 refreshed official-source requirement mappings only. It did not close
+any deployment, consumer, final-root, operations, vendor, SLA, or ETA-quality
+evidence gap.
+
 ## Current Evidence Gaps
 
 - Agency-owned or agency-approved final public feed root proof.
@@ -37,6 +41,15 @@ Use these files for current status before starting work:
   with Homebrew Java 17 and reported process exit code `0`, system error count
   `0`, and 3 warning notices. That retry is not validator-clean or compliance
   evidence.
+- Provider or agreed regional source-of-truth website proof listing the
+  canonical GTFS Schedule and all three GTFS Realtime feed links for a final
+  deployment.
+- Public technical contact or feed-contact proof for a final deployment,
+  including feed-contact fields where supported by the active GTFS feed.
+- Transitland and Mobility Database availability proof for the exact final feed
+  scope if those discoverability claims are made.
+- Realtime API-key registration proof if a deployment chooses authenticated
+  realtime access.
 
 ## Current Product And Operations Gaps
 

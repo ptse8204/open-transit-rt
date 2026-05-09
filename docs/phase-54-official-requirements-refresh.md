@@ -2,9 +2,9 @@
 
 ## Status
 
-Planning accepted. Execution must be docs-only and must refresh requirement
-mappings from current official public sources without creating compliance
-evidence or a compliance claim.
+Complete for the approved docs-only execution scope. Phase 54 refreshed
+requirement mappings from current official public sources without creating
+compliance evidence, changing consumer statuses, or making a compliance claim.
 
 ## Goal
 
@@ -104,6 +104,45 @@ MobilityData pages as supporting references only where Caltrans points to them.
 If an official source cannot be reached during execution, document the URL,
 time, and error, and leave any unsupported mapping unchanged or marked blocked.
 
+## Phase 54 Source Review
+
+Execution reviewed the official public sources below on 2026-05-09. No access
+blocker was encountered for the cited source pages. Official public webpages
+are references only and are not retained deployment evidence.
+
+| Source title | URL | Visible version/date | Relevant guidance category | Repository mapping impact |
+| --- | --- | --- | --- | --- |
+| Caltrans, California Transit Data Guidelines | `https://dot.ca.gov/cal-itp/california-transit-data-guidelines` | Version 4.0, December 11, 2024 | Current Caltrans data-guideline source | Updated mappings for stable public schedule and realtime URLs, canonical no-error validation, major trip-planner acceptance, open license, realtime completeness across Trip Updates, Vehicle Positions, and Service Alerts, data availability, website source-of-truth links, technical contact, and realtime API-key constraints. |
+| Caltrans, California Transit Data Guidelines FAQ | `https://dot.ca.gov/cal-itp/california-transit-data-guidelines-faqs-v4_0` | Version 4.0 | Current Caltrans FAQ | Updated mappings for aggregator publication through Transitland and Mobility Database, trip-planner publication as a separate third-party workflow, open-license guidance, validator context, and public-data rationale. |
+| Caltrans, California Integrated Travel Project (Cal-ITP) GTFS overview | `https://dot.ca.gov/cal-itp/cal-itp-gtfs` | No page-level version visible during execution review | Cal-ITP GTFS overview and support context | Kept GTFS and GTFS Realtime as the California-facing transit-data standard context and retained Cal-ITP assistance/contact framing without treating it as compliance evidence. |
+| Caltrans, Critical GTFS Validation Errors | `https://dot.ca.gov/cal-itp/critical-gtfs-validation-errors` | No page-level version visible during execution review | Validator context | Kept canonical validator/no-error expectations in compliance mapping and maintained separation between validation results and consumer acceptance. |
+| Caltrans, Website Model Language | `https://dot.ca.gov/cal-itp/website-model-language` | No page-level version visible during execution review | Provider website, stable URL, usage terms, and technical-contact model language | Updated source-of-truth mapping for provider website feed links, stable GTFS and GTFS Realtime feed URLs, open terms, and designated technical contacts. |
+| FTA, 2025 NTD Reporting Policy Manual | `https://www.transit.dot.gov/ntd/2025-ntd-reporting-policy-manual` | Page last updated April 15, 2026; PDF applies beginning in NTD Report Year 2025 | Federal NTD GTFS reporting context | Updated mapping that applicable fixed-route NTD reporters must maintain a public-domain GTFS dataset and a publicly accessible persistent, machine-readable, non-password-protected link for collecting a GTFS ZIP. |
+
+## Mapping Outcome
+
+Phase 54 updated docs to reflect these conservative mappings:
+
+- GTFS Schedule and GTFS Realtime compliance characteristics include stable
+  public URLs, regular canonical validation with no errors, major trip-planner
+  acceptance, and explicit open license.
+- Complete realtime availability includes Trip Updates, Vehicle Positions, and
+  Service Alerts.
+- Provider or agreed regional websites should act as source-of-truth pages for
+  GTFS Schedule and all three GTFS Realtime feed links.
+- Technical contact or online contact routing belongs with the public feed
+  information, with feed-contact fields used where supported by the GTFS feed.
+- Transitland and Mobility Database availability are mapped as
+  discoverability/aggregator availability requirements.
+- Major trip-planner acceptance remains a third-party requirement separate
+  from repo capability, validation results, prepared packets, and public fetch
+  proof.
+- Realtime API-key authentication, if used, must have discoverable,
+  straightforward, quick, automated, transparent registration and HTTPS request
+  use. Phase 54 did not change current public-route or auth behavior.
+- Marketplace/vendor-equivalence requirements remain separate from Caltrans
+  data-guideline mapping.
+
 ## Implementation Details
 
 Add or update a Phase 54 source review section that records:
@@ -173,6 +212,9 @@ Close the phase by updating:
 
 The handoff must say that Phase 54 refreshed official-source mappings only and
 did not create evidence, change consumer statuses, or claim compliance.
+
+Closed in execution by updating the Phase 54 mapping docs, status docs,
+backlog/open-question docs, and handoff docs only.
 
 ## Required Verification Commands
 
