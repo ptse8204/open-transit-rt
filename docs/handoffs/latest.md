@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 52 — Final Public Root Evidence Workflow is planned and approved.
-Implementation has not started.
+Phase 52 — Final Public Root Evidence Workflow is closed blocker-only for the
+approved scope.
 
-Phases 0 through 51 are closed for their documented scopes. Track A is also
+Phases 0 through 52 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -136,17 +136,19 @@ gate, SLA claim, uptime guarantee, production-readiness claim, compliance
 claim, hosted SaaS claim, agency adoption claim, vendor compatibility claim,
 consumer acceptance claim, or production-grade ETA claim.
 
-Phase 52 planning is approved in
-`docs/phase-52-final-public-root-evidence-workflow.md`. Execution must add a
-guarded final-root workflow only. The default collector output must stay under
-ignored `.cache/final-root-evidence/<timestamp>` and blocker-only closure must
-leave `docs/evidence/captured` unchanged. Retained captured evidence is allowed
-only with a real final root, a real redacted approval artifact, explicit
-retention opt-in, and passing final-root audit preconditions. Phase 52 must not
-contact consumers, refresh prepared packets in blocker-only closure, change
-consumer statuses, or add compliance, agency adoption, hosted SaaS,
-production-readiness, SLA/uptime, vendor-compatibility, consumer-acceptance, or
-production-grade ETA claims.
+Phase 52 added the guarded final-root workflow from
+`docs/phase-52-final-public-root-evidence-workflow.md`. The repo now has
+`scripts/collect-final-root-evidence.sh`,
+`scripts/audit-final-root-evidence.sh`, `make collect-final-root-evidence`,
+`make audit-final-root-evidence`, final-root workflow templates under
+`docs/evidence/templates/`, and local-only script coverage. The default
+collector output stays under ignored `.cache/final-root-evidence/<timestamp>`.
+Retention under `docs/evidence/captured` requires explicit opt-in, a real final
+root, `ALLOW_CAPTURED_EVIDENCE_WRITE=true`, and a readable redacted approval
+artifact. Phase 52 closed blocker-only because no real final root or approval
+artifact was available in repo evidence; no real final-root evidence was
+retained, `docs/evidence/captured` was not changed, prepared consumer packets
+were not refreshed, and consumer statuses remain unchanged.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
@@ -930,13 +932,13 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 52 is planned; do not
+choosing files. Phase 52 is closed; do not
 reopen Phase 39, Phase 40, Phase 41, Phase 42, Phase 43, Phase 44, Phase 45,
-Phase 46, Phase 47, Phase 48, Phase 49, Phase 50, or Phase 51 unless a
+Phase 46, Phase 47, Phase 48, Phase 49, Phase 50, Phase 51, or Phase 52 unless a
 concrete readiness-workflow, guided-trial, diagnostics, support-bundle,
 deployment-doctor, local-routing, checklist, telemetry-simulator, GTFS quality
 triage, validator-health, operations-notification, AVL send, predictor adapter,
-backtesting, or operations-reliability regression is found.
+backtesting, operations-reliability, or final-root workflow regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -955,12 +957,11 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Execute Phase 52 from
-`docs/phase-52-final-public-root-evidence-workflow.md`. Preserve the
-blocker-safe default, no-consumer-status, no-consumer-contact, no-fake-evidence,
-no-public-runtime-route, and no unsupported-claim boundaries. If no real final
-root and redacted approval artifact are available, close blocker-only and leave
-`docs/evidence/captured` unchanged.
+Choose the next approved phase before editing. Future final-root work should
+use `make collect-final-root-evidence` and `make audit-final-root-evidence`
+only when a real final root and redacted approval artifact exist. Without those
+artifacts, keep using blocker-only closure and leave `docs/evidence/captured`
+unchanged.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
@@ -968,5 +969,6 @@ trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
 operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
 Phase 46 validator health, Phase 47 operations notification summaries, Phase
 50 realtime quality backtesting, and Phase 51 operations reliability
-diagnostics as the self-hosted/integration baseline.
+diagnostics, and Phase 52 final-root workflow tooling as the
+self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

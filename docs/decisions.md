@@ -332,3 +332,25 @@ consumer status change, publish gate, SLA claim, uptime guarantee,
 production-readiness claim, compliance claim, hosted SaaS claim, agency
 adoption claim, consumer acceptance claim, vendor compatibility claim, or
 production-grade ETA claim.
+
+## ADR-0034 — Gate retained final-root evidence behind explicit approval
+
+Phase 52 adds dedicated final public root evidence tooling instead of reusing
+hosted-pilot evidence scripts. Final-root evidence has a stricter claim
+boundary because a placeholder hosted packet must not look like agency-owned or
+agency-approved proof.
+
+`scripts/collect-final-root-evidence.sh` defaults to ignored `.cache` storage
+and writes blocker-only packets when no real final root and redacted approval
+artifact exist. Writes under `docs/evidence/captured` require explicit
+retention opt-in, `ALLOW_CAPTURED_EVIDENCE_WRITE=true`, a valid final root, and
+a readable redacted approval artifact.
+
+`scripts/audit-final-root-evidence.sh` has separate blocker and real audit
+modes. Real audit must fail on missing approval, root mismatch, placeholders,
+missing feed/checksum artifacts, missing or unavailable validator status,
+unsafe private strings, checksum mismatch, missing redaction notes, or consumer
+tracker drift. Phase 52 adds no runtime public route, consumer contact,
+consumer status change, compliance claim, agency adoption claim, hosted SaaS
+claim, production-readiness claim, SLA/uptime claim, vendor-compatibility
+claim, consumer-acceptance claim, or production-grade ETA claim.

@@ -21,6 +21,13 @@ Supporting hygiene docs:
 - `redaction-policy.md`: rules for public-safe evidence, required redactions, checksum refreshes, and secret response.
 - `archive-inventory.md`: committed archive inventory for `docs/evidence/captured/**`.
 
+Final-root workflow templates:
+
+- `templates/final-root-approval-template.md`
+- `templates/final-root-public-fetch-template.md`
+- `templates/final-root-validator-template.md`
+- `templates/final-root-packet-readme-template.md`
+
 ## Important
 
 Do not fabricate evidence.
@@ -57,6 +64,32 @@ EVIDENCE_PACKET_DIR=docs/evidence/captured/<environment>/<UTC-date> make audit-h
 ```
 
 Do not call refreshed evidence complete unless that audit passes.
+
+## Phase 52 Final-Root Evidence Workflow
+
+Use `make collect-final-root-evidence` for guarded final public root evidence
+collection. By default it writes blocker-only output under ignored
+`.cache/final-root-evidence/<timestamp>` and does not change this evidence
+folder.
+
+Retained final-root evidence under `docs/evidence/captured` is allowed only
+with a real final root, a real readable redacted approval artifact, explicit
+`--retain-captured`, and `ALLOW_CAPTURED_EVIDENCE_WRITE=true`. A retained real
+packet must pass:
+
+```sh
+FINAL_ROOT_PACKET_DIR=docs/evidence/captured/<environment>/<UTC-date> AUDIT_MODE=real make audit-final-root-evidence
+```
+
+If no real final root or approval artifact exists, close blocker-only and keep
+`docs/evidence/captured` unchanged:
+
+```sh
+make collect-final-root-evidence
+FINAL_ROOT_PACKET_DIR=.cache/final-root-evidence/<timestamp> AUDIT_MODE=blocker make audit-final-root-evidence
+```
+
+Templates are not evidence. Blocker packets are not final-root evidence.
 
 ## Phase 28 Operations Evidence Notes
 

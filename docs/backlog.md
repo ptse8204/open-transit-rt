@@ -213,3 +213,17 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   makes no compliance, production-readiness, SLA, uptime, hosted SaaS, agency
   adoption, consumer acceptance, vendor compatibility, or production-grade ETA
   claim.
+
+## Phase 52 — Final Public Root Evidence Workflow
+
+- Complete blocker-only for the approved guarded final-root workflow scope.
+  The repo now has final-root evidence templates,
+  `scripts/collect-final-root-evidence.sh`,
+  `scripts/audit-final-root-evidence.sh`, Make targets, validation scaffolding,
+  and local-only script tests.
+- Closure outcome: no real final root and no real redacted approval artifact
+  were available in repo evidence, so no real final-root evidence was retained,
+  `docs/evidence/captured` remained unchanged, prepared consumer packets were
+  not refreshed, and consumer statuses remained `prepared`.
+- Remaining later work: collect and audit real retained final-root evidence
+  only when a real final root and public-safe redacted approval artifact exist.

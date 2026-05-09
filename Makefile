@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -88,6 +88,15 @@ collect-hosted-evidence:
 
 audit-hosted-evidence:
 	./scripts/audit-hosted-evidence.sh
+
+collect-final-root-evidence:
+	./scripts/collect-final-root-evidence.sh
+
+audit-final-root-evidence:
+	./scripts/audit-final-root-evidence.sh
+
+test-final-root-evidence:
+	./scripts/test-final-root-evidence.sh
 
 pilot-ops-help:
 	./scripts/pilot-ops.sh help
@@ -170,6 +179,9 @@ validate:
 	@test -f scripts/validator-health.sh
 	@test -f scripts/operations-notify.sh
 	@test -f scripts/operations-reliability.sh
+	@test -f scripts/collect-final-root-evidence.sh
+	@test -f scripts/audit-final-root-evidence.sh
+	@test -f scripts/test-final-root-evidence.sh
 	@test -f scripts/telemetry-simulator.sh
 	@test -f cmd/realtime-quality-backtest/main.go
 	@sh -n scripts/agency-pilot-onboard.sh
@@ -179,6 +191,9 @@ validate:
 	@sh -n scripts/validator-health.sh
 	@sh -n scripts/operations-notify.sh
 	@sh -n scripts/operations-reliability.sh
+	@sh -n scripts/collect-final-root-evidence.sh
+	@sh -n scripts/audit-final-root-evidence.sh
+	@sh -n scripts/test-final-root-evidence.sh
 	@sh -n scripts/telemetry-simulator.sh
 	@python3 -c 'from pathlib import Path; s=Path("scripts/deployment-doctor.sh").read_text(); assert "\"/admin/gtfs-studio\"" in s and "\"/admin/gtfs\"" not in s'
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
@@ -192,6 +207,15 @@ validate:
 	@OUTPUT_DIR=.cache/validate/operations-notify FORCE=true VALIDATOR_HEALTH_SUMMARY=.cache/validate/missing-validator/summary.json DEPLOYMENT_DOCTOR_SUMMARY=.cache/validate/missing-doctor/summary.json scripts/operations-notify.sh --dry-run >/dev/null
 	@scripts/operations-reliability.sh --help >/dev/null
 	@OUTPUT_DIR=.cache/validate/operations-reliability FORCE=true VALIDATOR_HEALTH_SUMMARY=.cache/validate/missing-validator/summary.json DEPLOYMENT_DOCTOR_SUMMARY=.cache/validate/missing-doctor/summary.json OPERATIONS_NOTIFY_SUMMARY=.cache/validate/missing-notify/summary.json scripts/operations-reliability.sh --dry-run >/dev/null
+	@scripts/collect-final-root-evidence.sh --help >/dev/null
+	@scripts/audit-final-root-evidence.sh --help >/dev/null
+	@rm -rf .cache/validate/final-root-evidence
+	@OUTPUT_DIR=.cache/validate/final-root-evidence FORCE=true scripts/collect-final-root-evidence.sh --blocker-only >/dev/null
+	@FINAL_ROOT_PACKET_DIR=.cache/validate/final-root-evidence AUDIT_MODE=blocker scripts/audit-final-root-evidence.sh >/dev/null
+	@test -f docs/evidence/templates/final-root-approval-template.md
+	@test -f docs/evidence/templates/final-root-public-fetch-template.md
+	@test -f docs/evidence/templates/final-root-validator-template.md
+	@test -f docs/evidence/templates/final-root-packet-readme-template.md
 	@scripts/telemetry-simulator.sh --help >/dev/null
 	@scripts/telemetry-simulator.sh --list-scenarios >/dev/null
 	@OUTPUT_DIR=.cache/validate/telemetry-simulator scripts/telemetry-simulator.sh --scenario on-route --dry-run --force >/dev/null

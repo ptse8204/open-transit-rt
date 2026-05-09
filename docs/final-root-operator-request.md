@@ -131,10 +131,26 @@ After an approved final root is available:
 
 1. deploy all five public feed URLs at the root;
 2. collect DNS, TLS, redirect, fetch, validator, proxy/config, README, and checksum evidence;
-3. run the hosted evidence audit if applicable;
+3. run the final-root evidence audit;
 4. refresh prepared consumer packets with final-root URLs only after the evidence exists;
 5. submit to consumers only when an operator authorizes the target and the official path is verified;
 6. update consumer status only from target-originated evidence.
+
+Repo-supported commands:
+
+```sh
+FINAL_ROOT_BASE_URL=https://gtfs.exampleagency.gov \
+FINAL_ROOT_APPROVAL_ARTIFACT=/path/to/redacted-approval.md \
+FINAL_ROOT_ENVIRONMENT_NAME=example-agency-prod \
+make collect-final-root-evidence
+
+FINAL_ROOT_PACKET_DIR=.cache/final-root-evidence/<timestamp> AUDIT_MODE=real \
+make audit-final-root-evidence
+```
+
+Retaining a packet under `docs/evidence/captured` additionally requires
+`--retain-captured` and `ALLOW_CAPTURED_EVIDENCE_WRITE=true`. Do not use those
+unless the approval artifact is real, redacted, and public-safe.
 
 ## Claim boundary
 

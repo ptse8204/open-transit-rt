@@ -42,8 +42,12 @@ without adding migrations, public routes, monitoring-stack dependencies,
 evidence writes, consumer tracker changes, SLA claims, uptime guarantees,
 production-readiness claims, compliance claims, hosted SaaS claims, agency
 adoption claims, vendor-compatibility claims, consumer-acceptance claims, or
-production-grade ETA claims. Phase 52 planning is approved for a guarded final
-public root evidence workflow; implementation has not started.
+production-grade ETA claims. Phase 52 is complete for the guarded final public
+root evidence workflow. It adds final-root templates, dedicated collector and
+audit scripts, Make targets, and local-only script tests. The phase closed
+blocker-only because no real final public root and no real redacted approval
+artifact were available in repo evidence; no retained final-root evidence was
+created and `docs/evidence/captured` remains unchanged.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -178,6 +182,19 @@ paths/symlinks/oversized/private inputs, send no notifications, and call no
 mutating admin endpoints. Phase 51 creates no evidence and makes no stronger
 operational, compliance, consumer, agency, hosted SaaS, vendor, SLA, uptime, or
 ETA-quality claim.
+
+Phase 52 adds `scripts/collect-final-root-evidence.sh`,
+`scripts/audit-final-root-evidence.sh`, `make collect-final-root-evidence`,
+`make audit-final-root-evidence`, final-root evidence templates, and focused
+local-only script coverage for the final public root workflow. The collector
+defaults to ignored `.cache/final-root-evidence/<timestamp>` storage and
+writes blocker-only packets when no real final root and redacted approval
+artifact are available. Retention under `docs/evidence/captured` requires an
+explicit opt-in, `ALLOW_CAPTURED_EVIDENCE_WRITE=true`, a valid final root, and
+a readable redacted approval artifact. Phase 52 closed blocker-only in this
+environment: no real final-root evidence was retained, `docs/evidence/captured`
+was not changed, consumer packets were not refreshed, and consumer statuses
+remain unchanged.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
@@ -1367,8 +1384,8 @@ Final-root evidence follow-up check results:
 
 ## Next Recommended Step
 
-Start Phase 51 planning from `docs/handoffs/latest.md` while preserving the
-evidence and claim boundaries.
+Choose the next approved phase from `docs/handoffs/latest.md` while preserving
+the evidence and claim boundaries.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

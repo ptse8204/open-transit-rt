@@ -106,6 +106,24 @@ Exact next actions:
 7. Run the hosted evidence packet audit only after the packet contains real
    final-root artifacts.
 
+## Phase 52 Workflow And Blocker Record
+
+Phase 52 added a guarded final-root collector and audit workflow. The workflow
+defaults to ignored `.cache/final-root-evidence/<timestamp>` output and writes
+blocker-only packets when no real final root and redacted approval artifact are
+available.
+
+No real agency-owned or agency-approved final public root and no real redacted
+approval artifact were available in repo evidence during Phase 52 execution.
+No final-root packet was retained under `docs/evidence/captured`, no prepared
+consumer packets were refreshed, and consumer statuses remained unchanged.
+
+Future retained final-root evidence must pass:
+
+```sh
+FINAL_ROOT_PACKET_DIR=docs/evidence/captured/<environment>/<UTC-date> AUDIT_MODE=real make audit-final-root-evidence
+```
+
 ## Future Agency-Owned Domain Next Actions
 
 1. Identify the candidate agency-owned or agency-approved root.

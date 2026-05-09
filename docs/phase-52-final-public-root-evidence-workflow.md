@@ -2,7 +2,11 @@
 
 ## Status
 
-Planning approved. Implementation has not started.
+Closed blocker-only for the approved scope. Dedicated final-root workflow
+docs, templates, collector, audit tooling, Make targets, and local-only script
+tests were added. No real final public root or redacted approval artifact was
+available in repo evidence, so no retained final-root evidence packet was
+created and `docs/evidence/captured` remains unchanged for Phase 52.
 
 ## Goal
 
