@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 48 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 49 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -30,8 +30,8 @@ for private validator automation and health gates. Phase 47 is complete for
 private local/reference operations notification summaries from existing
 diagnostics. Phase 48 is complete for the private AVL adapter runtime send
 path through authenticated `/v1/telemetry` with redacted private diagnostics.
-Phase 49 planning is approved for the optional external predictor runtime
-adapter path; implementation has not started.
+Phase 49 is complete for the optional disabled-by-default generic external
+HTTP predictor runtime adapter path behind `internal/prediction.Adapter`.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -113,6 +113,24 @@ webhook receiver, consumer workflow, evidence packet, named vendor support,
 real vendor payload, credential value, consumer-status change, compliance
 claim, hosted SaaS claim, production-readiness claim, vendor-compatibility
 claim, production AVL reliability claim, or production-grade ETA claim.
+
+Phase 49 adds shared Trip Updates adapter factory/config validation used by
+both `cmd/feed-trip-updates` and `cmd/agency-config`, preserves deterministic
+as the default and `noop` as an explicit fallback, and adds
+`TRIP_UPDATES_ADAPTER=external_http` plus
+`TRIP_UPDATES_ADAPTER=external_http_shadow`. The generic HTTP endpoint is fixed
+to `/v1/predict/trip-updates`, requires exact host allowlisting, rejects unsafe
+URL shapes and redirects, allows HTTP only for loopback test stubs, enforces
+timeout/request/response byte caps, and treats
+`TRIP_UPDATES_EXTERNAL_HTTP_TOKEN_ENV` as an uppercase env-var name only.
+External requests use sanitized DTOs only and exclude device IDs, driver IDs,
+payload JSON, raw vendor payloads, credentials, score details, manual override
+IDs, audit details, and raw override reason text. `external_http` failures
+produce valid empty Trip Updates with `adapter_error` diagnostics, while
+`external_http_shadow` returns deterministic output and bounded redacted shadow
+diagnostics. Phase 49 adds no named predictor runtime, TheTransitClock process,
+external service packaging, evidence packet, consumer status change,
+compliance claim, vendor-compatibility claim, or production-grade ETA claim.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 

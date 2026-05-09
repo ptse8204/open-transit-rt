@@ -2,7 +2,7 @@
 
 ## Status
 
-Planning approved. Implementation has not started.
+Complete for the approved Phase 49 scope.
 
 ## Goal
 
@@ -229,10 +229,9 @@ git diff --exit-code -- docs/evidence/consumer-submissions/status.json
 docker compose -f deploy/docker-compose.yml config
 ```
 
-## Closeout Requirements
+## Phase 49 Closeout
 
-Phase 49 is not closed until implementation is reviewed by the master agent,
-required checks pass or blockers are documented truthfully, the Phase 49
-handoff exists, `docs/handoffs/latest.md` is updated, roadmap/status docs are
-consistent, no forbidden claims are introduced, no `docs/evidence` files are
+Master review accepted the implementation against the approved plan. The Phase
+49 handoff exists, `docs/handoffs/latest.md` is updated, roadmap/status docs are
+consistent, no forbidden claims were introduced, no `docs/evidence` files were
 edited, and the consumer tracker remains exactly seven `prepared` targets.

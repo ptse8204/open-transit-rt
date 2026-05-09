@@ -270,3 +270,27 @@ fields, and response SHA-256 hashes only. They are private operator
 diagnostics, not evidence packets, vendor compatibility proof, production AVL
 reliability proof, compliance proof, consumer acceptance proof, agency adoption
 proof, hosted SaaS proof, or production-grade ETA proof.
+
+## ADR-0031 — Keep generic external predictors behind sanitized HTTP DTOs
+
+Phase 49 adds an optional `external_http` Trip Updates adapter and
+`external_http_shadow` mode behind `internal/prediction.Adapter`. The default
+adapter remains deterministic, and `noop` remains available.
+
+The runtime endpoint is generic and fixed to `/v1/predict/trip-updates`.
+Configuration requires an exact host allowlist, rejects userinfo/query/fragment
+URLs, disables redirects, uses HTTPS except loopback test stubs, and enforces
+timeout, request-size, and response-size caps. Bearer tokens are referenced by
+uppercase environment variable name only; token values are never diagnostics or
+persisted data.
+
+External requests use dedicated sanitized DTOs. They never marshal
+`telemetry.StoredEvent`, `telemetry.Event`, or `state.Assignment` directly, and
+they exclude device IDs, driver IDs, raw payload JSON, score details, override
+IDs, audit fields, raw override reasons, credentials, headers, and cookies.
+
+`external_http` call failures degrade to valid empty Trip Updates with
+`adapter_error` diagnostics. `external_http_shadow` keeps deterministic output
+public and records only bounded redacted shadow counts/status. This phase does
+not add TheTransitClock-specific runtime code, start external services, create
+evidence, change consumer statuses, or make stronger ETA/compliance claims.

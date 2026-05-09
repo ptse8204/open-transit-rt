@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -404,6 +408,49 @@ func TestTripUpdatesAdapterFailuresReturnVisibleDiagnostics(t *testing.T) {
 	}
 }
 
+func TestExternalHTTPAdapterFailureReturnsValidEmptyFeedWithDiagnostics(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "private predictor failure", http.StatusInternalServerError)
+	}))
+	defer server.Close()
+	adapter, err := prediction.NewExternalHTTPAdapter(prediction.ExternalHTTPConfig{
+		URL:              server.URL + "/v1/predict/trip-updates",
+		AllowedHosts:     []string{testURLHost(t, server.URL)},
+		Timeout:          time.Second,
+		MaxRequestBytes:  4096,
+		MaxResponseBytes: 4096,
+	})
+	if err != nil {
+		t.Fatalf("new external adapter: %v", err)
+	}
+	builder := newTestBuilder(t,
+		&fakeScheduleRepo{active: gtfs.FeedVersion{ID: "feed-demo", AgencyID: "demo-agency"}},
+		&fakeTelemetryRepo{},
+		&fakeStateRepo{},
+		adapter,
+		&fakeDiagnosticsRepo{},
+	)
+
+	snapshot, err := builder.Snapshot(context.Background(), time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatalf("snapshot: %v", err)
+	}
+	if snapshot.Diagnostics.Status != prediction.StatusError || snapshot.Diagnostics.Reason != prediction.ReasonAdapterError {
+		t.Fatalf("diagnostics = %+v, want adapter_error", snapshot.Diagnostics)
+	}
+	if len(snapshot.TripUpdates) != 0 {
+		t.Fatalf("trip updates = %+v, want empty output on external failure", snapshot.TripUpdates)
+	}
+	message := unmarshalFeed(t, mustMarshalProto(t, snapshot))
+	if len(message.Entity) != 0 {
+		t.Fatalf("protobuf entities = %d, want valid empty Trip Updates feed", len(message.Entity))
+	}
+	details, _ := json.Marshal(snapshot.Diagnostics.Details)
+	if strings.Contains(string(details), "private predictor failure") {
+		t.Fatalf("diagnostics include raw predictor response: %s", details)
+	}
+}
+
 func TestTripUpdatesMissingActiveFeedDoesNotCallAdapter(t *testing.T) {
 	adapter := &fakeAdapter{}
 	diagnostics := &fakeDiagnosticsRepo{}
@@ -612,6 +659,15 @@ func unmarshalFeed(t *testing.T, payload []byte) *gtfsrt.FeedMessage {
 		t.Fatalf("protobuf not initialized: %v", err)
 	}
 	return &message
+}
+
+func testURLHost(t *testing.T, raw string) string {
+	t.Helper()
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		t.Fatalf("parse url: %v", err)
+	}
+	return parsed.Host
 }
 
 type fakeScheduleRepo struct {

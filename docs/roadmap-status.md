@@ -141,10 +141,14 @@ complete for private diagnostics and local/reference workflows without
 creating evidence or stronger claims. Phase 48 — AVL Adapter Runtime Path is
 complete for private send-mode execution through authenticated
 `POST /v1/telemetry` with env-referenced tokens and redacted private
-diagnostics only.
+diagnostics only. Phase 49 — External Predictor Runtime Adapter is complete
+for the optional disabled-by-default generic HTTP sidecar boundary behind
+`internal/prediction.Adapter`, with sanitized DTOs, strict URL/token-env
+validation, redacted diagnostics, and no named predictor, compatibility, or
+ETA-quality claim.
 
-The immediate next step is Phase 49 planning for the External Predictor Runtime
-Adapter. Start with a fresh read-only planning pass before implementation.
+The immediate next step is Phase 50 planning for Realtime Quality Backtesting.
+Start with a fresh read-only planning pass before implementation.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

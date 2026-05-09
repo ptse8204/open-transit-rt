@@ -622,7 +622,7 @@ func newInternalRealtimeArtifactSource(pool *pgxpool.Pool, agencyID string, fall
 	}
 
 	ops := prediction.NewPostgresOperationsRepository(pool)
-	adapter, err := predictionAdapterFromEnv(gtfsRepo, ops)
+	adapter, err := prediction.NewAdapterFromEnv(os.LookupEnv, gtfsRepo, ops)
 	if err == nil {
 		tuConfig := tripupdates.Config{
 			AgencyID:            agencyID,
@@ -681,22 +681,6 @@ func (s *internalRealtimeArtifactSource) RealtimePB(ctx context.Context, feedTyp
 		return nil, "", err
 	}
 	return payload, "feed_url_fallback", nil
-}
-
-func predictionAdapterFromEnv(scheduleRepo gtfs.Repository, operationsRepo prediction.OperationsRepository) (prediction.Adapter, error) {
-	switch strings.ToLower(firstNonEmpty(os.Getenv("TRIP_UPDATES_ADAPTER"), "deterministic")) {
-	case "noop":
-		return prediction.NewNoopAdapter(), nil
-	case "deterministic":
-		return prediction.NewDeterministicAdapter(scheduleRepo, operationsRepo, prediction.DeterministicConfig{
-			StaleTelemetryTTL:       time.Duration(getenvInt("TRIP_UPDATES_STALE_TELEMETRY_TTL_SECONDS", 90)) * time.Second,
-			AssignmentConfidenceMin: getenvFloat("TRIP_UPDATES_ASSIGNMENT_CONFIDENCE_THRESHOLD", state.DefaultConfig().MinConfidence),
-			MaxScheduleDeviation:    time.Duration(getenvInt("TRIP_UPDATES_MAX_SCHEDULE_DEVIATION_SECONDS", 2700)) * time.Second,
-			DuplicateConfidenceGap:  getenvFloat("TRIP_UPDATES_DUPLICATE_CONFIDENCE_GAP", 0.05),
-		})
-	default:
-		return nil, fmt.Errorf("TRIP_UPDATES_ADAPTER must be noop or deterministic")
-	}
 }
 
 func realtimeFeedURL(baseURL string, feedType string) string {

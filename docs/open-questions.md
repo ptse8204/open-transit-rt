@@ -68,6 +68,11 @@ These questions do not block the next phase.
   review, dependency/license review, adapter contract tests, shadow/dry-run
   evaluation, output validation, failure fallback, and retained evidence before
   stronger ETA claims.
+- Phase 49 answered the generic runtime-boundary question for the current
+  scope: deployments may opt into `external_http` or `external_http_shadow`
+  with a sanitized fixed-path HTTP sidecar behind `internal/prediction.Adapter`.
+  Named predictor integration, external process ownership, deployment
+  packaging, and ETA-quality evidence remain open for later approved phases.
 - What quality threshold should be required before claiming production-grade ETA quality rather than conservative schedule-deviation predictions?
 - What historical telemetry retention and backtesting workflow should support MAE by route, stop, and time of day?
 

@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 49 — External Predictor Runtime Adapter is planned and approved.
-Implementation has not started.
+Phase 49 — External Predictor Runtime Adapter is complete for the approved
+generic runtime-adapter scope.
 
-Phases 0 through 48 are closed for their documented scopes. Track A is also
+Phases 0 through 49 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -93,9 +93,25 @@ support, or add compliance, consumer acceptance, agency adoption, hosted SaaS,
 production-readiness, vendor-compatibility, production AVL reliability, or
 production-grade ETA claims.
 
-The next step is Phase 49 execution against
-`docs/phase-49-external-predictor-runtime-adapter.md`. Execution must stay
-inside that approved plan.
+Phase 49 added the optional generic external HTTP Trip Updates predictor
+runtime behind `internal/prediction.Adapter`. The shared factory/config path is
+used by both `cmd/feed-trip-updates` and `cmd/agency-config`; deterministic
+remains default and `noop` remains available. `external_http` posts sanitized
+DTOs only to a fixed `/v1/predict/trip-updates` endpoint with exact host
+allowlisting, safe URL validation, no redirects, HTTPS except loopback test
+stubs, byte/time caps, and env-name-only bearer token lookup. Failures produce
+valid empty Trip Updates with `adapter_error` diagnostics.
+`external_http_shadow` keeps deterministic public output and stores only
+bounded redacted shadow diagnostics. Phase 49 added no TheTransitClock-specific
+runtime, named service call, external process manager, evidence writes,
+consumer status changes, compliance claim, vendor compatibility claim, or
+production-grade ETA claim.
+
+The next phase is Phase 50 — Realtime Quality Backtesting. Start with a fresh
+read-only planning sub-agent pass before any implementation. Do not expand
+Phase 49 into a named predictor runtime, process manager, TheTransitClock
+integration, evidence workflow, consumer status change, or production-grade
+ETA/compliance claim.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency

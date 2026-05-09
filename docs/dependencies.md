@@ -63,8 +63,9 @@ This table is the current external dependency and integration status. It separat
 | Internal Prometheus-format `/metrics` | Partially wired | Services can expose internal metrics text when `METRICS_ENABLED=true`; no Prometheus server, Grafana dashboard, alert rules, or SLO deployment assets are integrated. |
 | Prometheus / Grafana | Deferred optional integration | Future deployment/observability stack only. |
 | OpenTelemetry | Deferred optional integration | Phase 11 repo scan found no OpenTelemetry SDK, collector, exporter, trace propagation, or deployment wiring. |
-| TheTransitClock | Deferred optional predictor | Not integrated. Future use must be behind `internal/prediction.Adapter`; Open Transit RT remains source of truth. |
-| Other external predictors | Deferred optional predictors | Same adapter boundary as TheTransitClock. |
+| TheTransitClock | Candidate-only optional predictor | Not integrated. Future named use must be behind `internal/prediction.Adapter`; Open Transit RT remains source of truth. |
+| Generic external HTTP predictor sidecar | Optional disabled-by-default predictor boundary | Phase 49 adds `external_http` and `external_http_shadow` behind `internal/prediction.Adapter` with sanitized DTOs, strict URL/token validation, byte/time caps, and redacted diagnostics. No named predictor runtime, process start, vendor compatibility, production ETA, or compliance claim. |
+| Other named external predictors | Deferred optional predictors | Same adapter boundary as TheTransitClock; require later dependency/license review before named integration. |
 | AVL / vendor adapter kit support | Synthetic developer/private operator integration support only | Phase 29B added `internal/avladapter` and `cmd/avl-vendor-adapter`; Phase 38 packages them with central docs and additional synthetic fixtures for transform conformance against the existing telemetry contract. Phase 48 adds optional private send mode to authenticated `POST /v1/telemetry` only, with strict env-referenced credential manifests, preflight blockers, retryable per-record sends, and redacted private `.cache/` diagnostics. No named vendor, real vendor payload, credential value, new ingest API, public route, external runtime dependency, or real vendor compatibility claim is added. |
 | Google Maps, Apple Maps, Transit App, Bing Maps, Moovit | Workflow records and Phase 13 evidence docs only | Default `consumer_ingestion` records can track submission status; Phase 13 docs provide current records and templates. No external API calls or acceptance proof. |
 | Mobility Database, transit.land | Workflow targets and Phase 13 evidence docs only | Documented as possible publication/aggregator targets; Phase 13 docs provide current records and templates. No API integration or acceptance proof. |
@@ -481,7 +482,74 @@ The adapter can be replaced by TheTransitClock, another external predictor, or a
 
 ---
 
-## 7C. Phase 29B and Phase 38 synthetic AVL / vendor adapter kit support
+## 7C. Phase 49 generic external HTTP Trip Updates adapter
+
+### Classification
+Optional prediction backend
+
+### Purpose
+Provide a disabled-by-default generic runtime boundary for an operator-owned
+HTTP predictor sidecar. This is not a named predictor integration and is not a
+production-grade ETA claim.
+
+### Current status
+Integrated as optional runtime modes:
+- `TRIP_UPDATES_ADAPTER=external_http`
+- `TRIP_UPDATES_ADAPTER=external_http_shadow`
+
+The default remains `TRIP_UPDATES_ADAPTER=deterministic`, and `noop` remains
+available.
+
+### Startup / provisioning
+Open Transit RT does not start or package the predictor. Operators own any
+sidecar process. The configured endpoint must be exactly
+`/v1/predict/trip-updates`, use an exact allowlisted host, omit userinfo/query
+and fragment components, avoid redirects, use HTTPS except for loopback test
+stubs, and stay within configured timeout/request/response caps.
+
+Optional bearer authentication uses
+`TRIP_UPDATES_EXTERNAL_HTTP_TOKEN_ENV` as an environment variable name only.
+The referenced token must exist before adapter construction. Token values must
+not be logged, written, persisted, or returned in diagnostics.
+
+### Integration boundary
+The adapter is implemented behind `internal/prediction.Adapter` and is selected
+through the shared prediction adapter factory used by both
+`cmd/feed-trip-updates` and `cmd/agency-config` internal realtime artifact
+building.
+
+External requests use dedicated sanitized DTOs. They do not marshal
+`telemetry.StoredEvent`, `telemetry.Event`, or `state.Assignment` directly.
+Allowed telemetry fields are vehicle ID, timestamp, latitude, longitude, and
+optional bearing, speed, accuracy, and accepted trip hint. Allowed assignment
+fields are the narrow published assignment context required by the Phase 49
+plan. Device IDs, driver IDs, payload JSON, raw vendor payloads, auth material,
+score details, manual override IDs, audit details, raw override reason text,
+and internal override payloads are excluded.
+
+### Failure behavior
+`external_http` call failures, malformed responses, oversized responses, stale
+response timestamps, missing scope, and wrong scope return valid empty Trip
+Updates with `adapter_error` diagnostics. Existing Trip Updates builder
+validation still rejects low-confidence, missing-confidence, wrong-feed,
+wrong-agency, stale, unsupported, or impossible-stop outputs before protobuf
+serialization.
+
+`external_http_shadow` returns deterministic Trip Updates as the public output
+and records only bounded redacted shadow diagnostics such as status, reason,
+latency, output counts, and count delta.
+
+Vehicle Positions, telemetry ingest, GTFS import, GTFS Studio, Alerts,
+assignments, audit state, and publication workflows do not consult this
+external predictor runtime.
+
+### Replacement strategy
+Any later named predictor such as TheTransitClock must still receive a separate
+dependency/license review and remain isolated behind the adapter boundary.
+
+---
+
+## 7D. Phase 29B and Phase 38 synthetic AVL / vendor adapter kit support
 
 ### Classification
 Synthetic developer/test utility and adapter-boundary example

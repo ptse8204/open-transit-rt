@@ -991,8 +991,8 @@ They do not require external authorization.
 
 ### Integration and operations maturity
 
-8. Phase 48 — AVL Adapter Runtime Path
-9. Phase 49 — External Predictor Runtime Adapter
+8. Phase 48 — AVL Adapter Runtime Path — complete
+9. Phase 49 — External Predictor Runtime Adapter — complete
 10. Phase 50 — Realtime Quality Backtesting
 11. Phase 51 — Operations Reliability And SLO Readiness
 

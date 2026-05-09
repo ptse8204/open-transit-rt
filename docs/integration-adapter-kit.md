@@ -157,7 +157,21 @@ External predictors must stay behind `internal/prediction.Adapter`. Vehicle
 Positions, telemetry ingest, GTFS import, assignments, and audit state remain
 owned by Open Transit RT.
 
-A future external predictor phase should follow this lifecycle:
+Phase 49 adds a generic disabled-by-default HTTP sidecar boundary through
+`TRIP_UPDATES_ADAPTER=external_http` and
+`TRIP_UPDATES_ADAPTER=external_http_shadow`. The endpoint path is fixed to
+`/v1/predict/trip-updates`; configuration requires an exact host allowlist,
+safe URL shape, HTTPS except loopback test stubs, no redirects, byte/time caps,
+and env-name-only bearer token lookup. Requests use sanitized DTOs and never
+send raw telemetry events, raw assignments, payload JSON, device IDs, driver
+IDs, score details, manual override IDs, audit fields, raw override reason
+text, credentials, headers, or cookies.
+
+Use `external_http_shadow` when evaluating a sidecar without changing the
+public Trip Updates output. Shadow diagnostics are bounded redacted counts and
+status only; they are not ETA-quality evidence.
+
+Named predictor work should still follow this lifecycle:
 
 1. Candidate review: document the predictor role, inputs, outputs, deployment
    shape, and replacement path.
@@ -176,8 +190,9 @@ A future external predictor phase should follow this lifecycle:
 7. Evidence review: retain claim-specific evidence before making any stronger
    ETA quality, compatibility, compliance, or consumer-readiness claim.
 
-TheTransitClock and other predictors remain deferred optional integrations
-unless a later phase explicitly implements and documents runtime integration.
+TheTransitClock and other named predictors remain deferred optional integrations
+unless a later phase explicitly implements and documents that named runtime
+integration.
 
 ## Validator Integration Boundary
 

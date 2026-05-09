@@ -169,3 +169,21 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   only as private diagnostics unless retained claim-specific evidence supports
   a narrower external proof path. Phase 47 itself sends nothing, creates no
   evidence, does not block publishing, and does not change consumer statuses.
+
+## Phase 48 — AVL Adapter Runtime Path
+
+- Complete for the private `/v1/telemetry` send-mode scope. The runtime path
+  remains authenticated telemetry ingest only, with redacted `.cache`
+  diagnostics and no named vendor, consumer, evidence, compliance, or
+  production-readiness claim.
+
+## Phase 49 — External Predictor Runtime Adapter
+
+- Complete for the optional disabled-by-default generic HTTP predictor adapter
+  boundary. The repo now has shared Trip Updates adapter factory/config
+  validation, `external_http`, `external_http_shadow`, strict endpoint URL and
+  token-env validation, sanitized external request/response DTOs, redacted
+  diagnostics, valid-empty-feed failure behavior, and non-coupling coverage.
+- Remaining later work: any named predictor such as TheTransitClock still
+  requires a separately approved runtime phase with dependency/license review
+  and claim-specific evidence before compatibility or ETA-quality claims.

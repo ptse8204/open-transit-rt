@@ -54,7 +54,7 @@ func main() {
 		gtfs.NewPostgresRepository(pool),
 		telemetry.NewPostgresRepository(pool),
 		state.NewPostgresRepository(pool),
-		mustPredictionAdapter(predictionAdapterFromEnv(gtfs.NewPostgresRepository(pool), prediction.NewPostgresOperationsRepository(pool))),
+		mustPredictionAdapter(prediction.NewAdapterFromEnv(os.LookupEnv, gtfs.NewPostgresRepository(pool), prediction.NewPostgresOperationsRepository(pool))),
 		prediction.NewPostgresDiagnosticsRepository(pool),
 		config,
 	)
@@ -85,19 +85,7 @@ func loadTripUpdatesConfigFromEnv() (tripupdates.Config, error) {
 }
 
 func predictionAdapterFromEnv(scheduleRepo gtfs.Repository, operationsRepo prediction.OperationsRepository) (prediction.Adapter, error) {
-	switch strings.ToLower(getenvString("TRIP_UPDATES_ADAPTER", "deterministic")) {
-	case "noop":
-		return prediction.NewNoopAdapter(), nil
-	case "deterministic":
-		return prediction.NewDeterministicAdapter(scheduleRepo, operationsRepo, prediction.DeterministicConfig{
-			StaleTelemetryTTL:       time.Duration(getenvInt("TRIP_UPDATES_STALE_TELEMETRY_TTL_SECONDS", 90)) * time.Second,
-			AssignmentConfidenceMin: getenvFloat("TRIP_UPDATES_ASSIGNMENT_CONFIDENCE_THRESHOLD", state.DefaultConfig().MinConfidence),
-			MaxScheduleDeviation:    time.Duration(getenvInt("TRIP_UPDATES_MAX_SCHEDULE_DEVIATION_SECONDS", 2700)) * time.Second,
-			DuplicateConfidenceGap:  getenvFloat("TRIP_UPDATES_DUPLICATE_CONFIDENCE_GAP", 0.05),
-		})
-	default:
-		return nil, fmt.Errorf("TRIP_UPDATES_ADAPTER must be noop or deterministic")
-	}
+	return prediction.NewAdapterFromEnv(os.LookupEnv, scheduleRepo, operationsRepo)
 }
 
 func mustPredictionAdapter(adapter prediction.Adapter, err error) prediction.Adapter {
@@ -157,14 +145,6 @@ func getenvFloat(key string, fallback float64) float64 {
 		return -1
 	}
 	return value
-}
-
-func getenvString(key string, fallback string) string {
-	raw := os.Getenv(key)
-	if raw == "" {
-		return fallback
-	}
-	return raw
 }
 
 func newHandler(builder snapshotBuilder, ready pinger) http.Handler {
