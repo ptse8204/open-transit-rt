@@ -2,7 +2,8 @@
 
 ## Status
 
-Planning approved. Implementation has not started.
+Complete. Phase 48 added the private authorized adapter send-mode path while
+preserving `/v1/telemetry`, redaction, and evidence/claim boundaries.
 
 ## Goal
 
@@ -257,10 +258,9 @@ git diff --exit-code -- docs/evidence/consumer-submissions/status.json
 docker compose -f deploy/docker-compose.yml config
 ```
 
-## Phase 48 Closeout Requirements
+## Phase 48 Closeout
 
-Phase 48 is not closed until implementation is reviewed by the master agent,
-all required checks pass or blockers are documented truthfully, the Phase 48
-handoff exists, `docs/handoffs/latest.md` is updated, roadmap/status docs are
-consistent, no forbidden claims are introduced, and the consumer tracker remains
-unchanged.
+Master review accepted the implementation against the approved plan. The Phase
+48 handoff exists, `docs/handoffs/latest.md` is updated, roadmap/status docs are
+consistent, no forbidden claims were introduced, and the consumer tracker
+remains unchanged at exactly seven `prepared` targets.

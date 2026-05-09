@@ -33,6 +33,9 @@ Open Transit RT has technical foundations for:
 - a synthetic telemetry simulator that uses real device-token auth and
   `POST /v1/telemetry` for local/reference diagnostics without creating
   evidence;
+- a private synthetic AVL adapter send mode that posts transformed records to
+  authenticated `POST /v1/telemetry` with env-referenced tokens and redacted
+  `.cache/` diagnostics only;
 - consumer packet preparation workflows.
 
 ## Evidence That Exists
@@ -132,10 +135,16 @@ checklist and local routing patch scope. Phase 44 — Telemetry Simulator And
 Device Trial is complete for the synthetic-only simulator that posts through
 real authenticated telemetry ingest and optionally runs private DB-backed
 matcher/Vehicle Positions diagnostics without creating evidence or stronger
-claims.
+claims. Phase 45 — GTFS Quality Triage Loop, Phase 46 — Validator Automation
+And Health Gates, and Phase 47 — Self-Hosted Operations Notifications are
+complete for private diagnostics and local/reference workflows without
+creating evidence or stronger claims. Phase 48 — AVL Adapter Runtime Path is
+complete for private send-mode execution through authenticated
+`POST /v1/telemetry` with env-referenced tokens and redacted private
+diagnostics only.
 
-The recommended next phase is Phase 45 — GTFS Quality Triage Loop, continuing the
-self-hosted agency reuse roadmap from the updated handoff.
+The immediate next step is Phase 49 planning for the External Predictor Runtime
+Adapter. Start with a fresh read-only planning pass before implementation.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

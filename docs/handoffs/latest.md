@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 47 — Self-Hosted Operations Notifications is complete for the private
-local/reference operations notification summary scope.
+Phase 48 — AVL Adapter Runtime Path is complete for the private adapter
+send-mode scope.
 
-Phases 0 through 47 are closed for their documented scopes. Track A is also
+Phases 0 through 48 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -71,6 +71,30 @@ writes nothing under `docs/evidence`, contacts no consumers, changes no
 consumer statuses, blocks no publish, auto-edits no GTFS, and adds no
 compliance, consumer acceptance, agency adoption, hosted SaaS,
 production-readiness, vendor-compatibility, or production-grade ETA claim.
+
+Phase 48 added mutually exclusive `--dry-run` and `--send` modes to
+`cmd/avl-vendor-adapter`. Dry-run preserves the existing no-network
+stdout/stderr JSON behavior. Send mode validates an `avl-adapter-send.v1`
+manifest with env-only token references, reads target/config from the Phase 48
+`AVL_ADAPTER_*` env contract, validates `/v1/telemetry` targets and safe
+non-evidence output paths, blocks stale/future batches, optionally blocks other
+warnings via `AVL_ADAPTER_FAIL_ON_WARNINGS=true`, posts one transformed
+`telemetry.Event` per request with bearer auth, retries only retryable
+failures, stops on first terminal failure, marks later records
+`skipped_after_failure`, and writes exactly `summary.json`, `summary.md`,
+`manifest.json`, `manifest.md`, and `diagnostics.json` under `.cache/` by
+default. The send diagnostics are redaction-safe private operator artifacts:
+they use `record_index` and deterministic `credential_ref`, omit raw response
+bodies, raw mapped IDs, token values, raw private host/path details, and false
+claim flags remain false. Phase 48 did not change `/v1/telemetry`
+payload/auth semantics, add public/admin APIs, add queues/schedulers/daemons,
+write under `docs/evidence`, change consumer statuses, add named vendor
+support, or add compliance, consumer acceptance, agency adoption, hosted SaaS,
+production-readiness, vendor-compatibility, production AVL reliability, or
+production-grade ETA claims.
+
+The next phase is Phase 49 — External Predictor Runtime Adapter. Start with a
+fresh read-only planning sub-agent pass before any implementation.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency

@@ -248,3 +248,25 @@ The adapter transforms records into the existing `telemetry.Event` contract and 
 Diagnostics are dry-run review output. Duplicate and out-of-order diagnostics from the adapter are batch-level observations only and are not database ingest statuses. Partial stdout from a failed dry run is not submitted telemetry, vendor compatibility proof, production integration evidence, or AVL reliability evidence.
 
 Future real vendor adapters must stay deployment-owned or isolated behind sidecar/middleware boundaries unless a later phase explicitly approves and documents a runtime integration. Vendor credentials, endpoint URLs, private IDs, and real AVL payloads must remain outside the public repo unless reviewed and explicitly approved as public-safe.
+
+## ADR-0030 — Keep AVL adapter send mode on the existing telemetry boundary
+
+Phase 48 adds an optional private send mode to `cmd/avl-vendor-adapter`, but
+the only runtime ingest boundary remains authenticated `POST /v1/telemetry`.
+The adapter does not introduce vendor-specific APIs, queues, schedulers,
+webhooks, public unauthenticated routes, admin routes, or changes to
+`/v1/telemetry` payload/auth semantics.
+
+Send mode uses a strict `avl-adapter-send.v1` manifest with environment-only
+token references. It preflights mapping, transform, manifest, target URL,
+credential, timestamp, warning-gate, and output-path blockers before sending
+any records. Stale or future transformed records block the whole send batch;
+other warnings send by default unless `AVL_ADAPTER_FAIL_ON_WARNINGS=true`.
+
+Private send diagnostics are written under `.cache/avl-vendor-adapter/` by
+default or a safe non-evidence output override. They contain deterministic
+`credential_ref` values, per-record outcomes, retry counts, safe parsed success
+fields, and response SHA-256 hashes only. They are private operator
+diagnostics, not evidence packets, vendor compatibility proof, production AVL
+reliability proof, compliance proof, consumer acceptance proof, agency adoption
+proof, hosted SaaS proof, or production-grade ETA proof.

@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 47 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 48 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -28,7 +28,8 @@ is complete for the synthetic telemetry simulator and device trial scope. Phase
 45 is complete for the private GTFS quality triage loop. Phase 46 is complete
 for private validator automation and health gates. Phase 47 is complete for
 private local/reference operations notification summaries from existing
-diagnostics.
+diagnostics. Phase 48 is complete for the private AVL adapter runtime send
+path through authenticated `/v1/telemetry` with redacted private diagnostics.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -96,6 +97,20 @@ writes nothing under `docs/evidence`, contacts no consumers, changes no
 consumer statuses, blocks no publish, auto-edits no GTFS, and adds no
 compliance, consumer acceptance, agency adoption, hosted SaaS,
 production-readiness, vendor-compatibility, or production-grade ETA claim.
+
+Phase 48 adds mutually exclusive `--dry-run` and `--send` modes to
+`cmd/avl-vendor-adapter` while preserving the existing dry-run stdout/stderr
+JSON behavior. Send mode keeps `/v1/telemetry` as the only runtime ingest
+boundary, uses strict `avl-adapter-send.v1` manifests with env-only token
+references, validates target URLs and safe output paths before network I/O,
+blocks stale/future batches, posts one transformed `telemetry.Event` per
+request, retries only retryable failures, stops on first terminal failure, and
+writes exactly five redacted private diagnostics files under `.cache/` by
+default. Phase 48 adds no public API, admin route, queue, scheduler, daemon,
+webhook receiver, consumer workflow, evidence packet, named vendor support,
+real vendor payload, credential value, consumer-status change, compliance
+claim, hosted SaaS claim, production-readiness claim, vendor-compatibility
+claim, production AVL reliability claim, or production-grade ETA claim.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
