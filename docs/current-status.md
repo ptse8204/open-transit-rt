@@ -32,6 +32,8 @@ diagnostics. Phase 48 is complete for the private AVL adapter runtime send
 path through authenticated `/v1/telemetry` with redacted private diagnostics.
 Phase 49 is complete for the optional disabled-by-default generic external
 HTTP predictor runtime adapter path behind `internal/prediction.Adapter`.
+Phase 50 planning is approved for private realtime quality backtesting;
+implementation has not started.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot

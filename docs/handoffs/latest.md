@@ -4,8 +4,8 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 49 — External Predictor Runtime Adapter is complete for the approved
-generic runtime-adapter scope.
+Phase 50 — Realtime Quality Backtesting is planned and approved.
+Implementation has not started.
 
 Phases 0 through 49 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
@@ -107,11 +107,11 @@ runtime, named service call, external process manager, evidence writes,
 consumer status changes, compliance claim, vendor compatibility claim, or
 production-grade ETA claim.
 
-The next phase is Phase 50 — Realtime Quality Backtesting. Start with a fresh
-read-only planning sub-agent pass before any implementation. Do not expand
-Phase 49 into a named predictor runtime, process manager, TheTransitClock
-integration, evidence workflow, consumer status change, or production-grade
-ETA/compliance claim.
+The next step is Phase 50 execution against
+`docs/phase-50-realtime-quality-backtesting.md`. Execution must stay inside
+that approved plan. Do not expand Phase 49 into a named predictor runtime,
+process manager, TheTransitClock integration, evidence workflow, consumer
+status change, or production-grade ETA/compliance claim.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
