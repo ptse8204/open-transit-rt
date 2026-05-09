@@ -42,7 +42,8 @@ without adding migrations, public routes, monitoring-stack dependencies,
 evidence writes, consumer tracker changes, SLA claims, uptime guarantees,
 production-readiness claims, compliance claims, hosted SaaS claims, agency
 adoption claims, vendor-compatibility claims, consumer-acceptance claims, or
-production-grade ETA claims.
+production-grade ETA claims. Phase 52 planning is approved for a guarded final
+public root evidence workflow; implementation has not started.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot

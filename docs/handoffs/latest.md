@@ -4,8 +4,8 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 51 — Operations Reliability And SLO Readiness is closed for the approved
-private diagnostics scope.
+Phase 52 — Final Public Root Evidence Workflow is planned and approved.
+Implementation has not started.
 
 Phases 0 through 51 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
@@ -135,6 +135,18 @@ monitoring-stack dependency, evidence write, consumer-status change, publish
 gate, SLA claim, uptime guarantee, production-readiness claim, compliance
 claim, hosted SaaS claim, agency adoption claim, vendor compatibility claim,
 consumer acceptance claim, or production-grade ETA claim.
+
+Phase 52 planning is approved in
+`docs/phase-52-final-public-root-evidence-workflow.md`. Execution must add a
+guarded final-root workflow only. The default collector output must stay under
+ignored `.cache/final-root-evidence/<timestamp>` and blocker-only closure must
+leave `docs/evidence/captured` unchanged. Retained captured evidence is allowed
+only with a real final root, a real redacted approval artifact, explicit
+retention opt-in, and passing final-root audit preconditions. Phase 52 must not
+contact consumers, refresh prepared packets in blocker-only closure, change
+consumer statuses, or add compliance, agency adoption, hosted SaaS,
+production-readiness, SLA/uptime, vendor-compatibility, consumer-acceptance, or
+production-grade ETA claims.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
@@ -918,7 +930,7 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 51 is closed; do not
+choosing files. Phase 52 is planned; do not
 reopen Phase 39, Phase 40, Phase 41, Phase 42, Phase 43, Phase 44, Phase 45,
 Phase 46, Phase 47, Phase 48, Phase 49, Phase 50, or Phase 51 unless a
 concrete readiness-workflow, guided-trial, diagnostics, support-bundle,
@@ -943,11 +955,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Choose the next approved phase from the roadmap/master instructions. Preserve
-the Phase 51 private diagnostics, no-SLA, no-production-readiness,
-no-evidence-writing, no-consumer-status, no-public-unauthenticated-route, and
-no-migration boundaries unless a later approved evidence-backed phase
-explicitly changes them.
+Execute Phase 52 from
+`docs/phase-52-final-public-root-evidence-workflow.md`. Preserve the
+blocker-safe default, no-consumer-status, no-consumer-contact, no-fake-evidence,
+no-public-runtime-route, and no unsupported-claim boundaries. If no real final
+root and redacted approval artifact are available, close blocker-only and leave
+`docs/evidence/captured` unchanged.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
