@@ -87,6 +87,11 @@ These questions do not block the next phase.
   not prove marketplace approval, paid support, vendor compatibility, hardware
   certification, SLA/uptime, production readiness, compliance, agency adoption,
   consumer acceptance, or hosted service availability.
+- Answered in Phase 59 for real pilot closeout: no retained real pilot
+  authorization plus kickoff, operations, feedback, and decision artifact set
+  was available in the repository, so Phase 59 closed blocker-only. Existing
+  OCI/local pilot packets remain earlier-scope only, no evidence was created,
+  and all seven consumer and aggregator targets remain `prepared`.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

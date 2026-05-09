@@ -1,10 +1,10 @@
 # Roadmap To Cal-ITP Compliance And GTFS-RT Gap Closure
 
-**Status:** proposed review draft, Phase 55 compliance packet generator complete
+**Status:** proposed review draft, Phase 59 real pilot closeout complete blocker-only
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`
 **Generated for review:** 2026-05-08
 **Phase 54 refresh date:** 2026-05-09
-**Current repo baseline:** Phase 55 closed for local compliance/readiness packet generation and audit
+**Current repo baseline:** Phase 59 closed blocker-only for real pilot closeout
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -40,6 +40,12 @@ guards. It did not create retained evidence, contact consumers, fetch live
 feeds, change consumer statuses, prove final-root readiness, or claim
 compliance.
 
+Phase 59 closed blocker-only because no retained real pilot authorization,
+kickoff, operations, feedback, and decision artifact set was available in the
+repository. It did not create evidence, change consumer statuses, refresh
+earlier pilot packets, or strengthen agency, consumer, compliance, operations,
+hosted service, support, vendor, marketplace, or ETA-quality claims.
+
 Before any public compliance claim or final compliance closeout, a maintainer
 must re-check the official Caltrans / Cal-ITP and FTA sources again and update
 this roadmap if the requirements have changed.
@@ -62,7 +68,7 @@ Open Transit RT is production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 54, Open Transit RT has:
+As of Phase 59, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -108,6 +114,7 @@ The repo still lacks retained proof for:
 - final-root validator-clean records;
 - consumer submission, review, acceptance, listing, display, or ingestion;
 - official CAL-ITP/Caltrans compliance;
+- real authorized pilot closeout evidence and agency/operator feedback;
 - real vendor AVL compatibility;
 - real-world ETA quality;
 - production-grade ETA quality;
@@ -115,7 +122,7 @@ The repo still lacks retained proof for:
 - hosted SaaS availability;
 - paid support/SLA commitments.
 
-Phase 54 does not reduce any of these evidence gaps.
+Phase 54 and Phase 59 do not reduce any of these evidence gaps.
 
 ## End State
 
@@ -235,7 +242,7 @@ phase handoff is created.
 | 56 | Multi-Agency Hosting Hardening | Complete. Tenant-safe public feed routing, proxy checks, private diagnostics, and backup/restore/export/evidence boundaries without hosted SaaS or production multi-tenant claims. |
 | 57 | Release Packaging And Supply Chain | Complete. Local `.cache` source packages with checksums, SBOM/provenance metadata, optional local image metadata, and audit checks; no hosted service or production image claim. |
 | 58 | Optional Marketplace / Vendor-Equivalent Pack | Complete. Template-only BYOD/hardware, support, SLA/KPI, implementation, and procurement pack with local claim-boundary audit. |
-| 59 | Real Pilot Closeout | Run a real authorized pilot and retain public-safe feedback, operations, and blocker/continue evidence. |
+| 59 | Real Pilot Closeout | Complete blocker-only. No retained real pilot authorization, feedback, operations, or decision artifact set was available; no evidence or claim status changed. |
 | 60 | Final Claim Review And Public Closeout | Decide exactly what may be claimed after evidence and official requirements review. |
 
 ## Phase 41 — Operator Smoke And Support Bundle
@@ -997,6 +1004,15 @@ Run a real authorized pilot and retain public-safe outcome evidence.
 A real pilot has a retained public-safe closeout packet that supports exactly
 what happened and nothing more.
 
+### Phase 59 Closeout
+
+Phase 59 is complete blocker-only. No retained real pilot authorization,
+kickoff, operations, feedback, and continue/pause/close decision artifact set
+was available in the repository, so no pilot evidence packet was created.
+Existing OCI/local pilot packets remain earlier-scope only, consumer tracker
+state remains unchanged, and all seven consumer and aggregator targets remain
+`prepared`.
+
 ### Non-Goals
 
 Pilot participation does not automatically mean endorsement, compliance,
@@ -1066,7 +1082,7 @@ when maintainers are ready to refresh official requirements.
 16. Phase 56 — Multi-Agency Hosting Hardening
 17. Phase 57 — Release Packaging And Supply Chain
 18. Phase 58 — Optional Marketplace / Vendor-Equivalent Pack
-19. Phase 59 — Real Pilot Closeout
+19. Phase 59 — Real Pilot Closeout — complete blocker-only
 20. Phase 60 — Final Claim Review And Public Closeout
 
 These phases make the project sustainable and honest at broader adoption scale.

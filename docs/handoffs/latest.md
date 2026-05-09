@@ -4,16 +4,29 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 58 — Optional Marketplace / Vendor-Equivalent Pack is closed for the
-approved docs/template/audit scope.
+Phase 59 — Real Pilot Closeout is closed blocker-only for the approved
+docs/status/handoff scope.
 
-Phases 0 through 58 are closed for their documented scopes. Track A is also
+Phases 0 through 59 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
 onboarding, admin-UX, operations-hardening, pilot-readiness,
 submission-readiness, public-messaging, public-GTFS evidence, or
 self-hosted-reuse issue directly requires it.
+
+Phase 59 found no retained Phase 59 pilot authorization record, kickoff note,
+agency/operator feedback record, operations closeout, or continue/pause/close
+decision artifact in the repository. It closed blocker-only, created no pilot
+evidence packet, wrote nothing under `docs/evidence`, contacted no external
+party, changed no consumer records or artifact directories, and left all seven
+consumer and aggregator targets at `prepared`.
+
+Existing OCI and local public-GTFS pilot packets remain earlier-scope evidence
+only. They do not prove real pilot authorization, agency feedback, agency
+adoption, final-root readiness, consumer acceptance, CAL-ITP/Caltrans
+compliance, production readiness, hosted service availability, vendor
+compatibility, SLA/uptime, or production-grade ETA quality.
 
 Phase 58 added `docs/vendor-equivalent-pack/` templates,
 `scripts/audit-vendor-equivalent-pack.sh`,
@@ -711,8 +724,8 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 47 is complete; continue the
-self-hosted agency reuse roadmap without weakening the evidence boundaries.
+agencies and civic technologists. Phase 59 is complete blocker-only; proceed to
+Phase 60 claim review without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -982,7 +995,7 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 56 is closed; do not
+choosing files. Phase 59 is closed; do not
 reopen Phase 39, Phase 40, Phase 41, Phase 42, Phase 43, Phase 44, Phase 45,
 Phase 46, Phase 47, Phase 48, Phase 49, Phase 50, Phase 51, Phase 52, or Phase
 53 unless a concrete readiness-workflow, guided-trial, diagnostics,
@@ -997,6 +1010,9 @@ release package, checksum, SBOM/provenance, image metadata, audit, or
 hosted-service claim regression is found. Do not reopen Phase 58 unless a
 concrete BYOD template, support-boundary, procurement-template, audit, or
 marketplace/vendor/support claim regression is found.
+Do not reopen Phase 59 unless a maintainer supplies a real retained
+authorization plus public-safe kickoff, operations, feedback, and decision
+artifact set for a named pilot.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -1015,10 +1031,9 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 59 -- Real Pilot Closeout. Run a real authorized pilot only
-if retained authorization and public-safe feedback, operations, and blocker or
-continue evidence exist. If no real pilot is available, close blocker-documented
-only without creating fake pilot evidence or stronger claims.
+Proceed to Phase 60 -- Final Claim Review And Public Closeout. Review public
+claims against retained evidence and current official requirements context
+only. Remove or keep bounded any claim without direct retained evidence support.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted
@@ -1037,7 +1052,7 @@ operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
 Phase 46 validator health, Phase 47 operations notification summaries, Phase
 50 realtime quality backtesting, Phase 51 operations reliability diagnostics,
 Phase 52 final-root workflow tooling, Phase 56 multi-agency route/proxy
-diagnostics, Phase 57 release package tooling, and Phase 58 vendor-equivalent
-templates as the
+diagnostics, Phase 57 release package tooling, Phase 58 vendor-equivalent
+templates, and Phase 59 blocker-only real-pilot closeout as the
 self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.
