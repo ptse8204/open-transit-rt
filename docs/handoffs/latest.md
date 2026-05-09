@@ -4,16 +4,36 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 54 — Official Requirements Refresh is closed for the approved docs-only
-scope.
+Phase 55 — Compliance Evidence Packet Generator is closed for the approved
+local summarizer/audit scope.
 
-Phases 0 through 54 are closed for their documented scopes. Track A is also
+Phases 0 through 55 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
 onboarding, admin-UX, operations-hardening, pilot-readiness,
 submission-readiness, public-messaging, public-GTFS evidence, or
 self-hosted-reuse issue directly requires it.
+
+Phase 55 added `scripts/generate-compliance-evidence-packet.sh`,
+`scripts/audit-compliance-evidence-packet.sh`,
+`scripts/test-compliance-evidence-packet.sh`, Make targets, validation
+scaffolding, and `docs/handoffs/phase-55.md`. The generator defaults to
+ignored `.cache/compliance-evidence-packet/<UTC timestamp>/` output. Missing
+deployment identity or public root URL writes exactly `blocker.json`,
+`blocker.md`, `manifest.json`, and `manifest.md`; deployment runs write exactly
+`summary.json`, `summary.md`, `readiness-packet.md`, `evidence-map.json`,
+`evidence-map.md`, `missing-evidence.md`, `human-review.md`, `manifest.json`,
+and `manifest.md`. The audit fails on file-set drift, invalid JSON, true claim
+flags, `compliant` statuses, unsafe private strings, prepared-only consumer
+tracker drift, non-README consumer artifact files, and misleading claim
+wording.
+
+Phase 55 generated only ignored `.cache` blocker/draft packets during
+verification. It did not create retained evidence, fetch live feeds, contact
+consumers, automate portals, change `docs/evidence/captured`, change
+consumer-submission current records or artifact directories, change
+`docs/evidence/consumer-submissions/status.json`, or claim compliance.
 
 Phase 32 produced draft public launch materials only. No announcement was posted, no social copy was published, no agency was contacted, no reporter was contacted, no consumer or aggregator was contacted, and no public launch occurred.
 
@@ -988,10 +1008,10 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 55 -- Compliance Evidence Packet Generator. Use the Phase 54
-official-source mapping as requirements context only; packet generation must be
-deployment-specific, evidence-gated, human-reviewed, and must not create an
-automatic compliance claim.
+Proceed to Phase 56 -- Multi-Agency Hosting Hardening. Preserve tenant-safe
+routing, backup/restore/export/evidence boundaries, and do not introduce a
+hosted SaaS, production multi-tenant hosting, SLA, agency adoption, consumer
+acceptance, vendor compatibility, or compliance claim.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

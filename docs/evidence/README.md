@@ -91,6 +91,32 @@ FINAL_ROOT_PACKET_DIR=.cache/final-root-evidence/<timestamp> AUDIT_MODE=blocker 
 
 Templates are not evidence. Blocker packets are not final-root evidence.
 
+## Phase 55 Compliance Evidence Packet Generator
+
+Use `make generate-compliance-evidence-packet` to create a local
+deployment-specific readiness packet under ignored
+`.cache/compliance-evidence-packet/<timestamp>`.
+
+With no deployment identity or public root URL, the generator writes a
+blocker-only packet. With deployment identity and root URL, it writes a draft
+review packet that summarizes configured evidence paths, RQ-4A through RQ-4G
+readiness rows, missing evidence, human-review state, and the prepared-only
+consumer tracker. The generator does not fetch live feeds, contact consumers,
+copy raw evidence artifacts, write retained evidence, or change this evidence
+folder.
+
+Audit a generated packet with:
+
+```sh
+COMPLIANCE_PACKET_DIR=.cache/compliance-evidence-packet/<timestamp> make audit-compliance-evidence-packet
+```
+
+Phase 55 packets are local summaries only. They are not compliance evidence,
+final-root proof, consumer acceptance proof, consumer ingestion proof, agency
+adoption proof, hosted SaaS proof, production readiness proof, SLA/uptime
+proof, vendor compatibility proof, marketplace approval proof, or
+production-grade ETA proof.
+
 ## Phase 28 Operations Evidence Notes
 
 Use `docs/runbooks/production-operations-hardening.md` for day-to-day operations, alert delivery proof, capacity checks, incident response, secret rotation, restore events, and operator handover.

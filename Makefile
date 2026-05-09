@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -98,6 +98,15 @@ audit-final-root-evidence:
 test-final-root-evidence:
 	./scripts/test-final-root-evidence.sh
 
+generate-compliance-evidence-packet:
+	./scripts/generate-compliance-evidence-packet.sh
+
+audit-compliance-evidence-packet:
+	./scripts/audit-compliance-evidence-packet.sh
+
+test-compliance-evidence-packet:
+	./scripts/test-compliance-evidence-packet.sh
+
 pilot-ops-help:
 	./scripts/pilot-ops.sh help
 
@@ -182,6 +191,9 @@ validate:
 	@test -f scripts/collect-final-root-evidence.sh
 	@test -f scripts/audit-final-root-evidence.sh
 	@test -f scripts/test-final-root-evidence.sh
+	@test -f scripts/generate-compliance-evidence-packet.sh
+	@test -f scripts/audit-compliance-evidence-packet.sh
+	@test -f scripts/test-compliance-evidence-packet.sh
 	@test -f scripts/telemetry-simulator.sh
 	@test -f cmd/realtime-quality-backtest/main.go
 	@sh -n scripts/agency-pilot-onboard.sh
@@ -194,6 +206,9 @@ validate:
 	@sh -n scripts/collect-final-root-evidence.sh
 	@sh -n scripts/audit-final-root-evidence.sh
 	@sh -n scripts/test-final-root-evidence.sh
+	@sh -n scripts/generate-compliance-evidence-packet.sh
+	@sh -n scripts/audit-compliance-evidence-packet.sh
+	@sh -n scripts/test-compliance-evidence-packet.sh
 	@sh -n scripts/telemetry-simulator.sh
 	@python3 -c 'from pathlib import Path; s=Path("scripts/deployment-doctor.sh").read_text(); assert "\"/admin/gtfs-studio\"" in s and "\"/admin/gtfs\"" not in s'
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
@@ -212,6 +227,13 @@ validate:
 	@rm -rf .cache/validate/final-root-evidence
 	@OUTPUT_DIR=.cache/validate/final-root-evidence FORCE=true scripts/collect-final-root-evidence.sh --blocker-only >/dev/null
 	@FINAL_ROOT_PACKET_DIR=.cache/validate/final-root-evidence AUDIT_MODE=blocker scripts/audit-final-root-evidence.sh >/dev/null
+	@scripts/generate-compliance-evidence-packet.sh --help >/dev/null
+	@scripts/audit-compliance-evidence-packet.sh --help >/dev/null
+	@rm -rf .cache/validate/compliance-evidence-packet
+	@COMPLIANCE_PACKET_OUTPUT_DIR=.cache/validate/compliance-evidence-packet COMPLIANCE_PACKET_FORCE=true scripts/generate-compliance-evidence-packet.sh >/dev/null
+	@COMPLIANCE_PACKET_DIR=.cache/validate/compliance-evidence-packet scripts/audit-compliance-evidence-packet.sh >/dev/null
+	@test -f docs/phase-55-compliance-evidence-packet-generator.md
+	@test -f docs/handoffs/phase-55.md
 	@test -f docs/evidence/templates/final-root-approval-template.md
 	@test -f docs/evidence/templates/final-root-public-fetch-template.md
 	@test -f docs/evidence/templates/final-root-validator-template.md

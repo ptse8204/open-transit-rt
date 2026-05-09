@@ -62,6 +62,13 @@ These questions do not block the next phase.
   prove hosted SaaS availability, prove production readiness, prove vendor
   compatibility, create SLA/uptime evidence, or prove production-grade ETA
   quality.
+- Answered in Phase 55 for local compliance/readiness packets: use
+  `make generate-compliance-evidence-packet` to write ignored `.cache`
+  blocker/draft packets and `COMPLIANCE_PACKET_DIR=<packet> make
+  audit-compliance-evidence-packet` to enforce claim, redaction, file-set,
+  tracker, artifact-directory, and misleading-wording guards. These packets are
+  summaries only; they do not create retained evidence, contact consumers,
+  fetch live feeds, change consumer statuses, or prove compliance.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

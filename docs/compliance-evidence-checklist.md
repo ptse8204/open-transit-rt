@@ -64,6 +64,18 @@ Open Transit RT currently supports the technical foundations for the Caltrans/CA
 - Realtime completeness: all three standard GTFS-RT feed paths exist; deployment must prove live, validator-clean, fresh, and operationally useful feeds.
 - Aggregator availability: workflow records and prepared packet docs exist; deployment must retain records before claiming Transitland or Mobility Database availability.
 
+Phase 55 adds a local compliance/readiness packet generator for operator review:
+
+- `make generate-compliance-evidence-packet` writes ignored `.cache`
+  blocker/draft packets only.
+- `COMPLIANCE_PACKET_DIR=<packet> make audit-compliance-evidence-packet`
+  checks packet shape, JSON validity, false claim flags, non-compliance
+  statuses, unsafe strings, prepared-only consumer tracker state, README-only
+  artifact directories, and misleading claim wording.
+- Generated packets summarize configured retained evidence paths and missing
+  evidence. They do not create evidence, fetch feeds, contact consumers,
+  change consumer statuses, or prove compliance.
+
 Truthful wording:
 
 - Allowed: "supports deployment toward Caltrans/CAL-ITP-style readiness."

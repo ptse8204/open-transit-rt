@@ -92,6 +92,15 @@ external evidence and does not claim CAL-ITP/Caltrans compliance, consumer
 acceptance, agency adoption, final-root proof, hosted SaaS availability,
 production readiness, vendor compatibility, or production-grade ETA quality.
 
+Phase 55 adds a local packet export for this same evidence-bounded workflow.
+`make generate-compliance-evidence-packet` writes ignored `.cache` blocker or
+draft packets, and `make audit-compliance-evidence-packet` enforces false claim
+flags, non-compliance statuses, redaction checks, prepared-only consumer
+tracker state, README-only consumer artifact directories, and misleading-claim
+guards. These packets are summaries for human review only. They do not create
+retained evidence, contact consumers, fetch live feeds, change consumer
+statuses, or prove compliance.
+
 ## Deployment-Proven Evidence
 
 The OCI pilot packet at `docs/evidence/captured/oci-pilot/2026-04-24/` provides hosted/operator evidence for the recorded pilot scope:
