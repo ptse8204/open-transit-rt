@@ -740,14 +740,24 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 		t.Fatalf("read caddyfile: %v", err)
 	}
 	caddyText := string(caddy)
-	if !strings.Contains(caddyText, "@root path /") || !strings.Contains(caddyText, "respond @root") || !strings.Contains(caddyText, " 200") {
+	caddyLines := nonCommentCaddyLines(caddyText)
+	if !containsString(caddyLines, "@local_root {") || !containsString(caddyLines, "path /") || !containsString(caddyLines, `respond @local_root "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200`) {
 		t.Fatalf("local Caddyfile missing exact root 200 handler:\n%s", caddyText)
 	}
-	if !strings.Contains(caddyText, `respond "not found" 404`) {
+	if !containsString(caddyLines, `respond "not found" 404`) {
 		t.Fatalf("local Caddyfile missing unmatched 404 fallback:\n%s", caddyText)
 	}
-	if strings.Contains(caddyText, `respond "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200`) {
-		t.Fatalf("local Caddyfile has unconditional 200 catch-all:\n%s", caddyText)
+	var lastRespond string
+	for _, line := range caddyLines {
+		if strings.HasPrefix(line, "respond ") {
+			lastRespond = line
+		}
+		if strings.HasPrefix(line, `respond "`) && strings.HasSuffix(line, `" 200`) {
+			t.Fatalf("local Caddyfile has unconditional 200 catch-all:\n%s", caddyText)
+		}
+	}
+	if lastRespond != `respond "not found" 404` {
+		t.Fatalf("local Caddyfile final respond = %q, want unmatched 404 fallback:\n%s", lastRespond, caddyText)
 	}
 }
 
@@ -1176,6 +1186,27 @@ func assertChecklistShape(t *testing.T, checklist operatorChecklistView) {
 	if checklist.Counts.Rows != rowCount {
 		t.Fatalf("counts rows = %d, want %d", checklist.Counts.Rows, rowCount)
 	}
+}
+
+func nonCommentCaddyLines(text string) []string {
+	var lines []string
+	for _, line := range strings.Split(text, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		lines = append(lines, trimmed)
+	}
+	return lines
+}
+
+func containsString(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }
 
 func assertChecklistFlagsFalse(t *testing.T, flags operatorChecklistFlags) {

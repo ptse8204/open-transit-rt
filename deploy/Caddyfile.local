@@ -20,8 +20,10 @@
 		@studio path /admin/gtfs-studio*
 		reverse_proxy @studio gtfs-studio:8086
 
-		@root path /
-		respond @root "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200
+		@local_root {
+			path /
+		}
+		respond @local_root "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200
 
 		respond "not found" 404
 	}

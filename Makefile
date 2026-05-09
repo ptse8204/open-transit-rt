@@ -188,7 +188,7 @@ validate:
 	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local
 	@test -f deploy/Caddyfile.local
-	@python3 -c 'from pathlib import Path; s=Path("deploy/Caddyfile.local").read_text(); assert "@root path /" in s and "respond @root" in s and " 200" in s; assert "respond \"not found\" 404" in s; assert "respond \"Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth.\" 200" not in s'
+	@python3 -c 'from pathlib import Path; import re; s=Path("deploy/Caddyfile.local").read_text(); lines=[line.strip() for line in s.splitlines() if line.strip() and not line.strip().startswith("#")]; assert "@local_root {" in lines and "path /" in lines, "Caddyfile.local must define an explicit exact local-root matcher"; assert "respond @local_root \"Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth.\" 200" in lines, "Caddyfile.local must return the local app message at exact /"; assert "respond \"not found\" 404" in lines, "Caddyfile.local must include an explicit unmatched 404 fallback"; assert not any(re.fullmatch(r"respond\s+\"[^\"]*\"\s+200", line) for line in lines), "Caddyfile.local must not contain an unconditional 200 catch-all"; assert [line for line in lines if line.startswith("respond ")][-1] == "respond \"not found\" 404", "Caddyfile.local final respond must be the unmatched 404 fallback"'
 	@test -f deploy/systemd/open-transit-validator-cycle.service
 	@test -f deploy/systemd/open-transit-backup.service
 	@test -f deploy/systemd/open-transit-feed-monitor.service
