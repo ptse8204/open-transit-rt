@@ -22,7 +22,7 @@ import (
 
 func TestAlertsHandlersReturnValidFeedAndDebug(t *testing.T) {
 	generatedAt := time.Date(2026, 4, 21, 12, 0, 0, 0, time.UTC)
-	handler := newHandler(fakeAlertsBuilder{snapshot: feedalerts.Snapshot{
+	handler := newHandler(&fakeAlertsBuilder{snapshot: feedalerts.Snapshot{
 		AgencyID:                      "demo-agency",
 		GeneratedAt:                   generatedAt,
 		Status:                        feedalerts.StatusEmpty,
@@ -65,9 +65,47 @@ func TestAlertsHandlersReturnValidFeedAndDebug(t *testing.T) {
 	}
 }
 
+func TestAlertsPathRoutedPublicFeedBuildsRequestedAgencyOnly(t *testing.T) {
+	generatedAt := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	builder := &fakeAlertsBuilder{snapshotsByAgency: map[string]feedalerts.Snapshot{
+		"agency-a": {AgencyID: "agency-a", GeneratedAt: generatedAt, Status: feedalerts.StatusEmpty},
+		"agency-b": {AgencyID: "agency-b", GeneratedAt: generatedAt, Status: feedalerts.StatusEmpty},
+	}}
+	handler := newHandlerWithReadiness("agency-a", builder, &fakeAlertStore{}, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/alerts.pb", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("agency-a status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if builder.agencyCalls["agency-a"] != 0 || builder.agencyCalls["agency-b"] != 0 || builder.defaultCalls != 1 {
+		t.Fatalf("calls = default %d agency %+v, want configured agency through default builder", builder.defaultCalls, builder.agencyCalls)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-b/gtfsrt/alerts.pb", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("agency-b status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if builder.agencyCalls["agency-b"] != 1 || builder.defaultCalls != 1 {
+		t.Fatalf("calls = default %d agency %+v, want agency-b path through agency builder", builder.defaultCalls, builder.agencyCalls)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/alerts.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("per-agency debug status = %d, want 404", rr.Code)
+	}
+}
+
 func TestAlertsAdminCreateAndReconcile(t *testing.T) {
 	store := &fakeAlertStore{}
-	handler := newHandler(fakeAlertsBuilder{}, store, okPinger{})
+	handler := newHandler(&fakeAlertsBuilder{}, store, okPinger{})
 	body := []byte(`{"agency_id":"demo-agency","alert_key":"alert-1","header_text":"Stop closed","actor_id":"operator@example.com","publish":true}`)
 	req := httptest.NewRequest(http.MethodPost, "/admin/alerts", bytes.NewReader(body))
 	rr := httptest.NewRecorder()
@@ -91,7 +129,7 @@ func TestAlertsAdminCreateAndReconcile(t *testing.T) {
 }
 
 func TestAlertsAdminRejectsUnauthenticatedAccess(t *testing.T) {
-	handler := newHandlerWithAuth(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, authRejectAll{})
+	handler := newHandlerWithAuth(&fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, authRejectAll{})
 	req := httptest.NewRequest(http.MethodPost, "/admin/alerts", bytes.NewReader([]byte(`{}`)))
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -101,7 +139,7 @@ func TestAlertsAdminRejectsUnauthenticatedAccess(t *testing.T) {
 }
 
 func TestAlertsConsoleRendersEmptyStateAndRejectsUnauthenticated(t *testing.T) {
-	handler := newHandlerWithAuth(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, authRejectAll{})
+	handler := newHandlerWithAuth(&fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, authRejectAll{})
 	req := httptest.NewRequest(http.MethodGet, "/admin/alerts/console", nil)
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -109,7 +147,7 @@ func TestAlertsConsoleRendersEmptyStateAndRejectsUnauthenticated(t *testing.T) {
 		t.Fatalf("status = %d, want 401", rr.Code)
 	}
 
-	handler = newHandler(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{})
+	handler = newHandler(&fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{})
 	req = httptest.NewRequest(http.MethodGet, "/admin/alerts/console", nil)
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -125,7 +163,7 @@ func TestAlertsConsoleRendersEmptyStateAndRejectsUnauthenticated(t *testing.T) {
 }
 
 func TestAlertsConsoleCreatePublishArchiveAndRoleBoundary(t *testing.T) {
-	readOnly := newHandlerWithAuth(fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+	readOnly := newHandlerWithAuth(&fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
 	}})
 	req := httptest.NewRequest(http.MethodPost, "/admin/alerts/console", strings.NewReader("agency_id=demo-agency&alert_key=a1&header_text=Alert"))
@@ -137,7 +175,7 @@ func TestAlertsConsoleCreatePublishArchiveAndRoleBoundary(t *testing.T) {
 	}
 
 	store := &fakeAlertStore{}
-	handler := newHandler(fakeAlertsBuilder{}, store, okPinger{})
+	handler := newHandler(&fakeAlertsBuilder{}, store, okPinger{})
 	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/console", strings.NewReader("agency_id=demo-agency&alert_key=a1&header_text=Alert&route_id=r1&trip_id=t1&publish=on"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr = httptest.NewRecorder()
@@ -171,7 +209,7 @@ func TestAlertsAdminAndConsoleAreAgencyScoped(t *testing.T) {
 		{ID: 1, AgencyID: "agency-a", AlertKey: "alert-a", HeaderText: "Agency A alert", Status: domainalerts.StatusDraft},
 		{ID: 2, AgencyID: "agency-b", AlertKey: "alert-b", HeaderText: "Agency B alert", Status: domainalerts.StatusDraft},
 	}}
-	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+	handler := newHandlerWithReadiness("agency-a", &fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "operator-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
 	}})
 
@@ -215,7 +253,7 @@ func TestAlertsAdminAndConsoleAreAgencyScoped(t *testing.T) {
 
 func TestAlertsAdminMutationsDerivePrincipalAgencyAndRejectConflicts(t *testing.T) {
 	store := &fakeAlertStore{}
-	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+	handler := newHandlerWithReadiness("agency-a", &fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "operator-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
 	}})
 
@@ -282,7 +320,7 @@ func TestAlertsAdminMutationsDerivePrincipalAgencyAndRejectConflicts(t *testing.
 
 func TestAlertsConsoleMutationsRejectConflictingAgencyID(t *testing.T) {
 	store := &fakeAlertStore{}
-	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+	handler := newHandlerWithReadiness("agency-a", &fakeAlertsBuilder{}, store, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "operator-a@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
 	}})
 
@@ -308,7 +346,7 @@ func TestAlertsConsoleMutationsRejectConflictingAgencyID(t *testing.T) {
 }
 
 func TestAlertsDebugRejectsCrossAgencyPrincipal(t *testing.T) {
-	handler := newHandlerWithReadiness("agency-a", fakeAlertsBuilder{snapshot: feedalerts.Snapshot{
+	handler := newHandlerWithReadiness("agency-a", &fakeAlertsBuilder{snapshot: feedalerts.Snapshot{
 		AgencyID:    "agency-a",
 		GeneratedAt: time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC),
 	}}, &fakeAlertStore{}, okPinger{}, readyActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
@@ -326,7 +364,7 @@ func TestAlertsDebugRejectsCrossAgencyPrincipal(t *testing.T) {
 }
 
 func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
-	handler := newHandler(fakeAlertsBuilder{snapshot: feedalerts.Snapshot{GeneratedAt: time.Now().UTC()}}, &fakeAlertStore{}, okPinger{})
+	handler := newHandler(&fakeAlertsBuilder{snapshot: feedalerts.Snapshot{GeneratedAt: time.Now().UTC()}}, &fakeAlertStore{}, okPinger{})
 	req := httptest.NewRequest(http.MethodPost, "/public/gtfsrt/alerts.pb", nil)
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -334,7 +372,7 @@ func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 		t.Fatalf("POST status = %d, want 405", rr.Code)
 	}
 
-	handler = newHandler(fakeAlertsBuilder{}, &fakeAlertStore{}, errPinger{err: errors.New("down")})
+	handler = newHandler(&fakeAlertsBuilder{}, &fakeAlertStore{}, errPinger{err: errors.New("down")})
 	req = httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -342,7 +380,7 @@ func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 		t.Fatalf("status = %d, want 503", rr.Code)
 	}
 
-	handler = newHandlerWithReadiness("demo-agency", fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, fakeActiveFeed{err: errors.New("missing active feed")}, auth.TestAuthenticator{Principal: auth.Principal{
+	handler = newHandlerWithReadiness("demo-agency", &fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, fakeActiveFeed{err: errors.New("missing active feed")}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject:  "test-admin",
 		AgencyID: "demo-agency",
 		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
@@ -354,7 +392,7 @@ func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 		t.Fatalf("status = %d, want 503", rr.Code)
 	}
 
-	handler = newHandlerWithReadiness("demo-agency", fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, fakeActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
+	handler = newHandlerWithReadiness("demo-agency", &fakeAlertsBuilder{}, &fakeAlertStore{}, okPinger{}, fakeActiveFeed{}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject:  "test-admin",
 		AgencyID: "demo-agency",
 		Roles:    []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly},
@@ -368,11 +406,28 @@ func TestAlertsHandlersRejectWrongMethodAndReadyz(t *testing.T) {
 }
 
 type fakeAlertsBuilder struct {
-	snapshot feedalerts.Snapshot
+	snapshot          feedalerts.Snapshot
+	snapshotsByAgency map[string]feedalerts.Snapshot
+	defaultCalls      int
+	agencyCalls       map[string]int
 }
 
-func (f fakeAlertsBuilder) Snapshot(context.Context, time.Time) (feedalerts.Snapshot, error) {
+func (f *fakeAlertsBuilder) Snapshot(context.Context, time.Time) (feedalerts.Snapshot, error) {
+	f.defaultCalls++
 	return f.snapshot, nil
+}
+
+func (f *fakeAlertsBuilder) SnapshotForAgency(_ context.Context, agencyID string, _ time.Time) (feedalerts.Snapshot, error) {
+	if f.agencyCalls == nil {
+		f.agencyCalls = make(map[string]int)
+	}
+	f.agencyCalls[agencyID]++
+	if f.snapshotsByAgency != nil {
+		return f.snapshotsByAgency[agencyID], nil
+	}
+	snapshot := f.snapshot
+	snapshot.AgencyID = agencyID
+	return snapshot, nil
 }
 
 type fakeAlertStore struct {

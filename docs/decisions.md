@@ -354,3 +354,23 @@ tracker drift. Phase 52 adds no runtime public route, consumer contact,
 consumer status change, compliance claim, agency adoption claim, hosted SaaS
 claim, production-readiness claim, SLA/uptime claim, vendor-compatibility
 claim, consumer-acceptance claim, or production-grade ETA claim.
+
+## ADR-0035 — Treat Phase 56 multi-agency work as route-boundary hardening only
+
+Phase 56 adds validated `/public/agencies/{agency_id}/...` public feed routes
+and a shared `internal/tenant` route parser. Existing single-agency public feed
+routes remain service-instance scoped and unchanged.
+
+Agency ID path segments use a conservative ASCII segment-safe contract. Public
+per-agency protobuf/static/discovery routes are allowed, but per-agency public
+JSON/debug routes are not added. Existing JSON debug routes remain
+authenticated, and the OCI public Caddy edge exposes only public feed paths.
+
+`scripts/multi-agency-hosting.sh` is a private `.cache` route/proxy diagnostic
+only. It is not a tenant export, not a backup, not retained evidence, and not
+production-readiness proof. Tenant restore into a shared live database remains
+blocked until a later approved phase defines a safe tested contract.
+
+This decision does not create a hosted SaaS, production multi-tenant hosting,
+SLA/uptime, compliance, agency adoption, consumer acceptance, vendor
+compatibility, marketplace approval, or production-grade ETA claim.

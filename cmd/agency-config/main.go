@@ -30,6 +30,7 @@ import (
 	"open-transit-rt/internal/server"
 	"open-transit-rt/internal/state"
 	"open-transit-rt/internal/telemetry"
+	"open-transit-rt/internal/tenant"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -42,6 +43,10 @@ type scheduleBuilder interface {
 	Ready(ctx context.Context) error
 	Snapshot(ctx context.Context, generatedAt time.Time) (schedule.Snapshot, error)
 	SnapshotForFeedVersion(ctx context.Context, feedVersionID string, generatedAt time.Time) (schedule.Snapshot, error)
+}
+
+type agencyScheduleBuilder interface {
+	SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (schedule.Snapshot, error)
 }
 
 type publicationStore interface {
@@ -125,6 +130,7 @@ func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, st
 	mux.HandleFunc("/readyz", h.readyz)
 	mux.HandleFunc("/public/gtfs/schedule.zip", h.publicScheduleZIP)
 	mux.HandleFunc("/public/feeds.json", h.publicFeedsJSON)
+	mux.HandleFunc("/public/agencies/", h.publicAgencyRoute)
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
@@ -199,7 +205,39 @@ func (h *handler) publicScheduleZIP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	snapshot, err := h.schedule.Snapshot(r.Context(), time.Now().UTC().Truncate(time.Second))
+	h.writeScheduleZIP(w, r, h.agencyID)
+}
+
+func (h *handler) publicAgencyRoute(w http.ResponseWriter, r *http.Request) {
+	agencyID, suffix, matched, err := tenant.PublicAgencyRoute(r.URL.EscapedPath())
+	if !matched {
+		http.NotFound(w, r)
+		return
+	}
+	if err != nil {
+		http.Error(w, "invalid agency route", http.StatusBadRequest)
+		return
+	}
+	switch suffix {
+	case "/feeds.json":
+		h.publicFeedsJSONForAgency(w, r, agencyID)
+	case "/gtfs/schedule.zip":
+		h.publicScheduleZIPForAgency(w, r, agencyID)
+	default:
+		http.NotFound(w, r)
+	}
+}
+
+func (h *handler) publicScheduleZIPForAgency(w http.ResponseWriter, r *http.Request, agencyID string) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	h.writeScheduleZIP(w, r, agencyID)
+}
+
+func (h *handler) writeScheduleZIP(w http.ResponseWriter, r *http.Request, agencyID string) {
+	snapshot, err := h.scheduleSnapshot(r.Context(), agencyID, time.Now().UTC().Truncate(time.Second))
 	if err != nil {
 		http.Error(w, "build schedule zip", http.StatusInternalServerError)
 		return
@@ -222,6 +260,23 @@ func (h *handler) publicScheduleZIP(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(snapshot.Payload)
 }
 
+func (h *handler) scheduleSnapshot(ctx context.Context, agencyID string, generatedAt time.Time) (schedule.Snapshot, error) {
+	if agencyID == "" || agencyID == h.agencyID {
+		return h.schedule.Snapshot(ctx, generatedAt)
+	}
+	if builder, ok := h.schedule.(agencyScheduleBuilder); ok {
+		return builder.SnapshotForAgency(ctx, agencyID, generatedAt)
+	}
+	snapshot, err := h.schedule.Snapshot(ctx, generatedAt)
+	if err != nil {
+		return schedule.Snapshot{}, err
+	}
+	if snapshot.AgencyID != agencyID {
+		return schedule.Snapshot{}, fmt.Errorf("schedule builder cannot build requested agency")
+	}
+	return snapshot, nil
+}
+
 func (h *handler) publicFeedsJSON(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -230,6 +285,19 @@ func (h *handler) publicFeedsJSON(w http.ResponseWriter, r *http.Request) {
 	agencyID := r.URL.Query().Get("agency_id")
 	if agencyID == "" {
 		agencyID = h.agencyID
+	}
+	discovery, err := h.store.FeedDiscovery(r.Context(), agencyID, time.Now().UTC().Truncate(time.Second))
+	if err != nil {
+		http.Error(w, "load feed discovery metadata", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, discovery)
+}
+
+func (h *handler) publicFeedsJSONForAgency(w http.ResponseWriter, r *http.Request, agencyID string) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 	discovery, err := h.store.FeedDiscovery(r.Context(), agencyID, time.Now().UTC().Truncate(time.Second))
 	if err != nil {

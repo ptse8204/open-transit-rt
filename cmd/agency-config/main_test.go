@@ -253,6 +253,61 @@ func TestPublicFeedsJSONIsQueryRoutedAndPublicMetadataOnly(t *testing.T) {
 	}
 }
 
+func TestPublicAgencyFeedDiscoveryAndScheduleArePathRouted(t *testing.T) {
+	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{discoveries: map[string]compliance.FeedDiscovery{
+		"agency-a": {AgencyID: "agency-a", AgencyName: "Agency A", GeneratedAt: now, PublicBaseURL: "https://feeds.example/public/agencies/agency-a"},
+		"agency-b": {AgencyID: "agency-b", AgencyName: "Agency B", GeneratedAt: now, PublicBaseURL: "https://feeds.example/public/agencies/agency-b"},
+	}}
+	builder := fakeScheduleBuilder{snapshotsByAgency: map[string]schedule.Snapshot{
+		"agency-a": {AgencyID: "agency-a", FeedVersionID: "feed-a", RevisionTime: now, Payload: []byte("agency-a schedule")},
+		"agency-b": {AgencyID: "agency-b", FeedVersionID: "feed-b", RevisionTime: now, Payload: []byte("agency-b schedule")},
+	}}
+	handler := newHandlerWithRealtime(
+		"agency-a",
+		builder,
+		store,
+		fakeDeviceStore{},
+		fakePinger{},
+		authRejectAll{},
+		&fakeRealtimeArtifacts{},
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/public/agencies/agency-b/feeds.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("feeds status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.discoveryAgencyID != "agency-b" || strings.Contains(rr.Body.String(), "agency-a") || !strings.Contains(rr.Body.String(), "agency-b") {
+		t.Fatalf("path feed discovery agency=%q body=%s, want agency-b only", store.discoveryAgencyID, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-b/gtfs/schedule.zip", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("schedule status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Body.String(); got != "agency-b schedule" {
+		t.Fatalf("schedule payload = %q, want agency-b schedule", got)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/.hidden/feeds.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("invalid agency status = %d, want 400", rr.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-b/gtfs/schedule.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public debug-like route status = %d, want 404", rr.Code)
+	}
+}
+
 func TestOperationsConsoleRejectsUnauthenticatedAccess(t *testing.T) {
 	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
 	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
@@ -2543,9 +2598,10 @@ func (f *countingScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feed
 }
 
 type fakeScheduleBuilder struct {
-	snapshot schedule.Snapshot
-	err      error
-	readyErr error
+	snapshot          schedule.Snapshot
+	snapshotsByAgency map[string]schedule.Snapshot
+	err               error
+	readyErr          error
 }
 
 func (f fakeScheduleBuilder) Ready(context.Context) error {
@@ -2567,6 +2623,18 @@ func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersi
 	if feedVersionID != "" {
 		snapshot.FeedVersionID = feedVersionID
 	}
+	return snapshot, nil
+}
+
+func (f fakeScheduleBuilder) SnapshotForAgency(_ context.Context, agencyID string, _ time.Time) (schedule.Snapshot, error) {
+	if f.err != nil {
+		return schedule.Snapshot{}, f.err
+	}
+	if f.snapshotsByAgency != nil {
+		return f.snapshotsByAgency[agencyID], nil
+	}
+	snapshot := f.snapshot
+	snapshot.AgencyID = agencyID
 	return snapshot, nil
 }
 

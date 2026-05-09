@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 55 — Compliance Evidence Packet Generator is closed for the approved
-local summarizer/audit scope.
+Phase 56 — Multi-Agency Hosting Hardening is closed for the approved
+repository-boundary hardening scope.
 
-Phases 0 through 55 are closed for their documented scopes. Track A is also
+Phases 0 through 56 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -15,25 +15,33 @@ onboarding, admin-UX, operations-hardening, pilot-readiness,
 submission-readiness, public-messaging, public-GTFS evidence, or
 self-hosted-reuse issue directly requires it.
 
-Phase 55 added `scripts/generate-compliance-evidence-packet.sh`,
-`scripts/audit-compliance-evidence-packet.sh`,
-`scripts/test-compliance-evidence-packet.sh`, Make targets, validation
-scaffolding, and `docs/handoffs/phase-55.md`. The generator defaults to
-ignored `.cache/compliance-evidence-packet/<UTC timestamp>/` output. Missing
-deployment identity or public root URL writes exactly `blocker.json`,
-`blocker.md`, `manifest.json`, and `manifest.md`; deployment runs write exactly
-`summary.json`, `summary.md`, `readiness-packet.md`, `evidence-map.json`,
-`evidence-map.md`, `missing-evidence.md`, `human-review.md`, `manifest.json`,
-and `manifest.md`. The audit fails on file-set drift, invalid JSON, true claim
-flags, `compliant` statuses, unsafe private strings, prepared-only consumer
-tracker drift, non-README consumer artifact files, and misleading claim
-wording.
+Phase 56 added `internal/tenant`, validated path-routed public feed endpoints,
+local/OCI Caddy route matchers, `scripts/multi-agency-hosting.sh`,
+`scripts/test-multi-agency-hosting.sh`, Make targets, validation scaffolding,
+and `docs/handoffs/phase-56.md`. Existing single-agency public feed routes are
+preserved, and the new public route contract is:
 
-Phase 55 generated only ignored `.cache` blocker/draft packets during
-verification. It did not create retained evidence, fetch live feeds, contact
-consumers, automate portals, change `docs/evidence/captured`, change
-consumer-submission current records or artifact directories, change
-`docs/evidence/consumer-submissions/status.json`, or claim compliance.
+- `/public/agencies/{agency_id}/feeds.json`
+- `/public/agencies/{agency_id}/gtfs/schedule.zip`
+- `/public/agencies/{agency_id}/gtfsrt/vehicle_positions.pb`
+- `/public/agencies/{agency_id}/gtfsrt/trip_updates.pb`
+- `/public/agencies/{agency_id}/gtfsrt/alerts.pb`
+
+Per-agency public JSON/debug routes were not added. Existing JSON debug routes
+remain authenticated. The OCI public edge exposes only public feed paths.
+`scripts/multi-agency-hosting.sh` writes exactly `summary.json`, `summary.md`,
+`manifest.json`, and `manifest.md` under ignored
+`.cache/multi-agency-hosting/<UTC timestamp>/` by default, rejects symlink,
+traversal, and evidence-like output paths, records false claim flags, and
+documents tenant restore into a shared live database as blocked.
+
+Phase 56 created no retained evidence, contacted no consumers, changed no
+consumer-submission current records or artifact directories, changed no
+`docs/evidence/consumer-submissions/status.json`, wrote nothing under
+`docs/evidence/captured`, enabled no tenant restore into a shared live
+database, and made no hosted SaaS, production multi-tenant hosting, SLA/uptime,
+production-readiness, compliance, agency adoption, consumer acceptance, vendor
+compatibility, marketplace approval, or production-grade ETA claim.
 
 Phase 32 produced draft public launch materials only. No announcement was posted, no social copy was published, no agency was contacted, no reporter was contacted, no consumer or aggregator was contacted, and no public launch occurred.
 
@@ -982,14 +990,17 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 53 is closed; do not
+choosing files. Phase 56 is closed; do not
 reopen Phase 39, Phase 40, Phase 41, Phase 42, Phase 43, Phase 44, Phase 45,
 Phase 46, Phase 47, Phase 48, Phase 49, Phase 50, Phase 51, Phase 52, or Phase
-53 unless a concrete readiness-workflow, guided-trial, diagnostics, support-bundle,
-deployment-doctor, local-routing, checklist, telemetry-simulator, GTFS quality
-triage, validator-health, operations-notification, AVL send, predictor adapter,
-backtesting, operations-reliability, final-root workflow, or authorized
-consumer-submission boundary regression is found.
+53 unless a concrete readiness-workflow, guided-trial, diagnostics,
+support-bundle, deployment-doctor, local-routing, checklist,
+telemetry-simulator, GTFS quality triage, validator-health,
+operations-notification, AVL send, predictor adapter, backtesting,
+operations-reliability, final-root workflow, or authorized consumer-submission
+boundary regression is found. Do not reopen Phase 56 unless a concrete
+tenant-route, proxy exposure, backup/restore/export, evidence-boundary, or
+hosted-claim regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -1008,10 +1019,11 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 56 -- Multi-Agency Hosting Hardening. Preserve tenant-safe
-routing, backup/restore/export/evidence boundaries, and do not introduce a
-hosted SaaS, production multi-tenant hosting, SLA, agency adoption, consumer
-acceptance, vendor compatibility, or compliance claim.
+Proceed to Phase 57 -- Release Packaging And Supply Chain. Preserve
+supply-chain, release, image, checksum, SBOM/provenance, and hosted-service
+claim boundaries. Do not introduce a hosted service, production-readiness,
+agency adoption, consumer acceptance, marketplace approval, vendor
+compatibility, SLA, or compliance claim.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted
@@ -1028,7 +1040,8 @@ Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
 trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
 operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
 Phase 46 validator health, Phase 47 operations notification summaries, Phase
-50 realtime quality backtesting, and Phase 51 operations reliability
-diagnostics, and Phase 52 final-root workflow tooling as the
+50 realtime quality backtesting, Phase 51 operations reliability diagnostics,
+Phase 52 final-root workflow tooling, and Phase 56 multi-agency route/proxy
+diagnostics as the
 self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

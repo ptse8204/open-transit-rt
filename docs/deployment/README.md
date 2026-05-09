@@ -26,5 +26,11 @@ packet, and not final-root proof.
   repeatable smoke checks and redaction-safe diagnostics for local/reference
   operators.
 
+Phase 56 adds optional path-routed public feed URLs under
+`/public/agencies/{agency_id}/...` plus `make multi-agency-hosting` for private
+route/proxy diagnostics. This is repository-boundary hardening only; it is not
+a hosted SaaS offer, production multi-tenant certification, SLA, compliance
+proof, agency adoption proof, or consumer acceptance proof.
+
 Review `docs/evidence/redaction-policy.md` before turning any operator output
 from this path into public evidence.

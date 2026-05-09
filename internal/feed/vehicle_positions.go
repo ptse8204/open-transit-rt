@@ -125,6 +125,18 @@ func (b *VehiclePositionsBuilder) Snapshot(ctx context.Context, generatedAt time
 	return snapshot, nil
 }
 
+func (b *VehiclePositionsBuilder) SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (VehiclePositionsSnapshot, error) {
+	if agencyID == "" {
+		return VehiclePositionsSnapshot{}, fmt.Errorf("agency_id is required")
+	}
+	if agencyID == b.config.AgencyID {
+		return b.Snapshot(ctx, generatedAt)
+	}
+	config := b.config
+	config.AgencyID = agencyID
+	return (&VehiclePositionsBuilder{telemetry: b.telemetry, assignments: b.assignments, config: config}).Snapshot(ctx, generatedAt)
+}
+
 func (b *VehiclePositionsBuilder) vehicleSnapshot(event telemetry.StoredEvent, assignment state.Assignment, hasAssignment bool, generatedAt time.Time) VehicleSnapshot {
 	age := generatedAt.Sub(event.Timestamp)
 	if age < 0 {

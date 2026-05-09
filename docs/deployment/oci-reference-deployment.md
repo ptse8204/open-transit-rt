@@ -439,6 +439,10 @@ For repeatable smoke checks and redaction-safe diagnostics, see
 [Operator Smoke And Support Bundle](../tutorials/operator-smoke-and-support-bundle.md).
 For read-only reference deployment preflight diagnostics, see
 [Reference Deployment Doctor](reference-deployment-doctor.md).
+For Phase 56 route/proxy boundary diagnostics, run `make multi-agency-hosting`.
+The diagnostic output is private `.cache` review material only and does not
+prove hosted SaaS availability, production multi-tenant hosting, compliance,
+SLA/uptime, agency adoption, consumer acceptance, or production readiness.
 
 ## Update And Rollback
 

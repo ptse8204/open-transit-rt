@@ -69,6 +69,12 @@ These questions do not block the next phase.
   tracker, artifact-directory, and misleading-wording guards. These packets are
   summaries only; they do not create retained evidence, contact consumers,
   fetch live feeds, change consumer statuses, or prove compliance.
+- Answered in Phase 56 for current multi-agency hosting boundaries: use
+  validated `/public/agencies/{agency_id}/...` public feed routes and
+  `make multi-agency-hosting` for private local route/proxy diagnostics. These
+  diagnostics do not create evidence, do not prove hosted SaaS or production
+  multi-tenant readiness, and tenant restore into a shared live database
+  remains blocked.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

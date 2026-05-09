@@ -1087,3 +1087,41 @@ retains, and claim-maps specific artifacts.
 
 ### Replacement strategy
 The helpers may be replaced by a deployment scheduler, CI runner, managed monitoring service, or external backup system if the replacement preserves evidence outputs, redaction rules, auditability, and truthfulness boundaries.
+
+---
+
+## Phase 56 multi-agency hosting diagnostics
+
+### Classification
+Local route/proxy boundary diagnostic tooling
+
+### Purpose
+Review the repository's current multi-agency public feed route and proxy
+contract without creating evidence or claiming hosted service readiness.
+
+### Startup / provisioning
+- `scripts/multi-agency-hosting.sh` is exposed through
+  `make multi-agency-hosting`.
+- `scripts/test-multi-agency-hosting.sh` is exposed through
+  `make test-multi-agency-hosting`.
+- Output defaults to ignored `.cache/multi-agency-hosting/<timestamp>/`.
+
+### Integration boundary
+- The helper reads repository Caddyfiles and writes local summary/manifest
+  files only.
+- It does not call public feeds, private admin endpoints, telemetry ingest,
+  external consumers, validators, backup tools, or restore tools.
+- It does not write under `docs/evidence`, does not change consumer tracker
+  state, and does not create retained evidence.
+
+### Failure behavior
+- The helper fails on missing required route matchers, forbidden OCI public
+  edge exposure, unsafe output paths, evidence-like output paths, symlink
+  ancestors, non-empty output reuse without `FORCE=true`, or non-false claim
+  flags.
+
+### Claim boundary
+Phase 56 diagnostics are private engineering diagnostics only. They do not
+prove hosted SaaS availability, production multi-tenant hosting, SLA/uptime,
+production readiness, compliance, agency adoption, consumer acceptance, vendor
+compatibility, marketplace approval, or production-grade ETA quality.

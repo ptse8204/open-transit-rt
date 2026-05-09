@@ -58,6 +58,42 @@ func TestVehiclePositionsProtobufHandlerHeadersAndEmptyFeed(t *testing.T) {
 	}
 }
 
+func TestVehiclePositionsPathRoutedPublicFeedBuildsRequestedAgencyOnly(t *testing.T) {
+	generatedAt := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	builder := &fakeSnapshotBuilder{snapshotsByAgency: map[string]feed.VehiclePositionsSnapshot{
+		"agency-a": {AgencyID: "agency-a", GeneratedAt: generatedAt, NoTelemetry: true},
+		"agency-b": {AgencyID: "agency-b", GeneratedAt: generatedAt, NoTelemetry: true},
+	}}
+	handler := newHandler(builder, okPinger{})
+
+	req := httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/vehicle_positions.pb", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("agency-a status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if builder.agencyCalls["agency-a"] != 1 || builder.agencyCalls["agency-b"] != 0 || builder.defaultCalls != 0 {
+		t.Fatalf("calls = default %d agency %+v, want only agency-a", builder.defaultCalls, builder.agencyCalls)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-b/gtfsrt/vehicle_positions.pb", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("agency-b status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if builder.agencyCalls["agency-a"] != 1 || builder.agencyCalls["agency-b"] != 1 || builder.defaultCalls != 0 {
+		t.Fatalf("calls = default %d agency %+v, want one call per requested agency", builder.defaultCalls, builder.agencyCalls)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/vehicle_positions.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("per-agency debug status = %d, want 404", rr.Code)
+	}
+}
+
 func TestVehiclePositionsJSONHandlerUsesSnapshotDebug(t *testing.T) {
 	generatedAt := time.Date(2026, 4, 20, 15, 0, 30, 0, time.UTC)
 	snapshot := feed.VehiclePositionsSnapshot{
@@ -221,8 +257,11 @@ func TestVehiclePositionsReadyz(t *testing.T) {
 }
 
 type fakeSnapshotBuilder struct {
-	snapshot feed.VehiclePositionsSnapshot
-	err      error
+	snapshot          feed.VehiclePositionsSnapshot
+	snapshotsByAgency map[string]feed.VehiclePositionsSnapshot
+	err               error
+	defaultCalls      int
+	agencyCalls       map[string]int
 }
 
 type fakeHealthRecorder struct {
@@ -238,10 +277,27 @@ func (f *fakeHealthRecorder) SaveVehiclePositionsHealth(_ context.Context, recor
 }
 
 func (f *fakeSnapshotBuilder) Snapshot(context.Context, time.Time) (feed.VehiclePositionsSnapshot, error) {
+	f.defaultCalls++
 	if f.err != nil {
 		return feed.VehiclePositionsSnapshot{}, f.err
 	}
 	return f.snapshot, nil
+}
+
+func (f *fakeSnapshotBuilder) SnapshotForAgency(_ context.Context, agencyID string, _ time.Time) (feed.VehiclePositionsSnapshot, error) {
+	if f.agencyCalls == nil {
+		f.agencyCalls = make(map[string]int)
+	}
+	f.agencyCalls[agencyID]++
+	if f.err != nil {
+		return feed.VehiclePositionsSnapshot{}, f.err
+	}
+	if f.snapshotsByAgency != nil {
+		return f.snapshotsByAgency[agencyID], nil
+	}
+	snapshot := f.snapshot
+	snapshot.AgencyID = agencyID
+	return snapshot, nil
 }
 
 type okPinger struct{}

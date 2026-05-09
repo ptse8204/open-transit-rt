@@ -277,3 +277,19 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 - Remaining later work: retain or use deployment-specific readiness evidence
   only when public-safe, claim-specific artifacts exist and a later approved
   phase defines exactly what may be claimed.
+
+## Phase 56 — Multi-Agency Hosting Hardening
+
+- Complete for the approved repository-boundary hardening scope. The repo now
+  has `internal/tenant` route validation, path-routed public feed endpoints,
+  local/OCI Caddy route matchers, `scripts/multi-agency-hosting.sh`,
+  `scripts/test-multi-agency-hosting.sh`, Make targets, validation
+  scaffolding, and a Phase 56 handoff.
+- Closure outcome: multi-agency assumptions are documented and tested at the
+  repository route/proxy/tooling boundary only. Tenant restore into a shared
+  live database remains blocked. No retained evidence was created, no consumer
+  was contacted, no consumer status changed, and all claim flags remain false.
+- Remaining later work: true production multi-tenant hosting, tenant restore,
+  hosted service operations, SLA/uptime commitments, agency adoption,
+  compliance, and consumer acceptance require later approved work with retained
+  claim-specific evidence.

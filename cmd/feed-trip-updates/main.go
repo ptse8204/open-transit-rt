@@ -20,6 +20,7 @@ import (
 	"open-transit-rt/internal/server"
 	"open-transit-rt/internal/state"
 	"open-transit-rt/internal/telemetry"
+	"open-transit-rt/internal/tenant"
 )
 
 type pinger interface {
@@ -29,6 +30,10 @@ type pinger interface {
 type snapshotBuilder interface {
 	Ready(ctx context.Context) error
 	Snapshot(ctx context.Context, generatedAt time.Time) (tripupdates.Snapshot, error)
+}
+
+type agencySnapshotBuilder interface {
+	SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (tripupdates.Snapshot, error)
 }
 
 type adminAuth interface {
@@ -117,10 +122,16 @@ func validateVehiclePositionsURL(raw string) (string, error) {
 	if parsed.Scheme == "" || parsed.Host == "" {
 		return "", fmt.Errorf("vehicle positions URL must be absolute")
 	}
-	if parsed.Path != "/public/gtfsrt/vehicle_positions.pb" {
-		return "", fmt.Errorf("vehicle positions URL must end with /public/gtfsrt/vehicle_positions.pb")
+	if parsed.RawQuery != "" || parsed.Fragment != "" {
+		return "", fmt.Errorf("vehicle positions URL must not include query or fragment")
 	}
-	return parsed.String(), nil
+	if parsed.Path == "/public/gtfsrt/vehicle_positions.pb" {
+		return parsed.String(), nil
+	}
+	if _, matched, err := tenant.PublicAgencyPath(parsed.EscapedPath(), "/gtfsrt/vehicle_positions.pb"); matched && err == nil {
+		return parsed.String(), nil
+	}
+	return "", fmt.Errorf("vehicle positions URL must end with /public/gtfsrt/vehicle_positions.pb or /public/agencies/{agency_id}/gtfsrt/vehicle_positions.pb")
 }
 
 func getenvInt(key string, fallback int) int {
@@ -196,20 +207,27 @@ func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) 
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		snapshot, err := builder.Snapshot(r.Context(), time.Now().UTC())
-		if err != nil {
-			http.Error(w, "build trip updates snapshot", http.StatusInternalServerError)
+		writePublicProto(w, r, builder, "")
+	})
+	mux.HandleFunc("/public/agencies/", func(w http.ResponseWriter, r *http.Request) {
+		agencyID, suffix, matched, err := tenant.PublicAgencyRoute(r.URL.EscapedPath())
+		if !matched {
+			http.NotFound(w, r)
 			return
 		}
-		payload, err := snapshot.MarshalProto()
 		if err != nil {
-			http.Error(w, "marshal trip updates protobuf", http.StatusInternalServerError)
+			http.Error(w, "invalid agency route", http.StatusBadRequest)
 			return
 		}
-		w.Header().Set("Content-Type", "application/x-protobuf")
-		w.Header().Set("Last-Modified", snapshot.GeneratedAt.Format(http.TimeFormat))
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(payload)
+		if suffix != "/gtfsrt/trip_updates.pb" {
+			http.NotFound(w, r)
+			return
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		writePublicProto(w, r, builder, agencyID)
 	})
 
 	debugHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -246,6 +264,40 @@ func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) 
 	mux.Handle("/admin/debug/gtfsrt/trip_updates.json", adminRead(debugHandler))
 
 	return mux
+}
+
+func writePublicProto(w http.ResponseWriter, r *http.Request, builder snapshotBuilder, agencyID string) {
+	snapshot, err := tripUpdatesSnapshot(r.Context(), builder, agencyID, time.Now().UTC())
+	if err != nil {
+		http.Error(w, "build trip updates snapshot", http.StatusInternalServerError)
+		return
+	}
+	payload, err := snapshot.MarshalProto()
+	if err != nil {
+		http.Error(w, "marshal trip updates protobuf", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/x-protobuf")
+	w.Header().Set("Last-Modified", snapshot.GeneratedAt.Format(http.TimeFormat))
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+}
+
+func tripUpdatesSnapshot(ctx context.Context, builder snapshotBuilder, agencyID string, generatedAt time.Time) (tripupdates.Snapshot, error) {
+	if agencyID == "" {
+		return builder.Snapshot(ctx, generatedAt)
+	}
+	if agencyBuilder, ok := builder.(agencySnapshotBuilder); ok {
+		return agencyBuilder.SnapshotForAgency(ctx, agencyID, generatedAt)
+	}
+	snapshot, err := builder.Snapshot(ctx, generatedAt)
+	if err != nil {
+		return tripupdates.Snapshot{}, err
+	}
+	if snapshot.AgencyID != agencyID {
+		return tripupdates.Snapshot{}, fmt.Errorf("trip updates builder cannot build requested agency")
+	}
+	return snapshot, nil
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {

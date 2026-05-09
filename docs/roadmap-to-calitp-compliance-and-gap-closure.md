@@ -232,7 +232,7 @@ phase handoff is created.
 | 53 | Authorized Consumer Submission Execution | Target-specific submission only with authorization and retained target-originated artifacts. |
 | 54 | Official Requirements Refresh | Complete. Re-checked current official public sources and updated requirement mapping without creating evidence or compliance claims. |
 | 55 | Compliance Evidence Packet Generator | Complete. Generates ignored `.cache` blocker/draft readiness packets with strict claim-gated audit. |
-| 56 | Multi-Agency Hosting Hardening | Tenant-safe routing, backup/restore/export/evidence, and operations model. |
+| 56 | Multi-Agency Hosting Hardening | Complete. Tenant-safe public feed routing, proxy checks, private diagnostics, and backup/restore/export/evidence boundaries without hosted SaaS or production multi-tenant claims. |
 | 57 | Release Packaging And Supply Chain | Versioned install artifacts, optional images, checksums, SBOM/provenance where practical. |
 | 58 | Optional Marketplace / Vendor-Equivalent Pack | BYOD/hardware path, support boundaries, implementation templates, SLA/KPI templates. |
 | 59 | Real Pilot Closeout | Run a real authorized pilot and retain public-safe feedback, operations, and blocker/continue evidence. |
@@ -873,24 +873,31 @@ No automatic compliance claim. A human maintainer must review the packet.
 
 ### Goal
 
-Make production multi-agency hosting safe if the project chooses that path.
+Harden repository-level multi-agency boundaries without claiming production
+multi-tenant hosting.
 
 ### Artifacts
 
-- per-agency public feed routing;
-- tenant-safe backup/restore/export/evidence tooling;
-- global admin and tenant admin model;
-- isolation tests for all critical workflows;
-- operational docs.
+- complete for the current scope: validated per-agency public feed routing;
+- complete for the current scope: private route/proxy diagnostics under
+  ignored `.cache`;
+- documented: backup/restore/export/evidence boundaries and blocked shared
+  live-database tenant restore;
+- documented: runtime admin remains agency-scoped; no global admin runtime
+  model was added;
+- focused route/proxy/tooling tests.
 
 ### Definition Of Done
 
-Multi-agency hosting assumptions are proven through tests and deployment docs,
-not inferred from selected repository isolation tests.
+Repository-level multi-agency route/proxy/tooling assumptions are proven
+through tests and deployment docs. This does not certify production
+multi-tenant hosting.
 
 ### Non-Goals
 
-No hosted SaaS claim unless an actual service offering exists.
+No hosted SaaS, production multi-tenant hosting, SLA/uptime, agency adoption,
+consumer acceptance, production-readiness, vendor compatibility, marketplace
+approval, or compliance claim.
 
 ## Phase 57 — Release Packaging And Supply Chain
 

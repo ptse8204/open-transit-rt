@@ -607,6 +607,17 @@ func newTestBuilder(
 
 const testVehiclePositionsURL = "http://localhost:8083/public/gtfsrt/vehicle_positions.pb"
 
+func TestVehiclePositionsURLForAgencyRewritesPathRoutedURLOnly(t *testing.T) {
+	got := vehiclePositionsURLForAgency("https://feeds.example/public/agencies/agency-a/gtfsrt/vehicle_positions.pb", "agency-b")
+	if got != "https://feeds.example/public/agencies/agency-b/gtfsrt/vehicle_positions.pb" {
+		t.Fatalf("path-routed URL = %q, want agency-b path", got)
+	}
+	got = vehiclePositionsURLForAgency(testVehiclePositionsURL, "agency-b")
+	if got != testVehiclePositionsURL {
+		t.Fatalf("single-agency URL = %q, want unchanged", got)
+	}
+}
+
 func tripUpdateStoredEvent(id int64, vehicleID string, observedAt time.Time) telemetry.StoredEvent {
 	return telemetry.StoredEvent{
 		ID: id,

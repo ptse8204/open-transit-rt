@@ -2,9 +2,10 @@
 
 ## Status
 
-Planning accepted. Execution may add limited tenant-safe public feed routing,
-route validation, private `.cache` diagnostics, tests, and docs. It must not
-claim hosted SaaS availability or production multi-tenant hosting.
+Complete for the approved repository-boundary hardening scope. Phase 56 added
+tenant-safe public feed route validation, path-routed public feed endpoints,
+proxy route exposure checks, private `.cache` diagnostics, tests, and docs. It
+does not claim hosted SaaS availability or production multi-tenant hosting.
 
 ## Goal
 
@@ -227,6 +228,38 @@ The handoff must say Phase 56 proves repository-level boundaries through tests
 and docs only. It must explicitly state no hosted SaaS, production
 multi-tenant hosting, SLA/uptime, production-readiness, compliance, agency
 adoption, consumer acceptance, or retained evidence claim was created.
+
+## Implementation Summary
+
+Phase 56 added `internal/tenant` for conservative agency path segment
+validation and `/public/agencies/{agency_id}/...` route parsing. The public
+feed services now preserve existing single-agency routes and add these
+validated path-routed protobuf/static/discovery routes:
+
+- `/public/agencies/{agency_id}/feeds.json`
+- `/public/agencies/{agency_id}/gtfs/schedule.zip`
+- `/public/agencies/{agency_id}/gtfsrt/vehicle_positions.pb`
+- `/public/agencies/{agency_id}/gtfsrt/trip_updates.pb`
+- `/public/agencies/{agency_id}/gtfsrt/alerts.pb`
+
+Per-agency JSON/debug routes were not added. Existing debug JSON routes remain
+authenticated. The OCI Caddyfile exposes only anonymous public feed paths and
+keeps admin, telemetry, metrics, Studio, and JSON debug routes off the public
+edge.
+
+Phase 56 also added `scripts/multi-agency-hosting.sh`,
+`scripts/test-multi-agency-hosting.sh`, and Make targets for private local
+diagnostics. The diagnostic writes exactly `summary.json`, `summary.md`,
+`manifest.json`, and `manifest.md` under ignored `.cache` output by default,
+rejects symlink/traversal/evidence-like output paths, records false claim
+flags, and treats tenant restore into a shared live database as blocked.
+
+This phase created no retained evidence, wrote nothing under
+`docs/evidence/captured`, changed no consumer tracker state, contacted no
+consumer, and made no hosted SaaS, production multi-tenant hosting,
+production-readiness, SLA/uptime, compliance, agency adoption, consumer
+acceptance, vendor compatibility, marketplace approval, or production-grade ETA
+claim.
 
 ## Required Verification Commands
 

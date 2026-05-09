@@ -49,15 +49,24 @@ Authorization must not rely on client-supplied `agency_id` alone. Operators also
 
 Multi-agency deployments should use clear per-agency public feed roots. Shared infrastructure should not force consumers to infer agency identity from unstable paths.
 
-Current public endpoint scope is:
+Current public endpoint scope after Phase 56 is:
 
 - `/public/feeds.json`: query-routed by `agency_id`; omitted `agency_id` uses configured `AGENCY_ID`.
 - `/public/gtfs/schedule.zip`: service-instance scoped by configured `AGENCY_ID`.
 - `/public/gtfsrt/vehicle_positions.pb`: service-instance scoped by configured `AGENCY_ID`.
 - `/public/gtfsrt/trip_updates.pb`: service-instance scoped by configured `AGENCY_ID`.
 - `/public/gtfsrt/alerts.pb`: service-instance scoped by configured `AGENCY_ID`.
+- `/public/agencies/{agency_id}/feeds.json`: path-routed by a validated agency ID segment.
+- `/public/agencies/{agency_id}/gtfs/schedule.zip`: path-routed by a validated agency ID segment.
+- `/public/agencies/{agency_id}/gtfsrt/vehicle_positions.pb`: path-routed by a validated agency ID segment.
+- `/public/agencies/{agency_id}/gtfsrt/trip_updates.pb`: path-routed by a validated agency ID segment.
+- `/public/agencies/{agency_id}/gtfsrt/alerts.pb`: path-routed by a validated agency ID segment.
 
-Only `feeds.json` has query-routed multi-agency behavior today. The schedule ZIP and GTFS-RT protobuf endpoints must not be described as one-instance multi-agency public feed roots until explicit routing and tests exist.
+Phase 56 proves these repository-level public feed route boundaries through
+focused tests and proxy checks only. It does not certify production
+multi-tenant hosting, consumer ingestion, agency adoption, hosted SaaS
+availability, SLA coverage, or production readiness. Per-agency public JSON
+debug routes do not exist; existing JSON debug routes remain authenticated.
 
 Prepared consumer packets remain packet drafts until the operator submits through a verified target workflow and stores redacted evidence. One agency's submission, review, rejection, or acceptance evidence must not be copied to another agency.
 
@@ -71,6 +80,12 @@ Backup and restore strategy changes materially in multi-agency operation:
 - shared databases require tenant-safe export, restore, and deletion procedures;
 - restore drills must prove that one agency's recovery does not corrupt another agency's state;
 - evidence artifacts must avoid leaking other agencies' private details.
+- tenant restore into a shared live database is blocked until a later approved
+  phase defines and tests a safe contract.
+
+`make multi-agency-hosting` writes private local route/proxy diagnostics under
+ignored `.cache/multi-agency-hosting/<timestamp>` by default. Those diagnostics
+are not backups, not evidence, and not a hosted-service readiness proof.
 
 ## Code Changes Needed Before True Multi-Tenant Hosting
 
@@ -78,8 +93,10 @@ Before claiming true hosted multi-tenant readiness, the project would need:
 
 - stronger tenant isolation tests across all admin, public, telemetry, validation, and evidence workflows;
 - operator roles for multi-agency administration;
-- service-level controls for per-agency feed roots and metadata;
-- backup/restore tooling that can scope or prove tenant isolation;
+- broader service-level controls for per-agency feed roots and metadata beyond
+  the Phase 56 public feed route contract;
+- backup/restore tooling that can scope or prove tenant isolation, including a
+  reviewed tenant-restore contract if shared live databases are ever allowed;
 - production monitoring and incident workflows per agency;
 - documented migration and upgrade process for multi-agency deployments;
 - redaction rules for multi-agency operator artifacts;

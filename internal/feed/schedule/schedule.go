@@ -58,6 +58,16 @@ func (b *Builder) Snapshot(ctx context.Context, generatedAt time.Time) (Snapshot
 	}, nil
 }
 
+func (b *Builder) SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (Snapshot, error) {
+	if agencyID == "" {
+		return Snapshot{}, fmt.Errorf("agency_id is required")
+	}
+	if agencyID == b.agencyID {
+		return b.Snapshot(ctx, generatedAt)
+	}
+	return (&Builder{pool: b.pool, agencyID: agencyID}).Snapshot(ctx, generatedAt)
+}
+
 func (b *Builder) SnapshotForFeedVersion(ctx context.Context, feedVersionID string, generatedAt time.Time) (Snapshot, error) {
 	if feedVersionID == "" {
 		return b.Snapshot(ctx, generatedAt)

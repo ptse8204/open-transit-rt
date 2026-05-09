@@ -103,6 +103,20 @@ func (b *Builder) Snapshot(ctx context.Context, generatedAt time.Time) (Snapshot
 	return snapshot, nil
 }
 
+func (b *Builder) SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (Snapshot, error) {
+	if agencyID == "" {
+		return Snapshot{}, fmt.Errorf("agency_id is required")
+	}
+	if agencyID == b.config.AgencyID {
+		return b.Snapshot(ctx, generatedAt)
+	}
+	return (&Builder{
+		alerts: b.alerts,
+		health: b.health,
+		config: Config{AgencyID: agencyID},
+	}).Snapshot(ctx, generatedAt)
+}
+
 type Snapshot struct {
 	AgencyID                      string
 	GeneratedAt                   time.Time

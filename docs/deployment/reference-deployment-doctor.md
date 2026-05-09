@@ -147,6 +147,12 @@ compliance_claimed=false
 production_readiness_claimed=false
 ```
 
+For Phase 56 multi-agency route/proxy boundary review, use
+`make multi-agency-hosting`. That helper is private diagnostics only; it does
+not create evidence or prove hosted SaaS, production multi-tenant hosting,
+SLA/uptime, production readiness, compliance, agency adoption, consumer
+acceptance, or vendor compatibility.
+
 ## Operations Notification Draft
 
 After running the deployment doctor and validator-health helper, an operator can

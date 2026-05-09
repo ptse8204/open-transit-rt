@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
@@ -323,6 +324,42 @@ func (b *Builder) Ready(ctx context.Context) error {
 		return fmt.Errorf("active feed version unavailable: %w", err)
 	}
 	return nil
+}
+
+func (b *Builder) SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (Snapshot, error) {
+	if agencyID == "" {
+		return Snapshot{}, fmt.Errorf("agency_id is required")
+	}
+	if agencyID == b.config.AgencyID {
+		return b.Snapshot(ctx, generatedAt)
+	}
+	config := b.config
+	config.AgencyID = agencyID
+	config.VehiclePositionsURL = vehiclePositionsURLForAgency(config.VehiclePositionsURL, agencyID)
+	return (&Builder{
+		schedules:   b.schedules,
+		telemetry:   b.telemetry,
+		assignments: b.assignments,
+		adapter:     b.adapter,
+		diagnostics: b.diagnostics,
+		config:      config,
+	}).Snapshot(ctx, generatedAt)
+}
+
+func vehiclePositionsURLForAgency(raw string, agencyID string) string {
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return raw
+	}
+	const prefix = "/public/agencies/"
+	const suffix = "/gtfsrt/vehicle_positions.pb"
+	path := parsed.EscapedPath()
+	if !strings.HasPrefix(path, prefix) || !strings.HasSuffix(path, suffix) {
+		return raw
+	}
+	parsed.Path = prefix + agencyID + suffix
+	parsed.RawPath = ""
+	return parsed.String()
 }
 
 func (b *Builder) persistDiagnostics(ctx context.Context, snapshot *Snapshot) {

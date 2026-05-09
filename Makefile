@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -83,6 +83,12 @@ operations-notify:
 operations-reliability:
 	@./scripts/operations-reliability.sh
 
+multi-agency-hosting:
+	@./scripts/multi-agency-hosting.sh
+
+test-multi-agency-hosting:
+	@./scripts/test-multi-agency-hosting.sh
+
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
 
@@ -153,7 +159,7 @@ validators-check:
 smoke:
 	@echo "Running hardening HTTP smoke coverage..."
 	@./scripts/check-validators.sh
-	go test ./cmd/agency-config ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices ./internal/compliance ./internal/state
+	go test ./cmd/agency-config ./cmd/telemetry-ingest ./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts ./cmd/gtfs-studio ./internal/auth ./internal/devices ./internal/compliance ./internal/state ./internal/tenant
 
 lint:
 	@if command -v golangci-lint >/dev/null 2>&1; then golangci-lint run ./...; else echo "optional lint skipped: golangci-lint is not installed; future CI should make this required once configured"; fi
@@ -188,6 +194,8 @@ validate:
 	@test -f scripts/validator-health.sh
 	@test -f scripts/operations-notify.sh
 	@test -f scripts/operations-reliability.sh
+	@test -f scripts/multi-agency-hosting.sh
+	@test -f scripts/test-multi-agency-hosting.sh
 	@test -f scripts/collect-final-root-evidence.sh
 	@test -f scripts/audit-final-root-evidence.sh
 	@test -f scripts/test-final-root-evidence.sh
@@ -203,6 +211,8 @@ validate:
 	@sh -n scripts/validator-health.sh
 	@sh -n scripts/operations-notify.sh
 	@sh -n scripts/operations-reliability.sh
+	@sh -n scripts/multi-agency-hosting.sh
+	@sh -n scripts/test-multi-agency-hosting.sh
 	@sh -n scripts/collect-final-root-evidence.sh
 	@sh -n scripts/audit-final-root-evidence.sh
 	@sh -n scripts/test-final-root-evidence.sh
@@ -222,6 +232,8 @@ validate:
 	@OUTPUT_DIR=.cache/validate/operations-notify FORCE=true VALIDATOR_HEALTH_SUMMARY=.cache/validate/missing-validator/summary.json DEPLOYMENT_DOCTOR_SUMMARY=.cache/validate/missing-doctor/summary.json scripts/operations-notify.sh --dry-run >/dev/null
 	@scripts/operations-reliability.sh --help >/dev/null
 	@OUTPUT_DIR=.cache/validate/operations-reliability FORCE=true VALIDATOR_HEALTH_SUMMARY=.cache/validate/missing-validator/summary.json DEPLOYMENT_DOCTOR_SUMMARY=.cache/validate/missing-doctor/summary.json OPERATIONS_NOTIFY_SUMMARY=.cache/validate/missing-notify/summary.json scripts/operations-reliability.sh --dry-run >/dev/null
+	@scripts/multi-agency-hosting.sh --help >/dev/null
+	@OUTPUT_DIR=.cache/validate/multi-agency-hosting FORCE=true scripts/multi-agency-hosting.sh >/dev/null
 	@scripts/collect-final-root-evidence.sh --help >/dev/null
 	@scripts/audit-final-root-evidence.sh --help >/dev/null
 	@rm -rf .cache/validate/final-root-evidence
@@ -234,6 +246,8 @@ validate:
 	@COMPLIANCE_PACKET_DIR=.cache/validate/compliance-evidence-packet scripts/audit-compliance-evidence-packet.sh >/dev/null
 	@test -f docs/phase-55-compliance-evidence-packet-generator.md
 	@test -f docs/handoffs/phase-55.md
+	@test -f docs/phase-56-multi-agency-hosting-hardening.md
+	@test -f docs/handoffs/phase-56.md
 	@test -f docs/evidence/templates/final-root-approval-template.md
 	@test -f docs/evidence/templates/final-root-public-fetch-template.md
 	@test -f docs/evidence/templates/final-root-validator-template.md

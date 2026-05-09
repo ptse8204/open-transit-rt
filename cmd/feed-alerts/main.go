@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	feedalerts "open-transit-rt/internal/feed/alerts"
 	"open-transit-rt/internal/gtfs"
 	"open-transit-rt/internal/server"
+	"open-transit-rt/internal/tenant"
 )
 
 type pinger interface {
@@ -25,6 +27,10 @@ type pinger interface {
 
 type snapshotBuilder interface {
 	Snapshot(ctx context.Context, generatedAt time.Time) (feedalerts.Snapshot, error)
+}
+
+type agencySnapshotBuilder interface {
+	SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (feedalerts.Snapshot, error)
 }
 
 type activeFeedChecker interface {
@@ -95,6 +101,7 @@ func newHandlerWithReadiness(agencyID string, builder snapshotBuilder, alerts al
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
 	mux.HandleFunc("/public/gtfsrt/alerts.pb", h.publicProto)
+	mux.HandleFunc("/public/agencies/", h.publicAgencyRoute)
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	mux.Handle("/public/gtfsrt/alerts.json", adminRead(http.HandlerFunc(h.publicJSON)))
 	mux.Handle("/admin/debug/gtfsrt/alerts.json", adminRead(http.HandlerFunc(h.publicJSON)))
@@ -134,7 +141,32 @@ func (h *handler) publicProto(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	snapshot, err := h.builder.Snapshot(r.Context(), time.Now().UTC())
+	h.writeProto(w, r, "")
+}
+
+func (h *handler) publicAgencyRoute(w http.ResponseWriter, r *http.Request) {
+	agencyID, suffix, matched, err := tenant.PublicAgencyRoute(r.URL.EscapedPath())
+	if !matched {
+		http.NotFound(w, r)
+		return
+	}
+	if err != nil {
+		http.Error(w, "invalid agency route", http.StatusBadRequest)
+		return
+	}
+	if suffix != "/gtfsrt/alerts.pb" {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	h.writeProto(w, r, agencyID)
+}
+
+func (h *handler) writeProto(w http.ResponseWriter, r *http.Request, agencyID string) {
+	snapshot, err := h.alertsSnapshot(r.Context(), agencyID, time.Now().UTC())
 	if err != nil {
 		http.Error(w, "build alerts snapshot", http.StatusInternalServerError)
 		return
@@ -148,6 +180,23 @@ func (h *handler) publicProto(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Last-Modified", snapshot.GeneratedAt.Format(http.TimeFormat))
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(payload)
+}
+
+func (h *handler) alertsSnapshot(ctx context.Context, agencyID string, generatedAt time.Time) (feedalerts.Snapshot, error) {
+	if agencyID == "" || agencyID == h.agencyID {
+		return h.builder.Snapshot(ctx, generatedAt)
+	}
+	if agencyBuilder, ok := h.builder.(agencySnapshotBuilder); ok {
+		return agencyBuilder.SnapshotForAgency(ctx, agencyID, generatedAt)
+	}
+	snapshot, err := h.builder.Snapshot(ctx, generatedAt)
+	if err != nil {
+		return feedalerts.Snapshot{}, err
+	}
+	if snapshot.AgencyID != agencyID {
+		return feedalerts.Snapshot{}, errors.New("alerts builder cannot build requested agency")
+	}
+	return snapshot, nil
 }
 
 func (h *handler) publicJSON(w http.ResponseWriter, r *http.Request) {

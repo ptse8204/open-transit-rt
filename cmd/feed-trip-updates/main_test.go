@@ -53,6 +53,19 @@ func TestVehiclePositionsFeedURLWinsAsExactFullURL(t *testing.T) {
 	}
 }
 
+func TestVehiclePositionsFeedURLAllowsPathRoutedAgencyURL(t *testing.T) {
+	t.Setenv("AGENCY_ID", "demo-agency")
+	t.Setenv("FEED_BASE_URL", "http://bad.example/public")
+	t.Setenv("VEHICLE_POSITIONS_FEED_URL", "https://feeds.example.com/public/agencies/demo-agency/gtfsrt/vehicle_positions.pb")
+	config, err := loadTripUpdatesConfigFromEnv()
+	if err != nil {
+		t.Fatalf("load config: %v", err)
+	}
+	if config.VehiclePositionsURL != "https://feeds.example.com/public/agencies/demo-agency/gtfsrt/vehicle_positions.pb" {
+		t.Fatalf("vehicle positions url = %q, want path-routed env URL", config.VehiclePositionsURL)
+	}
+}
+
 func TestPredictionAdapterFromEnvDefaultsToDeterministicAndKeepsNoopFallback(t *testing.T) {
 	t.Setenv("TRIP_UPDATES_ADAPTER", "")
 	adapter, err := predictionAdapterFromEnv(fakeAdapterSchedule{}, nil)
@@ -128,6 +141,42 @@ func TestTripUpdatesHandlersReturnValidEmptyFeedAndDebug(t *testing.T) {
 	}
 }
 
+func TestTripUpdatesPathRoutedPublicFeedBuildsRequestedAgencyOnly(t *testing.T) {
+	generatedAt := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	builder := &fakeTripUpdatesBuilder{snapshotsByAgency: map[string]tripupdates.Snapshot{
+		"agency-a": {AgencyID: "agency-a", GeneratedAt: generatedAt, AdapterName: "noop", VehiclePositionsURL: "https://feeds.example/public/agencies/agency-a/gtfsrt/vehicle_positions.pb"},
+		"agency-b": {AgencyID: "agency-b", GeneratedAt: generatedAt, AdapterName: "noop", VehiclePositionsURL: "https://feeds.example/public/agencies/agency-b/gtfsrt/vehicle_positions.pb"},
+	}}
+	handler := newHandler(builder, okPinger{})
+
+	req := httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/trip_updates.pb", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("agency-a status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if builder.agencyCalls["agency-a"] != 1 || builder.agencyCalls["agency-b"] != 0 || builder.defaultCalls != 0 {
+		t.Fatalf("calls = default %d agency %+v, want only agency-a", builder.defaultCalls, builder.agencyCalls)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-b/gtfsrt/trip_updates.pb", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("agency-b status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if builder.agencyCalls["agency-a"] != 1 || builder.agencyCalls["agency-b"] != 1 || builder.defaultCalls != 0 {
+		t.Fatalf("calls = default %d agency %+v, want one call per requested agency", builder.defaultCalls, builder.agencyCalls)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/trip_updates.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("per-agency debug status = %d, want 404", rr.Code)
+	}
+}
+
 func TestTripUpdatesDebugRejectsUnauthenticatedAccess(t *testing.T) {
 	handler := newHandlerWithAuth(&fakeTripUpdatesBuilder{}, okPinger{}, authRejectAll{})
 	req := httptest.NewRequest(http.MethodGet, "/public/gtfsrt/trip_updates.json", nil)
@@ -198,9 +247,12 @@ func TestTripUpdatesReadyz(t *testing.T) {
 }
 
 type fakeTripUpdatesBuilder struct {
-	snapshot tripupdates.Snapshot
-	err      error
-	readyErr error
+	snapshot          tripupdates.Snapshot
+	snapshotsByAgency map[string]tripupdates.Snapshot
+	err               error
+	readyErr          error
+	defaultCalls      int
+	agencyCalls       map[string]int
 }
 
 func (f *fakeTripUpdatesBuilder) Ready(context.Context) error {
@@ -208,10 +260,27 @@ func (f *fakeTripUpdatesBuilder) Ready(context.Context) error {
 }
 
 func (f *fakeTripUpdatesBuilder) Snapshot(context.Context, time.Time) (tripupdates.Snapshot, error) {
+	f.defaultCalls++
 	if f.err != nil {
 		return tripupdates.Snapshot{}, f.err
 	}
 	return f.snapshot, nil
+}
+
+func (f *fakeTripUpdatesBuilder) SnapshotForAgency(_ context.Context, agencyID string, _ time.Time) (tripupdates.Snapshot, error) {
+	if f.agencyCalls == nil {
+		f.agencyCalls = make(map[string]int)
+	}
+	f.agencyCalls[agencyID]++
+	if f.err != nil {
+		return tripupdates.Snapshot{}, f.err
+	}
+	if f.snapshotsByAgency != nil {
+		return f.snapshotsByAgency[agencyID], nil
+	}
+	snapshot := f.snapshot
+	snapshot.AgencyID = agencyID
+	return snapshot, nil
 }
 
 type okPinger struct{}

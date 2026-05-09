@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"open-transit-rt/internal/server"
 	"open-transit-rt/internal/state"
 	"open-transit-rt/internal/telemetry"
+	"open-transit-rt/internal/tenant"
 )
 
 type pinger interface {
@@ -23,6 +25,10 @@ type pinger interface {
 
 type snapshotBuilder interface {
 	Snapshot(ctx context.Context, generatedAt time.Time) (feed.VehiclePositionsSnapshot, error)
+}
+
+type agencySnapshotBuilder interface {
+	SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (feed.VehiclePositionsSnapshot, error)
 }
 
 type vehiclePositionsHealthRecorder interface {
@@ -144,22 +150,27 @@ func newHandlerWithAuthAndHealth(builder snapshotBuilder, ready pinger, admin ad
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		started := time.Now().UTC()
-		snapshot, err := builder.Snapshot(r.Context(), started)
-		if err != nil {
-			http.Error(w, "build vehicle positions snapshot", http.StatusInternalServerError)
+		writePublicProto(w, r, builder, health, "")
+	})
+	mux.HandleFunc("/public/agencies/", func(w http.ResponseWriter, r *http.Request) {
+		agencyID, suffix, matched, err := tenant.PublicAgencyRoute(r.URL.EscapedPath())
+		if !matched {
+			http.NotFound(w, r)
 			return
 		}
-		payload, err := snapshot.MarshalProto()
 		if err != nil {
-			http.Error(w, "marshal vehicle positions protobuf", http.StatusInternalServerError)
+			http.Error(w, "invalid agency route", http.StatusBadRequest)
 			return
 		}
-		persistVehiclePositionsHealth(health, snapshot, time.Since(started))
-		w.Header().Set("Content-Type", "application/x-protobuf")
-		w.Header().Set("Last-Modified", snapshot.GeneratedAt.Format(http.TimeFormat))
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(payload)
+		if suffix != "/gtfsrt/vehicle_positions.pb" {
+			http.NotFound(w, r)
+			return
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		writePublicProto(w, r, builder, health, agencyID)
 	})
 
 	debugHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -196,6 +207,42 @@ func newHandlerWithAuthAndHealth(builder snapshotBuilder, ready pinger, admin ad
 	mux.Handle("/admin/debug/gtfsrt/vehicle_positions.json", adminRead(debugHandler))
 
 	return mux
+}
+
+func writePublicProto(w http.ResponseWriter, r *http.Request, builder snapshotBuilder, health vehiclePositionsHealthRecorder, agencyID string) {
+	started := time.Now().UTC()
+	snapshot, err := vehiclePositionsSnapshot(r.Context(), builder, agencyID, started)
+	if err != nil {
+		http.Error(w, "build vehicle positions snapshot", http.StatusInternalServerError)
+		return
+	}
+	payload, err := snapshot.MarshalProto()
+	if err != nil {
+		http.Error(w, "marshal vehicle positions protobuf", http.StatusInternalServerError)
+		return
+	}
+	persistVehiclePositionsHealth(health, snapshot, time.Since(started))
+	w.Header().Set("Content-Type", "application/x-protobuf")
+	w.Header().Set("Last-Modified", snapshot.GeneratedAt.Format(http.TimeFormat))
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+}
+
+func vehiclePositionsSnapshot(ctx context.Context, builder snapshotBuilder, agencyID string, generatedAt time.Time) (feed.VehiclePositionsSnapshot, error) {
+	if agencyID == "" {
+		return builder.Snapshot(ctx, generatedAt)
+	}
+	if agencyBuilder, ok := builder.(agencySnapshotBuilder); ok {
+		return agencyBuilder.SnapshotForAgency(ctx, agencyID, generatedAt)
+	}
+	snapshot, err := builder.Snapshot(ctx, generatedAt)
+	if err != nil {
+		return feed.VehiclePositionsSnapshot{}, err
+	}
+	if snapshot.AgencyID != agencyID {
+		return feed.VehiclePositionsSnapshot{}, errors.New("vehicle positions builder cannot build requested agency")
+	}
+	return snapshot, nil
 }
 
 func persistVehiclePositionsHealth(health vehiclePositionsHealthRecorder, snapshot feed.VehiclePositionsSnapshot, generationLatency time.Duration) {
