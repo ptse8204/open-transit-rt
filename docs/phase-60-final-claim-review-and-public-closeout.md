@@ -2,9 +2,13 @@
 
 ## Status
 
-Planning accepted. Execution must add a final claim review record and local
-audit tooling, then close public/status wording without strengthening any
-unsupported claim.
+Complete.
+
+Phase 60 added the final claim review record, local audit tooling, mutation
+tests, Make targets, and public/status closeout wording. The phase did not
+create evidence, write `docs/evidence`, contact any external party, change
+consumer status, refresh consumer artifacts, or strengthen any unsupported
+claim.
 
 ## Goal
 
@@ -254,3 +258,92 @@ The artifact `find` command must print no files.
 Accepted. The plan has clear scope, non-goals, safety boundaries, tests,
 validation commands, docs/handoff updates, consumer tracker preservation
 checks, and no evidence-writing or claim-upgrade path.
+
+## Final Claim Review
+
+Phase 60 reviewed the retained repository evidence and public/status wording
+against the Phase 54 official-source mapping and the Phase 60 claim boundary.
+The review classifies each public claim as an implementation capability,
+local/demo evidence, hosted/operator pilot evidence, public-GTFS local/pilot
+evidence, prepared-only consumer packet state, official requirements context,
+or missing/blocked evidence.
+
+No retained evidence currently supports a claim of public launch,
+CAL-ITP/Caltrans compliance, agency adoption, agency-owned final-root proof,
+consumer submission/review/acceptance/ingestion/listing/display, hosted SaaS,
+paid support, SLA/uptime, production readiness, production multi-tenant
+hosting, vendor compatibility, marketplace approval, or production-grade ETA
+quality.
+
+## Claim-To-Evidence Table
+
+| Claim area | Allowed wording after Phase 60 | Evidence classification | Boundary |
+| --- | --- | --- | --- |
+| Project purpose | Open Transit RT is an open-source backend project for GTFS import/authoring, authenticated telemetry ingest, conservative matching, and GTFS Realtime feed publication. | Implementation capability | This is not a hosted service, SaaS, paid support, or SLA claim. |
+| Vehicle Positions first | The repo implements GTFS-RT Vehicle Positions as the first high-quality public output path and keeps Trip Updates pluggable. | Implementation capability | This does not prove production readiness or consumer ingestion. |
+| Stable paths and metadata | The repo implements technical foundations for stable feed paths, validation workflows, metadata, consumer packet preparation, and CAL-ITP-style readiness review. | Implementation capability and official requirements context | This does not prove compliance for a real deployment. |
+| Local app and demo flows | Local commands and fixtures can exercise GTFS import, telemetry ingest, matching, and public feed paths. | Local demo/prototype evidence | Local proof is not public launch, agency adoption, or production proof. |
+| OCI DuckDNS packet | The OCI DuckDNS packet is hosted/operator pilot evidence only. | Hosted/operator OCI pilot evidence | It is not agency-owned final-root proof, compliance proof, consumer proof, or hosted SaaS availability. |
+| Public-GTFS local/pilot packet | Phase 33 proves local/pilot handling of one real public static GTFS dataset only. | Public-GTFS local/pilot evidence | It does not prove official agency feed status, final-root readiness, real realtime data, or ETA quality. |
+| Consumer packets | Seven consumer and aggregator packet drafts are `prepared` only. | Prepared-only consumer packet state | No target has submitted, under-review, accepted, rejected, blocked, ingested, listed, displayed, or adopted status. |
+| Official requirements mapping | Phase 54 refreshed current Caltrans / Cal-ITP and FTA source mappings on May 9, 2026. | Official requirements context | Requirements context is not deployment evidence and does not prove compliance. |
+| Real pilot closeout | Phase 59 real pilot closeout is blocker-only because required retained pilot authorization and public-safe closeout artifacts are absent. | Missing/blocked evidence | No real pilot evidence packet was created and no agency or operator claim was strengthened. |
+
+## Unsupported Claims
+
+The following remain unsupported and must either be absent from public/status
+docs or explicitly negated/bounded:
+
+| Unsupported claim | Current retained evidence state | Required before claim could change |
+| --- | --- | --- |
+| Open Transit RT is CAL-ITP/Caltrans compliant. | Missing. | Deployment-specific retained proof for stable public URLs, validator-clean schedule/realtime feeds, open license/contact/discoverability, and consumer acceptance where required by the claim. |
+| Open Transit RT has publicly launched. | Missing. | Retained launch approval and public-safe publication record. |
+| An agency adopted, endorsed, approved, or deployed Open Transit RT. | Missing. | Retained public-safe agency/operator authorization and approval artifacts for the exact claim. |
+| An agency-owned or agency-approved final public root is ready or proven. | Missing. | Retained final-root approval, DNS, TLS, redirect, public fetch, validator, proxy/config, README, and checksum evidence. |
+| A consumer or aggregator target has a status beyond `prepared`. | Missing. | Target-originated or operator-retained public-safe evidence for the exact target and status. |
+| Open Transit RT is hosted SaaS, a hosted service offering, paid support, or SLA-backed. | Missing. | Approved service offering, support, and SLA evidence outside current repo-only scope. |
+| Open Transit RT guarantees uptime or proves production readiness. | Missing. | Deployment-specific operations, monitoring, incident, backup/restore, availability, and validation evidence. |
+| Open Transit RT proves production multi-tenant hosting readiness. | Missing. | Retained multi-tenant deployment and data-isolation proof for a production environment. |
+| Open Transit RT is vendor compatible, hardware certified, or marketplace approved. | Missing. | Retained vendor, hardware, or marketplace-originated evidence for the exact named claim. |
+| Open Transit RT proves production-grade ETA quality or real-world ETA accuracy. | Missing. | Real-world observed arrival/departure quality evidence and retained route/time-period metrics. |
+
+## Retained Evidence Boundary
+
+Phase 60 did not add, modify, or refresh retained evidence. It intentionally
+left these paths unchanged:
+
+- `docs/evidence/consumer-submissions/status.json`;
+- `docs/evidence/consumer-submissions/current/`;
+- `docs/evidence/consumer-submissions/artifacts/`;
+- `docs/evidence/consumer-submissions/packets/`;
+- `docs/evidence/captured/`.
+
+The local audit verifies that the consumer tracker still has exactly seven
+targets in the expected order and that each target remains `prepared`. It also
+verifies that consumer artifact directories contain only README files.
+
+## Maintainer Signoff
+
+Maintainer review placeholder:
+
+- Reviewer:
+- Review date:
+- Decision:
+- Notes:
+
+## Execution Closeout
+
+Phase 60 execution added:
+
+- `scripts/audit-final-claim-review.sh`;
+- `scripts/test-final-claim-review.sh`;
+- `make audit-final-claim-review`;
+- `make test-final-claim-review`;
+- validation scaffolding for the new scripts and handoff;
+- final closeout notes in bounded public/status docs;
+- `docs/handoffs/phase-60.md`.
+
+The audit helper is local-only and read-only. It does not browse the web, fetch
+live feeds, contact consumers, contact agencies, send email, trigger webhooks,
+automate portals, create evidence, or change repo state outside ignored test
+fixtures created by `scripts/test-final-claim-review.sh`.

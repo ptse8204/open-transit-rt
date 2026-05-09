@@ -22,6 +22,10 @@ Caltrans Guidelines page identifies itself as Version 4.0, dated December 11,
 2024, and the FAQ identifies itself as Version 4.0. This source refresh updates
 requirement mapping only; it is not compliance evidence.
 
+Phase 60 completed a final claim review against the retained repository
+evidence and this official-source context. The review and audit tooling are not
+deployment evidence and do not prove compliance.
+
 The current Caltrans California Transit Data Guidelines describe GTFS Schedule
 and GTFS Realtime compliance in terms that include stable public URLs, regular
 canonical validation with no errors, open licensing, and ingestion by major trip
@@ -75,6 +79,11 @@ Phase 55 adds a local compliance/readiness packet generator for operator review:
 - Generated packets summarize configured retained evidence paths and missing
   evidence. They do not create evidence, fetch feeds, contact consumers,
   change consumer statuses, or prove compliance.
+
+Phase 60 adds `make audit-final-claim-review` for bounded public/status claim
+review. The audit checks required Phase 60 sections, unsafe private strings,
+unsupported positive claims, prepared-only consumer tracker state, and
+README-only consumer artifact directories. It is local and read-only.
 
 Truthful wording:
 

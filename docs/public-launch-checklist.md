@@ -2,6 +2,11 @@
 
 Use this checklist before reviewing or publishing any public-facing Open Transit RT wording. Phase 32 produced draft launch materials only; this checklist is not evidence that an announcement was posted, an agency was contacted, a consumer was contacted, or a public launch occurred.
 
+Phase 60 adds a final claim review and local audit guard for this checklist.
+Run `make audit-final-claim-review` before treating public/status wording as
+ready for maintainer review. The audit is read-only and does not create
+evidence or change consumer/publication state.
+
 ## Scope Check
 
 - [ ] Material is marked as draft until reviewed.
@@ -42,6 +47,7 @@ Do not use agency, Caltrans/CAL-ITP, consumer, vendor, validator, or standards-b
 | Agency pilot package exists | The repo has agency pilot docs for evaluation planning. | [Agency Pilot Program](agency-pilot-program.md), [Agency Pilot Checklist](agency-pilot-checklist.md), [Agency Feedback Template](agency-feedback-template.md). | An agency adopted the project, endorsed it, completed a pilot, or approved production use. |
 | Agency-owned final root is missing | No agency-owned or agency-approved final public feed root exists in repo evidence. | [Agency-Owned Domain Readiness](agency-owned-domain-readiness.md), [California Readiness Summary](california-readiness-summary.md), [Current Status](current-status.md). | The OCI DuckDNS host is agency-owned final-root proof or enough for final consumer submission claims. |
 | Consumer acceptance is missing | No consumer or aggregator has submitted, under-review, accepted, rejected, blocked, ingestion, listing, display, or adoption evidence. | [Consumer Status JSON](evidence/consumer-submissions/status.json), [Consumer Submission Workflow](evidence/consumer-submissions/submission-workflow.md), [Consumer Submission Evidence](consumer-submission-evidence.md). | Any consumer has accepted, ingested, listed, displayed, rejected, blocked, or adopted the feeds. |
+| Final claim review exists | Phase 60 records the final claim-to-evidence table and unsupported-claim boundary. | [Phase 60 Final Claim Review](phase-60-final-claim-review-and-public-closeout.md), `make audit-final-claim-review`. | The review creates evidence, proves compliance, or permits stronger public launch, agency, consumer, hosted service, SLA, production-readiness, vendor, marketplace, or ETA-quality claims. |
 
 ## Final Review Questions
 

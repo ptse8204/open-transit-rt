@@ -158,6 +158,7 @@ consumer packet preparation.
 
 Use these docs for the current boundary:
 
+- [Phase 60 Final Claim Review](docs/phase-60-final-claim-review-and-public-closeout.md)
 - [California Readiness Summary](docs/california-readiness-summary.md)
 - [Compliance Evidence Checklist](docs/compliance-evidence-checklist.md)
 - [CAL-ITP Readiness Checklist](docs/tutorials/calitp-readiness-checklist.md)

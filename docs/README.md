@@ -94,6 +94,7 @@ These pages explain what evidence exists and what it can, and cannot, prove:
 
 - [Compliance Evidence Checklist](compliance-evidence-checklist.md)
 - [California Readiness Summary](california-readiness-summary.md)
+- [Phase 60 Final Claim Review](phase-60-final-claim-review-and-public-closeout.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Agency-Owned Domain Readiness](agency-owned-domain-readiness.md)
 - [Consumer Submission Evidence](consumer-submission-evidence.md)
@@ -160,6 +161,8 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Phase 46 Handoff](handoffs/phase-46.md)
 - [Phase 47 Self-Hosted Operations Notifications](phase-47-self-hosted-operations-notifications.md)
 - [Phase 47 Handoff](handoffs/phase-47.md)
+- [Phase 60 Final Claim Review](phase-60-final-claim-review-and-public-closeout.md)
+- [Phase 60 Handoff](handoffs/phase-60.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
 - [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
 - [Phase 34 Post-Outcome-C Status Consistency](phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md)

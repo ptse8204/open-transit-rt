@@ -4,16 +4,40 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 59 — Real Pilot Closeout is closed blocker-only for the approved
-docs/status/handoff scope.
+Phase 60 — Final Claim Review And Public Closeout is complete for the approved
+docs/scripts/status/handoff scope.
 
-Phases 0 through 59 are closed for their documented scopes. Track A is also
-closed for its docs-only external-proof workflow scope. Do not reopen earlier
-phases unless a blocking truthfulness, safety, security, realtime-quality,
-evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
-onboarding, admin-UX, operations-hardening, pilot-readiness,
-submission-readiness, public-messaging, public-GTFS evidence, or
-self-hosted-reuse issue directly requires it.
+Phases 0 through 60 are closed for their documented scopes. Track A is also
+closed for its docs-only external-proof workflow scope.
+
+Phase 60 added the final claim-to-evidence review, unsupported-claim table,
+retained-evidence boundary, `scripts/audit-final-claim-review.sh`,
+`scripts/test-final-claim-review.sh`, `make audit-final-claim-review`,
+`make test-final-claim-review`, validation scaffolding, and
+`docs/handoffs/phase-60.md`. The audit is local-only and read-only: it scans
+bounded public/status docs, required Phase 60 sections, unsafe private strings,
+unsupported positive claims, the exact seven-target prepared-only consumer
+tracker state, and README-only consumer artifact directories.
+
+Phase 60 created no retained evidence, wrote nothing under `docs/evidence`,
+contacted no external party, sent no webhook or email, automated no portal,
+changed no consumer status, refreshed no consumer packet or artifact directory,
+and added no public launch, compliance, agency adoption, consumer acceptance,
+hosted service, paid support, SLA/uptime, production-readiness, vendor,
+marketplace, or ETA-quality claim. All seven consumer and aggregator targets
+remain `prepared`.
+
+Before any future stronger public wording, rerun `make audit-final-claim-review`
+and require retained public-safe claim-specific evidence for the exact claim.
+
+Previous phase context: Phase 59 — Real Pilot Closeout is closed blocker-only
+for the approved docs/status/handoff scope.
+
+Do not reopen earlier phases unless a blocking truthfulness, safety, security,
+realtime-quality, evidence, agency-boundary, auth, data-isolation,
+agency-domain, device/AVL onboarding, admin-UX, operations-hardening,
+pilot-readiness, submission-readiness, public-messaging, public-GTFS evidence,
+or self-hosted-reuse issue directly requires it.
 
 Phase 59 found no retained Phase 59 pilot authorization record, kickoff note,
 agency/operator feedback record, operations closeout, or continue/pause/close
@@ -724,8 +748,8 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 59 is complete blocker-only; proceed to
-Phase 60 claim review without weakening the evidence boundaries.
+agencies and civic technologists. Phase 60 is complete for final claim review
+and public closeout without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -734,6 +758,10 @@ target is selected, official target paths are verified, and target-originated
 evidence can be retained and redacted. Product improvements, validator success,
 pilot packaging, prepared packets, and draft launch materials alone must not
 advance target statuses.
+
+For future public/status wording changes, run `make audit-final-claim-review`
+and preserve the Phase 60 claim-to-evidence boundary unless retained
+claim-specific evidence supports a narrower update.
 
 ## Exact First Commands
 
@@ -995,7 +1023,7 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 59 is closed; do not
+choosing files. Phase 60 is closed; do not
 reopen Phase 39, Phase 40, Phase 41, Phase 42, Phase 43, Phase 44, Phase 45,
 Phase 46, Phase 47, Phase 48, Phase 49, Phase 50, Phase 51, Phase 52, or Phase
 53 unless a concrete readiness-workflow, guided-trial, diagnostics,
@@ -1013,6 +1041,9 @@ marketplace/vendor/support claim regression is found.
 Do not reopen Phase 59 unless a maintainer supplies a real retained
 authorization plus public-safe kickoff, operations, feedback, and decision
 artifact set for a named pilot.
+Do not reopen Phase 60 unless a concrete public/status claim-boundary
+regression is found, official requirements have materially changed, or retained
+claim-specific evidence supports a narrower claim update.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -1031,9 +1062,10 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 60 -- Final Claim Review And Public Closeout. Review public
-claims against retained evidence and current official requirements context
-only. Remove or keep bounded any claim without direct retained evidence support.
+There is no next roadmap phase in the Phase 48 through Phase 60 sequence.
+Continue with maintenance or a new maintainer-approved phase only after a
+fresh read-only planning pass. For public/status wording work, start with
+`make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

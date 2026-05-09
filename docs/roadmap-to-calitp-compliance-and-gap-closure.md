@@ -1,10 +1,10 @@
 # Roadmap To Cal-ITP Compliance And GTFS-RT Gap Closure
 
-**Status:** proposed review draft, Phase 59 real pilot closeout complete blocker-only
+**Status:** proposed review draft, Phase 60 final claim review complete
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`
 **Generated for review:** 2026-05-08
 **Phase 54 refresh date:** 2026-05-09
-**Current repo baseline:** Phase 59 closed blocker-only for real pilot closeout
+**Current repo baseline:** Phase 60 complete for final claim review and public closeout
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -46,6 +46,13 @@ repository. It did not create evidence, change consumer statuses, refresh
 earlier pilot packets, or strengthen agency, consumer, compliance, operations,
 hosted service, support, vendor, marketplace, or ETA-quality claims.
 
+Phase 60 added a final claim-to-evidence review, unsupported-claim table, local
+read-only audit helper, mutation-style script tests, Make targets, and handoff.
+It did not create evidence, write `docs/evidence`, contact external parties,
+change consumer statuses, or strengthen public launch, compliance, agency,
+consumer, hosted service, SLA/uptime, production-readiness, vendor,
+marketplace, or ETA-quality claims.
+
 Before any public compliance claim or final compliance closeout, a maintainer
 must re-check the official Caltrans / Cal-ITP and FTA sources again and update
 this roadmap if the requirements have changed.
@@ -57,18 +64,12 @@ Open Transit RT supports CAL-ITP-style readiness workflows and implements
 technical foundations for stable GTFS and GTFS-Realtime publication.
 ```
 
-Do not use this wording yet:
-
-```text
-Open Transit RT is CAL-ITP compliant.
-Open Transit RT is Caltrans compliant.
-Open Transit RT is accepted by trip planners.
-Open Transit RT is production-ready for all agencies.
-```
+Do not use wording that says the project is compliant, accepted by trip
+planners, or production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 59, Open Transit RT has:
+As of Phase 60, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -105,6 +106,9 @@ As of Phase 59, Open Transit RT has:
   open licensing, major trip-planner acceptance as a third-party requirement,
   provider website source-of-truth links, technical/feed contact, Transitland
   and Mobility Database availability, and API-key registration constraints.
+- final claim review and local audit tooling that checks bounded public/status
+  docs, prepared-only consumer tracker state, README-only consumer artifact
+  directories, unsafe private strings, and required Phase 60 sections.
 
 The repo still lacks retained proof for:
 
@@ -122,7 +126,7 @@ The repo still lacks retained proof for:
 - hosted SaaS availability;
 - paid support/SLA commitments.
 
-Phase 54 and Phase 59 do not reduce any of these evidence gaps.
+Phases 54, 59, and 60 do not reduce any of these evidence gaps.
 
 ## End State
 
@@ -243,7 +247,7 @@ phase handoff is created.
 | 57 | Release Packaging And Supply Chain | Complete. Local `.cache` source packages with checksums, SBOM/provenance metadata, optional local image metadata, and audit checks; no hosted service or production image claim. |
 | 58 | Optional Marketplace / Vendor-Equivalent Pack | Complete. Template-only BYOD/hardware, support, SLA/KPI, implementation, and procurement pack with local claim-boundary audit. |
 | 59 | Real Pilot Closeout | Complete blocker-only. No retained real pilot authorization, feedback, operations, or decision artifact set was available; no evidence or claim status changed. |
-| 60 | Final Claim Review And Public Closeout | Decide exactly what may be claimed after evidence and official requirements review. |
+| 60 | Final Claim Review And Public Closeout | Complete. Final claim-to-evidence review and local audit tooling; no evidence or claim status changed. |
 
 ## Phase 41 — Operator Smoke And Support Bundle
 

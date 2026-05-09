@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -127,6 +127,12 @@ audit-compliance-evidence-packet:
 
 test-compliance-evidence-packet:
 	./scripts/test-compliance-evidence-packet.sh
+
+audit-final-claim-review:
+	./scripts/audit-final-claim-review.sh
+
+test-final-claim-review:
+	./scripts/test-final-claim-review.sh
 
 pilot-ops-help:
 	./scripts/pilot-ops.sh help
@@ -276,6 +282,12 @@ validate:
 	@rm -rf .cache/validate/compliance-evidence-packet
 	@COMPLIANCE_PACKET_OUTPUT_DIR=.cache/validate/compliance-evidence-packet COMPLIANCE_PACKET_FORCE=true scripts/generate-compliance-evidence-packet.sh >/dev/null
 	@COMPLIANCE_PACKET_DIR=.cache/validate/compliance-evidence-packet scripts/audit-compliance-evidence-packet.sh >/dev/null
+	@scripts/audit-final-claim-review.sh --help >/dev/null
+	@scripts/audit-final-claim-review.sh >/dev/null
+	@test -f scripts/test-final-claim-review.sh
+	@sh -n scripts/audit-final-claim-review.sh scripts/test-final-claim-review.sh
+	@test -f docs/phase-60-final-claim-review-and-public-closeout.md
+	@test -f docs/handoffs/phase-60.md
 	@test -f docs/phase-55-compliance-evidence-packet-generator.md
 	@test -f docs/handoffs/phase-55.md
 	@test -f docs/phase-56-multi-agency-hosting-hardening.md

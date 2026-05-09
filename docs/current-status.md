@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 59 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 60 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -96,7 +96,14 @@ quality. Phase 59 is complete blocker-only for real pilot closeout. No retained
 Phase 59 pilot authorization record, kickoff note, agency/operator feedback
 record, operations closeout, or continue/pause/close decision artifact was
 available in the repository, so no pilot evidence packet was created and no
-claim was strengthened.
+claim was strengthened. Phase 60 is complete for final claim review and public
+closeout. It added the final claim-to-evidence review, unsupported-claim table,
+local read-only audit helper, mutation-style script tests, Make targets, and a
+handoff. Phase 60 did not create evidence, write `docs/evidence`, contact
+external parties, change consumer statuses, refresh consumer packets or
+artifacts, or add any public launch, compliance, agency adoption, consumer
+acceptance, hosted service, SLA/uptime, production-readiness, vendor,
+marketplace, or ETA-quality claim.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -723,14 +730,16 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 59 — Real Pilot Closeout is complete blocker-only for
-the approved docs/status/handoff scope. Phases 0 through 59 are closed for
-their documented scopes. Phase 59 found no retained real pilot authorization,
-kickoff, operations, feedback, and continue/pause/close decision artifact set,
-so no pilot evidence packet was created and no claim was strengthened. The
-next recommended phase is Phase 60 -- Final Claim Review And Public Closeout,
-limited to claims directly supported by retained evidence and current official
-requirements context. Track A —
+**Active phase:** Phase 60 — Final Claim Review And Public Closeout is
+complete for the approved docs/scripts/status/handoff scope. Phases 0 through
+60 are closed for their documented scopes. Phase 60 added the final
+claim-to-evidence review, unsupported-claim table, local read-only audit
+helper, mutation tests, Make targets, validation scaffolding, and handoff. It
+created no retained evidence, wrote nothing under `docs/evidence`, changed no
+consumer statuses, refreshed no consumer packets or artifacts, and added no
+stronger public launch, compliance, agency, consumer, hosted service,
+SLA/uptime, production-readiness, vendor, marketplace, or ETA-quality claim.
+Track A —
 External Proof And Adoption is complete for the documented docs-only operator
 workflow, evidence intake, artifact-directory, and agency-domain readiness
 scope, and remains available as a future optional proof path when retained
@@ -1685,11 +1694,50 @@ Phase 59 targeted verification:
 - `docker compose -f deploy/docker-compose.yml config`: passed
 - `INTEGRATION_TESTS=1 make test-integration`: passed
 
+## Phase 60 Progress
+
+Phase 60 closed for final claim review and public closeout:
+- added `scripts/audit-final-claim-review.sh`
+- added `scripts/test-final-claim-review.sh`
+- added `make audit-final-claim-review`
+- added `make test-final-claim-review`
+- updated the final claim-to-evidence table and unsupported-claim table in
+  `docs/phase-60-final-claim-review-and-public-closeout.md`
+- added `docs/handoffs/phase-60.md`
+- updated bounded public/status docs for final closeout
+- created no retained evidence
+- wrote nothing under `docs/evidence`
+- contacted no external party
+- changed no consumer status
+- refreshed no consumer packet or artifact directory
+- did not add or claim public launch, compliance, agency adoption, consumer
+  acceptance, hosted service, paid support, SLA/uptime, production readiness,
+  production multi-tenant hosting, vendor compatibility, marketplace approval,
+  or production-grade ETA quality
+
+Phase 60 targeted verification:
+- `sh -n scripts/audit-final-claim-review.sh scripts/test-final-claim-review.sh`: passed
+- `make test-final-claim-review`: passed
+- `make audit-final-claim-review`: passed
+- `make validate`: passed
+- `make test`: passed
+- `make smoke`: passed
+- `git diff --check`: passed
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`: passed
+- exact seven-target prepared-only consumer tracker check: passed
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json`: passed
+- `git diff --exit-code -- docs/evidence/consumer-submissions/current docs/evidence/consumer-submissions/artifacts docs/evidence/consumer-submissions/packets docs/evidence/captured`: passed
+- `find docs/evidence/consumer-submissions/artifacts -mindepth 2 -maxdepth 2 -type f ! -name README.md -print`: passed; printed no files
+- `git status --short -- docs/evidence/consumer-submissions docs/evidence/captured`: passed; printed no files
+- `docker compose -f deploy/docker-compose.yml config`: passed
+- `INTEGRATION_TESTS=1 make test-integration`: passed
+
 ## Next Recommended Step
 
-Proceed to Phase 60 -- Final Claim Review And Public Closeout. Review public
-claims against retained evidence and current official requirements context
-only. Remove or keep bounded any claim without direct retained evidence support.
+There is no next roadmap phase in the Phase 48 through Phase 60 sequence.
+Continue with maintenance or a new maintainer-approved phase only after a fresh
+read-only planning pass. For public/status wording work, start with
+`make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

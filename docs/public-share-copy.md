@@ -4,6 +4,12 @@ These are draft posts for review. They are not evidence that anything was posted
 
 Do not publish these drafts without a final truthfulness, security, redaction, and no-affiliation review.
 
+Phase 60 completed the repository claim review and added
+`make audit-final-claim-review` as a local read-only guard. Passing that audit
+is a review input only; it is not public launch evidence and does not change
+consumer, agency, compliance, hosted service, SLA, production-readiness,
+vendor, marketplace, or ETA-quality claim status.
+
 ## Shared Rules
 
 - Do not use agency, Caltrans/CAL-ITP, consumer, vendor, or validator logos unless retained permission exists.
