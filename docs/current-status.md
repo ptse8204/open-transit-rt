@@ -36,7 +36,8 @@ Phase 50 implementation is complete for the private realtime quality
 backtesting CLI/library workflow. It adds local aggregate diagnostics only and
 does not add DB persistence, migrations, Operations Console changes, public
 APIs, evidence writes, consumer tracker changes, or stronger ETA/readiness
-claims.
+claims. Phase 51 planning is approved for private operations reliability
+diagnostics; implementation has not started.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot

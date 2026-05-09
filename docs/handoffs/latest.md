@@ -4,7 +4,8 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 51 — Operations Reliability And SLO Readiness is next for planning.
+Phase 51 — Operations Reliability And SLO Readiness is planned and approved.
+Implementation has not started.
 
 Phases 0 through 50 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
@@ -116,6 +117,15 @@ traversal, and symlink ancestors, and does not copy raw inputs or persist raw
 rows. Phase 50 is local engineering diagnostics only and does not add DB
 persistence, migrations, Operations Console routes, public APIs, evidence
 writes, consumer tracker changes, publish gates, or stronger ETA/readiness
+claims.
+
+The next step is Phase 51 execution against
+`docs/phase-51-operations-reliability-and-slo-readiness.md`. Execution must
+stay inside that approved plan. Do not add public routes, migrations,
+monitoring-stack dependencies, evidence writes, consumer-status changes,
+publish blocking, SLA claims, uptime guarantees, production-readiness claims,
+compliance claims, hosted SaaS claims, agency adoption claims, vendor
+compatibility claims, consumer acceptance claims, or production-grade ETA
 claims.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
@@ -925,10 +935,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Start Phase 51 planning for Operations Reliability And SLO Readiness. Preserve
-the no-SLA, no-production-readiness, no-evidence-writing, no-consumer-status,
-and no-public-unauthenticated-route boundaries unless a later approved
-evidence-backed phase explicitly changes them.
+Execute Phase 51 from
+`docs/phase-51-operations-reliability-and-slo-readiness.md`, preserving the
+private diagnostics, no-SLA, no-production-readiness, no-evidence-writing,
+no-consumer-status, no-public-unauthenticated-route, and no-migration
+boundaries unless a later approved evidence-backed phase explicitly changes
+them.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
