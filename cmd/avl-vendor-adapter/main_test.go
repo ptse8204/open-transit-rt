@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -28,8 +32,8 @@ func TestRunHelp(t *testing.T) {
 func TestRunRequiresDryRun(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	err := run([]string{"--mapping", "../../testdata/avl-vendor/mapping.json", "../../testdata/avl-vendor/valid.json"}, &stdout, &stderr)
-	if err == nil || !strings.Contains(err.Error(), "send mode is not implemented") {
-		t.Fatalf("error = %v, want send-mode-not-implemented", err)
+	if err == nil || !strings.Contains(err.Error(), "choose exactly one mode") {
+		t.Fatalf("error = %v, want explicit mode selection error", err)
 	}
 }
 
@@ -77,6 +81,58 @@ func TestRunDryRunBoundaryHelpDoesNotDependOnPhase29B(t *testing.T) {
 	}
 }
 
+func TestRunSendWritesPrivateSummaryAndPostsTelemetry(t *testing.T) {
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if r.URL.Path != "/v1/telemetry" {
+			t.Fatalf("path = %q", r.URL.Path)
+		}
+		if r.Header.Get("Authorization") != "Bearer synthetic-device-token" {
+			t.Fatalf("authorization header was not sent")
+		}
+		if !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+			t.Fatalf("content type = %q", r.Header.Get("Content-Type"))
+		}
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(`{"accepted":true,"ingest_status":"accepted"}`))
+	}))
+	defer server.Close()
+
+	outputDir := filepath.Join(".cache", "avl-vendor-adapter-cli-test")
+	_ = os.RemoveAll(outputDir)
+	t.Cleanup(func() { _ = os.RemoveAll(outputDir) })
+	t.Setenv(avladapter.EnvTelemetryURL, server.URL+"/v1/telemetry")
+	t.Setenv(avladapter.EnvOutputDir, outputDir)
+	t.Setenv("AVL_ADAPTER_DEVICE_TOKEN", "synthetic-device-token")
+	t.Setenv(avladapter.EnvReferenceTime, "2026-05-04T12:00:00Z")
+
+	var stdout, stderr bytes.Buffer
+	err := run([]string{
+		"--send",
+		"--mapping", "../../testdata/avl-vendor/mapping.json",
+		"--manifest", "../../testdata/avl-vendor/send-manifest.json",
+		"../../testdata/avl-vendor/valid.json",
+	}, &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("run send: %v; stderr=%s", err, stderr.String())
+	}
+	if requests != 1 {
+		t.Fatalf("requests = %d, want 1", requests)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %s, want empty", stderr.String())
+	}
+	if strings.Contains(stdout.String(), server.Listener.Addr().String()) || strings.Contains(stdout.String(), "synthetic-device-token") {
+		t.Fatalf("stdout leaked private data: %s", stdout.String())
+	}
+	for _, name := range []string{"summary.json", "summary.md", "manifest.json", "manifest.md", "diagnostics.json"} {
+		if _, err := os.Stat(filepath.Join(outputDir, name)); err != nil {
+			t.Fatalf("missing output file %s: %v", name, err)
+		}
+	}
+}
+
 func TestRunReviewDiagnosticsForSeparateBatchFixtures(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
@@ -114,7 +170,7 @@ func assertHelpBoundary(t *testing.T, help string) {
 	lower := strings.Join(strings.Fields(strings.ToLower(help)), " ")
 	for _, phrase := range []string{
 		"--dry-run",
-		"network send mode is not implemented",
+		"--send",
 		"not telemetry ingest status",
 		"not vendor compatibility proof",
 	} {

@@ -1,0 +1,13 @@
+{
+  "schema_version": "avl-adapter-send.v1",
+  "telemetry_url_env": "AVL_ADAPTER_TELEMETRY_URL",
+  "credentials": [
+    {
+      "agency_id": "demo-agency",
+      "device_id": "device-1",
+      "vehicle_id": "bus-1",
+      "token_env": "AVL_ADAPTER_DEVICE_TOKEN",
+      "notes": "Synthetic local reference binding."
+    }
+  ]
+}

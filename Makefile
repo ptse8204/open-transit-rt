@@ -210,6 +210,8 @@ validate:
 	@test -f docs/phase-47-self-hosted-operations-notifications.md
 	@test -f docs/tutorials/self-hosted-operations-notifications.md
 	@test -f docs/handoffs/phase-47.md
+	@test -f docs/phase-48-avl-adapter-runtime-path.md
+	@test -f docs/handoffs/phase-48.md
 	@test -f docs/roadmap-to-calitp-compliance-and-gap-closure.md
 	@python3 -c 'import json; from pathlib import Path; expected=["Google Maps","Apple Maps","Transit App","Bing Maps","Moovit","Mobility Database","transit.land"]; data=json.loads(Path("docs/evidence/consumer-submissions/status.json").read_text()); records=data.get("targets", []); seen={r["target"]: r.get("status") for r in records}; assert list(seen)==expected, seen; assert all(seen[name]=="prepared" for name in expected), seen'
 	@test -f testdata/avl-vendor/README.md
@@ -219,6 +221,7 @@ validate:
 	@test -f testdata/avl-vendor/multi-vehicle-gps.json
 	@test -f testdata/avl-vendor/duplicate-batch.json
 	@test -f testdata/avl-vendor/out-of-order-batch.json
+	@test -f testdata/avl-vendor/send-manifest.json
 	@test -f testdata/telemetry-simulator/README.md
 	@test -f testdata/telemetry-simulator/on-route.json
 	@test -f testdata/telemetry-simulator/stale.json
