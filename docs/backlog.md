@@ -309,3 +309,19 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   Releases, release channels, production image support, and external
   provenance services require later approved work and must not imply hosted
   service or production-readiness claims without evidence.
+
+## Phase 58 — Optional Marketplace / Vendor-Equivalent Pack
+
+- Complete for the approved docs/template/audit scope. The repo now has
+  `docs/vendor-equivalent-pack/` templates, `scripts/audit-vendor-equivalent-pack.sh`,
+  `scripts/test-vendor-equivalent-pack.sh`, Make targets, validation
+  scaffolding, and a Phase 58 handoff.
+- Closure outcome: operators have reusable BYOD/hardware intake,
+  implementation-plan, support-boundary, SLA/KPI, and procurement response
+  templates. No marketplace was contacted, no submission was made, no paid
+  support offer was published, no retained evidence was created, no consumer
+  status changed, and all claim flags remain false.
+- Remaining later work: actual marketplace submission, paid support offering,
+  vendor compatibility proof, hardware certification, SLA commitments, and
+  procurement commitments require later approved work and retained
+  claim-specific evidence.

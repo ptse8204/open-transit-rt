@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-package audit-release-package test-release-package collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -97,6 +97,12 @@ audit-release-package:
 
 test-release-package:
 	@./scripts/test-release-package.sh
+
+audit-vendor-equivalent-pack:
+	@./scripts/audit-vendor-equivalent-pack.sh
+
+test-vendor-equivalent-pack:
+	@./scripts/test-vendor-equivalent-pack.sh
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -208,6 +214,8 @@ validate:
 	@test -f scripts/release-package.sh
 	@test -f scripts/audit-release-package.sh
 	@test -f scripts/test-release-package.sh
+	@test -f scripts/audit-vendor-equivalent-pack.sh
+	@test -f scripts/test-vendor-equivalent-pack.sh
 	@test -f scripts/collect-final-root-evidence.sh
 	@test -f scripts/audit-final-root-evidence.sh
 	@test -f scripts/test-final-root-evidence.sh
@@ -228,6 +236,8 @@ validate:
 	@sh -n scripts/release-package.sh
 	@sh -n scripts/audit-release-package.sh
 	@sh -n scripts/test-release-package.sh
+	@sh -n scripts/audit-vendor-equivalent-pack.sh
+	@sh -n scripts/test-vendor-equivalent-pack.sh
 	@sh -n scripts/collect-final-root-evidence.sh
 	@sh -n scripts/audit-final-root-evidence.sh
 	@sh -n scripts/test-final-root-evidence.sh
@@ -254,6 +264,8 @@ validate:
 	@rm -rf .cache/validate/release-package
 	@RELEASE_PACKAGE_VERSION=v0.0.0-validate RELEASE_PACKAGE_OUTPUT_DIR=.cache/validate/release-package RELEASE_PACKAGE_FORCE=true RELEASE_PACKAGE_ALLOW_DIRTY=true scripts/release-package.sh >/dev/null
 	@RELEASE_PACKAGE_DIR=.cache/validate/release-package scripts/audit-release-package.sh >/dev/null
+	@scripts/audit-vendor-equivalent-pack.sh --help >/dev/null
+	@scripts/audit-vendor-equivalent-pack.sh >/dev/null
 	@scripts/collect-final-root-evidence.sh --help >/dev/null
 	@scripts/audit-final-root-evidence.sh --help >/dev/null
 	@rm -rf .cache/validate/final-root-evidence
@@ -269,6 +281,13 @@ validate:
 	@test -f docs/phase-56-multi-agency-hosting-hardening.md
 	@test -f docs/handoffs/phase-56.md
 	@test -f docs/phase-57-release-packaging-and-supply-chain.md
+	@test -f docs/phase-58-optional-marketplace-vendor-equivalent-pack.md
+	@test -f docs/vendor-equivalent-pack/README.md
+	@test -f docs/vendor-equivalent-pack/byod-hardware-intake-template.md
+	@test -f docs/vendor-equivalent-pack/implementation-plan-template.md
+	@test -f docs/vendor-equivalent-pack/support-boundaries-template.md
+	@test -f docs/vendor-equivalent-pack/sla-kpi-template.md
+	@test -f docs/vendor-equivalent-pack/procurement-response-template.md
 	@test -f docs/evidence/templates/final-root-approval-template.md
 	@test -f docs/evidence/templates/final-root-public-fetch-template.md
 	@test -f docs/evidence/templates/final-root-validator-template.md

@@ -81,6 +81,12 @@ These questions do not block the next phase.
   with checksums, SBOM, and provenance metadata. These packages do not publish
   artifacts, push images, create retained evidence, prove production readiness,
   or prove hosted service availability.
+- Answered in Phase 58 for optional vendor-equivalent materials: use
+  `docs/vendor-equivalent-pack/` and `make audit-vendor-equivalent-pack` for
+  template-only BYOD, support, KPI, and procurement review. These templates do
+  not prove marketplace approval, paid support, vendor compatibility, hardware
+  certification, SLA/uptime, production readiness, compliance, agency adoption,
+  consumer acceptance, or hosted service availability.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

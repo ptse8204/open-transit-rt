@@ -395,3 +395,19 @@ checkout with strict settings and an audited checksum manifest.
 This decision does not create a hosted service, production image publication,
 production-readiness, compliance, agency adoption, consumer acceptance, vendor
 compatibility, marketplace approval, SLA/uptime, or production-grade ETA claim.
+
+## ADR-0037 — Keep vendor-equivalent materials template-only
+
+Phase 58 adds optional BYOD, support-boundary, KPI, and procurement templates
+for operators who need vendor-style documentation during review.
+
+The templates are not marketplace submissions, marketplace approval, vendor
+compatibility, hardware certification, paid support, service commitments,
+hosted service availability, production-readiness proof, compliance proof,
+agency adoption proof, consumer acceptance proof, or production-grade ETA
+proof.
+
+`scripts/audit-vendor-equivalent-pack.sh` scans local template wording and the
+prepared-only consumer tracker. It does not contact marketplaces, vendors,
+consumers, agencies, procurement systems, or external services, and it does not
+create retained evidence.

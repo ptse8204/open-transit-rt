@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 57 — Release Packaging And Supply Chain is closed for the approved local
-release packaging and supply-chain scaffolding scope.
+Phase 58 — Optional Marketplace / Vendor-Equivalent Pack is closed for the
+approved docs/template/audit scope.
 
-Phases 0 through 57 are closed for their documented scopes. Track A is also
+Phases 0 through 58 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -15,31 +15,25 @@ onboarding, admin-UX, operations-hardening, pilot-readiness,
 submission-readiness, public-messaging, public-GTFS evidence, or
 self-hosted-reuse issue directly requires it.
 
-Phase 57 added `scripts/release-package.sh`,
-`scripts/audit-release-package.sh`, `scripts/test-release-package.sh`, Make
-targets, validation scaffolding, and `docs/handoffs/phase-57.md`. The generator
-creates ignored `.cache/release-package/<version>/` packages from
-`git archive HEAD` with:
+Phase 58 added `docs/vendor-equivalent-pack/` templates,
+`scripts/audit-vendor-equivalent-pack.sh`,
+`scripts/test-vendor-equivalent-pack.sh`, Make targets, validation
+scaffolding, and `docs/handoffs/phase-58.md`. The template pack covers BYOD
+hardware intake, implementation planning, support boundaries, SLA/KPI planning,
+and procurement responses.
 
-- source archive;
-- `checksums/SHA256SUMS.txt`;
-- provenance metadata;
-- Go-module SBOM metadata;
-- optional local image metadata when `RELEASE_PACKAGE_IMAGE_TAG` is supplied;
-- summary and manifest files.
-
-The audit helper validates exact file sets, JSON, checksums, false claim flags,
-unsafe/private strings, unsupported positive claim wording, and the
+The audit helper verifies required templates, boundary phrases, unsafe private
+strings, unsupported positive claim wording, placeholders, and the
 seven-target prepared-only consumer tracker.
 
-Phase 57 created no retained evidence, published no artifacts, pushed no
-images, created no GitHub release, contacted no consumers, changed no
-consumer-submission current records or artifact directories, changed no
-`docs/evidence/consumer-submissions/status.json`, wrote nothing under
-`docs/evidence/captured`, and made no hosted service, hosted SaaS, production
-image publication, production-readiness, compliance, agency adoption, consumer
-acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
-production-grade ETA claim.
+Phase 58 created no retained evidence, submitted to no marketplace, contacted
+no marketplace, vendor, consumer, or agency, published no paid support offer,
+changed no consumer-submission current records or artifact directories, changed
+no `docs/evidence/consumer-submissions/status.json`, wrote nothing under
+`docs/evidence/captured`, and made no marketplace approval, paid support,
+vendor compatibility, hardware certification, hosted service, hosted SaaS,
+SLA/uptime, production-readiness, compliance, agency adoption, consumer
+acceptance, or production-grade ETA claim.
 
 Phase 32 produced draft public launch materials only. No announcement was posted, no social copy was published, no agency was contacted, no reporter was contacted, no consumer or aggregator was contacted, and no public launch occurred.
 
@@ -1000,7 +994,9 @@ boundary regression is found. Do not reopen Phase 56 unless a concrete
 tenant-route, proxy exposure, backup/restore/export, evidence-boundary, or
 hosted-claim regression is found. Do not reopen Phase 57 unless a concrete
 release package, checksum, SBOM/provenance, image metadata, audit, or
-hosted-service claim regression is found.
+hosted-service claim regression is found. Do not reopen Phase 58 unless a
+concrete BYOD template, support-boundary, procurement-template, audit, or
+marketplace/vendor/support claim regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -1019,12 +1015,10 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed to Phase 58 -- Optional Marketplace / Vendor-Equivalent Pack. Preserve
-BYOD/hardware, support, SLA/KPI template, procurement, marketplace approval,
-paid support, vendor compatibility, and hosted-service claim boundaries. Do not
-introduce a marketplace approval, paid support, hosted service,
-production-readiness, agency adoption, consumer acceptance, SLA, vendor
-compatibility, or compliance claim.
+Proceed to Phase 59 -- Real Pilot Closeout. Run a real authorized pilot only
+if retained authorization and public-safe feedback, operations, and blocker or
+continue evidence exist. If no real pilot is available, close blocker-documented
+only without creating fake pilot evidence or stronger claims.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted
@@ -1043,6 +1037,7 @@ operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
 Phase 46 validator health, Phase 47 operations notification summaries, Phase
 50 realtime quality backtesting, Phase 51 operations reliability diagnostics,
 Phase 52 final-root workflow tooling, Phase 56 multi-agency route/proxy
-diagnostics, and Phase 57 release package tooling as the
+diagnostics, Phase 57 release package tooling, and Phase 58 vendor-equivalent
+templates as the
 self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

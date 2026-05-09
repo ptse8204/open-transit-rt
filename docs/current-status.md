@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 57 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 58 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -83,7 +83,16 @@ local tests. Phase 57 did not publish artifacts, push images, create retained
 evidence, write `docs/evidence`, change consumer statuses, or claim hosted
 service availability, production readiness, compliance, agency adoption,
 consumer acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
-production-grade ETA quality.
+production-grade ETA quality. Phase 58 is complete for the optional
+marketplace/vendor-equivalent template pack. It added BYOD hardware,
+implementation plan, support-boundary, SLA/KPI, and procurement response
+templates plus local audit/test tooling. Phase 58 did not submit to or contact
+any marketplace, vendor, consumer, or agency; did not create retained evidence;
+did not write `docs/evidence`; did not change consumer statuses; and did not
+claim marketplace approval, paid support, vendor compatibility, hardware
+certification, hosted service availability, SLA/uptime, production readiness,
+compliance, agency adoption, consumer acceptance, or production-grade ETA
+quality.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -710,17 +719,17 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 57 — Release Packaging And Supply Chain is complete
-for the approved local packaging and supply-chain scaffolding scope. Phases 0
-through 57 are closed for their documented scopes. Phase 57 added local
-`.cache` source release package generation, checksum manifests,
-SBOM/provenance metadata, optional local image metadata, audit tooling, and
-tests. It did not publish artifacts, push images, create retained evidence,
-change consumer statuses, contact consumers, or claim hosted service
-availability, production readiness, compliance, agency adoption, consumer
-acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
-production-grade ETA quality. The next recommended phase should continue from
-the latest handoff and preserve the same evidence and claim boundaries. Track A —
+**Active phase:** Phase 58 — Optional Marketplace / Vendor-Equivalent Pack is
+complete for the approved template/audit scope. Phases 0 through 58 are closed
+for their documented scopes. Phase 58 added BYOD hardware, implementation
+plan, support-boundary, SLA/KPI, and procurement response templates plus local
+audit/test tooling. It did not submit to or contact any marketplace, vendor,
+consumer, or agency; create retained evidence; change consumer statuses; or
+claim marketplace approval, paid support, vendor compatibility, hardware
+certification, hosted service availability, SLA/uptime, production readiness,
+compliance, agency adoption, consumer acceptance, or production-grade ETA
+quality. The next recommended phase should continue from the latest handoff and
+preserve the same evidence and claim boundaries. Track A —
 External Proof And Adoption is complete for the documented docs-only operator
 workflow, evidence intake, artifact-directory, and agency-domain readiness
 scope, and remains available as a future optional proof path when retained
@@ -1601,11 +1610,50 @@ Phase 57 master verification:
 - `docker compose -f deploy/docker-compose.yml config`: passed
 - `INTEGRATION_TESTS=1 make test-integration`: passed
 
+## Phase 58 Progress
+
+Phase 58 closed for the optional marketplace/vendor-equivalent template pack
+scope:
+- added `docs/vendor-equivalent-pack/README.md`
+- added BYOD hardware intake, implementation-plan, support-boundary, SLA/KPI,
+  and procurement response templates
+- added `scripts/audit-vendor-equivalent-pack.sh`
+- added `scripts/test-vendor-equivalent-pack.sh`
+- added Make targets for audit and local script tests
+- no marketplace was contacted
+- no submission was made
+- no retained evidence packet was created
+- no consumer was contacted and no consumer tracker status changed
+- `docs/evidence/consumer-submissions/status.json`, current target records,
+  target artifact directories, packets, and `docs/evidence/captured` were left
+  unchanged
+- all seven consumer and aggregator targets remain `prepared`
+- did not add or claim marketplace approval, paid support, vendor
+  compatibility, hardware certification, hosted service availability,
+  SLA/uptime, production readiness, compliance, agency adoption, consumer
+  acceptance, or production-grade ETA quality
+
+Phase 58 master verification:
+- `sh -n scripts/audit-vendor-equivalent-pack.sh scripts/test-vendor-equivalent-pack.sh`: passed
+- `./scripts/test-vendor-equivalent-pack.sh`: passed
+- `make audit-vendor-equivalent-pack`: passed
+- `make validate`: passed
+- `make test`: passed
+- `make smoke`: passed
+- `git diff --check`: passed
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`: passed
+- exact seven-target prepared-only consumer tracker check: passed
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json`: passed
+- `git diff --exit-code -- docs/evidence/consumer-submissions/current docs/evidence/consumer-submissions/artifacts docs/evidence/consumer-submissions/packets docs/evidence/captured`: passed
+- `find docs/evidence/consumer-submissions/artifacts -mindepth 2 -maxdepth 2 -type f ! -name README.md -print`: passed; printed no files
+- `docker compose -f deploy/docker-compose.yml config`: passed
+- `INTEGRATION_TESTS=1 make test-integration`: passed
+
 ## Next Recommended Step
 
-Proceed to Phase 58 -- Optional Marketplace / Vendor-Equivalent Pack while
-preserving BYOD/hardware, support, SLA/KPI template, procurement, and
-marketplace/vendor claim boundaries.
+Proceed to Phase 59 -- Real Pilot Closeout. Run a real authorized pilot only
+if retained authorization and public-safe feedback/operations/blocker evidence
+exist; otherwise close blocker-documented only.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

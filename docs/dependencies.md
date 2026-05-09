@@ -1171,3 +1171,39 @@ hosted SaaS availability, hosted service operation, production image
 publication, production readiness, compliance, agency adoption, consumer
 acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
 production-grade ETA quality.
+
+---
+
+## Phase 58 vendor-equivalent template audit
+
+### Classification
+Local documentation-template audit tooling
+
+### Purpose
+Review optional BYOD, implementation, support-boundary, KPI, and procurement
+templates for required claim boundaries and unsafe wording.
+
+### Startup / provisioning
+- `scripts/audit-vendor-equivalent-pack.sh` is exposed through
+  `make audit-vendor-equivalent-pack`.
+- `scripts/test-vendor-equivalent-pack.sh` is exposed through
+  `make test-vendor-equivalent-pack`.
+
+### Integration boundary
+- The audit reads local markdown templates and the consumer tracker only.
+- It does not contact marketplaces, vendors, consumers, agencies, procurement
+  systems, portals, or external services.
+- It does not create retained evidence, write `docs/evidence`, or change
+  consumer statuses.
+
+### Failure behavior
+- The audit fails on missing templates, missing required boundary phrases,
+  unsafe private string patterns, unsupported positive claim wording, missing
+  placeholders in templates, or consumer tracker drift.
+
+### Claim boundary
+The vendor-equivalent pack is template material only. It does not prove
+marketplace approval, paid support, vendor compatibility, hardware
+certification, hosted service availability, SLA/uptime, production readiness,
+compliance, agency adoption, consumer acceptance, or production-grade ETA
+quality.

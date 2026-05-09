@@ -234,7 +234,7 @@ phase handoff is created.
 | 55 | Compliance Evidence Packet Generator | Complete. Generates ignored `.cache` blocker/draft readiness packets with strict claim-gated audit. |
 | 56 | Multi-Agency Hosting Hardening | Complete. Tenant-safe public feed routing, proxy checks, private diagnostics, and backup/restore/export/evidence boundaries without hosted SaaS or production multi-tenant claims. |
 | 57 | Release Packaging And Supply Chain | Complete. Local `.cache` source packages with checksums, SBOM/provenance metadata, optional local image metadata, and audit checks; no hosted service or production image claim. |
-| 58 | Optional Marketplace / Vendor-Equivalent Pack | BYOD/hardware path, support boundaries, implementation templates, SLA/KPI templates. |
+| 58 | Optional Marketplace / Vendor-Equivalent Pack | Complete. Template-only BYOD/hardware, support, SLA/KPI, implementation, and procurement pack with local claim-boundary audit. |
 | 59 | Real Pilot Closeout | Run a real authorized pilot and retain public-safe feedback, operations, and blocker/continue evidence. |
 | 60 | Final Claim Review And Public Closeout | Decide exactly what may be claimed after evidence and official requirements review. |
 
@@ -952,27 +952,28 @@ Release packaging is not hosted SaaS or paid support.
 ### Goal
 
 Prepare optional non-code packaging needed for vendor-equivalent conversations,
-without claiming marketplace approval.
+without claiming marketplace approval. Complete for the template/audit scope.
 
 ### Artifacts
 
-- BYOD/hardware strategy;
-- implementation plan template;
-- support boundaries;
-- SLA/KPI templates;
-- procurement-oriented one-pager;
-- training material;
-- operator responsibility matrix;
-- security and data-handling summary.
+- complete for the current scope: BYOD/hardware intake template;
+- complete for the current scope: implementation plan template;
+- complete for the current scope: support boundaries template;
+- complete for the current scope: SLA/KPI planning template;
+- complete for the current scope: procurement response template;
+- complete for the current scope: local audit script and mutation tests.
 
 ### Definition Of Done
 
-The repo can support a procurement or marketplace-style discussion honestly,
-while distinguishing code capability from service commitments.
+The repo can support a procurement or marketplace-style discussion honestly
+through templates while distinguishing code capability from service
+commitments.
 
 ### Non-Goals
 
-No marketplace listing, endorsement, or paid support claim.
+No marketplace listing, endorsement, paid support claim, vendor compatibility
+claim, hardware certification claim, SLA/uptime claim, hosted service claim, or
+production-readiness claim.
 
 ## Phase 59 — Real Pilot Closeout
 
