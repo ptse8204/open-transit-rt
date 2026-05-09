@@ -11,8 +11,9 @@ diagnostic scope.
 - Added `/admin/operations/validation-health` and
   `/admin/operations/validation-health.json`.
 - Added admin-only `run_all` validator-health POST with strict form fields,
-  CSRF handling, a 64 KiB cap, server-owned validator mappings, and bounded
-  partial-success summaries.
+  cookie-auth CSRF handling, bearer-token automation without browser CSRF, a
+  64 KiB cap, server-owned validator mappings, and bounded partial-success
+  summaries.
 - Added `scripts/validator-health.sh` and `make validator-health`.
 - Extended the reference deployment doctor to GET validation-health JSON only
   when `ADMIN_TOKEN` and a safe `ADMIN_BASE_URL` are present.

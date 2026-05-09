@@ -29,7 +29,7 @@ Environment:
   ADMIN_BASE_URL                  Private admin root for authenticated calls
   PUBLIC_BASE_URL                 Used as ADMIN_BASE_URL only when it is loopback
   ADMIN_TOKEN                     Optional admin bearer token; value is never printed
-  CSRF_TOKEN                      Optional form token for cookie-protected local setups; value is never printed
+  CSRF_TOKEN                      Optional form token; bearer admin requests do not require browser CSRF
   RUN_VALIDATORS                  true|false; POST admin-only run_all when true
   STRICT_VALIDATOR_HEALTH         true|false; fail on blocker statuses when true
   OUTPUT_DIR                      Default .cache/validator-health/<timestamp>

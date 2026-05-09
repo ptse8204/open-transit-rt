@@ -153,7 +153,8 @@ make validator-health
 safe `ADMIN_BASE_URL` unless `PUBLIC_BASE_URL` is loopback and safely defaults.
 Without `ADMIN_TOKEN`, the script does not call private admin routes and
 records local validator tooling status only. `RUN_VALIDATORS=true` performs the
-admin-only `run_all` action against `/admin/operations/validation-health`;
+admin-only `run_all` action against `/admin/operations/validation-health` with
+bearer-token auth; bearer admin automation does not require browser CSRF.
 `STRICT_VALIDATOR_HEALTH=true` exits non-zero on blocked, failed, missing,
 misconfigured, artifact-unavailable, or stale health states.
 

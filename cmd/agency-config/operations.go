@@ -286,7 +286,7 @@ func (h *handler) operationsValidationHealthPost(w http.ResponseWriter, r *http.
 		renderOperationsTemplate(w, "validation-health", page)
 		return
 	}
-	if strings.TrimSpace(h.csrfSecret) != "" && strings.TrimSpace(r.FormValue("csrf_token")) != csrfToken(h.csrfSecret, principal) {
+	if principal.Method == auth.MethodCookie && strings.TrimSpace(h.csrfSecret) != "" && strings.TrimSpace(r.FormValue("csrf_token")) != csrfToken(h.csrfSecret, principal) {
 		page := h.buildOperationsPage(r, principal, "validation-health")
 		page.ValidationHealthError = "Validator health request was blocked because the CSRF token is invalid."
 		w.WriteHeader(http.StatusForbidden)

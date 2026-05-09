@@ -20,7 +20,8 @@ Both GET routes are private authenticated Operations Console routes and set
 `ValidationHealthSummary` contract.
 
 The POST route accepts only `action=run_all` and `csrf_token`, caps form bodies
-at 64 KiB, requires CSRF when browser cookie auth is in use, and rejects
+at 64 KiB, requires CSRF when browser cookie auth is in use, and does not
+require browser CSRF for bearer-token admin automation. It rejects
 browser-supplied validator IDs, commands, paths, URLs, argv/args, artifacts,
 reports, and timeouts.
 
@@ -75,9 +76,11 @@ Authenticated mode requires `ADMIN_TOKEN` and a safe `ADMIN_BASE_URL`, except
 that `PUBLIC_BASE_URL` may be used as the admin base only when it is loopback.
 Non-loopback admin URLs must be HTTPS. Admin requests do not follow redirects.
 
-`RUN_VALIDATORS=true` triggers the admin-only `run_all` POST. Without
-`ADMIN_TOKEN`, the script does not call private admin routes and instead records
-local validator tooling status from `scripts/check-validators.sh`.
+`RUN_VALIDATORS=true` triggers the admin-only `run_all` POST with
+`Authorization: Bearer "$ADMIN_TOKEN"`. Bearer-token admin POSTs do not require
+browser CSRF. Without `ADMIN_TOKEN`, the script does not call private admin
+routes and instead records local validator tooling status from
+`scripts/check-validators.sh`.
 
 `STRICT_VALIDATOR_HEALTH=true` exits non-zero on blocked, failed,
 missing-tooling, misconfigured-tooling, artifact-unavailable, or stale health

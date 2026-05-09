@@ -824,9 +824,7 @@ func TestValidatorHealthScriptDryRunOutputSafety(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if name != "manifest.md" {
-			assertValidationHealthHTTPNoLeakage(t, string(body))
-		}
+		assertValidatorHealthGeneratedFileNoSecretValues(t, string(body))
 		if len(body) > 16000 {
 			t.Fatalf("%s size = %d, want bounded", name, len(body))
 		}
@@ -840,6 +838,128 @@ func TestValidatorHealthScriptDryRunOutputSafety(t *testing.T) {
 			t.Fatalf("manifest.md missing %q", want)
 		}
 	}
+}
+
+func TestValidatorHealthScriptReadOnlyNoTokenNoNetwork(t *testing.T) {
+	tmp := t.TempDir()
+	fakeBin := filepath.Join(tmp, "bin")
+	if err := os.Mkdir(fakeBin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(fakeBin, "curl"), []byte("#!/bin/sh\necho unexpected network >&2\nexit 99\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	outputDir := filepath.Join(tmp, "read-only")
+	cmd := exec.Command("sh", filepath.Join("..", "..", "scripts", "validator-health.sh"))
+	cmd.Env = append(os.Environ(),
+		"PATH="+fakeBin+":"+os.Getenv("PATH"),
+		"OUTPUT_DIR="+outputDir,
+		"ALLOW_UNIGNORED_OUTPUT_DIR=true",
+		"VALIDATOR_TOOLING_MODE=stub",
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("read-only no-token run failed: %v\n%s", err, out)
+	}
+	assertValidatorHealthScriptOutputFilesSafe(t, outputDir)
+}
+
+func TestValidatorHealthScriptRunValidatorsPostsActionAndCSRF(t *testing.T) {
+	tmp := t.TempDir()
+	fakeBin := filepath.Join(tmp, "bin")
+	if err := os.Mkdir(fakeBin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	capture := filepath.Join(tmp, "curl.args")
+	fakeCurl := `#!/bin/sh
+printf '%s\n' "$@" >"$CURL_CAPTURE"
+found_action=false
+found_csrf=false
+prev=""
+for arg in "$@"; do
+  if [ "$prev" = "--data-urlencode" ] && [ "$arg" = "action=run_all" ]; then found_action=true; fi
+  if [ "$prev" = "--data-urlencode" ] && [ "$arg" = "csrf_token=valid-csrf" ]; then found_csrf=true; fi
+  prev="$arg"
+done
+if [ "$found_action" != "true" ] || [ "$found_csrf" != "true" ]; then
+  exit 64
+fi
+cat <<'JSON'
+{"generated_at":"2026-05-09T12:00:00Z","agency_id":"demo-agency","overall_status":"recorded","tooling_status":"configured","feeds":[{"feed_type":"schedule","validator_id":"static-mobilitydata","validator_name":"mobilitydata-gtfs-validator","tooling_status":"configured","artifact_status":"available","latest_result_status":"recorded","latest_result_at":"2026-05-09T12:00:00Z","active_feed_version_id":"feed-v1","latest_result_feed_version_id":"feed-v1","stale_status":"current","health_status":"recorded","next_action":"Keep this as private diagnostics.","claim_boundary":"Private diagnostics only."},{"feed_type":"vehicle_positions","validator_id":"realtime-mobilitydata","validator_name":"mobilitydata-gtfs-realtime-validator","tooling_status":"configured","artifact_status":"available","latest_result_status":"recorded","latest_result_at":"2026-05-09T12:00:00Z","active_feed_version_id":"feed-v1","latest_result_feed_version_id":"feed-v1","stale_status":"current","health_status":"recorded","next_action":"Keep this as private diagnostics.","claim_boundary":"Private diagnostics only."},{"feed_type":"trip_updates","validator_id":"realtime-mobilitydata","validator_name":"mobilitydata-gtfs-realtime-validator","tooling_status":"configured","artifact_status":"available","latest_result_status":"recorded","latest_result_at":"2026-05-09T12:00:00Z","active_feed_version_id":"feed-v1","latest_result_feed_version_id":"feed-v1","stale_status":"current","health_status":"recorded","next_action":"Keep this as private diagnostics.","claim_boundary":"Private diagnostics only."},{"feed_type":"alerts","validator_id":"realtime-mobilitydata","validator_name":"mobilitydata-gtfs-realtime-validator","tooling_status":"configured","artifact_status":"available","latest_result_status":"recorded","latest_result_at":"2026-05-09T12:00:00Z","active_feed_version_id":"feed-v1","latest_result_feed_version_id":"feed-v1","stale_status":"current","health_status":"recorded","next_action":"Keep this as private diagnostics.","claim_boundary":"Private diagnostics only."}],"external_evidence_created":false,"consumer_statuses_changed":false,"compliance_claimed":false,"production_readiness_claimed":false}
+JSON
+`
+	if err := os.WriteFile(filepath.Join(fakeBin, "curl"), []byte(fakeCurl), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	outputDir := filepath.Join(tmp, "run-all")
+	cmd := exec.Command("sh", filepath.Join("..", "..", "scripts", "validator-health.sh"))
+	cmd.Env = append(os.Environ(),
+		"PATH="+fakeBin+":"+os.Getenv("PATH"),
+		"OUTPUT_DIR="+outputDir,
+		"ALLOW_UNIGNORED_OUTPUT_DIR=true",
+		"RUN_VALIDATORS=true",
+		"ADMIN_TOKEN=script-admin-token-value",
+		"CSRF_TOKEN=valid-csrf",
+		"ADMIN_BASE_URL=http://127.0.0.1:8080",
+		"VALIDATOR_TOOLING_MODE=stub",
+		"CURL_CAPTURE="+capture,
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("run validators failed: %v\n%s", err, out)
+	}
+	args, err := os.ReadFile(capture)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(args), "action=run_all") || !strings.Contains(string(args), "csrf_token=valid-csrf") {
+		t.Fatalf("curl args missing action/csrf: %s", args)
+	}
+	assertValidatorHealthScriptOutputFilesSafe(t, outputDir)
+}
+
+func TestValidatorHealthScriptRunValidatorsBlockedCSRFOutput(t *testing.T) {
+	tmp := t.TempDir()
+	fakeBin := filepath.Join(tmp, "bin")
+	if err := os.Mkdir(fakeBin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(fakeBin, "curl"), []byte("#!/bin/sh\nprintf 'forbidden\\n' >&2\nexit 22\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	outputDir := filepath.Join(tmp, "blocked")
+	baseEnv := append(os.Environ(),
+		"PATH="+fakeBin+":"+os.Getenv("PATH"),
+		"OUTPUT_DIR="+outputDir,
+		"ALLOW_UNIGNORED_OUTPUT_DIR=true",
+		"RUN_VALIDATORS=true",
+		"ADMIN_TOKEN=script-admin-token-value",
+		"CSRF_TOKEN=invalid-csrf",
+		"ADMIN_BASE_URL=http://127.0.0.1:8080",
+		"VALIDATOR_TOOLING_MODE=stub",
+	)
+	cmd := exec.Command("sh", filepath.Join("..", "..", "scripts", "validator-health.sh"))
+	cmd.Env = baseEnv
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("non-strict blocked run should exit 0: %v\n%s", err, out)
+	}
+	assertValidatorHealthScriptOutputFilesSafe(t, outputDir)
+	summaryBytes, err := os.ReadFile(filepath.Join(outputDir, "summary.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(summaryBytes), `"overall_status": "blocked"`) {
+		t.Fatalf("summary did not record blocked status: %s", summaryBytes)
+	}
+	strictOutput := filepath.Join(tmp, "blocked-strict")
+	cmd = exec.Command("sh", filepath.Join("..", "..", "scripts", "validator-health.sh"))
+	cmd.Env = append(baseEnv, "OUTPUT_DIR="+strictOutput, "STRICT_VALIDATOR_HEALTH=true")
+	out, err = cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("strict blocked run should exit nonzero: %s", out)
+	}
+	assertValidatorHealthScriptOutputFilesSafe(t, strictOutput)
 }
 
 func TestValidatorHealthScriptRejectsEvidenceOutput(t *testing.T) {
@@ -1450,6 +1570,13 @@ func TestValidationHealthPostStrictnessCSRFAndBodyCap(t *testing.T) {
 	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusRequestEntityTooLarge {
 		t.Fatalf("large form status = %d, want 413", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader("action=run_all"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("bearer missing csrf status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	cookieAuth := auth.TestAuthenticator{Principal: auth.Principal{Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodCookie}}
 	srv = newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, schedule: fakeScheduleBuilder{}, csrfSecret: "test-csrf"}, cookieAuth)
@@ -2202,6 +2329,43 @@ func assertValidationHealthHTTPNoLeakage(t testing.TB, body string) {
 	for _, forbidden := range []string{"raw_report", "stdout", "stderr", "argv", "/tmp/private", "TOKEN=", "SECRET", "PASSWORD=", "postgres://", "Authorization", "Bearer", "Cookie", "admin_session", "DATABASE_URL"} {
 		if strings.Contains(body, forbidden) {
 			t.Fatalf("validation health leaked %q in %s", forbidden, body)
+		}
+	}
+}
+
+func assertValidatorHealthScriptOutputFilesSafe(t testing.TB, outputDir string) {
+	t.Helper()
+	for _, name := range []string{"summary.json", "summary.md", "manifest.json", "manifest.md"} {
+		body, err := os.ReadFile(filepath.Join(outputDir, name))
+		if err != nil {
+			t.Fatalf("read %s: %v", name, err)
+		}
+		assertValidatorHealthGeneratedFileNoSecretValues(t, string(body))
+		if len(body) > 16000 {
+			t.Fatalf("%s size = %d, want bounded", name, len(body))
+		}
+	}
+}
+
+func assertValidatorHealthGeneratedFileNoSecretValues(t testing.TB, body string) {
+	t.Helper()
+	for _, forbidden := range []string{
+		"Authorization: Bearer",
+		"Cookie:",
+		"admin_session=",
+		"csrf_token=",
+		"DATABASE_URL=",
+		"postgres://user:pass@",
+		"/tmp/private",
+		"/Users/",
+		"script-admin-token-value",
+		"TOKEN=",
+		"SECRET=",
+		"PASSWORD=",
+		"BEGIN PRIVATE KEY",
+	} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("validator-health output leaked %q in %s", forbidden, body)
 		}
 	}
 }
