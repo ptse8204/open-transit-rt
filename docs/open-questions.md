@@ -50,6 +50,11 @@ These questions do not block the next phase.
   guarded final public root evidence. Without a real final root and public-safe
   redacted approval artifact, the workflow must close blocker-only under
   ignored `.cache` storage and leave `docs/evidence/captured` unchanged.
+- Answered in Phase 53 for authorized consumer submission execution: without a
+  retained operator authorization artifact, official target path verification
+  artifact, and target-originated or operator-retained submission artifact, no
+  target is selected, no submission is made, no artifact is added, and all seven
+  consumer and aggregator targets remain `prepared`.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 
