@@ -18,7 +18,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md): send synthetic telemetry through real authenticated ingest for local/reference diagnostics.
 - [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md): prepare, validate, review, and publish a real agency GTFS ZIP safely.
 - [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a real public GTFS local/pilot run without implying agency approval.
-- [GTFS Validation Triage](gtfs-validation-triage.md): understand common import and validation failures in plain language.
+- [GTFS Validation Triage](gtfs-validation-triage.md): understand common import and validation failures and use the authenticated admin GTFS quality triage UI safely.
 - [Integration Adapter Kit](../integration-adapter-kit.md): choose the correct telemetry, predictor, validator, monitoring, or consumer workflow boundary.
 - [Device And AVL Integration](device-avl-integration.md): send authenticated telemetry from devices, vendors, adapters, or no-hardware simulator flows.
 - [Device Token Lifecycle](device-token-lifecycle.md): rotate, rebind, store, and troubleshoot device bearer credentials safely.

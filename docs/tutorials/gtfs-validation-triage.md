@@ -4,6 +4,29 @@ This guide explains common GTFS import and validation issues in plain language. 
 
 Importer errors are produced by Open Transit RT before activation. Canonical validator errors come from external validator tooling. Both matter, but neither proves consumer acceptance.
 
+The authenticated Operations Console also has `/admin/operations/gtfs-quality`
+for private operator triage. It separates canonical MobilityData static
+validator output from Open Transit RT internal import validation, caps issue
+groups and samples, and shows next actions without exposing raw reports,
+stdout, stderr, argv, private paths, or evidence artifacts. The page is an
+admin/operator diagnostic surface only; it is not a public unauthenticated
+route.
+
+## Status Words
+
+The GTFS quality triage view uses only neutral statuses:
+
+- `blocking`: fix before treating the schedule as usable for the affected path.
+- `needs_review`: warnings or stale results need operator review before relying
+  on the signal.
+- `informational`: useful context that does not by itself block the local
+  workflow.
+- `unknown`: the page could not classify the notice or report shape safely.
+
+Do not translate these statuses into consumer acceptance, public launch,
+production readiness, or CAL-ITP/Caltrans compliance. Validator output is a
+diagnostic/supporting signal only.
+
 ## Common Issues
 
 | Issue | What it means | Why it matters | How to fix it |
@@ -24,6 +47,14 @@ Importer errors are produced by Open Transit RT before activation. Canonical val
 | Timezone/date mistakes | `agency_timezone` or service dates do not match the agency's real operating calendar. | After-midnight trips and service-day matching can be wrong. | Confirm timezone and date ranges with the agency schedule owner. |
 | Empty or all-suppressed service | Import succeeds or partially validates, but no trips are active for review. | Public feeds may look available while showing no useful service. | Check calendars, date ranges, exceptions, and whether the review date is inside the service period. |
 | Validator errors versus importer errors | The importer blocks activation for Open Transit RT's minimum contract; canonical validators check broader GTFS quality. | Passing one check does not guarantee passing the other. | Resolve importer errors first, then run and review canonical validator output. |
+| `expired_calendar` | Calendar service periods are past the intended review or operating window. | The feed can appear to have no current service. | Confirm the intended service period and update `calendar.txt` or `calendar_dates.txt` from the source scheduling tool. |
+| `route_short_name_too_long` | A route short name is too long for compact rider-facing display. | Long route labels can render poorly in downstream maps and signs. | Review route naming with the operator; move descriptive text to `route_long_name` when appropriate. |
+| `unused_shape` | A shape exists but no trip references it. | It adds noise and can hide missed trip-shape references. | Remove unused shapes only after confirming no planned trip should reference them. |
+| Foreign-key or missing-reference notices | A row points to an ID missing from another GTFS file. | Broken references can block import or downstream parsing. | Fix the source ID or add the missing related record consistently. |
+| Shape distance/order notices | Shape points or `shape_dist_traveled` values are missing, decreasing, or inconsistent. | Map drawing and vehicle progress can become unreliable. | Verify shape point order and distance progression before approving source GTFS changes. |
+| Frequency notices | `frequencies.txt` has invalid windows, headways, exact-time flags, or trip references. | Frequency service affects repeated trip instances and matching windows. | Review `frequencies.txt` with service planning staff before rerunning validation. |
+| Block notices | `block_id` or block transition data is missing or inconsistent. | Vehicle trip chaining and conservative matching can be weakened. | Confirm block IDs and trip ordering with operations staff. |
+| Unknown notices | The triage taxonomy does not yet classify the notice. | Unknown impact should not be ignored. | Inspect the raw validator report outside the page, classify the notice if it recurs, and rerun after operator-reviewed source changes. |
 
 ## How To Triage
 
@@ -33,6 +64,12 @@ Importer errors are produced by Open Transit RT before activation. Canonical val
 4. Check shapes, frequencies, and blocks after the core schedule imports.
 5. Run canonical validators before stronger readiness claims.
 6. Keep raw validation output private until redaction review is complete.
+7. Use `/admin/operations/gtfs-quality` to review capped issue groups. The
+   rerun action uses only the authenticated agency's active published schedule
+   ZIP and the server-side static MobilityData validator mapping.
+8. If the latest static validator result predates the active schedule feed
+   version or timestamp, treat it as `needs_review` and rerun after operator
+   approval.
 
 ## When To Ask For Technical Help
 

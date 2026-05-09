@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 40 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 45 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -24,7 +24,8 @@ docs/navigation guided self-hosted operator trial. Phase 41 is complete for
 operator smoke checks and redaction-safe support bundles. Phase 42 is complete
 for the read-only reference deployment doctor. Phase 43 is complete for the
 private Operator UX Setup V2 checklist and local routing patch scope. Phase 44
-is complete for the synthetic telemetry simulator and device trial scope.
+is complete for the synthetic telemetry simulator and device trial scope. Phase
+45 is complete for the private GTFS quality triage loop.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -46,6 +47,18 @@ Phase 9 production closure is implemented for the current repository surface. Ad
 `/admin/validation/run` derives schedule and realtime artifacts itself. Schedule validation uses generated ZIP bytes; realtime validation prefers internally generated Vehicle Positions, Trip Updates, or Alerts protobuf bytes from the service builder boundary and uses configured feed URLs only as a fallback. The endpoint accepts only `validator_id`, `feed_type`, and optional `feed_version_id`; command/path/argv/output/artifact request fields are rejected.
 
 Validator tooling now has a repo-supported pin/install/check workflow. `make validators-install` installs MobilityData GTFS Validator `v7.1.0` with SHA-256 verification and a Docker-backed GTFS-RT validator wrapper pinned to `ghcr.io/mobilitydata/gtfs-realtime-validator@sha256:5d2a3c14fba49983e1968c4a715e8ca624d4062bf4afede74aeca26322436c89`. `make validators-check`, `make validate`, and `make smoke` distinguish missing pinned tooling from checksum/digest/path misconfiguration. `VALIDATOR_TOOLING_MODE=stub` is the explicit deterministic stub bypass for targeted tests.
+
+Phase 45 adds authenticated `/admin/operations/gtfs-quality` triage for static
+GTFS quality notices. The page separates canonical MobilityData static
+validator output from Open Transit RT internal import validation, uses bounded
+derived groups and samples, and keeps raw validator reports/stdout/stderr/argv
+and private paths out of the page model and HTML. GET is read-only for
+read-only/operator/editor/admin roles; POST rerun is admin-only, CSRF-protected
+for browser cookie auth, size-capped, strict about form fields, and maps
+server-side only to the authenticated agency active schedule plus
+`static-mobilitydata`. The page is private diagnostics only: it creates no
+evidence packets, writes nothing to `docs/evidence`, auto-edits no GTFS, and
+does not claim consumer acceptance or CAL-ITP/Caltrans compliance.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
@@ -1232,6 +1245,8 @@ Final-root evidence follow-up check results:
 ## Next Recommended Step
 
 Continue the self-hosted agency reuse roadmap from `docs/handoffs/latest.md`.
+Phase 46 — Validator Automation And Health Gates is the next roadmap phase
+after the private Phase 45 GTFS quality triage loop.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

@@ -13,6 +13,9 @@ const (
 	StatusRed    = "red"
 	StatusYellow = "yellow"
 	StatusGreen  = "green"
+
+	CanonicalStaticValidatorName    = "mobilitydata-gtfs-validator"
+	InternalGTFSImportValidatorName = "open-transit-rt-internal-gtfs-import"
 )
 
 var RequiredFeedTypes = []string{"schedule", "vehicle_positions", "trip_updates", "alerts"}
@@ -141,6 +144,12 @@ type ValidationResult struct {
 	WarningCount     int            `json:"warning_count"`
 	InfoCount        int            `json:"info_count"`
 	Report           map[string]any `json:"report"`
+}
+
+type ValidationReportRecord struct {
+	ID        int64            `json:"id"`
+	Result    ValidationResult `json:"result"`
+	CreatedAt time.Time        `json:"created_at"`
 }
 
 type TripUpdatesDiagnosticsSummary struct {

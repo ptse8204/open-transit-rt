@@ -57,7 +57,7 @@ func staticValidatorFromEnv() ValidatorSpec {
 	path := strings.TrimSpace(os.Getenv("GTFS_VALIDATOR_PATH"))
 	spec := ValidatorSpec{
 		ID:               "static-mobilitydata",
-		Name:             "mobilitydata-gtfs-validator",
+		Name:             CanonicalStaticValidatorName,
 		Version:          getenv("GTFS_VALIDATOR_VERSION", "v7.1.0"),
 		FeedTypes:        []string{"schedule"},
 		Timeout:          durationFromEnv("GTFS_VALIDATOR_TIMEOUT", DefaultValidatorTimeout),

@@ -398,6 +398,42 @@ func (r *PostgresRepository) StoreValidationResult(ctx context.Context, result V
 	return nil
 }
 
+func (r *PostgresRepository) LatestValidationReport(ctx context.Context, agencyID string, feedType string, validatorName string) (*ValidationReportRecord, error) {
+	var record ValidationReportRecord
+	var reportBytes []byte
+	err := r.pool.QueryRow(ctx, `
+		SELECT id, agency_id, COALESCE(feed_version_id, ''), feed_type, validator_name,
+		       validator_version, status, error_count, warning_count, info_count, report_json, created_at
+		FROM validation_report
+		WHERE agency_id = $1
+		  AND feed_type = $2
+		  AND validator_name = $3
+		ORDER BY created_at DESC, id DESC
+		LIMIT 1
+	`, agencyID, feedType, validatorName).Scan(
+		&record.ID,
+		&record.Result.AgencyID,
+		&record.Result.FeedVersionID,
+		&record.Result.FeedType,
+		&record.Result.ValidatorName,
+		&record.Result.ValidatorVersion,
+		&record.Result.Status,
+		&record.Result.ErrorCount,
+		&record.Result.WarningCount,
+		&record.Result.InfoCount,
+		&reportBytes,
+		&record.CreatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query latest validation report: %w", err)
+	}
+	if err := json.Unmarshal(reportBytes, &record.Result.Report); err != nil {
+		record.Result.Report = map[string]any{}
+	}
+	record.CreatedAt = record.CreatedAt.UTC()
+	return &record, nil
+}
+
 type feedConfig struct {
 	PublicBaseURL          string
 	FeedBaseURL            string

@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 44 — Telemetry Simulator And Device Trial is complete for the
-synthetic-only local/reference telemetry simulator scope.
+Phase 45 — GTFS Quality Triage Loop is complete for the private authenticated
+Operations Console triage scope.
 
-Phases 0 through 44 are closed for their documented scopes. Track A is also
+Phases 0 through 45 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -32,6 +32,15 @@ checksum, imported the feed through `cmd/gtfs-import -agency-id LACMTA`, fetched
 Metro public GTFS rather than the repo sample feed, fetched all five public
 paths, recorded validator results or blockers, recorded a telemetry dry-run
 summary, and checked admin/private route boundaries.
+
+Phase 45 added authenticated `/admin/operations/gtfs-quality` triage. It
+separates canonical MobilityData static validator results from Open Transit RT
+internal import validation, uses bounded derived groups/samples, supports
+admin-only rerun against the active schedule through the server-side
+`static-mobilitydata` mapping, and keeps raw reports/stdout/stderr/argv/private
+paths out of rendered HTML. The page is diagnostics only: no evidence packet,
+consumer status, public route, GTFS auto-edit, consumer acceptance claim, or
+CAL-ITP/Caltrans compliance claim was added.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
@@ -548,9 +557,9 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 44 is complete; the next recommended
-phase is Phase 45 — GTFS Quality Triage Loop, continuing the self-hosted agency
-reuse roadmap without weakening the evidence boundaries.
+agencies and civic technologists. Phase 45 is complete; the next recommended
+phase is Phase 46 — Validator Automation And Health Gates, continuing the
+self-hosted agency reuse roadmap without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
 authorized and retained claim-specific artifacts exist. Consumer or aggregator
@@ -816,10 +825,10 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 44 is closed; do not reopen Phase 39, Phase 40, Phase
-41, Phase 42, Phase 43, or Phase 44 unless a concrete readiness-workflow,
+choosing files. Phase 45 is closed; do not reopen Phase 39, Phase 40, Phase
+41, Phase 42, Phase 43, Phase 44, or Phase 45 unless a concrete readiness-workflow,
 guided-trial, diagnostics, support-bundle, deployment-doctor, local-routing,
-checklist, or telemetry-simulator regression is found.
+checklist, telemetry-simulator, or GTFS quality triage regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -844,6 +853,6 @@ Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
 trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
 operator checklist, and Phase 44 telemetry simulator as the
-self-hosted/integration baseline. The next recommended phase is Phase 45 —
-GTFS Quality Triage Loop.
+self-hosted/integration baseline. The next recommended phase is Phase 46 —
+Validator Automation And Health Gates.
 External-proof work remains a future optional path, not the default roadmap.

@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	defaultTelemetryLimit = 200
-	defaultStaleSeconds   = 90
+	defaultTelemetryLimit   = 200
+	defaultStaleSeconds     = 90
+	gtfsQualityPostMaxBytes = 64 << 10
 )
 
 type operationsPage struct {
@@ -50,6 +51,10 @@ type operationsPage struct {
 	RuntimeConsumers   []consumerStatusView
 	ReadinessItems     []readinessItemView
 	Checklist          operatorChecklistView
+	GTFSQuality        compliance.GTFSQualityTriage
+	GTFSQualityNotice  string
+	GTFSQualityError   string
+	IsAdmin            bool
 	ConsumerError      string
 	Telemetry          []telemetryView
 	TelemetryError     string
@@ -152,6 +157,10 @@ type publicationConfigReader interface {
 	PublicationConfig(ctx context.Context, agencyID string) (compliance.PublicationConfig, error)
 }
 
+type validationReportReader interface {
+	LatestValidationReport(ctx context.Context, agencyID string, feedType string, validatorName string) (*compliance.ValidationReportRecord, error)
+}
+
 func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/admin/operations" {
 		if r.Method != http.MethodGet {
@@ -175,6 +184,16 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderOperationsChecklistJSON(w, r)
+	case "gtfs-quality":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderGTFSQuality(w, r)
+		case http.MethodPost:
+			h.operationsGTFSQualityPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup", "readiness":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
@@ -201,6 +220,88 @@ func (h *handler) renderOperations(w http.ResponseWriter, r *http.Request, secti
 	}
 	page := h.buildOperationsPage(r, principal, section)
 	renderOperationsTemplate(w, section, page)
+}
+
+func (h *handler) renderGTFSQuality(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "gtfs-quality")
+	renderOperationsTemplate(w, "gtfs-quality", page)
+}
+
+func (h *handler) operationsGTFSQualityPost(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, gtfsQualityPostMaxBytes)
+	principal, ok := auth.RequireRole(w, r, auth.RoleAdmin)
+	if !ok {
+		return
+	}
+	if !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		page := h.buildOperationsPage(r, principal, "gtfs-quality")
+		page.GTFSQualityError = "GTFS quality rerun request was blocked because the form body is invalid or too large."
+		w.WriteHeader(http.StatusRequestEntityTooLarge)
+		renderOperationsTemplate(w, "gtfs-quality", page)
+		return
+	}
+	if strings.TrimSpace(h.csrfSecret) != "" && strings.TrimSpace(r.FormValue("csrf_token")) != csrfToken(h.csrfSecret, principal) {
+		page := h.buildOperationsPage(r, principal, "gtfs-quality")
+		page.GTFSQualityError = "GTFS quality rerun request was blocked because the CSRF token is invalid."
+		w.WriteHeader(http.StatusForbidden)
+		renderOperationsTemplate(w, "gtfs-quality", page)
+		return
+	}
+	if err := rejectGTFSQualityUnexpectedFields(r); err != nil {
+		page := h.buildOperationsPage(r, principal, "gtfs-quality")
+		page.GTFSQualityError = err.Error()
+		renderOperationsTemplate(w, "gtfs-quality", page)
+		return
+	}
+	if strings.TrimSpace(r.FormValue("action")) != "rerun_static_validator" {
+		page := h.buildOperationsPage(r, principal, "gtfs-quality")
+		page.GTFSQualityError = "unknown GTFS quality action"
+		renderOperationsTemplate(w, "gtfs-quality", page)
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "gtfs-quality")
+	activeFeedVersionID, activeRevision := scheduleFeedVersion(page.Discovery.Feeds)
+	if activeFeedVersionID == "" {
+		page.GTFSQualityError = "Blocking: no active published schedule feed version is available. Import or publish a schedule before rerunning the static MobilityData validator."
+		renderOperationsTemplate(w, "gtfs-quality", page)
+		return
+	}
+	result, err := h.runValidationForFeed(r, principal, "schedule", activeFeedVersionID)
+	if err != nil {
+		page.GTFSQualityError = "Blocking: static MobilityData validator could not run. Check validator tooling configuration and the active schedule, then retry."
+		renderOperationsTemplate(w, "gtfs-quality", page)
+		return
+	}
+	record := &compliance.ValidationReportRecord{Result: result, CreatedAt: time.Now().UTC().Truncate(time.Second)}
+	page = h.buildOperationsPage(r, principal, "gtfs-quality")
+	page.GTFSQuality.Canonical = compliance.BuildGTFSQualityTriage(compliance.GTFSQualityTriageInput{Canonical: record, ActiveFeedVersionID: activeFeedVersionID, ActiveFeedRevisionTime: activeRevision}).Canonical
+	page.GTFSQualityNotice = "Static MobilityData validator rerun finished and was stored only as the normal validation result row."
+	renderOperationsTemplate(w, "gtfs-quality", page)
+}
+
+func rejectGTFSQualityUnexpectedFields(r *http.Request) error {
+	allowed := map[string]bool{"action": true, "csrf_token": true}
+	blocked := []string{"validator_id", "validator_command", "validator_path", "output_path", "artifact_path", "report_path", "schedule_zip_path", "url", "URL", "argv", "args", "timeout"}
+	for name := range r.Form {
+		if allowed[name] {
+			continue
+		}
+		lower := strings.ToLower(name)
+		for _, blockedName := range blocked {
+			if lower == strings.ToLower(blockedName) || strings.Contains(lower, "url") || strings.Contains(lower, "path") || strings.Contains(lower, "timeout") {
+				return fmt.Errorf("GTFS quality rerun accepts only action and CSRF fields")
+			}
+		}
+		return fmt.Errorf("GTFS quality rerun accepts only action and CSRF fields")
+	}
+	return nil
 }
 
 func (h *handler) operationsDeviceRebind(w http.ResponseWriter, r *http.Request) {
@@ -369,6 +470,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		CSRFToken:        csrfToken(h.csrfSecret, principal),
 		Section:          section,
 		StaleThreshold:   staleThreshold(),
+		IsAdmin:          principal.HasAny(auth.RoleAdmin),
 		Links: []evidenceLink{
 			{Label: "OCI hosted evidence packet", Path: "docs/evidence/captured/oci-pilot/2026-04-24/README.md", UpdatedAt: "2026-04-24"},
 			{Label: "Phase 23 agency-owned domain blocker", Path: "docs/agency-owned-domain-readiness.md", UpdatedAt: "Phase 23"},
@@ -436,7 +538,30 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.SetupSteps = setupSteps(page)
 	page.ReadinessItems = readinessItems(page)
 	page.Checklist = buildOperatorChecklist(page)
+	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
 	return page
+}
+
+func (h *handler) gtfsQualityTriage(r *http.Request, agencyID string, discovery compliance.FeedDiscovery) compliance.GTFSQualityTriage {
+	activeFeedVersionID, activeRevision := scheduleFeedVersion(discovery.Feeds)
+	reader, ok := h.store.(validationReportReader)
+	if !ok {
+		return compliance.BuildGTFSQualityTriage(compliance.GTFSQualityTriageInput{ActiveFeedVersionID: activeFeedVersionID, ActiveFeedRevisionTime: activeRevision})
+	}
+	canonical, err := reader.LatestValidationReport(r.Context(), agencyID, "schedule", compliance.CanonicalStaticValidatorName)
+	if err != nil {
+		canonical = nil
+	}
+	internalImporter, err := reader.LatestValidationReport(r.Context(), agencyID, "schedule", compliance.InternalGTFSImportValidatorName)
+	if err != nil {
+		internalImporter = nil
+	}
+	return compliance.BuildGTFSQualityTriage(compliance.GTFSQualityTriageInput{
+		Canonical:              canonical,
+		InternalImporter:       internalImporter,
+		ActiveFeedVersionID:    activeFeedVersionID,
+		ActiveFeedRevisionTime: activeRevision,
+	})
 }
 
 func (h *handler) tripUpdatesQualityView(r *http.Request, agencyID string) tripUpdatesQualityView {
@@ -578,6 +703,15 @@ func activeFeedVersion(feeds []compliance.FeedMetadata) string {
 		}
 	}
 	return ""
+}
+
+func scheduleFeedVersion(feeds []compliance.FeedMetadata) (string, *time.Time) {
+	for _, feed := range feeds {
+		if feed.FeedType == "schedule" {
+			return feed.ActiveFeedVersionID, feed.RevisionTimestamp
+		}
+	}
+	return "", nil
 }
 
 func latestFeedTime(discovery compliance.FeedDiscovery) *time.Time {
@@ -1113,6 +1247,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations">Dashboard</a>
 <a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
+<a href="/admin/operations/gtfs-quality">GTFS Quality</a>
 <a href="/admin/operations/telemetry">Telemetry</a>
 <a href="/admin/operations/devices">Devices</a>
 <a href="/admin/alerts/console">Alerts</a>
@@ -1143,6 +1278,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
+<tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
 <tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessItems}} checklist items</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
@@ -1163,6 +1299,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>CAL-ITP-Style Readiness Workflow</h2>
 <p class="warning">Open Transit RT supports CAL-ITP-style readiness workflows. This page does not claim CAL-ITP/Caltrans compliance.</p>
 <p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
+<p><a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a></p>
 <p class="muted">Each row ties the status to an existing source and gives the next operator action for missing or weak signals. Consumer statuses remain prepared unless retained target-originated evidence supports a target-specific change.</p>
 <table><thead><tr><th>Readiness item</th><th>Status</th><th>Status source</th><th>Current evidence/signal</th><th>Next action</th><th>Claim boundary</th></tr></thead><tbody>
 {{range .ReadinessItems}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
@@ -1183,7 +1320,50 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 </tbody></table>
 {{end}}
 <p class="muted">This view shows repo/deployment evidence only. Third-party consumer acceptance requires retained confirmation from the named consumer.</p>
+<p><a href="/admin/operations/gtfs-quality">Review GTFS quality triage actions</a></p>
 {{template "layoutEnd" .}}
+{{end}}
+
+{{define "gtfs-quality"}}
+{{template "layoutStart" .}}
+<h2>GTFS Quality Triage</h2>
+{{if .GTFSQualityNotice}}<p class="ok">{{.GTFSQualityNotice}}</p>{{end}}
+{{if .GTFSQualityError}}<p class="bad">{{.GTFSQualityError}}</p>{{end}}
+<p class="warning">Validator output is diagnostics and supporting signal only. It is not consumer acceptance, not CAL-ITP/Caltrans compliance, not an evidence packet, and not production-readiness proof.</p>
+<table><tbody>
+<tr><th>Active schedule feed version</th><td>{{if .ActiveFeedVersion}}<code>{{.ActiveFeedVersion}}</code>{{else}}missing active schedule; next action: import or publish a schedule before rerunning validation{{end}}</td></tr>
+<tr><th>Rerun boundary</th><td>Rerun uses only the authenticated agency active published schedule ZIP and the server-side static MobilityData validator mapping.</td></tr>
+</tbody></table>
+{{if .IsAdmin}}
+<h3>Rerun Static Validator</h3>
+<form method="post" action="/admin/operations/gtfs-quality">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="rerun_static_validator">
+<button>Rerun static MobilityData validator</button>
+</form>
+{{else}}<p class="muted">Rerun action is available only to admins.</p>{{end}}
+{{template "gtfsQualitySection" .GTFSQuality.Canonical}}
+{{template "gtfsQualitySection" .GTFSQuality.InternalImporter}}
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "gtfsQualitySection"}}
+<h3>{{.SourceLabel}}</h3>
+<table><tbody>
+<tr><th>Source</th><td>{{.Source}}</td></tr>
+<tr><th>Status</th><td>{{.Status}}</td></tr>
+<tr><th>Feed version</th><td>{{if .FeedVersionID}}<code>{{.FeedVersionID}}</code>{{else}}not recorded{{end}}</td></tr>
+<tr><th>Latest result timestamp</th><td>{{formatTimePtr .ValidationTimestamp}}</td></tr>
+{{if .IsStale}}<tr><th>Needs review</th><td>{{.StaleReason}}</td></tr>{{end}}
+<tr><th>Operator summary</th><td>{{.OperatorSummary}}</td></tr>
+<tr><th>Recommended action</th><td>{{.RecommendedAction}}</td></tr>
+{{if .OverflowCount}}<tr><th>Hidden issue overflow</th><td>{{.OverflowCount}} notices omitted by group cap</td></tr>{{end}}
+</tbody></table>
+{{if .Groups}}
+<table><thead><tr><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Samples</th><th>Overflow</th></tr></thead><tbody>
+{{range .Groups}}<tr><td>{{.Severity}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.OverflowCount}}</td></tr>{{end}}
+</tbody></table>
+{{else}}<p class="warning">No issue groups are available for this source. Next action: {{.RecommendedAction}}</p>{{end}}
 {{end}}
 
 {{define "feedTable"}}
@@ -1316,6 +1496,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><th>CLI ZIP import</th><td>Use the existing GTFS import flow documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
 <tr><th>Typed authoring</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> for draft authoring and publish.</td></tr>
 <tr><th>Validation triage</th><td>Use <code>docs/tutorials/gtfs-validation-triage.md</code> and the validation form below.</td></tr>
+<tr><th>GTFS quality triage</th><td><a href="/admin/operations/gtfs-quality">Review canonical validator and internal importer actions</a>.</td></tr>
 <tr><th>Active feed verification</th><td><a href="/admin/operations/feeds">Review feed discovery and validation records</a>.</td></tr>
 </tbody></table>
 
@@ -1358,7 +1539,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Private Operator Checklist</h2>
 <p class="warning">This checklist is private operator diagnostics. It is not evidence, not an evidence packet, not compliance proof, not agency approval, not consumer acceptance, and not production readiness.</p>
-<p><a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
+<p><a href="/admin/operations/checklist.json">Export private checklist JSON</a> · <a href="/admin/operations/gtfs-quality">Open GTFS quality triage</a></p>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.Checklist.Flags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>final_root_evidence_created</code></th><td>{{.Checklist.Flags.FinalRootEvidenceCreated}}</td></tr>

@@ -129,6 +129,12 @@ func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, st
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/gtfs-quality", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, gtfsQualityPostMaxBytes)
+		}
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/publication/bootstrap", adminRead(http.HandlerFunc(h.bootstrapPublication)))
 	mux.Handle("/admin/compliance/scorecard", adminRead(http.HandlerFunc(h.scorecard)))

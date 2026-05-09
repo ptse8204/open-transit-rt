@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -907,6 +908,328 @@ func TestOperationsSetupCookiePostRequiresCSRF(t *testing.T) {
 	}
 }
 
+func TestGTFSQualityRouteAuthMatrixAndMethods(t *testing.T) {
+	roles := []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin}
+	for _, role := range roles {
+		t.Run("get_"+string(role), func(t *testing.T) {
+			handler := newGTFSQualityTestHandler(t, role, &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}, fakeScheduleBuilder{})
+			req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("GET status = %d, want 200", rr.Code)
+			}
+			if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+				t.Fatalf("Cache-Control = %q, want no-store", got)
+			}
+		})
+	}
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor} {
+		t.Run("post_"+string(role), func(t *testing.T) {
+			handler := newGTFSQualityTestHandler(t, role, &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}, fakeScheduleBuilder{})
+			req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader(gtfsQualityRerunForm()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("POST status = %d, want 403", rr.Code)
+			}
+		})
+	}
+	for _, method := range []string{http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		req := httptest.NewRequest(method, "/admin/operations/gtfs-quality", nil)
+		rr := httptest.NewRecorder()
+		newGTFSQualityTestHandler(t, auth.RoleAdmin, &fakePublicationStore{}, fakeScheduleBuilder{}).ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("%s status = %d, want 405", method, rr.Code)
+		}
+	}
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/not-real", nil)
+	rr := httptest.NewRecorder()
+	newGTFSQualityTestHandler(t, auth.RoleAdmin, &fakePublicationStore{}, fakeScheduleBuilder{}).ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("unknown operations route = %d, want 404", rr.Code)
+	}
+}
+
+func TestGTFSQualityCookiePostRequiresCSRF(t *testing.T) {
+	cfg := auth.JWTConfig{Secrets: []string{"test-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour}
+	signer, err := auth.NewSigner(cfg)
+	if err != nil {
+		t.Fatalf("signer: %v", err)
+	}
+	token, _, err := signer.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign token: %v", err)
+	}
+	verifier, err := auth.NewVerifier(cfg)
+	if err != nil {
+		t.Fatalf("verifier: %v", err)
+	}
+	middleware := auth.NewMiddleware(verifier, auth.StaticRoleStore{Roles: []auth.Role{auth.RoleAdmin}}, "csrf-secret")
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}, devices: fakeDeviceStore{}, schedule: fakeScheduleBuilder{}}, middleware)
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader("action=rerun_static_validator"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: token})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403 for missing CSRF", rr.Code)
+	}
+}
+
+func TestGTFSQualityPostStrictnessAndBodyCap(t *testing.T) {
+	validatorPath := writeScheduleValidatorWithReport(t, `{"status":"warning","notices":[{"code":"route_short_name_too_long","severity":"WARNING","message":"review"}]}`)
+	t.Setenv("GTFS_VALIDATOR_PATH", validatorPath)
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}
+	scheduleBuilder := &countingScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-v1", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip")}}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, scheduleBuilder)
+	for _, body := range []string{
+		gtfsQualityRerunForm() + "&validator_id=static-mobilitydata",
+		gtfsQualityRerunForm() + "&schedule_zip_path=/tmp/private/schedule.zip",
+		gtfsQualityRerunForm() + "&URL=https%3A%2F%2Fevil.example%2Fgtfs.zip",
+		gtfsQualityRerunForm() + "&timeout=1",
+	} {
+		req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("strict field status = %d, want rendered blocker", rr.Code)
+		}
+		if scheduleBuilder.snapshotCalls != 0 || store.storeValidationCalls != 0 {
+			t.Fatalf("unsafe form invoked validator: schedule=%d stores=%d", scheduleBuilder.snapshotCalls, store.storeValidationCalls)
+		}
+	}
+	large := gtfsQualityRerunForm() + "&" + strings.Repeat("x", gtfsQualityPostMaxBytes+1)
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader(large))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("oversized status = %d, want 413", rr.Code)
+	}
+	if scheduleBuilder.snapshotCalls != 0 || store.storeValidationCalls != 0 {
+		t.Fatalf("oversized form invoked validator: schedule=%d stores=%d", scheduleBuilder.snapshotCalls, store.storeValidationCalls)
+	}
+}
+
+func TestGTFSQualityPostRerunAndFailureBoundaries(t *testing.T) {
+	validatorPath := writeScheduleValidatorWithReport(t, `{"status":"warning","notices":[{"code":"route_short_name_too_long","severity":"WARNING","message":"review /tmp/private <script>"}]}`)
+	t.Setenv("GTFS_VALIDATOR_PATH", validatorPath)
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}
+	scheduleBuilder := &countingScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-v1", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip")}}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, scheduleBuilder)
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader(gtfsQualityRerunForm()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	if rr.Code != http.StatusOK || !strings.Contains(body, "needs_review") {
+		t.Fatalf("rerun status/body = %d %s, want needs_review", rr.Code, body)
+	}
+	for _, forbidden := range []string{"raw_report", "stdout", "stderr", "argv", "/tmp/private", "validator_clean", "compliant", "consumer_ready", "production_ready"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("rerun body leaked/claimed %q", forbidden)
+		}
+	}
+	if store.result.ValidatorName != compliance.CanonicalStaticValidatorName || store.result.FeedVersionID != "feed-v1" {
+		t.Fatalf("stored result = %+v, want canonical static for active feed", store.result)
+	}
+
+	t.Setenv("GTFS_VALIDATOR_PATH", "")
+	store = &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}
+	handler = newGTFSQualityTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-v1", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip")}})
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader(gtfsQualityRerunForm()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || !strings.Contains(rr.Body.String(), "blocking") {
+		t.Fatalf("missing validator body = %d %s, want blocker page", rr.Code, rr.Body.String())
+	}
+	for _, forbidden := range []string{"stack trace", "stdout", "stderr", "/tmp/"} {
+		if strings.Contains(rr.Body.String(), forbidden) {
+			t.Fatalf("failure body leaked %q", forbidden)
+		}
+	}
+}
+
+func TestGTFSQualityConcurrentAdminReruns(t *testing.T) {
+	validatorPath := writeScheduleValidatorWithReport(t, `{"status":"failed","notices":[{"code":"duplicate_trip_id","severity":"ERROR","message":"duplicate"}]}`)
+	t.Setenv("GTFS_VALIDATOR_PATH", validatorPath)
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, &countingScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-v1", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip")}})
+	errs := make(chan string, 2)
+	for i := 0; i < 2; i++ {
+		go func() {
+			req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader(gtfsQualityRerunForm()+"&validator_id=browser-supplied"))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK || strings.Contains(rr.Body.String(), "raw_report") || strings.Contains(rr.Body.String(), "/tmp/private") {
+				errs <- fmt.Sprintf("status/body = %d %s", rr.Code, rr.Body.String())
+				return
+			}
+			errs <- ""
+		}()
+	}
+	for i := 0; i < 2; i++ {
+		if err := <-errs; err != "" {
+			t.Fatal(err)
+		}
+	}
+	if store.storeValidationCalls != 0 {
+		t.Fatalf("unsafe repeated POST stored validation rows: %d", store.storeValidationCalls)
+	}
+}
+
+func TestGTFSQualityWarningOnlyWording(t *testing.T) {
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC()), validationRecords: []compliance.ValidationReportRecord{{
+		ID: 1, CreatedAt: time.Now().UTC(), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", FeedVersionID: "feed-v1", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "warning", WarningCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("route_short_name_too_long", "WARNING")}}}},
+	}}}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	if !strings.Contains(body, "needs_review") {
+		t.Fatalf("warning-only body missing needs_review: %s", body)
+	}
+	for _, forbidden := range []string{"validator_clean", "compliant", "accepted", "consumer_ready", "production_ready"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("warning-only body emitted forbidden positive label %q", forbidden)
+		}
+	}
+}
+
+func TestGTFSQualityGETReadOnlyAndAgencyIsolation(t *testing.T) {
+	store := &fakePublicationStore{discoveries: map[string]compliance.FeedDiscovery{
+		"agency-a": gtfsQualityDiscovery(time.Now().UTC()),
+		"agency-b": {AgencyID: "agency-b", Feeds: []compliance.FeedMetadata{{FeedType: "schedule", ActiveFeedVersionID: "feed-b"}}},
+	}, validationRecords: []compliance.ValidationReportRecord{
+		{ID: 1, CreatedAt: time.Now().UTC(), Result: compliance.ValidationResult{AgencyID: "agency-b", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "failed", ErrorCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("duplicate_route_id", "ERROR")}}}}},
+		{ID: 2, CreatedAt: time.Now().UTC(), Result: compliance.ValidationResult{AgencyID: "agency-a", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "warning", WarningCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("unused_shape", "WARNING")}}}}},
+	}}
+	schedule := &countingScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "agency-a", FeedVersionID: "feed-a", RevisionTime: time.Now().UTC(), Payload: []byte("zip")}}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, schedule: schedule, csrfSecret: "test-csrf"}, auth.TestAuthenticator{Principal: auth.Principal{Subject: "viewer@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality?agency_id=agency-a", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("same agency status = %d", rr.Code)
+	}
+	if strings.Contains(rr.Body.String(), "duplicate_route_id") || !strings.Contains(rr.Body.String(), "unused_shape") {
+		t.Fatalf("agency isolation body = %s", rr.Body.String())
+	}
+	if schedule.snapshotCalls != 0 || store.storeValidationCalls != 0 {
+		t.Fatalf("GET caused side effects: schedule=%d stores=%d", schedule.snapshotCalls, store.storeValidationCalls)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality?agency_id=agency-b", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("different agency status = %d, want 403", rr.Code)
+	}
+}
+
+func TestGTFSQualityLatestSelectionAndEmptyStates(t *testing.T) {
+	now := time.Now().UTC()
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
+		{ID: 1, CreatedAt: now.Add(-time.Hour), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "failed", ErrorCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("newer_lower_id", "ERROR")}}}}},
+		{ID: 10, CreatedAt: now, Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "warning", WarningCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("older", "WARNING")}}}}},
+		{ID: 11, CreatedAt: now, Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "failed", ErrorCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("higher_id", "ERROR")}}}}},
+		{ID: 2, CreatedAt: now.Add(time.Hour), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "warning", WarningCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("newest_lower_id", "WARNING")}}}}},
+		{ID: 99, CreatedAt: now.Add(time.Hour), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "vehicle_positions", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "failed", ErrorCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("wrong_feed", "ERROR")}}}}},
+		{ID: 100, CreatedAt: now.Add(time.Hour), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", ValidatorName: "other-validator", Status: "failed", ErrorCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("wrong_validator", "ERROR")}}}}},
+		{ID: 101, CreatedAt: now.Add(time.Hour), Result: compliance.ValidationResult{AgencyID: "other", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "failed", ErrorCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{noticeMap("wrong_agency", "ERROR")}}}}},
+	}}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	if !strings.Contains(body, "newest_lower_id") || strings.Contains(body, "higher_id") || strings.Contains(body, "wrong_feed") || strings.Contains(body, "wrong_validator") || strings.Contains(body, "wrong_agency") {
+		t.Fatalf("latest selection body = %s", body)
+	}
+	empty := &fakePublicationStore{discovery: gtfsQualityDiscovery(now)}
+	handler = newGTFSQualityTestHandler(t, auth.RoleAdmin, empty, fakeScheduleBuilder{})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || !strings.Contains(rr.Body.String(), "Run the appropriate validation") {
+		t.Fatalf("empty canonical state = %d %s", rr.Code, rr.Body.String())
+	}
+	missingSchedule := &fakePublicationStore{discovery: compliance.FeedDiscovery{AgencyID: "demo-agency"}}
+	handler = newGTFSQualityTestHandler(t, auth.RoleAdmin, missingSchedule, fakeScheduleBuilder{})
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-quality", strings.NewReader(gtfsQualityRerunForm()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || !strings.Contains(rr.Body.String(), "no active published schedule") {
+		t.Fatalf("missing schedule = %d %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestGTFSQualityHTMLEscapingAndUsabilitySmoke(t *testing.T) {
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC()), validationRecords: []compliance.ValidationReportRecord{{
+		ID: 1, CreatedAt: time.Now().UTC(), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "warning", WarningCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{map[string]any{"code": "route_short_name_too_long", "severity": "WARNING", "message": "<script>alert(1)</script>"}}}}},
+	}, {
+		ID: 2, CreatedAt: time.Now().UTC(), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", ValidatorName: compliance.InternalGTFSImportValidatorName, Status: "failed", ErrorCount: 1, Report: map[string]any{"errors": []any{map[string]any{"code": "missing_trip_reference", "message": "missing reference"}}}},
+	}}}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	for _, want := range []string{"<h2>GTFS Quality Triage</h2>", "Canonical MobilityData static validator", "Open Transit RT internal import validation", "Validator output is diagnostics", "Rerun static MobilityData validator"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body missing %q", want)
+		}
+	}
+	if strings.Contains(body, "<script>alert(1)</script>") || !strings.Contains(body, "&lt;script&gt;alert(1)&lt;/script&gt;") {
+		t.Fatalf("script was not escaped: %s", body)
+	}
+	readOnly := newGTFSQualityTestHandler(t, auth.RoleReadOnly, store, fakeScheduleBuilder{})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+	rr = httptest.NewRecorder()
+	readOnly.ServeHTTP(rr, req)
+	if strings.Contains(rr.Body.String(), "Rerun static MobilityData validator</button>") {
+		t.Fatalf("read-only page showed admin rerun form")
+	}
+}
+
+func TestGTFSQualityPageLargeReportRender(t *testing.T) {
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC()), validationRecords: []compliance.ValidationReportRecord{largeOperationsCanonicalRecord(50000)}}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rr.Code)
+	}
+	if rr.Body.Len() > 650000 {
+		t.Fatalf("rendered body = %d bytes, want bounded", rr.Body.Len())
+	}
+	for _, forbidden := range []string{"raw_report", "stdout", "stderr", "argv", "/tmp/private", strings.Repeat("x", 1000)} {
+		if strings.Contains(rr.Body.String(), forbidden) {
+			t.Fatalf("large render leaked %q", forbidden)
+		}
+	}
+}
+
+func BenchmarkRenderGTFSQualityPage(b *testing.B) {
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC()), validationRecords: []compliance.ValidationReportRecord{largeOperationsCanonicalRecord(50000)}}
+	handler := newGTFSQualityTestHandler(b, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	for i := 0; i < b.N; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			b.Fatalf("status = %d", rr.Code)
+		}
+	}
+}
+
 func TestOperationsConsoleRendersSafeTripUpdatesQualitySummary(t *testing.T) {
 	now := time.Date(2026, 4, 26, 12, 0, 0, 0, time.UTC)
 	coverage := 50.0
@@ -1385,6 +1708,97 @@ printf '%s' '{"status":"passed","error_count":0,"warning_count":0,"info_count":1
 	return path
 }
 
+func writeScheduleValidatorWithReport(t testing.TB, report string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "gtfs-validator.sh")
+	script := `#!/bin/sh
+schedule=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -i) shift; schedule="$1" ;;
+  esac
+  shift
+done
+test -s "$schedule" || exit 3
+printf '%s' '` + report + `'
+`
+	if err := os.WriteFile(path, []byte(script), 0o700); err != nil {
+		t.Fatalf("write validator: %v", err)
+	}
+	return path
+}
+
+func newGTFSQualityTestHandler(t testing.TB, role auth.Role, store *fakePublicationStore, scheduleBuilder scheduleBuilder) http.Handler {
+	t.Helper()
+	if store == nil {
+		store = &fakePublicationStore{discovery: gtfsQualityDiscovery(time.Now().UTC())}
+	}
+	return newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, schedule: scheduleBuilder, csrfSecret: "test-csrf"}, auth.TestAuthenticator{Principal: auth.Principal{Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer}})
+}
+
+func gtfsQualityDiscovery(now time.Time) compliance.FeedDiscovery {
+	return compliance.FeedDiscovery{
+		AgencyID: "demo-agency",
+		Feeds: []compliance.FeedMetadata{{
+			FeedType:            "schedule",
+			CanonicalPublicURL:  "https://feeds.example.org/public/gtfs/schedule.zip",
+			ActivationStatus:    "active",
+			ActiveFeedVersionID: "feed-v1",
+			RevisionTimestamp:   &now,
+		}},
+	}
+}
+
+func noticeMap(code string, severity string) map[string]any {
+	return map[string]any{"code": code, "severity": severity, "message": code}
+}
+
+func gtfsQualityRerunForm() string {
+	principal := auth.Principal{Subject: "user@example.com", AgencyID: "demo-agency"}
+	return "action=rerun_static_validator&csrf_token=" + auth.CSRFToken("test-csrf", principal)
+}
+
+func largeOperationsCanonicalRecord(total int) compliance.ValidationReportRecord {
+	notices := make([]any, 0, total)
+	codes := []string{"expired_calendar", "route_short_name_too_long", "unused_shape", "stop_times_arrival_time_missing", "duplicate_trip_id", "shape_dist_traveled_decreases", "frequency_headway_invalid", "block_id_gap"}
+	severities := []string{"ERROR", "WARNING", "INFO"}
+	for i := 0; i < total; i++ {
+		notices = append(notices, map[string]any{"code": codes[i%len(codes)], "severity": severities[i%len(severities)], "message": strings.Repeat("x", 5000), "path": "/tmp/private/raw.zip"})
+	}
+	return compliance.ValidationReportRecord{ID: 1, CreatedAt: time.Now().UTC(), Result: compliance.ValidationResult{AgencyID: "demo-agency", FeedType: "schedule", FeedVersionID: "feed-v1", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "warning", WarningCount: total, Report: map[string]any{"raw_report": map[string]any{"notices": notices}, "stdout": "secret", "stderr": "secret", "argv": []any{"/tmp/private/bin"}}}}
+}
+
+type countingScheduleBuilder struct {
+	snapshot      schedule.Snapshot
+	err           error
+	readyErr      error
+	snapshotCalls int
+}
+
+func (f *countingScheduleBuilder) Ready(context.Context) error {
+	return f.readyErr
+}
+
+func (f *countingScheduleBuilder) Snapshot(context.Context, time.Time) (schedule.Snapshot, error) {
+	f.snapshotCalls++
+	if f.err != nil {
+		return schedule.Snapshot{}, f.err
+	}
+	return f.snapshot, nil
+}
+
+func (f *countingScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersionID string, _ time.Time) (schedule.Snapshot, error) {
+	f.snapshotCalls++
+	if f.err != nil {
+		return schedule.Snapshot{}, f.err
+	}
+	snapshot := f.snapshot
+	if feedVersionID != "" {
+		snapshot.FeedVersionID = feedVersionID
+	}
+	return snapshot, nil
+}
+
 type fakeScheduleBuilder struct {
 	snapshot schedule.Snapshot
 	err      error
@@ -1414,7 +1828,10 @@ func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersi
 }
 
 type fakePublicationStore struct {
+	mu                      sync.Mutex
 	result                  compliance.ValidationResult
+	validationRecords       []compliance.ValidationReportRecord
+	storeValidationCalls    int
 	bootstrapInput          compliance.BootstrapInput
 	bootstrapErr            error
 	publicationConfig       compliance.PublicationConfig
@@ -1497,8 +1914,32 @@ func (f *fakePublicationStore) BuildAndStoreScorecard(_ context.Context, agencyI
 }
 
 func (f *fakePublicationStore) StoreValidationResult(_ context.Context, result compliance.ValidationResult) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.result = result
+	f.storeValidationCalls++
+	f.validationRecords = append(f.validationRecords, compliance.ValidationReportRecord{ID: int64(len(f.validationRecords) + 1), Result: result, CreatedAt: time.Now().UTC()})
 	return nil
+}
+
+func (f *fakePublicationStore) LatestValidationReport(_ context.Context, agencyID string, feedType string, validatorName string) (*compliance.ValidationReportRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	var latest *compliance.ValidationReportRecord
+	for i := range f.validationRecords {
+		record := f.validationRecords[i]
+		if record.Result.AgencyID != agencyID || record.Result.FeedType != feedType || record.Result.ValidatorName != validatorName {
+			continue
+		}
+		if latest == nil || record.CreatedAt.After(latest.CreatedAt) || record.CreatedAt.Equal(latest.CreatedAt) && record.ID > latest.ID {
+			copyRecord := record
+			latest = &copyRecord
+		}
+	}
+	if latest == nil {
+		return nil, errors.New("not found")
+	}
+	return latest, nil
 }
 
 type fakeRealtimeArtifacts struct {
@@ -1630,6 +2071,12 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/gtfs-quality", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, gtfsQualityPostMaxBytes)
+		}
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
 	return mux
 }

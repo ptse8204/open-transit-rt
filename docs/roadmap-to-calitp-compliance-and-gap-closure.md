@@ -478,6 +478,19 @@ Close the gap between validator output and operator action.
 An operator can move from validator report to fix path without needing a GTFS
 expert for every notice.
 
+### Phase 45 Closure
+
+Implemented as private authenticated Operations Console triage at
+`/admin/operations/gtfs-quality`. The route separates canonical MobilityData
+static validator output from Open Transit RT internal import validation, caps
+groups/samples, supports admin-only rerun against the authenticated agency
+active schedule through the server-side static validator mapping, and keeps raw
+reports/stdout/stderr/argv/private paths out of rendered HTML.
+
+This is diagnostics only. It does not create evidence packets, write to
+`docs/evidence`, auto-edit GTFS, or claim consumer acceptance or
+CAL-ITP/Caltrans compliance.
+
 ### Non-Goals
 
 Do not auto-edit agency GTFS without operator approval.
