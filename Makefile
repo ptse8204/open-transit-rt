@@ -156,6 +156,7 @@ validate:
 	@sh -n scripts/operator-smoke.sh
 	@sh -n scripts/support-bundle.sh
 	@sh -n scripts/deployment-doctor.sh
+	@python3 -c 'from pathlib import Path; s=Path("scripts/deployment-doctor.sh").read_text(); assert "\"/admin/gtfs-studio\"" in s and "\"/admin/gtfs\"" not in s'
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
 	@scripts/agency-pilot-onboard.sh --agency-id dryrun-agency --gtfs-url http://127.0.0.1/example.zip --dry-run >/dev/null
 	@scripts/operator-smoke.sh --help >/dev/null
@@ -174,6 +175,8 @@ validate:
 	@test -f docs/deployment/reference-deployment-doctor.md
 	@test -f docs/phase-42-reference-deployment-doctor.md
 	@test -f docs/handoffs/phase-42.md
+	@test -f docs/phase-43-operator-ux-setup-v2.md
+	@test -f docs/handoffs/phase-43.md
 	@test -f testdata/avl-vendor/README.md
 	@test -f testdata/avl-vendor/minimal-gps.json
 	@test -f testdata/avl-vendor/full-gps.json
@@ -185,6 +188,7 @@ validate:
 	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local
 	@test -f deploy/Caddyfile.local
+	@python3 -c 'from pathlib import Path; s=Path("deploy/Caddyfile.local").read_text(); assert "@root path /" in s and "respond @root" in s and " 200" in s; assert "respond \"not found\" 404" in s; assert "respond \"Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth.\" 200" not in s'
 	@test -f deploy/systemd/open-transit-validator-cycle.service
 	@test -f deploy/systemd/open-transit-backup.service
 	@test -f deploy/systemd/open-transit-feed-monitor.service

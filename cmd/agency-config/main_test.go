@@ -498,6 +498,259 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 	}
 }
 
+func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T) {
+	now := time.Date(2026, 5, 7, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: "Demo Agency", GeneratedAt: now, PublicationEnvironment: "pilot",
+			PublicBaseURL:         "https://pilot.example.org",
+			TechnicalContactEmail: "ops@example.org",
+			License:               compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"},
+			Feeds: []compliance.FeedMetadata{
+				{FeedType: "schedule", CanonicalPublicURL: "https://pilot.example.org/public/gtfs/schedule.zip", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "passed", LastValidationAt: &now},
+				{FeedType: "vehicle_positions", CanonicalPublicURL: "http://localhost:8080/public/gtfsrt/vehicle_positions.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "trip_updates", CanonicalPublicURL: "https://feeds.agency.example/public/gtfsrt/trip_updates.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "alerts", CanonicalPublicURL: "https://feeds.real-agency.org/public/gtfsrt/alerts.pb", ActiveFeedVersionID: "feed-v1"},
+			},
+			Readiness: compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: false},
+		},
+		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
+	}
+	handler := newOperationsTestHandler(&handler{
+		store:   store,
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now}}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+			Event: telemetry.Event{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now, Lat: 1, Lon: 2}, ReceivedAt: now,
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/checklist.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var checklist operatorChecklistView
+	if err := json.Unmarshal(rr.Body.Bytes(), &checklist); err != nil {
+		t.Fatalf("decode checklist: %v", err)
+	}
+	assertChecklistShape(t, checklist)
+	if checklist.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want principal agency", checklist.AgencyID)
+	}
+	assertChecklistFlagsFalse(t, checklist.Flags)
+	assertChecklistSafeStrings(t, rr.Body.String())
+	assertChecklistDocsLinksSafe(t, checklist)
+	assertChecklistNoPositiveClaims(t, rr.Body.String())
+
+	groupIDs := make([]string, 0, len(checklist.Groups))
+	for _, group := range checklist.Groups {
+		groupIDs = append(groupIDs, group.ID)
+	}
+	wantGroups := []string{"setup", "feeds", "validation", "telemetry", "operations", "consumer_workflow"}
+	if strings.Join(groupIDs, ",") != strings.Join(wantGroups, ",") {
+		t.Fatalf("groups = %v, want %v", groupIDs, wantGroups)
+	}
+	labels := strings.Join(allHeuristicLabels(checklist), ",")
+	for _, want := range []string{"pilot_or_reference_root", "local_only", "final_root_candidate_unverified", "no_final_root_evidence", "operator_entered_unverified", "approval_unknown"} {
+		if !strings.Contains(labels, want) {
+			t.Fatalf("heuristics %q missing %q", labels, want)
+		}
+	}
+
+	normalized := checklist
+	normalized.GeneratedAt = time.Time{}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	var second operatorChecklistView
+	if err := json.Unmarshal(rr.Body.Bytes(), &second); err != nil {
+		t.Fatalf("decode second checklist: %v", err)
+	}
+	second.GeneratedAt = time.Time{}
+	if fmt.Sprintf("%#v", normalized) != fmt.Sprintf("%#v", second) {
+		t.Fatalf("normalized checklist changed:\n%#v\n%#v", normalized, second)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist?agency_id=demo-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("html Cache-Control = %q, want no-store", got)
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Private Operator Checklist", "This checklist is private operator diagnostics", "not evidence", "not an evidence packet", "not compliance proof", "not agency approval", "not consumer acceptance", "not production readiness", "Setup", "Feeds", "Validation", "Telemetry", "Operations", "Consumer Workflow", "Placeholder-like", "Pilot/reference root", "No final-root evidence"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html body missing %q: %s", want, body)
+		}
+	}
+	assertChecklistSafeStrings(t, body)
+	assertChecklistNoPositiveClaims(t, body)
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("html agency conflict status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("json agency conflict status = %d, want 403", rr.Code)
+	}
+}
+
+func TestOperationsChecklistAccessMatrixMethodsAndRoutes(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/checklist", "/admin/operations/checklist.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/checklist", "/admin/operations/checklist.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations/checklist", "/admin/operations/checklist.json"} {
+		req := httptest.NewRequest(http.MethodPost, path, nil)
+		rr := httptest.NewRecorder()
+		authenticated.ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("POST %s status = %d, want 405", path, rr.Code)
+		}
+	}
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/not-a-real-section", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("unknown operations route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsChecklistHandlesMissingDataAndEscapesHTML(t *testing.T) {
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`, PublicBaseURL: "",
+			License: compliance.License{Name: "Demo License", URL: "https://example.org/license"},
+		},
+		scorecardErr:         errors.New("no scorecard"),
+		consumersErr:         errors.New("no consumers"),
+		publicationConfigErr: errors.New("no publication config"),
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/checklist", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	if strings.Contains(body, `<script>alert("x")</script>`) || !strings.Contains(body, "&lt;script&gt;") {
+		t.Fatalf("html did not escape script-like metadata: %s", body)
+	}
+	for _, want := range []string{"missing", "unknown", "needs_review"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("missing-data html lacks status %q: %s", want, body)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("json status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var checklist operatorChecklistView
+	if err := json.Unmarshal(rr.Body.Bytes(), &checklist); err != nil {
+		t.Fatalf("decode checklist: %v", err)
+	}
+	assertChecklistShape(t, checklist)
+	if !checklistContainsSignal(checklist, `<script>alert("x")</script>`) {
+		t.Fatalf("json should preserve script-like metadata as data: %+v", checklist)
+	}
+}
+
+func TestOperationsChecklistNavigationLinks(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations", "/admin/operations/setup", "/admin/operations/readiness"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		body := rr.Body.String()
+		for _, want := range []string{"/admin/operations/checklist", "/admin/operations/checklist.json"} {
+			if !strings.Contains(body, want) {
+				t.Fatalf("%s missing link %q: %s", path, want, body)
+			}
+		}
+	}
+}
+
+func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
+	doctor, err := os.ReadFile(filepath.Join("..", "..", "scripts", "deployment-doctor.sh"))
+	if err != nil {
+		t.Fatalf("read deployment doctor: %v", err)
+	}
+	text := string(doctor)
+	if !strings.Contains(text, `"/admin/gtfs-studio"`) {
+		t.Fatalf("deployment doctor missing /admin/gtfs-studio private route")
+	}
+	if strings.Contains(text, `"/admin/gtfs"`) {
+		t.Fatalf("deployment doctor still checks exact /admin/gtfs")
+	}
+	caddy, err := os.ReadFile(filepath.Join("..", "..", "deploy", "Caddyfile.local"))
+	if err != nil {
+		t.Fatalf("read caddyfile: %v", err)
+	}
+	caddyText := string(caddy)
+	if !strings.Contains(caddyText, "@root path /") || !strings.Contains(caddyText, "respond @root") || !strings.Contains(caddyText, " 200") {
+		t.Fatalf("local Caddyfile missing exact root 200 handler:\n%s", caddyText)
+	}
+	if !strings.Contains(caddyText, `respond "not found" 404`) {
+		t.Fatalf("local Caddyfile missing unmatched 404 fallback:\n%s", caddyText)
+	}
+	if strings.Contains(caddyText, `respond "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200`) {
+		t.Fatalf("local Caddyfile has unconditional 200 catch-all:\n%s", caddyText)
+	}
+}
+
 func TestOperationsSetupPublicationFormRequiresAdminAndDerivesAgencyID(t *testing.T) {
 	store := &fakePublicationStore{}
 	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
@@ -894,6 +1147,109 @@ func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
 	}
 }
 
+func assertChecklistShape(t *testing.T, checklist operatorChecklistView) {
+	t.Helper()
+	if checklist.AgencyID == "" || checklist.Groups == nil || checklist.Counts.Groups != len(checklist.Groups) {
+		t.Fatalf("invalid checklist top-level shape: %+v", checklist)
+	}
+	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
+	seenIDs := map[string]bool{}
+	rowCount := 0
+	for _, group := range checklist.Groups {
+		if group.ID == "" || group.Label == "" || len(group.Rows) == 0 {
+			t.Fatalf("invalid group shape: %+v", group)
+		}
+		for _, row := range group.Rows {
+			rowCount++
+			if row.ID == "" || row.Label == "" || row.Source == "" || row.CurrentSignal == "" || row.NextAction == "" || row.ClaimBoundary == "" || row.DocsLinks == nil || row.HeuristicLabels == nil {
+				t.Fatalf("invalid row shape: %+v", row)
+			}
+			if seenIDs[row.ID] {
+				t.Fatalf("duplicate row id %q", row.ID)
+			}
+			seenIDs[row.ID] = true
+			if !allowedStatuses[row.Status] {
+				t.Fatalf("row %q status = %q, want neutral status", row.ID, row.Status)
+			}
+		}
+	}
+	if checklist.Counts.Rows != rowCount {
+		t.Fatalf("counts rows = %d, want %d", checklist.Counts.Rows, rowCount)
+	}
+}
+
+func assertChecklistFlagsFalse(t *testing.T, flags operatorChecklistFlags) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed {
+		t.Fatalf("checklist flags must all be false: %+v", flags)
+	}
+}
+
+func assertChecklistSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("checklist leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "compliant", "accepted", "consumer_ready", "production_ready"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("checklist emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
+func assertChecklistNoPositiveClaims(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"evidence packet created", "compliance evidence", "final-root evidence created", "agency approved", "consumer accepted", "production ready"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("checklist emits positive claim %q: %s", forbidden, body)
+		}
+	}
+}
+
+func assertChecklistDocsLinksSafe(t *testing.T, checklist operatorChecklistView) {
+	t.Helper()
+	for _, group := range checklist.Groups {
+		for _, row := range group.Rows {
+			for _, link := range row.DocsLinks {
+				if !strings.HasPrefix(link, "docs/") {
+					t.Fatalf("row %s has non-repo-relative docs link %q", row.ID, link)
+				}
+				lower := strings.ToLower(link)
+				for _, forbidden := range []string{".cache", "file://", "/users", "localhost", "/opt/open-transit-rt", "/var/lib", "/etc"} {
+					if strings.Contains(lower, forbidden) {
+						t.Fatalf("row %s docs link %q contains private path marker %q", row.ID, link, forbidden)
+					}
+				}
+			}
+		}
+	}
+}
+
+func allHeuristicLabels(checklist operatorChecklistView) []string {
+	var labels []string
+	for _, group := range checklist.Groups {
+		for _, row := range group.Rows {
+			labels = append(labels, row.HeuristicLabels...)
+		}
+	}
+	return labels
+}
+
+func checklistContainsSignal(checklist operatorChecklistView, signal string) bool {
+	for _, group := range checklist.Groups {
+		for _, row := range group.Rows {
+			if strings.Contains(row.CurrentSignal, signal) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func TestAgencyConfigReadyzRequiresDBActiveFeedAndPublicationMetadata(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -1241,6 +1597,8 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	mux := http.NewServeMux()
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
 	return mux
 }

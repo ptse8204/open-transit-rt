@@ -21,6 +21,12 @@ These questions do not block the next phase.
   doctor. Default mode exits `0` in a local checkout without deployment env
   while reporting blockers/skips/unavailable checks; `STRICT_DOCTOR=true` is
   the mode that fails on blockers. Output is private diagnostics, not evidence.
+- Answered in Phase 43 for current operator setup/readiness diagnostics: use
+  `/admin/operations/checklist` or `/admin/operations/checklist.json` from the
+  authenticated Operations Console to see grouped private diagnostics,
+  heuristic metadata/URL labels, and next actions. The checklist is not
+  evidence, not compliance proof, not agency approval, not consumer
+  acceptance, and not production readiness.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

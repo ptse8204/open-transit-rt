@@ -36,6 +36,8 @@ The repository has code and docs for:
 - Small-agency pilot operations helpers for validation, backup, restore drills,
   feed monitoring, and scorecard export.
 - Read-only reference deployment diagnostics through `make deployment-doctor`.
+- A private authenticated operator checklist at `/admin/operations/checklist`
+  and `/admin/operations/checklist.json` for setup/readiness next actions.
 - Documentation for CAL-ITP-style readiness workflows without claiming
   compliance.
 
@@ -80,6 +82,7 @@ guide without implying agency approval or consumer acceptance:
 - [Reusable Agency Onboarding](docs/tutorials/reusable-agency-onboarding.md)
 - [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
 - [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
+- [Phase 43 Operator UX Setup V2](docs/phase-43-operator-ux-setup-v2.md)
 - [Public GTFS Local/Pilot Runbook](docs/tutorials/public-gtfs-local-pilot.md)
 
 That guide records source URL, checksum, import summary, fetched schedule proof,

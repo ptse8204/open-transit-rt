@@ -17,6 +17,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🧭 Run the guided operator trial | [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md) |
 | 🧯 Collect safe diagnostics | [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md) |
 | 🩺 Check reference deployment posture | [Reference Deployment Doctor](deployment/reference-deployment-doctor.md) |
+| 🧑‍🔧 Review private operator checklist | [Phase 43 Operator UX Setup V2](phase-43-operator-ux-setup-v2.md) |
 | 🧪 Try a real public GTFS feed | [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md) |
 | 💻 Run it locally | [Local Quickstart](../wiki/local-quickstart.md) |
 | 🚌 Try the agency demo | [Agency Demo](../wiki/agency-demo.md) |
@@ -44,6 +45,7 @@ These are command-level references for people running or evaluating the project:
 - [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
 - [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md)
 - [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)
+- [Phase 43 Operator UX Setup V2](phase-43-operator-ux-setup-v2.md)
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)
 - [Agency Pilot Program](agency-pilot-program.md)
 - [Agency Pilot Kickoff Agenda](agency-pilot-kickoff-agenda.md)
@@ -138,6 +140,8 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Phase 41 Handoff](handoffs/phase-41.md)
 - [Phase 42 Reference Deployment Doctor](phase-42-reference-deployment-doctor.md)
 - [Phase 42 Handoff](handoffs/phase-42.md)
+- [Phase 43 Operator UX Setup V2](phase-43-operator-ux-setup-v2.md)
+- [Phase 43 Handoff](handoffs/phase-43.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
 - [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
 - [Phase 34 Post-Outcome-C Status Consistency](phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md)

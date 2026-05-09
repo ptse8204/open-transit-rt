@@ -49,6 +49,7 @@ type operationsPage struct {
 	Consumers          []consumerStatusView
 	RuntimeConsumers   []consumerStatusView
 	ReadinessItems     []readinessItemView
+	Checklist          operatorChecklistView
 	ConsumerError      string
 	Telemetry          []telemetryView
 	TelemetryError     string
@@ -162,6 +163,18 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	trimmed := strings.Trim(strings.TrimPrefix(r.URL.Path, "/admin/operations/"), "/")
 	switch trimmed {
+	case "checklist":
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderOperationsChecklist(w, r)
+	case "checklist.json":
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderOperationsChecklistJSON(w, r)
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup", "readiness":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
@@ -422,6 +435,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	}
 	page.SetupSteps = setupSteps(page)
 	page.ReadinessItems = readinessItems(page)
+	page.Checklist = buildOperatorChecklist(page)
 	return page
 }
 
@@ -1082,6 +1096,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 		}
 		return ""
 	},
+	"humanHeuristic": humanHeuristicLabel,
 }).Parse(`
 {{define "layoutStart"}}
 <!doctype html><html><head><meta charset="utf-8"><title>{{.Title}}</title>
@@ -1104,6 +1119,8 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/consumers">Consumers</a>
 <a href="/admin/operations/evidence">Evidence</a>
 <a href="/admin/operations/setup">Setup</a>
+<a href="/admin/operations/checklist">Checklist</a>
+<a href="/admin/operations/checklist.json">Checklist JSON</a>
 <a href="/admin/gtfs-studio">GTFS Studio</a>
 </nav>
 {{end}}
@@ -1124,6 +1141,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 <h2>Dashboard Sections</h2>
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
+<tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessItems}} checklist items</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
@@ -1144,6 +1162,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>CAL-ITP-Style Readiness Workflow</h2>
 <p class="warning">Open Transit RT supports CAL-ITP-style readiness workflows. This page does not claim CAL-ITP/Caltrans compliance.</p>
+<p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p class="muted">Each row ties the status to an existing source and gives the next operator action for missing or weak signals. Consumer statuses remain prepared unless retained target-originated evidence supports a target-specific change.</p>
 <table><thead><tr><th>Readiness item</th><th>Status</th><th>Status source</th><th>Current evidence/signal</th><th>Next action</th><th>Claim boundary</th></tr></thead><tbody>
 {{range .ReadinessItems}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
@@ -1260,6 +1279,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Guided Setup Checklist</h2>
 {{if .SetupNotice}}<p class="ok">{{.SetupNotice}}</p>{{end}}
 {{if .SetupError}}<p class="bad">{{.SetupError}}</p>{{end}}
+<p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p class="muted">Each status is tied to a named source. Missing records stay missing until publication metadata, feed discovery, validation records, device bindings, telemetry, docs tracker records, or evidence links support a stronger statement.</p>
 <table><thead><tr><th>Step</th><th>Status</th><th>Status source</th><th>Evidence signal</th><th>Next action</th></tr></thead><tbody>
 {{range .SetupSteps}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{if .ActionURL}}<a href="{{.ActionURL}}">{{.NextAction}}</a>{{else}}{{.NextAction}}{{end}}</td></tr>{{end}}
@@ -1331,6 +1351,29 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><th>Consumer packets</th><td>Source: docs/evidence tracker. <a href="/admin/operations/consumers">Review all seven prepared packet records</a>; prepared is not submitted or accepted.</td></tr>
 <tr><th>Evidence/readiness</th><td>Source: evidence links. <a href="/admin/operations/evidence">Open evidence link index</a>.</td></tr>
 </tbody></table>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "checklist"}}
+{{template "layoutStart" .}}
+<h2>Private Operator Checklist</h2>
+<p class="warning">This checklist is private operator diagnostics. It is not evidence, not an evidence packet, not compliance proof, not agency approval, not consumer acceptance, and not production readiness.</p>
+<p><a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
+<table><tbody>
+<tr><th><code>external_evidence_created</code></th><td>{{.Checklist.Flags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.Checklist.Flags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.Checklist.Flags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.Checklist.Flags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.Checklist.Flags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>agency_approval_claimed</code></th><td>{{.Checklist.Flags.AgencyApprovalClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.Checklist.Flags.ConsumerAcceptanceClaimed}}</td></tr>
+</tbody></table>
+{{range .Checklist.Groups}}
+<h3>{{.Label}}</h3>
+<table><thead><tr><th>ID</th><th>Row</th><th>Status</th><th>Source</th><th>Current signal</th><th>Next action</th><th>Boundary</th><th>Heuristics</th><th>Docs</th></tr></thead><tbody>
+{{range .Rows}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td><td>{{range .HeuristicLabels}}<span class="pill">{{humanHeuristic .}}</span> {{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
 {{template "layoutEnd" .}}
 {{end}}
 `))

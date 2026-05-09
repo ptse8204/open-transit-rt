@@ -109,7 +109,17 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   now has `scripts/deployment-doctor.sh`, `make deployment-doctor`,
   `docs/deployment/reference-deployment-doctor.md`, a Phase 42 handoff, and
   validation checks for those files.
-- Remaining later work: Phase 43 operator UX setup improvements, plus only
-  future optional retained-evidence paths such as final-root proof, real agency
-  pilot evidence, real device/vendor AVL evidence, consumer submissions, or
-  real-world realtime quality evidence when claim-specific artifacts exist.
+
+## Phase 43 — Operator UX Setup V2
+
+- Complete for the private authenticated Operations Console checklist scope.
+  The repo now has `/admin/operations/checklist` and
+  `/admin/operations/checklist.json`, a shared deterministic checklist model,
+  grouped setup/feeds/validation/telemetry/operations/consumer_workflow rows,
+  neutral statuses, heuristic metadata and URL labels, repo-relative docs
+  links, explicit false claim flags, local Caddy fallback hardening, and a
+  Phase 43 handoff.
+- Remaining later work: only future optional retained-evidence paths such as
+  final-root proof, real agency pilot evidence, real device/vendor AVL
+  evidence, consumer submissions, or real-world realtime quality evidence when
+  claim-specific artifacts exist.

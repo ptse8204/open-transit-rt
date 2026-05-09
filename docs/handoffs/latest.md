@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 42 — Reference Deployment Doctor is complete for the read-only
-reference deployment diagnostic scope.
+Phase 43 — Operator UX Setup V2 is complete for the private authenticated
+Operations Console checklist scope.
 
-Phases 0 through 42 are closed for their documented scopes. Track A is also
+Phases 0 through 43 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -137,6 +137,21 @@ while reporting blockers/skips/unavailable checks; `STRICT_DOCTOR=true` is the
 mode that fails on blockers. Phase 42 created no external evidence, changed no
 consumer statuses, and added no compliance, consumer acceptance, agency
 approval/adoption, final-root, hosted SaaS, production-readiness,
+vendor-compatibility, or production-grade ETA claim.
+
+Phase 43 added a private authenticated Operations Console checklist at
+`/admin/operations/checklist` and `/admin/operations/checklist.json`. Both
+routes are derived from one deterministic model with fixed group order
+(`setup`, `feeds`, `validation`, `telemetry`, `operations`,
+`consumer_workflow`), stable row IDs, neutral statuses, source/current-signal
+fields, next actions, claim boundaries, repo-relative docs links, heuristic
+metadata/URL labels, and explicit false claim flags. Dashboard, setup, and
+readiness pages link to both checklist routes. Phase 43 also patched local
+routing so exact `/` returns the local app message with `200`, unmatched local
+paths return `404`, and the deployment doctor checks `/admin/gtfs-studio`
+instead of exact `/admin/gtfs`. Phase 43 created no external evidence, changed
+no consumer statuses, and added no compliance, consumer acceptance, agency
+approval/adoption, final-root proof, hosted SaaS, production-readiness,
 vendor-compatibility, or production-grade ETA claim.
 
 ## Phase 32 Summary
@@ -317,6 +332,45 @@ vendor-compatibility, or production-grade ETA claim.
   backlog, open-question, current-status, and handoff docs.
 - Updated `make validate` to check the Phase 42 script, help path, and docs.
 - Created no external evidence and changed no consumer statuses.
+
+## Phase 43 Summary
+
+- Patched the local Caddy fallback so exact `/` returns `200` and unmatched
+  local paths return `404`.
+- Patched the deployment doctor private route list from exact `/admin/gtfs` to
+  `/admin/gtfs-studio`.
+- Added static validation guards for the deployment-doctor route and local
+  Caddy fallback shape.
+- Added `/admin/operations/checklist` and `/admin/operations/checklist.json`
+  as authenticated private routes derived from one shared checklist model.
+- Added deterministic setup, feeds, validation, telemetry, operations, and
+  consumer_workflow groups with stable row IDs, neutral statuses, next actions,
+  claim boundaries, docs links, heuristic labels, and exact false claim flags.
+- Added setup/readiness/dashboard navigation links to both checklist routes.
+- Added focused tests for route registration, auth roles, agency scoping,
+  method rejection, JSON shape, headers, deterministic ordering, classifiers,
+  HTML escaping, docs-link safety, forbidden wording, consumer prepared-only
+  semantics, deployment-doctor route regression, and local Caddy fallback
+  shape.
+- Added `docs/phase-43-operator-ux-setup-v2.md` and
+  `docs/handoffs/phase-43.md`.
+- Created no external evidence and changed no consumer statuses.
+
+## Checks Run For Phase 43
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed.
+- Consumer tracker JSON syntax, exact target set, prepared-only statuses, and
+  byte-for-byte unchanged check — passed.
+- `docker compose -f deploy/docker-compose.yml config` — passed.
+- `make agency-app-up` — passed.
+- `PUBLIC_BASE_URL=http://localhost:8080 ADMIN_BASE_URL=http://localhost:8080 make deployment-doctor` — passed.
+- Direct local route checks passed: `/` returned `200`, `/metrics` returned
+  `404`, `/not-a-real-route` returned `404`, `/admin/gtfs` returned `404`,
+  `/admin/gtfs-studio` returned `401`, and
+  `/admin/debug/gtfsrt/vehicle_positions.json` returned `401`.
+- `make agency-app-down` — passed.
 
 ## Truthfulness And Evidence Boundary
 
@@ -697,9 +751,10 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 42 is closed; do not reopen Phase 39, Phase 40, Phase
-41, or Phase 42 unless a concrete readiness-workflow, guided-trial,
-diagnostics, support-bundle, or deployment-doctor regression is found.
+choosing files. Phase 43 is closed; do not reopen Phase 39, Phase 40, Phase
+41, Phase 42, or Phase 43 unless a concrete readiness-workflow, guided-trial,
+diagnostics, support-bundle, deployment-doctor, local-routing, or checklist
+regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -722,6 +777,7 @@ Continue the self-hosted agency reuse roadmap from this handoff.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
-trial, Phase 41 diagnostics, and Phase 42 deployment doctor as the
+trial, Phase 41 diagnostics, Phase 42 deployment doctor, and Phase 43 private
+operator checklist as the
 self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

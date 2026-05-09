@@ -3,7 +3,7 @@
 **Status:** proposed review draft, not yet committed  
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`  
 **Generated for review:** 2026-05-08  
-**Current repo baseline:** Phase 42 closed for the reference deployment doctor scope
+**Current repo baseline:** Phase 43 closed for the private operator checklist scope
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -48,7 +48,7 @@ Open Transit RT is production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 42, Open Transit RT has:
+As of Phase 43, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -71,6 +71,7 @@ As of Phase 42, Open Transit RT has:
 - a guided self-hosted operator trial;
 - operator smoke checks and redaction-safe support bundles;
 - a read-only OCI/OCL-style reference deployment doctor;
+- a private authenticated setup/readiness checklist in HTML and JSON;
 - synthetic AVL adapter fixtures;
 - deterministic realtime-quality replay fixtures;
 - prepared consumer packets for seven targets;
@@ -193,7 +194,7 @@ phase handoff is created.
 | --- | --- | --- |
 | 41 | Operator Smoke And Support Bundle | Complete. Repeatable local/reference smoke helper and redaction-safe support bundle. |
 | 42 | Reference Deployment Doctor | Complete. Read-only checks for env, services, reverse proxy posture, validators, DB, backups, restore readiness, and route boundaries. |
-| 43 | Operator UX Setup V2 | Stronger setup/readiness UI with grouped remediation and exportable operator checklist. |
+| 43 | Operator UX Setup V2 | Complete. Private grouped checklist for setup/readiness remediation and JSON export. |
 | 44 | Telemetry Simulator And Device Trial | Safe simulator path that sends synthetic telemetry through real device-token ingest. |
 | 45 | GTFS Quality Triage Loop | Operator-facing static GTFS validator warning/error triage linked to import/Studio actions. |
 | 46 | Validator Automation And Health Gates | Scheduled validator runs, strict activation gates, history views, and deployment status exports. |
@@ -367,13 +368,14 @@ and readiness tasks.
 
 ### Required Improvements
 
-- group readiness rows into setup, feeds, validation, telemetry, operations,
+- group checklist rows into setup, feeds, validation, telemetry, operations,
   and consumer workflow;
-- show clear red/yellow/green state with plain next actions;
+- show neutral status values with plain next actions;
 - link validation errors/warnings to triage docs;
-- show whether metadata is placeholder or agency-approved;
-- show whether public URLs are local, pilot, final-root candidate, or final-root
-  approved;
+- show whether metadata is missing, placeholder-like, or operator-entered with
+  approval unknown;
+- show whether public URLs are local, pilot/reference, final-root candidate
+  unverified, or missing final-root evidence;
 - export a private operator checklist.
 
 ### Definition Of Done
@@ -383,6 +385,23 @@ A non-expert operator can tell what is missing without reading phase handoffs.
 ### Non-Goals
 
 Do not expose admin routes publicly. Do not claim compliance from UI state.
+
+### Phase 43 Closeout
+
+Phase 43 is complete for the private authenticated checklist scope. The
+Operations Console now exposes `/admin/operations/checklist` and
+`/admin/operations/checklist.json`, both backed by one deterministic model with
+fixed group order, stable row IDs, neutral statuses, repo-relative docs links,
+heuristic labels, and explicit false claim flags. Dashboard, setup, and
+readiness pages link to both checklist routes. The phase also patched local
+routing so exact `/` remains a `200` convenience page while unmatched local
+paths return `404`, and the deployment doctor now checks `/admin/gtfs-studio`
+instead of exact `/admin/gtfs`.
+
+Phase 43 created no external evidence, did not create final-root proof, did
+not change consumer statuses, and added no compliance, consumer acceptance,
+agency approval/adoption, hosted SaaS, production-readiness,
+vendor-compatibility, or production-grade ETA claim.
 
 ## Phase 44 — Telemetry Simulator And Device Trial
 
@@ -906,7 +925,7 @@ No aspirational language disguised as evidence.
 
 1. Phase 41 — Operator Smoke And Support Bundle — complete
 2. Phase 42 — Reference Deployment Doctor — complete
-3. Phase 43 — Operator UX Setup V2
+3. Phase 43 — Operator UX Setup V2 — complete
 4. Phase 44 — Telemetry Simulator And Device Trial
 5. Phase 45 — GTFS Quality Triage Loop
 6. Phase 46 — Validator Automation And Health Gates

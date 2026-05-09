@@ -452,7 +452,7 @@ record_private_route_boundaries() {
     "/admin/validation/run" \
     "/admin/devices/rebind" \
     "/admin/alerts/console" \
-    "/admin/gtfs" \
+    "/admin/gtfs-studio" \
     "/v1/events" \
     "/metrics"
   do

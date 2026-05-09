@@ -22,7 +22,8 @@ complete for integration adapter kit productization. Phase 39 is complete for
 CAL-ITP-style readiness workflow productization. Phase 40 is complete for the
 docs/navigation guided self-hosted operator trial. Phase 41 is complete for
 operator smoke checks and redaction-safe support bundles. Phase 42 is complete
-for the read-only reference deployment doctor.
+for the read-only reference deployment doctor. Phase 43 is complete for the
+private Operator UX Setup V2 checklist and local routing patch scope.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -210,6 +211,22 @@ evidence, did not create final-root proof, did not change consumer statuses,
 and added no compliance, consumer acceptance, agency approval/adoption, hosted
 SaaS, production-readiness, vendor-compatibility, or production-grade ETA
 claim.
+
+Phase 43 — Operator UX Setup V2 is closed for the private authenticated
+Operations Console checklist scope. The repo now has `/admin/operations/checklist`
+and `/admin/operations/checklist.json`, both derived from one deterministic
+model with setup, feeds, validation, telemetry, operations, and
+consumer_workflow groups. Rows include stable IDs, neutral statuses,
+plain-language next actions, source/current-signal fields, claim boundaries,
+repo-relative docs links, heuristic metadata/URL labels, and explicit false
+claim flags. Dashboard, setup, and readiness pages link to both checklist
+routes. Phase 43 also patched local routing so exact `/` keeps the local app
+message with `200`, unmatched local paths return `404`, and the deployment
+doctor checks `/admin/gtfs-studio` instead of exact `/admin/gtfs`. Phase 43
+created no external evidence, did not create final-root proof, did not change
+consumer statuses, and added no compliance, consumer acceptance, agency
+approval/adoption, hosted SaaS, production-readiness, vendor-compatibility, or
+production-grade ETA claim.
 
 ## What Exists Now
 
