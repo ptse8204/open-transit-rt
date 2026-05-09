@@ -60,14 +60,15 @@ The simulator uses:
 Authorization: Bearer <device-token>
 ```
 
-For local demo runs, the seeded token is:
+For local demo runs, the seeded token is supplied through `DEVICE_TOKEN`:
 
 ```bash
 DEVICE_TOKEN=dev-device-token
 ```
 
-The local default is accepted only for loopback targets. For a reference
-deployment, set a real device token issued for that deployment:
+The local default is accepted only for loopback targets. Plain HTTP is allowed
+only for loopback non-dry-run sends. For a non-loopback reference deployment,
+use HTTPS and set a real device token issued for that deployment:
 
 ```bash
 TARGET=https://reference.example.org \
@@ -77,7 +78,9 @@ make telemetry-simulator
 ```
 
 Do not commit or share device tokens. The simulator does not write
-Authorization headers or token values into diagnostics.
+Authorization headers or token values into diagnostics. Prefer environment
+variables such as `DEVICE_TOKEN` for credentials; CLI flags are intended for
+non-secret convenience values.
 
 ## Scenarios
 
@@ -121,6 +124,12 @@ The output is intentionally private diagnostics. It must not be committed as an
 evidence packet without a future evidence-specific review, redaction, and claim
 mapping process.
 
+Custom output directories must resolve under repo `.cache/` unless
+`ALLOW_UNIGNORED_OUTPUT_DIR=true` is set. The simulator always rejects
+`docs/evidence`, rejects symlink output directories, creates new output
+directories with mode `0700`, and runs a final redaction scan over generated
+files.
+
 ## Dry Run
 
 Preview payloads without sending telemetry:
@@ -129,8 +138,9 @@ Preview payloads without sending telemetry:
 DRY_RUN=true make telemetry-simulator
 ```
 
-Dry run output is useful for checking scenario identity, timestamps, and
-diagnostic shape. It is not ingest proof.
+Dry run output is useful for checking scenario identity, timestamps, target URL
+shape, and diagnostic shape. Dry runs may validate a non-loopback `http://`
+target because no credentials are sent. It is not ingest proof.
 
 ## Reference Deployment Use
 
@@ -159,6 +169,8 @@ make telemetry-simulator
 
 The DB-backed matcher step is optional. It is useful for private diagnostics,
 but the simulator's ingest test remains the authenticated HTTP request.
+Prefer `DATABASE_URL` as an environment variable and avoid passing database
+URLs through shell history or command-line flags.
 
 ## Boundary Checklist
 
@@ -169,6 +181,9 @@ but the simulator's ingest test remains the authenticated HTTP request.
 - Do not include private telemetry, credentials, private device IDs, or private
   vehicle IDs in committed fixtures.
 - Do not create evidence packets from simulator output.
+- Do not write simulator diagnostics outside `.cache/` unless
+  `ALLOW_UNIGNORED_OUTPUT_DIR=true` is explicitly set for a private operator
+  path.
 - Do not change `docs/evidence/consumer-submissions/status.json`.
 - Do not claim vendor compatibility, production AVL reliability, real realtime
   data, production-grade ETA quality, or CAL-ITP/Caltrans compliance.

@@ -25,8 +25,23 @@ private telemetry.
 - Added optional `RUN_MATCHER=true` support that reads accepted telemetry back
   from Postgres after HTTP ingest, runs the existing state engine, and writes a
   private Vehicle Positions debug snapshot using the existing feed builder.
+- Hardened URL safety so non-dry-run credentialed sends require HTTPS for
+  non-loopback targets while preserving loopback HTTP for local app checks and
+  non-loopback HTTP validation in dry-run mode.
+- Hardened diagnostic output safety so outputs default under `.cache`, custom
+  output directories outside repo `.cache` require
+  `ALLOW_UNIGNORED_OUTPUT_DIR=true`, `docs/evidence` is always rejected,
+  symlink output directories are rejected, and new output directories are
+  created with mode `0700`.
+- Added final redaction scanning for Authorization headers, Bearer tokens,
+  `DEVICE_TOKEN`, `DATABASE_URL`, postgres password URLs, Cookie headers, and
+  private-key material.
+- Added private timing diagnostics for total run duration, per-event HTTP
+  duration, matcher duration, matcher total duration, and Vehicle Positions
+  debug duration where applicable.
 - Added focused command tests for dry-run redaction, authenticated
-  `/v1/telemetry` posting, and evidence-directory output rejection.
+  `/v1/telemetry` posting, URL safety, output-directory safety, redaction
+  scanning, timing diagnostics, and multi-event count consistency.
 - Extended `make validate` to check the simulator command, script, scenarios,
   and docs.
 

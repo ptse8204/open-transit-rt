@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -80,64 +81,73 @@ type eventResult struct {
 	Label             string            `json:"label"`
 	RequestPayload    eventPayload      `json:"request_payload"`
 	HTTPStatus        int               `json:"http_status"`
+	HTTPDurationMS    int64             `json:"http_duration_ms,omitempty"`
 	IngestStatus      string            `json:"ingest_status,omitempty"`
 	Accepted          bool              `json:"accepted"`
 	ResponseBody      json.RawMessage   `json:"response_body,omitempty"`
 	ResponseSHA256    string            `json:"response_sha256,omitempty"`
 	StoredTelemetryID int64             `json:"stored_telemetry_id,omitempty"`
 	Matched           bool              `json:"matched,omitempty"`
+	MatcherDurationMS int64             `json:"matcher_duration_ms,omitempty"`
 	Assignment        *state.Assignment `json:"assignment,omitempty"`
 	SkippedReason     string            `json:"skipped_reason,omitempty"`
 }
 
 type runSummary struct {
-	Scenario                string        `json:"scenario"`
-	Description             string        `json:"description"`
-	SyntheticOnly           bool          `json:"synthetic_only"`
-	Target                  string        `json:"target"`
-	ReferenceTime           time.Time     `json:"reference_time"`
-	DryRun                  bool          `json:"dry_run"`
-	RunMatcher              bool          `json:"run_matcher"`
-	EventsSent              int           `json:"events_sent"`
-	EventsAccepted          int           `json:"events_accepted"`
-	EventsDuplicate         int           `json:"events_duplicate"`
-	EventsOutOfOrder        int           `json:"events_out_of_order"`
-	EventsRejected          int           `json:"events_rejected"`
-	OutputDirectory         string        `json:"output_directory"`
-	ExternalEvidenceCreated bool          `json:"external_evidence_created"`
-	ConsumerStatusesChanged bool          `json:"consumer_statuses_changed"`
-	ClaimsBoundary          []string      `json:"claims_boundary"`
-	ScenarioRequirements    []string      `json:"scenario_requirements,omitempty"`
-	Events                  []eventResult `json:"events"`
+	Scenario                        string        `json:"scenario"`
+	Description                     string        `json:"description"`
+	SyntheticOnly                   bool          `json:"synthetic_only"`
+	Target                          string        `json:"target"`
+	ReferenceTime                   time.Time     `json:"reference_time"`
+	DryRun                          bool          `json:"dry_run"`
+	RunMatcher                      bool          `json:"run_matcher"`
+	DurationMS                      int64         `json:"duration_ms"`
+	MatcherTotalDurationMS          int64         `json:"matcher_total_duration_ms"`
+	VehiclePositionsDebugDurationMS int64         `json:"vehicle_positions_debug_duration_ms"`
+	EventsSent                      int           `json:"events_sent"`
+	EventsAccepted                  int           `json:"events_accepted"`
+	EventsDuplicate                 int           `json:"events_duplicate"`
+	EventsOutOfOrder                int           `json:"events_out_of_order"`
+	EventsRejected                  int           `json:"events_rejected"`
+	OutputDirectory                 string        `json:"output_directory"`
+	ExternalEvidenceCreated         bool          `json:"external_evidence_created"`
+	ConsumerStatusesChanged         bool          `json:"consumer_statuses_changed"`
+	ClaimsBoundary                  []string      `json:"claims_boundary"`
+	ScenarioRequirements            []string      `json:"scenario_requirements,omitempty"`
+	Events                          []eventResult `json:"events"`
 }
 
 type config struct {
-	target        string
-	scenarioName  string
-	scenarioDir   string
-	agencyID      string
-	deviceID      string
-	vehicleID     string
-	deviceToken   string
-	referenceTime string
-	outputDir     string
-	force         bool
-	dryRun        bool
-	runMatcher    bool
-	databaseURL   string
-	listScenarios bool
-	timeout       time.Duration
+	target                  string
+	scenarioName            string
+	scenarioDir             string
+	agencyID                string
+	deviceID                string
+	vehicleID               string
+	deviceToken             string
+	referenceTime           string
+	outputDir               string
+	force                   bool
+	dryRun                  bool
+	runMatcher              bool
+	databaseURL             string
+	allowUnignoredOutputDir bool
+	listScenarios           bool
+	timeout                 time.Duration
 }
 
 func main() {
 	if err := run(context.Background(), os.Args[1:], os.Stdout, os.Stderr); err != nil {
-		fmt.Fprintf(os.Stderr, "telemetry simulator failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "telemetry simulator failed: %s\n", redactForConsole(err.Error()))
 		os.Exit(1)
 	}
 }
 
 func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) error {
+	startedAt := time.Now()
 	cfg := configFromEnv()
+	deviceTokenFlag := ""
+	databaseURLFlag := ""
 	fs := flag.NewFlagSet("telemetry-simulator", flag.ContinueOnError)
 	fs.SetOutput(stdout)
 	fs.StringVar(&cfg.target, "target", cfg.target, "base URL for the local/reference deployment")
@@ -146,13 +156,14 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer)
 	fs.StringVar(&cfg.agencyID, "agency-id", cfg.agencyID, "override agency_id for non-preserved scenario events")
 	fs.StringVar(&cfg.deviceID, "device-id", cfg.deviceID, "override device_id for non-preserved scenario events")
 	fs.StringVar(&cfg.vehicleID, "vehicle-id", cfg.vehicleID, "override vehicle_id for non-preserved scenario events")
-	fs.StringVar(&cfg.deviceToken, "device-token", cfg.deviceToken, "device bearer token; required for non-dry-run remote targets")
+	fs.StringVar(&deviceTokenFlag, "device-token", "", "device bearer token; prefer DEVICE_TOKEN env; required for non-dry-run sends")
 	fs.StringVar(&cfg.referenceTime, "reference-time", cfg.referenceTime, "override scenario reference time as RFC3339")
-	fs.StringVar(&cfg.outputDir, "output-dir", cfg.outputDir, "private diagnostics output directory")
+	fs.StringVar(&cfg.outputDir, "output-dir", cfg.outputDir, "private diagnostics output directory; default is .cache/telemetry-simulator/<timestamp>")
 	fs.BoolVar(&cfg.force, "force", cfg.force, "allow writing into an existing output directory")
 	fs.BoolVar(&cfg.dryRun, "dry-run", cfg.dryRun, "render diagnostics without sending HTTP requests")
 	fs.BoolVar(&cfg.runMatcher, "run-matcher", cfg.runMatcher, "after accepted ingest, run the DB-backed matcher and Vehicle Positions debug snapshot")
-	fs.StringVar(&cfg.databaseURL, "database-url", cfg.databaseURL, "Postgres URL used only with --run-matcher")
+	fs.StringVar(&databaseURLFlag, "database-url", "", "Postgres URL used only with --run-matcher; prefer DATABASE_URL env")
+	fs.BoolVar(&cfg.allowUnignoredOutputDir, "allow-unignored-output-dir", cfg.allowUnignoredOutputDir, "allow OUTPUT_DIR outside repo .cache; docs/evidence is always rejected")
 	fs.BoolVar(&cfg.listScenarios, "list-scenarios", cfg.listScenarios, "list available synthetic scenarios and exit")
 	fs.DurationVar(&cfg.timeout, "timeout", cfg.timeout, "HTTP and DB operation timeout")
 	fs.Usage = func() {
@@ -164,6 +175,15 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer)
 			return nil
 		}
 		return err
+	}
+	if deviceTokenFlag != "" {
+		cfg.deviceToken = deviceTokenFlag
+	}
+	if databaseURLFlag != "" {
+		cfg.databaseURL = databaseURLFlag
+	}
+	if cfg.deviceToken == "" && isLoopbackTarget(cfg.target) {
+		cfg.deviceToken = defaultDeviceToken
 	}
 
 	if cfg.listScenarios {
@@ -187,7 +207,7 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer)
 	if err := validateTargetAndToken(cfg); err != nil {
 		return err
 	}
-	outputDir, err := prepareOutputDir(cfg.outputDir, cfg.force)
+	outputDir, err := prepareOutputDir(cfg.outputDir, cfg.force, cfg.allowUnignoredOutputDir)
 	if err != nil {
 		return err
 	}
@@ -227,10 +247,12 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer)
 			continue
 		}
 
+		httpStartedAt := time.Now()
 		status, body, err := postTelemetry(ctx, httpClient, cfg.target, cfg.deviceToken, payload)
 		if err != nil {
 			return fmt.Errorf("post event %q: %w", raw.Label, err)
 		}
+		result.HTTPDurationMS = elapsedMilliseconds(httpStartedAt)
 		result.HTTPStatus = status
 		result.ResponseSHA256 = sha256Hex(body)
 		result.ResponseBody = redactResponseBody(body)
@@ -248,10 +270,12 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer)
 				return fmt.Errorf("lookup stored event %q: %w", raw.Label, err)
 			}
 			result.StoredTelemetryID = stored.ID
+			matcherStartedAt := time.Now()
 			assignment, err := matcher.engine.MatchEvent(ctx, stored, referenceTime)
 			if err != nil {
 				return fmt.Errorf("match event %q: %w", raw.Label, err)
 			}
+			result.MatcherDurationMS = elapsedMilliseconds(matcherStartedAt)
 			result.Matched = true
 			result.Assignment = &assignment
 		} else if matcher != nil {
@@ -268,9 +292,21 @@ func run(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer)
 		return err
 	}
 	if matcher != nil {
-		if err := writeMatcherDiagnostics(ctx, matcher, referenceTime, outputDir); err != nil {
+		timing, err := writeMatcherDiagnostics(ctx, matcher, referenceTime, outputDir)
+		if err != nil {
 			return err
 		}
+		summary.VehiclePositionsDebugDurationMS = timing.VehiclePositionsDebugDurationMS
+	}
+	summary.DurationMS = elapsedMilliseconds(startedAt)
+	for _, result := range results {
+		summary.MatcherTotalDurationMS += result.MatcherDurationMS
+	}
+	if err := writeJSON(filepath.Join(outputDir, "summary.json"), summary); err != nil {
+		return err
+	}
+	if err := scanOutputDirRedaction(outputDir); err != nil {
+		return err
 	}
 	fmt.Fprintf(stdout, "Events sent: %d accepted: %d duplicate: %d out_of_order: %d rejected: %d\n", summary.EventsSent, summary.EventsAccepted, summary.EventsDuplicate, summary.EventsOutOfOrder, summary.EventsRejected)
 	fmt.Fprintln(stdout, "Diagnostics are private local artifacts; no evidence packet or consumer status was changed.")
@@ -299,9 +335,6 @@ func configFromEnv() config {
 	if cfg.vehicleID == "" {
 		cfg.vehicleID = "bus-1"
 	}
-	if cfg.deviceToken == "" && isLoopbackTarget(cfg.target) {
-		cfg.deviceToken = defaultDeviceToken
-	}
 	if raw := os.Getenv("REFERENCE_TIME"); raw != "" {
 		cfg.referenceTime = raw
 	}
@@ -313,6 +346,9 @@ func configFromEnv() config {
 	}
 	if raw := os.Getenv("FORCE"); raw != "" {
 		cfg.force = parseBool(raw)
+	}
+	if raw := os.Getenv("ALLOW_UNIGNORED_OUTPUT_DIR"); raw != "" {
+		cfg.allowUnignoredOutputDir = parseBool(raw)
 	}
 	if raw := os.Getenv("TIMEOUT"); raw != "" {
 		if d, err := time.ParseDuration(raw); err == nil {
@@ -421,10 +457,13 @@ func validateTargetAndToken(cfg config) error {
 	if strings.TrimSpace(cfg.deviceToken) == "" {
 		return errors.New("DEVICE_TOKEN or --device-token is required for non-dry-run simulation")
 	}
+	if parsed.Scheme == "http" && !isLoopbackHost(parsed.Hostname()) {
+		return errors.New("non-loopback credentialed telemetry sends require https")
+	}
 	return nil
 }
 
-func prepareOutputDir(raw string, force bool) (string, error) {
+func prepareOutputDir(raw string, force bool, allowUnignored bool) (string, error) {
 	if raw == "" {
 		raw = filepath.Join(defaultOutputRoot, time.Now().UTC().Format("20060102T150405Z"))
 	}
@@ -443,6 +482,13 @@ func prepareOutputDir(raw string, force bool) (string, error) {
 	}
 	if abs == evidence || strings.HasPrefix(abs, evidence+string(os.PathSeparator)) {
 		return "", errors.New("simulator diagnostics must not be written under docs/evidence")
+	}
+	cache, err := filepath.Abs(filepath.Join(root, ".cache"))
+	if err != nil {
+		return "", err
+	}
+	if !allowUnignored && abs != cache && !strings.HasPrefix(abs, cache+string(os.PathSeparator)) {
+		return "", fmt.Errorf("OUTPUT_DIR must resolve under %s unless ALLOW_UNIGNORED_OUTPUT_DIR=true", cache)
 	}
 	info, err := os.Lstat(abs)
 	if err == nil {
@@ -615,10 +661,14 @@ func (m *matcherRunner) lookupStoredEvent(ctx context.Context, payload eventPayl
 	return telemetry.StoredEvent{}, errors.New("accepted stored telemetry event not found")
 }
 
-func writeMatcherDiagnostics(ctx context.Context, matcher *matcherRunner, referenceTime time.Time, outputDir string) error {
+type matcherDiagnosticsTiming struct {
+	VehiclePositionsDebugDurationMS int64
+}
+
+func writeMatcherDiagnostics(ctx context.Context, matcher *matcherRunner, referenceTime time.Time, outputDir string) (matcherDiagnosticsTiming, error) {
 	latest, err := matcher.telemetry.ListLatestByAgency(ctx, matcher.agencyID, 2000)
 	if err != nil {
-		return err
+		return matcherDiagnosticsTiming{}, err
 	}
 	vehicleIDs := make([]string, 0, len(latest))
 	for _, event := range latest {
@@ -626,10 +676,10 @@ func writeMatcherDiagnostics(ctx context.Context, matcher *matcherRunner, refere
 	}
 	assignments, err := matcher.assignments.ListCurrentAssignments(ctx, matcher.agencyID, vehicleIDs)
 	if err != nil {
-		return err
+		return matcherDiagnosticsTiming{}, err
 	}
 	if err := writeJSON(filepath.Join(outputDir, "assignments.json"), assignments); err != nil {
-		return err
+		return matcherDiagnosticsTiming{}, err
 	}
 	builder, err := feed.NewVehiclePositionsBuilder(matcher.telemetry, matcher.assignments, feed.VehiclePositionsConfig{
 		AgencyID:                  matcher.agencyID,
@@ -639,17 +689,21 @@ func writeMatcherDiagnostics(ctx context.Context, matcher *matcherRunner, refere
 		TripConfidenceThreshold:   state.DefaultConfig().MinConfidence,
 	})
 	if err != nil {
-		return err
+		return matcherDiagnosticsTiming{}, err
 	}
+	vpStartedAt := time.Now()
 	snapshot, err := builder.Snapshot(ctx, referenceTime)
 	if err != nil {
-		return err
+		return matcherDiagnosticsTiming{}, err
 	}
 	debug, err := snapshot.MarshalDebugJSON()
 	if err != nil {
-		return err
+		return matcherDiagnosticsTiming{}, err
 	}
-	return os.WriteFile(filepath.Join(outputDir, "vehicle_positions_debug.json"), debug, 0o600)
+	if err := os.WriteFile(filepath.Join(outputDir, "vehicle_positions_debug.json"), debug, 0o600); err != nil {
+		return matcherDiagnosticsTiming{}, err
+	}
+	return matcherDiagnosticsTiming{VehiclePositionsDebugDurationMS: elapsedMilliseconds(vpStartedAt)}, nil
 }
 
 func writeJSON(path string, value any) error {
@@ -679,6 +733,80 @@ func redactResponseBody(body []byte) json.RawMessage {
 func sha256Hex(payload []byte) string {
 	sum := sha256.Sum256(payload)
 	return hex.EncodeToString(sum[:])
+}
+
+func scanOutputDirRedaction(outputDir string) error {
+	patterns := []struct {
+		name string
+		re   *regexp.Regexp
+	}{
+		{"Authorization header", regexp.MustCompile(`(?i)Authorization\s*:`)},
+		{"Bearer token", regexp.MustCompile(`(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+`)},
+		{"DEVICE_TOKEN", regexp.MustCompile(`\bDEVICE_TOKEN\b`)},
+		{"DATABASE_URL", regexp.MustCompile(`\bDATABASE_URL\b`)},
+		{"Postgres password URL", regexp.MustCompile(`postgres(?:ql)?://[^/\s:@]+:[^@\s/]+@`)},
+		{"Cookie header", regexp.MustCompile(`(?i)\bCookie\s*:`)},
+		{"private key", regexp.MustCompile(`-----BEGIN [A-Z ]*PRIVATE KEY-----`)},
+	}
+	err := filepath.WalkDir(outputDir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if info.Mode()&os.ModeType != 0 {
+			return nil
+		}
+		payload, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		for _, pattern := range patterns {
+			if pattern.re.Match(payload) {
+				return fmt.Errorf("redaction scan failed for %s in %s", pattern.name, path)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("redaction scan: %w", err)
+	}
+	return nil
+}
+
+func redactForConsole(text string) string {
+	replacements := []struct {
+		re   *regexp.Regexp
+		with string
+	}{
+		{regexp.MustCompile(`(?i)(Authorization\s*:\s*)Bearer\s+[A-Za-z0-9._~+/=-]+`), `${1}<redacted>`},
+		{regexp.MustCompile(`(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+`), `Bearer <redacted>`},
+		{regexp.MustCompile(`(?i)(DEVICE_TOKEN\s*=\s*)[^\s]+`), `${1}<redacted>`},
+		{regexp.MustCompile(`(?i)(DATABASE_URL\s*=\s*)[^\s]+`), `${1}<redacted>`},
+		{regexp.MustCompile(`postgres(?:ql)?://([^:\s/@]+):([^@\s/]+)@`), `postgres://$1:<redacted>@`},
+		{regexp.MustCompile(`(?i)(Cookie\s*:\s*)[^\r\n]+`), `${1}<redacted>`},
+		{regexp.MustCompile(`-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----`), `<redacted-private-key>`},
+	}
+	for _, replacement := range replacements {
+		text = replacement.re.ReplaceAllString(text, replacement.with)
+	}
+	return text
+}
+
+func elapsedMilliseconds(startedAt time.Time) int64 {
+	if startedAt.IsZero() {
+		return 0
+	}
+	elapsed := time.Since(startedAt).Milliseconds()
+	if elapsed == 0 {
+		return 1
+	}
+	return elapsed
 }
 
 func getenv(key string, fallback string) string {
@@ -711,7 +839,10 @@ func isLoopbackTarget(target string) bool {
 	if err != nil {
 		return false
 	}
-	host := parsed.Hostname()
+	return isLoopbackHost(parsed.Hostname())
+}
+
+func isLoopbackHost(host string) bool {
 	return host == "localhost" || host == "127.0.0.1" || host == "::1"
 }
 

@@ -15,6 +15,14 @@ Complete for the synthetic-only local/reference telemetry simulator scope.
 - Added `cmd/telemetry-simulator` for synthetic scenario loading, authenticated
   `POST /v1/telemetry` sends, expectation checks, private diagnostics, and
   optional post-ingest DB-backed matcher/Vehicle Positions debug output.
+- Patched the simulator safety closure so non-loopback credentialed sends
+  require HTTPS, dry-run can still validate non-loopback HTTP targets, custom
+  output directories are confined to repo `.cache` unless explicitly
+  overridden, `docs/evidence` is always rejected, symlink output directories
+  are rejected, and generated diagnostics receive a final redaction scan.
+- Added private timing diagnostics for run duration, per-event HTTP duration,
+  matcher duration, matcher total duration, and Vehicle Positions debug
+  duration where applicable.
 - Added `scripts/telemetry-simulator.sh` and `make telemetry-simulator`.
 - Added `testdata/telemetry-simulator/` fixtures for:
   - `on-route`
@@ -38,6 +46,8 @@ Complete for the synthetic-only local/reference telemetry simulator scope.
 - No bypass around `/v1/telemetry`.
 - No real vendor payloads.
 - No private telemetry.
+- No credentialed non-loopback plain HTTP sends.
+- No diagnostic output under `docs/evidence`.
 - No evidence packets.
 - No consumer status changes.
 - No vendor compatibility claim.
@@ -66,6 +76,13 @@ tracked targets remain `prepared`.
   `REFERENCE_TIME=2026-05-11T15:05:00Z` and `RUN_MATCHER=true` — passed with
   HTTP `201`, ingest status `accepted`, matcher output, and private Vehicle
   Positions debug `trip_descriptor_published=true`.
+- Safety patch verification before Phase 45 — passed:
+  `make validate`, `make test`, `git diff --check`,
+  `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`,
+  `git diff --exit-code -- docs/evidence/consumer-submissions/status.json`,
+  and `docker compose -f deploy/docker-compose.yml config`.
+- Safety patch local simulator check with
+  `TARGET=http://localhost:8080 DEVICE_TOKEN=dev-device-token SCENARIO=testdata/telemetry-simulator/on-route.json RUN_MATCHER=true REFERENCE_TIME=2026-05-11T15:05:00Z make telemetry-simulator` — passed with HTTP `202`, ingest status `duplicate`, private timing fields, and no evidence/status changes because the reused local demo database already contained the same accepted synthetic timestamp from earlier Phase 44 verification.
 - `make agency-app-down` — passed.
 
 ## Next-Step Recommendation

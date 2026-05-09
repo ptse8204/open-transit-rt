@@ -160,12 +160,16 @@ Phase 44 added `cmd/telemetry-simulator`, `scripts/telemetry-simulator.sh`,
 posts to the real authenticated `POST /v1/telemetry` path with device
 bearer-token auth, records accepted/duplicate/out-of-order/rejected ingest
 results, and can optionally run the existing DB-backed matcher plus Vehicle
-Positions debug builder after accepted HTTP ingest. Phase 44 created no
-evidence packet, changed no consumer statuses, added no real vendor payloads
-or private telemetry, and added no vendor-compatibility, production AVL
-reliability, real realtime data, production-grade ETA, CAL-ITP/Caltrans
-compliance, agency approval/adoption, hosted SaaS, or production-readiness
-claim.
+Positions debug builder after accepted HTTP ingest. The Phase 44 safety closure
+requires HTTPS for non-loopback credentialed sends, permits non-loopback HTTP
+only for dry-run validation, confines outputs to repo `.cache` unless
+explicitly overridden, always rejects `docs/evidence`, rejects symlink output
+directories, redaction-scans generated diagnostics, and records private timing
+fields. Phase 44 created no evidence packet, changed no consumer statuses,
+added no real vendor payloads or private telemetry, and added no
+vendor-compatibility, production AVL reliability, real realtime data,
+production-grade ETA, CAL-ITP/Caltrans compliance, agency approval/adoption,
+hosted SaaS, or production-readiness claim.
 
 ## Phase 32 Summary
 
@@ -381,6 +385,9 @@ claim.
   low-quality GPS, after-midnight, and block-transition scenarios.
 - Added command tests for dry-run redaction, authenticated `/v1/telemetry`
   posting, and evidence-directory output rejection.
+- Patched URL safety, output-directory safety, final redaction scanning, timing
+  diagnostics, and multi-event count consistency tests before starting Phase
+  45.
 - Added `docs/tutorials/telemetry-simulator-and-device-trial.md`,
   `docs/phase-44-telemetry-simulator-and-device-trial.md`, and
   `docs/handoffs/phase-44.md`.
@@ -421,6 +428,13 @@ claim.
   and `RUN_MATCHER=true` — passed with HTTP `201`, ingest status
   `accepted`, matcher output, and private Vehicle Positions debug
   `trip_descriptor_published=true`.
+- Phase 44 safety patch before Phase 45 — `make validate`, `make test`,
+  `git diff --check`,
+  `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`,
+  `git diff --exit-code -- docs/evidence/consumer-submissions/status.json`,
+  and `docker compose -f deploy/docker-compose.yml config` passed.
+- Phase 44 safety patch local simulator check with
+  `TARGET=http://localhost:8080 DEVICE_TOKEN=dev-device-token SCENARIO=testdata/telemetry-simulator/on-route.json RUN_MATCHER=true REFERENCE_TIME=2026-05-11T15:05:00Z make telemetry-simulator` — passed with HTTP `202`, ingest status `duplicate`, private timing fields, and no evidence/status changes because the reused local demo database already contained the same accepted synthetic timestamp from earlier Phase 44 verification.
 - `make agency-app-down` after local verification — passed.
 
 ## Truthfulness And Evidence Boundary
