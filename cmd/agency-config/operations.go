@@ -58,6 +58,8 @@ type operationsPage struct {
 	ValidationHealth       compliance.ValidationHealthSummary
 	ValidationHealthNotice string
 	ValidationHealthError  string
+	Reliability            compliance.ReliabilitySummary
+	ReliabilityError       string
 	IsAdmin                bool
 	ConsumerError          string
 	Telemetry              []telemetryView
@@ -165,6 +167,11 @@ type validationReportReader interface {
 	LatestValidationReport(ctx context.Context, agencyID string, feedType string, validatorName string) (*compliance.ValidationReportRecord, error)
 }
 
+type reliabilityReader interface {
+	LatestReliabilityFeedHealth(ctx context.Context, agencyID string, limit int) ([]compliance.ReliabilityFeedHealthRecord, error)
+	ReliabilityIncidentRollup(ctx context.Context, agencyID string, now time.Time, recentLimit int) (compliance.ReliabilityIncidentRollup, error)
+}
+
 func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/admin/operations" {
 		if r.Method != http.MethodGet {
@@ -215,6 +222,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderValidationHealthJSON(w, r)
+	case "reliability":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderReliability(w, r)
+	case "reliability.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderReliabilityJSON(w, r)
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup", "readiness":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
@@ -268,6 +289,24 @@ func (h *handler) renderValidationHealthJSON(w http.ResponseWriter, r *http.Requ
 	}
 	page := h.buildOperationsPage(r, principal, "validation-health")
 	writeJSON(w, http.StatusOK, page.ValidationHealth)
+}
+
+func (h *handler) renderReliability(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "reliability")
+	renderOperationsTemplate(w, "reliability", page)
+}
+
+func (h *handler) renderReliabilityJSON(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "reliability")
+	writeJSON(w, http.StatusOK, page.Reliability)
 }
 
 func (h *handler) operationsValidationHealthPost(w http.ResponseWriter, r *http.Request) {
@@ -644,7 +683,24 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Checklist = buildOperatorChecklist(page)
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
+	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	return page
+}
+
+func (h *handler) reliabilitySummary(r *http.Request, agencyID string, now time.Time) (compliance.ReliabilitySummary, string) {
+	reader, ok := h.store.(reliabilityReader)
+	if !ok {
+		return compliance.BuildReliabilitySummary(compliance.ReliabilityInput{GeneratedAt: now, AgencyID: agencyID}), "reliability database reader is not available in this runtime"
+	}
+	records, err := reader.LatestReliabilityFeedHealth(r.Context(), agencyID, 200)
+	if err != nil {
+		return compliance.BuildReliabilitySummary(compliance.ReliabilityInput{GeneratedAt: now, AgencyID: agencyID}), "feed health snapshots are not available"
+	}
+	incidents, err := reader.ReliabilityIncidentRollup(r.Context(), agencyID, now, 10)
+	if err != nil {
+		return compliance.BuildReliabilitySummary(compliance.ReliabilityInput{GeneratedAt: now, AgencyID: agencyID, FeedHealthRecords: records}), "incident rollup is not available"
+	}
+	return compliance.BuildReliabilitySummary(compliance.ReliabilityInput{GeneratedAt: now, AgencyID: agencyID, FeedHealthRecords: records, Incidents: incidents}), ""
 }
 
 func (h *handler) validationHealthSummary(r *http.Request, agencyID string, discovery compliance.FeedDiscovery, extraRecords []compliance.ValidationReportRecord, artifactOverrides map[string]string) compliance.ValidationHealthSummary {
@@ -1399,6 +1455,27 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 		}
 		return t.UTC().Format(time.RFC3339)
 	},
+	"formatBoolPtr": func(v *bool) string {
+		if v == nil {
+			return "not observed"
+		}
+		if *v {
+			return "true"
+		}
+		return "false"
+	},
+	"formatFloatPtr": func(v *float64) string {
+		if v == nil {
+			return "not observed"
+		}
+		return fmt.Sprintf("%.2f", *v)
+	},
+	"formatInt64Ptr": func(v *int64) string {
+		if v == nil {
+			return "not available"
+		}
+		return strconv.FormatInt(*v, 10)
+	},
 	"join": strings.Join,
 	"lower": func(value string) string {
 		return strings.ToLower(strings.ReplaceAll(value, "_", "-"))
@@ -1447,6 +1524,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/feeds">Feeds</a>
 <a href="/admin/operations/gtfs-quality">GTFS Quality</a>
 <a href="/admin/operations/validation-health">Validator Health</a>
+<a href="/admin/operations/reliability">Reliability</a>
 <a href="/admin/operations/telemetry">Telemetry</a>
 <a href="/admin/operations/devices">Devices</a>
 <a href="/admin/alerts/console">Alerts</a>
@@ -1479,6 +1557,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
 <tr><td>Validator health</td><td>{{.ValidationHealth.OverallStatus}} overall; tooling {{.ValidationHealth.ToolingStatus}}</td><td>{{formatTime .ValidationHealth.GeneratedAt}}</td><td><a href="/admin/operations/validation-health">review private validator diagnostics</a> · <a href="/admin/operations/validation-health.json">JSON</a></td></tr>
+<tr><td>Operations reliability</td><td>{{.Reliability.OverallStatus}} overall</td><td>{{formatTime .Reliability.GeneratedAt}}</td><td><a href="/admin/operations/reliability">review private reliability diagnostics</a> · <a href="/admin/operations/reliability.json">JSON</a></td></tr>
 <tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessItems}} checklist items</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
@@ -1573,6 +1652,56 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{else}}<p class="muted">Run action is available only to admins.</p>{{end}}
 {{template "validationHealthRows" .ValidationHealth}}
 <p class="muted">Static schedule health uses the canonical MobilityData static validator. Realtime health uses the MobilityData GTFS-Realtime validator for Vehicle Positions, Trip Updates, and Alerts. Open Transit RT internal GTFS import validation remains context in GTFS quality triage and is not canonical validator health.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "reliability"}}
+{{template "layoutStart" .}}
+<h2>Operations Reliability</h2>
+{{if .ReliabilityError}}<p class="warning">{{.ReliabilityError}}.</p>{{end}}
+<p class="warning">This page is private operations diagnostics only. It does not create evidence, change consumer statuses, claim compliance, claim production readiness, claim SLA coverage, guarantee uptime, claim hosted SaaS availability, claim agency adoption, claim consumer acceptance, claim vendor compatibility, or claim production-grade ETA quality.</p>
+<table><tbody>
+<tr><th>Overall status</th><td>{{.Reliability.OverallStatus}}</td></tr>
+<tr><th>Generated at</th><td>{{formatTime .Reliability.GeneratedAt}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.Reliability.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.Reliability.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.Reliability.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.Reliability.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.Reliability.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>sla_claimed</code></th><td>{{.Reliability.ClaimFlags.SLAClaimed}}</td></tr>
+<tr><th><code>uptime_guarantee_claimed</code></th><td>{{.Reliability.ClaimFlags.UptimeGuaranteeClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.Reliability.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>agency_adoption_claimed</code></th><td>{{.Reliability.ClaimFlags.AgencyAdoptionClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.Reliability.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.Reliability.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.Reliability.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+</tbody></table>
+
+<h3>Feeds</h3>
+<table><thead><tr><th>Feed</th><th>Status</th><th>Source</th><th>Snapshot</th><th>Endpoint</th><th>Freshness seconds</th><th>Generation latency ms</th><th>Invalid response percent</th><th>Matched vehicle percent</th><th>Coverage percent</th><th>Threshold</th><th>Next action</th></tr></thead><tbody>
+{{range .Reliability.Feeds}}<tr><td>{{.FeedType}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{formatTimePtr .SnapshotAt}}</td><td>{{formatBoolPtr .EndpointAvailable}}</td><td>{{formatFloatPtr .FreshnessSeconds}}</td><td>{{formatFloatPtr .GenerationLatencyMS}}</td><td>{{formatFloatPtr .InvalidResponsePercent}}</td><td>{{formatFloatPtr .MatchedVehiclePercent}}</td><td>{{formatFloatPtr .CoveragePercent}}</td><td>{{.DiagnosticThreshold}}</td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+
+<h3>Incidents</h3>
+<table><tbody>
+<tr><th>Status</th><td>{{.Reliability.Incidents.Status}}</td></tr>
+<tr><th>Source</th><td>{{.Reliability.Incidents.Source}}</td></tr>
+<tr><th>Total</th><td>{{.Reliability.Incidents.Total}}</td></tr>
+<tr><th>Oldest open age seconds</th><td>{{formatInt64Ptr .Reliability.Incidents.OldestOpenAgeSeconds}}</td></tr>
+<tr><th>Next action</th><td>{{.Reliability.Incidents.NextAction}}</td></tr>
+</tbody></table>
+<table><thead><tr><th>ID</th><th>Type</th><th>Severity</th><th>Status</th><th>Opened</th><th>Updated</th><th>Title</th><th>Category</th></tr></thead><tbody>
+{{range .Reliability.Incidents.Recent}}<tr><td>{{.ID}}</td><td>{{.Type}}</td><td>{{.Severity}}</td><td>{{.Status}}</td><td>{{formatTime .OpenedAt}}</td><td>{{formatTimePtr .UpdatedAt}}</td><td>{{.Title}}</td><td>{{.Category}}</td></tr>{{end}}
+</tbody></table>
+
+<h3>Safe Source Sections</h3>
+<table><thead><tr><th>Section</th><th>Status</th><th>Source</th><th>Summary</th><th>Next action</th></tr></thead><tbody>
+<tr><td>backup_restore</td><td>{{.Reliability.BackupRestore.Status}}</td><td>{{.Reliability.BackupRestore.Source}}</td><td>{{.Reliability.BackupRestore.Summary}}</td><td>{{.Reliability.BackupRestore.NextAction}}</td></tr>
+<tr><td>alerting</td><td>{{.Reliability.Alerting.Status}}</td><td>{{.Reliability.Alerting.Source}}</td><td>{{.Reliability.Alerting.Summary}}</td><td>{{.Reliability.Alerting.NextAction}}</td></tr>
+<tr><td>availability_sampling</td><td>{{.Reliability.AvailabilitySampling.Status}}</td><td>{{.Reliability.AvailabilitySampling.Source}}</td><td>{{.Reliability.AvailabilitySampling.Summary}}</td><td>{{.Reliability.AvailabilitySampling.NextAction}}</td></tr>
+<tr><td>long_running_operations</td><td>{{.Reliability.LongRunningOperations.Status}}</td><td>{{.Reliability.LongRunningOperations.Source}}</td><td>{{.Reliability.LongRunningOperations.Summary}}</td><td>{{.Reliability.LongRunningOperations.NextAction}}</td></tr>
+</tbody></table>
+<p class="muted">Incident rows are sanitized and capped. Raw details_json, raw payloads, private text, logs, tokens, hostnames, and webhook values are not included.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

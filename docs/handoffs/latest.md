@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 51 — Operations Reliability And SLO Readiness is planned and approved.
-Implementation has not started.
+Phase 51 — Operations Reliability And SLO Readiness is closed for the approved
+private diagnostics scope.
 
-Phases 0 through 50 are closed for their documented scopes. Track A is also
+Phases 0 through 51 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -119,14 +119,22 @@ persistence, migrations, Operations Console routes, public APIs, evidence
 writes, consumer tracker changes, publish gates, or stronger ETA/readiness
 claims.
 
-The next step is Phase 51 execution against
-`docs/phase-51-operations-reliability-and-slo-readiness.md`. Execution must
-stay inside that approved plan. Do not add public routes, migrations,
-monitoring-stack dependencies, evidence writes, consumer-status changes,
-publish blocking, SLA claims, uptime guarantees, production-readiness claims,
-compliance claims, hosted SaaS claims, agency adoption claims, vendor
-compatibility claims, consumer acceptance claims, or production-grade ETA
-claims.
+Phase 51 added authenticated GET-only `/admin/operations/reliability` and
+`/admin/operations/reliability.json`, a fixed private reliability summary
+model, DB-backed feed and incident rollups from existing tables only, bounded
+best-effort Vehicle Positions health persistence into
+`feed_health_snapshot`, `scripts/operations-reliability.sh`, and
+`make operations-reliability`. The summary keeps feed rows ordered as
+`schedule`, `vehicle_positions`, `trip_updates`, `alerts`; uses only `ok`,
+`needs_review`, `missing`, `unknown`, and `unhealthy`; and keeps missing data
+from becoming `ok`. The script defaults to
+`.cache/operations-reliability/<timestamp>` and writes exactly
+`summary.json`, `summary.md`, `manifest.json`, `manifest.md`, and
+`reliability-review.txt`. Phase 51 added no public route, migration,
+monitoring-stack dependency, evidence write, consumer-status change, publish
+gate, SLA claim, uptime guarantee, production-readiness claim, compliance
+claim, hosted SaaS claim, agency adoption claim, vendor compatibility claim,
+consumer acceptance claim, or production-grade ETA claim.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
@@ -910,13 +918,13 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 50 is closed; do not
+choosing files. Phase 51 is closed; do not
 reopen Phase 39, Phase 40, Phase 41, Phase 42, Phase 43, Phase 44, Phase 45,
-Phase 46, Phase 47, Phase 48, Phase 49, or Phase 50 unless a
+Phase 46, Phase 47, Phase 48, Phase 49, Phase 50, or Phase 51 unless a
 concrete readiness-workflow, guided-trial, diagnostics, support-bundle,
 deployment-doctor, local-routing, checklist, telemetry-simulator, GTFS quality
 triage, validator-health, operations-notification, AVL send, predictor adapter,
-or backtesting regression is found.
+backtesting, or operations-reliability regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -935,17 +943,17 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Execute Phase 51 from
-`docs/phase-51-operations-reliability-and-slo-readiness.md`, preserving the
-private diagnostics, no-SLA, no-production-readiness, no-evidence-writing,
-no-consumer-status, no-public-unauthenticated-route, and no-migration
-boundaries unless a later approved evidence-backed phase explicitly changes
-them.
+Choose the next approved phase from the roadmap/master instructions. Preserve
+the Phase 51 private diagnostics, no-SLA, no-production-readiness,
+no-evidence-writing, no-consumer-status, no-public-unauthenticated-route, and
+no-migration boundaries unless a later approved evidence-backed phase
+explicitly changes them.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
 trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
 operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
-Phase 46 validator health, and Phase 47 operations notification summaries as
-the self-hosted/integration baseline.
+Phase 46 validator health, Phase 47 operations notification summaries, Phase
+50 realtime quality backtesting, and Phase 51 operations reliability
+diagnostics as the self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

@@ -25,6 +25,10 @@ type snapshotBuilder interface {
 	Snapshot(ctx context.Context, generatedAt time.Time) (feed.VehiclePositionsSnapshot, error)
 }
 
+type vehiclePositionsHealthRecorder interface {
+	SaveVehiclePositionsHealth(ctx context.Context, record feed.VehiclePositionsHealthRecord) error
+}
+
 type adminAuth interface {
 	Require(...auth.Role) func(http.Handler) http.Handler
 }
@@ -55,7 +59,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := server.Run("feed-vehicle-positions", newHandlerWithAuth(builder, pool, adminAuth)); err != nil {
+	if err := server.Run("feed-vehicle-positions", newHandlerWithAuthAndHealth(builder, pool, adminAuth, feed.NewVehiclePositionsHealthRepository(pool))); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -105,6 +109,10 @@ func newHandler(builder snapshotBuilder, ready pinger) http.Handler {
 }
 
 func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) http.Handler {
+	return newHandlerWithAuthAndHealth(builder, ready, admin, nil)
+}
+
+func newHandlerWithAuthAndHealth(builder snapshotBuilder, ready pinger, admin adminAuth, health vehiclePositionsHealthRecorder) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -136,7 +144,8 @@ func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) 
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		snapshot, err := builder.Snapshot(r.Context(), time.Now().UTC())
+		started := time.Now().UTC()
+		snapshot, err := builder.Snapshot(r.Context(), started)
 		if err != nil {
 			http.Error(w, "build vehicle positions snapshot", http.StatusInternalServerError)
 			return
@@ -146,6 +155,7 @@ func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) 
 			http.Error(w, "marshal vehicle positions protobuf", http.StatusInternalServerError)
 			return
 		}
+		persistVehiclePositionsHealth(health, snapshot, time.Since(started))
 		w.Header().Set("Content-Type", "application/x-protobuf")
 		w.Header().Set("Last-Modified", snapshot.GeneratedAt.Format(http.TimeFormat))
 		w.WriteHeader(http.StatusOK)
@@ -186,6 +196,18 @@ func newHandlerWithAuth(builder snapshotBuilder, ready pinger, admin adminAuth) 
 	mux.Handle("/admin/debug/gtfsrt/vehicle_positions.json", adminRead(debugHandler))
 
 	return mux
+}
+
+func persistVehiclePositionsHealth(health vehiclePositionsHealthRecorder, snapshot feed.VehiclePositionsSnapshot, generationLatency time.Duration) {
+	if health == nil {
+		return
+	}
+	record := feed.HealthRecordFromVehiclePositionsSnapshot(snapshot, generationLatency)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	go func() {
+		defer cancel()
+		_ = health.SaveVehiclePositionsHealth(ctx, record)
+	}()
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {

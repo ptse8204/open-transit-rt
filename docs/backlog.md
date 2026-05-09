@@ -196,3 +196,20 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   `testdata/realtime-quality-backtest`, and `make realtime-quality-backtest`.
 - Remaining later work: real-world observed arrival/departure quality review
   only when approved inputs and claim-specific evidence boundaries exist.
+
+## Phase 51 — Operations Reliability And SLO Readiness
+
+- Complete for the approved private operations reliability diagnostic scope.
+  The repo now has authenticated GET-only `/admin/operations/reliability` and
+  `/admin/operations/reliability.json`, bounded Vehicle Positions health
+  persistence into the existing `feed_health_snapshot` table,
+  `scripts/operations-reliability.sh`, `make operations-reliability`, focused
+  runtime/script/model tests, and a Phase 51 handoff.
+- Remaining later work: deployment-owned scheduling, production monitoring,
+  alert delivery, backup/restore proof, availability evidence, and SLO/SLA
+  workflows only when a later approved phase defines retained claim-specific
+  evidence. Phase 51 itself creates no evidence, sends no notifications,
+  changes no consumer statuses, adds no public route, adds no migrations, and
+  makes no compliance, production-readiness, SLA, uptime, hosted SaaS, agency
+  adoption, consumer acceptance, vendor compatibility, or production-grade ETA
+  claim.

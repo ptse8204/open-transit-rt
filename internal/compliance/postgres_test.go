@@ -235,6 +235,141 @@ func TestPostgresComplianceRecordsAreAgencyScoped(t *testing.T) {
 	}
 }
 
+func TestPostgresReliabilityFeedHealthIntegration(t *testing.T) {
+	if os.Getenv("INTEGRATION_TESTS") != "1" {
+		t.Skip("set INTEGRATION_TESTS=1 to run DB-backed reliability feed health tests")
+	}
+	ctx := context.Background()
+	pool, cleanup := setupComplianceIntegrationDB(t)
+	defer cleanup()
+
+	_, err := pool.Exec(ctx, `
+		INSERT INTO agency (id, name, timezone)
+		VALUES ('agency-a', 'Agency A', 'America/Los_Angeles'),
+		       ('agency-b', 'Agency B', 'America/Los_Angeles');
+		INSERT INTO feed_health_snapshot (
+			agency_id, feed_type, snapshot_at, endpoint_available,
+			freshness_seconds, generation_latency_ms, invalid_response_percent,
+			matched_vehicle_percent, coverage_percent, details_json
+		)
+		VALUES
+			('agency-a', 'vehicle_positions', '2026-05-09T12:00:00Z', true, 30, 100, 0, 80, NULL, '{}'::jsonb),
+			('agency-a', 'schedule', '2026-05-09T12:01:00Z', NULL, NULL, NULL, NULL, NULL, NULL, '{}'::jsonb),
+			('agency-a', 'vehicle_positions', '2026-05-09T12:02:00Z', false, 95, 6000, 1, 70, NULL, '{}'::jsonb),
+			('agency-b', 'alerts', '2026-05-09T12:03:00Z', true, 10, 50, 0, NULL, 100, '{}'::jsonb);
+	`)
+	if err != nil {
+		t.Fatalf("seed reliability feed health: %v", err)
+	}
+	repo := NewPostgresRepository(pool)
+	records, err := repo.LatestReliabilityFeedHealth(ctx, "agency-a", 2)
+	if err != nil {
+		t.Fatalf("latest reliability feed health: %v", err)
+	}
+	if len(records) != 2 {
+		t.Fatalf("records len = %d, want 2", len(records))
+	}
+	if records[0].FeedType != "vehicle_positions" || !records[0].SnapshotAt.Equal(time.Date(2026, 5, 9, 12, 2, 0, 0, time.UTC)) {
+		t.Fatalf("records[0] = %+v, want newest agency-a vehicle_positions", records[0])
+	}
+	if records[0].EndpointAvailable == nil || *records[0].EndpointAvailable {
+		t.Fatalf("endpoint pointer = %+v, want non-nil false", records[0].EndpointAvailable)
+	}
+	if records[0].FreshnessSeconds == nil || *records[0].FreshnessSeconds != 95 {
+		t.Fatalf("freshness pointer = %+v, want 95", records[0].FreshnessSeconds)
+	}
+	if records[0].InvalidResponsePercent == nil || *records[0].InvalidResponsePercent != 1 {
+		t.Fatalf("invalid response pointer = %+v, want 1", records[0].InvalidResponsePercent)
+	}
+	if records[0].MatchedVehiclePercent == nil || *records[0].MatchedVehiclePercent != 70 {
+		t.Fatalf("matched pointer = %+v, want 70", records[0].MatchedVehiclePercent)
+	}
+	if records[0].CoveragePercent != nil {
+		t.Fatalf("coverage pointer = %+v, want nil", records[0].CoveragePercent)
+	}
+	if records[1].FeedType != "schedule" || records[1].EndpointAvailable != nil || records[1].FreshnessSeconds != nil {
+		t.Fatalf("records[1] = %+v, want schedule with nil optional metrics", records[1])
+	}
+	for _, record := range records {
+		if record.FeedType == "alerts" {
+			t.Fatalf("agency-b alerts row leaked into agency-a results: %+v", records)
+		}
+	}
+	recordsB, err := repo.LatestReliabilityFeedHealth(ctx, "agency-b", 10)
+	if err != nil {
+		t.Fatalf("latest reliability feed health agency-b: %v", err)
+	}
+	if len(recordsB) != 1 || recordsB[0].FeedType != "alerts" || recordsB[0].CoveragePercent == nil || *recordsB[0].CoveragePercent != 100 {
+		t.Fatalf("agency-b records = %+v, want isolated alerts row with coverage", recordsB)
+	}
+}
+
+func TestPostgresReliabilityIncidentRollupIntegration(t *testing.T) {
+	if os.Getenv("INTEGRATION_TESTS") != "1" {
+		t.Skip("set INTEGRATION_TESTS=1 to run DB-backed reliability incident rollup tests")
+	}
+	ctx := context.Background()
+	pool, cleanup := setupComplianceIntegrationDB(t)
+	defer cleanup()
+
+	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	_, err := pool.Exec(ctx, `
+		INSERT INTO agency (id, name, timezone)
+		VALUES ('agency-a', 'Agency A', 'America/Los_Angeles'),
+		       ('agency-b', 'Agency B', 'America/Los_Angeles');
+		INSERT INTO incident (
+			agency_id, incident_type, severity, status, details_json, created_at, resolved_at
+		)
+		VALUES
+			('agency-a', 'prediction_review', 'warning', 'open', '{"private_payload":"TOKEN=secret bus-1 raw"}'::jsonb, '2026-05-09T09:00:00Z', NULL),
+			('agency-a', 'stale_telemetry', 'critical', 'open', '{"private_payload":"postgres://user:pass@example/db"}'::jsonb, '2026-05-09T10:00:00Z', NULL),
+			('agency-a', 'prediction_review', 'info', 'resolved', '{"private_payload":"https://private.example/path"}'::jsonb, '2026-05-09T11:00:00Z', '2026-05-09T11:30:00Z'),
+			('agency-b', 'prediction_review', 'critical', 'open', '{"private_payload":"agency-b-token"}'::jsonb, '2026-05-09T11:59:00Z', NULL);
+	`)
+	if err != nil {
+		t.Fatalf("seed incidents: %v", err)
+	}
+	repo := NewPostgresRepository(pool)
+	rollup, err := repo.ReliabilityIncidentRollup(ctx, "agency-a", now, 2)
+	if err != nil {
+		t.Fatalf("reliability incident rollup: %v", err)
+	}
+	if rollup.Total != 3 {
+		t.Fatalf("total = %d, want 3", rollup.Total)
+	}
+	if rollup.CountsByStatus["open"] != 2 || rollup.CountsByStatus["resolved"] != 1 {
+		t.Fatalf("status counts = %+v, want open=2 resolved=1", rollup.CountsByStatus)
+	}
+	if rollup.CountsBySeverity["warning"] != 1 || rollup.CountsBySeverity["critical"] != 1 || rollup.CountsBySeverity["info"] != 1 {
+		t.Fatalf("severity counts = %+v, want warning/critical/info", rollup.CountsBySeverity)
+	}
+	if rollup.CountsByType["prediction_review"] != 2 || rollup.CountsByType["stale_telemetry"] != 1 {
+		t.Fatalf("type counts = %+v, want prediction_review=2 stale_telemetry=1", rollup.CountsByType)
+	}
+	if rollup.OldestOpenAgeSeconds == nil || *rollup.OldestOpenAgeSeconds != 10800 {
+		t.Fatalf("oldest open age = %+v, want 10800 seconds", rollup.OldestOpenAgeSeconds)
+	}
+	if len(rollup.Recent) != 2 {
+		t.Fatalf("recent len = %d, want limit 2", len(rollup.Recent))
+	}
+	if rollup.Recent[0].Type != "prediction_review" || rollup.Recent[0].Title != "Incident prediction_review" || rollup.Recent[0].Category != "prediction_review" {
+		t.Fatalf("recent[0] = %+v, want fabricated sanitized title/category from type", rollup.Recent[0])
+	}
+	body := fmt.Sprintf("%+v", rollup)
+	for _, forbidden := range []string{"TOKEN=secret", "bus-1 raw", "postgres://", "private.example", "agency-b-token", "details_json", "private_payload"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("rollup leaked %q: %s", forbidden, body)
+		}
+	}
+	rollupB, err := repo.ReliabilityIncidentRollup(ctx, "agency-b", now, 10)
+	if err != nil {
+		t.Fatalf("reliability incident rollup agency-b: %v", err)
+	}
+	if rollupB.Total != 1 || rollupB.CountsBySeverity["critical"] != 1 || rollupB.CountsByStatus["open"] != 1 {
+		t.Fatalf("agency-b rollup = %+v, want isolated single critical open incident", rollupB)
+	}
+}
+
 type fakeValidationStore struct {
 	result ValidationResult
 }

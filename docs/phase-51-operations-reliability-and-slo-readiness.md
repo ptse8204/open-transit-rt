@@ -2,7 +2,7 @@
 
 ## Status
 
-Planning approved. Implementation has not started.
+Closed for the approved private operations reliability diagnostics scope.
 
 ## Goal
 

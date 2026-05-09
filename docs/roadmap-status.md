@@ -145,10 +145,14 @@ diagnostics only. Phase 49 — External Predictor Runtime Adapter is complete
 for the optional disabled-by-default generic HTTP sidecar boundary behind
 `internal/prediction.Adapter`, with sanitized DTOs, strict URL/token-env
 validation, redacted diagnostics, and no named predictor, compatibility, or
-ETA-quality claim.
+ETA-quality claim. Phase 50 — Realtime Quality Backtesting is complete for
+private aggregate diagnostics. Phase 51 — Operations Reliability And SLO
+Readiness is complete for private authenticated reliability summaries,
+bounded Vehicle Positions health persistence, and `.cache` reliability output
+without evidence writes or stronger operational claims.
 
-The immediate next step is Phase 50 planning for Realtime Quality Backtesting.
-Start with a fresh read-only planning pass before implementation.
+The immediate next step is the next master-approved phase. Start with a fresh
+read-only planning pass before implementation.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality

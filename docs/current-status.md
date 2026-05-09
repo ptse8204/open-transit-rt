@@ -36,8 +36,13 @@ Phase 50 implementation is complete for the private realtime quality
 backtesting CLI/library workflow. It adds local aggregate diagnostics only and
 does not add DB persistence, migrations, Operations Console changes, public
 APIs, evidence writes, consumer tracker changes, or stronger ETA/readiness
-claims. Phase 51 planning is approved for private operations reliability
-diagnostics; implementation has not started.
+claims. Phase 51 is complete for private operations reliability diagnostics,
+Vehicle Positions health snapshot persistence, and local reliability summaries
+without adding migrations, public routes, monitoring-stack dependencies,
+evidence writes, consumer tracker changes, SLA claims, uptime guarantees,
+production-readiness claims, compliance claims, hosted SaaS claims, agency
+adoption claims, vendor-compatibility claims, consumer-acceptance claims, or
+production-grade ETA claims.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -151,6 +156,27 @@ overall, route, agency-local time period, and route plus time period groups.
 Phase 50 adds no DB persistence, migration, Operations Console view, public
 API, consumer tracker change, external predictor runtime, evidence packet,
 publish gate, production ETA proof, or readiness claim.
+
+Phase 51 adds authenticated GET-only `/admin/operations/reliability` and
+`/admin/operations/reliability.json` for private operations reliability
+diagnostics. The runtime summary has fixed `feeds`, `incidents`,
+`backup_restore`, `alerting`, `availability_sampling`,
+`long_running_operations`, and `claim_flags` sections; emits feed rows in
+fixed order (`schedule`, `vehicle_positions`, `trip_updates`, `alerts`);
+uses only allowed statuses (`ok`, `needs_review`, `missing`, `unknown`,
+`unhealthy`); and keeps missing data from becoming `ok`. Incident rollups come
+only from the existing `incident` table and include capped sanitized counts and
+recent items without raw `details_json` or private text. Vehicle Positions
+public feed requests now best-effort persist bounded health snapshots to the
+existing `feed_health_snapshot` table without changing public feed response
+status on persistence failure. `scripts/operations-reliability.sh` and
+`make operations-reliability` write exactly `summary.json`, `summary.md`,
+`manifest.json`, `manifest.md`, and `reliability-review.txt` under
+`.cache/operations-reliability/<timestamp>` by default, reject unsafe evidence
+paths/symlinks/oversized/private inputs, send no notifications, and call no
+mutating admin endpoints. Phase 51 creates no evidence and makes no stronger
+operational, compliance, consumer, agency, hosted SaaS, vendor, SLA, uptime, or
+ETA-quality claim.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 

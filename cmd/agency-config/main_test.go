@@ -1482,6 +1482,137 @@ func TestValidationHealthRouteAuthMatrixMethodsAndHeaders(t *testing.T) {
 	}
 }
 
+func TestOperationsReliabilityRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	endpoint := true
+	freshness := 25.0
+	latency := 50.0
+	store := &fakePublicationStore{
+		discovery: validationHealthTestDiscovery(now),
+		reliabilityHealth: []compliance.ReliabilityFeedHealthRecord{
+			{FeedType: "vehicle_positions", SnapshotAt: now, EndpointAvailable: &endpoint, FreshnessSeconds: &freshness, GenerationLatencyMS: &latency},
+		},
+		reliabilityIncidents: compliance.NormalizeReliabilityIncidentRollup(now, 0, nil, nil, nil, nil, nil, 10),
+	}
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+			Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+		}})
+		for _, path := range []string{"/admin/operations/reliability", "/admin/operations/reliability.json"} {
+			req := httptest.NewRequest(http.MethodGet, path+"?agency_id=demo-agency", nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("%s role %s status = %d, want 200: %s", path, role, rr.Code, rr.Body.String())
+			}
+			if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+				t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+			}
+		}
+	}
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations/reliability", "/admin/operations/reliability.json"} {
+		req := httptest.NewRequest(http.MethodPost, path, nil)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("POST %s status = %d, want 405", path, rr.Code)
+		}
+		req = httptest.NewRequest(http.MethodGet, path+"?agency_id=other-agency", nil)
+		rr = httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("conflict %s status = %d, want 403", path, rr.Code)
+		}
+	}
+	unauth := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, authRejectAll{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/reliability.json", nil)
+	rr := httptest.NewRecorder()
+	unauth.ServeHTTP(rr, req)
+	if rr.Code == http.StatusOK {
+		t.Fatalf("unauthenticated reliability JSON returned 200")
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/reliability.json", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public reliability route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsReliabilityJSONShapeOrderMissingFlagsAndNoLeakage(t *testing.T) {
+	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	endpoint := true
+	freshness := 25.0
+	latency := 50.0
+	oldest := now.Add(-time.Hour)
+	store := &fakePublicationStore{
+		discovery: validationHealthTestDiscovery(now),
+		reliabilityHealth: []compliance.ReliabilityFeedHealthRecord{
+			{FeedType: "vehicle_positions", SnapshotAt: now, EndpointAvailable: &endpoint, FreshnessSeconds: &freshness, GenerationLatencyMS: &latency},
+		},
+		reliabilityIncidents: compliance.NormalizeReliabilityIncidentRollup(now, 2,
+			map[string]int{"open": 1, "resolved": 1},
+			map[string]int{"warning": 2},
+			map[string]int{"prediction_review": 2},
+			&oldest,
+			[]compliance.ReliabilityIncidentItem{{
+				ID: 1, Type: "prediction_review", Severity: "warning", Status: "open", OpenedAt: now.Add(-time.Hour),
+				Title: "raw details_json token https://private.example", Category: "payload_json",
+			}},
+			10),
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/reliability.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var summary compliance.ReliabilitySummary
+	if err := json.Unmarshal(rr.Body.Bytes(), &summary); err != nil {
+		t.Fatalf("decode summary: %v", err)
+	}
+	if len(summary.Feeds) != 4 || summary.Feeds[0].FeedType != "schedule" || summary.Feeds[1].FeedType != "vehicle_positions" || summary.Feeds[2].FeedType != "trip_updates" || summary.Feeds[3].FeedType != "alerts" {
+		t.Fatalf("feed order/shape = %+v", summary.Feeds)
+	}
+	if summary.Feeds[0].Status == compliance.ReliabilityStatusOK || summary.Feeds[2].Status == compliance.ReliabilityStatusOK || summary.Feeds[3].Status == compliance.ReliabilityStatusOK {
+		t.Fatalf("missing feed data became ok: %+v", summary.Feeds)
+	}
+	if summary.ClaimFlags.ExternalEvidenceCreated || summary.ClaimFlags.FinalRootEvidenceCreated || summary.ClaimFlags.ConsumerStatusesChanged || summary.ClaimFlags.ComplianceClaimed || summary.ClaimFlags.ProductionReadinessClaimed || summary.ClaimFlags.SLAClaimed || summary.ClaimFlags.UptimeGuaranteeClaimed || summary.ClaimFlags.HostedSaaSClaimed || summary.ClaimFlags.AgencyAdoptionClaimed || summary.ClaimFlags.ConsumerAcceptanceClaimed || summary.ClaimFlags.VendorCompatibilityClaimed || summary.ClaimFlags.ProductionGradeETAClaimed {
+		t.Fatalf("claim flags not all false: %+v", summary.ClaimFlags)
+	}
+	body := rr.Body.String()
+	for _, forbidden := range []string{"details_json", "token", "https://private.example", "payload_json", "raw payload", "postgres://", "Authorization", "Cookie"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("reliability JSON leaked %q: %s", forbidden, body)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/reliability", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	html := rr.Body.String()
+	if !strings.Contains(html, ">3600<") {
+		t.Fatalf("html oldest-open age did not render numeric seconds: %s", html)
+	}
+	if strings.Contains(html, "0x") {
+		t.Fatalf("html appears to contain pointer formatting: %s", html)
+	}
+	for _, forbidden := range []string{"TOKEN=secret", "https://private.example", "payload_json", "postgres://", "Authorization", "Cookie"} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("reliability HTML leaked %q: %s", forbidden, html)
+		}
+	}
+}
+
 func TestValidationHealthJSONContractOrderAndNoLeakage(t *testing.T) {
 	now := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
 	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
@@ -2461,6 +2592,10 @@ type fakePublicationStore struct {
 	listConsumersAgencyID   string
 	tripDiagnostics         compliance.TripUpdatesDiagnosticsSummary
 	tripDiagnosticsErr      error
+	reliabilityHealth       []compliance.ReliabilityFeedHealthRecord
+	reliabilityIncidents    compliance.ReliabilityIncidentRollup
+	reliabilityHealthErr    error
+	reliabilityIncidentsErr error
 }
 
 func (f *fakePublicationStore) BootstrapPublication(_ context.Context, input compliance.BootstrapInput) error {
@@ -2552,6 +2687,20 @@ func (f *fakePublicationStore) LatestValidationReport(_ context.Context, agencyI
 		return nil, errors.New("not found")
 	}
 	return latest, nil
+}
+
+func (f *fakePublicationStore) LatestReliabilityFeedHealth(context.Context, string, int) ([]compliance.ReliabilityFeedHealthRecord, error) {
+	if f.reliabilityHealthErr != nil {
+		return nil, f.reliabilityHealthErr
+	}
+	return f.reliabilityHealth, nil
+}
+
+func (f *fakePublicationStore) ReliabilityIncidentRollup(context.Context, string, time.Time, int) (compliance.ReliabilityIncidentRollup, error) {
+	if f.reliabilityIncidentsErr != nil {
+		return compliance.ReliabilityIncidentRollup{}, f.reliabilityIncidentsErr
+	}
+	return f.reliabilityIncidents, nil
 }
 
 type fakeRealtimeArtifacts struct {
@@ -2701,6 +2850,14 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))
 	mux.Handle("/admin/operations/validation-health.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/reliability", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/reliability.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))

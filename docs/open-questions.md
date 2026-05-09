@@ -39,6 +39,12 @@ These questions do not block the next phase.
   validator-health and deployment-doctor summaries. The draft is not sent, not
   evidence, not a compliance gate, not production health proof, and not
   consumer acceptance.
+- Answered in Phase 51 for current reliability diagnostics: use authenticated
+  `/admin/operations/reliability` or `/admin/operations/reliability.json` for
+  DB-backed private feed/incident rollups, and `make operations-reliability`
+  for a local private summary from safe existing diagnostics. These outputs
+  are not evidence, not SLA or uptime proof, not production readiness, not
+  compliance, and not consumer acceptance.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

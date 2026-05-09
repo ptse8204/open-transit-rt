@@ -148,6 +148,61 @@ func TestVehiclePositionsHandlersRejectWrongMethodAndSurfaceSnapshotErrors(t *te
 	}
 }
 
+func TestVehiclePositionsHealthPersistenceSuccess(t *testing.T) {
+	generatedAt := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	health := &fakeHealthRecorder{done: make(chan feed.VehiclePositionsHealthRecord, 1)}
+	handler := newHandlerWithAuthAndHealth(&fakeSnapshotBuilder{snapshot: feed.VehiclePositionsSnapshot{
+		AgencyID:           "demo-agency",
+		GeneratedAt:        generatedAt,
+		VehicleLimit:       2000,
+		VehiclesInSnapshot: 1,
+		Vehicles: []feed.VehicleSnapshot{{
+			VehicleID:                    "bus-1",
+			TelemetryEvent:               telemetry.StoredEvent{Event: telemetry.Event{VehicleID: "bus-1", Timestamp: generatedAt.Add(-10 * time.Second), Lat: 1, Lon: 2}},
+			IncludedInProtobuf:           true,
+			TripDescriptorPublished:      true,
+			TripDescriptorOmissionReason: feed.TripDescriptorOmissionNone,
+		}},
+	}}, okPinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}}, health)
+	req := httptest.NewRequest(http.MethodGet, "/public/gtfsrt/vehicle_positions.pb", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	select {
+	case record := <-health.done:
+		if record.AgencyID != "demo-agency" || !record.EndpointAvailable || record.VehiclesInSnapshot != 1 || record.TripDescriptors != 1 {
+			t.Fatalf("record = %+v, want bounded vehicle positions health", record)
+		}
+	case <-time.After(time.Second):
+		t.Fatalf("timed out waiting for health persistence")
+	}
+}
+
+func TestVehiclePositionsHealthPersistenceFailureDoesNotChangePublicStatus(t *testing.T) {
+	generatedAt := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	handler := newHandlerWithAuthAndHealth(&fakeSnapshotBuilder{snapshot: feed.VehiclePositionsSnapshot{
+		AgencyID:    "demo-agency",
+		GeneratedAt: generatedAt,
+		NoTelemetry: true,
+	}}, okPinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}}, &fakeHealthRecorder{err: errors.New("insert failed"), done: make(chan feed.VehiclePositionsHealthRecord, 1)})
+	req := httptest.NewRequest(http.MethodGet, "/public/gtfsrt/vehicle_positions.pb", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 despite health persistence failure: %s", rr.Code, rr.Body.String())
+	}
+	var message gtfsrt.FeedMessage
+	if err := proto.Unmarshal(rr.Body.Bytes(), &message); err != nil {
+		t.Fatalf("response was not valid protobuf: %v", err)
+	}
+}
+
 func TestVehiclePositionsReadyz(t *testing.T) {
 	handler := newHandler(&fakeSnapshotBuilder{}, errPinger{err: errors.New("down")})
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
@@ -168,6 +223,18 @@ func TestVehiclePositionsReadyz(t *testing.T) {
 type fakeSnapshotBuilder struct {
 	snapshot feed.VehiclePositionsSnapshot
 	err      error
+}
+
+type fakeHealthRecorder struct {
+	err  error
+	done chan feed.VehiclePositionsHealthRecord
+}
+
+func (f *fakeHealthRecorder) SaveVehiclePositionsHealth(_ context.Context, record feed.VehiclePositionsHealthRecord) error {
+	if f.done != nil {
+		f.done <- record
+	}
+	return f.err
 }
 
 func (f *fakeSnapshotBuilder) Snapshot(context.Context, time.Time) (feed.VehiclePositionsSnapshot, error) {

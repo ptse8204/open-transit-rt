@@ -269,6 +269,33 @@ func TestVehiclePositionsEmptyAndAllSuppressedFeedsAreSuccessful(t *testing.T) {
 	}
 }
 
+func TestVehiclePositionsHealthRecordIsBoundedAndRedacted(t *testing.T) {
+	generatedAt := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	snapshot := VehiclePositionsSnapshot{
+		AgencyID:                "demo-agency",
+		GeneratedAt:             generatedAt,
+		VehicleLimit:            2000,
+		LatestTelemetryRowsRead: 3,
+		VehiclesInSnapshot:      3,
+		Truncated:               true,
+		Vehicles: []VehicleSnapshot{
+			{VehicleID: "bus-1", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-10 * time.Second)}}, IncludedInProtobuf: true, TripDescriptorPublished: true, TripDescriptorOmissionReason: TripDescriptorOmissionNone},
+			{VehicleID: "bus-2", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-20 * time.Second)}}, IncludedInProtobuf: true, TripDescriptorOmissionReason: TripDescriptorOmissionNoAssignment},
+			{VehicleID: "bus-3", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-10 * time.Minute)}}, IncludedInProtobuf: false, TripDescriptorOmissionReason: TripDescriptorOmissionSuppressedStaleTelemetry},
+		},
+	}
+	record := HealthRecordFromVehiclePositionsSnapshot(snapshot, 150*time.Millisecond)
+	if record.AgencyID != "demo-agency" || !record.EndpointAvailable || record.VehiclesInSnapshot != 3 || record.VehiclesInProtobuf != 2 || record.TripDescriptors != 1 || record.UnmatchedVehicles != 1 || record.StaleVehicles != 1 {
+		t.Fatalf("record = %+v, want bounded aggregate counts", record)
+	}
+	if record.FreshnessSeconds == nil || *record.FreshnessSeconds != 10 {
+		t.Fatalf("freshness = %+v, want 10", record.FreshnessSeconds)
+	}
+	if record.MatchedVehiclePercent == nil || *record.MatchedVehiclePercent < 33 || *record.MatchedVehiclePercent > 34 {
+		t.Fatalf("matched percent = %+v, want about 33.3", record.MatchedVehiclePercent)
+	}
+}
+
 func TestVehiclePositionsTruncatesBeforePublicationAndSortsOutput(t *testing.T) {
 	generatedAt := time.Date(2026, 4, 20, 15, 0, 30, 0, time.UTC)
 	config := testConfig()

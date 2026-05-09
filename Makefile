@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability collect-hosted-evidence audit-hosted-evidence pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -79,6 +79,9 @@ validator-health:
 
 operations-notify:
 	@./scripts/operations-notify.sh
+
+operations-reliability:
+	@./scripts/operations-reliability.sh
 
 collect-hosted-evidence:
 	./scripts/collect-hosted-evidence.sh
@@ -166,6 +169,7 @@ validate:
 	@test -f scripts/deployment-doctor.sh
 	@test -f scripts/validator-health.sh
 	@test -f scripts/operations-notify.sh
+	@test -f scripts/operations-reliability.sh
 	@test -f scripts/telemetry-simulator.sh
 	@test -f cmd/realtime-quality-backtest/main.go
 	@sh -n scripts/agency-pilot-onboard.sh
@@ -174,6 +178,7 @@ validate:
 	@sh -n scripts/deployment-doctor.sh
 	@sh -n scripts/validator-health.sh
 	@sh -n scripts/operations-notify.sh
+	@sh -n scripts/operations-reliability.sh
 	@sh -n scripts/telemetry-simulator.sh
 	@python3 -c 'from pathlib import Path; s=Path("scripts/deployment-doctor.sh").read_text(); assert "\"/admin/gtfs-studio\"" in s and "\"/admin/gtfs\"" not in s'
 	@scripts/agency-pilot-onboard.sh --help >/dev/null
@@ -185,6 +190,8 @@ validate:
 	@OUTPUT_DIR=.cache/validate/validator-health FORCE=true scripts/validator-health.sh --dry-run >/dev/null
 	@scripts/operations-notify.sh --help >/dev/null
 	@OUTPUT_DIR=.cache/validate/operations-notify FORCE=true VALIDATOR_HEALTH_SUMMARY=.cache/validate/missing-validator/summary.json DEPLOYMENT_DOCTOR_SUMMARY=.cache/validate/missing-doctor/summary.json scripts/operations-notify.sh --dry-run >/dev/null
+	@scripts/operations-reliability.sh --help >/dev/null
+	@OUTPUT_DIR=.cache/validate/operations-reliability FORCE=true VALIDATOR_HEALTH_SUMMARY=.cache/validate/missing-validator/summary.json DEPLOYMENT_DOCTOR_SUMMARY=.cache/validate/missing-doctor/summary.json OPERATIONS_NOTIFY_SUMMARY=.cache/validate/missing-notify/summary.json scripts/operations-reliability.sh --dry-run >/dev/null
 	@scripts/telemetry-simulator.sh --help >/dev/null
 	@scripts/telemetry-simulator.sh --list-scenarios >/dev/null
 	@OUTPUT_DIR=.cache/validate/telemetry-simulator scripts/telemetry-simulator.sh --scenario on-route --dry-run --force >/dev/null

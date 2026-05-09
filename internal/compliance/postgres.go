@@ -379,6 +379,167 @@ func (r *PostgresRepository) LatestTripUpdatesDiagnostics(ctx context.Context, a
 	}, nil
 }
 
+func (r *PostgresRepository) LatestReliabilityFeedHealth(ctx context.Context, agencyID string, limit int) ([]ReliabilityFeedHealthRecord, error) {
+	if limit <= 0 || limit > 1000 {
+		limit = 200
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT feed_type, snapshot_at, endpoint_available, freshness_seconds,
+		       generation_latency_ms, invalid_response_percent,
+		       matched_vehicle_percent, coverage_percent
+		FROM feed_health_snapshot
+		WHERE agency_id = $1
+		ORDER BY snapshot_at DESC, id DESC
+		LIMIT $2
+	`, agencyID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query reliability feed health snapshots: %w", err)
+	}
+	defer rows.Close()
+	var records []ReliabilityFeedHealthRecord
+	for rows.Next() {
+		var record ReliabilityFeedHealthRecord
+		var endpoint sql.NullBool
+		var freshness, latency, invalid, matched, coverage sql.NullFloat64
+		if err := rows.Scan(&record.FeedType, &record.SnapshotAt, &endpoint, &freshness, &latency, &invalid, &matched, &coverage); err != nil {
+			return nil, fmt.Errorf("scan reliability feed health snapshot: %w", err)
+		}
+		if endpoint.Valid {
+			v := endpoint.Bool
+			record.EndpointAvailable = &v
+		}
+		if freshness.Valid {
+			v := freshness.Float64
+			record.FreshnessSeconds = &v
+		}
+		if latency.Valid {
+			v := latency.Float64
+			record.GenerationLatencyMS = &v
+		}
+		if invalid.Valid {
+			v := invalid.Float64
+			record.InvalidResponsePercent = &v
+		}
+		if matched.Valid {
+			v := matched.Float64
+			record.MatchedVehiclePercent = &v
+		}
+		if coverage.Valid {
+			v := coverage.Float64
+			record.CoveragePercent = &v
+		}
+		record.SnapshotAt = record.SnapshotAt.UTC()
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate reliability feed health snapshots: %w", err)
+	}
+	return records, nil
+}
+
+func (r *PostgresRepository) ReliabilityIncidentRollup(ctx context.Context, agencyID string, now time.Time, recentLimit int) (ReliabilityIncidentRollup, error) {
+	if recentLimit <= 0 || recentLimit > 25 {
+		recentLimit = 10
+	}
+	if now.IsZero() {
+		now = time.Now().UTC()
+	}
+	type incidentAggregate struct {
+		kind  string
+		key   string
+		count int
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT 'status' AS kind, status AS key, COUNT(*)::int AS count
+		FROM incident
+		WHERE agency_id = $1
+		GROUP BY status
+		UNION ALL
+		SELECT 'severity' AS kind, severity AS key, COUNT(*)::int AS count
+		FROM incident
+		WHERE agency_id = $1
+		GROUP BY severity
+		UNION ALL
+		SELECT 'type' AS kind, incident_type AS key, COUNT(*)::int AS count
+		FROM incident
+		WHERE agency_id = $1
+		GROUP BY incident_type
+	`, agencyID)
+	if err != nil {
+		return ReliabilityIncidentRollup{}, fmt.Errorf("query reliability incident counts: %w", err)
+	}
+	countsByStatus := map[string]int{}
+	countsBySeverity := map[string]int{}
+	countsByType := map[string]int{}
+	total := 0
+	for rows.Next() {
+		var row incidentAggregate
+		if err := rows.Scan(&row.kind, &row.key, &row.count); err != nil {
+			rows.Close()
+			return ReliabilityIncidentRollup{}, fmt.Errorf("scan reliability incident count: %w", err)
+		}
+		switch row.kind {
+		case "status":
+			countsByStatus[row.key] = row.count
+			total += row.count
+		case "severity":
+			countsBySeverity[row.key] = row.count
+		case "type":
+			countsByType[row.key] = row.count
+		}
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return ReliabilityIncidentRollup{}, fmt.Errorf("iterate reliability incident counts: %w", err)
+	}
+	rows.Close()
+
+	var oldest sql.NullTime
+	if err := r.pool.QueryRow(ctx, `
+		SELECT MIN(created_at)
+		FROM incident
+		WHERE agency_id = $1 AND status <> 'resolved'
+	`, agencyID).Scan(&oldest); err != nil {
+		return ReliabilityIncidentRollup{}, fmt.Errorf("query oldest open incident: %w", err)
+	}
+	var oldestPtr *time.Time
+	if oldest.Valid {
+		t := oldest.Time.UTC()
+		oldestPtr = &t
+	}
+
+	recentRows, err := r.pool.Query(ctx, `
+		SELECT id, incident_type, severity, status, created_at,
+		       COALESCE(last_seen_at, resolved_at, created_at) AS updated_at
+		FROM incident
+		WHERE agency_id = $1
+		ORDER BY created_at DESC, id DESC
+		LIMIT $2
+	`, agencyID, recentLimit)
+	if err != nil {
+		return ReliabilityIncidentRollup{}, fmt.Errorf("query recent reliability incidents: %w", err)
+	}
+	defer recentRows.Close()
+	recent := make([]ReliabilityIncidentItem, 0, recentLimit)
+	for recentRows.Next() {
+		var item ReliabilityIncidentItem
+		var updated time.Time
+		if err := recentRows.Scan(&item.ID, &item.Type, &item.Severity, &item.Status, &item.OpenedAt, &updated); err != nil {
+			return ReliabilityIncidentRollup{}, fmt.Errorf("scan recent reliability incident: %w", err)
+		}
+		item.OpenedAt = item.OpenedAt.UTC()
+		t := updated.UTC()
+		item.UpdatedAt = &t
+		item.Title = "Incident " + item.Type
+		item.Category = item.Type
+		recent = append(recent, item)
+	}
+	if err := recentRows.Err(); err != nil {
+		return ReliabilityIncidentRollup{}, fmt.Errorf("iterate recent reliability incidents: %w", err)
+	}
+	return NormalizeReliabilityIncidentRollup(now, total, countsByStatus, countsBySeverity, countsByType, oldestPtr, recent, recentLimit), nil
+}
+
 func (r *PostgresRepository) StoreValidationResult(ctx context.Context, result ValidationResult) error {
 	report, err := json.Marshal(result.Report)
 	if err != nil {

@@ -311,3 +311,24 @@ Operations Console view, add public routes, block publishing, create evidence
 packets, update consumer statuses, or copy raw operator input files. Maturity
 gate labels remain diagnostic-only: `insufficient_data`, `diagnostic_pass`, and
 `diagnostic_watch`.
+
+## ADR-0033 — Keep operations reliability diagnostics private and existing-table only
+
+Phase 51 adds private operations reliability diagnostics through authenticated
+GET-only Operations Console routes and a local `.cache` script helper. Runtime
+feed status uses only existing `feed_health_snapshot` rows, incident rollups
+use only existing `incident` rows, and Vehicle Positions persists bounded
+health snapshots into the existing `feed_health_snapshot` schema.
+
+Missing data remains `missing` or `unknown`; it must not be promoted to `ok`.
+Incident summaries are capped and sanitized, and they intentionally omit raw
+`details_json`, raw payloads, private text, logs, tokens, hostnames, webhook
+values, and backup dumps.
+
+Vehicle Positions health persistence is best-effort and must not change public
+feed response status when persistence fails. Phase 51 adds no public route,
+migration, monitoring-stack dependency, notification delivery, evidence write,
+consumer status change, publish gate, SLA claim, uptime guarantee,
+production-readiness claim, compliance claim, hosted SaaS claim, agency
+adoption claim, consumer acceptance claim, vendor compatibility claim, or
+production-grade ETA claim.
