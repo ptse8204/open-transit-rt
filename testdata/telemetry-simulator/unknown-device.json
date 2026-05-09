@@ -1,0 +1,29 @@
+{
+  "name": "unknown-device",
+  "description": "Synthetic payload with an unbound device_id to exercise authenticated binding rejection.",
+  "synthetic_only": true,
+  "reference_time": "2026-04-20T15:05:00Z",
+  "requires": [
+    "device token bound to a different active device; default local token is bound to demo-agency/device-1/bus-1"
+  ],
+  "events": [
+    {
+      "label": "unknown-device-rejected",
+      "preserve_identity": true,
+      "offset_seconds": 0,
+      "payload": {
+        "agency_id": "demo-agency",
+        "device_id": "synthetic-unknown-device",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-20T15:05:00Z",
+        "lat": 49.27935,
+        "lon": -123.11785,
+        "bearing": 122,
+        "speed_mps": 8.2,
+        "accuracy_m": 7.5,
+        "trip_hint": "trip-10-0800"
+      },
+      "expected_http_statuses": [401]
+    }
+  ]
+}

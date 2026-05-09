@@ -216,13 +216,30 @@ Vendor credentials, private AVL payloads, private device identifiers, private ve
 
 Acceptable integration shapes include agency-owned adapter scripts, deployment-owned sidecar services, vendor-owned middleware, or private operator integration processes. These integrations must preserve the existing telemetry contract, validate required fields before forwarding, and avoid claiming certified vendor support or production AVL reliability without retained evidence.
 
-## ADR-0027 — Evaluate external predictors only behind the prediction adapter
+## ADR-0027 — Keep telemetry simulation on the real ingest path
+
+Phase 44 adds `cmd/telemetry-simulator` as local/reference operator tooling.
+The simulator must post synthetic events through authenticated
+`POST /v1/telemetry` with a real device bearer token; it must not write
+directly to telemetry tables or call matcher internals as an ingest bypass.
+
+Optional matcher diagnostics are allowed only after HTTP ingest succeeds. In
+that mode, the simulator reads accepted rows back from Postgres, runs the
+existing `internal/state.Engine`, and builds a private Vehicle Positions debug
+snapshot with the same feed builder used by the service.
+
+Simulator fixtures must remain synthetic-only. Diagnostics under `.cache/` are
+private operator artifacts, not evidence packets, not vendor compatibility
+proof, not production AVL reliability proof, not real realtime data proof, and
+not production-grade ETA or CAL-ITP/Caltrans compliance proof.
+
+## ADR-0028 — Evaluate external predictors only behind the prediction adapter
 
 Phase 29A confirms that external predictors may be evaluated only behind `internal/prediction.Adapter`. The deterministic predictor remains the default runtime Trip Updates adapter, and Vehicle Positions generation remains independent of external predictor availability.
 
 Runtime integration of TheTransitClock or any other external predictor requires a later approved phase, explicit dependency and license review, documented fallback behavior, health/failure semantics, and evidence appropriate to any compatibility or ETA-quality claim. Phase 29A mock adapter tests are contract tests only; they do not prove better ETAs, production-grade ETA quality, real-world predictor compatibility, consumer acceptance, CAL-ITP/Caltrans compliance, hosted SaaS availability, or vendor equivalence.
 
-## ADR-0028 — Keep AVL vendor adapters outside core telemetry ownership
+## ADR-0029 — Keep AVL vendor adapters outside core telemetry ownership
 
 Phase 29B implements a synthetic, dry-run-only AVL/vendor adapter pilot as an example boundary, not as a runtime vendor integration. Vendor payload identifiers are lookup keys only; a strict mapping file is the authority for emitted Open Transit RT `agency_id`, `device_id`, and `vehicle_id`.
 

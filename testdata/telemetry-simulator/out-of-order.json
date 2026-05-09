@@ -1,0 +1,48 @@
+{
+  "name": "out-of-order",
+  "description": "Synthetic sequence that sends a newer point first and then an older point for the same vehicle stream.",
+  "synthetic_only": true,
+  "reference_time": "2026-04-20T15:05:00Z",
+  "requires": [
+    "demo-agency active GTFS matching testdata/gtfs/valid-small",
+    "device token bound to demo-agency/device-1/bus-1"
+  ],
+  "events": [
+    {
+      "label": "newer-first",
+      "offset_seconds": 0,
+      "payload": {
+        "agency_id": "demo-agency",
+        "device_id": "device-1",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-20T15:05:00Z",
+        "lat": 49.27935,
+        "lon": -123.11785,
+        "bearing": 122,
+        "speed_mps": 8.2,
+        "accuracy_m": 7.5,
+        "trip_hint": "trip-10-0800"
+      },
+      "expected_http_statuses": [201, 202],
+      "expected_ingest_statuses": ["accepted", "duplicate", "out_of_order"]
+    },
+    {
+      "label": "older-second",
+      "offset_seconds": -60,
+      "payload": {
+        "agency_id": "demo-agency",
+        "device_id": "device-1",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-20T15:04:00Z",
+        "lat": 49.28136,
+        "lon": -123.11956,
+        "bearing": 120,
+        "speed_mps": 7.9,
+        "accuracy_m": 8,
+        "trip_hint": "trip-10-0800"
+      },
+      "expected_http_statuses": [202],
+      "expected_ingest_statuses": ["out_of_order"]
+    }
+  ]
+}

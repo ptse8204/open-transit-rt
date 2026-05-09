@@ -158,6 +158,22 @@ This is transform-only synthetic output. It is not telemetry ingest proof, real
 vendor compatibility proof, production AVL reliability proof, or ETA quality
 proof.
 
+## Synthetic Telemetry Simulator
+
+Use the Phase 44 simulator when you want to send synthetic events through the
+real authenticated ingest path instead of only testing AVL transform shape:
+
+```bash
+make telemetry-simulator
+RUN_MATCHER=true make telemetry-simulator
+```
+
+The simulator writes private diagnostics under `.cache/telemetry-simulator/`.
+It is still synthetic-only local/reference diagnostics, not a support bundle,
+not an evidence packet, not real vendor compatibility proof, and not
+production AVL reliability proof. See
+[Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md).
+
 ## What Is Safe To Share
 
 The copy/paste summaries printed by the scripts are intended to be shareable

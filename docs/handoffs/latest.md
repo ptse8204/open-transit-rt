@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 43 — Operator UX Setup V2 is complete for the private authenticated
-Operations Console checklist scope.
+Phase 44 — Telemetry Simulator And Device Trial is complete for the
+synthetic-only local/reference telemetry simulator scope.
 
-Phases 0 through 43 are closed for their documented scopes. Track A is also
+Phases 0 through 44 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -153,6 +153,19 @@ instead of exact `/admin/gtfs`. Phase 43 created no external evidence, changed
 no consumer statuses, and added no compliance, consumer acceptance, agency
 approval/adoption, final-root proof, hosted SaaS, production-readiness,
 vendor-compatibility, or production-grade ETA claim.
+
+Phase 44 added `cmd/telemetry-simulator`, `scripts/telemetry-simulator.sh`,
+`make telemetry-simulator`, and synthetic fixtures under
+`testdata/telemetry-simulator/`. The simulator loads synthetic-only scenarios,
+posts to the real authenticated `POST /v1/telemetry` path with device
+bearer-token auth, records accepted/duplicate/out-of-order/rejected ingest
+results, and can optionally run the existing DB-backed matcher plus Vehicle
+Positions debug builder after accepted HTTP ingest. Phase 44 created no
+evidence packet, changed no consumer statuses, added no real vendor payloads
+or private telemetry, and added no vendor-compatibility, production AVL
+reliability, real realtime data, production-grade ETA, CAL-ITP/Caltrans
+compliance, agency approval/adoption, hosted SaaS, or production-readiness
+claim.
 
 ## Phase 32 Summary
 
@@ -356,6 +369,27 @@ vendor-compatibility, or production-grade ETA claim.
   `docs/handoffs/phase-43.md`.
 - Created no external evidence and changed no consumer statuses.
 
+## Phase 44 Summary
+
+- Patched the stale Current Objective wording in this handoff before starting
+  Phase 44.
+- Added `cmd/telemetry-simulator` for synthetic scenario loading, authenticated
+  `/v1/telemetry` posting, status expectation checks, private diagnostics, and
+  optional post-ingest matcher/Vehicle Positions debug diagnostics.
+- Added `scripts/telemetry-simulator.sh` and `make telemetry-simulator`.
+- Added synthetic fixtures for on-route, stale, out-of-order, unknown-device,
+  low-quality GPS, after-midnight, and block-transition scenarios.
+- Added command tests for dry-run redaction, authenticated `/v1/telemetry`
+  posting, and evidence-directory output rejection.
+- Added `docs/tutorials/telemetry-simulator-and-device-trial.md`,
+  `docs/phase-44-telemetry-simulator-and-device-trial.md`, and
+  `docs/handoffs/phase-44.md`.
+- Updated README, docs navigation, current status, backlog, open questions,
+  roadmap docs, adapter docs, and operator tutorials.
+- Updated `make validate` to check simulator script/docs/fixtures and dry-run
+  command behavior.
+- Created no external evidence and changed no consumer statuses.
+
 ## Checks Run For Phase 43
 
 - `make validate` — passed.
@@ -371,6 +405,23 @@ vendor-compatibility, or production-grade ETA claim.
   `/admin/gtfs-studio` returned `401`, and
   `/admin/debug/gtfsrt/vehicle_positions.json` returned `401`.
 - `make agency-app-down` — passed.
+
+## Checks Run For Phase 44
+
+- `make validate` — passed.
+- `make test` — passed.
+- `git diff --check` — passed.
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` — passed.
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json` — passed; the tracker file is unchanged.
+- `docker compose -f deploy/docker-compose.yml config` — passed.
+- `make agency-app-up` — passed.
+- Local simulator check with
+  `TARGET=http://localhost:8080 DEVICE_TOKEN=dev-device-token SCENARIO=testdata/telemetry-simulator/on-route.json RUN_MATCHER=true` — passed with a repeat-run-safe `out_of_order` ingest result because existing local telemetry was newer than the fixture timestamp.
+- Fresh local simulator check with `REFERENCE_TIME=2026-05-11T15:05:00Z`
+  and `RUN_MATCHER=true` — passed with HTTP `201`, ingest status
+  `accepted`, matcher output, and private Vehicle Positions debug
+  `trip_descriptor_published=true`.
+- `make agency-app-down` after local verification — passed.
 
 ## Truthfulness And Evidence Boundary
 
@@ -483,8 +534,8 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 42 is complete; the next recommended
-phase is Phase 43 — Operator UX Setup V2, continuing the self-hosted agency
+agencies and civic technologists. Phase 44 is complete; the next recommended
+phase is Phase 45 — GTFS Quality Triage Loop, continuing the self-hosted agency
 reuse roadmap without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
@@ -751,10 +802,10 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 43 is closed; do not reopen Phase 39, Phase 40, Phase
-41, Phase 42, or Phase 43 unless a concrete readiness-workflow, guided-trial,
-diagnostics, support-bundle, deployment-doctor, local-routing, or checklist
-regression is found.
+choosing files. Phase 44 is closed; do not reopen Phase 39, Phase 40, Phase
+41, Phase 42, Phase 43, or Phase 44 unless a concrete readiness-workflow,
+guided-trial, diagnostics, support-bundle, deployment-doctor, local-routing,
+checklist, or telemetry-simulator regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -777,7 +828,8 @@ Continue the self-hosted agency reuse roadmap from this handoff.
 
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
-trial, Phase 41 diagnostics, Phase 42 deployment doctor, and Phase 43 private
-operator checklist as the
-self-hosted/integration baseline.
+trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
+operator checklist, and Phase 44 telemetry simulator as the
+self-hosted/integration baseline. The next recommended phase is Phase 45 —
+GTFS Quality Triage Loop.
 External-proof work remains a future optional path, not the default roadmap.

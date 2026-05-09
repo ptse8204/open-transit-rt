@@ -1,0 +1,31 @@
+{
+  "name": "after-midnight",
+  "description": "Synthetic event for a trip with GTFS stop times after 24:00:00; requires a matching overnight reference feed and bound device token.",
+  "synthetic_only": true,
+  "reference_time": "2026-04-21T08:15:00Z",
+  "requires": [
+    "overnight-agency active GTFS matching testdata/gtfs/after-midnight",
+    "device token bound to overnight-agency/device-1/bus-1"
+  ],
+  "events": [
+    {
+      "label": "after-midnight-2515",
+      "preserve_identity": true,
+      "offset_seconds": 0,
+      "payload": {
+        "agency_id": "overnight-agency",
+        "device_id": "device-1",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-21T08:15:00Z",
+        "lat": 49.29,
+        "lon": -123.11,
+        "bearing": 42,
+        "speed_mps": 6.4,
+        "accuracy_m": 8,
+        "trip_hint": "trip-night-2430"
+      },
+      "expected_http_statuses": [201, 202],
+      "expected_ingest_statuses": ["accepted", "duplicate", "out_of_order"]
+    }
+  ]
+}

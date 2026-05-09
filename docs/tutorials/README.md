@@ -15,6 +15,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Self-Hosted Operator Trial](self-hosted-operator-trial.md): run one guided local/reference evaluation across onboarding, public feed checks, readiness review, validators, and the synthetic AVL dry-run.
 - [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md): run strict smoke checks and collect redaction-safe diagnostics without creating evidence.
 - [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md): run read-only reference deployment diagnostics without creating evidence.
+- [Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md): send synthetic telemetry through real authenticated ingest for local/reference diagnostics.
 - [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md): prepare, validate, review, and publish a real agency GTFS ZIP safely.
 - [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a real public GTFS local/pilot run without implying agency approval.
 - [GTFS Validation Triage](gtfs-validation-triage.md): understand common import and validation failures in plain language.

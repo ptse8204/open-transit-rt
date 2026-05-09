@@ -1,0 +1,48 @@
+{
+  "name": "block-transition",
+  "description": "Synthetic two-point block transition scenario for reference feeds that include block-linked trips.",
+  "synthetic_only": true,
+  "reference_time": "2026-04-20T15:11:00Z",
+  "requires": [
+    "reference deployment with synthetic block trips trip-block-a and trip-block-b in one block",
+    "device token bound to demo-agency/device-1/bus-1"
+  ],
+  "events": [
+    {
+      "label": "block-trip-a",
+      "offset_seconds": -75,
+      "payload": {
+        "agency_id": "demo-agency",
+        "device_id": "device-1",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-20T15:09:45Z",
+        "lat": 49.2877,
+        "lon": -123.1207,
+        "bearing": 0,
+        "speed_mps": 5.2,
+        "accuracy_m": 8,
+        "trip_hint": "trip-block-a"
+      },
+      "expected_http_statuses": [201, 202],
+      "expected_ingest_statuses": ["accepted", "duplicate", "out_of_order"]
+    },
+    {
+      "label": "block-trip-b",
+      "offset_seconds": 0,
+      "payload": {
+        "agency_id": "demo-agency",
+        "device_id": "device-1",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-20T15:11:00Z",
+        "lat": 49.2877,
+        "lon": -123.1207,
+        "bearing": 0,
+        "speed_mps": 4.9,
+        "accuracy_m": 8,
+        "trip_hint": "trip-block-b"
+      },
+      "expected_http_statuses": [201, 202],
+      "expected_ingest_statuses": ["accepted", "duplicate", "out_of_order"]
+    }
+  ]
+}

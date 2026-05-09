@@ -78,6 +78,18 @@ scripts/device-onboarding.sh simulate --dry-run
 scripts/device-onboarding.sh simulate
 ```
 
+For a repeatable synthetic simulator that sends events through the real
+authenticated ingest path:
+
+```bash
+make telemetry-simulator
+RUN_MATCHER=true make telemetry-simulator
+```
+
+The simulator writes private diagnostics under ignored `.cache/` storage and
+does not create evidence packets. See
+[Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md).
+
 For payload fields, response behavior, troubleshooting, and vendor adapter boundaries, see [Device And AVL Integration](device-avl-integration.md). For rotation, rebinding, secure storage, and compromise response, see [Device Token Lifecycle](device-token-lifecycle.md).
 
 To rotate or bind a local device token:

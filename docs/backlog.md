@@ -123,3 +123,16 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   final-root proof, real agency pilot evidence, real device/vendor AVL
   evidence, consumer submissions, or real-world realtime quality evidence when
   claim-specific artifacts exist.
+
+## Phase 44 — Telemetry Simulator And Device Trial
+
+- Complete for the synthetic-only local/reference simulator scope. The repo now
+  has `cmd/telemetry-simulator`, `scripts/telemetry-simulator.sh`,
+  `make telemetry-simulator`, synthetic fixtures for on-route, stale,
+  out-of-order, unknown-device, low-quality GPS, after-midnight, and
+  block-transition scenarios, optional post-ingest DB-backed matcher/Vehicle
+  Positions diagnostics, a tutorial, a Phase 44 status doc, a handoff, focused
+  tests, and validation checks.
+- Remaining later work: real device trials, real agency-approved telemetry,
+  authorized vendor AVL integration evidence, and real-world realtime quality
+  metrics only when retained claim-specific artifacts exist.

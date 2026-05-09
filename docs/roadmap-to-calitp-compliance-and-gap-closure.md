@@ -3,7 +3,7 @@
 **Status:** proposed review draft, not yet committed  
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`  
 **Generated for review:** 2026-05-08  
-**Current repo baseline:** Phase 43 closed for the private operator checklist scope
+**Current repo baseline:** Phase 44 closed for the synthetic telemetry simulator scope
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -48,7 +48,7 @@ Open Transit RT is production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 43, Open Transit RT has:
+As of Phase 44, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -72,6 +72,8 @@ As of Phase 43, Open Transit RT has:
 - operator smoke checks and redaction-safe support bundles;
 - a read-only OCI/OCL-style reference deployment doctor;
 - a private authenticated setup/readiness checklist in HTML and JSON;
+- a synthetic telemetry simulator that uses real device-token auth and
+  `POST /v1/telemetry`;
 - synthetic AVL adapter fixtures;
 - deterministic realtime-quality replay fixtures;
 - prepared consumer packets for seven targets;
@@ -195,7 +197,7 @@ phase handoff is created.
 | 41 | Operator Smoke And Support Bundle | Complete. Repeatable local/reference smoke helper and redaction-safe support bundle. |
 | 42 | Reference Deployment Doctor | Complete. Read-only checks for env, services, reverse proxy posture, validators, DB, backups, restore readiness, and route boundaries. |
 | 43 | Operator UX Setup V2 | Complete. Private grouped checklist for setup/readiness remediation and JSON export. |
-| 44 | Telemetry Simulator And Device Trial | Safe simulator path that sends synthetic telemetry through real device-token ingest. |
+| 44 | Telemetry Simulator And Device Trial | Complete. Safe simulator path that sends synthetic telemetry through real device-token ingest. |
 | 45 | GTFS Quality Triage Loop | Operator-facing static GTFS validator warning/error triage linked to import/Studio actions. |
 | 46 | Validator Automation And Health Gates | Scheduled validator runs, strict activation gates, history views, and deployment status exports. |
 | 47 | Observability Plugin Pack | Optional Prometheus/Grafana/OpenTelemetry deployment-owned integration package. |
@@ -434,6 +436,21 @@ Vehicle Positions / matching behavior update.
 ### Non-Goals
 
 No real AVL reliability, vendor compatibility, or ETA-quality claim.
+
+### Phase 44 Closeout
+
+Phase 44 is complete for the synthetic-only local/reference simulator scope.
+The repo now has `cmd/telemetry-simulator`, `scripts/telemetry-simulator.sh`,
+`make telemetry-simulator`, fixtures under `testdata/telemetry-simulator/`,
+optional DB-backed matcher and Vehicle Positions debug diagnostics after
+accepted HTTP ingest, and operator docs. It posts only to `/v1/telemetry` with
+real device bearer-token auth.
+
+Phase 44 created no evidence packet, changed no consumer statuses, added no
+real vendor payloads or private telemetry, and added no vendor compatibility,
+production AVL reliability, real realtime data, production-grade ETA,
+CAL-ITP/Caltrans compliance, agency approval/adoption, hosted SaaS, or
+production-readiness claim.
 
 ## Phase 45 — GTFS Quality Triage Loop
 
@@ -926,7 +943,7 @@ No aspirational language disguised as evidence.
 1. Phase 41 — Operator Smoke And Support Bundle — complete
 2. Phase 42 — Reference Deployment Doctor — complete
 3. Phase 43 — Operator UX Setup V2 — complete
-4. Phase 44 — Telemetry Simulator And Device Trial
+4. Phase 44 — Telemetry Simulator And Device Trial — complete
 5. Phase 45 — GTFS Quality Triage Loop
 6. Phase 46 — Validator Automation And Health Gates
 

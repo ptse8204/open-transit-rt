@@ -258,6 +258,7 @@ Demo device token instructions:
   To avoid printing long-lived tokens here, use the device helper:
     scripts/device-onboarding.sh sample
     scripts/device-onboarding.sh simulate --dry-run
+    make telemetry-simulator
     scripts/device-onboarding.sh rebind --device-id device-1 --vehicle-id bus-1
 
 Logs:
@@ -267,7 +268,7 @@ Validation:
   $validation
 
 Exact next action:
-  Open $FEED_ROOT/feeds.json, then run scripts/device-onboarding.sh sample to send a demo telemetry event.
+  Open $FEED_ROOT/feeds.json, then run make telemetry-simulator to send synthetic telemetry through real ingest.
 
 Copy/paste support summary:
   generated_at=$generated_at
@@ -277,7 +278,7 @@ Copy/paste support summary:
   app_profile=$PROFILE
   status=running
   log_location="make agency-app-logs"
-  next_action="Open $FEED_ROOT/feeds.json, then run scripts/device-onboarding.sh sample"
+  next_action="Open $FEED_ROOT/feeds.json, then run make telemetry-simulator"
 
 Local scope:
   http://localhost:8080 is local-demo packaging only. Admin/debug routes may be proxied locally, but they still require auth. Production deployments need HTTPS/TLS and deployment-owned admin network controls.

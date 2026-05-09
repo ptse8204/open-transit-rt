@@ -27,6 +27,13 @@ These questions do not block the next phase.
   heuristic metadata/URL labels, and next actions. The checklist is not
   evidence, not compliance proof, not agency approval, not consumer
   acceptance, and not production readiness.
+- Answered in Phase 44 for current telemetry simulator diagnostics: use
+  `make telemetry-simulator` to send synthetic events through real
+  device-token auth and `POST /v1/telemetry`. Use `RUN_MATCHER=true` for
+  optional private DB-backed matcher and Vehicle Positions debug diagnostics.
+  Output is private diagnostics, not evidence, not real vendor compatibility,
+  not production AVL reliability, not real realtime data, not production-grade
+  ETA proof, and not CAL-ITP/Caltrans compliance proof.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

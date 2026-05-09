@@ -1,0 +1,30 @@
+{
+  "name": "low-quality-gps",
+  "description": "Synthetic off-shape, low-quality GPS point that should remain private diagnostics and conservative matcher evidence.",
+  "synthetic_only": true,
+  "reference_time": "2026-04-20T15:05:00Z",
+  "requires": [
+    "demo-agency active GTFS matching testdata/gtfs/valid-small",
+    "device token bound to demo-agency/device-1/bus-1"
+  ],
+  "events": [
+    {
+      "label": "off-shape-low-quality",
+      "offset_seconds": 0,
+      "payload": {
+        "agency_id": "demo-agency",
+        "device_id": "device-1",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-20T15:05:00Z",
+        "lat": 49.5,
+        "lon": -123.5,
+        "bearing": 35,
+        "speed_mps": 1.1,
+        "accuracy_m": 250,
+        "trip_hint": "trip-10-0800"
+      },
+      "expected_http_statuses": [201, 202],
+      "expected_ingest_statuses": ["accepted", "duplicate", "out_of_order"]
+    }
+  ]
+}

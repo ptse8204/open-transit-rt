@@ -30,6 +30,9 @@ Open Transit RT has technical foundations for:
   dry-run together without creating evidence;
 - operator smoke checks and redaction-safe support bundles for local/reference
   diagnostics without creating evidence;
+- a synthetic telemetry simulator that uses real device-token auth and
+  `POST /v1/telemetry` for local/reference diagnostics without creating
+  evidence;
 - consumer packet preparation workflows.
 
 ## Evidence That Exists
@@ -124,8 +127,14 @@ Bundle is complete for repeatable local/reference smoke checks and
 redaction-safe support bundles without creating evidence or stronger claims.
 Phase 42 — Reference Deployment Doctor is complete for read-only OCI/OCL-style
 reference deployment diagnostics without creating evidence or stronger claims.
+Phase 43 — Operator UX Setup V2 is complete for the private authenticated
+checklist and local routing patch scope. Phase 44 — Telemetry Simulator And
+Device Trial is complete for the synthetic-only simulator that posts through
+real authenticated telemetry ingest and optionally runs private DB-backed
+matcher/Vehicle Positions diagnostics without creating evidence or stronger
+claims.
 
-The recommended next phase is Phase 43 — Operator UX Setup V2, continuing the
+The recommended next phase is Phase 45 — GTFS Quality Triage Loop, continuing the
 self-hosted agency reuse roadmap from the updated handoff.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

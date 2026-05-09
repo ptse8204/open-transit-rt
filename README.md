@@ -33,6 +33,8 @@ The repository has code and docs for:
 - DB-backed Service Alerts authoring and GTFS-RT Alerts publication.
 - Pinned static and realtime validator workflows.
 - Local app packaging through `make agency-app-up`.
+- A synthetic telemetry simulator through `make telemetry-simulator` that uses
+  real device-token auth and `POST /v1/telemetry`.
 - Small-agency pilot operations helpers for validation, backup, restore drills,
   feed monitoring, and scorecard export.
 - Read-only reference deployment diagnostics through `make deployment-doctor`.
@@ -49,11 +51,14 @@ Start the local evaluation stack:
 
 ```bash
 make agency-app-up
+make telemetry-simulator
 ```
 
 This starts the local app at `http://localhost:8080`, imports the committed demo
 GTFS fixture, publishes the five public feed paths, and prints admin/device next
-steps. See [Agency First Run](docs/tutorials/agency-first-run.md).
+steps. The simulator sends synthetic-only telemetry through the real
+authenticated ingest path. See [Agency First Run](docs/tutorials/agency-first-run.md)
+and [Telemetry Simulator And Device Trial](docs/tutorials/telemetry-simulator-and-device-trial.md).
 
 Stop it with:
 
@@ -117,7 +122,8 @@ is not agency-owned final-root proof.
   adapter that transforms external payloads before calling telemetry ingest.
   Start with the [Integration Adapter Kit](docs/integration-adapter-kit.md),
   then use [Device And AVL Integration](docs/tutorials/device-avl-integration.md)
-  for the detailed telemetry tutorial.
+  and [Telemetry Simulator And Device Trial](docs/tutorials/telemetry-simulator-and-device-trial.md)
+  for the detailed telemetry tutorials.
 - External predictors must stay behind `internal/prediction.Adapter`. Vehicle
   Positions generation remains independent of external predictor availability.
 - Validators are pinned tooling invoked through allowlisted validator IDs and

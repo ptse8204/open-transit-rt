@@ -23,7 +23,8 @@ CAL-ITP-style readiness workflow productization. Phase 40 is complete for the
 docs/navigation guided self-hosted operator trial. Phase 41 is complete for
 operator smoke checks and redaction-safe support bundles. Phase 42 is complete
 for the read-only reference deployment doctor. Phase 43 is complete for the
-private Operator UX Setup V2 checklist and local routing patch scope.
+private Operator UX Setup V2 checklist and local routing patch scope. Phase 44
+is complete for the synthetic telemetry simulator and device trial scope.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -228,6 +229,19 @@ consumer statuses, and added no compliance, consumer acceptance, agency
 approval/adoption, hosted SaaS, production-readiness, vendor-compatibility, or
 production-grade ETA claim.
 
+Phase 44 — Telemetry Simulator And Device Trial is closed for the
+synthetic-only local/reference simulator scope. The repo now has
+`cmd/telemetry-simulator`, `scripts/telemetry-simulator.sh`,
+`make telemetry-simulator`, synthetic fixtures under
+`testdata/telemetry-simulator/`, optional post-ingest DB-backed matcher and
+Vehicle Positions debug diagnostics, a tutorial, phase doc, handoff, and
+validation checks. The simulator uses real device bearer-token auth and posts
+to `/v1/telemetry`; it does not bypass ingest. Phase 44 created no evidence
+packet, changed no consumer statuses, added no real vendor payloads or private
+telemetry, and added no vendor-compatibility, production AVL reliability,
+real realtime data, production-grade ETA, CAL-ITP/Caltrans compliance, agency
+approval/adoption, hosted SaaS, or production-readiness claim.
+
 ## What Exists Now
 
 ### Repo guidance and architecture docs
@@ -278,6 +292,8 @@ The repo has:
 - `docs/handoffs/phase-38.md`
 - `docs/phase-39-calitp-readiness-workflow.md`
 - `docs/handoffs/phase-39.md`
+- `docs/phase-44-telemetry-simulator-and-device-trial.md`
+- `docs/handoffs/phase-44.md`
 - `docs/final-root-operator-request.md`
 - `docs/decisions.md`
 - `docs/backlog.md`
@@ -336,6 +352,7 @@ The repo now has:
 - `scripts/agency-local-app.sh`
 - `scripts/agency-pilot-onboard.sh`
 - `scripts/device-onboarding.sh`
+- `scripts/telemetry-simulator.sh`
 - `scripts/pilot-ops.sh`
 - deterministic fixtures under `testdata/`
 - handoff template and Phase 0 handoff under `docs/handoffs/`

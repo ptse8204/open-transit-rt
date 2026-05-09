@@ -1,0 +1,30 @@
+{
+  "name": "stale",
+  "description": "Synthetic telemetry older than the default matcher stale threshold.",
+  "synthetic_only": true,
+  "reference_time": "2026-04-20T15:05:00Z",
+  "requires": [
+    "demo-agency active GTFS matching testdata/gtfs/valid-small",
+    "device token bound to demo-agency/device-1/bus-1"
+  ],
+  "events": [
+    {
+      "label": "stale-0803",
+      "offset_seconds": -120,
+      "payload": {
+        "agency_id": "demo-agency",
+        "device_id": "device-1",
+        "vehicle_id": "bus-1",
+        "timestamp": "2026-04-20T15:03:00Z",
+        "lat": 49.2827,
+        "lon": -123.1207,
+        "bearing": 118,
+        "speed_mps": 4.5,
+        "accuracy_m": 9.1,
+        "trip_hint": "trip-10-0800"
+      },
+      "expected_http_statuses": [201, 202],
+      "expected_ingest_statuses": ["accepted", "duplicate", "out_of_order"]
+    }
+  ]
+}
