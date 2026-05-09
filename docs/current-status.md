@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 45 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 46 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -25,7 +25,8 @@ operator smoke checks and redaction-safe support bundles. Phase 42 is complete
 for the read-only reference deployment doctor. Phase 43 is complete for the
 private Operator UX Setup V2 checklist and local routing patch scope. Phase 44
 is complete for the synthetic telemetry simulator and device trial scope. Phase
-45 is complete for the private GTFS quality triage loop.
+45 is complete for the private GTFS quality triage loop. Phase 46 is complete
+for private validator automation and health gates.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -59,6 +60,26 @@ server-side only to the authenticated agency active schedule plus
 `static-mobilitydata`. The page is private diagnostics only: it creates no
 evidence packets, writes nothing to `docs/evidence`, auto-edits no GTFS, and
 does not claim consumer acceptance or CAL-ITP/Caltrans compliance.
+
+Phase 46 adds authenticated `/admin/operations/validation-health` and
+`/admin/operations/validation-health.json` for private validator-health
+diagnostics. The health model always emits four feed rows in order
+(`schedule`, `vehicle_positions`, `trip_updates`, `alerts`), keeps canonical
+static MobilityData validation separate from realtime MobilityData validation,
+and keeps Open Transit RT internal GTFS import validation as GTFS quality
+context only. Admin-only `run_all` uses server-owned validator mappings and
+artifacts, accepts only `action=run_all` and CSRF, caps forms at 64 KiB, and
+stores only normal validation rows where validators run. `scripts/validator-health.sh`
+and `make validator-health` write bounded private summaries under `.cache` by
+default, reject `docs/evidence` and evidence-like output paths, validate
+`summary.json` and `manifest.json`, and do not call private admin routes
+without `ADMIN_TOKEN`. The reference deployment doctor may GET the JSON summary
+only when `ADMIN_TOKEN` and a safe `ADMIN_BASE_URL` are present; it never POSTs
+this route. Phase 46 creates no evidence packets, writes nothing under
+`docs/evidence`, auto-edits no GTFS, blocks no publish, changes no consumer
+statuses, and adds no compliance, consumer acceptance, agency adoption, hosted
+SaaS, production-readiness, vendor-compatibility, or production-grade ETA
+claim.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
@@ -529,14 +550,16 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 41 — Operator Smoke And Support Bundle is complete for
-its local/reference diagnostic tooling scope. Phase 40 — Guided Self-Hosted
-Operator Trial remains complete for its docs/navigation guided trial scope.
-Phase 39 — CAL-ITP-Style Readiness
-Workflow remains complete for its product-facing readiness workflow scope.
-Phase 38 — Integration Adapter Kit remains complete for its navigation and
-conformance scope. Phase 37 — Reusable Agency Onboarding Flow remains complete
-for its local/reference onboarding scope. Phase 33 remains
+**Active phase:** Phase 46 — Validator Automation And Health Gates is complete
+for its private local/reference validator-health diagnostic scope. Phases 41
+through 45 remain complete for their documented diagnostics, deployment-doctor,
+operator checklist, telemetry simulator, and GTFS quality triage scopes. Phase
+40 — Guided Self-Hosted Operator Trial remains complete for its docs/navigation
+guided trial scope. Phase 39 — CAL-ITP-Style Readiness Workflow remains
+complete for its product-facing readiness workflow scope. Phase 38 —
+Integration Adapter Kit remains complete for its navigation and conformance
+scope. Phase 37 — Reusable Agency Onboarding Flow remains complete for its
+local/reference onboarding scope. Phase 33 remains
 complete as Outcome C — public-GTFS local/pilot run completed with public-safe
 retained summaries — and proves local/pilot handling of a real public static
 GTFS dataset only. Phase 34 remains complete for docs-only
@@ -1245,8 +1268,8 @@ Final-root evidence follow-up check results:
 ## Next Recommended Step
 
 Continue the self-hosted agency reuse roadmap from `docs/handoffs/latest.md`.
-Phase 46 — Validator Automation And Health Gates is the next roadmap phase
-after the private Phase 45 GTFS quality triage loop.
+Phase 46 is complete. Continue with the next deployment-hardening or operations
+phase while preserving the evidence and claim boundaries.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

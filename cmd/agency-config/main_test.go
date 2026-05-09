@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -736,6 +737,12 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	if strings.Contains(text, `"/admin/gtfs"`) {
 		t.Fatalf("deployment doctor still checks exact /admin/gtfs")
 	}
+	if !strings.Contains(text, `"/admin/operations/validation-health.json"`) {
+		t.Fatalf("deployment doctor missing private validation-health JSON check")
+	}
+	if strings.Contains(text, `validation-health"`) && strings.Contains(text, `-X POST`) {
+		t.Fatalf("deployment doctor must not POST validation-health")
+	}
 	caddy, err := os.ReadFile(filepath.Join("..", "..", "deploy", "Caddyfile.local"))
 	if err != nil {
 		t.Fatalf("read caddyfile: %v", err)
@@ -759,6 +766,88 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	}
 	if lastRespond != `respond "not found" 404` {
 		t.Fatalf("local Caddyfile final respond = %q, want unmatched 404 fallback:\n%s", lastRespond, caddyText)
+	}
+}
+
+func TestValidatorHealthScriptDryRunOutputSafety(t *testing.T) {
+	tmp := t.TempDir()
+	fakeBin := filepath.Join(tmp, "bin")
+	if err := os.Mkdir(fakeBin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	curlPath := filepath.Join(fakeBin, "curl")
+	if err := os.WriteFile(curlPath, []byte("#!/bin/sh\necho curl must not be called in dry-run >&2\nexit 99\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	outputDir := filepath.Join(tmp, "validator-health")
+	cmd := exec.Command("sh", filepath.Join("..", "..", "scripts", "validator-health.sh"), "--dry-run")
+	cmd.Env = append(os.Environ(),
+		"PATH="+fakeBin+":"+os.Getenv("PATH"),
+		"OUTPUT_DIR="+outputDir,
+		"ALLOW_UNIGNORED_OUTPUT_DIR=true",
+		"ADMIN_TOKEN=not-used-in-dry-run",
+		"PUBLIC_BASE_URL=http://127.0.0.1:65535",
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("dry-run failed: %v\n%s", err, out)
+	}
+	for _, name := range []string{"summary.json", "summary.md", "manifest.json", "manifest.md"} {
+		if _, err := os.Stat(filepath.Join(outputDir, name)); err != nil {
+			t.Fatalf("missing %s: %v", name, err)
+		}
+	}
+	summaryBytes, err := os.ReadFile(filepath.Join(outputDir, "summary.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var summary compliance.ValidationHealthSummary
+	if err := json.Unmarshal(summaryBytes, &summary); err != nil {
+		t.Fatalf("summary json invalid: %v", err)
+	}
+	assertValidationHealthSummaryShape(t, summary)
+	manifestBytes, err := os.ReadFile(filepath.Join(outputDir, "manifest.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var manifest map[string]any
+	if err := json.Unmarshal(manifestBytes, &manifest); err != nil {
+		t.Fatalf("manifest json invalid: %v", err)
+	}
+	for _, key := range []string{"included_files", "excluded_categories", "output_dir", "created_at"} {
+		if _, ok := manifest[key]; !ok {
+			t.Fatalf("manifest missing %s: %+v", key, manifest)
+		}
+	}
+	for _, name := range []string{"summary.json", "manifest.json", "summary.md", "manifest.md"} {
+		body, err := os.ReadFile(filepath.Join(outputDir, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if name != "manifest.md" {
+			assertValidationHealthHTTPNoLeakage(t, string(body))
+		}
+		if len(body) > 16000 {
+			t.Fatalf("%s size = %d, want bounded", name, len(body))
+		}
+	}
+	manifestMD, err := os.ReadFile(filepath.Join(outputDir, "manifest.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"raw validator reports", "Authorization headers", "cookies", "tokens", "database URLs", "private paths", "evidence packets", "consumer submission artifacts"} {
+		if !strings.Contains(string(manifestMD), want) {
+			t.Fatalf("manifest.md missing %q", want)
+		}
+	}
+}
+
+func TestValidatorHealthScriptRejectsEvidenceOutput(t *testing.T) {
+	cmd := exec.Command("sh", filepath.Join("..", "..", "scripts", "validator-health.sh"), "--dry-run")
+	cmd.Env = append(os.Environ(), "OUTPUT_DIR=docs/evidence/validator-health-test", "ALLOW_UNIGNORED_OUTPUT_DIR=true")
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected evidence output rejection, got success: %s", out)
 	}
 }
 
@@ -1222,6 +1311,270 @@ func BenchmarkRenderGTFSQualityPage(b *testing.B) {
 	handler := newGTFSQualityTestHandler(b, auth.RoleAdmin, store, fakeScheduleBuilder{})
 	for i := 0; i < b.N; i++ {
 		req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			b.Fatalf("status = %d", rr.Code)
+		}
+	}
+}
+
+func TestValidationHealthRouteAuthMatrixMethodsAndHeaders(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		handler := newValidationHealthTestHandler(t, role, &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC())}, fakeScheduleBuilder{})
+		for _, path := range []string{"/admin/operations/validation-health", "/admin/operations/validation-health.json"} {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("%s role %s status = %d, want 200: %s", path, role, rr.Code, rr.Body.String())
+			}
+			if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+				t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+			}
+			if strings.HasSuffix(path, ".json") && !strings.HasPrefix(rr.Header().Get("Content-Type"), "application/json") {
+				t.Fatalf("%s Content-Type = %q, want application/json", path, rr.Header().Get("Content-Type"))
+			}
+		}
+	}
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/validation-health", "/admin/operations/validation-health.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code == http.StatusOK {
+			t.Fatalf("%s unauthenticated status = 200, want rejection", path)
+		}
+	}
+	for _, method := range []string{http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		req := httptest.NewRequest(method, "/admin/operations/validation-health", nil)
+		rr := httptest.NewRecorder()
+		newValidationHealthTestHandler(t, auth.RoleAdmin, &fakePublicationStore{}, fakeScheduleBuilder{}).ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("%s status = %d, want 405", method, rr.Code)
+		}
+	}
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/not-real", nil)
+	rr := httptest.NewRecorder()
+	newValidationHealthTestHandler(t, auth.RoleAdmin, &fakePublicationStore{}, fakeScheduleBuilder{}).ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("unknown operations route = %d, want 404", rr.Code)
+	}
+}
+
+func TestValidationHealthJSONContractOrderAndNoLeakage(t *testing.T) {
+	now := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
+		validationHealthRecord(1, "trip_updates", "feed-v1", "failed", now.Add(time.Minute)),
+		validationHealthRecord(2, "schedule", "feed-v1", "passed", now.Add(2*time.Minute)),
+		validationHealthRecord(3, "vehicle_positions", "feed-v1", "warning", now.Add(3*time.Minute)),
+		validationHealthRecord(4, "alerts", "feed-v1", "passed", now.Add(4*time.Minute)),
+	}}
+	handler := newValidationHealthTestHandler(t, auth.RoleReadOnly, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-health.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rr.Code, rr.Body.String())
+	}
+	var summary compliance.ValidationHealthSummary
+	if err := json.Unmarshal(rr.Body.Bytes(), &summary); err != nil {
+		t.Fatalf("decode summary: %v", err)
+	}
+	assertValidationHealthSummaryShape(t, summary)
+	if summary.Feeds[0].FeedType != "schedule" || summary.Feeds[1].FeedType != "vehicle_positions" || summary.Feeds[2].FeedType != "trip_updates" || summary.Feeds[3].FeedType != "alerts" {
+		t.Fatalf("unexpected feed order: %+v", summary.Feeds)
+	}
+	assertValidationHealthHTTPNoLeakage(t, rr.Body.String())
+	assertValidationHealthJSONAllowlist(t, rr.Body.Bytes())
+}
+
+func TestValidationHealthHTMLMatchesJSONRows(t *testing.T) {
+	now := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
+		validationHealthRecord(1, "schedule", "feed-v1", "passed", now),
+		validationHealthRecord(2, "vehicle_positions", "feed-v1", "passed", now),
+		validationHealthRecord(3, "trip_updates", "feed-v1", "passed", now),
+		validationHealthRecord(4, "alerts", "feed-v1", "passed", now),
+	}}
+	handler := newValidationHealthTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-health.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	var summary compliance.ValidationHealthSummary
+	if err := json.Unmarshal(rr.Body.Bytes(), &summary); err != nil {
+		t.Fatal(err)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/validation-health", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	if !strings.Contains(body, "<td>"+summary.OverallStatus+"</td>") {
+		t.Fatalf("html overall status does not match json %q", summary.OverallStatus)
+	}
+	for _, row := range summary.Feeds {
+		if !strings.Contains(body, "<td>"+row.FeedType+"</td>") {
+			t.Fatalf("html missing feed row %q", row.FeedType)
+		}
+	}
+	for _, want := range []string{"external_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "private diagnostics"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html missing %q", want)
+		}
+	}
+	for _, forbidden := range []string{"compliance gate", "production gate"} {
+		if strings.Contains(strings.ToLower(body), forbidden) {
+			t.Fatalf("html contains forbidden wording %q", forbidden)
+		}
+	}
+}
+
+func TestValidationHealthPostStrictnessCSRFAndBodyCap(t *testing.T) {
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC())}
+	srv := newValidationHealthTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	for _, field := range []string{"feed_type", "validator_id", "validator_path", "validator_command", "output_path", "artifact_path", "report_path", "url", "argv", "args", "timeout_seconds"} {
+		req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader(validationHealthRunAllForm()+"&"+field+"=browser"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusBadRequest {
+			t.Fatalf("field %s status = %d, want 400", field, rr.Code)
+		}
+		if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+			t.Fatalf("field %s Cache-Control = %q, want no-store", field, got)
+		}
+	}
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader(strings.Repeat("x", validationHealthPostMaxBytes+1)))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("large form status = %d, want 413", rr.Code)
+	}
+	cookieAuth := auth.TestAuthenticator{Principal: auth.Principal{Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodCookie}}
+	srv = newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, schedule: fakeScheduleBuilder{}, csrfSecret: "test-csrf"}, cookieAuth)
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader("action=run_all"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("missing csrf status = %d, want 403", rr.Code)
+	}
+}
+
+func TestValidationHealthPostRunAllPartialSuccessAndBounded(t *testing.T) {
+	t.Setenv("GTFS_VALIDATOR_PATH", writeScheduleValidator(t))
+	t.Setenv("GTFS_RT_VALIDATOR_PATH", writeRealtimeValidator(t))
+	t.Setenv("GTFS_RT_VALIDATOR_VERSION", "test-validator")
+	t.Setenv("GTFS_RT_VALIDATOR_ARGS", "")
+	now := time.Now().UTC()
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now)}
+	artifacts := &fakeRealtimeArtifacts{payloads: map[string][]byte{
+		"vehicle_positions": []byte("vp"),
+		"alerts":            []byte("alerts"),
+	}, errors: map[string]error{"trip_updates": errors.New("private /tmp/path TOKEN=secret")}}
+	handler := newOperationsTestHandler(&handler{
+		store:    store,
+		devices:  fakeDeviceStore{},
+		schedule: fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-v1", RevisionTime: now, Payload: []byte("schedule zip")}},
+		realtime: artifacts,
+	}, auth.TestAuthenticator{Principal: auth.Principal{Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer}})
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader(validationHealthRunAllForm()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.storeValidationCalls != 3 {
+		t.Fatalf("stored validation calls = %d, want 3", store.storeValidationCalls)
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, "trip_updates") || !strings.Contains(body, compliance.ValidationHealthArtifactUnavailable) {
+		t.Fatalf("partial failure not represented safely: %s", body)
+	}
+	assertValidationHealthHTTPNoLeakage(t, body)
+	if len(body) > 50000 {
+		t.Fatalf("html size = %d, want bounded", len(body))
+	}
+}
+
+func TestValidationHealthConcurrentRunAllDoesNotPanicOrLeak(t *testing.T) {
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC())}
+	handler := newValidationHealthTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-v1", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip")}})
+	var wg sync.WaitGroup
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader(validationHealthRunAllForm()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Errorf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			assertValidationHealthHTTPNoLeakage(t, rr.Body.String())
+		}()
+	}
+	wg.Wait()
+}
+
+func TestValidationHealthLargeHistoryPageAndJSONBounded(t *testing.T) {
+	now := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
+	records := make([]compliance.ValidationReportRecord, 0, 10000)
+	for i := 0; i < 10000; i++ {
+		feedType := []string{"schedule", "vehicle_positions", "trip_updates", "alerts"}[i%4]
+		record := validationHealthRecord(int64(i+1), feedType, "feed-v1", "warning", now.Add(time.Duration(i)*time.Second))
+		record.Result.Report = map[string]any{"raw_report": strings.Repeat("stdout stderr argv /tmp/private TOKEN=SECRET postgres://user:pass@localhost/db", 100)}
+		records = append(records, record)
+	}
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now), validationRecords: records}
+	handler := newValidationHealthTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	for _, path := range []string{"/admin/operations/validation-health.json", "/admin/operations/validation-health"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d: %s", path, rr.Code, rr.Body.String())
+		}
+		if len(rr.Body.Bytes()) > 50000 {
+			t.Fatalf("%s output size = %d, want bounded", path, len(rr.Body.Bytes()))
+		}
+		assertValidationHealthHTTPNoLeakage(t, rr.Body.String())
+	}
+}
+
+func BenchmarkRenderValidationHealthPage(b *testing.B) {
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC()), validationRecords: []compliance.ValidationReportRecord{
+		validationHealthRecord(1, "schedule", "feed-v1", "passed", time.Now().UTC()),
+		validationHealthRecord(2, "vehicle_positions", "feed-v1", "passed", time.Now().UTC()),
+		validationHealthRecord(3, "trip_updates", "feed-v1", "warning", time.Now().UTC()),
+		validationHealthRecord(4, "alerts", "feed-v1", "passed", time.Now().UTC()),
+	}}
+	handler := newValidationHealthTestHandler(b, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-health", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			b.Fatalf("status = %d", rr.Code)
+		}
+	}
+}
+
+func BenchmarkRenderValidationHealthJSON(b *testing.B) {
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC()), validationRecords: []compliance.ValidationReportRecord{
+		validationHealthRecord(1, "schedule", "feed-v1", "passed", time.Now().UTC()),
+		validationHealthRecord(2, "vehicle_positions", "feed-v1", "passed", time.Now().UTC()),
+		validationHealthRecord(3, "trip_updates", "feed-v1", "warning", time.Now().UTC()),
+		validationHealthRecord(4, "alerts", "feed-v1", "passed", time.Now().UTC()),
+	}}
+	handler := newValidationHealthTestHandler(b, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-health.json", nil)
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 		if rr.Code != http.StatusOK {
@@ -1758,6 +2111,101 @@ func gtfsQualityRerunForm() string {
 	return "action=rerun_static_validator&csrf_token=" + auth.CSRFToken("test-csrf", principal)
 }
 
+func newValidationHealthTestHandler(t testing.TB, role auth.Role, store *fakePublicationStore, scheduleBuilder scheduleBuilder) http.Handler {
+	t.Helper()
+	if store == nil {
+		store = &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC())}
+	}
+	return newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, schedule: scheduleBuilder, realtime: &fakeRealtimeArtifacts{}, csrfSecret: "test-csrf"}, auth.TestAuthenticator{Principal: auth.Principal{Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer}})
+}
+
+func validationHealthRunAllForm() string {
+	principal := auth.Principal{Subject: "user@example.com", AgencyID: "demo-agency"}
+	return "action=run_all&csrf_token=" + auth.CSRFToken("test-csrf", principal)
+}
+
+func validationHealthTestDiscovery(now time.Time) compliance.FeedDiscovery {
+	return compliance.FeedDiscovery{AgencyID: "demo-agency", Feeds: []compliance.FeedMetadata{
+		{FeedType: "schedule", CanonicalPublicURL: "https://feeds.example.org/public/gtfs/schedule.zip", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", RevisionTimestamp: &now},
+		{FeedType: "vehicle_positions", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/vehicle_positions.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", RevisionTimestamp: &now},
+		{FeedType: "trip_updates", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/trip_updates.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", RevisionTimestamp: &now},
+		{FeedType: "alerts", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/alerts.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", RevisionTimestamp: &now},
+	}}
+}
+
+func validationHealthRecord(id int64, feedType, feedVersionID, status string, createdAt time.Time) compliance.ValidationReportRecord {
+	resultStatus := status
+	warnings := 0
+	errors := 0
+	if status == "warning" {
+		warnings = 1
+	}
+	if status == "failed" {
+		errors = 1
+	}
+	return compliance.ValidationReportRecord{
+		ID:        id,
+		CreatedAt: createdAt,
+		Result: compliance.ValidationResult{
+			AgencyID:      "demo-agency",
+			FeedType:      feedType,
+			FeedVersionID: feedVersionID,
+			ValidatorName: compliance.ValidatorNameForHealthID(compliance.ValidatorIDForHealthFeed(feedType)),
+			Status:        resultStatus,
+			ErrorCount:    errors,
+			WarningCount:  warnings,
+			Report:        map[string]any{"raw_report": "secret", "stdout": "secret", "stderr": "secret", "argv": []any{"/tmp/private"}},
+		},
+	}
+}
+
+func assertValidationHealthSummaryShape(t *testing.T, summary compliance.ValidationHealthSummary) {
+	t.Helper()
+	if len(summary.Feeds) != 4 || summary.GeneratedAt.IsZero() {
+		t.Fatalf("invalid summary shape: %+v", summary)
+	}
+	if summary.ExternalEvidenceCreated || summary.ConsumerStatusesChanged || summary.ComplianceClaimed || summary.ProductionReadinessClaimed {
+		t.Fatalf("false flags must stay false: %+v", summary)
+	}
+	for _, row := range summary.Feeds {
+		if row.FeedType == "" || row.ValidatorID == "" || row.ValidatorName == "" || row.HealthStatus == "" || row.NextAction == "" || row.ClaimBoundary == "" {
+			t.Fatalf("invalid row shape: %+v", row)
+		}
+	}
+}
+
+func assertValidationHealthJSONAllowlist(t *testing.T, payload []byte) {
+	t.Helper()
+	var decoded map[string]any
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "overall_status": true, "tooling_status": true, "feeds": true, "external_evidence_created": true, "consumer_statuses_changed": true, "compliance_claimed": true, "production_readiness_claimed": true}
+	for key := range decoded {
+		if !wantTop[key] {
+			t.Fatalf("unexpected top-level field %q in %s", key, payload)
+		}
+	}
+	wantRow := map[string]bool{"feed_type": true, "validator_id": true, "validator_name": true, "tooling_status": true, "artifact_status": true, "latest_result_status": true, "latest_result_at": true, "active_feed_version_id": true, "latest_result_feed_version_id": true, "stale_status": true, "health_status": true, "next_action": true, "claim_boundary": true}
+	for _, item := range decoded["feeds"].([]any) {
+		row := item.(map[string]any)
+		for key := range row {
+			if !wantRow[key] {
+				t.Fatalf("unexpected row field %q in %s", key, payload)
+			}
+		}
+	}
+}
+
+func assertValidationHealthHTTPNoLeakage(t testing.TB, body string) {
+	t.Helper()
+	for _, forbidden := range []string{"raw_report", "stdout", "stderr", "argv", "/tmp/private", "TOKEN=", "SECRET", "PASSWORD=", "postgres://", "Authorization", "Bearer", "Cookie", "admin_session", "DATABASE_URL"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("validation health leaked %q in %s", forbidden, body)
+		}
+	}
+}
+
 func largeOperationsCanonicalRecord(total int) compliance.ValidationReportRecord {
 	notices := make([]any, 0, total)
 	codes := []string{"expired_calendar", "route_short_name_too_long", "unused_shape", "stop_times_arrival_time_missing", "duplicate_trip_id", "shape_dist_traveled_decreases", "frequency_headway_invalid", "block_id_gap"}
@@ -1944,6 +2392,7 @@ func (f *fakePublicationStore) LatestValidationReport(_ context.Context, agencyI
 
 type fakeRealtimeArtifacts struct {
 	payloads map[string][]byte
+	errors   map[string]error
 	calls    map[string]int
 }
 
@@ -1952,6 +2401,9 @@ func (f *fakeRealtimeArtifacts) RealtimePB(_ context.Context, feedType string) (
 		f.calls = map[string]int{}
 	}
 	f.calls[feedType]++
+	if err := f.errors[feedType]; err != nil {
+		return nil, "", err
+	}
 	if payload := f.payloads[feedType]; len(payload) > 0 {
 		return payload, "internal_builder", nil
 	}
@@ -2075,6 +2527,17 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 		if r.Method == http.MethodPost {
 			r.Body = http.MaxBytesReader(w, r.Body, gtfsQualityPostMaxBytes)
 		}
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/validation-health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, validationHealthPostMaxBytes)
+		}
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/validation-health.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))
 	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))

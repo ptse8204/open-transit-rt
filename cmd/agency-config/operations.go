@@ -19,53 +19,57 @@ import (
 )
 
 const (
-	defaultTelemetryLimit   = 200
-	defaultStaleSeconds     = 90
-	gtfsQualityPostMaxBytes = 64 << 10
+	defaultTelemetryLimit        = 200
+	defaultStaleSeconds          = 90
+	gtfsQualityPostMaxBytes      = 64 << 10
+	validationHealthPostMaxBytes = 64 << 10
 )
 
 type operationsPage struct {
-	Title              string
-	AgencyID           string
-	GeneratedAt        time.Time
-	EnvironmentLabel   string
-	CSRFToken          string
-	Discovery          compliance.FeedDiscovery
-	DiscoveryError     string
-	PublicationConfig  compliance.PublicationConfig
-	PublicationError   string
-	SetupNotice        string
-	SetupError         string
-	SetupSteps         []setupStepView
-	ValidationResult   *compliance.ValidationResult
-	ActiveFeedVersion  string
-	FeedsUpdatedAt     *time.Time
-	TelemetryUpdatedAt *time.Time
-	TripUpdatesQuality tripUpdatesQualityView
-	ScorecardUpdatedAt *time.Time
-	ConsumersUpdatedAt *time.Time
-	EvidenceUpdatedAt  string
-	Scorecard          *compliance.Scorecard
-	ScorecardError     string
-	Consumers          []consumerStatusView
-	RuntimeConsumers   []consumerStatusView
-	ReadinessItems     []readinessItemView
-	Checklist          operatorChecklistView
-	GTFSQuality        compliance.GTFSQualityTriage
-	GTFSQualityNotice  string
-	GTFSQualityError   string
-	IsAdmin            bool
-	ConsumerError      string
-	Telemetry          []telemetryView
-	TelemetryError     string
-	StaleCount         int
-	Devices            []devices.Binding
-	DeviceError        string
-	DeviceToken        string
-	DeviceTokenMeta    devices.RebindResult
-	Links              []evidenceLink
-	Section            string
-	StaleThreshold     time.Duration
+	Title                  string
+	AgencyID               string
+	GeneratedAt            time.Time
+	EnvironmentLabel       string
+	CSRFToken              string
+	Discovery              compliance.FeedDiscovery
+	DiscoveryError         string
+	PublicationConfig      compliance.PublicationConfig
+	PublicationError       string
+	SetupNotice            string
+	SetupError             string
+	SetupSteps             []setupStepView
+	ValidationResult       *compliance.ValidationResult
+	ActiveFeedVersion      string
+	FeedsUpdatedAt         *time.Time
+	TelemetryUpdatedAt     *time.Time
+	TripUpdatesQuality     tripUpdatesQualityView
+	ScorecardUpdatedAt     *time.Time
+	ConsumersUpdatedAt     *time.Time
+	EvidenceUpdatedAt      string
+	Scorecard              *compliance.Scorecard
+	ScorecardError         string
+	Consumers              []consumerStatusView
+	RuntimeConsumers       []consumerStatusView
+	ReadinessItems         []readinessItemView
+	Checklist              operatorChecklistView
+	GTFSQuality            compliance.GTFSQualityTriage
+	GTFSQualityNotice      string
+	GTFSQualityError       string
+	ValidationHealth       compliance.ValidationHealthSummary
+	ValidationHealthNotice string
+	ValidationHealthError  string
+	IsAdmin                bool
+	ConsumerError          string
+	Telemetry              []telemetryView
+	TelemetryError         string
+	StaleCount             int
+	Devices                []devices.Binding
+	DeviceError            string
+	DeviceToken            string
+	DeviceTokenMeta        devices.RebindResult
+	Links                  []evidenceLink
+	Section                string
+	StaleThreshold         time.Duration
 }
 
 type consumerStatusView struct {
@@ -194,6 +198,23 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
+	case "validation-health":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderValidationHealth(w, r)
+		case http.MethodPost:
+			h.operationsValidationHealthPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "validation-health.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderValidationHealthJSON(w, r)
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup", "readiness":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
@@ -229,6 +250,89 @@ func (h *handler) renderGTFSQuality(w http.ResponseWriter, r *http.Request) {
 	}
 	page := h.buildOperationsPage(r, principal, "gtfs-quality")
 	renderOperationsTemplate(w, "gtfs-quality", page)
+}
+
+func (h *handler) renderValidationHealth(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "validation-health")
+	renderOperationsTemplate(w, "validation-health", page)
+}
+
+func (h *handler) renderValidationHealthJSON(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "validation-health")
+	writeJSON(w, http.StatusOK, page.ValidationHealth)
+}
+
+func (h *handler) operationsValidationHealthPost(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, validationHealthPostMaxBytes)
+	principal, ok := auth.RequireRole(w, r, auth.RoleAdmin)
+	if !ok {
+		return
+	}
+	if !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		page := h.buildOperationsPage(r, principal, "validation-health")
+		page.ValidationHealthError = "Validator health request was blocked because the form body is invalid or too large."
+		w.WriteHeader(http.StatusRequestEntityTooLarge)
+		renderOperationsTemplate(w, "validation-health", page)
+		return
+	}
+	if strings.TrimSpace(h.csrfSecret) != "" && strings.TrimSpace(r.FormValue("csrf_token")) != csrfToken(h.csrfSecret, principal) {
+		page := h.buildOperationsPage(r, principal, "validation-health")
+		page.ValidationHealthError = "Validator health request was blocked because the CSRF token is invalid."
+		w.WriteHeader(http.StatusForbidden)
+		renderOperationsTemplate(w, "validation-health", page)
+		return
+	}
+	if err := rejectValidationHealthUnexpectedFields(r); err != nil {
+		page := h.buildOperationsPage(r, principal, "validation-health")
+		page.ValidationHealthError = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		renderOperationsTemplate(w, "validation-health", page)
+		return
+	}
+	if strings.TrimSpace(r.FormValue("action")) != "run_all" {
+		page := h.buildOperationsPage(r, principal, "validation-health")
+		page.ValidationHealthError = "unknown validator health action"
+		w.WriteHeader(http.StatusBadRequest)
+		renderOperationsTemplate(w, "validation-health", page)
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "validation-health")
+	records, artifactOverrides := h.runValidationHealthAll(r, principal, page.Discovery)
+	page = h.buildOperationsPage(r, principal, "validation-health")
+	if len(records) > 0 || len(artifactOverrides) > 0 {
+		page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, records, artifactOverrides)
+	}
+	page.ValidationHealthNotice = "Validator health run finished. Results were stored only as normal validation_report rows where validators ran."
+	renderOperationsTemplate(w, "validation-health", page)
+}
+
+func rejectValidationHealthUnexpectedFields(r *http.Request) error {
+	allowed := map[string]bool{"action": true, "csrf_token": true}
+	blocked := []string{"feed_type", "validator_id", "validator_command", "validator_path", "output_path", "artifact_path", "report_path", "schedule_zip_path", "realtime_pb_path", "url", "URL", "argv", "args", "timeout"}
+	for name := range r.Form {
+		if allowed[name] {
+			continue
+		}
+		lower := strings.ToLower(name)
+		for _, blockedName := range blocked {
+			if lower == strings.ToLower(blockedName) || strings.Contains(lower, "url") || strings.Contains(lower, "path") || strings.Contains(lower, "timeout") || strings.Contains(lower, "argv") || strings.Contains(lower, "args") {
+				return fmt.Errorf("validator health accepts only action=run_all and CSRF fields")
+			}
+		}
+		return fmt.Errorf("validator health accepts only action=run_all and CSRF fields")
+	}
+	return nil
 }
 
 func (h *handler) operationsGTFSQualityPost(w http.ResponseWriter, r *http.Request) {
@@ -539,7 +643,101 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ReadinessItems = readinessItems(page)
 	page.Checklist = buildOperatorChecklist(page)
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
+	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	return page
+}
+
+func (h *handler) validationHealthSummary(r *http.Request, agencyID string, discovery compliance.FeedDiscovery, extraRecords []compliance.ValidationReportRecord, artifactOverrides map[string]string) compliance.ValidationHealthSummary {
+	records := append([]compliance.ValidationReportRecord(nil), extraRecords...)
+	if reader, ok := h.store.(validationReportReader); ok {
+		for _, feedType := range []string{"schedule", "vehicle_positions", "trip_updates", "alerts"} {
+			validatorName := compliance.ValidatorNameForHealthID(compliance.ValidatorIDForHealthFeed(feedType))
+			record, err := reader.LatestValidationReport(r.Context(), agencyID, feedType, validatorName)
+			if err == nil && record != nil {
+				records = append(records, *record)
+			}
+		}
+	}
+	artifactStatus := map[string]string{}
+	for _, feed := range discovery.Feeds {
+		if feed.FeedType == "schedule" {
+			if strings.TrimSpace(feed.ActiveFeedVersionID) != "" && strings.TrimSpace(feed.CanonicalPublicURL) != "" {
+				artifactStatus[feed.FeedType] = compliance.ValidationHealthArtifactAvailable
+			} else {
+				artifactStatus[feed.FeedType] = compliance.ValidationHealthArtifactUnavailable
+			}
+			continue
+		}
+		if feed.FeedType == "vehicle_positions" || feed.FeedType == "trip_updates" || feed.FeedType == "alerts" {
+			if strings.TrimSpace(feed.CanonicalPublicURL) != "" {
+				artifactStatus[feed.FeedType] = compliance.ValidationHealthArtifactAvailable
+			} else {
+				artifactStatus[feed.FeedType] = compliance.ValidationHealthArtifactUnavailable
+			}
+		}
+	}
+	for _, feedType := range []string{"schedule", "vehicle_positions", "trip_updates", "alerts"} {
+		if artifactStatus[feedType] == "" {
+			artifactStatus[feedType] = compliance.ValidationHealthArtifactUnavailable
+		}
+	}
+	for feedType, status := range artifactOverrides {
+		if status != "" {
+			artifactStatus[feedType] = status
+		}
+	}
+	return compliance.BuildValidationHealthSummary(compliance.ValidationHealthInput{
+		GeneratedAt:              time.Now().UTC().Truncate(time.Second),
+		AgencyID:                 agencyID,
+		Discovery:                discovery,
+		Registry:                 compliance.ValidatorRegistryFromEnv(),
+		Records:                  records,
+		ToolingStatusByValidator: validationHealthToolingStatusByValidator(),
+		ArtifactStatusByFeed:     artifactStatus,
+	})
+}
+
+func validationHealthToolingStatusByValidator() map[string]string {
+	if strings.TrimSpace(os.Getenv("VALIDATOR_TOOLING_MODE")) == "stub" {
+		return map[string]string{
+			compliance.ValidationHealthStaticValidatorID:   compliance.ValidationHealthStatusStub,
+			compliance.ValidationHealthRealtimeValidatorID: compliance.ValidationHealthStatusStub,
+		}
+	}
+	return compliance.ValidationToolingStatusByValidator(compliance.ValidatorRegistryFromEnv())
+}
+
+func (h *handler) runValidationHealthAll(r *http.Request, principal auth.Principal, discovery compliance.FeedDiscovery) ([]compliance.ValidationReportRecord, map[string]string) {
+	var records []compliance.ValidationReportRecord
+	artifactStatus := map[string]string{}
+	activeScheduleVersion, _ := scheduleFeedVersion(discovery.Feeds)
+	for _, feedType := range []string{"schedule", "vehicle_positions", "trip_updates", "alerts"} {
+		if feedType == "schedule" && activeScheduleVersion == "" {
+			artifactStatus[feedType] = compliance.ValidationHealthArtifactUnavailable
+			continue
+		}
+		if feedType != "schedule" && !feedDiscoveryHasPublicURL(discovery, feedType) {
+			artifactStatus[feedType] = compliance.ValidationHealthArtifactUnavailable
+			continue
+		}
+		result, err := h.runValidationForFeed(r, principal, feedType, activeScheduleVersion)
+		if err != nil {
+			artifactStatus[feedType] = compliance.ValidationHealthArtifactUnavailable
+			continue
+		}
+		artifactStatus[feedType] = compliance.ValidationHealthArtifactAvailable
+		records = append(records, compliance.ValidationReportRecord{Result: result, CreatedAt: time.Now().UTC().Truncate(time.Second)})
+	}
+	return records, artifactStatus
+}
+
+func feedDiscoveryHasPublicURL(discovery compliance.FeedDiscovery, feedType string) bool {
+	for _, feed := range discovery.Feeds {
+		if feed.FeedType == feedType && strings.TrimSpace(feed.CanonicalPublicURL) != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *handler) gtfsQualityTriage(r *http.Request, agencyID string, discovery compliance.FeedDiscovery) compliance.GTFSQualityTriage {
@@ -803,8 +1001,8 @@ func setupSteps(page operationsPage) []setupStepView {
 			Status:     validationStatus(page),
 			Source:     "validation records",
 			Evidence:   validationEvidence(page),
-			NextAction: "Run one allowlisted validator from this page or the existing admin validation API.",
-			ActionURL:  "/admin/operations/setup#validation",
+			NextAction: "Review private validator health, then run allowlisted validators from the health page or existing admin validation workflow.",
+			ActionURL:  "/admin/operations/validation-health",
 		},
 		{
 			Name:       "Public feed verification",
@@ -901,10 +1099,10 @@ func readinessItems(page operationsPage) []readinessItemView {
 		},
 		{
 			Name:          "Validation status",
-			Status:        validationStatus(page),
-			Source:        "validation records",
+			Status:        page.ValidationHealth.OverallStatus,
+			Source:        "validation records and private validator health",
 			Evidence:      validationEvidence(page),
-			NextAction:    "Run allowlisted validators for schedule, Vehicle Positions, Trip Updates, and Alerts.",
+			NextAction:    "Open private validator health diagnostics and run the admin-only allowlisted validator action if needed.",
 			ClaimBoundary: "Validator results support readiness review, but do not prove consumer acceptance.",
 		},
 		{
@@ -1248,6 +1446,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
 <a href="/admin/operations/gtfs-quality">GTFS Quality</a>
+<a href="/admin/operations/validation-health">Validator Health</a>
 <a href="/admin/operations/telemetry">Telemetry</a>
 <a href="/admin/operations/devices">Devices</a>
 <a href="/admin/alerts/console">Alerts</a>
@@ -1279,6 +1478,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
+<tr><td>Validator health</td><td>{{.ValidationHealth.OverallStatus}} overall; tooling {{.ValidationHealth.ToolingStatus}}</td><td>{{formatTime .ValidationHealth.GeneratedAt}}</td><td><a href="/admin/operations/validation-health">review private validator diagnostics</a> · <a href="/admin/operations/validation-health.json">JSON</a></td></tr>
 <tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessItems}} checklist items</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
@@ -1300,6 +1500,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p class="warning">Open Transit RT supports CAL-ITP-style readiness workflows. This page does not claim CAL-ITP/Caltrans compliance.</p>
 <p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p><a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a></p>
+<p><a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
 <p class="muted">Each row ties the status to an existing source and gives the next operator action for missing or weak signals. Consumer statuses remain prepared unless retained target-originated evidence supports a target-specific change.</p>
 <table><thead><tr><th>Readiness item</th><th>Status</th><th>Status source</th><th>Current evidence/signal</th><th>Next action</th><th>Claim boundary</th></tr></thead><tbody>
 {{range .ReadinessItems}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
@@ -1320,7 +1521,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 </tbody></table>
 {{end}}
 <p class="muted">This view shows repo/deployment evidence only. Third-party consumer acceptance requires retained confirmation from the named consumer.</p>
-<p><a href="/admin/operations/gtfs-quality">Review GTFS quality triage actions</a></p>
+<p><a href="/admin/operations/gtfs-quality">Review GTFS quality triage actions</a> · <a href="/admin/operations/validation-health">Review private validator health diagnostics</a></p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -1345,6 +1546,40 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "gtfsQualitySection" .GTFSQuality.Canonical}}
 {{template "gtfsQualitySection" .GTFSQuality.InternalImporter}}
 {{template "layoutEnd" .}}
+{{end}}
+
+{{define "validation-health"}}
+{{template "layoutStart" .}}
+<h2>Validator Health</h2>
+{{if .ValidationHealthNotice}}<p class="ok">{{.ValidationHealthNotice}}</p>{{end}}
+{{if .ValidationHealthError}}<p class="bad">{{.ValidationHealthError}}</p>{{end}}
+<p class="warning">This page is private diagnostics only. It does not create evidence packets, contact consumers, change consumer statuses, claim CAL-ITP/Caltrans compliance, or claim production readiness.</p>
+<table><tbody>
+<tr><th>Overall status</th><td>{{.ValidationHealth.OverallStatus}}</td></tr>
+<tr><th>Tooling status</th><td>{{.ValidationHealth.ToolingStatus}}</td></tr>
+<tr><th>Generated at</th><td>{{formatTime .ValidationHealth.GeneratedAt}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.ValidationHealth.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.ValidationHealth.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.ValidationHealth.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.ValidationHealth.ProductionReadinessClaimed}}</td></tr>
+</tbody></table>
+{{if .IsAdmin}}
+<h3>Run All Validators</h3>
+<form method="post" action="/admin/operations/validation-health">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="run_all">
+<button>Run allowlisted validators</button>
+</form>
+{{else}}<p class="muted">Run action is available only to admins.</p>{{end}}
+{{template "validationHealthRows" .ValidationHealth}}
+<p class="muted">Static schedule health uses the canonical MobilityData static validator. Realtime health uses the MobilityData GTFS-Realtime validator for Vehicle Positions, Trip Updates, and Alerts. Open Transit RT internal GTFS import validation remains context in GTFS quality triage and is not canonical validator health.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "validationHealthRows"}}
+<table><thead><tr><th>Feed</th><th>Validator</th><th>Tooling</th><th>Artifact</th><th>Latest result</th><th>Latest at</th><th>Active feed version</th><th>Result feed version</th><th>Stale</th><th>Health</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .Feeds}}<tr><td>{{.FeedType}}</td><td>{{.ValidatorID}}<br><span class="muted">{{.ValidatorName}}</span></td><td>{{.ToolingStatus}}</td><td>{{.ArtifactStatus}}</td><td>{{.LatestResultStatus}}</td><td>{{formatTimePtr .LatestResultAt}}</td><td>{{.ActiveFeedVersionID}}</td><td>{{.LatestResultFeedVersionID}}</td><td>{{.StaleStatus}}</td><td>{{.HealthStatus}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
 {{end}}
 
 {{define "gtfsQualitySection"}}
@@ -1497,11 +1732,13 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><th>Typed authoring</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> for draft authoring and publish.</td></tr>
 <tr><th>Validation triage</th><td>Use <code>docs/tutorials/gtfs-validation-triage.md</code> and the validation form below.</td></tr>
 <tr><th>GTFS quality triage</th><td><a href="/admin/operations/gtfs-quality">Review canonical validator and internal importer actions</a>.</td></tr>
+<tr><th>Validator health</th><td><a href="/admin/operations/validation-health">Review private validator installation, artifact, stale-result, and next-action diagnostics</a>.</td></tr>
 <tr><th>Active feed verification</th><td><a href="/admin/operations/feeds">Review feed discovery and validation records</a>.</td></tr>
 </tbody></table>
 
 <h2 id="validation">Validation</h2>
 <p class="muted">Source: validation records. The browser chooses only feed type; the server maps it to an allowlisted validator. Validation is supporting evidence only, not consumer acceptance or compliance.</p>
+<p><a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
 {{if .ValidationResult}}<p class="ok">Last run from this page: {{.ValidationResult.FeedType}} validation {{.ValidationResult.Status}} with {{.ValidationResult.ErrorCount}} errors and {{.ValidationResult.WarningCount}} warnings.</p>{{end}}
 <form method="post" action="/admin/operations/setup">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -1539,7 +1776,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Private Operator Checklist</h2>
 <p class="warning">This checklist is private operator diagnostics. It is not evidence, not an evidence packet, not compliance proof, not agency approval, not consumer acceptance, and not production readiness.</p>
-<p><a href="/admin/operations/checklist.json">Export private checklist JSON</a> · <a href="/admin/operations/gtfs-quality">Open GTFS quality triage</a></p>
+<p><a href="/admin/operations/checklist.json">Export private checklist JSON</a> · <a href="/admin/operations/gtfs-quality">Open GTFS quality triage</a> · <a href="/admin/operations/validation-health">Open validator health diagnostics</a></p>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.Checklist.Flags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>final_root_evidence_created</code></th><td>{{.Checklist.Flags.FinalRootEvidenceCreated}}</td></tr>

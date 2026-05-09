@@ -18,6 +18,7 @@ If you are new to Open Transit RT, start with the public guides. If you are main
 | 🧯 Collect safe diagnostics | [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md) |
 | 🩺 Check reference deployment posture | [Reference Deployment Doctor](deployment/reference-deployment-doctor.md) |
 | 🧑‍🔧 Review private operator checklist | [Phase 43 Operator UX Setup V2](phase-43-operator-ux-setup-v2.md) |
+| 🧪 Review private validator health | [Phase 46 Validator Automation And Health Gates](phase-46-validator-automation-and-health-gates.md) |
 | 📡 Run synthetic telemetry through ingest | [Telemetry Simulator And Device Trial](tutorials/telemetry-simulator-and-device-trial.md) |
 | 🧪 Triage GTFS validator notices | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md) |
 | 🧪 Try a real public GTFS feed | [Public GTFS Local/Pilot Runbook](tutorials/public-gtfs-local-pilot.md) |
@@ -51,6 +52,7 @@ These are command-level references for people running or evaluating the project:
 - [Telemetry Simulator And Device Trial](tutorials/telemetry-simulator-and-device-trial.md)
 - [GTFS Validation Triage](tutorials/gtfs-validation-triage.md)
 - [Phase 45 GTFS Quality Triage Loop](phase-45-gtfs-quality-triage-loop.md)
+- [Phase 46 Validator Automation And Health Gates](phase-46-validator-automation-and-health-gates.md)
 - [Agency Demo Flow](tutorials/agency-demo-flow.md)
 - [Agency Pilot Program](agency-pilot-program.md)
 - [Agency Pilot Kickoff Agenda](agency-pilot-kickoff-agenda.md)
@@ -151,6 +153,8 @@ These pages preserve detailed project state and history for maintainers and futu
 - [Phase 44 Handoff](handoffs/phase-44.md)
 - [Phase 45 GTFS Quality Triage Loop](phase-45-gtfs-quality-triage-loop.md)
 - [Phase 45 Handoff](handoffs/phase-45.md)
+- [Phase 46 Validator Automation And Health Gates](phase-46-validator-automation-and-health-gates.md)
+- [Phase 46 Handoff](handoffs/phase-46.md)
 - [Track B Integration Phase Insert](track-b-integration-phase-insert.md)
 - [Phase 33 Public GTFS Local/Pilot Evidence](phase-33-public-gtfs-local-pilot-evidence.md)
 - [Phase 34 Post-Outcome-C Status Consistency](phase-34-post-outcome-c-status-consistency-and-evidence-readiness.md)

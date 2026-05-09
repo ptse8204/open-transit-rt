@@ -499,32 +499,43 @@ Do not auto-edit agency GTFS without operator approval.
 
 ### Goal
 
-Make validation continuous and operationally meaningful.
+Make validation operationally meaningful for local/reference operators without
+turning diagnostics into compliance or evidence claims.
 
 ### Artifacts
 
-- scheduled validator runner docs/scripts;
-- strict publish gate option for production-like environments;
-- validation history view improvements;
-- health status export;
-- scorecard integration.
+- private Operations Console validator-health HTML and JSON routes;
+- `scripts/validator-health.sh` and `make validator-health`;
+- deployment-doctor GET-only summary integration;
+- fixed four-feed health status export;
+- strict local/reference health gates through script exit behavior.
 
 ### Required Behavior
 
-- static GTFS validation before or after publish depending on configured mode;
-- realtime validation on schedule;
-- no-error status required before compliance claims;
-- warnings visible and explainable;
-- failures trigger operator action, not silent green status.
+- static health uses only `schedule` plus `static-mobilitydata`;
+- realtime health uses `vehicle_positions`, `trip_updates`, and `alerts` plus
+  `realtime-mobilitydata`;
+- internal GTFS import validation remains context only;
+- warnings, failures, stale results, missing artifacts, and tooling blockers
+  produce safe operator next actions;
+- browser requests cannot supply commands, paths, URLs, artifacts, argv, args,
+  or timeouts.
 
 ### Definition Of Done
 
 A deployment can show current validation state for schedule, Vehicle Positions,
 Trip Updates, and Alerts.
 
+### Phase 46 Closure
+
+Phase 46 is complete for private local/reference diagnostics. It does not add
+automatic publish blocking, evidence creation, consumer submission, consumer
+status mutation, or compliance/production-readiness claims.
+
 ### Non-Goals
 
-Validator success still does not mean consumer acceptance.
+Validator success still does not mean consumer acceptance, compliance, or
+production readiness.
 
 ## Phase 47 — Observability Plugin Pack
 

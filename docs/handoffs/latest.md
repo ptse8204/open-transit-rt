@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 45 — GTFS Quality Triage Loop is complete for the private authenticated
-Operations Console triage scope.
+Phase 46 — Validator Automation And Health Gates is complete for the private
+authenticated local/reference validator-health diagnostic scope.
 
-Phases 0 through 45 are closed for their documented scopes. Track A is also
+Phases 0 through 46 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -41,6 +41,22 @@ admin-only rerun against the active schedule through the server-side
 paths out of rendered HTML. The page is diagnostics only: no evidence packet,
 consumer status, public route, GTFS auto-edit, consumer acceptance claim, or
 CAL-ITP/Caltrans compliance claim was added.
+
+Phase 46 added authenticated `/admin/operations/validation-health` and
+`/admin/operations/validation-health.json`, plus `scripts/validator-health.sh`
+and `make validator-health`. The health summary is bounded, emits exactly four
+feed rows in fixed order, separates canonical static MobilityData validation
+from realtime MobilityData validation, and keeps Open Transit RT internal GTFS
+import validation out of canonical validator health. Admin-only `run_all` is
+CSRF-aware, form-size-capped, strict about accepted fields, and uses only
+server-owned validator mappings, artifacts, and timeouts. The script defaults
+to `.cache/validator-health/<timestamp>`, refuses evidence-like output paths,
+validates summary/manifest JSON, and does not call private admin routes without
+`ADMIN_TOKEN`. The deployment doctor may GET validation-health JSON with a safe
+admin URL and token, but never POSTs it. Phase 46 created no evidence packet,
+changed no consumer statuses, auto-edited no GTFS, blocked no publish, and
+added no compliance, consumer acceptance, agency adoption, hosted SaaS,
+production-readiness, vendor-compatibility, or production-grade ETA claim.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
@@ -557,8 +573,7 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 45 is complete; the next recommended
-phase is Phase 46 — Validator Automation And Health Gates, continuing the
+agencies and civic technologists. Phase 46 is complete; continue the
 self-hosted agency reuse roadmap without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
@@ -825,10 +840,11 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 45 is closed; do not reopen Phase 39, Phase 40, Phase
-41, Phase 42, Phase 43, Phase 44, or Phase 45 unless a concrete readiness-workflow,
+choosing files. Phase 46 is closed; do not reopen Phase 39, Phase 40, Phase
+41, Phase 42, Phase 43, Phase 44, Phase 45, or Phase 46 unless a concrete readiness-workflow,
 guided-trial, diagnostics, support-bundle, deployment-doctor, local-routing,
-checklist, telemetry-simulator, or GTFS quality triage regression is found.
+checklist, telemetry-simulator, GTFS quality triage, or validator-health
+regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -852,7 +868,6 @@ Continue the self-hosted agency reuse roadmap from this handoff.
 Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
 trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
-operator checklist, and Phase 44 telemetry simulator as the
-self-hosted/integration baseline. The next recommended phase is Phase 46 —
-Validator Automation And Health Gates.
+operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
+and Phase 46 validator health as the self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

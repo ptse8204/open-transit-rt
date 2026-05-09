@@ -90,6 +90,9 @@ The doctor checks:
 - unauthenticated public-edge denial for private/admin routes;
 - optional authenticated readiness through `ADMIN_BASE_URL` using only
   `Authorization: Bearer "$ADMIN_TOKEN"`;
+- optional authenticated validator-health JSON through
+  `/admin/operations/validation-health.json` using only `GET`, only when
+  `ADMIN_TOKEN` and a safe `ADMIN_BASE_URL` are present;
 - HTTPS and HTTP-to-HTTPS redirect posture for non-loopback HTTPS public roots;
 - loopback service `/healthz` and `/readyz` status for ports `8081` through
   `8086`;
@@ -107,6 +110,11 @@ The private route boundary checks use `HEAD` first and fall back to `GET` only
 when `HEAD` returns `405`. They never `POST` to admin routes. Public feed
 checks fetch bodies only to temporary files, record status, size, checksum,
 redirect count, effective URL, and content type, then delete the bodies.
+
+The validator-health integration stores summary fields only: generated time,
+agency ID, overall/tooling status, false claim flags, and bounded per-feed
+status fields. It never runs validators, never POSTs the route, never stores
+raw reports, and is private diagnostics only.
 
 ## Outputs
 

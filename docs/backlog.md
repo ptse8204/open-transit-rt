@@ -136,3 +136,24 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
 - Remaining later work: real device trials, real agency-approved telemetry,
   authorized vendor AVL integration evidence, and real-world realtime quality
   metrics only when retained claim-specific artifacts exist.
+
+## Phase 45 — GTFS Quality Triage Loop
+
+- Complete for the private authenticated static GTFS quality triage scope. The
+  repo now has `/admin/operations/gtfs-quality`, bounded canonical
+  MobilityData static validator triage, Open Transit RT internal import
+  validation context, admin-only static rerun, strict browser field rejection,
+  and a Phase 45 handoff.
+
+## Phase 46 — Validator Automation And Health Gates
+
+- Complete for the private local/reference validator-health diagnostic scope.
+  The repo now has `/admin/operations/validation-health`,
+  `/admin/operations/validation-health.json`, `scripts/validator-health.sh`,
+  `make validator-health`, deployment-doctor summary integration, fixed
+  four-feed health rows, strict admin-only `run_all`, bounded output, and a
+  Phase 46 handoff.
+- Remaining later work: production-owned scheduling, alerting, final-root
+  validator evidence, and consumer-facing packet workflows only when retained
+  claim-specific evidence exists. Phase 46 itself is not evidence, does not
+  block publishing, and does not change consumer statuses.

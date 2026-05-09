@@ -75,3 +75,7 @@ These questions do not block the next phase.
 - Phase 5 resolved the first UI entity scope: minimal operational forms for agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shape points, and frequencies.
 - Should a later Studio UI add map editing for shape points and timetable-design interactions for stop_times, or keep those as row editors?
 - Should draft publish require canonical MobilityData validator success in all environments once canonical validation is wired, or only production-like environments?
+- Phase 46 answer for local/reference diagnostics: validator health does not
+  block publishing automatically. It reports private health states and next
+  actions only. Any future production publish gate needs a separate
+  deployment-owned policy and evidence plan.

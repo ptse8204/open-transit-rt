@@ -135,6 +135,17 @@ func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, st
 		}
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))
+	mux.Handle("/admin/operations/validation-health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, validationHealthPostMaxBytes)
+		}
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/validation-health.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/publication/bootstrap", adminRead(http.HandlerFunc(h.bootstrapPublication)))
 	mux.Handle("/admin/compliance/scorecard", adminRead(http.HandlerFunc(h.scorecard)))

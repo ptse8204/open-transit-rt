@@ -449,6 +449,8 @@ record_private_route_boundaries() {
   for path in \
     "/admin/operations" \
     "/admin/operations/readiness" \
+    "/admin/operations/validation-health" \
+    "/admin/operations/validation-health.json" \
     "/admin/validation/run" \
     "/admin/devices/rebind" \
     "/admin/alerts/console" \
@@ -469,6 +471,73 @@ record_private_route_boundaries() {
     printf '%s\t%s\t%s\t%s\n' "$path" "$method" "$status" "$result" >>"$summary"
     add_check "admin_boundary" "$path" "$check_status" "$result"
   done
+}
+
+record_validation_health_summary() {
+  log "Check private validator health summary when explicitly available"
+  mkdir -p "$OUT_REAL/admin"
+  if [ -z "${ADMIN_TOKEN:-}" ]; then
+    add_check "admin_authenticated" "validation_health" "skipped" "ADMIN_TOKEN not supplied"
+    printf '{"status":"skipped","reason":"no_admin_token"}\n' >"$OUT_REAL/admin/validation-health.summary.json"
+    return 0
+  fi
+  if [ -z "$ADMIN_BASE_NORMALIZED" ]; then
+    add_check "admin_authenticated" "validation_health" "skipped" "safe ADMIN_BASE_URL unavailable"
+    printf '{"status":"skipped","reason":"safe_admin_base_url_unavailable"}\n' >"$OUT_REAL/admin/validation-health.summary.json"
+    return 0
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    add_check "admin_authenticated" "validation_health" "unavailable" "curl missing"
+    printf '{"status":"unavailable","reason":"curl_missing"}\n' >"$OUT_REAL/admin/validation-health.summary.json"
+    return 0
+  fi
+  body="$TMP_DIR/validation-health.body"
+  status="$(curl -sS \
+    --connect-timeout "$CONNECT_TIMEOUT_SECONDS" \
+    --max-time "$REQUEST_TIMEOUT_SECONDS" \
+    -o "$body" \
+    -w '%{http_code}' \
+    -H "Authorization: Bearer $ADMIN_TOKEN" \
+    "$(path_url "$ADMIN_BASE_NORMALIZED" "/admin/operations/validation-health.json")" 2>/dev/null || true)"
+  status="${status:-000}"
+  python3 - "$body" "$OUT_REAL/admin/validation-health.summary.json" "$status" <<'PY'
+import json
+import pathlib
+import sys
+
+body, out, status = sys.argv[1:4]
+summary = {"status": status}
+try:
+    data = json.loads(pathlib.Path(body).read_text())
+except Exception:
+    data = {}
+for key in (
+    "generated_at", "agency_id", "overall_status", "tooling_status",
+    "external_evidence_created", "consumer_statuses_changed",
+    "compliance_claimed", "production_readiness_claimed",
+):
+    if key in data:
+        summary[key] = data[key]
+feeds = []
+for row in data.get("feeds", [])[:4]:
+    feeds.append({
+        "feed_type": row.get("feed_type", ""),
+        "validator_id": row.get("validator_id", ""),
+        "tooling_status": row.get("tooling_status", ""),
+        "artifact_status": row.get("artifact_status", ""),
+        "latest_result_status": row.get("latest_result_status", ""),
+        "stale_status": row.get("stale_status", ""),
+        "health_status": row.get("health_status", ""),
+    })
+summary["feeds"] = feeds
+pathlib.Path(out).write_text(json.dumps(summary, indent=2) + "\n")
+PY
+  rm -f "$body"
+  case "$status" in
+    2*) add_check "admin_authenticated" "validation_health" "passed" "private validator health JSON returned 2xx" ;;
+    000) add_check "admin_authenticated" "validation_health" "unavailable" "connection failed" ;;
+    *) add_check "admin_authenticated" "validation_health" "warning" "unexpected authenticated status $status" ;;
+  esac
 }
 
 record_authenticated_admin() {
@@ -1041,6 +1110,7 @@ main() {
   record_public_feeds
   record_private_route_boundaries
   record_authenticated_admin
+  record_validation_health_summary
   record_https_posture
   record_service_health
   record_database_checks

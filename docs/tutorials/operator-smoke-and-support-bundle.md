@@ -142,6 +142,27 @@ When validation API calls run, the scripts use only allowlisted bodies:
 Only summary fields are stored by default: feed type, validator ID, status,
 error count, warning count, info count, validator name, and validator version.
 
+For the Phase 46 validator-health flow, use:
+
+```bash
+make validator-health
+```
+
+`scripts/validator-health.sh --dry-run` requires no network, database, Docker,
+`ADMIN_TOKEN`, or running app. Authenticated checks require `ADMIN_TOKEN` and a
+safe `ADMIN_BASE_URL` unless `PUBLIC_BASE_URL` is loopback and safely defaults.
+Without `ADMIN_TOKEN`, the script does not call private admin routes and
+records local validator tooling status only. `RUN_VALIDATORS=true` performs the
+admin-only `run_all` action against `/admin/operations/validation-health`;
+`STRICT_VALIDATOR_HEALTH=true` exits non-zero on blocked, failed, missing,
+misconfigured, artifact-unavailable, or stale health states.
+
+The script writes `summary.json`, `summary.md`, `manifest.json`, and
+`manifest.md` under `.cache/validator-health/<timestamp>` by default. It
+rejects `docs/evidence` and evidence-like output paths even when custom output
+directories are allowed. These files are private diagnostics only, not evidence
+packets or consumer submission artifacts.
+
 ## Synthetic AVL Dry-Run
 
 Both helpers record the synthetic AVL dry-run status using the deterministic
