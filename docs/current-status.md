@@ -30,6 +30,8 @@ for private validator automation and health gates. Phase 47 is complete for
 private local/reference operations notification summaries from existing
 diagnostics. Phase 48 is complete for the private AVL adapter runtime send
 path through authenticated `/v1/telemetry` with redacted private diagnostics.
+Phase 49 planning is approved for the optional external predictor runtime
+adapter path; implementation has not started.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot

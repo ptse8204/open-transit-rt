@@ -4,8 +4,8 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 48 — AVL Adapter Runtime Path is complete for the private adapter
-send-mode scope.
+Phase 49 — External Predictor Runtime Adapter is planned and approved.
+Implementation has not started.
 
 Phases 0 through 48 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
@@ -93,8 +93,9 @@ support, or add compliance, consumer acceptance, agency adoption, hosted SaaS,
 production-readiness, vendor-compatibility, production AVL reliability, or
 production-grade ETA claims.
 
-The next phase is Phase 49 — External Predictor Runtime Adapter. Start with a
-fresh read-only planning sub-agent pass before any implementation.
+The next step is Phase 49 execution against
+`docs/phase-49-external-predictor-runtime-adapter.md`. Execution must stay
+inside that approved plan.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
 handling. It does not prove agency adoption, agency approval, official agency
