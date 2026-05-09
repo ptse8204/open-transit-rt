@@ -3,7 +3,7 @@
 **Status:** proposed review draft, not yet committed  
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`  
 **Generated for review:** 2026-05-08  
-**Current repo baseline:** Phase 44 closed for the synthetic telemetry simulator scope
+**Current repo baseline:** Phase 47 closed for private local operations notification summaries
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -48,7 +48,7 @@ Open Transit RT is production-ready for all agencies.
 
 ## Current Baseline
 
-As of Phase 44, Open Transit RT has:
+As of Phase 47, Open Transit RT has:
 
 - GTFS ZIP import and GTFS Studio draft/publish workflows;
 - stable public feed paths for:
@@ -74,6 +74,8 @@ As of Phase 44, Open Transit RT has:
 - a private authenticated setup/readiness checklist in HTML and JSON;
 - a synthetic telemetry simulator that uses real device-token auth and
   `POST /v1/telemetry`;
+- private validator-health diagnostics;
+- private local operations notification drafts from existing diagnostics;
 - synthetic AVL adapter fixtures;
 - deterministic realtime-quality replay fixtures;
 - prepared consumer packets for seven targets;
@@ -200,7 +202,7 @@ phase handoff is created.
 | 44 | Telemetry Simulator And Device Trial | Complete. Safe simulator path that sends synthetic telemetry through real device-token ingest. |
 | 45 | GTFS Quality Triage Loop | Operator-facing static GTFS validator warning/error triage linked to import/Studio actions. |
 | 46 | Validator Automation And Health Gates | Scheduled validator runs, strict activation gates, history views, and deployment status exports. |
-| 47 | Observability Plugin Pack | Optional Prometheus/Grafana/OpenTelemetry deployment-owned integration package. |
+| 47 | Self-Hosted Operations Notifications | Complete. Private local notification drafts from existing diagnostic summaries only; no sending or evidence creation. |
 | 48 | AVL Adapter Runtime Path | Private/authorized adapter send-mode pattern preserving `/v1/telemetry` and redaction boundaries. |
 | 49 | External Predictor Runtime Adapter | Optional external predictor runtime path behind `internal/prediction.Adapter`. |
 | 50 | Realtime Quality Backtesting | Real/simulated observed-arrival quality workflow with route/time-period metrics and ETA maturity gates. |
@@ -537,40 +539,52 @@ status mutation, or compliance/production-readiness claims.
 Validator success still does not mean consumer acceptance, compliance, or
 production readiness.
 
-## Phase 47 — Observability Plugin Pack
+## Phase 47 — Self-Hosted Operations Notifications
 
 ### Goal
 
-Package deployment-owned observability integrations without making them core
-runtime dependencies.
+Provide a private local notification draft that summarizes existing
+validator-health and deployment-doctor diagnostics for a self-hosted operator.
+The output is a bounded local summary only.
 
 ### Artifacts
 
-- Prometheus scrape examples;
-- Grafana dashboard JSON or documented dashboard spec;
-- alert rule examples;
-- optional OpenTelemetry instrumentation plan or minimal implementation;
-- deployment docs for alert delivery proof.
+- `scripts/operations-notify.sh`;
+- `make operations-notify`;
+- `docs/tutorials/self-hosted-operations-notifications.md`;
+- `docs/phase-47-self-hosted-operations-notifications.md`;
+- `docs/handoffs/phase-47.md`.
 
-### Required Metrics
+### Required Behavior
 
-- feed freshness;
-- endpoint fetch success;
-- validation status;
-- telemetry freshness;
-- assignment unknown/ambiguous/stale rates;
-- Trip Updates emitted/withheld rates;
-- service readiness;
-- backup/restore job status where available.
+- read the latest timestamp-named `.cache/validator-health/*/summary.json`;
+- read the latest timestamp-named `.cache/deployment-doctor/*/summary.json`;
+- support explicit source summary paths under `.cache`;
+- reject symlink and evidence-like output or source paths;
+- cap source sizes, output sizes, next actions, and copied fields;
+- record webhook/email destination presence as booleans only;
+- write `summary.json`, `summary.md`, `manifest.json`, `manifest.md`, and
+  `notification.txt`;
+- keep `notification.txt` marked `DRAFT — NOT SENT`;
+- support a strict mode for local automation failure semantics.
 
 ### Definition Of Done
 
-A deployment can install monitoring around Open Transit RT without changing core
-business logic.
+A self-hosted operator can generate a private local draft that summarizes
+current validation-health, feed availability, deployment-doctor blockers, and
+safe next actions without sending anything or copying private source data.
 
 ### Non-Goals
 
-No SLA, hosted monitoring, or paid support claim.
+No notification sending, webhook delivery, email delivery, public API, admin
+route call, validator run, database requirement, Docker requirement, app
+requirement, evidence creation, consumer contact, consumer status change, GTFS
+auto-editing, publish blocking, CAL-ITP/Caltrans compliance proof, consumer
+acceptance proof, agency adoption proof, hosted SaaS claim, production
+readiness proof, vendor compatibility proof, or production-grade ETA proof.
+
+Phase 47 is not a compliance gate, not production health proof, not evidence,
+and not consumer-readiness proof.
 
 ## Phase 48 — AVL Adapter Runtime Path
 
@@ -968,22 +982,22 @@ No aspirational language disguised as evidence.
 2. Phase 42 — Reference Deployment Doctor — complete
 3. Phase 43 — Operator UX Setup V2 — complete
 4. Phase 44 — Telemetry Simulator And Device Trial — complete
-5. Phase 45 — GTFS Quality Triage Loop
-6. Phase 46 — Validator Automation And Health Gates
+5. Phase 45 — GTFS Quality Triage Loop — complete
+6. Phase 46 — Validator Automation And Health Gates — complete
+7. Phase 47 — Self-Hosted Operations Notifications — complete
 
 These phases make the repo usable by small agencies and civic technologists.
 They do not require external authorization.
 
 ### Integration and operations maturity
 
-7. Phase 47 — Observability Plugin Pack
 8. Phase 48 — AVL Adapter Runtime Path
 9. Phase 49 — External Predictor Runtime Adapter
 10. Phase 50 — Realtime Quality Backtesting
 11. Phase 51 — Operations Reliability And SLO Readiness
 
-These phases close the biggest open-source GTFS-RT gaps: monitoring, adapters,
-telemetry, predictor replacement, and quality measurement.
+These phases close later open-source GTFS-RT gaps: adapters, telemetry,
+predictor replacement, quality measurement, and deployment-owned monitoring.
 
 ### Evidence and compliance path
 

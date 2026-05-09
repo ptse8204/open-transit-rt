@@ -157,3 +157,15 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   validator evidence, and consumer-facing packet workflows only when retained
   claim-specific evidence exists. Phase 46 itself is not evidence, does not
   block publishing, and does not change consumer statuses.
+
+## Phase 47 — Self-Hosted Operations Notifications
+
+- Complete for the private local/reference notification-summary scope. The
+  repo now has `scripts/operations-notify.sh`, `make operations-notify`, a
+  tutorial, a Phase 47 reference, a handoff, validation checks, and focused
+  tests for safe source parsing, no-send behavior, redaction, strict mode,
+  source/output size caps, destination privacy, and docs wording.
+- Remaining later work: deployment-owned alerting or monitoring integrations
+  only as private diagnostics unless retained claim-specific evidence supports
+  a narrower external proof path. Phase 47 itself sends nothing, creates no
+  evidence, does not block publishing, and does not change consumer statuses.

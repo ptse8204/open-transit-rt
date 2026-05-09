@@ -164,6 +164,20 @@ rejects `docs/evidence` and evidence-like output paths even when custom output
 directories are allowed. These files are private diagnostics only, not evidence
 packets or consumer submission artifacts.
 
+For the Phase 47 local notification draft, use:
+
+```bash
+make operations-notify
+```
+
+This reads existing validator-health and deployment-doctor summaries from
+`.cache`, writes a bounded private draft under `.cache/operations-notify/`, and
+does not send to webhook, email, consumers, an agency, or a public service.
+`scripts/operations-notify.sh --dry-run` writes the same five local draft files
+without requiring sources, network, webhook, email, database, Docker, admin
+token, app, or a running service. The draft is not evidence, not compliance
+proof, not production readiness proof, and not consumer acceptance.
+
 ## Synthetic AVL Dry-Run
 
 Both helpers record the synthetic AVL dry-run status using the deterministic

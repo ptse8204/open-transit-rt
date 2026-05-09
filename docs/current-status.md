@@ -11,7 +11,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 46 are
+prototype for GTFS and GTFS Realtime publication. Phases 0 through 47 are
 closed for their documented scopes. Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -26,7 +26,9 @@ for the read-only reference deployment doctor. Phase 43 is complete for the
 private Operator UX Setup V2 checklist and local routing patch scope. Phase 44
 is complete for the synthetic telemetry simulator and device trial scope. Phase
 45 is complete for the private GTFS quality triage loop. Phase 46 is complete
-for private validator automation and health gates.
+for private validator automation and health gates. Phase 47 is complete for
+private local/reference operations notification summaries from existing
+diagnostics.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -80,6 +82,20 @@ this route. Phase 46 creates no evidence packets, writes nothing under
 statuses, and adds no compliance, consumer acceptance, agency adoption, hosted
 SaaS, production-readiness, vendor-compatibility, or production-grade ETA
 claim.
+
+Phase 47 adds `scripts/operations-notify.sh` and `make operations-notify` for
+private local/reference notification drafts from already-created
+validator-health and deployment-doctor summaries. The script writes exactly
+`summary.json`, `summary.md`, `manifest.json`, `manifest.md`, and
+`notification.txt` under `.cache/operations-notify/<timestamp>` by default,
+records destination presence as booleans only, caps source and output sizes,
+rejects symlink/evidence-like paths, and supports strict mode for local
+automation. Phase 47 sends no notification, calls no webhook/email/admin route,
+runs no validator, requires no DB/Docker/app/admin token, creates no evidence,
+writes nothing under `docs/evidence`, contacts no consumers, changes no
+consumer statuses, blocks no publish, auto-edits no GTFS, and adds no
+compliance, consumer acceptance, agency adoption, hosted SaaS,
+production-readiness, vendor-compatibility, or production-grade ETA claim.
 
 Phase 10 docs, tutorials, deployment, and demo work is complete for the repository surface at that time. It filled the tutorial set under `docs/tutorials/`, added the executable `make demo-agency-flow` agency demo, updated `scripts/bootstrap-dev.sh` output for current services and protected/public surfaces, and added repo-owned docs assets under `docs/assets/`. The demo flow explicitly verifies public `schedule.zip`, `feeds.json`, public realtime protobuf feeds, protected JSON debug/admin access, and protected GTFS Studio access.
 
@@ -550,10 +566,12 @@ The following are still missing or incomplete unless a later handoff says otherw
 
 ## Current Phase
 
-**Active phase:** Phase 46 — Validator Automation And Health Gates is complete
-for its private local/reference validator-health diagnostic scope. Phases 41
-through 45 remain complete for their documented diagnostics, deployment-doctor,
-operator checklist, telemetry simulator, and GTFS quality triage scopes. Phase
+**Active phase:** Phase 47 — Self-Hosted Operations Notifications is complete
+for its private local/reference notification-summary scope. Phase 46 remains
+complete for its private local/reference validator-health diagnostic scope.
+Phases 41 through 45 remain complete for their documented diagnostics,
+deployment-doctor, operator checklist, telemetry simulator, and GTFS quality
+triage scopes. Phase
 40 — Guided Self-Hosted Operator Trial remains complete for its docs/navigation
 guided trial scope. Phase 39 — CAL-ITP-Style Readiness Workflow remains
 complete for its product-facing readiness workflow scope. Phase 38 —
@@ -570,7 +588,7 @@ self-hosted agency reuse roadmap from the latest handoff. Track A — External P
 complete for the documented docs-only operator workflow, evidence intake,
 artifact-directory, and agency-domain readiness scope, and remains available as
 a future optional proof path when retained claim-specific artifacts exist.
-Phases 12 through 41 remain closed for their documented scopes.
+Phases 12 through 47 remain closed for their documented scopes.
 
 Phase 12 Step 1 is complete as repo docs/runbooks/evidence-template scaffolding. Phase 12 Step 2 has a partial local evidence packet under `docs/evidence/captured/local-demo/2026-04-22/`. Phase 12 hosted/operator evidence is complete for the OCI pilot under `docs/evidence/captured/oci-pilot/2026-04-24/`.
 
@@ -582,7 +600,7 @@ Phase 15 completed targeted public repo hygiene and evidence redaction review. P
 
 Track A added the safe operator workflow needed before real consumer adoption steps. It did not verify any target submission path, because no current official target source or operator-retained evidence was added for those paths. It did not change `docs/evidence/consumer-submissions/status.json` or any current target record beyond documentation links.
 
-Track B added repo-native roadmap context for Phase 22 through Phase 39. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Phase 27 added selected repository-level multi-agency isolation tests and boundary docs without claiming production multi-tenant operations. Phase 28 added docs-first operations hardening, templates, alert delivery proof, capacity guidance, secret rotation, handover, and evidence refresh guidance without runtime or evidence-claim changes. Phase 29 added synthetic replay quality expansion without claiming real-world ETA accuracy, real route/time-period coverage, production-grade ETA quality, external predictor integration, or evidence-claim changes. Phase 29A documented and tested the external predictor adapter boundary without adding runtime external predictor integration, runtime config, external services, public feed URL changes, GTFS-RT contract changes, consumer-status changes, auth-boundary changes, schema changes, or stronger ETA/compliance/vendor-support claims. Phase 29B added a synthetic dry-run AVL/vendor adapter pilot behind the existing telemetry boundary without network send mode, real vendor data, credentials, external dependencies, public feed URL changes, consumer-status changes, API changes, or stronger vendor/reliability claims. Phase 30 closed as Outcome B — blocker-documented closure only at the phase level; no target was selected, no target-specific blocker artifact exists, no target moved to `blocked`, and all seven targets remain `prepared`. Phase 31 added agency pilot program docs, kickoff agenda, checklist, training outline, feedback template, risk register, responsibility matrix, public launch readiness boundary, and closeout summary without runtime, evidence, consumer-status, or support-commitment changes. Phase 32 added draft public launch materials, public share copy, ecosystem positioning, and launch truthfulness checklist without outreach, launch, runtime, evidence, consumer-status, or support-commitment changes. The post-Phase-32 final-root evidence follow-up confirmed the Phase 23 final-root blocker remains unresolved and created no final-root evidence packet. Phase 33 added public GTFS local/pilot evidence docs and templates, fixed the large LA Metro import timeout exposed by the first attempt, and closed as Outcome C with a dated public-safe evidence packet for local/pilot public GTFS import, publication, schedule proof, five-path fetches, validators or blockers, dry-run telemetry summary, and admin/private route checks. Phase 34 aligned post-Outcome-C status docs, final-root request guidance, public-GTFS repeatability guidance, and handoff/roadmap wording without adding external evidence. Phase 35 restored the root README as the product front door and made self-hosted agency reuse and OCI/OCL reference deployment productization the default roadmap without adding runtime changes, evidence, or consumer-status changes. Phase 36 added docs-only self-hosted OCI/OCL reference deployment guidance without runtime changes, evidence, consumer-status changes, final-root proof, OCI pilot evidence changes, or validator artifact changes. Phase 37 added the reusable agency onboarding command and docs without consumer-status changes, external evidence, final-root proof, or stronger agency/consumer/compliance/production claims. Phase 38 added a central adapter kit, synthetic fixture manifest, dry-run fixture examples, and focused adapter tests without network send mode, real vendor data, external predictor runtime integration, monitoring stack assets, consumer APIs, consumer-status changes, external evidence, or stronger integration claims. Phase 39 added an authenticated CAL-ITP-style readiness workflow without external evidence, consumer-status changes, public feed contract changes, or compliance claims. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
+Track B added repo-native roadmap context for Phase 22 through Phase 47. Phase 22 added release and distribution hardening docs without runtime changes. Phase 23 closed as blocker-documented only because no agency-owned or agency-approved final feed root is available. No final-root evidence, validator records, or packet refreshes were collected. Phase 24 added real-agency GTFS onboarding, validation triage, metadata approval, publish review, and template-only evidence scaffolding without runtime or evidence-claim changes. Phase 25 added device/AVL telemetry onboarding, token lifecycle, vendor-boundary, simulator, troubleshooting, redaction, and template-only evidence guidance without runtime or evidence-claim changes. Phase 26 added browser-guided setup UX without changing public feeds, API contracts, consumer statuses, external integrations, or evidence claims. Phase 27 added selected repository-level multi-agency isolation tests and boundary docs without claiming production multi-tenant operations. Phase 28 added docs-first operations hardening, templates, alert delivery proof, capacity guidance, secret rotation, handover, and evidence refresh guidance without runtime or evidence-claim changes. Phase 29 added synthetic replay quality expansion without claiming real-world ETA accuracy, real route/time-period coverage, production-grade ETA quality, external predictor integration, or evidence-claim changes. Phase 29A documented and tested the external predictor adapter boundary without adding runtime external predictor integration, runtime config, external services, public feed URL changes, GTFS-RT contract changes, consumer-status changes, auth-boundary changes, schema changes, or stronger ETA/compliance/vendor-support claims. Phase 29B added a synthetic dry-run AVL/vendor adapter pilot behind the existing telemetry boundary without network send mode, real vendor data, credentials, external dependencies, public feed URL changes, consumer-status changes, API changes, or stronger vendor/reliability claims. Phase 30 closed as Outcome B — blocker-documented closure only at the phase level; no target was selected, no target-specific blocker artifact exists, no target moved to `blocked`, and all seven targets remain `prepared`. Phase 31 added agency pilot program docs, kickoff agenda, checklist, training outline, feedback template, risk register, responsibility matrix, public launch readiness boundary, and closeout summary without runtime, evidence, consumer-status, or support-commitment changes. Phase 32 added draft public launch materials, public share copy, ecosystem positioning, and launch truthfulness checklist without outreach, launch, runtime, evidence, consumer-status, or support-commitment changes. The post-Phase-32 final-root evidence follow-up confirmed the Phase 23 final-root blocker remains unresolved and created no final-root evidence packet. Phase 33 added public GTFS local/pilot evidence docs and templates, fixed the large LA Metro import timeout exposed by the first attempt, and closed as Outcome C with a dated public-safe evidence packet for local/pilot public GTFS import, publication, schedule proof, five-path fetches, validators or blockers, dry-run telemetry summary, and admin/private route checks. Phase 34 aligned post-Outcome-C status docs, final-root request guidance, public-GTFS repeatability guidance, and handoff/roadmap wording without adding external evidence. Phase 35 restored the root README as the product front door and made self-hosted agency reuse and OCI/OCL reference deployment productization the default roadmap without adding runtime changes, evidence, or consumer-status changes. Phase 36 added docs-only self-hosted OCI/OCL reference deployment guidance without runtime changes, evidence, consumer-status changes, final-root proof, OCI pilot evidence changes, or validator artifact changes. Phase 37 added the reusable agency onboarding command and docs without consumer-status changes, external evidence, final-root proof, or stronger agency/consumer/compliance/production claims. Phase 38 added a central adapter kit, synthetic fixture manifest, dry-run fixture examples, and focused adapter tests without network send mode, real vendor data, external predictor runtime integration, monitoring stack assets, consumer APIs, consumer-status changes, external evidence, or stronger integration claims. Phase 39 added an authenticated CAL-ITP-style readiness workflow without external evidence, consumer-status changes, public feed contract changes, or compliance claims. Phase 40 through Phase 47 added guided operator, diagnostics, deployment doctor, checklist, simulator, GTFS quality, validator-health, and private local notification-summary workflows without evidence creation, consumer-status changes, publish blocking, or stronger readiness claims. Track B must not advance consumer statuses, change public feed URLs, or introduce stronger readiness claims without the evidence required by Track A, the redaction policy, and the security policy.
 
 The next Codex instance should start with `docs/handoffs/latest.md`.
 
@@ -1268,7 +1286,7 @@ Final-root evidence follow-up check results:
 ## Next Recommended Step
 
 Continue the self-hosted agency reuse roadmap from `docs/handoffs/latest.md`.
-Phase 46 is complete. Continue with the next deployment-hardening or operations
+Phase 47 is complete. Continue with the next deployment-hardening or operations
 phase while preserving the evidence and claim boundaries.
 
 Future optional proof tracks remain:

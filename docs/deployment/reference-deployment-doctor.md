@@ -147,6 +147,22 @@ compliance_claimed=false
 production_readiness_claimed=false
 ```
 
+## Operations Notification Draft
+
+After running the deployment doctor and validator-health helper, an operator can
+create a private local notification draft:
+
+```sh
+make operations-notify
+```
+
+The notification helper reads existing `.cache/validator-health/*/summary.json`
+and `.cache/deployment-doctor/*/summary.json` summaries only. It does not call
+the deployment doctor, call admin routes, run validators, fetch public feeds,
+send webhook or email messages, contact consumers, or create evidence. It
+records notification destination presence as booleans only and writes bounded
+local drafts under `.cache/operations-notify/<timestamp>`.
+
 ## Secret Safety
 
 The doctor never prints or writes:

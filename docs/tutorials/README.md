@@ -16,6 +16,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md): run strict smoke checks and collect redaction-safe diagnostics without creating evidence.
 - [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md): run read-only reference deployment diagnostics without creating evidence.
 - [Phase 46 Validator Automation And Health Gates](../phase-46-validator-automation-and-health-gates.md): review private validator tooling, artifact, stale-result, and next-action diagnostics without creating evidence.
+- [Self-Hosted Operations Notifications](self-hosted-operations-notifications.md): draft a private local notification summary from existing diagnostics without sending anything.
 - [Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md): send synthetic telemetry through real authenticated ingest for local/reference diagnostics.
 - [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md): prepare, validate, review, and publish a real agency GTFS ZIP safely.
 - [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a real public GTFS local/pilot run without implying agency approval.
@@ -36,6 +37,7 @@ For self-hosted deployment planning, see
 [Self-Hosted Operator Trial](self-hosted-operator-trial.md),
 [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md),
 [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md),
+[Self-Hosted Operations Notifications](self-hosted-operations-notifications.md),
 [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md),
 the [Self-Hosted Agency Reuse Master Plan](../master-plan-self-hosted-agency-reuse.md),
 and the closed [OCI/OCL Reference Deployment Productization](../phase-36-oci-reference-deployment-productization.md)

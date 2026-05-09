@@ -43,6 +43,8 @@ The repository has code and docs for:
 - Private validator-health diagnostics at
   `/admin/operations/validation-health` and through `make validator-health`,
   with bounded summaries and no evidence creation.
+- Private local operations notification drafts through `make operations-notify`,
+  summarizing existing diagnostics without sending webhook or email messages.
 - Documentation for CAL-ITP-style readiness workflows without claiming
   compliance.
 
@@ -112,6 +114,7 @@ Start with:
 - [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
 - [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
 - [Phase 46 Validator Automation And Health Gates](docs/phase-46-validator-automation-and-health-gates.md)
+- [Self-Hosted Operations Notifications](docs/tutorials/self-hosted-operations-notifications.md)
 - [Small-Agency Pilot Operations](docs/runbooks/small-agency-pilot-operations.md)
 - [Self-Hosted Agency Reuse Master Plan](docs/master-plan-self-hosted-agency-reuse.md)
 - [Phase 36 Reference Deployment Productization](docs/phase-36-oci-reference-deployment-productization.md)
@@ -136,6 +139,9 @@ is not agency-owned final-root proof.
 - Validator health summaries are private diagnostics only. They distinguish
   installed, runnable, stale, missing, blocked, and review-needed states, but do
   not create evidence or change consumer/publication state.
+- Operations notification drafts are private local summaries only. They do not
+  send notifications, contact consumers, create evidence, or change
+  consumer/publication state.
 - Monitoring is deployment-owned. The repo exposes lightweight metrics and
   pilot operations helpers, but does not provision Prometheus, Grafana, or SLO
   operations by itself.

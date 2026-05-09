@@ -4,10 +4,10 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Phase 46 — Validator Automation And Health Gates is complete for the private
-authenticated local/reference validator-health diagnostic scope.
+Phase 47 — Self-Hosted Operations Notifications is complete for the private
+local/reference operations notification summary scope.
 
-Phases 0 through 46 are closed for their documented scopes. Track A is also
+Phases 0 through 47 are closed for their documented scopes. Track A is also
 closed for its docs-only external-proof workflow scope. Do not reopen earlier
 phases unless a blocking truthfulness, safety, security, realtime-quality,
 evidence, agency-boundary, auth, data-isolation, agency-domain, device/AVL
@@ -56,6 +56,20 @@ validates summary/manifest JSON, and does not call private admin routes without
 admin URL and token, but never POSTs it. Phase 46 created no evidence packet,
 changed no consumer statuses, auto-edited no GTFS, blocked no publish, and
 added no compliance, consumer acceptance, agency adoption, hosted SaaS,
+production-readiness, vendor-compatibility, or production-grade ETA claim.
+
+Phase 47 added `scripts/operations-notify.sh` and `make operations-notify` for
+private local notification drafts from existing validator-health and
+deployment-doctor summaries. The script defaults to
+`.cache/operations-notify/<timestamp>`, writes exactly `summary.json`,
+`summary.md`, `manifest.json`, `manifest.md`, and `notification.txt`, caps
+source/output sizes, rejects symlink and evidence-like paths, records webhook
+and email presence as booleans only, and supports strict mode for local
+automation. It sends no notifications, calls no webhook/email/admin route, runs
+no validators, requires no DB/Docker/app/admin token, creates no evidence,
+writes nothing under `docs/evidence`, contacts no consumers, changes no
+consumer statuses, blocks no publish, auto-edits no GTFS, and adds no
+compliance, consumer acceptance, agency adoption, hosted SaaS,
 production-readiness, vendor-compatibility, or production-grade ETA claim.
 
 Phase 33 evidence is completed only for local/pilot public static GTFS dataset
@@ -573,7 +587,7 @@ Do not claim hosted SaaS availability, paid support/SLA coverage, universal prod
 ## Current Objective
 
 Make Open Transit RT easier to self-host, adapt, and integrate for small
-agencies and civic technologists. Phase 46 is complete; continue the
+agencies and civic technologists. Phase 47 is complete; continue the
 self-hosted agency reuse roadmap without weakening the evidence boundaries.
 
 External-proof tracks remain available later when a future operator is
@@ -840,11 +854,11 @@ docker compose -f deploy/docker-compose.yml config
 ## First Files Likely To Edit Next
 
 Use the next approved phase document and `docs/handoffs/latest.md` before
-choosing files. Phase 46 is closed; do not reopen Phase 39, Phase 40, Phase
-41, Phase 42, Phase 43, Phase 44, Phase 45, or Phase 46 unless a concrete readiness-workflow,
-guided-trial, diagnostics, support-bundle, deployment-doctor, local-routing,
-checklist, telemetry-simulator, GTFS quality triage, or validator-health
-regression is found.
+choosing files. Phase 47 is closed; do not reopen Phase 39, Phase 40, Phase
+41, Phase 42, Phase 43, Phase 44, Phase 45, Phase 46, or Phase 47 unless a
+concrete readiness-workflow, guided-trial, diagnostics, support-bundle,
+deployment-doctor, local-routing, checklist, telemetry-simulator, GTFS quality
+triage, validator-health, or operations-notification regression is found.
 
 External-proof docs remain available for later optional tracks. Do not edit
 target-specific consumer records, `docs/evidence/consumer-submissions/status.json`,
@@ -869,5 +883,6 @@ Use the Phase 36 reference deployment docs, Phase 37 reusable onboarding flow,
 Phase 38 adapter kit, Phase 39 readiness workflow, Phase 40 guided operator
 trial, Phase 41 diagnostics, Phase 42 deployment doctor, Phase 43 private
 operator checklist, Phase 44 telemetry simulator, Phase 45 GTFS quality triage,
-and Phase 46 validator health as the self-hosted/integration baseline.
+Phase 46 validator health, and Phase 47 operations notification summaries as
+the self-hosted/integration baseline.
 External-proof work remains a future optional path, not the default roadmap.

@@ -34,6 +34,11 @@ These questions do not block the next phase.
   Output is private diagnostics, not evidence, not real vendor compatibility,
   not production AVL reliability, not real realtime data, not production-grade
   ETA proof, and not CAL-ITP/Caltrans compliance proof.
+- Answered in Phase 47 for current notification drafts: use
+  `make operations-notify` to write a private local draft from existing
+  validator-health and deployment-doctor summaries. The draft is not sent, not
+  evidence, not a compliance gate, not production health proof, and not
+  consumer acceptance.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 
