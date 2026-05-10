@@ -1,0 +1,399 @@
+#!/usr/bin/env sh
+set -eu
+umask 077
+
+ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+cd "$ROOT_DIR"
+
+TIMESTAMP="$(date -u '+%Y%m%dT%H%M%SZ')"
+OUTPUT_DIR="${OUTPUT_DIR:-.cache/release-candidate-check/$TIMESTAMP}"
+FORCE="${FORCE:-false}"
+ALLOW_UNIGNORED_OUTPUT_DIR="${ALLOW_UNIGNORED_OUTPUT_DIR:-false}"
+RUN_LOCAL_APP="${RUN_LOCAL_APP:-false}"
+RUN_RELEASE_PACKAGE="${RUN_RELEASE_PACKAGE:-false}"
+RELEASE_PACKAGE_DIR="${RELEASE_PACKAGE_DIR:-}"
+DRY_RUN="false"
+TMP_DIR=""
+
+usage() {
+  cat <<'EOF'
+Usage:
+  scripts/release-candidate-check.sh [--help] [--dry-run]
+
+Environment:
+  OUTPUT_DIR                    Default .cache/release-candidate-check/<UTC timestamp>
+  FORCE                         true|false; allow non-empty output reuse
+  ALLOW_UNIGNORED_OUTPUT_DIR    true|false; allow output outside .cache except evidence-like paths
+  RUN_LOCAL_APP                 true|false; when true, start local app and fetch five public paths
+  RUN_RELEASE_PACKAGE           true|false; when true, audit RELEASE_PACKAGE_DIR
+  RELEASE_PACKAGE_DIR           Optional existing .cache/release-package/... directory to audit
+
+Safety:
+  This helper creates private local release-candidate diagnostics only. It
+  writes exactly summary.json, summary.md, manifest.json, manifest.md, and
+  check-log.txt. It never tags, publishes, pushes images, contacts consumers,
+  creates retained evidence, writes docs/evidence, changes consumer statuses,
+  or claims compliance, agency approval, hosted service availability,
+  production readiness, vendor compatibility, or production-grade ETA quality.
+EOF
+}
+
+fail() {
+  printf 'ERROR: %s\n' "$1" >&2
+  exit 1
+}
+
+cleanup() {
+  if [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
+    rm -rf "$TMP_DIR"
+  fi
+}
+trap cleanup EXIT INT TERM
+
+bool_var() {
+  case "$2" in
+    true|false) ;;
+    *) fail "$1 must be true or false" ;;
+  esac
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --dry-run)
+      DRY_RUN="true"
+      ;;
+    *)
+      fail "unknown argument: $1"
+      ;;
+  esac
+  shift
+done
+
+bool_var FORCE "$FORCE"
+bool_var ALLOW_UNIGNORED_OUTPUT_DIR "$ALLOW_UNIGNORED_OUTPUT_DIR"
+bool_var RUN_LOCAL_APP "$RUN_LOCAL_APP"
+bool_var RUN_RELEASE_PACKAGE "$RUN_RELEASE_PACKAGE"
+
+mkdir -p .cache
+TMP_DIR="$(mktemp -d ".cache/release-candidate-check-tmp.XXXXXX")"
+chmod 700 "$TMP_DIR"
+
+python3 - "$ROOT_DIR" "$OUTPUT_DIR" "$TIMESTAMP" "$FORCE" "$ALLOW_UNIGNORED_OUTPUT_DIR" <<'PY' >"$TMP_DIR/output-dir"
+import pathlib
+import shutil
+import sys
+
+root = pathlib.Path(sys.argv[1]).resolve()
+raw = pathlib.Path(sys.argv[2])
+force = sys.argv[4] == "true"
+allow = sys.argv[5] == "true"
+out = raw if raw.is_absolute() else root / raw
+resolved = out.resolve(strict=False)
+cache = (root / ".cache").resolve(strict=False)
+
+def evidence_like(path):
+    text = str(path).replace("\\", "/").lower()
+    parts = [p.lower() for p in pathlib.Path(path).parts]
+    return "docs/evidence" in text or "evidence" in parts or "submission" in parts or "proof" in parts
+
+def has_symlink(path):
+    probe = pathlib.Path(path)
+    if not probe.is_absolute():
+        probe = root / probe
+    current = pathlib.Path(probe.anchor) if probe.anchor else pathlib.Path(".")
+    parts = probe.parts[1 if probe.anchor else 0:]
+    for part in parts:
+        current = current / part
+        if current.exists() and current.is_symlink():
+            return True
+    return False
+
+if evidence_like(raw) or evidence_like(resolved):
+    raise SystemExit("OUTPUT_DIR must not be evidence-like or under docs/evidence")
+if has_symlink(raw):
+    raise SystemExit("OUTPUT_DIR must not contain symlink directories")
+if not allow:
+    try:
+        resolved.relative_to(cache)
+    except ValueError:
+        raise SystemExit("OUTPUT_DIR must resolve under repo .cache unless ALLOW_UNIGNORED_OUTPUT_DIR=true")
+if resolved.exists() and not resolved.is_dir():
+    raise SystemExit("OUTPUT_DIR must be a directory")
+if resolved.exists() and any(resolved.iterdir()):
+    if not force:
+        raise SystemExit("OUTPUT_DIR exists and is non-empty; use FORCE=true to reuse it")
+    for child in resolved.iterdir():
+        if child.is_symlink() or child.is_file():
+            child.unlink()
+        else:
+            shutil.rmtree(child)
+resolved.mkdir(parents=True, exist_ok=True)
+resolved.chmod(0o700)
+print(resolved)
+PY
+OUT_REAL="$(cat "$TMP_DIR/output-dir")"
+CHECKS_TSV="$TMP_DIR/checks.tsv"
+LOG_FILE="$OUT_REAL/check-log.txt"
+printf 'id\tlabel\tstatus\tdetail\n' >"$CHECKS_TSV"
+: >"$LOG_FILE"
+
+add_check() {
+  id="$1"
+  label="$2"
+  status="$3"
+  detail="$4"
+  case "$status" in
+    passed|needs_review|not_checked|blocker) ;;
+    *) fail "invalid check status: $status" ;;
+  esac
+  printf '%s\t%s\t%s\t%s\n' "$id" "$label" "$status" "$detail" >>"$CHECKS_TSV"
+}
+
+log_cmd() {
+  printf '\n## %s\n' "$1" >>"$LOG_FILE"
+  printf '$ %s\n' "$2" >>"$LOG_FILE"
+}
+
+run_check() {
+  id="$1"
+  label="$2"
+  command="$3"
+  if [ "$DRY_RUN" = "true" ]; then
+    add_check "$id" "$label" "not_checked" "dry-run: $command"
+    return
+  fi
+  log_cmd "$label" "$command"
+  if sh -c "$command" >>"$LOG_FILE" 2>&1; then
+    add_check "$id" "$label" "passed" "completed"
+  else
+    add_check "$id" "$label" "blocker" "command failed; see check-log.txt"
+  fi
+}
+
+file_check() {
+  id="$1"
+  label="$2"
+  path="$3"
+  if [ -e "$path" ]; then
+    add_check "$id" "$label" "passed" "$path present"
+  else
+    add_check "$id" "$label" "blocker" "$path missing"
+  fi
+}
+
+for path in \
+  go.mod \
+  Makefile \
+  deploy/docker-compose.yml \
+  scripts/check-validators.sh \
+  scripts/audit-final-claim-review.sh \
+  scripts/agency-local-app.sh \
+  scripts/agency-pilot-onboard.sh \
+  scripts/telemetry-simulator.sh \
+  scripts/deployment-doctor.sh \
+  scripts/validator-health.sh \
+  scripts/operations-reliability.sh \
+  scripts/operations-notify.sh \
+  testdata/gtfs/valid-small/agency.txt
+do
+  file_check "file_$path" "Required file $path" "$path"
+done
+
+if command -v go >/dev/null 2>&1; then
+  add_check "tool_go" "Go toolchain" "passed" "$(go version)"
+else
+  add_check "tool_go" "Go toolchain" "blocker" "go is not installed"
+fi
+
+if command -v docker >/dev/null 2>&1; then
+  add_check "tool_docker" "Docker CLI" "passed" "docker CLI present"
+else
+  add_check "tool_docker" "Docker CLI" "needs_review" "docker CLI missing; local app and realtime validator wrapper may be unavailable"
+fi
+
+for tool in python3 git curl make; do
+  if command -v "$tool" >/dev/null 2>&1; then
+    add_check "tool_$tool" "$tool tool" "passed" "$tool present"
+  else
+    add_check "tool_$tool" "$tool tool" "needs_review" "$tool missing; review fresh-clone prerequisites"
+  fi
+done
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if [ -z "$(git status --short)" ]; then
+    add_check "git_clean" "Git worktree state" "passed" "worktree clean"
+  else
+    add_check "git_clean" "Git worktree state" "needs_review" "worktree has uncommitted changes; acceptable for local diagnostics but review before tagging or publishing"
+  fi
+else
+  add_check "git_clean" "Git worktree state" "needs_review" "not a git worktree"
+fi
+
+run_check "compose_config" "Docker Compose config" "docker compose -f deploy/docker-compose.yml config >/dev/null"
+run_check "validators_check" "Pinned validator install/check" "scripts/check-validators.sh"
+run_check "claim_audit" "Final claim audit" "scripts/audit-final-claim-review.sh"
+add_check "validate" "Repository validation command" "not_checked" "run make validate after reviewing this summary; this helper keeps repo output bounded to its five diagnostics files"
+add_check "test" "Go unit tests command" "not_checked" "run make test after reviewing this summary; this helper keeps repo output bounded to its five diagnostics files"
+add_check "smoke" "HTTP smoke command" "not_checked" "run make smoke after reviewing this summary; this helper keeps repo output bounded to its five diagnostics files"
+run_check "gtfs_import_dry_run" "GTFS import/onboarding dry-run" "scripts/agency-pilot-onboard.sh --agency-id rc-dryrun --gtfs-url http://127.0.0.1/example.zip --dry-run >/dev/null"
+run_check "telemetry_simulator" "Telemetry simulator dry-run" "OUTPUT_DIR='$TMP_DIR/telemetry-simulator' FORCE=true ALLOW_UNIGNORED_OUTPUT_DIR=true scripts/telemetry-simulator.sh --scenario on-route --dry-run --force --allow-unignored-output-dir >/dev/null"
+run_check "deployment_doctor" "Deployment doctor" "OUTPUT_DIR='$TMP_DIR/deployment-doctor' FORCE=true ALLOW_UNIGNORED_OUTPUT_DIR=true scripts/deployment-doctor.sh >/dev/null"
+run_check "validator_health" "Validator health dry-run" "OUTPUT_DIR='$TMP_DIR/validator-health' FORCE=true ALLOW_UNIGNORED_OUTPUT_DIR=true scripts/validator-health.sh --dry-run >/dev/null"
+run_check "operations_notify" "Operations notification draft dry-run" "OUTPUT_DIR='$TMP_DIR/operations-notify' FORCE=true ALLOW_UNIGNORED_OUTPUT_DIR=true ALLOW_UNIGNORED_SOURCE_DIR=true VALIDATOR_HEALTH_SUMMARY='$TMP_DIR/missing-validator/summary.json' DEPLOYMENT_DOCTOR_SUMMARY='$TMP_DIR/missing-doctor/summary.json' scripts/operations-notify.sh --dry-run >/dev/null"
+run_check "operations_reliability" "Operations reliability dry-run" "OUTPUT_DIR='$TMP_DIR/operations-reliability' FORCE=true ALLOW_UNIGNORED_OUTPUT_DIR=true ALLOW_UNIGNORED_SOURCE_DIR=true VALIDATOR_HEALTH_SUMMARY='$TMP_DIR/missing-validator/summary.json' DEPLOYMENT_DOCTOR_SUMMARY='$TMP_DIR/missing-doctor/summary.json' OPERATIONS_NOTIFY_SUMMARY='$TMP_DIR/missing-notify/summary.json' scripts/operations-reliability.sh --dry-run >/dev/null"
+
+if [ "$RUN_LOCAL_APP" = "true" ]; then
+  run_check "local_app_five_feeds" "Local app startup and five public feeds" "make agency-app-up >/dev/null && curl -fsS http://localhost:8080/public/feeds.json >/dev/null && curl -fsS http://localhost:8080/public/gtfs/schedule.zip >/dev/null && curl -fsS http://localhost:8080/public/gtfsrt/vehicle_positions.pb >/dev/null && curl -fsS http://localhost:8080/public/gtfsrt/trip_updates.pb >/dev/null && curl -fsS http://localhost:8080/public/gtfsrt/alerts.pb >/dev/null"
+else
+  add_check "local_app_five_feeds" "Local app startup and five public feeds" "not_checked" "set RUN_LOCAL_APP=true to run make agency-app-up and fetch /public/feeds.json, /public/gtfs/schedule.zip, /public/gtfsrt/vehicle_positions.pb, /public/gtfsrt/trip_updates.pb, and /public/gtfsrt/alerts.pb"
+fi
+
+if [ "$RUN_RELEASE_PACKAGE" = "true" ]; then
+  if [ -n "$RELEASE_PACKAGE_DIR" ]; then
+    run_check "release_package_audit" "Existing local release package audit" "RELEASE_PACKAGE_DIR='$RELEASE_PACKAGE_DIR' scripts/audit-release-package.sh >/dev/null"
+  else
+    add_check "release_package_audit" "Existing local release package audit" "needs_review" "RUN_RELEASE_PACKAGE=true requires RELEASE_PACKAGE_DIR pointing at an existing .cache release package; generation is outside this bounded check"
+  fi
+else
+  add_check "release_package_audit" "Existing local release package audit" "not_checked" "set RUN_RELEASE_PACKAGE=true and RELEASE_PACKAGE_DIR=.cache/release-package/<version> to audit an existing local package"
+fi
+
+python3 - "$ROOT_DIR" "$OUT_REAL" "$CHECKS_TSV" "$TIMESTAMP" "$DRY_RUN" "$RUN_LOCAL_APP" "$RUN_RELEASE_PACKAGE" <<'PY'
+import json
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1]).resolve()
+out = pathlib.Path(sys.argv[2])
+checks_path = pathlib.Path(sys.argv[3])
+timestamp = sys.argv[4]
+dry_run = sys.argv[5] == "true"
+run_local_app = sys.argv[6] == "true"
+run_release_package = sys.argv[7] == "true"
+
+rows = []
+with checks_path.open() as fh:
+    header = fh.readline()
+    for line in fh:
+        ident, label, status, detail = line.rstrip("\n").split("\t", 3)
+        rows.append({"id": ident, "label": label, "status": status, "detail": detail[:260]})
+
+order = {"blocker": 4, "needs_review": 3, "not_checked": 2, "passed": 1}
+overall = "passed"
+for row in rows:
+    if order[row["status"]] > order[overall]:
+        overall = row["status"]
+
+counts = {key: 0 for key in ("passed", "needs_review", "not_checked", "blocker")}
+for row in rows:
+    counts[row["status"]] += 1
+
+public_feed_paths = [
+    "/public/feeds.json",
+    "/public/gtfs/schedule.zip",
+    "/public/gtfsrt/vehicle_positions.pb",
+    "/public/gtfsrt/trip_updates.pb",
+    "/public/gtfsrt/alerts.pb",
+]
+
+claim_flags = {
+    "retained_evidence_created": False,
+    "consumer_statuses_changed": False,
+    "compliance_claimed": False,
+    "production_readiness_claimed": False,
+    "hosted_saas_claimed": False,
+    "agency_adoption_claimed": False,
+    "consumer_acceptance_claimed": False,
+    "vendor_compatibility_claimed": False,
+    "production_grade_eta_claimed": False,
+    "release_published": False,
+    "tag_created": False,
+    "image_pushed": False,
+}
+
+summary = {
+    "schema_version": "open-transit-rt.release_candidate_check.v1",
+    "generated_at": timestamp,
+    "overall_status": overall,
+    "dry_run": dry_run,
+    "run_local_app": run_local_app,
+    "run_release_package": run_release_package,
+    "gtfs_import_fixture": "testdata/gtfs/valid-small",
+    "public_feed_paths": public_feed_paths,
+    "counts": counts,
+    "checks": rows,
+    "claim_flags": claim_flags,
+    "boundary": "Private local diagnostics only; not evidence, not a release publication, not compliance proof, not consumer acceptance, not agency approval, not hosted service availability, not vendor compatibility, and not production readiness.",
+}
+manifest = {
+    "schema_version": "open-transit-rt.release_candidate_manifest.v1",
+    "generated_at": timestamp,
+    "output_files": ["summary.json", "summary.md", "manifest.json", "manifest.md", "check-log.txt"],
+    "default_output_root": ".cache/release-candidate-check",
+    "retained_evidence_created": False,
+    "consumer_statuses_changed": False,
+    "external_parties_contacted": False,
+    "release_published": False,
+    "tag_created": False,
+    "image_pushed": False,
+}
+
+def write_json(name, value):
+    (out / name).write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+
+write_json("summary.json", summary)
+write_json("manifest.json", manifest)
+
+lines = [
+    "# Release-Candidate Readiness Summary",
+    "",
+    f"- Generated at: `{timestamp}`",
+    f"- Overall status: `{overall}`",
+    f"- Dry run: `{str(dry_run).lower()}`",
+    f"- Local app check: `{'requested' if run_local_app else 'not_checked'}`",
+    f"- Release package check: `{'requested' if run_release_package else 'not_checked'}`",
+    "- GTFS import fixture: `testdata/gtfs/valid-small`",
+    "- Public feed paths: `/public/feeds.json`, `/public/gtfs/schedule.zip`, `/public/gtfsrt/vehicle_positions.pb`, `/public/gtfsrt/trip_updates.pb`, `/public/gtfsrt/alerts.pb`",
+    "",
+    "This is private local diagnostics only. It is not retained evidence, not a release publication, not compliance proof, not consumer acceptance, not agency approval, not hosted service availability, not vendor compatibility, and not production readiness.",
+    "",
+    "## Checks",
+]
+for row in rows:
+    lines.append(f"- `{row['status']}` {row['label']}: {row['detail']}")
+(out / "summary.md").write_text("\n".join(lines) + "\n")
+
+manifest_md = [
+    "# Release-Candidate Readiness Manifest",
+    "",
+    f"- Generated at: `{timestamp}`",
+    "- Output root: private `.cache` diagnostics by default",
+    "- Output files: `summary.json`, `summary.md`, `manifest.json`, `manifest.md`, `check-log.txt`",
+    "- Retained evidence created: `false`",
+    "- Consumer statuses changed: `false`",
+    "- Release published: `false`",
+    "- Tag created: `false`",
+    "- Image pushed: `false`",
+]
+(out / "manifest.md").write_text("\n".join(manifest_md) + "\n")
+
+actual = sorted(p.name for p in out.iterdir() if p.is_file())
+expected = sorted(manifest["output_files"])
+if actual != expected:
+    raise SystemExit(f"unexpected output files: {actual}")
+
+print(f"release-candidate diagnostics written to {out.relative_to(root)}")
+PY
+
+python3 - "$OUT_REAL/summary.json" <<'PY'
+import json
+import pathlib
+import sys
+
+summary = json.loads(pathlib.Path(sys.argv[1]).read_text())
+raise SystemExit(1 if summary.get("overall_status") == "blocker" else 0)
+PY
