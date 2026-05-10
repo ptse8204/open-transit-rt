@@ -1,8 +1,11 @@
 # Deployment Guide
 
-This guide describes a small-agency pilot shape. It is not a complete hosted production package.
+This guide describes a self-hosted small-agency evaluator or pilot shape. It
+is not a complete hosted production package, hosted SaaS offer, paid support
+plan, or SLA-backed service.
 
-➡️ New to the project? Read [How It Works](how-it-works.md) first.
+New to the project? Read [Can My Agency Use This?](can-my-agency-use-this.md)
+and [How It Works](how-it-works.md) first.
 
 ![Agency deployment diagram showing public internet through TLS reverse proxy, anonymous public feed paths, protected admin/debug paths, Go services, Postgres/PostGIS, pinned validators, and optional predictor adapter boundary.](assets/agency-deployment.png)
 
@@ -46,4 +49,6 @@ Keep admin/debug/JSON routes behind admin auth and deployment network controls.
 ## Next Steps
 
 - ✅ [Review readiness evidence](readiness-and-evidence.md)
+- 🧩 [Connect GPS or AVL data](connector-cookbook.md)
+- 🚌 [Run the adoption checklist](agency-adoption-checklist.md)
 - ⭐ [Support or contribute](support-and-contribute.md)

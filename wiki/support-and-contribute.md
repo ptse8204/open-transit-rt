@@ -10,6 +10,17 @@ Open Transit RT is an independent open-source project.
 
 A GitHub star is a simple way to show support, similar to a like or bookmark. Stars help more people discover the project and support continued open-source work. A star is not an agency endorsement.
 
+## How Agencies Can Help
+
+Agencies can help the project by trying the local/reference workflow, testing
+with their public GTFS ZIP, contributing connector examples, reviewing
+deployment docs, sharing non-sensitive feedback, or sponsoring a later pilot.
+Formal agency approval, final feed-root evidence, and consumer acceptance are
+not required to use or improve the software; they are future evidence
+milestones only for agencies that choose public launch or compliance claims.
+
+See [How Agencies Can Help](how-agencies-can-help.md) for public-safe examples.
+
 ## Helpful Contributions
 
 Useful contributions include:
@@ -17,6 +28,7 @@ Useful contributions include:
 - clear bug reports with commands and logs
 - demo-flow failures that can be reproduced
 - validator findings
+- connector examples with synthetic fixtures
 - clearer docs
 - deployment notes
 - small-agency workflow feedback
@@ -40,4 +52,5 @@ Do not post tokens, DB URLs, private keys, admin URLs with secrets, private port
 
 - 🧭 [How It Works](how-it-works.md)
 - 💻 [Local Quickstart](local-quickstart.md)
+- 🧩 [Connector Cookbook](connector-cookbook.md)
 - ✅ [Readiness And Evidence](readiness-and-evidence.md)

@@ -1,8 +1,10 @@
 # Agency Demo
 
-The agency demo is the fastest way to see the project working end to end.
+The agency demo is the fastest way to see the project working end to end in
+about 30 minutes.
 
-➡️ Want the shortest setup path? Start with [Local Quickstart](local-quickstart.md).
+New to the project? Start with [Can My Agency Use This?](can-my-agency-use-this.md)
+or go straight to [Local Quickstart](local-quickstart.md).
 
 ![Illustrative agency journey from GTFS import or GTFS Studio drafts through schedule publication, authenticated telemetry, validation, and public GTFS plus GTFS Realtime feeds.](assets/agency-journey-to-public-feeds.png)
 
@@ -32,10 +34,15 @@ The demo:
 
 The local demo shows the project flow on one machine. Production hosting, public HTTPS availability, consumer acceptance, learned ETA quality, and full CAL-ITP/Caltrans compliance require separate deployment and evidence work.
 
+Formal agency approval, final feed-root evidence, and consumer acceptance are
+not required to use or improve the software; they are future evidence
+milestones only for agencies that choose public launch or compliance claims.
+
 For the detailed script reference, see [docs/tutorials/agency-demo-flow.md](../docs/tutorials/agency-demo-flow.md).
 
 ## Next Steps
 
-- 🚀 [Plan a pilot deployment](deployment-guide.md)
+- 🚀 [Run a local/reference trial](agency-adoption-checklist.md)
+- 🧩 [Connect GPS or AVL data](connector-cookbook.md)
 - ✅ [Review readiness evidence](readiness-and-evidence.md)
 - ⭐ [Support or contribute](support-and-contribute.md)

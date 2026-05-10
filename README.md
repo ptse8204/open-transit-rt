@@ -1,171 +1,148 @@
 # Open Transit RT
 
-Open Transit RT is an open-source backend for small transit agencies that need
-to publish GTFS and GTFS Realtime feeds without buying a full CAD/AVL or rider
-app platform.
+Open Transit RT is an MIT-licensed open-source backend for small transit
+agencies, civic technologists, and developer integrators who want to evaluate a
+self-hosted path for GTFS and GTFS Realtime publication without buying a full
+CAD/AVL or rider app platform.
 
-It is built around a practical first goal: import or author static GTFS, ingest
-vehicle telemetry, match vehicles conservatively to scheduled service, and
-publish stable GTFS-RT Vehicle Positions first. Trip Updates stay pluggable so
-an agency can use the internal deterministic predictor, an external predictor,
-or a later replacement without rewriting telemetry ingest or Vehicle Positions.
+The product starts with a practical center: import or author static GTFS,
+ingest vehicle telemetry, match vehicles conservatively to scheduled service,
+and publish GTFS-RT Vehicle Positions first. Trip Updates stay pluggable behind
+a prediction adapter, and Alerts are part of the public feed set.
 
-## Who It Is For
+## Status At A Glance
 
-- Small agencies evaluating a low-cost self-hosted realtime stack.
-- Civic technologists helping an agency publish schedule and realtime feeds.
-- Operators who need stable GTFS/GTFS-RT URLs, validation workflows, and basic
-  admin tools.
-- Developers who want adapter boundaries for AVL/device data, validators,
-  monitoring, and future prediction engines.
+| Area | Current repo support |
+| --- | --- |
+| Static GTFS | GTFS ZIP import plus typed GTFS Studio draft/publish workflows |
+| Vehicle telemetry | Authenticated `POST /v1/telemetry` with device bearer tokens |
+| Matching | Conservative deterministic matching that prefers unknown over false certainty |
+| Public feeds | `/public/feeds.json`, schedule ZIP, Vehicle Positions, Trip Updates, and Alerts |
+| Trip Updates | Internal deterministic predictor plus replaceable adapter boundary |
+| Alerts | DB-backed Service Alerts authoring and GTFS-RT Alerts publication |
+| Evaluation tooling | Local app package, public GTFS onboarding, synthetic telemetry, connector checks, release-candidate checks |
+| Readiness | CAL-ITP-style readiness workflows without claiming compliance |
 
-## What Works Today
+## Start Here
 
-The repository has code and docs for:
+| If you are... | Use this path |
+| --- | --- |
+| An agency or civic technologist asking whether this is useful | [Can My Agency Use This?](wiki/can-my-agency-use-this.md) |
+| Evaluating locally for 30 minutes | `make agency-app-up`, then [Agency First Run](docs/tutorials/agency-first-run.md) |
+| Trying a public GTFS ZIP | `make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip` |
+| Testing synthetic telemetry | `make telemetry-simulator` |
+| Connecting GPS, AVL, or another telemetry source | [Integration Adapter Kit](docs/integration-adapter-kit.md) and [Connector Cookbook](wiki/connector-cookbook.md) |
+| Reviewing release-candidate readiness from a fresh clone | `make release-candidate-check` |
+| Reviewing CAL-ITP-style readiness | [Plain-English Readiness Guide](wiki/calitp-readiness-plain-english.md) |
+| Contributing | [How Agencies Can Help](wiki/how-agencies-can-help.md) and [CONTRIBUTING.md](CONTRIBUTING.md) |
 
-- GTFS ZIP import and typed GTFS Studio draft/publish workflows.
-- Authenticated vehicle telemetry ingest with device bearer tokens.
-- Conservative deterministic trip matching that prefers unknown over false
-  certainty.
-- Public schedule, `feeds.json`, Vehicle Positions, Trip Updates, and Alerts
-  endpoints.
-- A pluggable Trip Updates prediction adapter boundary.
-- DB-backed Service Alerts authoring and GTFS-RT Alerts publication.
-- Pinned static and realtime validator workflows.
-- Local app packaging through `make agency-app-up`.
-- A synthetic telemetry simulator through `make telemetry-simulator` that uses
-  real device-token auth and `POST /v1/telemetry`.
-- Small-agency pilot operations helpers for validation, backup, restore drills,
-  feed monitoring, and scorecard export.
-- Read-only reference deployment diagnostics through `make deployment-doctor`.
-- A private authenticated operator checklist at `/admin/operations/checklist`
-  and `/admin/operations/checklist.json` for setup/readiness next actions.
-- A private authenticated agency launchpad at `/admin/operations/launchpad`
-  and `/admin/operations/launchpad.json` for setup, GTFS, feed, telemetry,
-  validator, readiness, connector, support-bundle, and decision-gate review.
-- Private validator-health diagnostics at
-  `/admin/operations/validation-health` and through `make validator-health`,
-  with bounded summaries and no evidence creation.
-- Private local operations notification drafts through `make operations-notify`,
-  summarizing existing diagnostics without sending webhook or email messages.
-- Documentation for CAL-ITP-style readiness workflows without claiming
-  compliance.
+Agencies can help the project by trying the local/reference workflow, testing
+with their public GTFS ZIP, contributing connector examples, reviewing
+deployment docs, sharing non-sensitive feedback, or sponsoring a later pilot.
+Formal agency approval, final feed-root evidence, and consumer acceptance are
+not required to use or improve the software; they are future evidence
+milestones only for agencies that choose public launch or compliance claims.
 
-## Three Paths
-
-### 1. Try Locally
+## 30-Minute Local Demo
 
 Start the local evaluation stack:
 
 ```bash
 make agency-app-up
+```
+
+Then send synthetic telemetry through the real authenticated ingest path:
+
+```bash
 make telemetry-simulator
 ```
 
-This starts the local app at `http://localhost:8080`, imports the committed demo
-GTFS fixture, publishes the five public feed paths, and prints admin/device next
-steps. The simulator sends synthetic-only telemetry through the real
-authenticated ingest path. See [Agency First Run](docs/tutorials/agency-first-run.md)
-and [Telemetry Simulator And Device Trial](docs/tutorials/telemetry-simulator-and-device-trial.md).
-
-Stop it with:
+The local app starts at `http://localhost:8080`, imports the committed demo GTFS
+fixture, publishes the five public feed paths, and prints admin/device next
+steps. Stop it with:
 
 ```bash
 make agency-app-down
 ```
 
-### 2. Try A Real Public GTFS Feed
+This is a local evaluator workflow. It is not hosted SaaS availability,
+production readiness, agency approval, consumer acceptance, or CAL-ITP/Caltrans
+compliance.
 
-Use the reusable agency onboarding helper when you want to provide an agency ID
-and public GTFS ZIP URL without manual database edits:
+## One-Day Public GTFS Trial
+
+Use the reusable agency onboarding helper when you want to import a public GTFS
+ZIP without manual database edits:
 
 ```bash
 make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip
 ```
 
-The helper downloads the GTFS ZIP into ignored `.cache/` storage, imports it,
+The helper downloads the ZIP into ignored `.cache/` storage, imports it,
 verifies the five public feed paths, checks that the fetched schedule matches
 the imported GTFS, and prints validator status or blockers. Publication
-metadata is local/reference placeholder metadata unless the operator supplies
-agency-approved values.
+metadata remains local/reference placeholder metadata unless the operator
+supplies agency-reviewed contact and license values.
 
-Use the public-GTFS local/pilot runbook when you need a fuller repeatability
-guide without implying agency approval or consumer acceptance:
+Detailed evaluator guides:
 
 - [Reusable Agency Onboarding](docs/tutorials/reusable-agency-onboarding.md)
 - [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
-- [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
 - [Agency Launchpad](docs/tutorials/agency-launchpad.md)
-- [Phase 43 Operator UX Setup V2](docs/phase-43-operator-ux-setup-v2.md)
 - [Public GTFS Local/Pilot Runbook](docs/tutorials/public-gtfs-local-pilot.md)
 
-That guide records source URL, checksum, import summary, fetched schedule proof,
-five-path fetches, validator results or blockers, and claim boundaries.
+## Public Feed Contract
 
-### 3. Deploy Using The OCI/OCL-Style Reference Path
+Open Transit RT publishes these anonymous feed paths for an active local or
+deployment instance:
 
-The current self-hosted reference path is the existing OCI/OCL-style pilot
-server pattern: compiled Go services, Postgres/PostGIS, Caddy or equivalent
-reverse proxy, systemd services/timers, pinned validators, backups, feed
-monitoring, and scorecard export.
+```text
+/public/feeds.json
+/public/gtfs/schedule.zip
+/public/gtfsrt/vehicle_positions.pb
+/public/gtfsrt/trip_updates.pb
+/public/gtfsrt/alerts.pb
+```
 
-Start with:
-
-- [OCI/OCL Reference Deployment](docs/deployment/oci-reference-deployment.md)
-- [Reference Deployment Env Example](docs/deployment/oci-reference-env.example)
-- [Reference Deployment Smoke Checklist](docs/deployment/oci-reference-smoke-checklist.md)
-- [Reference Deployment Doctor](docs/deployment/reference-deployment-doctor.md)
-- [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
-- [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
-- [Phase 46 Validator Automation And Health Gates](docs/phase-46-validator-automation-and-health-gates.md)
-- [Self-Hosted Operations Notifications](docs/tutorials/self-hosted-operations-notifications.md)
-- [Small-Agency Pilot Operations](docs/runbooks/small-agency-pilot-operations.md)
-- [Self-Hosted Agency Reuse Master Plan](docs/master-plan-self-hosted-agency-reuse.md)
-- [Phase 36 Reference Deployment Productization](docs/phase-36-oci-reference-deployment-productization.md)
-- [Phase 37 Reusable Agency Onboarding Flow](docs/phase-37-agency-reusable-onboarding-flow.md)
-
-The existing OCI DuckDNS pilot remains hosted/operator pilot evidence only. It
-is not agency-owned final-root proof.
+Admin, JSON debug, validation, scorecard, device, and alert-authoring routes
+must remain protected behind admin authentication and deployment network
+controls.
 
 ## Integration Boundaries
 
-- AVL/device data should enter through the existing telemetry contract or an
-  adapter that transforms external payloads before calling telemetry ingest.
-  Start with the [Integration Adapter Kit](docs/integration-adapter-kit.md),
-  then use [Device And AVL Integration](docs/tutorials/device-avl-integration.md)
-  and [Telemetry Simulator And Device Trial](docs/tutorials/telemetry-simulator-and-device-trial.md)
-  for the detailed telemetry tutorials.
+- AVL/device data should enter through the existing telemetry contract or a
+  sidecar that transforms external observations before calling
+  authenticated `POST /v1/telemetry`.
 - External predictors must stay behind `internal/prediction.Adapter`. Vehicle
   Positions generation remains independent of external predictor availability.
-- Validators are pinned tooling invoked through allowlisted validator IDs and
-  repo-supported install/check workflows. Validator success alone is not
-  consumer acceptance or compliance.
-- Validator health summaries are private diagnostics only. They distinguish
-  installed, runnable, stale, missing, blocked, and review-needed states, but do
-  not create evidence or change consumer/publication state.
-- Operations notification drafts are private local summaries only. They do not
-  send notifications, contact consumers, create evidence, or change
-  consumer/publication state.
+- Validators are pinned tooling invoked through allowlisted validator IDs.
+  Validator success alone is not consumer acceptance or compliance.
 - Monitoring is deployment-owned. The repo exposes lightweight metrics and
-  pilot operations helpers, but does not provision Prometheus, Grafana, or SLO
-  operations by itself.
+  local diagnostics, but does not provision a monitoring service or SLA.
 - Consumers and aggregators fetch standard public GTFS/GTFS-RT URLs. Prepared
-  packets exist, but target statuses must not move beyond `prepared` without
-  retained target-originated evidence.
+  packets exist, but target statuses stay `prepared` without retained
+  target-originated evidence.
+
+Start with:
+
+- [Integration Adapter Kit](docs/integration-adapter-kit.md)
+- [Connector Cookbook](wiki/connector-cookbook.md)
+- [Device And AVL Integration](docs/tutorials/device-avl-integration.md)
+- [External Adapter Conformance](docs/tutorials/external-adapter-conformance.md)
 
 ## CAL-ITP-Style Readiness
 
 Open Transit RT supports technical foundations for California transit data
 readiness: stable public feed paths, static GTFS, all three GTFS Realtime feed
-types, license/contact metadata, validation records, feed discovery, and
+types, license/contact metadata, validation workflows, feed discovery, and
 consumer packet preparation.
 
 Use these docs for the current boundary:
 
-- [Phase 60 Final Claim Review](docs/phase-60-final-claim-review-and-public-closeout.md)
-- [California Readiness Summary](docs/california-readiness-summary.md)
-- [Compliance Evidence Checklist](docs/compliance-evidence-checklist.md)
+- [CAL-ITP Readiness Plain English](wiki/calitp-readiness-plain-english.md)
 - [CAL-ITP Readiness Checklist](docs/tutorials/calitp-readiness-checklist.md)
+- [California Readiness Summary](docs/california-readiness-summary.md)
+- [Phase 60 Final Claim Review](docs/phase-60-final-claim-review-and-public-closeout.md)
 
 The repo does not claim CAL-ITP/Caltrans compliance.
 
@@ -173,7 +150,7 @@ The repo does not claim CAL-ITP/Caltrans compliance.
 
 Open Transit RT is not:
 
-- a hosted SaaS claim;
+- a hosted SaaS service;
 - a paid support or SLA offering;
 - proof of agency endorsement, adoption, or approval;
 - proof of agency-owned final-root readiness;
@@ -192,6 +169,7 @@ change.
 
 ## Documentation
 
+- [Wiki Home](wiki/README.md)
 - [Documentation Home](docs/README.md)
 - [Current Status](docs/current-status.md)
 - [Latest Handoff](docs/handoffs/latest.md)
@@ -199,3 +177,4 @@ change.
 - [Architecture](docs/architecture.md)
 - [Dependencies](docs/dependencies.md)
 - [Roadmap Status](docs/roadmap-status.md)
+- [License](LICENSE)
