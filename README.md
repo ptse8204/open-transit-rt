@@ -40,6 +40,9 @@ The repository has code and docs for:
 - Read-only reference deployment diagnostics through `make deployment-doctor`.
 - A private authenticated operator checklist at `/admin/operations/checklist`
   and `/admin/operations/checklist.json` for setup/readiness next actions.
+- A private authenticated agency launchpad at `/admin/operations/launchpad`
+  and `/admin/operations/launchpad.json` for setup, GTFS, feed, telemetry,
+  validator, readiness, connector, support-bundle, and decision-gate review.
 - Private validator-health diagnostics at
   `/admin/operations/validation-health` and through `make validator-health`,
   with bounded summaries and no evidence creation.
@@ -92,6 +95,7 @@ guide without implying agency approval or consumer acceptance:
 - [Reusable Agency Onboarding](docs/tutorials/reusable-agency-onboarding.md)
 - [Self-Hosted Operator Trial](docs/tutorials/self-hosted-operator-trial.md)
 - [Operator Smoke And Support Bundle](docs/tutorials/operator-smoke-and-support-bundle.md)
+- [Agency Launchpad](docs/tutorials/agency-launchpad.md)
 - [Phase 43 Operator UX Setup V2](docs/phase-43-operator-ux-setup-v2.md)
 - [Public GTFS Local/Pilot Runbook](docs/tutorials/public-gtfs-local-pilot.md)
 

@@ -52,6 +52,7 @@ type operationsPage struct {
 	RuntimeConsumers       []consumerStatusView
 	ReadinessItems         []readinessItemView
 	Checklist              operatorChecklistView
+	Launchpad              agencyLaunchpadView
 	GTFSQuality            compliance.GTFSQualityTriage
 	GTFSQualityNotice      string
 	GTFSQualityError       string
@@ -183,6 +184,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	trimmed := strings.Trim(strings.TrimPrefix(r.URL.Path, "/admin/operations/"), "/")
 	switch trimmed {
+	case "launchpad":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderLaunchpad(w, r)
+	case "launchpad.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderLaunchpadJSON(w, r)
 	case "checklist":
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -684,6 +699,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
+	page.Launchpad = buildAgencyLaunchpad(page)
 	return page
 }
 
@@ -1520,6 +1536,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p>Agency: <strong>{{.AgencyID}}</strong> · environment: <span class="pill">{{.EnvironmentLabel}}</span> · generated: {{formatTime .GeneratedAt}}</p>
 <nav>
 <a href="/admin/operations">Dashboard</a>
+<a href="/admin/operations/launchpad">Launchpad</a>
 <a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
 <a href="/admin/operations/gtfs-quality">GTFS Quality</a>
@@ -1532,6 +1549,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/evidence">Evidence</a>
 <a href="/admin/operations/setup">Setup</a>
 <a href="/admin/operations/checklist">Checklist</a>
+<a href="/admin/operations/launchpad.json">Launchpad JSON</a>
 <a href="/admin/operations/checklist.json">Checklist JSON</a>
 <a href="/admin/gtfs-studio">GTFS Studio</a>
 </nav>
@@ -1553,6 +1571,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 <h2>Dashboard Sections</h2>
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
+<tr><td>Private agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
@@ -1570,6 +1589,39 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{if .DiscoveryError}}<p>No public feed metadata is available yet.</p>{{else}}{{template "feedTable" .}}{{end}}
 {{template "tripUpdatesQuality" .}}
 <p class="muted">Validation and public fetch records are supporting evidence only. They are not consumer acceptance or CAL-ITP/Caltrans compliance by themselves.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "launchpad"}}
+{{template "layoutStart" .}}
+<h2>Private Agency Launchpad</h2>
+<p class="warning">This launchpad is private operator diagnostics. It creates no evidence, contacts no external party, changes no consumer status, and records no approval, compliance, public launch, hosted SaaS, vendor, SLA, or production-grade ETA claim.</p>
+<p><a href="/admin/operations/launchpad.json">Export private launchpad JSON</a> · <a href="/admin/operations/checklist">Open private checklist</a> · <a href="/admin/operations/readiness">Open readiness review</a></p>
+<table><tbody>
+<tr><th>Boundary</th><td>{{.Launchpad.Boundary}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.Launchpad.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.Launchpad.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.Launchpad.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.Launchpad.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.Launchpad.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>agency_approval_claimed</code></th><td>{{.Launchpad.ClaimFlags.AgencyApprovalClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.Launchpad.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.Launchpad.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.Launchpad.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.Launchpad.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.Launchpad.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+</tbody></table>
+
+<h3>Workflow Sections</h3>
+<table><thead><tr><th>ID</th><th>Section</th><th>Status</th><th>Current signal</th><th>Next actions</th><th>Commands</th><th>Links</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
+{{range .Launchpad.Sections}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td><ul>{{range .NextActions}}<li>{{.}}</li>{{end}}</ul></td><td>{{range .CommandSuggestions}}<code>{{.}}</code><br>{{end}}</td><td>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+
+<h3>Decision Gate</h3>
+<table><thead><tr><th>Option</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .Launchpad.DecisionNotes}}<tr><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
+</tbody></table>
+<p class="muted">No POST action exists for this page. Missing data remains missing or unknown until the underlying private source records change.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

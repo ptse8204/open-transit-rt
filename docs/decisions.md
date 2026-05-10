@@ -474,3 +474,23 @@ These examples are developer aids only. They are not vendor compatibility,
 hardware certification, production AVL reliability, production-grade ETA
 quality, consumer acceptance, agency approval, production readiness,
 CAL-ITP/Caltrans compliance, hosted SaaS, paid support, or SLA proof.
+
+## ADR-0041 — Keep the agency launchpad private and read-only
+
+Post-60 agency launchpad work adds authenticated GET-only Operations Console
+routes at `/admin/operations/launchpad` and
+`/admin/operations/launchpad.json`. The launchpad derives setup, GTFS,
+metadata, five-feed, telemetry, validator, readiness, connector conformance,
+support-bundle, and decision-gate rows from existing private Operations
+Console models and repo docs.
+
+The launchpad adds no database table, migration, public route, public feed
+contract, telemetry ingest contract, Trip Updates adapter change, POST action,
+evidence write, consumer status mutation, external contact, portal automation,
+or notification send path.
+
+All launchpad claim flags remain false. The launchpad is a private operator
+workflow aid only; it is not approval, agency adoption, CAL-ITP/Caltrans
+compliance, consumer acceptance, final-root proof, public launch, hosted SaaS,
+paid support, SLA coverage, production readiness, vendor compatibility,
+production AVL reliability, or production-grade ETA proof.

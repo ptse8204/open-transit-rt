@@ -220,6 +220,7 @@ validate:
 	@test -f internal/alerts/model.go
 	@test -f internal/compliance/model.go
 	@test -f cmd/adapter-conformance/main.go
+	@test -f cmd/agency-config/operations_launchpad.go
 	@test -f tools/validators/validators.lock.json
 	@test -f scripts/install-validators.sh
 	@test -f scripts/check-validators.sh
@@ -353,6 +354,7 @@ validate:
 	@test -f docs/handoffs/phase-40.md
 	@test -f docs/phase-41-operator-smoke-support-bundle.md
 	@test -f docs/tutorials/operator-smoke-and-support-bundle.md
+	@test -f docs/tutorials/agency-launchpad.md
 	@test -f docs/handoffs/phase-41.md
 	@test -f docs/deployment/reference-deployment-doctor.md
 	@test -f docs/phase-42-reference-deployment-doctor.md

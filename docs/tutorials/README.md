@@ -13,6 +13,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Agency First Run](agency-first-run.md): start the full local app package and understand the outputs.
 - [Reusable Agency Onboarding](reusable-agency-onboarding.md): provide an agency ID and GTFS URL for local/reference onboarding without manual database edits.
 - [Self-Hosted Operator Trial](self-hosted-operator-trial.md): run one guided local/reference evaluation across onboarding, public feed checks, readiness review, validators, and the synthetic AVL dry-run.
+- [Agency Launchpad](agency-launchpad.md): run a private authenticated launchpad workflow across setup, GTFS, metadata, feeds, telemetry, validators, readiness, connector conformance, support bundle, and decision gate.
 - [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md): run strict smoke checks and collect redaction-safe diagnostics without creating evidence.
 - [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md): run read-only reference deployment diagnostics without creating evidence.
 - [Phase 46 Validator Automation And Health Gates](../phase-46-validator-automation-and-health-gates.md): review private validator tooling, artifact, stale-result, and next-action diagnostics without creating evidence.

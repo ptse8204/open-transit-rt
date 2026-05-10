@@ -482,7 +482,7 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 			},
 		},
 	}
-	handler := newOperationsTestHandler(&handler{
+	srv := newOperationsTestHandler(&handler{
 		store: store,
 		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{
 			AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now, CreatedAt: now,
@@ -500,7 +500,7 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/operations/readiness", nil)
 	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
@@ -549,7 +549,7 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 
 	req = httptest.NewRequest(http.MethodGet, "/admin/operations/readiness?agency_id=other-agency", nil)
 	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("agency conflict status = %d, want 403", rr.Code)
 	}
@@ -573,7 +573,7 @@ func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T)
 		},
 		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
 	}
-	handler := newOperationsTestHandler(&handler{
+	srv := newOperationsTestHandler(&handler{
 		store:   store,
 		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now}}},
 		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
@@ -585,7 +585,7 @@ func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/operations/checklist.json?agency_id=demo-agency", nil)
 	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
@@ -627,7 +627,7 @@ func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T)
 	normalized.GeneratedAt = time.Time{}
 	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist.json", nil)
 	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	var second operatorChecklistView
 	if err := json.Unmarshal(rr.Body.Bytes(), &second); err != nil {
 		t.Fatalf("decode second checklist: %v", err)
@@ -639,7 +639,7 @@ func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T)
 
 	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist?agency_id=demo-agency", nil)
 	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
@@ -657,16 +657,198 @@ func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T)
 
 	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist?agency_id=other-agency", nil)
 	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("html agency conflict status = %d, want 403", rr.Code)
 	}
 	req = httptest.NewRequest(http.MethodGet, "/admin/operations/checklist.json?agency_id=other-agency", nil)
 	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("json agency conflict status = %d, want 403", rr.Code)
 	}
+}
+
+func TestOperationsLaunchpadRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/launchpad", "/admin/operations/launchpad.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/launchpad", "/admin/operations/launchpad.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/launchpad", "/admin/operations/launchpad.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/launchpad?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/launchpad.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/launchpad.json", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public launchpad route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsLaunchpadJSONShapeFlagsAndNoLeakage(t *testing.T) {
+	now := time.Date(2026, 5, 10, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: "Demo Agency", GeneratedAt: now, PublicationEnvironment: "pilot",
+			PublicBaseURL:         "https://pilot.example.org",
+			TechnicalContactEmail: "ops@example.org",
+			License:               compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"},
+			Feeds: []compliance.FeedMetadata{
+				{FeedType: "schedule", CanonicalPublicURL: "https://pilot.example.org/public/gtfs/schedule.zip", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "passed", LastValidationAt: &now},
+				{FeedType: "vehicle_positions", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/vehicle_positions.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "trip_updates", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/trip_updates.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "alerts", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/alerts.pb", ActiveFeedVersionID: "feed-v1"},
+			},
+			Readiness: compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true},
+		},
+		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
+	}
+	srv := newOperationsTestHandler(&handler{
+		store:   store,
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now}}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+			Event: telemetry.Event{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now, Lat: 1, Lon: 2}, ReceivedAt: now,
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/launchpad.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var launchpad agencyLaunchpadView
+	if err := json.Unmarshal(rr.Body.Bytes(), &launchpad); err != nil {
+		t.Fatalf("decode launchpad: %v", err)
+	}
+	assertLaunchpadShape(t, launchpad)
+	assertLaunchpadFlagsFalse(t, launchpad.ClaimFlags)
+	assertLaunchpadSafeStrings(t, rr.Body.String())
+	if launchpad.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", launchpad.AgencyID)
+	}
+	var ids []string
+	for _, section := range launchpad.Sections {
+		ids = append(ids, section.ID)
+	}
+	wantIDs := []string{"setup", "gtfs", "metadata", "five_feeds", "telemetry", "validators", "readiness", "connector_conformance", "support_bundle", "decision_gate"}
+	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
+		t.Fatalf("section ids = %v, want %v", ids, wantIDs)
+	}
+	for _, section := range launchpad.Sections {
+		for _, link := range section.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("section %s unsafe admin link %q", section.ID, link)
+			}
+		}
+	}
+
+	missingHandler := newOperationsTestHandler(&handler{store: &fakePublicationStore{discoveryErr: errors.New("missing discovery"), scorecardErr: errors.New("missing scorecard"), consumersErr: errors.New("missing consumers")}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/launchpad.json", nil)
+	rr = httptest.NewRecorder()
+	missingHandler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("missing status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var missing agencyLaunchpadView
+	if err := json.Unmarshal(rr.Body.Bytes(), &missing); err != nil {
+		t.Fatalf("decode missing launchpad: %v", err)
+	}
+	for _, id := range []string{"gtfs", "five_feeds", "telemetry"} {
+		if status := launchpadSectionStatus(missing, id); status == checklistStatusOK {
+			t.Fatalf("missing-data section %s status = ok, want missing/unknown/review/blocker", id)
+		}
+	}
+	assertLaunchpadFlagsFalse(t, missing.ClaimFlags)
+}
+
+func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`,
+			License: compliance.License{Name: "Demo License", URL: "https://example.org/license"},
+		},
+		scorecardErr: errors.New("no scorecard"),
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/launchpad", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Private Agency Launchpad", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html body missing %q: %s", want, body)
+		}
+	}
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("html did not escape script-like metadata: %s", body)
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/launchpad", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("launchpad html contains forbidden %q: %s", forbidden, body)
+		}
+	}
+	assertLaunchpadSafeStrings(t, body)
 }
 
 func TestOperationsChecklistAccessMatrixMethodsAndRoutes(t *testing.T) {
@@ -2205,6 +2387,63 @@ func assertChecklistFlagsFalse(t *testing.T, flags operatorChecklistFlags) {
 	}
 }
 
+func assertLaunchpadShape(t *testing.T, launchpad agencyLaunchpadView) {
+	t.Helper()
+	if launchpad.AgencyID == "" || launchpad.Boundary == "" || len(launchpad.Sections) == 0 || launchpad.Counts.Sections != len(launchpad.Sections) {
+		t.Fatalf("invalid launchpad top-level shape: %+v", launchpad)
+	}
+	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
+	seenIDs := map[string]bool{}
+	for _, section := range launchpad.Sections {
+		if section.ID == "" || section.Label == "" || section.CurrentSignal == "" || section.ClaimBoundary == "" || len(section.NextActions) == 0 || section.DocsLinks == nil || section.CommandSuggestions == nil || section.AdminLinks == nil {
+			t.Fatalf("invalid launchpad section shape: %+v", section)
+		}
+		if seenIDs[section.ID] {
+			t.Fatalf("duplicate launchpad section id %q", section.ID)
+		}
+		seenIDs[section.ID] = true
+		if !allowedStatuses[section.Status] {
+			t.Fatalf("section %q status = %q, want neutral status", section.ID, section.Status)
+		}
+		for _, link := range section.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("section %s has unsafe docs link %q", section.ID, link)
+			}
+		}
+	}
+}
+
+func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.VendorCompatibilityClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("launchpad flags must all be false: %+v", flags)
+	}
+}
+
+func assertLaunchpadSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("launchpad leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("launchpad emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
+func launchpadSectionStatus(launchpad agencyLaunchpadView, id string) string {
+	for _, section := range launchpad.Sections {
+		if section.ID == id {
+			return section.Status
+		}
+	}
+	return ""
+}
+
 func assertChecklistSafeStrings(t *testing.T, body string) {
 	t.Helper()
 	lower := strings.ToLower(body)
@@ -2902,6 +3141,14 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	mux := http.NewServeMux()
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/launchpad", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/launchpad.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/gtfs-quality", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
