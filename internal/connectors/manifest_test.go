@@ -157,6 +157,20 @@ func TestRejectsNotificationSubmissionAndStatusMutation(t *testing.T) {
 
 func TestConformanceCasesMustUseSyntheticFixtureScope(t *testing.T) {
 	for _, fixturePath := range []string{
+		"testdata/connectors/valid/synthetic-telemetry-source-input.json",
+		"testdata/adapter-conformance/fixtures/telemetry-malformed.json",
+		"examples/connectors/telemetry-http-poller/fixtures/observations.json",
+	} {
+		t.Run("valid "+fixturePath, func(t *testing.T) {
+			manifest := validManifest(t)
+			manifest.ConformanceCases[0].FixturePath = fixturePath
+			if violations := manifest.Validate(); len(violations) > 0 {
+				t.Fatalf("Validate() violations = %+v", violations)
+			}
+		})
+	}
+
+	for _, fixturePath := range []string{
 		"../testdata/connectors/input.json",
 		"testdata/../connectors/input.json",
 		"testdata/avl-vendor/valid.json",

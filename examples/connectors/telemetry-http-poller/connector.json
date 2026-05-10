@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.telemetry-http-poller",
+  "type": "telemetry_source",
+  "display_name": "Synthetic telemetry HTTP poller",
+  "description": "Synthetic dry-run sidecar that normalizes local HTTP-style observation fixtures into telemetry ingest payloads.",
+  "mode": {
+    "name": "sidecar_http_dry_run",
+    "disabled_by_default": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic observation batch",
+      "description": "Local fixture shaped like upstream observations without vendor fields.",
+      "schema": "open-transit-rt.telemetry.synthetic-observations.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["agency_id", "device_id", "vehicle_id", "timestamp", "latitude", "longitude"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Telemetry ingest event",
+      "description": "Dry-run payload compatible with the authenticated telemetry ingest boundary.",
+      "schema": "open-transit-rt.telemetry.event.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 10,
+    "retry_policy": "no retry in dry run",
+    "degraded_state": "no telemetry emitted",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "env_reference_only",
+    "redact_fields": ["authorization", "raw_payload", "private_endpoint"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default"],
+    "not_claimed": ["vendor compatibility", "consumer acceptance", "compliance", "production readiness"]
+  },
+  "docs_link": "examples/connectors/telemetry-http-poller/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-http-poll-valid",
+      "description": "Valid synthetic observations are normalized in dry-run mode.",
+      "fixture_path": "examples/connectors/telemetry-http-poller/fixtures/observations.json",
+      "expected_result": "pass"
+    }
+  ]
+}
+

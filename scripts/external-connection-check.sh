@@ -42,11 +42,13 @@ test -f docs/external-connection-readiness.md
 test -d internal/connectors
 test -d testdata/connectors/valid
 test -d testdata/connectors/invalid
+test -d examples/connectors
 
-for file in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json; do
+for file in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json; do
   python3 -m json.tool "$file" >/dev/null
 done
 
 go test ./internal/connectors
+go test ./examples/connectors/...
 
 printf 'external connection check passed: connector manifests remain sidecar/manifest/conformance bounded\n'

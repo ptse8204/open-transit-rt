@@ -1,0 +1,32 @@
+{
+  "synthetic_only": true,
+  "observations": [
+    {
+      "agency_id": "agency-demo",
+      "device_id": "device-101",
+      "vehicle_id": "vehicle-101",
+      "timestamp": "2026-05-10T15:00:00Z",
+      "latitude": 34.05221,
+      "longitude": -118.24368,
+      "quality": 0.96
+    },
+    {
+      "agency_id": "agency-demo",
+      "device_id": "device-102",
+      "vehicle_id": "vehicle-102",
+      "timestamp": "2026-05-10T15:00:15Z",
+      "latitude": 34.05192,
+      "longitude": -118.24411,
+      "quality": 0.93
+    },
+    {
+      "agency_id": "agency-demo",
+      "device_id": "device-low",
+      "vehicle_id": "vehicle-low",
+      "timestamp": "2026-05-10T15:00:20Z",
+      "latitude": 34.0517,
+      "longitude": -118.2445,
+      "quality": 0.12
+    }
+  ]
+}

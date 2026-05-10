@@ -283,12 +283,18 @@ func validateConformanceCases(cases []ConformanceCase) []Violation {
 		}
 		if tc.FixturePath != "" {
 			clean := path.Clean(tc.FixturePath)
-			if clean != tc.FixturePath || strings.HasPrefix(clean, "../") || strings.HasPrefix(clean, "/") || !strings.HasPrefix(clean, "testdata/connectors/") {
-				violations = append(violations, Violation{prefix + ".fixture_path", "must be a clean relative path under testdata/connectors"})
+			if clean != tc.FixturePath || strings.HasPrefix(clean, "../") || strings.HasPrefix(clean, "/") || !allowedFixturePath(clean) {
+				violations = append(violations, Violation{prefix + ".fixture_path", "must be a clean relative path under testdata/connectors, testdata/adapter-conformance, or examples/connectors"})
 			}
 		}
 	}
 	return violations
+}
+
+func allowedFixturePath(clean string) bool {
+	return strings.HasPrefix(clean, "testdata/connectors/") ||
+		strings.HasPrefix(clean, "testdata/adapter-conformance/") ||
+		strings.HasPrefix(clean, "examples/connectors/")
 }
 
 func validateSafeURL(value string, field string) *Violation {

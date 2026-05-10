@@ -1,0 +1,30 @@
+{
+  "synthetic_only": true,
+  "active_feed_version": "feed-version-synthetic-20260510",
+  "vehicle_positions_url": "https://example.org/gtfsrt/vehicle_positions.pb",
+  "telemetry": [
+    {
+      "agency_id": "agency-demo",
+      "vehicle_id": "vehicle-301",
+      "observed_at": "2026-05-10T17:00:00Z",
+      "latitude": 34.0523,
+      "longitude": -118.2432
+    }
+  ],
+  "assignments": [
+    {
+      "vehicle_id": "vehicle-301",
+      "trip_id": "trip-demo-301",
+      "start_date": "20260510",
+      "start_time": "10:00:00",
+      "confidence": 0.91
+    },
+    {
+      "vehicle_id": "vehicle-low",
+      "trip_id": "trip-demo-low",
+      "start_date": "20260510",
+      "start_time": "10:05:00",
+      "confidence": 0.21
+    }
+  ]
+}

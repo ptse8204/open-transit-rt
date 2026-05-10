@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check adapter-conformance release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check adapter-conformance test-connector-examples release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -101,6 +101,9 @@ external-connection-check:
 adapter-conformance:
 	@go run ./cmd/adapter-conformance run --suite testdata/adapter-conformance
 
+test-connector-examples:
+	@go test ./examples/connectors/...
+
 release-package:
 	@RELEASE_PACKAGE_ALLOW_DIRTY=$${RELEASE_PACKAGE_ALLOW_DIRTY:-true} ./scripts/release-package.sh
 
@@ -168,7 +171,7 @@ run-gtfs-studio:
 	PORT=8086 go run ./cmd/gtfs-studio
 
 fmt:
-	gofmt -w ./cmd ./internal
+	gofmt -w ./cmd ./internal ./examples
 
 test:
 	go test ./...
@@ -389,6 +392,24 @@ validate:
 	@test -f testdata/connectors/valid/valid-consumer-discovery.json
 	@test -f testdata/connectors/invalid/invalid-secret.json
 	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json; do python3 -m json.tool "$$f" >/dev/null; done
+	@test -f examples/connectors/telemetry-http-poller/README.md
+	@test -f examples/connectors/telemetry-http-poller/connector.json
+	@test -f examples/connectors/telemetry-http-poller/main.go
+	@test -f examples/connectors/telemetry-http-poller/fixtures/observations.json
+	@test -f examples/connectors/telemetry-csv-replay/README.md
+	@test -f examples/connectors/telemetry-csv-replay/connector.json
+	@test -f examples/connectors/telemetry-csv-replay/main.go
+	@test -f examples/connectors/telemetry-csv-replay/fixtures/replay.csv
+	@test -f examples/connectors/predictor-sidecar-stub/README.md
+	@test -f examples/connectors/predictor-sidecar-stub/connector.json
+	@test -f examples/connectors/predictor-sidecar-stub/main.go
+	@test -f examples/connectors/predictor-sidecar-stub/fixtures/prediction-input.json
+	@test -f examples/connectors/monitoring-export/README.md
+	@test -f examples/connectors/monitoring-export/connector.json
+	@test -f examples/connectors/monitoring-export/main.go
+	@test -f examples/connectors/monitoring-export/fixtures/metrics.json
+	@for f in examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json; do python3 -m json.tool "$$f" >/dev/null; done
+	@go test ./examples/connectors/...
 	@test -f testdata/adapter-conformance/suite.json
 	@test -f testdata/adapter-conformance/fixtures/telemetry-malformed.json
 	@test -f testdata/adapter-conformance/fixtures/telemetry-stale.json

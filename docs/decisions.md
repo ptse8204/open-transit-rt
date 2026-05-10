@@ -455,3 +455,22 @@ Passing conformance is a local connector-quality signal only. It is not
 CAL-ITP/Caltrans compliance, consumer acceptance, agency approval, vendor
 compatibility, production AVL reliability, production readiness, or
 production-grade ETA-quality proof.
+
+## ADR-0040 — Keep generic connector examples synthetic and offline
+
+Post-60 generic connector examples live under `examples/connectors/` and show
+the shape of telemetry source, prediction sidecar, and monitoring/export
+connectors using `open-transit-rt.connector.v1` manifests, committed synthetic
+fixtures, and small Go stdlib stubs.
+
+The examples are included in local manifest, conformance, and `go test`
+checks. They do not fetch real vendor endpoints, include real credentials,
+include real vendor payloads, submit to consumers, mutate consumer status,
+send notifications by default, write evidence, change runtime defaults, or
+replace the authenticated `/v1/telemetry` and `internal/prediction.Adapter`
+boundaries.
+
+These examples are developer aids only. They are not vendor compatibility,
+hardware certification, production AVL reliability, production-grade ETA
+quality, consumer acceptance, agency approval, production readiness,
+CAL-ITP/Caltrans compliance, hosted SaaS, paid support, or SLA proof.

@@ -1,0 +1,18 @@
+{
+  "synthetic_only": true,
+  "agency_id": "agency-demo",
+  "metrics": {
+    "vehicle_positions_fresh_count": 12,
+    "vehicle_positions_stale_count": 1,
+    "unmatched_vehicle_count": 2
+  },
+  "incidents": [
+    {
+      "id": "incident-synthetic-001",
+      "severity": "warning",
+      "summary": "Synthetic stale vehicle threshold exceeded",
+      "operator_contact": "redacted@example.invalid",
+      "raw_payload": "{\"synthetic\":true}"
+    }
+  ]
+}

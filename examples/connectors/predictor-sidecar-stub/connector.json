@@ -1,0 +1,52 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.predictor-sidecar-stub",
+  "type": "prediction",
+  "display_name": "Synthetic predictor sidecar stub",
+  "description": "Synthetic dry-run predictor boundary stub that returns diagnostics without producing public Trip Updates.",
+  "mode": {
+    "name": "prediction_sidecar_dry_run",
+    "disabled_by_default": true
+  },
+  "input_contracts": [
+    {
+      "name": "Prediction adapter request",
+      "description": "Synthetic active-feed, telemetry, assignment, and Vehicle Positions reference data.",
+      "schema": "open-transit-rt.prediction.adapter-request.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["synthetic_only", "active_feed_version", "vehicle_positions_url", "telemetry", "assignments"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Prediction adapter response",
+      "description": "Dry-run diagnostics with no public Trip Updates feed mutation.",
+      "schema": "open-transit-rt.prediction.adapter-response.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 10,
+    "retry_policy": "no retry in dry run",
+    "degraded_state": "Vehicle Positions remain independent; no Trip Updates emitted by this stub",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "none",
+    "redact_fields": ["raw_payload", "private_endpoint", "prediction_diagnostics"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default"],
+    "not_claimed": ["vendor compatibility", "consumer acceptance", "compliance", "production readiness", "production-grade ETA quality"]
+  },
+  "docs_link": "examples/connectors/predictor-sidecar-stub/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-predictor-stub-valid",
+      "description": "Synthetic prediction request returns a no-op dry-run response.",
+      "fixture_path": "examples/connectors/predictor-sidecar-stub/fixtures/prediction-input.json",
+      "expected_result": "pass"
+    }
+  ]
+}

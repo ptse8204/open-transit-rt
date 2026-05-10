@@ -1,0 +1,52 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.monitoring-export",
+  "type": "monitoring_export",
+  "display_name": "Synthetic monitoring export",
+  "description": "Synthetic dry-run monitoring exporter that redacts local diagnostics and prints a no-send batch.",
+  "mode": {
+    "name": "monitoring_export_dry_run",
+    "disabled_by_default": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic monitoring diagnostics",
+      "description": "Local metrics and incidents prepared for redacted dry-run export.",
+      "schema": "open-transit-rt.monitoring.synthetic-diagnostics.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["synthetic_only", "agency_id", "metrics", "incidents"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Redacted monitoring batch",
+      "description": "Dry-run diagnostic export with sending disabled and status mutation disabled.",
+      "schema": "open-transit-rt.monitoring.redacted-batch.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 10,
+    "retry_policy": "no retry in dry run",
+    "degraded_state": "no monitoring batch sent",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "env_reference_only",
+    "redact_fields": ["authorization", "raw_payload", "private_endpoint", "operator_contact"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["vendor compatibility", "consumer acceptance", "compliance", "production readiness"]
+  },
+  "docs_link": "examples/connectors/monitoring-export/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-monitoring-redaction",
+      "description": "Synthetic monitoring diagnostics are redacted and remain no-send.",
+      "fixture_path": "examples/connectors/monitoring-export/fixtures/metrics.json",
+      "expected_result": "pass"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.telemetry-csv-replay",
+  "type": "telemetry_source",
+  "display_name": "Synthetic telemetry CSV replay",
+  "description": "Synthetic command adapter that normalizes local CSV rows into dry-run telemetry events.",
+  "mode": {
+    "name": "command_dry_run",
+    "disabled_by_default": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic telemetry CSV",
+      "description": "Local CSV fixture with agency, device, vehicle, timestamp, and coordinates.",
+      "schema": "open-transit-rt.telemetry.synthetic-csv.v1",
+      "media_types": ["text/csv"],
+      "required_fields": ["synthetic_only", "agency_id", "device_id", "vehicle_id", "observed_at", "latitude", "longitude"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Telemetry ingest event",
+      "description": "Dry-run payload compatible with the authenticated telemetry ingest boundary.",
+      "schema": "open-transit-rt.telemetry.event.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 10,
+    "retry_policy": "no retry in dry run",
+    "degraded_state": "no telemetry emitted",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "none",
+    "redact_fields": ["raw_payload", "private_endpoint", "operator_contact"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default"],
+    "not_claimed": ["vendor compatibility", "consumer acceptance", "compliance", "production readiness"]
+  },
+  "docs_link": "examples/connectors/telemetry-csv-replay/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-csv-replay-valid",
+      "description": "Valid synthetic CSV rows are normalized in dry-run mode.",
+      "fixture_path": "examples/connectors/telemetry-csv-replay/fixtures/replay.csv",
+      "expected_result": "pass"
+    }
+  ]
+}

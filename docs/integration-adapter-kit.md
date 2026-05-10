@@ -80,6 +80,21 @@ See [Connector Plugin Contract](connectors/plugin-contract.md) for the manifest
 shape and [External Connection Readiness](external-connection-readiness.md) for
 operator review questions.
 
+## Generic Connector Examples
+
+Stage 5 adds generic connector examples under `examples/connectors/` for:
+
+- telemetry HTTP poller shape;
+- telemetry CSV replay shape;
+- prediction sidecar stub shape;
+- monitoring/export summary shape.
+
+These examples use synthetic fixtures only and are included in local manifest
+and conformance checks. They are developer examples, not real vendor adapters,
+not consumer/discovery automation, not evidence packets, and not proof of
+vendor compatibility, production AVL reliability, production-grade ETA quality,
+consumer acceptance, production readiness, or CAL-ITP/Caltrans compliance.
+
 ## Adapter Conformance Suite
 
 Use the offline conformance suite to check required synthetic cases:
