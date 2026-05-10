@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.consumer-discovery",
+  "type": "consumer_discovery",
+  "display_name": "Synthetic consumer discovery",
+  "description": "Synthetic discovery manifest for public feed metadata preparation only.",
+  "mode": {
+    "name": "offline_metadata",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Public feed metadata",
+      "description": "Public feed URLs and license/contact metadata.",
+      "schema": "open-transit-rt.public-feeds.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["schedule_url", "vehicle_positions_url", "trip_updates_url", "alerts_url", "license_url"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Discovery packet draft",
+      "description": "Offline packet draft without submission or tracker mutation.",
+      "schema": "open-transit-rt.discovery.packet.v1",
+      "media_types": ["application/json"],
+      "produces": ["prepared_discovery_metadata"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 5,
+    "retry_policy": "operator rerun only",
+    "degraded_state": "packet not prepared",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "none",
+    "redact_fields": ["private_notes", "operator_email", "portal_url"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["consumer submission", "consumer acceptance", "consumer listing", "consumer display", "status transition"]
+  },
+  "docs_link": "docs/connectors/plugin-contract.md",
+  "conformance_cases": [
+    {
+      "id": "consumer-no-submit",
+      "description": "Synthetic discovery packet does not submit or mutate statuses.",
+      "fixture_path": "testdata/connectors/valid/synthetic-consumer-discovery-input.json",
+      "expected_result": "pass"
+    }
+  ]
+}

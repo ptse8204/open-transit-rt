@@ -1,0 +1,7 @@
+{
+  "synthetic_only": true,
+  "agency_id": "demo-agency",
+  "feed_version_id": 1,
+  "vehicle_positions_reference": "fixture://vehicle-positions",
+  "confidence": 0.4
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.telemetry-source",
+  "type": "telemetry_source",
+  "display_name": "Synthetic telemetry source",
+  "description": "Synthetic telemetry source manifest for dry-run GPS adapter conformance.",
+  "mode": {
+    "name": "sidecar_http",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic GPS poll result",
+      "description": "Synthetic observations reviewed before transform.",
+      "schema": "open-transit-rt.telemetry.synthetic.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["agency_id", "device_id", "vehicle_id", "timestamp", "lat", "lon"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Open Transit RT telemetry event",
+      "description": "Telemetry payload for the authenticated ingest boundary.",
+      "schema": "open-transit-rt.telemetry.event.v1",
+      "media_types": ["application/json"],
+      "produces": ["telemetry_event"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 10,
+    "retry_policy": "bounded retry for retryable failures",
+    "degraded_state": "no telemetry emitted",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "env_reference_only",
+    "redact_fields": ["authorization", "device_token", "raw_payload", "private_endpoint"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["CAL-ITP or Caltrans compliance", "consumer acceptance", "agency adoption", "production readiness", "vendor compatibility", "production-grade ETA quality"]
+  },
+  "docs_link": "docs/connectors/plugin-contract.md",
+  "conformance_cases": [
+    {
+      "id": "telemetry-on-route",
+      "description": "Synthetic on-route payload transforms without sending by default.",
+      "fixture_path": "testdata/connectors/valid/synthetic-telemetry-source-input.json",
+      "expected_result": "pass"
+    }
+  ]
+}

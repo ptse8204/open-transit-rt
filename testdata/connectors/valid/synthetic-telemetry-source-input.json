@@ -1,0 +1,9 @@
+{
+  "synthetic_only": true,
+  "agency_id": "demo-agency",
+  "device_id": "device-1",
+  "vehicle_id": "bus-1",
+  "timestamp": "2026-05-10T12:00:00Z",
+  "lat": 34.05,
+  "lon": -118.25
+}

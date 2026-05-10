@@ -1,0 +1,8 @@
+{
+  "synthetic_only": true,
+  "schedule_url": "https://example.org/public/gtfs/schedule.zip",
+  "vehicle_positions_url": "https://example.org/public/gtfsrt/vehicle_positions.pb",
+  "trip_updates_url": "https://example.org/public/gtfsrt/trip_updates.pb",
+  "alerts_url": "https://example.org/public/gtfsrt/alerts.pb",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/"
+}

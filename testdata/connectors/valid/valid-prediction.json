@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.prediction-sidecar",
+  "type": "prediction",
+  "display_name": "Synthetic prediction sidecar",
+  "description": "Synthetic prediction manifest for evaluating a sidecar behind the adapter boundary.",
+  "mode": {
+    "name": "sidecar_http",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Prediction request summary",
+      "description": "Sanitized active schedule, current assignments, and Vehicle Positions reference.",
+      "schema": "open-transit-rt.prediction.request.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["agency_id", "feed_version_id", "vehicle_positions_reference"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Trip Updates candidate response",
+      "description": "Candidate Trip Updates output reviewed by the existing prediction adapter.",
+      "schema": "open-transit-rt.prediction.response.v1",
+      "media_types": ["application/json"],
+      "produces": ["trip_updates_candidate"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 5,
+    "retry_policy": "no retry on malformed output",
+    "degraded_state": "deterministic predictor remains available",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "env_reference_only",
+    "redact_fields": ["authorization", "device_id", "driver_id", "raw_assignment", "private_endpoint"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["production-grade ETA quality", "consumer acceptance", "Caltrans compliance", "vendor compatibility"]
+  },
+  "docs_link": "docs/connectors/plugin-contract.md",
+  "conformance_cases": [
+    {
+      "id": "prediction-low-confidence",
+      "description": "Synthetic low-confidence prediction remains withheld.",
+      "fixture_path": "testdata/connectors/valid/synthetic-prediction-input.json",
+      "expected_result": "pass"
+    }
+  ]
+}

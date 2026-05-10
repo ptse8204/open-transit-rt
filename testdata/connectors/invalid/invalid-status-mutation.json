@@ -1,0 +1,12 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "invalid.status-mutation",
+  "type": "consumer_discovery",
+  "display_name": "Invalid status mutation",
+  "description": "Invalid manifest that tries to mutate status.",
+  "mode": {
+    "name": "offline_metadata",
+    "disabled_by_default": true,
+    "mutates_status": true
+  }
+}

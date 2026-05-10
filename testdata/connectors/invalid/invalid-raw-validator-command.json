@@ -1,0 +1,8 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "invalid.validator-command",
+  "type": "validator",
+  "display_name": "Invalid raw validator command",
+  "description": "Invalid manifest with raw command execution.",
+  "command": "java -jar validator.jar"
+}

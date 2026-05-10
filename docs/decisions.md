@@ -411,3 +411,28 @@ proof.
 prepared-only consumer tracker. It does not contact marketplaces, vendors,
 consumers, agencies, procurement systems, or external services, and it does not
 create retained evidence.
+
+## ADR-0038 — Use sidecar manifests for connector plugins
+
+Post-60 connector plugins are optional sidecars, command adapters, or
+deployment-owned processes described by `open-transit-rt.connector.v1`
+manifests. Open Transit RT validates the manifest and synthetic conformance
+metadata locally, but it does not load arbitrary Go plugins or execute
+connector code from manifests.
+
+The contract covers telemetry sources, prediction sidecars, validator
+wrappers, monitoring/export integrations, and consumer/discovery workflows.
+All connectors remain adapter-bound, optional, documented, tested, redacted,
+and fail-closed. Vehicle Positions must continue without an external
+predictor, and deterministic prediction remains the default.
+
+Manifest validation rejects raw secrets, private paths, unsafe URLs,
+unsupported positive claims, raw validator commands, notification
+send-by-default, consumer submission automation, and status mutation.
+
+This decision adds no DB migration, public feed contract change, telemetry
+ingest contract change, Trip Updates hard-coupling, external predictor default
+change, evidence write, consumer status change, hosted SaaS claim, compliance
+claim, consumer-acceptance claim, agency-adoption claim, vendor-compatibility
+claim, production-readiness claim, production AVL reliability claim, or
+production-grade ETA-quality claim.

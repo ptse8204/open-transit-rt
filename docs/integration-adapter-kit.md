@@ -27,7 +27,7 @@ Use the existing boundary that matches the system being integrated:
 | Send synthetic telemetry through real ingest | `make telemetry-simulator` / authenticated `POST /v1/telemetry` | [Telemetry Simulator And Device Trial](tutorials/telemetry-simulator-and-device-trial.md) |
 | Send device, GPS, or AVL observations | Transform to `POST /v1/telemetry` | [Device And AVL Integration](tutorials/device-avl-integration.md) |
 | Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
-| Validate an external connector manifest | Sidecar/manifest contract and local checks | [Post-60 Product Roadmap](post-60-product-roadmap.md) |
+| Validate an external connector manifest | Sidecar/manifest contract and local checks | [Connector Plugin Contract](connectors/plugin-contract.md), [External Connection Readiness](external-connection-readiness.md) |
 | Run synthetic adapter conformance | Offline synthetic conformance suite | [Post-60 Product Roadmap](post-60-product-roadmap.md) |
 | Swap or evaluate Trip Updates prediction | `internal/prediction.Adapter` | [Dependencies](dependencies.md), [Trip Updates requirements](requirements-trip-updates.md) |
 | Validate GTFS or GTFS-Realtime artifacts | Server-side allowlisted validator IDs | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md), [Dependencies](dependencies.md) |
@@ -60,6 +60,25 @@ The Phase 37 onboarding flow establishes the active schedule/feed baseline.
 Phase 38 integration work starts after that baseline exists; it does not
 replace GTFS import, feed publication metadata review, or device credential
 management.
+
+## Connector Manifest Checks
+
+Post-60 connector work uses `open-transit-rt.connector.v1` manifests. Run:
+
+```bash
+make external-connection-check
+```
+
+The check validates synthetic connector manifests for telemetry sources,
+prediction, validators, monitoring/export, and consumer/discovery workflows.
+It is local validation only. It does not load Go plugins, start sidecars,
+contact consumers, send notifications, create evidence, mutate consumer
+statuses, or prove compatibility, compliance, production readiness, or
+production-grade ETA quality.
+
+See [Connector Plugin Contract](connectors/plugin-contract.md) for the manifest
+shape and [External Connection Readiness](external-connection-readiness.md) for
+operator review questions.
 
 ## Telemetry Adapter Path
 

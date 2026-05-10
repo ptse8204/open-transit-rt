@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.validator-wrapper",
+  "type": "validator",
+  "display_name": "Synthetic validator wrapper",
+  "description": "Synthetic validator manifest that references allowlisted validator IDs only.",
+  "mode": {
+    "name": "command_adapter",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Validator request",
+      "description": "Server-owned artifact reference and allowlisted validator ID.",
+      "schema": "open-transit-rt.validator.request.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["validator_id", "feed_type", "artifact_ref"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Validator normalized result",
+      "description": "Normalized validation status without raw command strings.",
+      "schema": "open-transit-rt.validator.result.v1",
+      "media_types": ["application/json"],
+      "produces": ["validation_summary"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 30,
+    "retry_policy": "operator rerun only",
+    "degraded_state": "validation needs review",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "none",
+    "redact_fields": ["private_path", "raw_stdout", "raw_stderr", "artifact_path"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["compliance proof", "consumer acceptance", "production readiness"]
+  },
+  "docs_link": "docs/connectors/plugin-contract.md",
+  "conformance_cases": [
+    {
+      "id": "validator-allowlist",
+      "description": "Synthetic request uses an allowlisted validator ID.",
+      "fixture_path": "testdata/connectors/valid/synthetic-validator-input.json",
+      "expected_result": "pass"
+    }
+  ]
+}

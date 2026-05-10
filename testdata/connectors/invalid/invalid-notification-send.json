@@ -1,0 +1,12 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "invalid.notification-send",
+  "type": "monitoring_export",
+  "display_name": "Invalid notification send",
+  "description": "Invalid manifest that sends notifications by default.",
+  "mode": {
+    "name": "sidecar_file_export",
+    "disabled_by_default": true,
+    "sends_notifications_by_default": true
+  }
+}

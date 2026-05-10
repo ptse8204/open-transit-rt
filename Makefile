@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -94,6 +94,9 @@ release-candidate-check:
 
 test-release-candidate-check:
 	@go test ./cmd/agency-config -run TestReleaseCandidateCheck
+
+external-connection-check:
+	@./scripts/external-connection-check.sh
 
 release-package:
 	@RELEASE_PACKAGE_ALLOW_DIRTY=$${RELEASE_PACKAGE_ALLOW_DIRTY:-true} ./scripts/release-package.sh
@@ -224,6 +227,7 @@ validate:
 	@test -f scripts/multi-agency-hosting.sh
 	@test -f scripts/test-multi-agency-hosting.sh
 	@test -f scripts/release-candidate-check.sh
+	@test -f scripts/external-connection-check.sh
 	@test -f scripts/release-package.sh
 	@test -f scripts/audit-release-package.sh
 	@test -f scripts/test-release-package.sh
@@ -247,6 +251,7 @@ validate:
 	@sh -n scripts/multi-agency-hosting.sh
 	@sh -n scripts/test-multi-agency-hosting.sh
 	@sh -n scripts/release-candidate-check.sh
+	@sh -n scripts/external-connection-check.sh
 	@sh -n scripts/release-package.sh
 	@sh -n scripts/audit-release-package.sh
 	@sh -n scripts/test-release-package.sh
@@ -279,6 +284,8 @@ validate:
 	@python3 -m json.tool .cache/validate/release-candidate-check/summary.json >/dev/null
 	@python3 -m json.tool .cache/validate/release-candidate-check/manifest.json >/dev/null
 	@python3 -c 'import json; from pathlib import Path; d=Path(".cache/validate/release-candidate-check"); assert sorted(p.name for p in d.iterdir() if p.is_file()) == ["check-log.txt","manifest.json","manifest.md","summary.json","summary.md"]; s=json.loads((d/"summary.json").read_text()); assert all(v is False for v in s["claim_flags"].values()), s["claim_flags"]'
+	@scripts/external-connection-check.sh --help >/dev/null
+	@scripts/external-connection-check.sh >/dev/null
 	@scripts/release-package.sh --help >/dev/null
 	@scripts/audit-release-package.sh --help >/dev/null
 	@rm -rf .cache/validate/release-package
@@ -308,6 +315,8 @@ validate:
 	@test -f docs/handoffs/phase-56.md
 	@test -f docs/phase-57-release-packaging-and-supply-chain.md
 	@test -f docs/release-candidate-readiness.md
+	@test -f docs/connectors/plugin-contract.md
+	@test -f docs/external-connection-readiness.md
 	@test -f docs/phase-58-optional-marketplace-vendor-equivalent-pack.md
 	@test -f docs/vendor-equivalent-pack/README.md
 	@test -f docs/vendor-equivalent-pack/byod-hardware-intake-template.md
@@ -365,6 +374,13 @@ validate:
 	@test -f testdata/avl-vendor/duplicate-batch.json
 	@test -f testdata/avl-vendor/out-of-order-batch.json
 	@test -f testdata/avl-vendor/send-manifest.json
+	@test -f testdata/connectors/valid/valid-telemetry-source.json
+	@test -f testdata/connectors/valid/valid-prediction.json
+	@test -f testdata/connectors/valid/valid-validator.json
+	@test -f testdata/connectors/valid/valid-monitoring-export.json
+	@test -f testdata/connectors/valid/valid-consumer-discovery.json
+	@test -f testdata/connectors/invalid/invalid-secret.json
+	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json; do python3 -m json.tool "$$f" >/dev/null; done
 	@test -f testdata/telemetry-simulator/README.md
 	@test -f testdata/telemetry-simulator/on-route.json
 	@test -f testdata/telemetry-simulator/stale.json

@@ -1,0 +1,48 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "invalid.unsupported-claim",
+  "type": "prediction",
+  "display_name": "Invalid unsupported claim",
+  "description": "Invalid manifest that makes an unsupported positive claim.",
+  "mode": {
+    "name": "sidecar_http",
+    "disabled_by_default": true
+  },
+  "input_contracts": [
+    {
+      "name": "Prediction input",
+      "description": "Synthetic input.",
+      "schema": "open-transit-rt.prediction.request.v1"
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Prediction output",
+      "description": "Synthetic output.",
+      "schema": "open-transit-rt.prediction.response.v1"
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 5,
+    "retry_policy": "none",
+    "degraded_state": "withheld",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "none",
+    "redact_fields": ["raw_payload"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["production ready"],
+    "not_claimed": ["consumer acceptance"]
+  },
+  "docs_link": "docs/connectors/plugin-contract.md",
+  "conformance_cases": [
+    {
+      "id": "invalid-claim",
+      "description": "Invalid claim fixture.",
+      "fixture_path": "testdata/connectors/valid/synthetic-prediction-input.json",
+      "expected_result": "pass"
+    }
+  ]
+}

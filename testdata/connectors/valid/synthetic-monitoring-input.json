@@ -1,0 +1,8 @@
+{
+  "synthetic_only": true,
+  "generated_at": "2026-05-10T12:00:00Z",
+  "feed_rows": [
+    {"feed_type": "vehicle_positions", "status": "needs_review"}
+  ],
+  "send": false
+}

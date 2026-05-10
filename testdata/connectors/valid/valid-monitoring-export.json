@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.monitoring-export",
+  "type": "monitoring_export",
+  "display_name": "Synthetic monitoring export",
+  "description": "Synthetic monitoring manifest for redacted no-send summaries.",
+  "mode": {
+    "name": "sidecar_file_export",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Operations health summary",
+      "description": "Redacted private health summary from existing diagnostics.",
+      "schema": "open-transit-rt.operations.health.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["generated_at", "feed_rows"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Monitoring export draft",
+      "description": "No-send monitoring summary controlled by deployment operators.",
+      "schema": "open-transit-rt.monitoring.export.v1",
+      "media_types": ["application/json"],
+      "produces": ["redacted_monitoring_summary"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 5,
+    "retry_policy": "no background retry",
+    "degraded_state": "export missing",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "env_reference_only",
+    "redact_fields": ["webhook_url", "email_to", "private_host", "raw_log"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["SLA proof", "uptime proof", "production readiness", "consumer acceptance"]
+  },
+  "docs_link": "docs/connectors/plugin-contract.md",
+  "conformance_cases": [
+    {
+      "id": "monitoring-no-send",
+      "description": "Synthetic export remains no-send by default.",
+      "fixture_path": "testdata/connectors/valid/synthetic-monitoring-input.json",
+      "expected_result": "pass"
+    }
+  ]
+}
