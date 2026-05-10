@@ -1,10 +1,10 @@
 # Roadmap To Cal-ITP Compliance And GTFS-RT Gap Closure
 
-**Status:** proposed review draft, Phase 60 final claim review complete
+**Status:** Phase 60 closed for final claim review and public closeout
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`
 **Generated for review:** 2026-05-08
 **Phase 54 refresh date:** 2026-05-09
-**Current repo baseline:** Phase 60 complete for final claim review and public closeout
+**Current repo baseline:** Phases 0 through 60 are closed for their documented scopes. Phase 60 closed for final claim review and public closeout.
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -12,9 +12,10 @@ that can support California transit data compliance work and close the most
 important practical gaps in existing open-source GTFS-RT tooling.
 
 This document is intentionally evidence-bounded. It does not claim that Open
-Transit RT is CAL-ITP/Caltrans compliant today, accepted by any consumer, used
-by an agency, production-ready for all deployments, vendor-compatible, or
-marketplace/vendor-equivalent.
+Transit RT is CAL-ITP/Caltrans compliant today, accepted by any consumer,
+adopted or approved by an agency, available as hosted SaaS, production-ready
+for all deployments, vendor-compatible, marketplace approved, agency-owned
+final-root proven, or production-grade ETA quality proven.
 
 ## Official Requirements Verification Gate
 
@@ -100,7 +101,7 @@ As of Phase 60, Open Transit RT has:
 - synthetic AVL adapter fixtures;
 - deterministic realtime-quality replay fixtures;
 - prepared consumer packets for seven targets;
-- hosted/operator OCI pilot evidence for the recorded pilot root.
+- hosted/operator OCI pilot evidence for the recorded pilot root;
 - current official-source requirement mappings for stable public schedule and
   realtime URLs, all three realtime feed types, canonical no-error validation,
   open licensing, major trip-planner acceptance as a third-party requirement,
@@ -212,7 +213,7 @@ RQ-4G. The roadmap below closes those requirements in stages.
 
 | Requirement | Current status | Roadmap closure path |
 | --- | --- | --- |
-| RQ-4A complete realtime feed set | all three GTFS-RT feed paths exist; Phase 54 confirms Caltrans completeness maps to Trip Updates, Vehicle Positions, and Service Alerts | Phases 44, 46, 50, 51 prove freshness, validation, and quality for real deployments |
+| RQ-4A complete realtime feed set | all three GTFS-RT feed paths exist; Phase 54 confirms Caltrans completeness maps to Trip Updates, Vehicle Positions, and Service Alerts | Phases 44, 46, 50, and 51 add simulator, validation-health, backtesting, and reliability diagnostics that can support future real-deployment evidence when retained artifacts exist. |
 | RQ-4B stable public production URLs | stable paths exist; final root missing; Phase 54 confirms stable public schedule and realtime URLs remain official-source requirements | Phases 42 and 52 create preflight and final-root evidence workflow |
 | RQ-4C validator-clean feeds | tooling exists; final no-error production evidence missing; Phase 54 confirms regular canonical validation with no errors remains required for compliant wording | Phases 45, 46, and 55 add triage, scheduled validators, and compliance packet generation |
 | RQ-4D open license and discoverability | metadata model exists; agency-approved metadata and source-of-truth website proof are missing; Phase 54 confirms provider/regional website links, technical contact, Transitland, and Mobility Database availability mappings | Phases 43, 52, and 55 harden metadata workflow and final-root public discovery proof |
@@ -222,9 +223,11 @@ RQ-4G. The roadmap below closes those requirements in stages.
 
 ## Master Phase Roadmap
 
-The following phases are proposed future phases. They are not complete until a
-maintainer accepts the scope, implementation happens, checks are run, and a
-phase handoff is created.
+The following phases are closed for their documented scopes. Completed local,
+diagnostic, template, or blocker-only phases do not imply retained external
+evidence, compliance, consumer acceptance, agency adoption, hosted SaaS,
+production readiness, vendor compatibility, marketplace approval, final-root
+proof, or production-grade ETA quality.
 
 | Phase | Name | Primary outcome |
 | --- | --- | --- |
@@ -232,15 +235,15 @@ phase handoff is created.
 | 42 | Reference Deployment Doctor | Complete. Read-only checks for env, services, reverse proxy posture, validators, DB, backups, restore readiness, and route boundaries. |
 | 43 | Operator UX Setup V2 | Complete. Private grouped checklist for setup/readiness remediation and JSON export. |
 | 44 | Telemetry Simulator And Device Trial | Complete. Safe simulator path that sends synthetic telemetry through real device-token ingest. |
-| 45 | GTFS Quality Triage Loop | Operator-facing static GTFS validator warning/error triage linked to import/Studio actions. |
-| 46 | Validator Automation And Health Gates | Scheduled validator runs, strict activation gates, history views, and deployment status exports. |
+| 45 | GTFS Quality Triage Loop | Complete. Private authenticated static GTFS quality triage and admin-only rerun diagnostics without evidence, auto-edit, or compliance/consumer claims. |
+| 46 | Validator Automation And Health Gates | Complete. Private validator-health diagnostics and local script/export workflow without evidence, publish blocking, or compliance/production claims. |
 | 47 | Self-Hosted Operations Notifications | Complete. Private local notification drafts from existing diagnostic summaries only; no sending or evidence creation. |
-| 48 | AVL Adapter Runtime Path | Private/authorized adapter send-mode pattern preserving `/v1/telemetry` and redaction boundaries. |
-| 49 | External Predictor Runtime Adapter | Optional external predictor runtime path behind `internal/prediction.Adapter`. |
-| 50 | Realtime Quality Backtesting | Real/simulated observed-arrival quality workflow with route/time-period metrics and ETA maturity gates. |
-| 51 | Operations Reliability And SLO Readiness | Feed freshness, incident, backup/restore, alerting, and uptime evidence workflow. |
-| 52 | Final Public Root Evidence Workflow | Agency-owned or agency-approved root acquisition, DNS/TLS/public fetch/validator evidence. |
-| 53 | Authorized Consumer Submission Execution | Target-specific submission only with authorization and retained target-originated artifacts. |
+| 48 | AVL Adapter Runtime Path | Complete. Private authenticated AVL adapter send mode through `/v1/telemetry` with env-only credentials and redacted `.cache` diagnostics. |
+| 49 | External Predictor Runtime Adapter | Complete. Optional generic external HTTP predictor adapter behind `internal/prediction.Adapter` without named predictor or ETA-quality claim. |
+| 50 | Realtime Quality Backtesting | Complete. Private local observed-arrival quality backtesting CLI/library with aggregate diagnostics only. |
+| 51 | Operations Reliability And SLO Readiness | Complete. Private reliability diagnostics and Vehicle Positions health persistence without SLA/uptime or production-readiness claims. |
+| 52 | Final Public Root Evidence Workflow | Complete blocker-only. Guarded final-root collector/audit workflow exists; no real final-root or approval evidence was retained. |
+| 53 | Authorized Consumer Submission Execution | Complete blocker-only. No authorization, official target path verification, or target-originated artifact existed; all targets remain `prepared`. |
 | 54 | Official Requirements Refresh | Complete. Re-checked current official public sources and updated requirement mapping without creating evidence or compliance claims. |
 | 55 | Compliance Evidence Packet Generator | Complete. Generates ignored `.cache` blocker/draft readiness packets with strict claim-gated audit. |
 | 56 | Multi-Agency Hosting Hardening | Complete. Tenant-safe public feed routing, proxy checks, private diagnostics, and backup/restore/export/evidence boundaries without hosted SaaS or production multi-tenant claims. |
@@ -648,6 +651,14 @@ authorized real AVL adapters.
 A maintainer can add or privately run a real adapter without contaminating core
 matching, feed, or device-token code with vendor assumptions.
 
+### Phase 48 Closure
+
+Phase 48 is complete for the private authenticated send-mode scope. It keeps
+`/v1/telemetry` as the runtime ingest boundary, uses env-only credential
+references, writes redacted private diagnostics under `.cache`, and creates no
+evidence packet, consumer-status change, named vendor support claim,
+production AVL reliability claim, or production-readiness/compliance claim.
+
 ### Non-Goals
 
 No named vendor support or certification unless retained authorization and test
@@ -683,6 +694,14 @@ Add an optional runtime path for external predictors behind
 A deployment can test an external predictor in shadow or controlled runtime mode
 without weakening core source-of-truth boundaries.
 
+### Phase 49 Closure
+
+Phase 49 is complete for the optional disabled-by-default generic HTTP
+predictor adapter boundary. Vehicle Positions remain independent, Trip Updates
+fall back safely on adapter failure, and no named predictor, vendor
+compatibility, consumer, evidence, compliance, or production-grade ETA claim
+was added.
+
 ### Non-Goals
 
 No production-grade ETA claim from adapter wiring alone.
@@ -717,6 +736,14 @@ Create the evidence path for ETA and realtime-quality maturity.
 
 The repo can measure realtime quality on real or approved observed-operation
 data without overclaiming.
+
+### Phase 50 Closure
+
+Phase 50 is complete for private local diagnostics. It added a backtesting
+library/CLI and `.cache` aggregate outputs for overall, route, time-period, and
+route/time-period metrics. It did not add DB persistence, public APIs,
+Operations Console views, evidence writes, publish gates, consumer status
+changes, production ETA proof, or readiness claims.
 
 ### Non-Goals
 
@@ -754,6 +781,15 @@ Make long-running operations visible and auditable.
 Operators can run Open Transit RT over time and show what happened when feeds,
 validators, telemetry, or deployments degraded.
 
+### Phase 51 Closure
+
+Phase 51 is complete for private operations reliability diagnostics. It added
+authenticated reliability summaries, bounded Vehicle Positions health
+persistence, and `.cache` reliability output only. It did not add public
+routes, monitoring-stack dependencies, evidence writes, consumer status
+changes, SLA/uptime claims, hosted SaaS claims, production-readiness claims, or
+compliance claims.
+
 ### Non-Goals
 
 No SLA commitment unless a separate support/service agreement exists.
@@ -777,7 +813,7 @@ Acquire and prove an agency-owned or agency-approved public feed root.
 
 ### Definition Of Done
 
-A dated packet exists for a specific root with:
+For a real final-root run, a dated packet exists for a specific root with:
 
 - owner/approval artifact;
 - DNS proof;
@@ -787,6 +823,13 @@ A dated packet exists for a specific root with:
 - current validation records;
 - checksums;
 - redaction notes.
+
+### Phase 52 Closure
+
+Phase 52 is complete blocker-only for the guarded final-root workflow. The
+collector and audit tooling exist, but no real final public root or redacted
+approval artifact was available, so no retained final-root evidence packet was
+created and `docs/evidence/captured` remained unchanged.
 
 ### Non-Goals
 
@@ -811,8 +854,17 @@ path evidence exist.
 
 ### Definition Of Done
 
-Only the selected target moves beyond `prepared`, and only to the status
-supported by retained target-originated evidence.
+For a future authorized execution, only the selected target moves beyond
+`prepared`, and only to the status supported by retained target-originated
+evidence.
+
+### Phase 53 Closure
+
+Phase 53 is complete blocker-only. No operator authorization artifact,
+official target path verification artifact, or target-originated artifact was
+available. No target was selected, no consumer or aggregator was contacted, no
+submission was made, no artifact was added, and all seven targets remain
+`prepared`.
 
 ### Non-Goals
 
@@ -836,6 +888,13 @@ Verify the current Caltrans / Cal-ITP requirements before final compliance work.
 
 A maintainer can point to the exact official guidance version used for final
 claim review.
+
+### Phase 54 Closure
+
+Phase 54 is complete for docs-only official-source mapping. It re-checked
+current Caltrans / Cal-ITP and FTA sources and updated requirement mappings
+only. It did not create evidence, change consumer statuses, change runtime
+behavior, or claim compliance.
 
 ### Non-Goals
 
@@ -875,6 +934,13 @@ artifacts without overstating claims.
 
 A packet can say exactly which readiness/compliance claims are supported and
 which remain unsupported.
+
+### Phase 55 Closure
+
+Phase 55 is complete for local `.cache` blocker/draft compliance/readiness
+packet generation and conservative audit tooling. It did not create retained
+evidence, fetch live feeds, contact consumers, change consumer statuses, write
+`docs/evidence/captured`, or claim compliance.
 
 ### Non-Goals
 
@@ -939,25 +1005,6 @@ production-readiness claim, compliance claim, consumer acceptance claim, agency
 adoption claim, marketplace approval, vendor compatibility claim, SLA/uptime
 claim, or retained evidence creation.
 
-### Artifacts
-
-- release artifact matrix;
-- optional published Docker images;
-- checksums;
-- SBOM/provenance where practical;
-- versioned config migration notes;
-- upgrade/rollback test matrix;
-- release validation checklist.
-
-### Definition Of Done
-
-A small agency implementer can install a known version and upgrade or roll back
-without building from a random local checkout.
-
-### Non-Goals
-
-Release packaging is not hosted SaaS or paid support.
-
 ## Phase 58 — Optional Marketplace / Vendor-Equivalent Pack
 
 ### Goal
@@ -990,7 +1037,10 @@ production-readiness claim.
 
 ### Goal
 
-Run a real authorized pilot and retain public-safe outcome evidence.
+Document the closeout path for a real authorized pilot and retain public-safe
+outcome evidence only when a real authorization and closeout artifact set
+exists. Phase 59 closed blocker-only for the current repository state because
+those artifacts were absent.
 
 ### Artifacts
 
@@ -1027,24 +1077,36 @@ consumer acceptance, or production readiness.
 ### Goal
 
 Determine exactly what Open Transit RT can truthfully claim after all retained
-evidence and official requirements review.
+evidence and official requirements review. Phase 60 is complete for the
+current repository state and did not strengthen unsupported claims.
 
 ### Artifacts
 
-- final claim-to-evidence table;
-- unsupported-claims table;
-- public README wording update;
-- public launch or compliance statement only if supported;
-- archived evidence index;
-- maintainer signoff.
+- complete for the current scope: final claim-to-evidence table;
+- complete for the current scope: unsupported-claims table;
+- complete for the current scope: local read-only claim audit helper;
+- complete for the current scope: mutation-style audit tests;
+- complete for the current scope: bounded public/status docs updates;
+- complete for the current scope: Phase 60 handoff.
 
 ### Definition Of Done
 
-Every public claim has a retained evidence reference or is removed.
+Every public claim has a retained evidence reference, is classified as
+implementation capability or requirements context, or is removed/bounded.
+
+### Phase 60 Closeout
+
+Phase 60 is complete. It added `make audit-final-claim-review` and the final
+claim review document. It created no retained evidence, wrote nothing under
+`docs/evidence`, changed no consumer statuses, refreshed no packets or
+artifact directories, and added no public launch, compliance, agency adoption,
+consumer acceptance, hosted service, SLA/uptime, production-readiness, vendor,
+marketplace, final-root, or production-grade ETA claim.
 
 ### Non-Goals
 
-No aspirational language disguised as evidence.
+No aspirational language disguised as evidence. No public launch or compliance
+statement was added because retained evidence does not support one.
 
 ## Recommended Execution Order
 
@@ -1065,21 +1127,23 @@ They do not require external authorization.
 
 8. Phase 48 — AVL Adapter Runtime Path — complete
 9. Phase 49 — External Predictor Runtime Adapter — complete
-10. Phase 50 — Realtime Quality Backtesting
-11. Phase 51 — Operations Reliability And SLO Readiness
+10. Phase 50 — Realtime Quality Backtesting — complete
+11. Phase 51 — Operations Reliability And SLO Readiness — complete
 
 These phases close later open-source GTFS-RT gaps: adapters, telemetry,
 predictor replacement, quality measurement, and deployment-owned monitoring.
 
 ### Evidence and compliance path
 
-12. Phase 52 — Final Public Root Evidence Workflow
-13. Phase 53 — Authorized Consumer Submission Execution
-14. Phase 54 — Official Requirements Refresh
-15. Phase 55 — Compliance Evidence Packet Generator
+12. Phase 52 — Final Public Root Evidence Workflow — complete blocker-only
+13. Phase 53 — Authorized Consumer Submission Execution — complete blocker-only
+14. Phase 54 — Official Requirements Refresh — complete
+15. Phase 55 — Compliance Evidence Packet Generator — complete
 
-These phases should run only when an operator has a real deployment context or
-when maintainers are ready to refresh official requirements.
+These phases are complete for their current scopes. Phase 52 and Phase 53 are
+blocker-only because the required real final-root and consumer-submission
+artifacts were absent; Phase 54 and Phase 55 are requirements and local packet
+workflow support only.
 
 ### Scale, release, and final closeout
 
@@ -1087,9 +1151,11 @@ when maintainers are ready to refresh official requirements.
 17. Phase 57 — Release Packaging And Supply Chain
 18. Phase 58 — Optional Marketplace / Vendor-Equivalent Pack
 19. Phase 59 — Real Pilot Closeout — complete blocker-only
-20. Phase 60 — Final Claim Review And Public Closeout
+20. Phase 60 — Final Claim Review And Public Closeout — complete
 
-These phases make the project sustainable and honest at broader adoption scale.
+These phases make the project more reusable and honest at broader adoption
+scale. Completion of the sequence does not reduce the listed missing evidence
+gaps or authorize stronger public claims.
 
 ## Final Closeout Checklist
 
