@@ -1,6 +1,6 @@
 # Contributing To Open Transit RT
 
-Open Transit RT is an independent open-source backend for small transit agencies that need practical GTFS and GTFS Realtime publication tooling.
+Open Transit RT is an independent MIT-licensed open-source backend for small transit agencies that need practical GTFS and GTFS Realtime publication tooling.
 
 Contributions are welcome when they stay inside the project boundary: GTFS import and Studio, telemetry ingest, conservative trip matching, GTFS Realtime feeds, Alerts, validation, monitoring, evidence workflows, and admin/operator workflows.
 
@@ -19,6 +19,39 @@ Good first contribution areas include:
 - issue triage that links related docs, asks for missing reproduction details, or flags secret-safety concerns.
 
 Beginner-safe issues should be small, self-contained, and avoid changing public feed contracts, database schema, authentication behavior, or evidence claims.
+
+## First PR Checklist
+
+Before opening your first PR:
+
+```bash
+make check
+make test
+git diff --check
+```
+
+If your change touches connector examples, also run:
+
+```bash
+make external-connection-check
+make adapter-conformance
+make test-connector-examples
+```
+
+If your change touches validator, readiness, release-candidate, or operations
+docs, run the relevant heavier checks when your local environment has the
+required tools:
+
+```bash
+make validate
+make release-candidate-check
+make caltrans-readiness-check
+make audit-final-claim-review
+```
+
+`make validate`, `make smoke`, and some release/readiness flows may require
+pinned validator tooling, Docker, Java, or local services. If a check is blocked
+by environment setup, report the exact blocker in the PR.
 
 ## Before You Build
 
@@ -39,6 +72,7 @@ If the answer is yes for feed contracts, evidence claims, security boundaries, d
 Start with:
 
 ```bash
+make check
 make validate
 make test
 git diff --check
@@ -69,6 +103,21 @@ make smoke
 ```
 
 The local app package is for local evaluation only. It does not prove hosted SaaS availability, agency-owned production readiness, consumer acceptance, or CAL-ITP/Caltrans compliance.
+
+## Good First Issue Examples
+
+Good first issues include:
+
+- correcting a command in a tutorial;
+- improving a troubleshooting note for Docker, Java, validators, or local ports;
+- adding a synthetic connector fixture with no credentials or vendor payloads;
+- adding a small test for a documented fixture behavior;
+- improving `examples/README.md`, `testdata/README.md`, or wiki navigation;
+- clarifying claim-boundary language without changing the underlying claim.
+
+Avoid first PRs that change DB migrations, public feed URLs, telemetry auth,
+GTFS-RT protobuf semantics, consumer status records, or evidence retention
+rules.
 
 ## Development Expectations
 
@@ -135,6 +184,16 @@ Every PR should include:
 - a statement about evidence/truthfulness impact when readiness or consumer wording changed;
 - confirmation that no secrets or private operator artifacts were added.
 
+Suggested labels for maintainers:
+
+- `good first issue`: small docs, fixtures, or focused tests;
+- `documentation`: docs-only updates;
+- `agency-feedback`: public-safe operator or agency trial feedback;
+- `connector`: adapter, manifest, or example work;
+- `readiness`: validation, release-candidate, or CAL-ITP-style readiness work;
+- `security-review-needed`: auth, secret, redaction, private artifact, or
+  deployment-boundary concerns.
+
 Maintainers may ask for smaller changes if a PR mixes unrelated feature, docs, evidence, and operations updates.
 
 ## Checks Before Submitting
@@ -142,6 +201,7 @@ Maintainers may ask for smaller changes if a PR mixes unrelated feature, docs, e
 Run:
 
 ```bash
+make check
 make validate
 make test
 git diff --check
@@ -156,4 +216,3 @@ docker compose -f deploy/docker-compose.yml config
 ```
 
 If a required check cannot run, say exactly why in the PR.
-
