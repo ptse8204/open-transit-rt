@@ -6,15 +6,18 @@ Post-60 productization is the active default roadmap. It is not Phase 61, and
 it does not reopen Phases 0 through 60.
 
 The default next work is product quality and external connection maturity:
-release-candidate checks, connector contracts, adapter conformance, generic
-examples, operator launchpad workflow, and readiness gap reporting. Real-world
-evidence tracks remain optional and require separate authorization, intake, and
-public-safe retention rules before any evidence tool is run.
+clear agency evaluator paths, release-candidate checks, connector contracts,
+adapter conformance, generic examples, operator launchpad workflow, and
+readiness gap reporting. Real-world evidence tracks remain optional and
+require separate authorization, intake, and public-safe retention rules before
+any evidence tool is run.
 
 ## Default Workstream
 
 Post-60 work should make Open Transit RT easier and safer to self-host:
 
+- agency-facing README/wiki entry points;
+- lightweight no-network evaluator checks;
 - repeatable release-candidate checks from a fresh clone;
 - manifest-bound connector contracts for telemetry, prediction, validators,
   monitoring export, and consumer discovery;
@@ -27,6 +30,26 @@ Post-60 work should make Open Transit RT easier and safer to self-host:
 This work improves self-hosted evaluation and integration quality. It is not
 consumer acceptance, agency approval, hosted service availability, or
 CAL-ITP/Caltrans compliance evidence.
+
+## Agency-Facing Productization Checkpoints
+
+Checkpoints 000009 through 000012 keep the work product-focused rather than
+evidence-first:
+
+- `000009`: improve the agency adoption front door with MIT licensing,
+  README/wiki routing, and clear trial paths;
+- `000010`: add connector cookbook and contribution paths for synthetic
+  adapter examples and first PRs;
+- `000011`: harden release-candidate evaluator paths with `make help`,
+  no-network `make check`, Taskfile aliases, lean CI, and environment blocker
+  documentation;
+- `000012`: close the productization review while preserving protected
+  evidence boundaries and prepared-only consumer tracker status.
+
+Formal agency approval, final feed-root evidence, and consumer acceptance are
+not required to use, evaluate, trial, or improve the software. They are future
+evidence milestones only for agencies that choose public launch or compliance
+claims.
 
 ## External Connection Model
 

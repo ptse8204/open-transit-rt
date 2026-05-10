@@ -11,12 +11,14 @@ A fresh Codex instance should be able to read this file and quickly understand:
 ## Current Repository State
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
-prototype for GTFS and GTFS Realtime publication. Phases 0 through 60 are
-closed for their documented scopes. The active default roadmap is Post-60
-productization, not Phase 61: release-candidate checks, external connector
-quality, adapter conformance, generic examples, private operator launchpad
-workflow, and `.cache`-only readiness gap summaries. Optional real-world
-evidence tracks remain authorization-gated and are not the default next work.
+for GTFS and GTFS Realtime publication. Phases 0 through 60 are closed for
+their documented scopes. The active default roadmap is Post-60
+productization, not Phase 61. Checkpoints 000009 through 000012 turn the repo
+toward agency-facing open-source product evaluation: MIT licensing, a clearer
+README/wiki front door, agency trial paths, connector contribution paths,
+`make help`, a lightweight no-network `make check`, lean no-claim CI, and
+release-candidate/readiness blocker language. Optional real-world evidence
+tracks remain authorization-gated and are not the default next work.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -108,32 +110,33 @@ handoff. Phase 60 did not create evidence, write `docs/evidence`, contact
 external parties, change consumer statuses, refresh consumer packets or
 artifacts, or add any public launch, compliance, agency adoption, consumer
 acceptance, hosted service, SLA/uptime, production-readiness, vendor,
-marketplace, or ETA-quality claim. Post-60 Checkpoint 000001 realigns the
-default next work toward product quality and external connection maturity while
-preserving optional evidence tracks for future approved intake.
+marketplace, or ETA-quality claim. Post-60 checkpoints preserve that boundary
+while making the software easier to evaluate, run, adapt, and contribute to as
+an open-source product.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
-scaffolding, plus current official-source requirement mappings. It still does
-not prove agency adoption, agency-owned final-root readiness, consumer
+scaffolding, plus current official-source requirement mappings. It now also
+has an agency-facing product front door and contributor command map. It still
+does not prove agency adoption, agency-owned final-root readiness, consumer
 acceptance, Caltrans/CAL-ITP compliance, hosted SaaS availability, production
 readiness, real vendor AVL compatibility, real realtime data, or
 production-grade ETA quality.
 
 ## Default Next Work
 
-The default next work is to make the existing self-hosted backend easier to
-evaluate and safer to connect to external systems:
+The default next work is to improve the existing self-hosted backend without
+weakening claim boundaries:
 
-- release-candidate readiness checks from a fresh clone;
-- manifest-bound connector contracts and synthetic adapter conformance;
-- generic connector examples with no real credentials or vendor payloads;
-- private agency launchpad workflow across setup, feeds, telemetry,
-  validators, connector checks, support bundles, and decision gates;
-- Caltrans-style readiness gap summaries that write only ignored `.cache`
-  diagnostics;
-- optional evidence-track routing that requires intake before any retained
-  evidence work.
+- keep the agency-facing front door and command map current as workflows
+  evolve;
+- continue improving connector examples and adapter conformance with synthetic
+  fixtures only;
+- use `make check` for lightweight evaluator confidence and the heavier
+  validator/release/readiness commands when local tooling is available;
+- keep Caltrans-style readiness gap summaries in ignored `.cache` diagnostics;
+- route optional real-world evidence through explicit intake before any
+  retained evidence work.
 
 This roadmap does not create evidence, move consumer statuses, contact external
 parties, or strengthen any compliance, adoption, hosted service, vendor, public

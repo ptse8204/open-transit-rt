@@ -7,12 +7,29 @@ This file is the source of truth for the next Codex instance.
 Post-60 productization is the active default roadmap. This is not Phase 61,
 and Phases 0 through 60 remain closed for their documented scopes.
 
-The next default work is product quality and external connection maturity:
-release-candidate readiness checks, connector contracts, adapter conformance,
-generic connector examples, private agency launchpad workflow, and
-`.cache`-only Caltrans-style readiness gap summaries. Optional evidence tracks
-remain future authorization-gated work and are not the default continuation
-path.
+The current default work is agency-facing open-source product quality and
+external connection maturity: clear evaluator paths, release-candidate
+readiness checks, connector contracts, adapter conformance, generic connector
+examples, private agency launchpad workflow, and `.cache`-only
+Caltrans-style readiness gap summaries. Optional evidence tracks remain future
+authorization-gated work and are not the default continuation path.
+
+Post-60 Checkpoints 000009 through 000012 completed the agency-ready
+productization pass:
+
+- added the MIT license and rewired the README/wiki front door around agency,
+  civic technologist, operator, and developer evaluator paths;
+- added agency-facing wiki pages for fit, trial checklist, connector cookbook,
+  CAL-ITP-style readiness, and how agencies can help;
+- added `examples/README.md`, refreshed `testdata/README.md`, and improved
+  contribution guidance for connector examples and first PRs;
+- added `make help`, lightweight no-network `make check`, Taskfile convenience
+  aliases, lean no-claim GitHub Actions checks, and release-candidate
+  environment blocker documentation.
+
+Formal agency approval, final feed-root evidence, and consumer acceptance are
+not required to use or improve the software. They remain future evidence
+milestones only for agencies that choose public launch or compliance claims.
 
 Phase 60 — Final Claim Review And Public Closeout is complete for the approved
 docs/scripts/status/handoff scope.
