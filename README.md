@@ -36,6 +36,18 @@ a prediction adapter, and Alerts are part of the public feed set.
 | Reviewing CAL-ITP-style readiness | [Plain-English Readiness Guide](wiki/calitp-readiness-plain-english.md) |
 | Contributing | [How Agencies Can Help](wiki/how-agencies-can-help.md) and [CONTRIBUTING.md](CONTRIBUTING.md) |
 
+For the full local command map, run:
+
+```bash
+make help
+```
+
+For a lightweight no-network evaluator check, run:
+
+```bash
+make check
+```
+
 Agencies can help the project by trying the local/reference workflow, testing
 with their public GTFS ZIP, contributing connector examples, reviewing
 deployment docs, sharing non-sensitive feedback, or sponsoring a later pilot.

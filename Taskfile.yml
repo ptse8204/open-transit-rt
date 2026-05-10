@@ -6,6 +6,18 @@ vars:
   MIGRATIONS_DIR: '{{.MIGRATIONS_DIR | default "db/migrations"}}'
 
 tasks:
+  default:
+    cmds:
+      - make help
+
+  help:
+    cmds:
+      - make help
+
+  check:
+    cmds:
+      - make check
+
   deps:
     cmds:
       - go mod download
@@ -61,6 +73,38 @@ tasks:
   agency-app:reset:
     cmds:
       - ./scripts/agency-local-app.sh reset
+
+  agency-pilot:up:
+    cmds:
+      - make agency-pilot-up
+
+  telemetry:simulator:
+    cmds:
+      - make telemetry-simulator
+
+  release-candidate:check:
+    cmds:
+      - make release-candidate-check
+
+  external-connection:check:
+    cmds:
+      - make external-connection-check
+
+  adapter:conformance:
+    cmds:
+      - make adapter-conformance
+
+  connector-examples:test:
+    cmds:
+      - make test-connector-examples
+
+  caltrans-readiness:check:
+    cmds:
+      - make caltrans-readiness-check
+
+  final-claim:audit:
+    cmds:
+      - make audit-final-claim-review
 
   evidence:hosted:
     cmds:

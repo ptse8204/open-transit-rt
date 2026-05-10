@@ -39,6 +39,16 @@ its retained repository output to the five files listed below.
 
 ## Usage
 
+Run the lightweight evaluator check first. It does not install validators, pull
+Docker images, start services, contact external systems, or write retained
+evidence:
+
+```sh
+make check
+```
+
+Then run the release-candidate diagnostic:
+
 ```sh
 make release-candidate-check
 ```
@@ -60,6 +70,26 @@ Optional audit of an existing local source package:
 ```sh
 RELEASE_PACKAGE_DIR=.cache/release-package/<version> RUN_RELEASE_PACKAGE=true make release-candidate-check
 ```
+
+## Environment Blockers
+
+`make release-candidate-check` records validator and local tooling blockers
+instead of treating them as product claims. If pinned validator tooling is not
+installed, the check may exit non-zero with a blocker such as a missing
+MobilityData GTFS Validator JAR, missing Java runtime, unavailable Docker CLI,
+or missing GTFS Realtime validator image. Install pinned tooling only when the
+review needs validator execution:
+
+```sh
+make validators-install
+make validators-check
+```
+
+Installing validators may require network access and Docker image pulls. If
+network, Docker, Java, or the pinned validator image is unavailable, record the
+exact blocker, confirm non-network checks such as `make check`, and continue
+productization review without converting the blocker into a compliance,
+production-readiness, or consumer-acceptance claim.
 
 ## Outputs
 

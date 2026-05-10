@@ -1,4 +1,5 @@
 SHELL := /bin/sh
+.DEFAULT_GOAL := help
 
 DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_rt?sslmode=disable
 TEST_DATABASE_URL ?= postgres://postgres:postgres@localhost:55432/open_transit_rt_test?sslmode=disable
@@ -9,7 +10,50 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check adapter-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: help check build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check adapter-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+
+help:
+	@printf '%s\n' 'Open Transit RT command map'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Local evaluation:'
+	@printf '%s\n' '  make agency-app-up              Start the local evaluator app package'
+	@printf '%s\n' '  make telemetry-simulator        Send synthetic telemetry through authenticated ingest'
+	@printf '%s\n' '  make agency-pilot-up            Import a supplied public GTFS URL for local/reference review'
+	@printf '%s\n' '  make agency-app-down            Stop the local evaluator app package'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Lightweight checks:'
+	@printf '%s\n' '  make check                      No-network/no-Docker/no-validator-install evaluator check'
+	@printf '%s\n' '  make test                       Go unit tests'
+	@printf '%s\n' '  make validate                   Full repo validation; requires pinned validators'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Connector checks:'
+	@printf '%s\n' '  make external-connection-check  Validate connector manifests and examples'
+	@printf '%s\n' '  make adapter-conformance        Run offline adapter conformance fixtures'
+	@printf '%s\n' '  make test-connector-examples    Test synthetic connector examples'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Release/readiness:'
+	@printf '%s\n' '  make release-candidate-check    Local release-candidate diagnostic summary'
+	@printf '%s\n' '  make caltrans-readiness-check   Local CAL-ITP-style readiness gap summary'
+	@printf '%s\n' '  make audit-final-claim-review   Read-only claim and consumer tracker audit'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Environment setup:'
+	@printf '%s\n' '  make deps                       Download Go modules'
+	@printf '%s\n' '  make validators-install         Install pinned validators into .cache'
+	@printf '%s\n' '  make db-up                      Start local Postgres/PostGIS with Docker Compose'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Evidence helpers are authorization-gated. Do not run collection targets unless a maintainer explicitly approves that evidence scope.'
+
+check:
+	@echo "Running lightweight no-network/no-Docker/no-validator-install checks..."
+	@git diff --check
+	@python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
+	@python3 -c 'import json; from pathlib import Path; expected=["Google Maps","Apple Maps","Transit App","Bing Maps","Moovit","Mobility Database","transit.land"]; data=json.loads(Path("docs/evidence/consumer-submissions/status.json").read_text()); records=data.get("targets", []); seen={r["target"]: r.get("status") for r in records}; assert list(seen)==expected, seen; assert all(seen[name]=="prepared" for name in expected), seen'
+	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json testdata/telemetry-simulator/*.json; do python3 -m json.tool "$$f" >/dev/null; done
+	@for s in scripts/agency-pilot-onboard.sh scripts/release-candidate-check.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh; do sh -n "$$s"; done
+	@scripts/audit-final-claim-review.sh >/dev/null
+	@scripts/release-candidate-check.sh --help >/dev/null
+	@scripts/caltrans-readiness-check.sh --help >/dev/null
+	@echo "Lightweight check passed. Heavier follow-ups when your environment supports them: make test, make validate, make release-candidate-check, make external-connection-check, make adapter-conformance."
 
 build:
 	go build ./...
