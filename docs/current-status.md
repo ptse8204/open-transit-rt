@@ -12,7 +12,12 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
 prototype for GTFS and GTFS Realtime publication. Phases 0 through 60 are
-closed for their documented scopes. Phase 33 is complete as Outcome C for
+closed for their documented scopes. The active default roadmap is Post-60
+productization, not Phase 61: release-candidate checks, external connector
+quality, adapter conformance, generic examples, private operator launchpad
+workflow, and `.cache`-only readiness gap summaries. Optional real-world
+evidence tracks remain authorization-gated and are not the default next work.
+Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
 only. Phase 35 is complete for docs-only README and roadmap realignment. Phase
@@ -103,7 +108,9 @@ handoff. Phase 60 did not create evidence, write `docs/evidence`, contact
 external parties, change consumer statuses, refresh consumer packets or
 artifacts, or add any public launch, compliance, agency adoption, consumer
 acceptance, hosted service, SLA/uptime, production-readiness, vendor,
-marketplace, or ETA-quality claim.
+marketplace, or ETA-quality claim. Post-60 Checkpoint 000001 realigns the
+default next work toward product quality and external connection maturity while
+preserving optional evidence tracks for future approved intake.
 
 The repo has substantial local, hosted-pilot, validation, consumer-packet,
 operations, replay, adapter, public-GTFS local/pilot, and agency-pilot
@@ -112,6 +119,25 @@ not prove agency adoption, agency-owned final-root readiness, consumer
 acceptance, Caltrans/CAL-ITP compliance, hosted SaaS availability, production
 readiness, real vendor AVL compatibility, real realtime data, or
 production-grade ETA quality.
+
+## Default Next Work
+
+The default next work is to make the existing self-hosted backend easier to
+evaluate and safer to connect to external systems:
+
+- release-candidate readiness checks from a fresh clone;
+- manifest-bound connector contracts and synthetic adapter conformance;
+- generic connector examples with no real credentials or vendor payloads;
+- private agency launchpad workflow across setup, feeds, telemetry,
+  validators, connector checks, support bundles, and decision gates;
+- Caltrans-style readiness gap summaries that write only ignored `.cache`
+  diagnostics;
+- optional evidence-track routing that requires intake before any retained
+  evidence work.
+
+This roadmap does not create evidence, move consumer statuses, contact external
+parties, or strengthen any compliance, adoption, hosted service, vendor, public
+launch, or ETA-quality claim.
 
 Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
 
@@ -1734,10 +1760,12 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-There is no next roadmap phase in the Phase 48 through Phase 60 sequence.
-Continue with maintenance or a new maintainer-approved phase only after a fresh
-read-only planning pass. For public/status wording work, start with
-`make audit-final-claim-review` and keep unsupported claims removed or bounded.
+Continue with Post-60 productization rather than starting Phase 61. The default
+next work is release-candidate readiness, connector contract quality, adapter
+conformance, generic connector examples, private operator launchpad workflow,
+and `.cache`-only readiness gap checks. For public/status wording work, start
+with `make audit-final-claim-review` and keep unsupported claims removed or
+bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

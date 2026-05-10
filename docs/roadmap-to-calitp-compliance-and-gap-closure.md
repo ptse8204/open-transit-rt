@@ -1,10 +1,10 @@
 # Roadmap To Cal-ITP Compliance And GTFS-RT Gap Closure
 
-**Status:** Phase 60 closed for final claim review and public closeout
+**Status:** Phase 60 closed; Post-60 productization is the default roadmap
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`
 **Generated for review:** 2026-05-08
 **Phase 54 refresh date:** 2026-05-09
-**Current repo baseline:** Phases 0 through 60 are closed for their documented scopes. Phase 60 closed for final claim review and public closeout.
+**Current repo baseline:** Phases 0 through 60 are closed for their documented scopes. Phase 60 closed for final claim review and public closeout. Post-60 default work is product quality and external connection maturity, not real agency/public pilot evidence.
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -16,6 +16,24 @@ Transit RT is CAL-ITP/Caltrans compliant today, accepted by any consumer,
 adopted or approved by an agency, available as hosted SaaS, production-ready
 for all deployments, vendor-compatible, marketplace approved, agency-owned
 final-root proven, or production-grade ETA quality proven.
+
+## Post-60 Default Direction
+
+Post-60 work does not start Phase 61 and does not make real agency/public pilot
+evidence the default path. The default roadmap is productization:
+
+- release-candidate readiness from a fresh clone;
+- connector plugin contracts using sidecar and manifest boundaries;
+- synthetic adapter conformance for telemetry, prediction, validators, and
+  monitoring/export workflows;
+- generic connector examples that use synthetic data only;
+- private operator launchpad workflow;
+- `.cache`-only Caltrans-style readiness gap checks;
+- evidence-track routing for future authorized real-world work.
+
+Optional tracks for final-root proof, consumer status, real pilot closeout,
+device/AVL review, operations evidence, or real-world ETA review remain gated
+by retained, public-safe, claim-specific artifacts.
 
 ## Official Requirements Verification Gate
 
@@ -251,6 +269,7 @@ proof, or production-grade ETA quality.
 | 58 | Optional Marketplace / Vendor-Equivalent Pack | Complete. Template-only BYOD/hardware, support, SLA/KPI, implementation, and procurement pack with local claim-boundary audit. |
 | 59 | Real Pilot Closeout | Complete blocker-only. No retained real pilot authorization, feedback, operations, or decision artifact set was available; no evidence or claim status changed. |
 | 60 | Final Claim Review And Public Closeout | Complete. Final claim-to-evidence review and local audit tooling; no evidence or claim status changed. |
+| Post-60 | Productization | Active default roadmap. Release-candidate checks, external connector maturity, adapter conformance, generic examples, private launchpad workflow, readiness gap summaries, and evidence-track routing without stronger claims. |
 
 ## Phase 41 — Operator Smoke And Support Bundle
 

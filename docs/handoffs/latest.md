@@ -4,11 +4,20 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
+Post-60 productization is the active default roadmap. This is not Phase 61,
+and Phases 0 through 60 remain closed for their documented scopes.
+
+The next default work is product quality and external connection maturity:
+release-candidate readiness checks, connector contracts, adapter conformance,
+generic connector examples, private agency launchpad workflow, and
+`.cache`-only Caltrans-style readiness gap summaries. Optional evidence tracks
+remain future authorization-gated work and are not the default continuation
+path.
+
 Phase 60 — Final Claim Review And Public Closeout is complete for the approved
 docs/scripts/status/handoff scope.
 
-Phases 0 through 60 are closed for their documented scopes. Track A is also
-closed for its docs-only external-proof workflow scope.
+Track A is also closed for its docs-only external-proof workflow scope.
 
 Phase 60 added the final claim-to-evidence review, unsupported-claim table,
 retained-evidence boundary, `scripts/audit-final-claim-review.sh`,
@@ -29,6 +38,11 @@ remain `prepared`.
 
 Before any future stronger public wording, rerun `make audit-final-claim-review`
 and require retained public-safe claim-specific evidence for the exact claim.
+
+Before productization stages, reread the repository source-of-truth docs listed
+in `AGENTS.md` and this handoff, then keep changes inside the stage scope. Do
+not write retained evidence, contact external parties, automate portals, or
+change consumer tracker statuses without a separately approved evidence intake.
 
 Previous phase context: Phase 59 — Real Pilot Closeout is closed blocker-only
 for the approved docs/status/handoff scope.
@@ -1062,10 +1076,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-There is no next roadmap phase in the Phase 48 through Phase 60 sequence.
-Continue with maintenance or a new maintainer-approved phase only after a
-fresh read-only planning pass. For public/status wording work, start with
-`make audit-final-claim-review` and keep unsupported claims removed or bounded.
+Continue with Post-60 productization. Do not start Phase 61. The default next
+work is release-candidate readiness, connector contract quality, adapter
+conformance, generic connector examples, private agency launchpad workflow,
+and `.cache`-only readiness gap summaries. For public/status wording work,
+start with `make audit-final-claim-review` and keep unsupported claims removed
+or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

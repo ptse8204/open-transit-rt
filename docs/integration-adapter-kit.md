@@ -9,6 +9,12 @@ not prove certified vendor compatibility, production AVL reliability,
 production-grade ETA quality, consumer acceptance, CAL-ITP/Caltrans compliance,
 agency adoption, hosted SaaS availability, or final-root proof.
 
+Post-60 productization makes external connection quality the default next work.
+The intended integration shape is sidecar plus manifest plus conformance
+testing, not arbitrary dynamic plugin loading. These contracts help operators
+evaluate adapters safely; they do not create evidence or prove third-party
+compatibility.
+
 ## Adapter Decision Tree
 
 Use the existing boundary that matches the system being integrated:
@@ -21,6 +27,8 @@ Use the existing boundary that matches the system being integrated:
 | Send synthetic telemetry through real ingest | `make telemetry-simulator` / authenticated `POST /v1/telemetry` | [Telemetry Simulator And Device Trial](tutorials/telemetry-simulator-and-device-trial.md) |
 | Send device, GPS, or AVL observations | Transform to `POST /v1/telemetry` | [Device And AVL Integration](tutorials/device-avl-integration.md) |
 | Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
+| Validate an external connector manifest | Sidecar/manifest contract and local checks | [Post-60 Product Roadmap](post-60-product-roadmap.md) |
+| Run synthetic adapter conformance | Offline synthetic conformance suite | [Post-60 Product Roadmap](post-60-product-roadmap.md) |
 | Swap or evaluate Trip Updates prediction | `internal/prediction.Adapter` | [Dependencies](dependencies.md), [Trip Updates requirements](requirements-trip-updates.md) |
 | Validate GTFS or GTFS-Realtime artifacts | Server-side allowlisted validator IDs | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md), [Dependencies](dependencies.md) |
 | Monitor feeds or operations | Deployment-owned monitoring around existing endpoints/helpers | [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md) |
@@ -122,9 +130,13 @@ go run ./cmd/avl-vendor-adapter --dry-run \
   testdata/avl-vendor/minimal-gps.json
 ```
 
-The command requires `--dry-run`. Network send mode is not implemented. The
-output is transform output only; it is not telemetry ingest status and it is
-not vendor compatibility proof.
+Dry-run output is transform output only; it is not telemetry ingest status and
+it is not vendor compatibility proof. Phase 48 also adds a private `--send`
+mode that posts transformed synthetic/operator-reviewed records only to the
+existing authenticated `/v1/telemetry` boundary with env-referenced credentials
+and redacted `.cache` diagnostics. Send mode is still not named vendor support,
+real vendor compatibility proof, production AVL reliability proof, or retained
+evidence.
 
 See [testdata/avl-vendor/README.md](../testdata/avl-vendor/README.md) for the
 fixture manifest and exact diagnostic codes.
