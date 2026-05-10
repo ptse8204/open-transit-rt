@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "validator-allowlist", "validator_id": "static-mobilitydata", "raw_command_allowed": false, "expected": "allow"}

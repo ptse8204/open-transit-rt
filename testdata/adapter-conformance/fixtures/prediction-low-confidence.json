@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "prediction-low-confidence", "confidence": 0.2, "threshold": 0.65, "expected": "withhold"}

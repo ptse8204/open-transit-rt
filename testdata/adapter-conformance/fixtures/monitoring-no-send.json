@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "monitoring-no-send", "send_by_default": false, "expected": "no_send"}

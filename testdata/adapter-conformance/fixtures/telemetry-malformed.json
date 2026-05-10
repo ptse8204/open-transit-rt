@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "telemetry-malformed", "payload": {"lat": "not-a-number"}, "expected": "reject"}

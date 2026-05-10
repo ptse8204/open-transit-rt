@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "telemetry-duplicate", "vehicle_id": "bus-1", "observed_at": "2026-05-10T12:00:00Z", "previous_observed_at": "2026-05-10T12:00:00Z", "expected": "reject"}

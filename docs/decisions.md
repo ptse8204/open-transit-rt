@@ -436,3 +436,22 @@ change, evidence write, consumer status change, hosted SaaS claim, compliance
 claim, consumer-acceptance claim, agency-adoption claim, vendor-compatibility
 claim, production-readiness claim, production AVL reliability claim, or
 production-grade ETA-quality claim.
+
+## ADR-0039 — Keep adapter conformance offline and synthetic
+
+Post-60 adapter conformance is an offline synthetic suite under
+`testdata/adapter-conformance` with a Go CLI at `cmd/adapter-conformance`.
+The suite checks connector manifests and required failure-mode cases for
+telemetry sources, prediction sidecars, validator wrappers, and monitoring
+exports.
+
+The CLI validates fixture shape, required scenarios, allowlisted-validator
+metadata, redaction/no-send assertions, and synthetic-only markers. It does
+not start sidecars, send network traffic, run validators, contact consumers,
+automate portals, write evidence, mutate repo state, or change runtime
+configuration.
+
+Passing conformance is a local connector-quality signal only. It is not
+CAL-ITP/Caltrans compliance, consumer acceptance, agency approval, vendor
+compatibility, production AVL reliability, production readiness, or
+production-grade ETA-quality proof.

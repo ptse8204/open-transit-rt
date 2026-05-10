@@ -9,7 +9,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check adapter-conformance release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 build:
 	go build ./...
@@ -97,6 +97,9 @@ test-release-candidate-check:
 
 external-connection-check:
 	@./scripts/external-connection-check.sh
+
+adapter-conformance:
+	@go run ./cmd/adapter-conformance run --suite testdata/adapter-conformance
 
 release-package:
 	@RELEASE_PACKAGE_ALLOW_DIRTY=$${RELEASE_PACKAGE_ALLOW_DIRTY:-true} ./scripts/release-package.sh
@@ -213,6 +216,7 @@ validate:
 	@test -f internal/feed/schedule/schedule.go
 	@test -f internal/alerts/model.go
 	@test -f internal/compliance/model.go
+	@test -f cmd/adapter-conformance/main.go
 	@test -f tools/validators/validators.lock.json
 	@test -f scripts/install-validators.sh
 	@test -f scripts/check-validators.sh
@@ -331,6 +335,9 @@ validate:
 	@scripts/telemetry-simulator.sh --help >/dev/null
 	@scripts/telemetry-simulator.sh --list-scenarios >/dev/null
 	@OUTPUT_DIR=.cache/validate/telemetry-simulator scripts/telemetry-simulator.sh --scenario on-route --dry-run --force >/dev/null
+	@go run ./cmd/adapter-conformance help >/dev/null
+	@go run ./cmd/adapter-conformance manifest --suite testdata/adapter-conformance >/dev/null
+	@go run ./cmd/adapter-conformance run --suite testdata/adapter-conformance >/dev/null
 	@go run ./cmd/realtime-quality-backtest --help >/dev/null
 	@rm -rf .cache/validate/realtime-quality-backtest
 	@go run ./cmd/realtime-quality-backtest --observed testdata/realtime-quality-backtest/observed-events.json --predictions testdata/realtime-quality-backtest/prediction-samples.json --output-dir .cache/validate/realtime-quality-backtest --generated-at 2026-05-09T20:00:00Z >/dev/null
@@ -351,6 +358,7 @@ validate:
 	@test -f docs/handoffs/phase-43.md
 	@test -f docs/phase-44-telemetry-simulator-and-device-trial.md
 	@test -f docs/tutorials/telemetry-simulator-and-device-trial.md
+	@test -f docs/tutorials/external-adapter-conformance.md
 	@test -f docs/handoffs/phase-44.md
 	@test -f docs/phase-45-gtfs-quality-triage-loop.md
 	@test -f docs/tutorials/gtfs-validation-triage.md
@@ -381,6 +389,24 @@ validate:
 	@test -f testdata/connectors/valid/valid-consumer-discovery.json
 	@test -f testdata/connectors/invalid/invalid-secret.json
 	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json; do python3 -m json.tool "$$f" >/dev/null; done
+	@test -f testdata/adapter-conformance/suite.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-malformed.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-stale.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-future.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-wrong-agency.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-unknown-device.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-low-quality.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-duplicate.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-out-of-order.json
+	@test -f testdata/adapter-conformance/fixtures/prediction-timeout.json
+	@test -f testdata/adapter-conformance/fixtures/prediction-malformed.json
+	@test -f testdata/adapter-conformance/fixtures/prediction-stale.json
+	@test -f testdata/adapter-conformance/fixtures/prediction-wrong-agency.json
+	@test -f testdata/adapter-conformance/fixtures/prediction-low-confidence.json
+	@test -f testdata/adapter-conformance/fixtures/validator-allowlist.json
+	@test -f testdata/adapter-conformance/fixtures/monitoring-redaction.json
+	@test -f testdata/adapter-conformance/fixtures/monitoring-no-send.json
+	@for f in testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json; do python3 -m json.tool "$$f" >/dev/null; done
 	@test -f testdata/telemetry-simulator/README.md
 	@test -f testdata/telemetry-simulator/on-route.json
 	@test -f testdata/telemetry-simulator/stale.json

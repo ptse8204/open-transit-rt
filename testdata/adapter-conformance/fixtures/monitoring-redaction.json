@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "monitoring-redaction", "raw_private_values_present": false, "redacted_fields": ["private_host", "raw_log"], "expected": "redact"}

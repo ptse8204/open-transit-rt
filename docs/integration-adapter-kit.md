@@ -28,7 +28,7 @@ Use the existing boundary that matches the system being integrated:
 | Send device, GPS, or AVL observations | Transform to `POST /v1/telemetry` | [Device And AVL Integration](tutorials/device-avl-integration.md) |
 | Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
 | Validate an external connector manifest | Sidecar/manifest contract and local checks | [Connector Plugin Contract](connectors/plugin-contract.md), [External Connection Readiness](external-connection-readiness.md) |
-| Run synthetic adapter conformance | Offline synthetic conformance suite | [Post-60 Product Roadmap](post-60-product-roadmap.md) |
+| Run synthetic adapter conformance | Offline synthetic conformance suite | [External Adapter Conformance](tutorials/external-adapter-conformance.md) |
 | Swap or evaluate Trip Updates prediction | `internal/prediction.Adapter` | [Dependencies](dependencies.md), [Trip Updates requirements](requirements-trip-updates.md) |
 | Validate GTFS or GTFS-Realtime artifacts | Server-side allowlisted validator IDs | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md), [Dependencies](dependencies.md) |
 | Monitor feeds or operations | Deployment-owned monitoring around existing endpoints/helpers | [Small-Agency Pilot Operations](runbooks/small-agency-pilot-operations.md) |
@@ -79,6 +79,21 @@ production-grade ETA quality.
 See [Connector Plugin Contract](connectors/plugin-contract.md) for the manifest
 shape and [External Connection Readiness](external-connection-readiness.md) for
 operator review questions.
+
+## Adapter Conformance Suite
+
+Use the offline conformance suite to check required synthetic cases:
+
+```bash
+make adapter-conformance
+```
+
+The CLI covers telemetry malformed/stale/future/wrong-agency/unknown-device/
+low-quality/duplicate/out-of-order cases, prediction timeout/malformed/stale/
+wrong-agency/low-confidence cases, validator allowlisting, and monitoring
+redaction/no-send defaults. It does not send network traffic, run validators,
+contact consumers, write evidence, or change repo state. See
+[External Adapter Conformance](tutorials/external-adapter-conformance.md).
 
 ## Telemetry Adapter Path
 

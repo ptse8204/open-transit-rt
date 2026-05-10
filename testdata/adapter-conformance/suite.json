@@ -1,0 +1,28 @@
+{
+  "schema_version": "open-transit-rt.adapter_conformance.v1",
+  "synthetic_only": true,
+  "connector_manifests": [
+    "testdata/connectors/valid/valid-telemetry-source.json",
+    "testdata/connectors/valid/valid-prediction.json",
+    "testdata/connectors/valid/valid-validator.json",
+    "testdata/connectors/valid/valid-monitoring-export.json"
+  ],
+  "cases": [
+    {"id": "telemetry-malformed", "type": "telemetry", "scenario": "malformed", "fixture": "fixtures/telemetry-malformed.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "telemetry-stale", "type": "telemetry", "scenario": "stale", "fixture": "fixtures/telemetry-stale.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "telemetry-future", "type": "telemetry", "scenario": "future", "fixture": "fixtures/telemetry-future.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "telemetry-wrong-agency", "type": "telemetry", "scenario": "wrong-agency", "fixture": "fixtures/telemetry-wrong-agency.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "telemetry-unknown-device", "type": "telemetry", "scenario": "unknown-device", "fixture": "fixtures/telemetry-unknown-device.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "telemetry-low-quality", "type": "telemetry", "scenario": "low-quality", "fixture": "fixtures/telemetry-low-quality.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "telemetry-duplicate", "type": "telemetry", "scenario": "duplicate", "fixture": "fixtures/telemetry-duplicate.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "telemetry-out-of-order", "type": "telemetry", "scenario": "out-of-order", "fixture": "fixtures/telemetry-out-of-order.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "prediction-timeout", "type": "prediction", "scenario": "timeout", "fixture": "fixtures/prediction-timeout.json", "expected_outcome": "withhold", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "prediction-malformed", "type": "prediction", "scenario": "malformed", "fixture": "fixtures/prediction-malformed.json", "expected_outcome": "withhold", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "prediction-stale", "type": "prediction", "scenario": "stale", "fixture": "fixtures/prediction-stale.json", "expected_outcome": "withhold", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "prediction-wrong-agency", "type": "prediction", "scenario": "wrong-agency", "fixture": "fixtures/prediction-wrong-agency.json", "expected_outcome": "withhold", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "prediction-low-confidence", "type": "prediction", "scenario": "low-confidence", "fixture": "fixtures/prediction-low-confidence.json", "expected_outcome": "withhold", "assertions": ["offline", "fail_closed"], "synthetic_only": true},
+    {"id": "validator-allowlist", "type": "validator", "scenario": "allowlist", "fixture": "fixtures/validator-allowlist.json", "expected_outcome": "allow", "assertions": ["offline", "allowlisted_validator_id"], "synthetic_only": true},
+    {"id": "monitoring-redaction", "type": "monitoring", "scenario": "redaction", "fixture": "fixtures/monitoring-redaction.json", "expected_outcome": "redact", "assertions": ["offline", "redacted"], "synthetic_only": true},
+    {"id": "monitoring-no-send", "type": "monitoring", "scenario": "no-send", "fixture": "fixtures/monitoring-no-send.json", "expected_outcome": "no_send", "assertions": ["offline", "no_send"], "synthetic_only": true}
+  ]
+}

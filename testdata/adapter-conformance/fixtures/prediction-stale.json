@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "prediction-stale", "generated_at": "2026-05-10T11:30:00Z", "reference_time": "2026-05-10T12:00:00Z", "expected": "withhold"}
