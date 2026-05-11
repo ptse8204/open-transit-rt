@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress.
+Complete.
 
 Phase 62 reduces command-line dependence by improving the private Operations
 Console setup flow and adding an authenticated browser GTFS import path. It
@@ -38,7 +38,78 @@ queries, oversized downloads, and unsafe redirects.
 - `Phase 62 -- Checkpoint 000003: implement browser GTFS import and validation flow`
 - `Phase 62 -- Checkpoint 000004: close guided setup and browser GTFS import`
 
-## Planned Scope
+## Closeout Summary
+
+Phase 62 is complete for the guided setup and browser GTFS import scope.
+
+- Added `/admin/operations/setup-wizard` and
+  `/admin/operations/setup-wizard.json` as private setup guidance for agency
+  profile, publication metadata, GTFS, feeds, telemetry, validators,
+  connectors, and readiness.
+- Added `/admin/operations/gtfs-import` as an admin-only browser import route
+  for GTFS ZIP upload or safe URL import.
+- Reused `internal/gtfs.ImportService.ImportZip` for browser imports so
+  validation, import records, active feed activation, failure behavior, and
+  validation-report storage match the CLI path.
+- Kept the CLI import path and GTFS Studio draft/publish path available.
+- Updated Operations Console dashboard, launchpad, setup, status, and handoff
+  wording so browser import is visible without implying readiness or evidence.
+
+Phase 62 added no migrations, public feed URL changes, GTFS-RT semantic
+changes, telemetry ingest contract changes, validator execution semantic
+changes, connector manifest schema changes, prediction adapter behavior
+changes, consumer tracker status changes, public routes, retained evidence, or
+protected evidence writes.
+
+## Claim Boundary
+
+The setup wizard and browser import page are private authenticated operator
+workflow surfaces. Viewing them creates no evidence, contacts no external
+party, opens no public route, changes no consumer status, and records no agency
+approval, compliance, consumer acceptance, hosted-service, vendor compatibility,
+SLA, public-launch, production-readiness, production AVL reliability, or
+production-grade ETA outcome.
+
+Browser import stores raw ZIP bytes only in temporary runtime storage for the
+import attempt and removes them afterward. The rendered page shows bounded
+import and validation status only; it does not render raw ZIP contents,
+temporary paths, raw reports, validator argv, credentials, or private URLs.
+
+All seven consumer and aggregator targets remain `prepared`.
+
+## Verification
+
+Verification was run from `/Users/edwintse/Downloads/open-transit-rt`; all
+listed commands passed.
+
+- `git diff --check`
+- `go test ./cmd/agency-config`
+- `go test ./cmd/gtfs-import ./internal/gtfs`
+- `make check`
+- `make test`
+- `make external-connection-check`
+- `make adapter-conformance`
+- `make test-connector-examples`
+- `make audit-final-claim-review`
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`
+- exact seven-target prepared-only consumer tracker check
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json`
+- `git diff --exit-code -- docs/evidence/captured`
+- `docker compose -f deploy/docker-compose.yml config`
+- `make db-up`
+- `make test-integration`
+
+The browser import HTTP handler is covered with an injected import runner for
+route, auth, CSRF, temp-file, URL-safety, and rendering behavior. The
+DB-backed import, validation-report, active-feed activation, rollback, and
+audit behavior remains covered by the existing GTFS importer integration tests
+that ran through `make test-integration`.
+
+## Next Phase
+
+Phase 63 -- Feed Health and Readiness UX.
+
+## Original Planned Scope
 
 ### Guided Setup Wizard
 

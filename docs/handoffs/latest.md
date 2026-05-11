@@ -14,8 +14,9 @@ The Phase 61+ agency-first connector platform roadmap lives at
 from `docs/roadmaps/agency-first-connector-platform/00-CODEX-READ-ME-FIRST.md`
 before planning new product phases.
 
-Phase 61 -- Agency-First UI And Connector Hub is complete. The current active
-phase is Phase 62 -- Guided Setup and Browser GTFS Import.
+Phase 61 -- Agency-First UI And Connector Hub is complete. Phase 62 -- Guided
+Setup and Browser GTFS Import is complete. The current active phase is Phase 63
+-- Feed Health and Readiness UX.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -33,17 +34,10 @@ production-readiness, vendor-compatibility, hardware-certification, public
 launch, production AVL reliability, or production-grade ETA claim. All seven
 consumer and aggregator targets remain `prepared`.
 
-Phase 62 must add a private setup wizard and browser GTFS import flow by
-reusing the existing GTFS import/publish pipeline. It must not add migrations,
-change public feed contracts, write raw GTFS ZIP files to committed paths,
-write retained evidence, change consumer statuses, or claim compliance,
-approval, acceptance, hosted service, vendor compatibility, production
-readiness, or ETA quality.
-
-Phase 62 Checkpoint 000002 added `/admin/operations/setup-wizard` and
-`/admin/operations/setup-wizard.json` as private setup guidance. Phase 62
-Checkpoint 000003 added `/admin/operations/gtfs-import` as an admin-only
-browser GTFS import path for ZIP upload or safe URL import. The route derives
+Phase 62 added `/admin/operations/setup-wizard` and
+`/admin/operations/setup-wizard.json` as private setup guidance, plus
+`/admin/operations/gtfs-import` as an admin-only browser GTFS import path for
+ZIP upload or safe URL import. The route derives
 agency and actor from the authenticated principal, stores raw ZIP bytes only in
 temporary runtime storage, reuses `internal/gtfs.ImportService.ImportZip`,
 renders bounded import/validation results, blocks client-supplied paths and
@@ -51,6 +45,14 @@ validator/argv fields, and keeps CLI import and GTFS Studio available. It does
 not add public routes, migrations, evidence writes, consumer status changes, or
 stronger compliance/adoption/acceptance/hosted-service/vendor/production/ETA
 claims.
+
+Phase 63 must make feed health and CAL-ITP-style readiness easier to understand
+without requiring operators to read diagnostic tables. Expected work includes
+plain-language status for `feeds.json`, schedule, Vehicle Positions, Trip
+Updates, and Alerts; freshness and validator context; next actions; and a
+readiness checklist v2 that explains what each signal means, why it matters,
+what to do next, and what it does not prove. Do not claim SLA/uptime proof or
+CAL-ITP/Caltrans compliance.
 
 The current default work remains agency-facing open-source product quality and
 external connection maturity: clear evaluator paths, release-candidate

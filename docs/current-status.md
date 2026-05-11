@@ -28,8 +28,8 @@ the private Connector Hub routes, source-of-truth roadmap adoption, dashboard
 action cards, and safe plugin/sidecar wording without creating evidence,
 changing consumer statuses, adding dynamic plugin loading, or making stronger
 claims.
-Phase 62 is in progress. Checkpoint 000002 added the private setup wizard, and
-Checkpoint 000003 added the admin-only browser GTFS import route at
+Phase 62 is complete for guided setup and browser GTFS import. It added the
+private setup wizard and the admin-only browser GTFS import route at
 `/admin/operations/gtfs-import`. The browser route supports ZIP upload and
 safe URL import through the existing GTFS import/publish pipeline, writes raw
 ZIP bytes only to temporary runtime storage, renders bounded validation/import
@@ -143,10 +143,10 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The active work is Phase 62 -- Guided Setup and Browser GTFS Import. Phase 62
-should now be audited and closed after validating the setup wizard and browser
-GTFS import route, while continuing to improve the existing self-hosted backend
-without weakening claim boundaries:
+The active work is Phase 63 -- Feed Health and Readiness UX. Phase 63 should
+make feed health, validator state, freshness, and CAL-ITP-style readiness
+plain-language in the private Operations Console while continuing to improve
+the existing self-hosted backend without weakening claim boundaries:
 
 - keep the agency-facing front door and command map current as workflows
   evolve;
@@ -338,7 +338,7 @@ Phase 24 — Real Agency Data Onboarding is complete for the docs/process and ev
 
 Phase 25 — Device And AVL Integration Kit is complete for the docs/process and template-only evidence scope. The repo now has a telemetry API and AVL integration guide, device token lifecycle guide, vendor AVL adapter boundary guidance, simulator/no-hardware testing guidance, clock/timezone/GPS quality expectations, troubleshooting table, and template-only future device/AVL evidence scaffold. No backend API behavior, protobuf contract, prediction logic, public feed URL, consumer status, named vendor dependency, real device data, vendor payload, credential, hardware certification, fake evidence, or production AVL reliability claim was added.
 
-Phase 26 — Admin UX Setup Wizard is complete for the server-rendered Operations Console setup checklist scope. `/admin/operations/setup` now shows a browser-guided checklist with explicit status sources for publication metadata, feed discovery, validation records, device bindings, telemetry repository state, docs/evidence tracker records, and evidence links. Admins can store publication metadata through the existing bootstrap/update repository behavior with agency ID derived from the authenticated principal, and can run validation from the browser by choosing only feed type while the server maps to allowlisted validator IDs. Browser GTFS ZIP upload and manual assignment override/review UI were intentionally deferred. Consumer packet state remains sourced from the Phase 20 docs/evidence tracker and all seven targets remain `prepared` only. Phase 26 did not change public feed URLs, GTFS-RT protobuf contracts, telemetry/device APIs, Trip Updates adapter boundaries, external integrations, consumer statuses, or evidence claims.
+Phase 26 — Admin UX Setup Wizard is complete for the server-rendered Operations Console setup checklist scope. `/admin/operations/setup` now shows a browser-guided checklist with explicit status sources for publication metadata, feed discovery, validation records, device bindings, telemetry repository state, docs/evidence tracker records, and evidence links. Admins can store publication metadata through the existing bootstrap/update repository behavior with agency ID derived from the authenticated principal, and can run validation from the browser by choosing only feed type while the server maps to allowlisted validator IDs. Phase 62 closes the earlier browser GTFS ZIP upload deferral with an admin-only temporary-file import path; manual assignment override/review UI remains deferred. Consumer packet state remains sourced from the Phase 20 docs/evidence tracker and all seven targets remain `prepared` only. Phase 26 did not change public feed URLs, GTFS-RT protobuf contracts, telemetry/device APIs, Trip Updates adapter boundaries, external integrations, consumer statuses, or evidence claims.
 
 Phase 27 — Multi-Agency Isolation Prototype is complete for the test-and-documentation scope. The repo now has synthetic multi-agency fixture notes under `testdata/multi-agency/` and focused tests for DB-backed role loading, protected admin agency conflicts, Operations Console data views, GTFS Studio draft boundaries, Alerts admin/console boundaries, device credential bindings, telemetry ingest/debug listings, compliance publication/validation/scorecard/consumer records, prediction operations/audit rows, and protected realtime JSON debug surfaces. `/public/feeds.json` is tested as query-routed by `agency_id` with omitted query defaulting to configured `AGENCY_ID`; public `schedule.zip` and GTFS-RT protobuf feeds remain service-instance scoped by configured `AGENCY_ID`. Phase 27 is repository-level isolation evidence for selected workflows, not production multi-tenant hosting, hosted SaaS availability, consumer acceptance, agency endorsement, CAL-ITP/Caltrans compliance, or production-grade ETA proof.
 
@@ -1783,12 +1783,12 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-Continue with Post-60 productization rather than starting Phase 61. The default
-next work is release-candidate readiness, connector contract quality, adapter
-conformance, generic connector examples, private operator launchpad workflow,
-and `.cache`-only readiness gap checks. For public/status wording work, start
-with `make audit-final-claim-review` and keep unsupported claims removed or
-bounded.
+Continue with Phase 63 -- Feed Health and Readiness UX. The default next work
+is plain-language feed health, validator state, freshness, readiness next
+actions, connector contract quality, adapter conformance, generic connector
+examples, private operator launchpad workflow, and `.cache`-only readiness gap
+checks. For public/status wording work, start with
+`make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof
