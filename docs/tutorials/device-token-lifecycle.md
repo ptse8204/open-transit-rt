@@ -45,6 +45,14 @@ Browser flow:
 /admin/operations/devices
 ```
 
+The browser page includes guided use cases for new vehicles, credential
+rotation, vehicle swaps, and telemetry verification. Admins can use the
+rotate/rebind form. Non-admin operators can review binding and telemetry
+status, but they do not see the mutation form. Per-device rows show credential
+dates, latest accepted telemetry freshness, assignment summary, and next
+action without showing token values, token hashes, raw telemetry payloads, or
+private debug fields.
+
 JSON admin API:
 
 ```text
@@ -143,4 +151,3 @@ Do not commit:
 - `.cache` files.
 
 Use synthetic values such as `demo-agency`, `device-1`, `bus-1`, `trip-10-0800`, and `dev-device-token` in public examples.
-

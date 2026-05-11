@@ -195,8 +195,10 @@ Phase 64 with validation, protected-path, consumer-tracker, and claim-boundary
 review.
 Phase 65 — Operator Workflow And Data Quality UX is active. Checkpoint 000001
 added the scoped plan for device/vehicle onboarding UI, telemetry simulator UI,
-GTFS quality fix guidance, and closeout. The next checkpoint is device and
-vehicle onboarding UI.
+GTFS quality fix guidance, and closeout. Checkpoint 000002 improved the
+private device and vehicle onboarding UI without changing device credential
+semantics, telemetry ingest contracts, public routes, evidence paths, consumer
+statuses, or stronger claims. The next checkpoint is telemetry simulator UI.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

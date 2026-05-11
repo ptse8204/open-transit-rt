@@ -75,6 +75,8 @@ type operationsPage struct {
 	TelemetryError         string
 	StaleCount             int
 	Devices                []devices.Binding
+	DeviceRows             []operationsDeviceRow
+	DeviceOnboarding       []operationsDeviceOnboardingUseCase
 	DeviceError            string
 	DeviceToken            string
 	DeviceTokenMeta        devices.RebindResult
@@ -781,6 +783,8 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	} else {
 		page.Devices = bindings
 	}
+	page.DeviceRows = buildOperationsDeviceRows(page.Devices, page.Telemetry)
+	page.DeviceOnboarding = operationsDeviceOnboardingUseCases()
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
@@ -2158,9 +2162,14 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Device Credentials</h2>
 <p class="warning">Device tokens are secrets. Store a one-time token immediately; it will not be shown again by this console.</p>
-<p>The current supported browser flow is rotate/rebind. If a device has no credential yet, this uses the existing rebind API path; Phase 18 does not add a separate first-time creation API.</p>
+<p>The supported browser flow is rotate/rebind. If a device has no credential yet, this uses the existing rebind API path.</p>
+<h3>Guided Onboarding Use Cases</h3>
+<div class="card-grid">
+{{range .DeviceOnboarding}}<section class="card"><h3>{{.Name}}</h3><p>{{.When}}</p><p><strong>Next:</strong> {{.NextStep}}</p>{{if .AdminOnly}}<p class="muted">Admin required.</p>{{end}}</section>{{end}}
+</div>
 {{if .DeviceToken}}<div class="token"><h3>One-time token</h3><p>Device: {{.DeviceTokenMeta.DeviceID}} · Vehicle: {{.DeviceTokenMeta.VehicleID}} · Rotated: {{.DeviceTokenMeta.RotatedAt}}</p><p><code>{{.DeviceToken}}</code></p></div>{{end}}
 {{if .DeviceError}}<p class="warning">{{.DeviceError}}</p>{{end}}
+{{if .IsAdmin}}
 <form method="post" action="/admin/operations/devices">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="agency_id" value="{{.AgencyID}}">
@@ -2169,10 +2178,14 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <label>Reason <input name="reason" placeholder="rotation or rebind reason"></label>
 <button>Rotate / rebind token</button>
 </form>
-{{if not .Devices}}<p class="warning">No device bindings are recorded. Next action: use the rotate/rebind form for the first device and store the returned token securely.</p>{{else}}
-<table><thead><tr><th>Device</th><th>Vehicle</th><th>Status</th><th>Valid from</th><th>Last used</th><th>Rotated</th><th>Revoked</th></tr></thead><tbody>
-{{range .Devices}}<tr><td>{{.DeviceID}}</td><td>{{.VehicleID}}</td><td>{{.Status}}</td><td>{{formatTime .ValidFrom}}</td><td>{{formatTimePtr .LastUsedAt}}</td><td>{{formatTimePtr .RotatedAt}}</td><td>{{formatTimePtr .RevokedAt}}</td></tr>{{end}}
+{{else}}
+<p class="muted">Admins can rotate or rebind device tokens. This view shows operational status only.</p>
+{{end}}
+{{if not .DeviceRows}}<p class="warning">No device bindings are recorded. Next action: ask an admin to create or rotate the first device token and store the returned token securely.</p>{{else}}
+<table><thead><tr><th>Device</th><th>Vehicle</th><th>Status</th><th>Credential dates</th><th>Latest telemetry</th><th>Freshness</th><th>Assignment</th><th>Next action</th></tr></thead><tbody>
+{{range .DeviceRows}}<tr><td>{{.DeviceID}}</td><td>{{.VehicleID}}</td><td>{{.Status}}</td><td>valid from {{formatTime .ValidFrom}}<br>last used {{formatTimePtr .LastUsedAt}}<br>rotated {{formatTimePtr .RotatedAt}}<br>revoked {{formatTimePtr .RevokedAt}}</td><td>observed {{formatTimePtr .LatestObservedAt}}<br>received {{formatTimePtr .LatestReceivedAt}}<br>age seconds {{formatInt64Ptr .LatestAgeSeconds}}</td><td>{{.Freshness}}</td><td>{{.Assignment}}{{if .AssignmentSource}}<br><span class="muted">source: {{.AssignmentSource}}</span>{{end}}{{if .AssignmentAt}}<br><span class="muted">at {{formatTimePtr .AssignmentAt}}</span>{{end}}</td><td>{{.NextAction}}</td></tr>{{end}}
 </tbody></table>{{end}}
+<p class="muted">Safe diagnostics omit raw telemetry payloads, token hashes, private debug fields, and hardware-specific identifiers.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

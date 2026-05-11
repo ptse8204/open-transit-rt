@@ -4,7 +4,8 @@
 
 In progress. Checkpoint 000001 added this plan and kept implementation scoped
 to private operator workflow UX, existing device credential behavior, generated
-telemetry simulator guidance, and GTFS quality fix guidance. Phase 65 must
+telemetry simulator guidance, and GTFS quality fix guidance. Checkpoint 000002
+improved the private device and vehicle onboarding UI. Phase 65 must
 preserve telemetry ingest contracts, device credential semantics, GTFS import
 and publish boundaries, validator execution semantics, public feed URLs,
 consumer tracker state, protected evidence paths, and unsupported-claim
@@ -20,7 +21,7 @@ next?" without requiring operators to read phase history or raw diagnostics.
 ## Checkpoints
 
 - Completed: `Phase 65 -- Checkpoint 000001: add operator workflow and data quality UX plan`
-- Planned: `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`
+- Completed: `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`
 - Planned: `Phase 65 -- Checkpoint 000003: implement telemetry simulator UI`
 - Planned: `Phase 65 -- Checkpoint 000004: implement GTFS quality fix guidance UI`
 - Planned: `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`
@@ -63,6 +64,15 @@ next?" without requiring operators to read phase history or raw diagnostics.
   payloads, private operator notes, and vendor identifiers.
 - Preserve admin-only POST, role checks, agency scoping, CSRF behavior, audit
   logging, and existing `internal/devices.Store` semantics.
+
+Checkpoint 000002 added guided onboarding use-case cards to
+`/admin/operations/devices`, hid the rotate/rebind form from non-admin users,
+and replaced the raw binding table with per-device rows showing credential
+dates, latest accepted telemetry freshness, assignment summary, and next
+action. It derives those rows from existing device binding, latest telemetry,
+and assignment summaries only. It does not expose token values after the
+one-time POST, token hashes, raw telemetry payloads, private debug fields, or
+hardware-specific identifiers.
 
 ### Telemetry Simulator UI
 

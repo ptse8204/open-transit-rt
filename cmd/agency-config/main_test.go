@@ -3299,11 +3299,16 @@ func TestOperationsDeviceRebindShowsTokenOnlyOnPost(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	if !strings.Contains(body, "one-time-token") {
-		t.Fatalf("POST body does not show one-time token: %s", body)
+	if count := strings.Count(body, "one-time-token"); count != 1 {
+		t.Fatalf("POST body shows one-time token %d times, want exactly once: %s", count, body)
 	}
-	if strings.Contains(body, "token_hash") {
-		t.Fatalf("POST body leaks token hash: %s", body)
+	for _, forbidden := range []string{"token_hash", "raw_token", "authorization", "Bearer "} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("POST body leaks %q: %s", forbidden, body)
+		}
+	}
+	if deviceStore.rebindCalls != 1 {
+		t.Fatalf("Rebind called %d times, want 1", deviceStore.rebindCalls)
 	}
 
 	req = httptest.NewRequest(http.MethodGet, "/admin/operations/devices", nil)
@@ -3314,16 +3319,187 @@ func TestOperationsDeviceRebindShowsTokenOnlyOnPost(t *testing.T) {
 	}
 }
 
-func TestOperationsDeviceRebindRequiresAdminRole(t *testing.T) {
-	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
-		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+func TestOperationsDevicesNonAdminsShowGuidanceWithoutRebindForm(t *testing.T) {
+	now := time.Now().UTC()
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{
+				store: &fakePublicationStore{},
+				devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{
+					AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour),
+				}}},
+				telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+					Event: telemetry.Event{
+						AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now.Add(-30 * time.Second), Lat: 1, Lon: 2,
+					},
+					ReceivedAt: now.Add(-29 * time.Second), IngestStatus: telemetry.IngestStatusAccepted,
+				}}},
+				state: fakeStateRepository{assignments: map[string]state.Assignment{"bus-1": {
+					VehicleID: "bus-1", State: state.StateInService, RouteID: "route-1", TripID: "trip-1", Confidence: 0.91, ActiveFrom: now.Add(-25 * time.Second),
+				}}},
+			}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			req := httptest.NewRequest(http.MethodGet, "/admin/operations/devices", nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			for _, want := range []string{"Guided Onboarding Use Cases", "Telemetry verification", "bus-1", "fresh", "in_service / route route-1 / trip trip-1 / confidence 0.91", "No immediate action", "Admins can rotate or rebind device tokens"} {
+				if !strings.Contains(body, want) {
+					t.Fatalf("body does not contain %q: %s", want, body)
+				}
+			}
+			for _, forbidden := range []string{"<form", "Rotate / rebind token", "name=\"csrf_token\"", "name=\"agency_id\"", "name=\"device_id\"", "name=\"vehicle_id\"", "one-time-token"} {
+				if strings.Contains(body, forbidden) {
+					t.Fatalf("non-admin devices page exposes mutation control or token %q: %s", forbidden, body)
+				}
+			}
+		})
+	}
+
+	admin := newOperationsTestHandler(&handler{
+		store: &fakePublicationStore{},
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{
+			AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour),
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
 	}})
-	req := httptest.NewRequest(http.MethodPost, "/admin/operations/devices", strings.NewReader("agency_id=demo-agency&device_id=device-1&vehicle_id=bus-1"))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/devices", nil)
+	rr := httptest.NewRecorder()
+	admin.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("admin status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	for _, want := range []string{"<form", "method=\"post\"", "name=\"csrf_token\"", "name=\"agency_id\"", "name=\"device_id\"", "name=\"vehicle_id\"", "Rotate / rebind token"} {
+		if !strings.Contains(rr.Body.String(), want) {
+			t.Fatalf("admin body missing %q: %s", want, rr.Body.String())
+		}
+	}
+}
+
+func TestOperationsDevicesSummarizesTelemetryAndAssignmentsSafely(t *testing.T) {
+	now := time.Now().UTC()
+	handler := newOperationsTestHandler(&handler{
+		store: &fakePublicationStore{},
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{
+			{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-2 * time.Hour), CreatedAt: now.Add(-2 * time.Hour)},
+			{AgencyID: "demo-agency", DeviceID: "device-2", VehicleID: "bus-2", Status: "active", ValidFrom: now.Add(-2 * time.Hour), CreatedAt: now.Add(-2 * time.Hour)},
+		}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{
+			{
+				Event: telemetry.Event{
+					AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now.Add(-30 * time.Second), Lat: 1, Lon: 2,
+				},
+				ReceivedAt: now.Add(-29 * time.Second), IngestStatus: telemetry.IngestStatusAccepted,
+				PayloadJSON: []byte(`{"token_hash":"payload-secret-token","private_debug":true,"vendor_id":"payload-secret-vendor"}`),
+			},
+			{
+				Event: telemetry.Event{
+					AgencyID: "demo-agency", DeviceID: "device-2", VehicleID: "bus-2", Timestamp: now.Add(-5 * time.Minute), Lat: 3, Lon: 4,
+				},
+				ReceivedAt: now.Add(-5 * time.Minute), IngestStatus: telemetry.IngestStatusAccepted,
+				PayloadJSON: []byte(`{"raw_payload":"payload-secret-raw"}`),
+			},
+		}},
+		state: fakeStateRepository{assignments: map[string]state.Assignment{"bus-1": {
+			VehicleID: "bus-1", State: state.StateInService, RouteID: "route-1", TripID: "trip-1", Confidence: 0.91,
+			ScoreDetails: map[string]any{"private_debug": true}, ActiveFrom: now.Add(-25 * time.Second),
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/devices", nil)
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusForbidden {
-		t.Fatalf("status = %d, want 403", rr.Code)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"bus-1", "fresh", "in_service / route route-1 / trip trip-1 / confidence 0.91", "No immediate action",
+		"bus-2", "stale", "not available", "Check device power, network, and reporting cadence",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"PayloadJSON", "payload_json", "raw_payload", "token_hash", "private_debug", "vendor_id", "payload-secret-token", "payload-secret-vendor", "payload-secret-raw"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("devices page leaks private field %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestOperationsDevicesAndTelemetryAvoidUnsupportedClaims(t *testing.T) {
+	now := time.Now().UTC()
+	handler := newOperationsTestHandler(&handler{
+		store: &fakePublicationStore{},
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{
+			AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour),
+		}}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+			Event:      telemetry.Event{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now.Add(-30 * time.Second), Lat: 1, Lon: 2},
+			ReceivedAt: now.Add(-29 * time.Second), IngestStatus: telemetry.IngestStatusAccepted,
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations/devices", "/admin/operations/telemetry"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		body := strings.ToLower(rr.Body.String())
+		for _, forbidden := range []string{
+			"cal-itp/caltrans compliant",
+			"consumer accepted",
+			"accepted by",
+			"agency approved",
+			"agency adopted",
+			"production ready",
+			"public launch complete",
+			"hosted saas",
+			"uptime guarantee",
+			"vendor compatible",
+			"hardware certified",
+			"production avl reliable",
+			"real realtime",
+			"production-grade eta",
+		} {
+			if strings.Contains(body, forbidden) {
+				t.Fatalf("%s body contains unsupported claim %q: %s", path, forbidden, rr.Body.String())
+			}
+		}
+	}
+}
+
+func TestOperationsDeviceRebindRequiresAdminRole(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor} {
+		t.Run(string(role), func(t *testing.T) {
+			deviceStore := &fakeDeviceStoreWithToken{token: "forbidden-token"}
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: deviceStore}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			req := httptest.NewRequest(http.MethodPost, "/admin/operations/devices", strings.NewReader("agency_id=demo-agency&device_id=device-1&vehicle_id=bus-1"))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("status = %d, want 403", rr.Code)
+			}
+			if deviceStore.rebindCalls != 0 {
+				t.Fatalf("Rebind called %d times for non-admin role %s", deviceStore.rebindCalls, role)
+			}
+			if strings.Contains(rr.Body.String(), "forbidden-token") {
+				t.Fatalf("forbidden response leaked token: %s", rr.Body.String())
+			}
+		})
 	}
 }
 
@@ -4428,7 +4604,8 @@ func (f fakeDeviceStoreWithBindings) ListBindings(_ context.Context, agencyID st
 }
 
 type fakeDeviceStoreWithToken struct {
-	token string
+	token       string
+	rebindCalls int
 }
 
 func (f *fakeDeviceStoreWithToken) Verify(context.Context, devices.VerifyInput) (devices.Credential, error) {
@@ -4436,6 +4613,7 @@ func (f *fakeDeviceStoreWithToken) Verify(context.Context, devices.VerifyInput) 
 }
 
 func (f *fakeDeviceStoreWithToken) Rebind(_ context.Context, input devices.RebindInput) (devices.RebindResult, error) {
+	f.rebindCalls++
 	return devices.RebindResult{AgencyID: input.AgencyID, DeviceID: input.DeviceID, VehicleID: input.VehicleID, Token: f.token, RotatedAt: "2026-04-26T12:00:00Z"}, nil
 }
 

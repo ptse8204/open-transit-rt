@@ -64,7 +64,10 @@ Checkpoint 000007 closed Phase 64 with validation, protected-path,
 consumer-tracker, and claim-boundary review. Phase 65 -- Operator Workflow and
 Data Quality UX is active. Checkpoint 000001 added the Phase 65 plan for
 device/vehicle onboarding UI, telemetry simulator UI, GTFS quality fix
-guidance, operator troubleshooting, and closeout.
+guidance, operator troubleshooting, and closeout. Checkpoint 000002 improved
+the private device and vehicle onboarding UI with guided use cases, non-admin
+mutation-form gating, one-time token boundaries, and per-device telemetry
+freshness/assignment next actions.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -177,11 +180,11 @@ SDK-style telemetry, prediction, and monitoring helpers, and synthetic
 telemetry, prediction, monitoring/export, and validator allowlist examples.
 Phase 65 planning is captured in
 `docs/phase-65-operator-workflow-and-data-quality-ux.md`. The next checkpoint
-is `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`.
+is `Phase 65 -- Checkpoint 000003: implement telemetry simulator UI`.
 Keep the work inside private operator workflow/data-quality UX:
 
-- improve device/vehicle onboarding guidance without changing telemetry ingest
-  contracts or device credential semantics;
+- preserve the completed device/vehicle onboarding guidance without changing
+  telemetry ingest contracts or device credential semantics;
 - improve the in-app telemetry simulator workflow without creating real fleet
   reliability claims;
 - make GTFS quality guidance more actionable without automatic GTFS edits or
@@ -1820,8 +1823,8 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 65 -- Operator Workflow and Data Quality UX. The default
-next work is `Phase 65 -- Checkpoint 000002: implement device and vehicle
-onboarding UI`. For public/status wording work, start with
+next work is `Phase 65 -- Checkpoint 000003: implement telemetry simulator UI`.
+For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
