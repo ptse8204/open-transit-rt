@@ -186,11 +186,12 @@ Checkpoint 000003 added private generated connector test instructions without
 backend command execution. Checkpoint 000004 improved telemetry connector
 SDK-style examples with a shared synthetic dry-run helper. Checkpoint 000005
 improved the prediction connector SDK-style example with sanitized dry-run
-request/response helpers and no-public-mutation diagnostics. The next
-checkpoint improves monitoring/export and validator connector examples without
-dynamic backend plugin loading, evidence writes, consumer status changes, raw
-validator commands, SLA/uptime claims, named predictor compatibility claims,
-or production-grade ETA claims.
+request/response helpers and no-public-mutation diagnostics. Checkpoint
+000006 improved monitoring/export examples and added a validator allowlist
+example without dynamic backend plugin loading, evidence writes, consumer
+status changes, raw validator commands, SLA/uptime claims, named predictor
+compatibility claims, or production-grade ETA claims. The next checkpoint is
+Phase 64 closeout.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

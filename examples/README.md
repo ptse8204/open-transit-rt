@@ -25,6 +25,7 @@ make adapter-conformance
 | `connectors/telemetry-http-poller` | A synthetic sidecar that normalizes source observations before telemetry ingest | No real source polling, credentials, network send, or vendor compatibility |
 | `connectors/telemetry-csv-replay` | A synthetic CSV replay adapter for local development | No production import workflow or realtime data proof |
 | `connectors/predictor-sidecar-stub` | The Trip Updates predictor sidecar boundary | No production-grade ETA quality or named predictor compatibility |
+| `connectors/validator-allowlist` | Server-owned validator ID allowlist decision | No validator-clean result, compliance proof, or consumer acceptance |
 | `connectors/monitoring-export` | Redacted monitoring/export summary shape | No notification delivery, monitoring service, SLA, or evidence creation |
 
 Telemetry examples share a small SDK-style helper under
@@ -36,6 +37,11 @@ The prediction sidecar stub uses `connectors/sdk/prediction` for sanitized
 dry-run request/response examples, withheld-output diagnostics, and explicit
 Vehicle Positions independence. It is not a named predictor integration and
 does not prove ETA quality.
+
+The monitoring/export example uses `connectors/sdk/monitoring` for redaction,
+no-send output, no status mutation, and no evidence writes. The validator
+example uses allowlisted validator ID/feed-type pairings plus safe fixture
+references and rejects raw validator command patterns.
 
 ## Fixture Boundary
 

@@ -9,7 +9,8 @@ not prove certified vendor compatibility, production AVL reliability,
 production-grade ETA quality, consumer acceptance, CAL-ITP/Caltrans compliance,
 agency adoption, hosted SaaS availability, or final-root proof.
 
-Post-60 productization makes external connection quality the default next work.
+The Phase 61+ agency-first roadmap makes external connection quality part of
+the default productization path.
 The intended integration shape is sidecar plus manifest plus conformance
 testing, not arbitrary dynamic plugin loading. These contracts help operators
 evaluate adapters safely; they do not create evidence or prove third-party
@@ -63,7 +64,7 @@ management.
 
 ## Connector Manifest Checks
 
-Post-60 connector work uses `open-transit-rt.connector.v1` manifests. Run:
+Phase 64 connector work uses `open-transit-rt.connector.v1` manifests. Run:
 
 ```bash
 make external-connection-check
@@ -87,6 +88,7 @@ Stage 5 adds generic connector examples under `examples/connectors/` for:
 - telemetry HTTP poller shape;
 - telemetry CSV replay shape;
 - prediction sidecar stub shape;
+- validator allowlist shape;
 - monitoring/export summary shape.
 
 Telemetry examples share a small stdlib-only SDK-style helper under
@@ -101,6 +103,16 @@ sanitized dry-run request/response shape, withheld-output diagnostics,
 Vehicle Positions independence, and explicit no public Trip Updates mutation.
 It is not a named predictor integration, runtime compatibility claim, or
 production-grade ETA quality claim.
+
+The validator allowlist example accepts server-owned validator ID/feed-type
+pairings and safe `fixture://` artifact references only. It prints a dry-run
+allowlist decision without raw validator command strings, private artifact
+paths, validator execution, evidence writes, or status mutation.
+
+The monitoring/export example uses `examples/connectors/sdk/monitoring` for
+redacted no-send batches with status mutation and evidence writes disabled. It
+does not prove notification delivery, SLA coverage, uptime, hosted service
+availability, or production readiness.
 
 These examples use synthetic fixtures only and are included in local manifest
 and conformance checks. They are developer examples, not real vendor adapters,

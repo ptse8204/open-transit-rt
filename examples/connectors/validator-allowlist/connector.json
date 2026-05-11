@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.validator-allowlist",
+  "type": "validator",
+  "display_name": "Synthetic validator allowlist",
+  "description": "Synthetic validator connector example that accepts server-owned validator ID/feed-type mappings only.",
+  "mode": {
+    "name": "validator_allowlist_dry_run",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic validator request",
+      "description": "Fixture with a server-owned validator ID, matching feed type, and synthetic fixture artifact reference.",
+      "schema": "open-transit-rt.validator.request.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["synthetic_only", "validator_id", "feed_type", "artifact_ref"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Validator allowlist decision",
+      "description": "Dry-run allowlist decision with feed-type mapping enforced and raw validator command execution disabled.",
+      "schema": "open-transit-rt.validator.allowlist-decision.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 10,
+    "retry_policy": "operator rerun only",
+    "degraded_state": "validation not run",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "none",
+    "redact_fields": ["private_path", "artifact_path", "raw_stdout", "raw_stderr"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["compliance proof", "consumer acceptance", "production readiness"]
+  },
+  "docs_link": "examples/connectors/validator-allowlist/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-validator-allowlist",
+      "description": "Synthetic validator request uses an allowlisted validator ID and no raw command.",
+      "fixture_path": "examples/connectors/validator-allowlist/fixtures/request.json",
+      "expected_result": "pass"
+    }
+  ]
+}

@@ -77,9 +77,10 @@ without backend command execution. Checkpoint 000004 improved telemetry
 connector SDK-style examples with a shared synthetic dry-run normalization
 helper. Checkpoint 000005 improved the prediction connector SDK-style example
 with sanitized dry-run request/response helpers, Vehicle Positions
-independence, no-public-mutation flags, and withheld-output diagnostics. The
-next checkpoint is
-`Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`.
+independence, no-public-mutation flags, and withheld-output diagnostics.
+Checkpoint 000006 added a monitoring/export SDK-style helper and synthetic
+validator allowlist example. The next checkpoint is
+`Phase 64 -- Checkpoint 000007: close connector platform and SDKs`.
 Phase 64 should make connector manifests, conformance, and SDK-style examples
 more visible and testable without dynamic backend plugin loading, real
 credentials, real vendor payloads, vendor compatibility claims, or
@@ -1173,10 +1174,12 @@ the private Connector Hub manifest registry UI. Checkpoint 000003 added
 private connector test instructions without backend command execution, and
 Checkpoint 000004 improved telemetry connector SDK-style examples. Checkpoint
 000005 improved prediction connector SDK-style examples without changing
-runtime prediction defaults. The next checkpoint is
-`Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`.
-For public/status wording work, start with `make audit-final-claim-review` and
-keep unsupported claims removed or bounded.
+runtime prediction defaults. Checkpoint 000006 improved monitoring/export
+examples and added a validator allowlist example without raw validator
+commands. The next checkpoint is
+`Phase 64 -- Checkpoint 000007: close connector platform and SDKs`. For
+public/status wording work, start with `make audit-final-claim-review` and keep
+unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

@@ -1,0 +1,6 @@
+{
+  "synthetic_only": true,
+  "validator_id": "static-mobilitydata",
+  "feed_type": "schedule",
+  "artifact_ref": "fixture://schedule.zip"
+}

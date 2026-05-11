@@ -32,6 +32,9 @@ func TestBuildExportBatchRedactsAndDoesNotSend(t *testing.T) {
 	if batch.SendEnabled || batch.NetworkSend {
 		t.Fatalf("send flags = send_enabled %v network_send %v", batch.SendEnabled, batch.NetworkSend)
 	}
+	if batch.StatusMutation || batch.EvidenceWrite {
+		t.Fatalf("batch mutates status or writes evidence: %+v", batch)
+	}
 	if len(batch.Incidents) != 1 {
 		t.Fatalf("incidents = %d, want 1", len(batch.Incidents))
 	}

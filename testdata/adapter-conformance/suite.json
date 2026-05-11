@@ -9,7 +9,8 @@
     "examples/connectors/telemetry-http-poller/connector.json",
     "examples/connectors/telemetry-csv-replay/connector.json",
     "examples/connectors/predictor-sidecar-stub/connector.json",
-    "examples/connectors/monitoring-export/connector.json"
+    "examples/connectors/monitoring-export/connector.json",
+    "examples/connectors/validator-allowlist/connector.json"
   ],
   "cases": [
     {"id": "telemetry-malformed", "type": "telemetry", "scenario": "malformed", "fixture": "fixtures/telemetry-malformed.json", "expected_outcome": "reject", "assertions": ["offline", "fail_closed"], "synthetic_only": true},

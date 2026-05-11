@@ -17,6 +17,7 @@ func TestExampleConnectorManifestsAndFixtures(t *testing.T) {
 		"predictor-sidecar-stub",
 		"telemetry-csv-replay",
 		"telemetry-http-poller",
+		"validator-allowlist",
 	}
 	manifests, err := filepath.Glob(filepath.Join(root, "examples", "connectors", "*", "connector.json"))
 	if err != nil {

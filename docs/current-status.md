@@ -58,8 +58,9 @@ connector test instructions at `/admin/operations/connectors/tests`.
 Checkpoint 000004 improved telemetry connector SDK-style examples with a
 shared synthetic dry-run normalization helper. Checkpoint 000005 improved the
 prediction connector SDK-style example with sanitized dry-run request/response
-helpers and withheld-output diagnostics; the next checkpoint should improve
-monitoring/export and validator connector examples.
+helpers and withheld-output diagnostics. Checkpoint 000006 added a
+monitoring/export SDK-style helper and a synthetic validator allowlist example;
+the next checkpoint should close Phase 64.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -179,14 +180,18 @@ backend command execution. Checkpoint 000004 added
 CSV replay examples to share fail-closed dry-run normalization and diagnostics.
 Checkpoint 000005 added `examples/connectors/sdk/prediction` and updated the
 predictor sidecar stub with sanitized dry-run request/response output,
-Vehicle Positions independence, and no-public-mutation diagnostics. The next
-checkpoint is
-`Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`
+Vehicle Positions independence, and no-public-mutation diagnostics. Checkpoint
+000006 added `examples/connectors/sdk/monitoring`, improved the
+monitoring/export example, and added `examples/connectors/validator-allowlist`
+for server-owned validator ID/feed-type allowlisting without raw validator commands. The
+next checkpoint is
+`Phase 64 -- Checkpoint 000007: close connector platform and SDKs`
 without weakening claim boundaries:
 
-- improve monitoring/export redaction and no-send examples;
-- close the validator example gap with allowlisted validator-ID guidance or a
-  synthetic example, without raw validator command execution;
+- update closeout docs and handoff state;
+- run full Phase 64 closeout validation;
+- keep all connector examples synthetic, disabled by default, no-send, and
+  claim-bounded;
 - keep connectors as optional sidecars, command adapters, manifests, or
   connector processes;
 - preserve connector manifest schema and adapter contracts unless a narrow,
@@ -1824,9 +1829,9 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 64 -- Connector Platform and SDKs. The default next work
-is `Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`.
-This checkpoint should also cover validator example/guidance improvements
-without raw validator commands. For public/status wording work, start with
+is `Phase 64 -- Checkpoint 000007: close connector platform and SDKs`.
+Closeout should validate connector examples, protected paths, consumer tracker
+state, and unsupported-claim boundaries. For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:

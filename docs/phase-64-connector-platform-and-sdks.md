@@ -11,7 +11,8 @@ fixed offline checks, without backend command execution. Checkpoint 000004
 improved telemetry connector SDK-style examples with a shared synthetic
 dry-run normalization helper. Checkpoint 000005 improved the prediction
 connector SDK-style example with a shared synthetic dry-run request/response
-helper.
+helper. Checkpoint 000006 improved monitoring/export examples and added a
+synthetic validator allowlist example.
 
 Phase 64 turns the existing connector/plugin architecture into a visible,
 testable developer platform for telemetry, prediction, validator,
@@ -33,7 +34,7 @@ backend.
 - Completed: `Phase 64 -- Checkpoint 000003: implement connector test runner UI`
 - Completed: `Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`
 - Completed: `Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`
-- Planned: `Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`
+- Completed: `Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`
 - Planned: `Phase 64 -- Checkpoint 000007: close connector platform and SDKs`
 
 ## Checkpoint Scope
@@ -142,6 +143,16 @@ production-grade ETA quality.
 - Keep examples local, synthetic, generic, and disabled by default. Do not add
   raw validator commands, arbitrary argv, webhook sends, real monitoring
   destinations, SLA/uptime claims, or retained evidence writes.
+
+Checkpoint 000006 added `examples/connectors/sdk/monitoring` for redacted
+no-send monitoring/export batches with status mutation and evidence writes
+disabled. It also added `examples/connectors/validator-allowlist` as a
+synthetic validator connector example using server-owned validator ID/feed-type
+pairings and safe fixture references only.
+The validator example prints an allowlist decision and rejects unlisted IDs;
+it does not carry raw validator commands, private artifact paths, validator
+execution, evidence writes, status mutation, compliance proof, or consumer
+acceptance claims.
 
 ## Non-Goals
 

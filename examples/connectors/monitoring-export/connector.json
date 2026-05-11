@@ -20,7 +20,7 @@
   "output_contracts": [
     {
       "name": "Redacted monitoring batch",
-      "description": "Dry-run diagnostic export with sending disabled and status mutation disabled.",
+      "description": "Dry-run diagnostic export with sending, evidence writes, and status mutation disabled.",
       "schema": "open-transit-rt.monitoring.redacted-batch.v1",
       "media_types": ["application/json"],
       "produces": ["dry_run_stdout"]
