@@ -21,26 +21,126 @@ CSRF_SECRET="${CSRF_SECRET:-dev-csrf-secret-change-me}"
 DEVICE_TOKEN_PEPPER="${DEVICE_TOKEN_PEPPER:-dev-device-token-pepper-change-me}"
 export ADMIN_JWT_SECRET ADMIN_JWT_ISSUER ADMIN_JWT_AUDIENCE ADMIN_JWT_TTL CSRF_SECRET DEVICE_TOKEN_PEPPER
 
+COMPOSE_FILE="deploy/docker-compose.yml"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  scripts/bootstrap-dev.sh
+  scripts/bootstrap-dev.sh --check
+  scripts/bootstrap-dev.sh --help
+
+Development bootstrap starts the local Postgres/PostGIS dependency, applies
+migrations, seeds demo records, and prints local development tokens and service
+commands. It is local development setup only; it is not hosted service and
+not production-readiness proof, not consumer-acceptance proof, not
+agency-approval proof, and not compliance proof.
+
+Preflight:
+  --check verifies required local tools, required repository files, Docker
+  daemon availability, and Docker Compose config without starting services or
+  changing database state.
+
+Common blockers:
+  - Docker CLI missing: install Docker Desktop or a compatible Docker engine.
+  - Docker daemon stopped: start Docker Desktop or the Docker daemon.
+  - Go missing: install the Go version expected by go.mod.
+  - Port 55432 occupied: stop the conflicting local database or change the
+    compose port mapping intentionally in deploy/docker-compose.yml.
+  - Database not ready: inspect make agency-app-logs or docker compose logs.
+EOF
+}
+
+log() {
+  printf '\n==> %s\n' "$1"
+}
+
+fail() {
+  printf '\nERROR: %s\n' "$1" >&2
+  printf '\nNext actions:\n' >&2
+  printf '  scripts/bootstrap-dev.sh --check\n' >&2
+  printf '  docker compose -f %s ps\n' "$COMPOSE_FILE" >&2
+  printf '  docker compose -f %s logs postgres\n' "$COMPOSE_FILE" >&2
+  printf '  docs/tutorials/local-quickstart.md\n' >&2
+  exit 1
+}
+
 need() {
   if ! command -v "$1" >/dev/null 2>&1; then
-    echo "missing required tool: $1" >&2
-    exit 1
+    fail "Missing required tool: $1. Install it, then rerun scripts/bootstrap-dev.sh --check."
   fi
 }
 
-need docker
-need go
+require_path() {
+  path="$1"
+  if [ ! -e "$path" ]; then
+    fail "Required repository path is missing: $path"
+  fi
+}
 
-echo "Starting Postgres/PostGIS..."
-docker compose -f deploy/docker-compose.yml up -d postgres
+port_hint() {
+  port="$1"
+  label="$2"
+  if command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+    printf 'NOTICE: %s port %s already has a listener. If bootstrap fails, stop the conflicting process or review %s.\n' "$label" "$port" "$COMPOSE_FILE"
+  fi
+}
 
-echo "Waiting for database readiness..."
+check_docker() {
+  need docker
+  if ! docker info >/dev/null 2>&1; then
+    fail "Docker is installed but the Docker daemon is not available. Start Docker Desktop or your Docker daemon, then rerun bootstrap."
+  fi
+  if ! docker compose -f "$COMPOSE_FILE" config >/dev/null; then
+    fail "Docker Compose config did not render from $COMPOSE_FILE."
+  fi
+}
+
+preflight() {
+  log "Check required tools"
+  need go
+  check_docker
+  for path in "$COMPOSE_FILE" scripts/seed-dev.sql "$MIGRATIONS_DIR" cmd/migrate .env.example; do
+    require_path "$path"
+  done
+  port_hint 55432 "Postgres"
+  printf 'Go: %s\n' "$(go version)"
+  printf 'Docker: available\n'
+  printf 'Compose file: %s renders\n' "$COMPOSE_FILE"
+  printf 'Database URL: configured for local bootstrap target\n'
+  printf 'Bootstrap preflight passed. Next action: run make dev or scripts/bootstrap-dev.sh.\n'
+}
+
+case "${1:-}" in
+  "")
+    ;;
+  --check)
+    preflight
+    exit 0
+    ;;
+  --help|-h)
+    usage
+    exit 0
+    ;;
+  *)
+    usage >&2
+    fail "Unknown argument: $1"
+    ;;
+esac
+
+preflight
+
+log "Starting Postgres/PostGIS"
+if ! docker compose -f "$COMPOSE_FILE" up -d postgres; then
+  fail "Could not start Postgres/PostGIS. Docker may be unavailable, the PostGIS image may not be present, or host port 55432 may be in use."
+fi
+
+log "Waiting for database readiness"
 attempt=0
-until docker compose -f deploy/docker-compose.yml exec -T postgres pg_isready -U postgres -d open_transit_rt >/dev/null 2>&1; do
+until docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U postgres -d open_transit_rt >/dev/null 2>&1; do
   attempt=$((attempt + 1))
   if [ "$attempt" -ge 30 ]; then
-    echo "database did not become ready after 30 attempts" >&2
-    exit 1
+    fail "Postgres did not become ready after 30 attempts."
   fi
   sleep 2
 done
@@ -48,19 +148,25 @@ attempt=0
 until DATABASE_URL="$DATABASE_URL" MIGRATIONS_DIR="$MIGRATIONS_DIR" go run ./cmd/migrate status >/dev/null 2>&1; do
   attempt=$((attempt + 1))
   if [ "$attempt" -ge 30 ]; then
-    echo "database host connection did not become ready after 30 attempts" >&2
-    exit 1
+    fail "Host database connection did not become ready after 30 attempts."
   fi
   sleep 2
 done
 
-echo "Applying migrations..."
-DATABASE_URL="$DATABASE_URL" MIGRATIONS_DIR="$MIGRATIONS_DIR" go run ./cmd/migrate up
+log "Applying migrations"
+if ! DATABASE_URL="$DATABASE_URL" MIGRATIONS_DIR="$MIGRATIONS_DIR" go run ./cmd/migrate up; then
+  fail "Migration command failed. Check database readiness and migration output above."
+fi
 
-echo "Seeding development agencies..."
-docker compose -f deploy/docker-compose.yml exec -T postgres psql -U postgres -d open_transit_rt < scripts/seed-dev.sql
+log "Seeding development agencies"
+if ! docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U postgres -d open_transit_rt < scripts/seed-dev.sql; then
+  fail "Demo seed failed. Check Postgres logs and scripts/seed-dev.sql."
+fi
 
 ADMIN_TOKEN="$(go run ./cmd/admin-token -sub admin@example.com -agency-id demo-agency | sed -n 's/^token=//p')"
+if [ -z "$ADMIN_TOKEN" ]; then
+  fail "Could not generate a local admin token."
+fi
 
 cat <<URLS
 

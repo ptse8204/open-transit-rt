@@ -28,6 +28,10 @@ Usage:
 Local app packaging starts the full Open Transit RT demo stack behind
 http://localhost:8080. It is for local evaluation only, not production TLS or
 admin network-boundary configuration.
+
+First-run blockers usually mean Docker is missing or stopped, the Docker
+Compose plugin cannot render deploy/docker-compose.yml, host ports 8080 or
+55432 are already in use, or first-run image/module pulls need network access.
 EOF
 }
 
@@ -47,10 +51,19 @@ log() {
 fail() {
   printf '\nERROR: %s\n' "$1" >&2
   printf '\nRecovery:\n' >&2
+  printf '  scripts/agency-local-app.sh --help\n' >&2
   printf '  make agency-app-logs\n' >&2
   printf '  make agency-app-down\n' >&2
   printf '  make agency-app-reset   # destructive local reset with confirmation\n' >&2
   exit 1
+}
+
+port_hint() {
+  port="$1"
+  label="$2"
+  if command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+    printf 'NOTICE: %s port %s already has a listener. If startup fails, stop the conflicting process or review %s.\n' "$label" "$port" "$COMPOSE_FILE"
+  fi
 }
 
 check_docker() {
@@ -62,6 +75,9 @@ Next action:
   Start Docker Desktop or your Docker daemon, then rerun:
     make agency-app-up"
   fi
+  if ! docker compose -f "$COMPOSE_FILE" config >/dev/null; then
+    fail "Docker Compose could not render $COMPOSE_FILE. Check the Docker Compose plugin and the compose file before rerunning."
+  fi
 }
 
 wait_for_postgres() {
@@ -69,7 +85,7 @@ wait_for_postgres() {
   until dc exec -T postgres pg_isready -U postgres -d open_transit_rt >/dev/null 2>&1; do
     attempt=$((attempt + 1))
     if [ "$attempt" -ge 45 ]; then
-      fail "Postgres did not become ready in time."
+      fail "Postgres did not become ready in time. Check Docker logs, first-run image pulls, and host port 55432 conflicts."
     fi
     sleep 2
   done
@@ -83,7 +99,7 @@ wait_for_container_url() {
   until dc exec -T "$service" wget -qO- "$url" >/dev/null 2>&1; do
     attempt=$((attempt + 1))
     if [ "$attempt" -ge 45 ]; then
-      fail "$label did not become ready at $url."
+      fail "$label did not become ready at $url. Check service logs and confirm the local app image built successfully."
     fi
     sleep 2
   done
@@ -96,7 +112,7 @@ wait_for_url() {
   until curl -fsS "$url" >/dev/null 2>&1; do
     attempt=$((attempt + 1))
     if [ "$attempt" -ge 45 ]; then
-      fail "$label did not become ready at $url."
+      fail "$label did not become ready at $url. Check host port 8080 and local reverse proxy logs."
     fi
     sleep 2
   done
@@ -143,23 +159,23 @@ EOF
 build_and_migrate() {
   log "Start Postgres/PostGIS"
   if ! dc up -d postgres; then
-    fail "Could not start Postgres. Check Docker and port 55432 availability."
+    fail "Could not start Postgres. Check Docker, first-run image pull/network access, and port 55432 availability."
   fi
   wait_for_postgres
 
   log "Build local app image"
   if ! dc --profile "$PROFILE" build agency-config; then
-    fail "Local app image build failed."
+    fail "Local app image build failed. Check Docker build output, first-run module downloads, and local disk space."
   fi
 
   log "Apply migrations"
   if ! dc --profile "$PROFILE" run --rm --no-deps agency-config /app/bin/migrate up; then
-    fail "Migrations failed. Check database logs with make agency-app-logs."
+    fail "Migrations failed. Check database readiness, existing local volume state, and logs with make agency-app-logs."
   fi
 
   log "Seed local demo agency, roles, and device binding"
   if ! dc exec -T postgres psql -U postgres -d open_transit_rt < scripts/seed-dev.sql; then
-    fail "Demo seed failed."
+    fail "Demo seed failed. Check the existing local volume state or run make agency-app-reset for a clean local database."
   fi
 }
 
@@ -288,6 +304,8 @@ EOF
 cmd_up() {
   need curl
   check_docker
+  port_hint 55432 "Postgres"
+  port_hint 8080 "Local app proxy"
   print_existing_state_note
   build_and_migrate
   start_services

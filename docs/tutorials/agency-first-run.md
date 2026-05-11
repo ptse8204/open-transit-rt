@@ -12,6 +12,18 @@ Prerequisites:
 - `curl`
 - Go is useful for normal development, but the local app package builds the Go services into a local container image
 
+For development bootstrap preflight before running `make dev`, use:
+
+```bash
+scripts/bootstrap-dev.sh --check
+```
+
+The preflight checks local tools, required repository files, Docker daemon
+availability, Docker Compose config, and likely port conflicts without starting
+services or changing database state. If it reports a missing tool or blocked
+Docker daemon, resolve that blocker before starting the local app or dev
+bootstrap.
+
 Run:
 
 ```bash
@@ -21,6 +33,24 @@ make agency-app-up
 The command starts Postgres/PostGIS, builds local service binaries, applies migrations, seeds demo records, imports `testdata/gtfs/valid-small`, publishes it as the active local feed, bootstraps publication metadata, waits for service readiness, and verifies the public feed URLs.
 
 At the end it prints the public feed root, feed URLs, Operations Console URL, GTFS Studio/admin URL, token instructions, log command, validation next step, and the exact next action.
+
+If startup fails, run:
+
+```bash
+make agency-app-logs
+scripts/bootstrap-dev.sh --check
+docker compose -f deploy/docker-compose.yml ps
+```
+
+Common local blockers are Docker not running, host port `55432` already in
+use, host port `8080` already in use for the local app proxy, missing Go for
+development commands, or pinned validator tooling not installed. These are
+setup blockers, not evidence or production-readiness signals.
+
+If a previous local database volume is reused and the demo state looks stale,
+run `make agency-app-reset` only after confirming you want to remove local demo
+database state and container logs. If feed readiness times out, inspect
+`make agency-app-logs` before rerunning startup.
 
 Stop the local app:
 

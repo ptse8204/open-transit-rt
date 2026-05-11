@@ -189,8 +189,10 @@ Phase 66 plan for release-candidate workflow, installer/bootstrap UX, Docker
 image publishing decision, demo/docs website planning, and closeout.
 Checkpoint 000002 prepared the first release-candidate workflow with an
 ordered review sequence, validation matrix, release-note inputs, local package
-audit matrix, and private diagnostic summary fields. The next checkpoint is
-`Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`.
+audit matrix, and private diagnostic summary fields. Checkpoint 000003 added a
+local bootstrap preflight, clearer missing-tool and Docker/DB readiness
+messages, and first-run blocker docs. The next checkpoint is `Phase 66 --
+Checkpoint 000004: document Docker image publishing decision`.
 
 Keep Phase 66 focused on clean install, bootstrap, preflight/doctor, release
 candidate packaging/docs, and lean validation. Do not claim hosted SaaS,
@@ -1826,7 +1828,7 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 66 -- Release Candidate and Installability. The default
-next work is `Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`.
+next work is `Phase 66 -- Checkpoint 000004: document Docker image publishing decision`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

@@ -113,6 +113,7 @@ readiness.
    environment allows:
 
    ```sh
+   scripts/bootstrap-dev.sh --check
    make validate
    make test
    make test-release-package
@@ -197,6 +198,13 @@ network, Docker, Java, or the pinned validator image is unavailable, record the
 exact blocker, confirm non-network checks such as `make check`, and continue
 productization review without converting the blocker into a compliance,
 production-readiness, or consumer-acceptance claim.
+
+When `RUN_LOCAL_APP=true` is used, likely blockers are Docker daemon
+availability, Docker Compose plugin/config errors, first-run image pull or Go
+module network access, host ports `8080` and `55432`, existing local database
+volume state, or service readiness timeouts. Record those as local setup
+blockers. A blocked or skipped local app run is not compliance evidence and is
+not production-readiness proof.
 
 ## Outputs
 

@@ -76,6 +76,8 @@ Checkpoint 000001 added the Phase 66 plan in
 Checkpoint 000002 prepared the first release-candidate workflow in
 `docs/release-candidate-readiness.md`, the release process docs, and the
 private `.cache` release-candidate diagnostic summary.
+Checkpoint 000003 added a local bootstrap preflight and clearer first-run
+blocker guidance in `scripts/bootstrap-dev.sh`, quickstart docs, and tests.
 Phase 64 Checkpoint 000001 added the Phase 64 plan in
 `docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
 private Connector Hub manifest registry UI and bounded JSON registry model
@@ -108,8 +110,10 @@ validation, protected-path, consumer-tracker, and claim-boundary review.
 Checkpoint 000001 added the Phase 66 release-candidate and installability plan.
 Checkpoint 000002 prepared the first release-candidate workflow with an
 ordered review sequence, validation matrix, release-note inputs, package audit
-matrix, and private diagnostic summary fields. The next checkpoint is
-`Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`.
+matrix, and private diagnostic summary fields. Checkpoint 000003 added a local
+bootstrap preflight, clearer missing-tool and Docker/DB readiness messages, and
+first-run blocker docs. The next checkpoint is `Phase 66 -- Checkpoint
+000004: document Docker image publishing decision`.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1198,7 +1202,7 @@ Checkpoint 000001 added the Phase 65 plan. Checkpoint 000002 improved private
 device and vehicle onboarding UI. Checkpoint 000003 added the private
 telemetry simulator guide UI. Checkpoint 000004 improved private GTFS quality
 fix guidance. Checkpoint 000005 closed Phase 65. The next checkpoint is
-`Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`. For
+`Phase 66 -- Checkpoint 000004: document Docker image publishing decision`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

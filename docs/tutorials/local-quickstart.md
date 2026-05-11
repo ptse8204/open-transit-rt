@@ -10,11 +10,42 @@ This tutorial starts the current Open Transit RT development environment on one 
 
 - Docker with Compose support
 - `curl`
+- `make`
 - Go matching `go.mod` for development commands outside the local app package
 - `zip` and `unzip` for the legacy demo script
 - Java if you want the static GTFS validator JAR to execute successfully
 
 The GTFS-RT validator workflow uses Docker because the repo-supported path is a pinned wrapper around a MobilityData container image.
+
+Before you run the full local app, confirm Docker is running and host ports
+`8080` and `55432` are free. The first run may need network access for Docker
+images and Go module downloads. If the local database volume already exists,
+the app will reuse it; run `make agency-app-reset` only when you want a
+destructive clean local demo database.
+
+## Bootstrap Preflight
+
+Before starting local services, run:
+
+```bash
+scripts/bootstrap-dev.sh --check
+```
+
+The preflight checks required tools, required repo files, Docker daemon
+availability, Docker Compose config, and likely port conflicts without starting
+services or changing database state. Common blockers mean:
+
+| Blocker | Next Action |
+| --- | --- |
+| Docker CLI missing | Install Docker Desktop or a compatible Docker engine |
+| Docker daemon stopped | Start Docker Desktop or the Docker daemon, then rerun the preflight |
+| Go missing | Install the Go version expected by `go.mod` |
+| Port `55432` occupied | Stop the conflicting local database or intentionally change the Compose port mapping |
+| Database not ready | Inspect `docker compose -f deploy/docker-compose.yml logs postgres` |
+
+The preflight and bootstrap output are local diagnostics only. They are not
+hosted-service, production-readiness, consumer-acceptance, agency-approval, or
+compliance proof.
 
 ## Full Local App Package
 
@@ -48,10 +79,15 @@ The local reverse proxy is only for demo packaging. Admin/debug routes may be re
 
 ```bash
 cp .env.example .env
+scripts/bootstrap-dev.sh --check
 make dev
 ```
 
 `make dev` starts Postgres/PostGIS, applies migrations, seeds demo agencies, and prints a local admin token plus the seeded telemetry device token.
+
+`make dev` uses the host Go toolchain and the Compose Postgres port `55432`.
+`make agency-app-up` builds and runs the app services in local containers
+behind `http://localhost:8080`.
 
 Seeded local credentials:
 

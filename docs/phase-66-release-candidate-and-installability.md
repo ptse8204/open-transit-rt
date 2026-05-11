@@ -6,14 +6,16 @@ In progress. Checkpoint 000001 added this plan for release-candidate workflow,
 installer/bootstrap UX, Docker image publishing decision, demo/docs website
 planning, and closeout. Checkpoint 000002 prepared the first release-candidate
 workflow by adding the ordered review sequence, validation matrix, release-note
-inputs, package audit matrix, and private diagnostic summary fields. Phase 66
-must keep release candidate and installability work bounded to evaluator
-workflows and local/self-hosted packaging. It must not create retained
-evidence, publish artifacts, push images, change consumer statuses, or claim
-hosted SaaS, production readiness, SLA/uptime, agency adoption, consumer
-acceptance, public launch, vendor compatibility, hardware certification,
-production AVL reliability, production-grade ETA quality, or CAL-ITP/Caltrans
-compliance.
+inputs, package audit matrix, and private diagnostic summary fields.
+Checkpoint 000003 improved installer and bootstrap UX with a local bootstrap
+preflight, clearer missing-tool and Docker/DB readiness messages, and
+operator-facing blocker docs. Phase 66 must keep release candidate and
+installability work bounded to evaluator workflows and local/self-hosted
+packaging. It must not create retained evidence, publish artifacts, push
+images, change consumer statuses, or claim hosted SaaS, production readiness,
+SLA/uptime, agency adoption, consumer acceptance, public launch, vendor
+compatibility, hardware certification, production AVL reliability,
+production-grade ETA quality, or CAL-ITP/Caltrans compliance.
 
 ## Goal
 
@@ -27,7 +29,7 @@ production readiness.
 
 - Completed: `Phase 66 -- Checkpoint 000001: add release candidate and installability plan`
 - Completed: `Phase 66 -- Checkpoint 000002: prepare first release candidate workflow`
-- Planned: `Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`
+- Completed: `Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`
 - Planned: `Phase 66 -- Checkpoint 000004: document Docker image publishing decision`
 - Planned: `Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`
 - Planned: `Phase 66 -- Checkpoint 000006: close release candidate and installability`

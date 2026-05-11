@@ -41,6 +41,7 @@ help:
 	@printf '%s\n' '  make audit-final-claim-review   Read-only claim and consumer tracker audit'
 	@printf '%s\n' ''
 	@printf '%s\n' 'Environment setup:'
+	@printf '%s\n' '  scripts/bootstrap-dev.sh --check Local bootstrap preflight without starting services'
 	@printf '%s\n' '  make deps                       Download Go modules'
 	@printf '%s\n' '  make validators-install         Install pinned validators into .cache'
 	@printf '%s\n' '  make db-up                      Start local Postgres/PostGIS with Docker Compose'
@@ -53,7 +54,9 @@ check:
 	@python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
 	@python3 -c 'import json; from pathlib import Path; expected=["Google Maps","Apple Maps","Transit App","Bing Maps","Moovit","Mobility Database","transit.land"]; data=json.loads(Path("docs/evidence/consumer-submissions/status.json").read_text()); records=data.get("targets", []); seen={r["target"]: r.get("status") for r in records}; assert list(seen)==expected, seen; assert all(seen[name]=="prepared" for name in expected), seen'
 	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json testdata/telemetry-simulator/*.json; do python3 -m json.tool "$$f" >/dev/null; done
-	@for s in scripts/agency-pilot-onboard.sh scripts/release-candidate-check.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh; do sh -n "$$s"; done
+	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/release-candidate-check.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh; do sh -n "$$s"; done
+	@scripts/bootstrap-dev.sh --help >/dev/null
+	@scripts/agency-local-app.sh --help >/dev/null
 	@scripts/audit-final-claim-review.sh >/dev/null
 	@scripts/release-candidate-check.sh --help >/dev/null
 	@scripts/caltrans-readiness-check.sh --help >/dev/null
