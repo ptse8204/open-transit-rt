@@ -162,6 +162,9 @@ This roadmap does not create evidence, move consumer statuses, contact external
 parties, or strengthen any compliance, adoption, hosted service, vendor, public
 launch, or ETA-quality claim.
 
+Phase 63 planning is captured in
+`docs/phase-63-feed-health-and-readiness-ux.md`.
+
 Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
 
 Phase 6 Trip Updates and Alerts architecture is complete. The repo has a pluggable Trip Updates adapter boundary, default no-op adapter, Trip Updates diagnostics persistence, valid empty Trip Updates protobuf/JSON endpoints, valid empty Alerts protobuf/JSON endpoints, and non-coupling tests that keep prediction packages out of telemetry ingest, Vehicle Positions, and GTFS Studio.

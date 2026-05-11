@@ -1,0 +1,125 @@
+# Phase 63 -- Feed Health And Readiness UX
+
+## Status
+
+Planned.
+
+Phase 63 makes feed health, validator state, freshness, and CAL-ITP-style
+readiness easier to understand inside the private Operations Console. It must
+reuse existing feed discovery, validation-health, reliability, GTFS quality,
+and Trip Updates diagnostics models; preserve public feed URLs and runtime
+contracts; avoid schema changes; and avoid compliance, SLA, uptime,
+production-readiness, consumer-acceptance, or evidence claims.
+
+## Checkpoints
+
+- `Phase 63 -- Checkpoint 000001: add feed health and readiness UX plan`
+- `Phase 63 -- Checkpoint 000002: implement feed health dashboard`
+- `Phase 63 -- Checkpoint 000003: implement readiness checklist v2`
+- `Phase 63 -- Checkpoint 000004: close feed health and readiness UX`
+
+## Planned Scope
+
+### Feed Health Dashboard
+
+- Add a private Operations Console feed-health dashboard.
+- Show exactly five operator-facing rows:
+  - `feeds.json`
+  - `schedule`
+  - `vehicle_positions`
+  - `trip_updates`
+  - `alerts`
+- For each row, show:
+  - plain-language status;
+  - what the status means;
+  - freshness or generated/checked time where available;
+  - validator context where applicable;
+  - feed health or diagnostic context where available;
+  - next action;
+  - what the row does not prove.
+- Add JSON output for the feed-health model so private diagnostics can be
+  exported without creating evidence.
+- Link feed-health dashboard from the Operations Console dashboard, Launchpad,
+  setup wizard, and existing feeds/readiness pages where appropriate.
+
+### Readiness Checklist V2
+
+- Add or replace the private readiness checklist with a v2 model that includes:
+  - readiness item;
+  - status;
+  - current signal;
+  - what this means;
+  - why it matters;
+  - what to do next;
+  - what it does not prove;
+  - source route/doc links where useful.
+- Keep CAL-ITP-style readiness wording bounded to readiness workflows and
+  supporting signals.
+- Keep consumer tracker states prepared-only unless retained target-originated
+  evidence exists.
+- Add JSON output for the v2 readiness model.
+
+## Non-Goals
+
+- No database migrations.
+- No public feed URL changes.
+- No change to GTFS-RT protobuf semantics.
+- No change to telemetry ingest.
+- No change to validator execution semantics.
+- No retained evidence.
+- No `docs/evidence` writes.
+- No consumer status changes.
+- No external contact.
+- No SLA/uptime proof.
+- No CAL-ITP/Caltrans compliance claim.
+- No agency approval, agency adoption, consumer acceptance, hosted SaaS,
+  vendor compatibility, production-readiness, public-launch, production AVL
+  reliability, or production-grade ETA claim.
+
+## Files Expected To Change
+
+- `cmd/agency-config/main.go`
+- `cmd/agency-config/operations.go`
+- new or existing `cmd/agency-config/operations_feed_health.go`
+- new or existing `cmd/agency-config/operations_readiness_v2.go`
+- `cmd/agency-config/operations_launchpad.go`
+- `cmd/agency-config/operations_setup_wizard.go`
+- `cmd/agency-config/main_test.go`
+- `docs/current-status.md`
+- `docs/handoffs/latest.md`
+- this phase file
+
+Protected paths remain untouched:
+
+- `docs/evidence/captured/**`
+- `docs/evidence/consumer-submissions/**`
+- `db/migrations/**`
+- `go.mod`
+- `go.sum`
+
+## Validation Plan
+
+- `git diff --check`
+- `go test ./cmd/agency-config`
+- `make check`
+- `make test`
+- `make audit-final-claim-review`
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`
+- exact seven-target prepared-only consumer tracker check
+- `git diff --exit-code -- docs/evidence/consumer-submissions/status.json`
+- `git diff --exit-code -- docs/evidence/captured`
+
+Run broader checks when relevant and available:
+
+- `make external-connection-check`
+- `make adapter-conformance`
+- `make test-connector-examples`
+- `docker compose -f deploy/docker-compose.yml config`
+
+## Rollback Path
+
+Phase 63 should remain code-and-docs only. If rollback is needed, revert the
+specific checkpoint commit that added the route/model/template/test/docs
+changes. Public feed URLs, DB schema, telemetry ingest, validator execution,
+prediction adapters, connector manifests, and consumer tracker statuses should
+remain untouched.

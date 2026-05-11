@@ -54,6 +54,9 @@ readiness checklist v2 that explains what each signal means, why it matters,
 what to do next, and what it does not prove. Do not claim SLA/uptime proof or
 CAL-ITP/Caltrans compliance.
 
+Phase 63 planning lives in
+`docs/phase-63-feed-health-and-readiness-ux.md`.
+
 The current default work remains agency-facing open-source product quality and
 external connection maturity: clear evaluator paths, release-candidate
 readiness checks, connector contracts, adapter conformance, generic connector
