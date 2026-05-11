@@ -50,8 +50,9 @@ validator health, reliability, telemetry/devices, scorecard, and consumer
 prepared tracker signals. These dashboards reuse existing private records and
 add no public route, migration, evidence write, consumer status change, or
 stronger compliance/adoption/acceptance/hosted-service/vendor/production/public
-launch/ETA claim. The next active roadmap phase is Phase 64 -- Connector
-Platform and SDKs.
+launch/ETA claim. Phase 64 -- Connector Platform and SDKs is active.
+Checkpoint 000001 added the connector platform and SDK plan; the next
+checkpoint should implement the private connector manifest registry UI.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -160,11 +161,14 @@ production-grade ETA quality.
 
 The active work is Phase 64 -- Connector Platform and SDKs. Phase 63 is closed
 after adding the private feed-health dashboard and readiness checklist v2. The
-next checkpoint should add the Phase 64 plan without weakening claim
-boundaries:
+Phase 64 plan is now captured in
+`docs/phase-64-connector-platform-and-sdks.md`. The next checkpoint is
+`Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`
+without weakening claim boundaries:
 
-- scope connector manifest registry UI, test runner UX, and SDK/example
-  improvements;
+- build a private read-only registry from safe committed connector manifests;
+- keep connector test runner UX and SDK/example improvements inside later
+  scoped checkpoints;
 - keep connectors as optional sidecars, command adapters, manifests, or
   connector processes;
 - preserve connector manifest schema and adapter contracts unless a narrow,
@@ -177,8 +181,8 @@ parties, or strengthen any compliance, adoption, hosted service, vendor, public
 launch, or ETA-quality claim.
 
 Phase 63 closeout is captured in
-`docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 planning should start
-from `docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-64-connector-platform-and-sdks.md`.
+`docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 planning is captured
+in `docs/phase-64-connector-platform-and-sdks.md`.
 
 Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
 
@@ -1802,10 +1806,10 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 64 -- Connector Platform and SDKs. The default next work
-is `Phase 64 -- Checkpoint 000001: add connector platform and SDK plan`.
-Connector manifest registry UI, connector test runner UX, and telemetry,
-prediction, validator, and monitoring/export connector examples remain inside
-Phase 64. For public/status wording work, start with
+is `Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`.
+Connector test runner UX and telemetry, prediction, validator, and
+monitoring/export connector examples remain inside later Phase 64 checkpoints.
+For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:

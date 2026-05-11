@@ -68,9 +68,13 @@ Phase 63 closeout lives in
 The current default work is Phase 64 -- Connector Platform and SDKs. Start
 from
 `docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-64-connector-platform-and-sdks.md`.
-Phase 64 should make connector manifests, conformance, and SDK examples more
-visible and testable without dynamic backend plugin loading, real credentials,
-real vendor payloads, vendor compatibility claims, or evidence/status changes.
+Checkpoint 000001 added the Phase 64 plan in
+`docs/phase-64-connector-platform-and-sdks.md`. The next checkpoint is
+`Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`.
+Phase 64 should make connector manifests, conformance, and SDK-style examples
+more visible and testable without dynamic backend plugin loading, real
+credentials, real vendor payloads, vendor compatibility claims, or
+evidence/status changes.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1154,9 +1158,10 @@ target-originated evidence supports a target-specific status transition.
 ## Exact Next-Step Recommendation
 
 Continue with Phase 64 -- Connector Platform and SDKs. Phases 0 through 60
-remain closed, and Phases 61, 62, and 63 are complete. The next checkpoint is
-`Phase 64 -- Checkpoint 000001: add connector platform and SDK plan`. For
-public/status wording work, start with `make audit-final-claim-review` and
+remain closed, and Phases 61, 62, and 63 are complete. Phase 64 Checkpoint
+000001 added the connector platform and SDK plan. The next checkpoint is
+`Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`.
+For public/status wording work, start with `make audit-final-claim-review` and
 keep unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
