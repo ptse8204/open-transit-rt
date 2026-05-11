@@ -95,8 +95,10 @@ freshness/assignment next actions. Checkpoint 000003 added
 `/admin/operations/telemetry-simulator` and
 `/admin/operations/telemetry-simulator.json` as private GET-only guide
 surfaces for committed synthetic scenarios and copyable operator-shell
-commands. The next checkpoint is `Phase 65 -- Checkpoint 000004: implement
-GTFS quality fix guidance UI`.
+commands. Checkpoint 000004 improved private GTFS quality guidance with likely
+owners, affected files, safe fix paths, verification steps, escalation
+triggers, and all-false claim flags. The next checkpoint is `Phase 65 --
+Checkpoint 000005: close operator workflow and data quality UX`.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1183,8 +1185,9 @@ Continue with Phase 65 -- Operator Workflow and Data Quality UX. Phases 0
 through 60 remain closed, and Phases 61, 62, 63, and 64 are complete.
 Checkpoint 000001 added the Phase 65 plan. Checkpoint 000002 improved private
 device and vehicle onboarding UI. Checkpoint 000003 added the private
-telemetry simulator guide UI. The next checkpoint is `Phase 65 -- Checkpoint
-000004: implement GTFS quality fix guidance UI`. For
+telemetry simulator guide UI. Checkpoint 000004 improved private GTFS quality
+fix guidance. The next checkpoint is `Phase 65 -- Checkpoint 000005: close
+operator workflow and data quality UX`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

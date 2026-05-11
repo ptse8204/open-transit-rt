@@ -201,8 +201,10 @@ semantics, telemetry ingest contracts, public routes, evidence paths, consumer
 statuses, or stronger claims. Checkpoint 000003 added a private GET-only
 telemetry simulator guide UI and JSON export without command execution, token
 collection, `.cache` reads, telemetry sends, evidence writes, consumer status
-changes, or stronger claims. The next checkpoint is GTFS quality fix guidance
-UI.
+changes, or stronger claims. Checkpoint 000004 improved private GTFS quality
+guidance without automatic GTFS edits, draft mutation, schedule publish,
+validator semantic changes, evidence writes, consumer status changes, or
+stronger claims. The next checkpoint is Phase 65 closeout.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

@@ -70,7 +70,9 @@ mutation-form gating, one-time token boundaries, and per-device telemetry
 freshness/assignment next actions. Checkpoint 000003 added a private
 telemetry simulator guide UI with committed synthetic scenario metadata,
 copyable operator-shell commands, target/credential guidance, and all-false
-claim flags.
+claim flags. Checkpoint 000004 improved private GTFS quality guidance with
+likely owners, affected files, safe fix paths, verification steps, escalation
+triggers, and all-false claim flags.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -183,7 +185,7 @@ SDK-style telemetry, prediction, and monitoring helpers, and synthetic
 telemetry, prediction, monitoring/export, and validator allowlist examples.
 Phase 65 planning is captured in
 `docs/phase-65-operator-workflow-and-data-quality-ux.md`. The next checkpoint
-is `Phase 65 -- Checkpoint 000004: implement GTFS quality fix guidance UI`.
+is `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`.
 Keep the work inside private operator workflow/data-quality UX:
 
 - preserve the completed device/vehicle onboarding guidance without changing
@@ -191,8 +193,9 @@ Keep the work inside private operator workflow/data-quality UX:
 - preserve the completed telemetry simulator guide without adding browser-side
   command execution, token collection, `.cache` reads, or real fleet
   reliability claims;
-- make GTFS quality guidance more actionable without automatic GTFS edits or
-  compliance claims;
+- preserve the completed GTFS quality guidance without automatic GTFS edits,
+  draft mutation, schedule publish, validator semantic changes, or compliance
+  claims;
 - preserve protected evidence paths, prepared-only consumer tracker state,
   public/private route boundaries, and unsupported-claim boundaries.
 
@@ -1827,7 +1830,7 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 65 -- Operator Workflow and Data Quality UX. The default
-next work is `Phase 65 -- Checkpoint 000004: implement GTFS quality fix guidance UI`.
+next work is `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

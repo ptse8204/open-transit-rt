@@ -63,6 +63,7 @@ type operationsPage struct {
 	GTFSImportNotice       string
 	GTFSImportError        string
 	GTFSQuality            compliance.GTFSQualityTriage
+	GTFSQualityGuidance    operationsGTFSQualityGuidanceView
 	GTFSQualityNotice      string
 	GTFSQualityError       string
 	ValidationHealth       compliance.ValidationHealthSummary
@@ -801,6 +802,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.DeviceRows = buildOperationsDeviceRows(page.Devices, page.Telemetry)
 	page.DeviceOnboarding = operationsDeviceOnboardingUseCases()
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
+	page.GTFSQualityGuidance = buildOperationsGTFSQualityGuidance(page)
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedHealth = buildOperationsFeedHealth(page)
@@ -1634,7 +1636,13 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 		}
 		return ""
 	},
-	"humanHeuristic": humanHeuristicLabel,
+	"humanHeuristic":           humanHeuristicLabel,
+	"gtfsQualityLikelyOwner":   gtfsQualityLikelyOwner,
+	"gtfsQualityAffectedFiles": gtfsQualityAffectedFiles,
+	"gtfsQualitySafeFixPath":   gtfsQualitySafeFixPath,
+	"gtfsQualityVerifyWith":    gtfsQualityVerifyWith,
+	"gtfsQualityEscalation":    gtfsQualityEscalation,
+	"gtfsQualityGuidanceClass": gtfsQualityGuidanceClass,
 }).Parse(`
 {{define "layoutStart"}}
 <!doctype html><html><head><meta charset="utf-8"><title>{{.Title}}</title>
@@ -2021,6 +2029,29 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <table><tbody>
 <tr><th>Active schedule feed version</th><td>{{if .ActiveFeedVersion}}<code>{{.ActiveFeedVersion}}</code>{{else}}missing active schedule; next action: import or publish a schedule before rerunning validation{{end}}</td></tr>
 <tr><th>Rerun boundary</th><td>Rerun uses only the authenticated agency active published schedule ZIP and the server-side static MobilityData validator mapping.</td></tr>
+<tr><th>Guidance boundary</th><td>{{.GTFSQualityGuidance.Boundary}}</td></tr>
+</tbody></table>
+<h3>Fix Workflow</h3>
+<div class="card-grid">
+{{range .GTFSQualityGuidance.Workflow}}<section class="card"><h3>{{.Label}}</h3><p>{{.Summary}}</p><p><strong>Next outcome:</strong> {{.NextOutcome}}</p><p class="muted">{{.DoesNotDo}}</p><p>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</p><p>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</p></section>{{end}}
+</div>
+<h3>Claim Flags</h3>
+<table><tbody>
+<tr><th><code>automatic_gtfs_edit_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.AutomaticGTFSEditEnabled}}</td></tr>
+<tr><th><code>draft_mutation_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.DraftMutationEnabled}}</td></tr>
+<tr><th><code>schedule_publish_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.SchedulePublishEnabled}}</td></tr>
+<tr><th><code>validator_semantics_changed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ValidatorSemanticsChanged}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>agency_approval_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.AgencyApprovalClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>hardware_certification_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.HardwareCertificationClaimed}}</td></tr>
+<tr><th><code>production_avl_reliability_claimed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ProductionAVLReliabilityClaimed}}</td></tr>
 </tbody></table>
 {{if .IsAdmin}}
 <h3>Rerun Static Validator</h3>
@@ -2132,8 +2163,8 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{if .OverflowCount}}<tr><th>Hidden issue overflow</th><td>{{.OverflowCount}} notices omitted by group cap</td></tr>{{end}}
 </tbody></table>
 {{if .Groups}}
-<table><thead><tr><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Samples</th><th>Overflow</th></tr></thead><tbody>
-{{range .Groups}}<tr><td>{{.Severity}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.OverflowCount}}</td></tr>{{end}}
+<table><thead><tr><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Likely owner</th><th>Affected files</th><th>Safe fix path</th><th>Verify with</th><th>Escalate if</th><th>Samples</th><th>Overflow</th></tr></thead><tbody>
+{{range .Groups}}<tr class="gtfs-quality-{{gtfsQualityGuidanceClass .}}"><td>{{.Severity}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{gtfsQualityLikelyOwner .}}</td><td>{{gtfsQualityAffectedFiles .}}</td><td>{{gtfsQualitySafeFixPath .Source .}}</td><td>{{gtfsQualityVerifyWith .Source .}}</td><td>{{gtfsQualityEscalation .}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.OverflowCount}}</td></tr>{{end}}
 </tbody></table>
 {{else}}<p class="warning">No issue groups are available for this source. Next action: {{.RecommendedAction}}</p>{{end}}
 {{end}}

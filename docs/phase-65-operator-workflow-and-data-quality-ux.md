@@ -6,7 +6,8 @@ In progress. Checkpoint 000001 added this plan and kept implementation scoped
 to private operator workflow UX, existing device credential behavior, generated
 telemetry simulator guidance, and GTFS quality fix guidance. Checkpoint 000002
 improved the private device and vehicle onboarding UI. Checkpoint 000003 added
-the private telemetry simulator guide UI. Phase 65 must
+the private telemetry simulator guide UI. Checkpoint 000004 improved the
+private GTFS quality fix guidance UI. Phase 65 must
 preserve telemetry ingest contracts, device credential semantics, GTFS import
 and publish boundaries, validator execution semantics, public feed URLs,
 consumer tracker state, protected evidence paths, and unsupported-claim
@@ -24,7 +25,7 @@ next?" without requiring operators to read phase history or raw diagnostics.
 - Completed: `Phase 65 -- Checkpoint 000001: add operator workflow and data quality UX plan`
 - Completed: `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`
 - Completed: `Phase 65 -- Checkpoint 000003: implement telemetry simulator UI`
-- Planned: `Phase 65 -- Checkpoint 000004: implement GTFS quality fix guidance UI`
+- Completed: `Phase 65 -- Checkpoint 000004: implement GTFS quality fix guidance UI`
 - Planned: `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`
 
 ## Existing State
@@ -117,6 +118,14 @@ write evidence, or change consumer statuses.
 - Update operator docs only where they reduce ambiguity between importer
   errors, canonical validator notices, GTFS Studio edits, and source-system
   fixes.
+
+Checkpoint 000004 added private Operations Console guidance for likely owner,
+affected GTFS files, safe fix path, verification step, escalation trigger, and
+all-false claim flags on `/admin/operations/gtfs-quality`. The guidance is
+advisory only. It does not auto-edit GTFS, mutate GTFS Studio drafts, publish
+schedules, change validator execution semantics, write evidence, change
+consumer statuses, or create compliance, approval, consumer, public-launch,
+production-readiness, vendor, hardware, production AVL, or ETA-quality claims.
 
 ### Closeout
 

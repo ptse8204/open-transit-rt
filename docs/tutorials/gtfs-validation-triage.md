@@ -71,6 +71,30 @@ diagnostic/supporting signal only.
    version or timestamp, treat it as `needs_review` and rerun after operator
    approval.
 
+## Operations Console Fix Paths
+
+The private `/admin/operations/gtfs-quality` page now adds operator fix
+guidance to each capped issue group:
+
+- likely owner, such as schedule planner, GTFS export owner, route naming
+  owner, GIS/shapes maintainer, or technical maintainer;
+- affected GTFS files, such as `calendar.txt`, `calendar_dates.txt`,
+  `routes.txt`, `trips.txt`, `stop_times.txt`, `shapes.txt`,
+  `frequencies.txt`, or the reported reference file;
+- safe fix path, which points operators back to source GTFS exports,
+  intentional GTFS Studio drafts, or normal browser/CLI import and publish
+  flows;
+- verification step, such as re-importing, rerunning the allowlisted static
+  validator, and reviewing feed health/readiness;
+- escalation trigger for blockers, warnings, informational notices, and
+  unknown/malformed notices.
+
+The guidance is advisory only. It does not edit GTFS, mutate drafts, publish
+schedules, change validator execution semantics, create evidence, change
+consumer statuses, or claim compliance, approval, consumer acceptance, public
+launch, production readiness, vendor compatibility, hardware certification,
+production AVL reliability, or production-grade ETA quality.
+
 ## When To Ask For Technical Help
 
 Ask for technical help when:

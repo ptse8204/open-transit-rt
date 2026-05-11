@@ -2598,6 +2598,78 @@ func TestGTFSQualityWarningOnlyWording(t *testing.T) {
 	}
 }
 
+func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
+	now := time.Now().UTC()
+	store := &fakePublicationStore{discovery: gtfsQualityDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
+		{
+			ID: 1, CreatedAt: now, Result: compliance.ValidationResult{
+				AgencyID: "demo-agency", FeedType: "schedule", FeedVersionID: "feed-v1", ValidatorName: compliance.CanonicalStaticValidatorName, Status: "failed", ErrorCount: 1, WarningCount: 2,
+				Report: map[string]any{"raw_report": map[string]any{"notices": []any{
+					map[string]any{"code": "expired_calendar", "severity": "ERROR", "message": "expired", "path": "/tmp/private/calendar.txt"},
+					map[string]any{"code": "stop_times_arrival_time_missing", "severity": "WARNING", "message": "bad stop time"},
+					map[string]any{"code": "frequency_headway_invalid", "severity": "WARNING", "message": "bad frequency"},
+				}}},
+			},
+		},
+		{
+			ID: 2, CreatedAt: now, Result: compliance.ValidationResult{
+				AgencyID: "demo-agency", FeedType: "schedule", FeedVersionID: "feed-v1", ValidatorName: compliance.InternalGTFSImportValidatorName, Status: "failed", ErrorCount: 1,
+				Report: map[string]any{"errors": []any{map[string]any{"code": "missing_trip_reference", "message": "missing trip reference", "path": "/tmp/private/trips.txt"}}},
+			},
+		},
+	}}
+	handler := newGTFSQualityTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-quality", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Fix Workflow",
+		"Likely owner",
+		"Affected files",
+		"Safe fix path",
+		"Verify with",
+		"Escalate if",
+		"Schedule planner or GTFS source owner",
+		"calendar.txt / calendar_dates.txt",
+		"stop_times.txt / trips.txt",
+		"frequencies.txt / trips.txt",
+		"GTFS export owner or source-system admin",
+		"Re-import through browser or CLI",
+		"does not edit GTFS",
+		"automatic_gtfs_edit_enabled",
+		"validator_semantics_changed",
+		"production_avl_reliability_claimed",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("GTFS quality guidance missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{
+		"/tmp/private",
+		"raw_report",
+		"stdout",
+		"stderr",
+		"argv",
+		"validator_clean",
+		"consumer_ready",
+		"production_ready",
+		"automatic_gtfs_edit_enabled</code></th><td>true",
+		"draft_mutation_enabled</code></th><td>true",
+		"schedule_publish_enabled</code></th><td>true",
+		"validator_semantics_changed</code></th><td>true",
+		"compliance_claimed</code></th><td>true",
+		"consumer_statuses_changed</code></th><td>true",
+	} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("GTFS quality guidance leaked or overclaimed %q: %s", forbidden, body)
+		}
+	}
+}
+
 func TestGTFSQualityGETReadOnlyAndAgencyIsolation(t *testing.T) {
 	store := &fakePublicationStore{discoveries: map[string]compliance.FeedDiscovery{
 		"agency-a": gtfsQualityDiscovery(time.Now().UTC()),
