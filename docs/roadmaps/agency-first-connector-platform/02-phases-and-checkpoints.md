@@ -104,6 +104,11 @@ Patches after close use `000004+`.
 
 Use only when explicitly authorized and evidence exists. These are not product blockers.
 
+| Checkpoint | Commit message | Outcome |
+| --- | --- | --- |
+| 000001 | `Phase 68+ -- Checkpoint 000001: add optional evidence track blocker documentation` | Document Phase 68+ as authorization-gated and blocker-only when explicit written authorization is absent. |
+| 000002 | `Phase 68+ -- Checkpoint 000002: close optional evidence tracks as authorization-gated` | Close Phase 68+ without evidence collection or status movement unless authorized intake and artifacts are present. |
+
 Possible future phases:
 
 - Phase 68 — Authorized Agency Trial Intake

@@ -23,3 +23,12 @@ Rules:
 - allowed tools and stop conditions;
 - no consumer status movement without target-originated evidence;
 - no compliance/adoption/vendor/ETA claims without retained claim-specific artifacts.
+
+No-authorization closure path:
+
+If explicit written authorization, intake fields, and public-safe artifacts are
+absent, close the relevant Phase 68+ track as blocker/scaffolding only. Do not
+collect retained evidence, contact an agency, vendor, consumer, aggregator, or
+other external party, browse or automate private portals, move consumer or
+aggregator statuses, or make stronger claims than authorization-gated blocker
+documentation.
