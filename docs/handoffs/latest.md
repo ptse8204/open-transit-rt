@@ -69,7 +69,7 @@ Phase 63 closeout lives in
 
 The current default work is Phase 65 -- Operator Workflow and Data Quality UX.
 Start from
-`docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-65-operator-workflow-and-data-quality-ux.md`.
+`docs/phase-65-operator-workflow-and-data-quality-ux.md`.
 Phase 64 Checkpoint 000001 added the Phase 64 plan in
 `docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
 private Connector Hub manifest registry UI and bounded JSON registry model
@@ -86,6 +86,9 @@ validation, protected-path, consumer-tracker, and claim-boundary review.
 Phase 65 should improve device/vehicle onboarding, telemetry simulator UX,
 GTFS quality guidance, and operator troubleshooting without changing protected
 runtime contracts or creating production fleet reliability/compliance claims.
+Checkpoint 000001 added the Phase 65 plan in
+`docs/phase-65-operator-workflow-and-data-quality-ux.md`. The next checkpoint
+is `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1169,9 +1172,10 @@ target-originated evidence supports a target-specific status transition.
 ## Exact Next-Step Recommendation
 
 Continue with Phase 65 -- Operator Workflow and Data Quality UX. Phases 0
-through 60 remain closed, and Phases 61, 62, 63, and 64 are complete. The next
-checkpoint is `Phase 65 -- Checkpoint 000001: add operator workflow and data
-quality UX plan`. For public/status wording work, start with
+through 60 remain closed, and Phases 61, 62, 63, and 64 are complete.
+Checkpoint 000001 added the Phase 65 plan. The next checkpoint is `Phase 65 --
+Checkpoint 000002: implement device and vehicle onboarding UI`. For
+public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and

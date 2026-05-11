@@ -62,7 +62,9 @@ helpers and withheld-output diagnostics. Checkpoint 000006 added a
 monitoring/export SDK-style helper and a synthetic validator allowlist example.
 Checkpoint 000007 closed Phase 64 with validation, protected-path,
 consumer-tracker, and claim-boundary review. Phase 65 -- Operator Workflow and
-Data Quality UX is active.
+Data Quality UX is active. Checkpoint 000001 added the Phase 65 plan for
+device/vehicle onboarding UI, telemetry simulator UI, GTFS quality fix
+guidance, operator troubleshooting, and closeout.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -173,9 +175,10 @@ The active work is Phase 65 -- Operator Workflow and Data Quality UX. Phase 64
 is closed after adding private connector registry/test-instruction surfaces,
 SDK-style telemetry, prediction, and monitoring helpers, and synthetic
 telemetry, prediction, monitoring/export, and validator allowlist examples.
-Start from
-`docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-65-operator-workflow-and-data-quality-ux.md`
-and keep the work inside private operator workflow/data-quality UX:
+Phase 65 planning is captured in
+`docs/phase-65-operator-workflow-and-data-quality-ux.md`. The next checkpoint
+is `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`.
+Keep the work inside private operator workflow/data-quality UX:
 
 - improve device/vehicle onboarding guidance without changing telemetry ingest
   contracts or device credential semantics;
@@ -1817,8 +1820,8 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 65 -- Operator Workflow and Data Quality UX. The default
-first work is `Phase 65 -- Checkpoint 000001: add operator workflow and data
-quality UX plan`. For public/status wording work, start with
+next work is `Phase 65 -- Checkpoint 000002: implement device and vehicle
+onboarding UI`. For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
