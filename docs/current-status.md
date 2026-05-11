@@ -117,13 +117,14 @@ consumer status, and made no compliance, agency adoption, consumer acceptance,
 final-root, hosted SaaS, production-readiness, vendor-compatibility, SLA, or
 ETA-quality claim.
 Phase 70 is complete for the GitHub Pages product explainer site. It added a
-dependency-free static site under `site/`, a GitHub Pages workflow that deploys
-only that static site, real browser-rendered local/demo Operations Console
-screenshots, and README/docs/wiki links to the public explainer URL. It created
-no retained evidence, contacted no external party, changed no consumer status,
-and made no compliance, agency adoption, consumer acceptance, final-root,
-hosted SaaS, production-readiness, vendor-compatibility, SLA, or ETA-quality
-claim.
+dependency-free static site published from the `gh-pages` branch, real
+browser-rendered local/demo Operations Console screenshots copied into that
+site branch, and README/docs/wiki links to the public explainer URL. The main
+branch does not carry the Pages workflow or static site payload. Phase 70
+created no retained evidence, contacted no external party, changed no consumer
+status, and made no compliance, agency adoption, consumer acceptance,
+final-root, hosted SaaS, production-readiness, vendor-compatibility, SLA, or
+ETA-quality claim.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -257,9 +258,10 @@ strengthen production, compliance, adoption, consumer, final-root, vendor, or
 ETA-quality claims.
 
 The GitHub Pages product explainer site at
-`https://ptse8204.github.io/open-transit-rt/` is also documentation only. It is
-not a hosted SaaS offer, production launch, consumer submission, compliance
-claim, agency approval, or evidence packet.
+`https://ptse8204.github.io/open-transit-rt/` is published from the `gh-pages`
+branch and is documentation only. It is not a hosted SaaS offer, production
+launch, consumer submission, compliance claim, agency approval, or evidence
+packet.
 
 Do not collect retained evidence, contact agencies, contact vendors, contact
 consumers, fetch final-root proof, move consumer statuses, or make stronger

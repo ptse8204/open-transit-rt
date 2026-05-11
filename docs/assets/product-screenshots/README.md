@@ -28,13 +28,13 @@ Do not place screenshots or media under `docs/evidence`.
 
 | File | Source route or command | Caption | Status | Redaction review |
 | --- | --- | --- | --- | --- |
-| `operations-console-overview.png` | `http://localhost:8080/admin/operations` | Operations Console overview, local/demo product screenshot. | captured | Captured from local demo seed on 2026-05-11; reviewed for no token, private URL, private email, private operator name, private IP, or secret. |
-| `operations-readiness.png` | `http://localhost:8080/admin/operations/readiness` | Readiness review, local/demo product screenshot. | captured | Captured from local demo seed on 2026-05-11; reviewed for no retained evidence wording, private identifiers, or stronger claim. |
-| `operations-checklist.png` | `http://localhost:8080/admin/operations/checklist` | Operator checklist, local/demo product screenshot. | captured | Captured from local demo seed on 2026-05-11; reviewed for no token, private URL, private device ID, private IP, or secret. |
-| `operations-gtfs-quality.png` | `http://localhost:8080/admin/operations/gtfs-quality` | GTFS quality triage, local/demo product screenshot. | captured | Captured from local demo seed on 2026-05-11; reviewed that validation text is presented as diagnostics, not compliance proof. |
-| `operations-validation-health.png` | `http://localhost:8080/admin/operations/validation-health` | Validator health, local/demo product screenshot. | captured | Captured from local demo seed on 2026-05-11; reviewed that validator status is not framed as consumer acceptance or compliance proof. |
+| `operations-console-overview.png` | `http://localhost:8080/admin/operations` | Operations Console overview, local/demo product screenshot. | not captured | Capture only from local demo seed; verify no token, private URL, private email, private operator name, IP, or secret is visible. |
+| `operations-readiness.png` | `http://localhost:8080/admin/operations/readiness` | Readiness review, local/demo product screenshot. | not captured | Capture only from local demo seed; verify no retained evidence wording or private identifiers are visible. |
+| `operations-checklist.png` | `http://localhost:8080/admin/operations/checklist` | Operator checklist, local/demo product screenshot. | not captured | Capture only from local demo seed; verify no token, private URL, private device ID, IP, or secret is visible. |
+| `operations-gtfs-quality.png` | `http://localhost:8080/admin/operations/gtfs-quality` | GTFS quality triage, local/demo product screenshot. | not captured | Capture only from local demo seed; verify validation text is presented as diagnostics, not compliance proof. |
+| `operations-validation-health.png` | `http://localhost:8080/admin/operations/validation-health` | Validator health, local/demo product screenshot. | not captured | Capture only from local demo seed; verify validator status is not framed as consumer acceptance or compliance proof. |
 | `public-feed-path-check.png` | local/demo terminal summary for five public feed fetches | Public feed path check, local/demo product screenshot. | not captured | Capture only a redacted command/output summary; avoid tokens, private URLs, private IPs, and private paths. |
-| `telemetry-simulator.png` | `http://localhost:8080/admin/operations/telemetry-simulator` | Telemetry simulator guide, local/demo product screenshot. | captured | Captured from local demo seed on 2026-05-11; reviewed no real device ID, token, private URL, or secret is visible. |
+| `telemetry-simulator.png` | `http://localhost:8080/admin/operations/telemetry-simulator` | Telemetry simulator guide, local/demo product screenshot. | not captured | Capture only committed synthetic scenario guidance; verify no real device ID, token, private URL, or secret is visible. |
 
 ## Capture Checklist
 

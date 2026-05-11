@@ -49,7 +49,7 @@ assessment.
 | --- | --- | --- |
 | Release maturity | No public release / release-candidate gate yet. | Prepare `v0.1.0-rc.1` from a clean checkout before any full `v0.1.0` tag. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
-| Product explanation | The repo now has public-friendly docs and local/demo screenshots, but the Pages site should stay claim-bounded and aligned with the docs. | Keep GitHub Pages content static, documentation-only, screenshot-backed, and linked to deeper docs. |
+| Product explanation | The repo now has public-friendly docs and a `gh-pages` product explainer site with local/demo screenshots. | Keep GitHub Pages content static, documentation-only, screenshot-backed, and linked to deeper docs. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
 | Telemetry/device path | The telemetry simulator and AVL adapter send mode exercise `POST /v1/telemetry`, but real device and vendor evidence is absent. | Keep using synthetic/local telemetry diagnostics; treat real device/vendor proof as optional evidence when authorized. |
@@ -391,9 +391,10 @@ stronger compliance, adoption, acceptance, final-root, hosted SaaS,
 production-readiness, vendor, SLA, or ETA-quality claims.
 
 Phase 70 — GitHub Pages Product Explainer Site is complete for its bounded
-documentation/product-site scope. It added a dependency-free static Pages site,
-a Pages workflow that deploys only `site/`, local/demo UI screenshots, and
-links from the README, docs, and wiki. It created no retained evidence,
+documentation/product-site scope. It added a dependency-free static Pages site
+on the `gh-pages` branch, local/demo UI screenshots in that site branch, and
+links from the README, docs, and wiki. The main branch does not carry the Pages
+workflow or static site payload. Phase 70 created no retained evidence,
 contacted no external party, changed no consumer status, and made no stronger
 compliance, adoption, acceptance, final-root, hosted SaaS, production-readiness,
 vendor, SLA, or ETA-quality claim.
