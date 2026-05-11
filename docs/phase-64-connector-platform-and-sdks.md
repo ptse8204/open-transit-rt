@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Checkpoint 000001 added this plan and kept implementation scoped
+Complete. Checkpoint 000001 added this plan and kept implementation scoped
 to private connector-platform UX, local synthetic examples, and offline
 conformance checks. Checkpoint 000002 added the private Connector Hub manifest
 registry UI and bounded JSON registry model from committed synthetic example
@@ -12,7 +12,9 @@ improved telemetry connector SDK-style examples with a shared synthetic
 dry-run normalization helper. Checkpoint 000005 improved the prediction
 connector SDK-style example with a shared synthetic dry-run request/response
 helper. Checkpoint 000006 improved monitoring/export examples and added a
-synthetic validator allowlist example.
+synthetic validator allowlist example. Checkpoint 000007 closed the phase with
+status, handoff, validation, protected-path, consumer-tracker, and
+claim-boundary review.
 
 Phase 64 turns the existing connector/plugin architecture into a visible,
 testable developer platform for telemetry, prediction, validator,
@@ -35,7 +37,7 @@ backend.
 - Completed: `Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`
 - Completed: `Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`
 - Completed: `Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`
-- Planned: `Phase 64 -- Checkpoint 000007: close connector platform and SDKs`
+- Completed: `Phase 64 -- Checkpoint 000007: close connector platform and SDKs`
 
 ## Checkpoint Scope
 
@@ -154,6 +156,25 @@ it does not carry raw validator commands, private artifact paths, validator
 execution, evidence writes, status mutation, compliance proof, or consumer
 acceptance claims.
 
+### Closeout
+
+Checkpoint 000007 closed Phase 64. The completed phase provides:
+
+- private Connector Hub registry summaries from committed synthetic manifests;
+- private generated connector test instructions for fixed offline checks;
+- SDK-style telemetry, prediction, and monitoring helper examples;
+- synthetic telemetry HTTP poller, telemetry CSV replay, predictor sidecar
+  stub, validator allowlist, and monitoring/export examples;
+- local conformance coverage for the example manifests and fixtures;
+- status docs and handoff state pointing to Phase 65 as the next phase.
+
+Phase 64 added no public routes, migrations, retained evidence, consumer
+status changes, runtime plugin loading, manifest schema changes, validator
+execution semantic changes, telemetry ingest contract changes, prediction
+adapter behavior changes, public feed URL changes, external contact, real
+credentials, real vendor payloads, vendor compatibility claims, SLA/uptime
+claims, production-readiness claims, or compliance/consumer acceptance claims.
+
 ## Non-Goals
 
 - No database migrations.
@@ -231,6 +252,10 @@ Protected paths remain untouched:
 - `git diff --exit-code -- docs/evidence/captured`
 - `git diff --exit-code -- db/migrations go.mod go.sum`
 - `docker compose -f deploy/docker-compose.yml config`
+
+Checkpoint 000007 reran the closeout validation set above. All checks passed
+from `/Users/edwintse/Downloads/open-transit-rt`; no environment blocker was
+encountered.
 
 Run DB-backed integration checks only if a later checkpoint touches behavior
 that depends on the database. If Java, Docker, validator tooling, or pinned

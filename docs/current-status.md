@@ -50,7 +50,7 @@ validator health, reliability, telemetry/devices, scorecard, and consumer
 prepared tracker signals. These dashboards reuse existing private records and
 add no public route, migration, evidence write, consumer status change, or
 stronger compliance/adoption/acceptance/hosted-service/vendor/production/public
-launch/ETA claim. Phase 64 -- Connector Platform and SDKs is active.
+launch/ETA claim. Phase 64 -- Connector Platform and SDKs is complete.
 Checkpoint 000001 added the connector platform and SDK plan. Checkpoint
 000002 added the private Connector Hub manifest registry UI from committed
 synthetic example manifests. Checkpoint 000003 added private generated
@@ -59,8 +59,10 @@ Checkpoint 000004 improved telemetry connector SDK-style examples with a
 shared synthetic dry-run normalization helper. Checkpoint 000005 improved the
 prediction connector SDK-style example with sanitized dry-run request/response
 helpers and withheld-output diagnostics. Checkpoint 000006 added a
-monitoring/export SDK-style helper and a synthetic validator allowlist example;
-the next checkpoint should close Phase 64.
+monitoring/export SDK-style helper and a synthetic validator allowlist example.
+Checkpoint 000007 closed Phase 64 with validation, protected-path,
+consumer-tracker, and claim-boundary review. Phase 65 -- Operator Workflow and
+Data Quality UX is active.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -167,45 +169,31 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The active work is Phase 64 -- Connector Platform and SDKs. Phase 63 is closed
-after adding the private feed-health dashboard and readiness checklist v2. The
-Phase 64 plan is now captured in
-`docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
-private Connector Hub manifest registry UI and JSON model from committed
-`examples/connectors/*/connector.json` manifests. Checkpoint 000003 added
-GET-only connector test instructions and JSON at
-`/admin/operations/connectors/tests`, listing fixed offline checks without
-backend command execution. Checkpoint 000004 added
-`examples/connectors/sdk/telemetry` and updated the telemetry HTTP poller and
-CSV replay examples to share fail-closed dry-run normalization and diagnostics.
-Checkpoint 000005 added `examples/connectors/sdk/prediction` and updated the
-predictor sidecar stub with sanitized dry-run request/response output,
-Vehicle Positions independence, and no-public-mutation diagnostics. Checkpoint
-000006 added `examples/connectors/sdk/monitoring`, improved the
-monitoring/export example, and added `examples/connectors/validator-allowlist`
-for server-owned validator ID/feed-type allowlisting without raw validator commands. The
-next checkpoint is
-`Phase 64 -- Checkpoint 000007: close connector platform and SDKs`
-without weakening claim boundaries:
+The active work is Phase 65 -- Operator Workflow and Data Quality UX. Phase 64
+is closed after adding private connector registry/test-instruction surfaces,
+SDK-style telemetry, prediction, and monitoring helpers, and synthetic
+telemetry, prediction, monitoring/export, and validator allowlist examples.
+Start from
+`docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-65-operator-workflow-and-data-quality-ux.md`
+and keep the work inside private operator workflow/data-quality UX:
 
-- update closeout docs and handoff state;
-- run full Phase 64 closeout validation;
-- keep all connector examples synthetic, disabled by default, no-send, and
-  claim-bounded;
-- keep connectors as optional sidecars, command adapters, manifests, or
-  connector processes;
-- preserve connector manifest schema and adapter contracts unless a narrow,
-  reviewed Phase 64 checkpoint explicitly requires a bounded change;
-- avoid dynamic backend plugin loading, real vendor payloads, credentials,
-  vendor compatibility claims, and evidence/status changes.
+- improve device/vehicle onboarding guidance without changing telemetry ingest
+  contracts or device credential semantics;
+- improve the in-app telemetry simulator workflow without creating real fleet
+  reliability claims;
+- make GTFS quality guidance more actionable without automatic GTFS edits or
+  compliance claims;
+- preserve protected evidence paths, prepared-only consumer tracker state,
+  public/private route boundaries, and unsupported-claim boundaries.
 
 This roadmap does not create evidence, move consumer statuses, contact external
 parties, or strengthen any compliance, adoption, hosted service, vendor, public
 launch, or ETA-quality claim.
 
 Phase 63 closeout is captured in
-`docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 planning is captured
-in `docs/phase-64-connector-platform-and-sdks.md`.
+`docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 closeout is captured
+in `docs/phase-64-connector-platform-and-sdks.md` and
+`docs/handoffs/phase-64.md`.
 
 Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
 
@@ -1828,10 +1816,9 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-Continue with Phase 64 -- Connector Platform and SDKs. The default next work
-is `Phase 64 -- Checkpoint 000007: close connector platform and SDKs`.
-Closeout should validate connector examples, protected paths, consumer tracker
-state, and unsupported-claim boundaries. For public/status wording work, start with
+Continue with Phase 65 -- Operator Workflow and Data Quality UX. The default
+first work is `Phase 65 -- Checkpoint 000001: add operator workflow and data
+quality UX plan`. For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:

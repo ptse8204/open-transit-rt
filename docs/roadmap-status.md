@@ -179,7 +179,7 @@ Phase 63 — Feed Health And Readiness UX is complete for its bounded private
 Operations Console scope. It added the feed-health dashboard and readiness
 checklist v2 for existing private signals without public routes, schema
 changes, retained evidence, consumer status changes, or stronger claims.
-Phase 64 — Connector Platform And SDKs is active. Checkpoint 000001 added the
+Phase 64 — Connector Platform And SDKs is complete. Checkpoint 000001 added the
 scoped connector platform and SDK plan. Checkpoint 000002 added the private
 Connector Hub manifest registry UI from safe committed synthetic examples.
 Checkpoint 000003 added private generated connector test instructions without
@@ -190,8 +190,10 @@ request/response helpers and no-public-mutation diagnostics. Checkpoint
 000006 improved monitoring/export examples and added a validator allowlist
 example without dynamic backend plugin loading, evidence writes, consumer
 status changes, raw validator commands, SLA/uptime claims, named predictor
-compatibility claims, or production-grade ETA claims. The next checkpoint is
-Phase 64 closeout.
+compatibility claims, or production-grade ETA claims. Checkpoint 000007 closed
+Phase 64 with validation, protected-path, consumer-tracker, and claim-boundary
+review.
+Phase 65 — Operator Workflow And Data Quality UX is active.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

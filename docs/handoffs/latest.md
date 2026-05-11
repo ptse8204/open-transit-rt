@@ -16,8 +16,8 @@ before planning new product phases.
 
 Phase 61 -- Agency-First UI And Connector Hub is complete. Phase 62 -- Guided
 Setup and Browser GTFS Import is complete. Phase 63 -- Feed Health and
-Readiness UX is complete. The current active phase is Phase 64 -- Connector
-Platform and SDKs.
+Readiness UX is complete. Phase 64 -- Connector Platform and SDKs is complete.
+The current active phase is Phase 65 -- Operator Workflow and Data Quality UX.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -63,12 +63,14 @@ telemetry/devices, scorecard, and consumer prepared tracker signals. Phase 63
 is closed. Do not claim SLA/uptime proof or CAL-ITP/Caltrans compliance.
 
 Phase 63 closeout lives in
-`docs/phase-63-feed-health-and-readiness-ux.md`.
+`docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 closeout lives in
+`docs/phase-64-connector-platform-and-sdks.md` and
+`docs/handoffs/phase-64.md`.
 
-The current default work is Phase 64 -- Connector Platform and SDKs. Start
-from
-`docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-64-connector-platform-and-sdks.md`.
-Checkpoint 000001 added the Phase 64 plan in
+The current default work is Phase 65 -- Operator Workflow and Data Quality UX.
+Start from
+`docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-65-operator-workflow-and-data-quality-ux.md`.
+Phase 64 Checkpoint 000001 added the Phase 64 plan in
 `docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
 private Connector Hub manifest registry UI and bounded JSON registry model
 from committed synthetic example manifests. Checkpoint 000003 added private
@@ -79,12 +81,11 @@ helper. Checkpoint 000005 improved the prediction connector SDK-style example
 with sanitized dry-run request/response helpers, Vehicle Positions
 independence, no-public-mutation flags, and withheld-output diagnostics.
 Checkpoint 000006 added a monitoring/export SDK-style helper and synthetic
-validator allowlist example. The next checkpoint is
-`Phase 64 -- Checkpoint 000007: close connector platform and SDKs`.
-Phase 64 should make connector manifests, conformance, and SDK-style examples
-more visible and testable without dynamic backend plugin loading, real
-credentials, real vendor payloads, vendor compatibility claims, or
-evidence/status changes.
+validator allowlist example. Checkpoint 000007 closed Phase 64 with
+validation, protected-path, consumer-tracker, and claim-boundary review.
+Phase 65 should improve device/vehicle onboarding, telemetry simulator UX,
+GTFS quality guidance, and operator troubleshooting without changing protected
+runtime contracts or creating production fleet reliability/compliance claims.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1167,19 +1168,11 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue with Phase 64 -- Connector Platform and SDKs. Phases 0 through 60
-remain closed, and Phases 61, 62, and 63 are complete. Phase 64 Checkpoint
-000001 added the connector platform and SDK plan, and Checkpoint 000002 added
-the private Connector Hub manifest registry UI. Checkpoint 000003 added
-private connector test instructions without backend command execution, and
-Checkpoint 000004 improved telemetry connector SDK-style examples. Checkpoint
-000005 improved prediction connector SDK-style examples without changing
-runtime prediction defaults. Checkpoint 000006 improved monitoring/export
-examples and added a validator allowlist example without raw validator
-commands. The next checkpoint is
-`Phase 64 -- Checkpoint 000007: close connector platform and SDKs`. For
-public/status wording work, start with `make audit-final-claim-review` and keep
-unsupported claims removed or bounded.
+Continue with Phase 65 -- Operator Workflow and Data Quality UX. Phases 0
+through 60 remain closed, and Phases 61, 62, 63, and 64 are complete. The next
+checkpoint is `Phase 65 -- Checkpoint 000001: add operator workflow and data
+quality UX plan`. For public/status wording work, start with
+`make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted
