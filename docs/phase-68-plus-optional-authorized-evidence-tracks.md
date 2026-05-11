@@ -2,8 +2,8 @@
 
 ## Status
 
-Checkpoint 000001 documents Phase 68+ as authorization-gated and
-blocker-only in the current repository state. No explicit written
+Phase 68+ is closed blocker-only / authorization-gated after Checkpoint
+000002 for the current no-authorization review. No explicit written
 authorization, intake packet, or public-safe retained artifacts are available
 for agency trial evidence, final public root evidence, consumer submission
 evidence, real AVL/vendor evidence, or real-world ETA quality evidence.
@@ -11,6 +11,11 @@ evidence, real AVL/vendor evidence, or real-world ETA quality evidence.
 This document is scaffolding and blocker documentation only. It does not
 collect evidence, contact external parties, write protected evidence paths,
 move consumer statuses, or close any evidence gap.
+
+## Checkpoints
+
+- `Phase 68+ -- Checkpoint 000001: add optional evidence track blocker documentation`
+- `Phase 68+ -- Checkpoint 000002: close optional evidence tracks as authorization-gated`
 
 ## Scope
 
@@ -35,12 +40,12 @@ maintainer intake authorizing an implementation agent to:
 - represent real-world AVL/vendor compatibility;
 - represent real-world ETA quality.
 
-Because authorization and intake are absent, CP000001 may document blockers
-only.
+Because authorization and intake are absent, CP000001 and CP000002 may
+document blockers only.
 
 ## Track Gates
 
-| Track | Current state | Gate required before work | CP000001 boundary |
+| Track | Current state | Gate required before work | CP000001/CP000002 boundary |
 | --- | --- | --- | --- |
 | Phase 68 -- Agency trial | Blocked/gated | Written agency/operator authorization, named agency scope, public-safe artifact plan, redaction plan, allowed contact/tools, and stop conditions | Do not contact an agency, record agency feedback, or claim trial progress. |
 | Phase 69 -- Final public root | Blocked/gated | Written authorization for the exact root, approved DNS/TLS/redirect/fetch/validator evidence plan, retention location, redaction rules, and rollback instructions | Do not fetch or verify a final root, write evidence, or claim final-root proof. |
@@ -72,27 +77,27 @@ Without those fields, the track remains blocked/gated.
 
 ## Protected Paths Not Touched
 
-CP000001 must not change:
+CP000001 and CP000002 must not change:
 
 - `docs/evidence/captured/**`
 - `docs/evidence/consumer-submissions/**`
 - `db/migrations/**`
 - `go.mod`
 - `go.sum`
-- `docs/current-status.md`
-- `docs/roadmap-status.md`
-- `docs/handoffs/latest.md`
 
-CP000001 also must not edit code, scripts, migrations, generated evidence,
-consumer tracker records, or retained evidence directories.
+CP000001 and CP000002 also must not edit code, scripts, migrations, generated
+evidence, consumer tracker records, or retained evidence directories.
+
+CP000002 is limited to docs/status/handoff closeout files and this phase
+document.
 
 ## Claim Boundaries
 
-Phase 68+ CP000001 may claim only that optional evidence tracks are documented
-as authorization-gated and currently blocked because explicit written
-authorization and required intake artifacts are absent.
+Phase 68+ CP000001 and CP000002 may claim only that optional evidence tracks
+are documented as authorization-gated and currently blocked because explicit
+written authorization and required intake artifacts are absent.
 
-Phase 68+ CP000001 must not claim or imply:
+Phase 68+ CP000001 and CP000002 must not claim or imply:
 
 - evidence completion beyond scaffolding/blocker documentation;
 - agency adoption, agency approval, agency endorsement, or agency trial
@@ -109,16 +114,21 @@ Phase 68+ CP000001 must not claim or imply:
 
 ## Validations
 
-For CP000001, use docs-only validation:
+For CP000001 and CP000002, use docs-only validation:
 
 - `git diff --check`
-- confirm the protected paths above are unchanged;
+- confirm the protected paths above have no tracked or untracked changes with
+  `git diff --exit-code -- docs/evidence/captured docs/evidence/consumer-submissions db/migrations go.mod go.sum`;
+- confirm the protected paths above have no untracked files with
+  `git status --short -- docs/evidence/captured docs/evidence/consumer-submissions db/migrations go.mod go.sum`
+  and
+  `git ls-files --others --exclude-standard -- docs/evidence/captured docs/evidence/consumer-submissions db/migrations go.mod go.sum`;
 - review the changed docs for unsupported evidence, compliance, adoption,
   final-root, consumer-status, hosted-service, vendor, hardware, AVL,
   production ETA, SLA, or public-launch claims.
 
 No live feed validation, external browsing, portal automation, consumer
-submission, vendor test, or ETA study is authorized by this checkpoint.
+submission, vendor test, or ETA study is authorized by either checkpoint.
 
 ## Rollback
 
@@ -128,6 +138,14 @@ If CP000001 needs to be rolled back, revert only:
 - `docs/roadmaps/agency-first-connector-platform/02-phases-and-checkpoints.md`
 - `docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-68-plus-optional-evidence-tracks.md`
 
+If CP000002 needs to be rolled back, revert only:
+
+- `docs/phase-68-plus-optional-authorized-evidence-tracks.md`
+- `docs/current-status.md`
+- `docs/roadmap-status.md`
+- `docs/handoffs/latest.md`
+- `docs/handoffs/phase-68-plus.md`
+
 Do not change protected evidence paths, consumer tracker records, migrations,
-Go module files, code, scripts, status closeout files, or handoff files as
-part of this checkpoint rollback.
+Go module files, code, scripts, or retained evidence directories as part of
+either checkpoint rollback.

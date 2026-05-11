@@ -19,12 +19,14 @@ claim boundaries. Checkpoints 000009 through 000012 turned the repo toward
 agency-facing open-source product evaluation: MIT licensing, a clearer
 README/wiki front door, agency trial paths, connector contribution paths,
 `make help`, a lightweight no-network `make check`, lean no-claim CI, and
-release-candidate/readiness blocker language. Phase 67 is complete for product
-polish, accessibility-oriented markup, responsive layout, and private in-app
-help. Optional real-world evidence tracks remain authorization-gated and are
-not evidence collection unless the maintainer supplies explicit written
-authorization, a claim target, allowed tools, public-safe retention rules,
-redaction rules, and stop conditions. The
+release-candidate/readiness blocker language. Phases 61 through 67 are
+complete. Phase 68+ is closed blocker-only / authorization-gated for the
+current no-authorization review after CP000002. No retained evidence was
+collected; protected evidence paths and consumer tracker status records
+remained unchanged. Optional real-world evidence tracks remain
+authorization-gated and are not evidence collection unless the maintainer
+supplies explicit written authorization, the exact claim target, allowed tools,
+public-safe retention rules, redaction rules, and stop conditions. The
 Phase 61+ roadmap lives at
 `docs/roadmaps/agency-first-connector-platform/README.md`.
 Phase 61 is complete for the agency-first UI and Connector Hub scope. It added
@@ -98,6 +100,14 @@ static/derived help model for GTFS, GTFS-RT, connectors, readiness,
 validators, telemetry, and claim/evidence boundaries, contextual help panels,
 and all-false help claim flags. Checkpoint 000005 closed Phase 67 with
 validation, protected-path, consumer-tracker, and claim-boundary review.
+Phase 68+ is closed blocker-only / authorization-gated for the current
+no-authorization review. Checkpoint 000001 documented optional evidence tracks
+as gated because no explicit written authorization or required intake artifacts
+were available. Checkpoint 000002 closed the phase with docs/status/handoff
+updates only. No retained evidence was collected, no external party was
+contacted, no final-root proof was fetched or verified, no consumer status was
+moved, and protected evidence paths and consumer tracker status records
+remained unchanged. Prepared consumer packets and targets remain prepared.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -204,17 +214,18 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-Phase 67 is complete. The default next work is Phase 68+ optional authorized
-evidence-track readiness: review and, if needed, improve authorization-gated
-scaffolding and blocker language only. Do not collect retained evidence,
-contact agencies, contact vendors, contact consumers, fetch final-root proof,
-move consumer statuses, or make stronger public claims unless the maintainer
-provides explicit written authorization, a specific claim target, allowed
-tools, redaction and retention rules, and stop conditions.
+Phases 61 through 67 are complete. Phase 68+ is closed blocker-only /
+authorization-gated for the current no-authorization review. The default next
+work is maintainer review. Any future evidence intake is optional and requires
+explicit written authorization first.
 
-If no such authorization exists, keep Phase 68+ closed or paused as
-authorization-gated scaffolding/blocker documentation. Phases 0 through 60
-remain closed and were not reopened by the Phase 61+ roadmap.
+Do not collect retained evidence, contact agencies, contact vendors, contact
+consumers, fetch final-root proof, move consumer statuses, or make stronger
+public claims unless the maintainer provides explicit written authorization,
+the exact claim target, allowed tools, public-safe retention rules, redaction
+rules, and stop conditions. Future real evidence tracks require those fields
+before work starts. Phases 0 through 60 remain closed and were not reopened by
+the Phase 61+ roadmap.
 
 Phase 63 closeout is captured in
 `docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 closeout is captured
@@ -1844,9 +1855,10 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-Continue with Phase 68+ optional authorized evidence tracks only as
-authorization-gated scaffolding or blocker documentation. The default next
-work is not evidence collection.
+Proceed with maintainer review. Any future evidence intake is optional and
+requires explicit written authorization first. Phase 68+ is closed
+blocker-only / authorization-gated for the current no-authorization review.
+The default next work is not evidence collection.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

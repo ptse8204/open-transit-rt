@@ -232,13 +232,22 @@ Phase 68+ optional evidence-track readiness is authorization-gated. Without
 explicit written authorization, a specific claim target, allowed tools,
 public-safe retention and redaction rules, and stop conditions, the safe work
 is blocker/scaffolding documentation only. It is not evidence collection.
+After Checkpoint 000002, Phase 68+ is closed blocker-only /
+authorization-gated for the current no-authorization review. It collected no
+evidence, contacted no external party, fetched or verified no final public
+root, moved no consumer or aggregator status, and did not change protected
+evidence paths or consumer tracker status records. Optional future tracks
+remain authorization-gated and require retained written intake before any real
+evidence work starts.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality
 evidence remain future optional paths when retained claim-specific artifacts are
 available. Do not make stronger public claims from Phase 33 beyond local/pilot
-public-GTFS dataset handling.
+public-GTFS dataset handling. The Phase 61-68+ roadmap execution is ready for
+maintainer review as an agency-first connector platform; that review state is
+not external evidence.
 
 Use `docs/roadmaps/agency-first-connector-platform/README.md` for the Phase
 61+ forward roadmap, `docs/track-b-productization-roadmap.md` for historical

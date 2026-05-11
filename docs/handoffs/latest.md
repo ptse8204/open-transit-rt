@@ -19,9 +19,11 @@ Setup and Browser GTFS Import is complete. Phase 63 -- Feed Health and
 Readiness UX is complete. Phase 64 -- Connector Platform and SDKs is complete.
 Phase 65 -- Operator Workflow and Data Quality UX is complete. Phase 66 --
 Release Candidate and Installability is complete. Phase 67 -- Product Polish,
-Accessibility, and In-App Help is complete. The current default next work is
-Phase 68+ optional authorized evidence-track readiness, limited to safe
-scaffolding or blocker documentation unless explicit authorization exists.
+Accessibility, and In-App Help is complete. Phase 68+ -- Optional Authorized
+Evidence Tracks is closed blocker-only / authorization-gated for the current
+no-authorization review after Checkpoint 000002. The current default next work
+is maintainer review. Any future evidence intake is optional and requires
+explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -73,7 +75,8 @@ Phase 63 closeout lives in
 `docs/phase-65-operator-workflow-and-data-quality-ux.md` and
 `docs/handoffs/phase-65.md`. Phase 66 closeout lives in
 `docs/handoffs/phase-66.md`. Phase 67 closeout lives in
-`docs/handoffs/phase-67.md`.
+`docs/handoffs/phase-67.md`. Phase 68+ closeout lives in
+`docs/handoffs/phase-68-plus.md`.
 
 Phase 67 -- Product Polish, Accessibility, and In-App Help is complete.
 Phase 67 Checkpoint 000001 added the scoped product polish, accessibility, and
@@ -98,11 +101,20 @@ all-false help claim flags.
 Checkpoint 000005 closed Phase 67 with validation, protected-path,
 consumer-tracker, and claim-boundary review.
 
-The current default next work is Phase 68+ optional authorized evidence-track
-readiness. If no explicit written authorization, claim target, allowed tools,
-public-safe retention plan, redaction rules, and stop conditions exist, keep
-the evidence tracks authorization-gated and document the blocker without
-collecting retained evidence or contacting anyone.
+Phase 68+ optional authorized evidence-track readiness is closed
+blocker-only / authorization-gated for the current no-authorization review.
+Checkpoint 000001 documented the optional tracks and gates. Checkpoint 000002
+closed the phase with docs/status/handoff updates only. No retained evidence
+was collected, no external party was contacted, no final public root was
+fetched or verified, no consumer status was moved, and protected evidence paths
+and consumer tracker status records remained unchanged.
+
+The current default next work is maintainer review. Any future evidence intake
+is optional and requires explicit written authorization first. If no explicit
+written authorization, exact claim target, allowed tools, public-safe retention
+plan, redaction rules, and stop conditions exist, keep evidence tracks closed
+as authorization-gated blockers without collecting retained evidence or
+contacting anyone.
 
 Phase 66 checkpoint history: Checkpoint 000001 added the Phase 66 plan in
 `docs/phase-66-release-candidate-and-installability.md`.
@@ -1233,11 +1245,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue with Phase 68+ optional authorized evidence tracks only as
-authorization-gated scaffolding or blocker documentation. Phases 0 through 60
-remain closed, and Phases 61, 62, 63, 64, 65, 66, and 67 are complete. The
-default next work is not evidence collection. For public/status wording work,
-start with
+Proceed with maintainer review. Any future evidence intake is optional and
+requires explicit written authorization first. Phases 0 through 60 remain
+closed, Phases 61 through 67 are complete, and Phase 68+ is closed
+blocker-only / authorization-gated for the current no-authorization review.
+The default next work is not evidence collection. For public/status wording
+work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
