@@ -164,7 +164,7 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 			[]string{"Validate manifests for any optional sidecar connector.", "Run synthetic conformance before connecting external systems."},
 			[]string{"docs/connectors/plugin-contract.md", "docs/tutorials/external-adapter-conformance.md", "docs/integration-adapter-kit.md"},
 			[]string{"make external-connection-check", "make adapter-conformance"},
-			[]string{"/admin/operations/readiness"},
+			[]string{"/admin/operations/connectors", "/admin/operations/readiness"},
 			"Connector conformance is local contract quality only, not vendor compatibility or external acceptance.",
 		),
 		launchpadSection(

@@ -53,6 +53,7 @@ type operationsPage struct {
 	ReadinessItems         []readinessItemView
 	Checklist              operatorChecklistView
 	Launchpad              agencyLaunchpadView
+	ConnectorHub           connectorHubView
 	GTFSQuality            compliance.GTFSQualityTriage
 	GTFSQualityNotice      string
 	GTFSQualityError       string
@@ -198,6 +199,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderLaunchpadJSON(w, r)
+	case "connectors":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderConnectorHub(w, r)
+	case "connectors.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderConnectorHubJSON(w, r)
 	case "checklist":
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -700,6 +715,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.Launchpad = buildAgencyLaunchpad(page)
+	page.ConnectorHub = buildConnectorHub(page)
 	return page
 }
 
@@ -1527,16 +1543,20 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <!doctype html><html><head><meta charset="utf-8"><title>{{.Title}}</title>
 <style>
 body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:2rem;line-height:1.4;color:#1f2933}
-nav a{margin-right:1rem} table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
+nav{display:flex;flex-wrap:wrap;gap:.45rem;margin:1rem 0 1.25rem}nav a{border:1px solid #d8dee4;border-radius:4px;padding:.32rem .5rem;text-decoration:none;color:#1f2933;background:#fff}
+nav a:focus,nav a:hover{border-color:#6b7280;background:#f6f8fa} table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
 th{background:#f6f8fa}.pill{display:inline-block;border:1px solid #c8d1dc;border-radius:3px;padding:.1rem .35rem;background:#f6f8fa}
+.hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3{margin-top:0}.card p{margin:.4rem 0}.status{font-weight:600}
 .warning{background:#fff8c5}.ok{background:#dafbe1}.bad{background:#ffebe9}.muted{color:#59636e}.token{border:1px solid #f0c36d;background:#fff8c5;padding:1rem}
 form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{min-width:22rem;max-width:100%;padding:.35rem} button{padding:.4rem .7rem}
+@media (max-width:700px){body{margin:1rem}table{display:block;overflow-x:auto}input,select,textarea{min-width:0;width:100%}}
 </style></head><body>
 <h1>{{.Title}}</h1>
 <p>Agency: <strong>{{.AgencyID}}</strong> · environment: <span class="pill">{{.EnvironmentLabel}}</span> · generated: {{formatTime .GeneratedAt}}</p>
 <nav>
 <a href="/admin/operations">Dashboard</a>
 <a href="/admin/operations/launchpad">Launchpad</a>
+<a href="/admin/operations/connectors">Connector Hub</a>
 <a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
 <a href="/admin/operations/gtfs-quality">GTFS Quality</a>
@@ -1558,6 +1578,16 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 {{define "dashboard"}}
 {{template "layoutStart" .}}
+<div class="hero">
+<h2>Agency Operations Home</h2>
+<p>Start with setup, GTFS, telemetry, feed health, readiness, and connector options. This private console is an operator workflow; it creates no retained evidence and records no approval, compliance, consumer, hosted-service, vendor, SLA, or production-grade ETA outcome.</p>
+</div>
+<div class="card-grid" aria-label="Primary operations actions">
+<section class="card"><h3>Start setup</h3><p>Store agency metadata, feed URL metadata, and validator choices.</p><p><a href="/admin/operations/setup">Open setup</a></p></section>
+<section class="card"><h3>Check feeds</h3><p>Review feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts records.</p><p><a href="/admin/operations/feeds">Review feed health</a></p></section>
+<section class="card"><h3>Connect telemetry</h3><p>Rotate device credentials and inspect latest accepted vehicle observations.</p><p><a href="/admin/operations/devices">Manage devices</a></p></section>
+<section class="card"><h3>Use connectors</h3><p>Choose sidecar, manifest, command-adapter, and conformance paths without dynamic backend code loading.</p><p><a href="/admin/operations/connectors">Open Connector Hub</a></p></section>
+</div>
 <h2>Readiness</h2>
 {{if .DiscoveryError}}<p class="warning">{{.DiscoveryError}}. Next action: bootstrap publication metadata after a feed is available.</p>{{else}}
 <p>Active GTFS feed version: {{if .ActiveFeedVersion}}<strong>{{.ActiveFeedVersion}}</strong>{{else}}not available{{end}}</p>
@@ -1572,6 +1602,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Dashboard Sections</h2>
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
 <tr><td>Private agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
+<tr><td>Connector Hub</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
@@ -1622,6 +1653,40 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{range .Launchpad.DecisionNotes}}<tr><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">No POST action exists for this page. Missing data remains missing or unknown until the underlying private source records change.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "connectors"}}
+{{template "layoutStart" .}}
+<h2>Connector Hub</h2>
+<p class="warning">{{.ConnectorHub.Boundary}}</p>
+<table><tbody>
+<tr><th>Safe plugin definition</th><td>{{.ConnectorHub.PluginDefinition}}</td></tr>
+<tr><th><code>dynamic_backend_plugin_loading_enabled</code></th><td>{{.ConnectorHub.ClaimFlags.DynamicBackendPluginLoadingEnabled}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.ConnectorHub.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.ConnectorHub.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+</tbody></table>
+<div class="card-grid" aria-label="Connector categories">
+{{range .ConnectorHub.Categories}}
+<section class="card">
+<h3>{{.Label}}</h3>
+<p class="status">Status: {{.Status}}</p>
+<p>{{.Summary}}</p>
+<p><strong>Connector shape:</strong> {{.ConnectorShape}}</p>
+<p><strong>Inputs:</strong> {{join .Inputs ", "}}</p>
+<p><strong>Outputs:</strong> {{join .Outputs ", "}}</p>
+<p><strong>Failure behavior:</strong> {{.FailureBehavior}}</p>
+<p><strong>Boundary:</strong> {{.ClaimBoundary}}</p>
+{{if .AdminLinks}}<p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>{{end}}
+{{if .DocsLinks}}<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>{{end}}
+{{if .CommandSuggestions}}<p><strong>Checks:</strong> {{range .CommandSuggestions}}<code>{{.}}</code> {{end}}</p>{{end}}
+</section>
+{{end}}
+</div>
+<p class="muted">Connector Hub is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

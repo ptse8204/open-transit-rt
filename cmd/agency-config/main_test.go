@@ -851,6 +851,153 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 	assertLaunchpadSafeStrings(t, body)
 }
 
+func TestConnectorHubRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/connectors", "/admin/operations/connectors.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/connectors", "/admin/operations/connectors.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/connectors", "/admin/operations/connectors.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/connectors.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/connectors.json", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public connector route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
+	now := time.Date(2026, 5, 10, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: "Demo Agency", GeneratedAt: now, PublicationEnvironment: "pilot",
+			PublicBaseURL:         "https://pilot.example.org",
+			TechnicalContactEmail: "ops@example.org",
+			License:               compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"},
+		},
+	}
+	srv := newOperationsTestHandler(&handler{
+		store:   store,
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var hub connectorHubView
+	if err := json.Unmarshal(rr.Body.Bytes(), &hub); err != nil {
+		t.Fatalf("decode connector hub: %v", err)
+	}
+	assertConnectorHubShape(t, hub)
+	assertConnectorHubFlagsFalse(t, hub.ClaimFlags)
+	assertConnectorHubSafeStrings(t, rr.Body.String())
+	if hub.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", hub.AgencyID)
+	}
+	if hub.PluginDefinition != safePluginDefinition {
+		t.Fatalf("plugin definition = %q, want safe definition", hub.PluginDefinition)
+	}
+	var ids []string
+	for _, category := range hub.Categories {
+		ids = append(ids, category.ID)
+	}
+	wantIDs := []string{"telemetry_source", "prediction_engine", "validator", "monitoring_export", "consumer_discovery"}
+	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
+		t.Fatalf("category ids = %v, want %v", ids, wantIDs)
+	}
+}
+
+func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`,
+			License: compliance.License{Name: "Demo License", URL: "https://example.org/license"},
+		},
+		scorecardErr: errors.New("no scorecard"),
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Connector Hub", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Telemetry / GPS / AVL source", "Prediction engine", "Validator connector", "Monitoring / export connector", "Consumer / discovery workflow"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html body missing %q: %s", want, body)
+		}
+	}
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("html did not escape script-like metadata: %s", body)
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/connectors", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "vendor compatible", "certified hardware", "marketplace"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("connector hub html contains forbidden %q: %s", forbidden, body)
+		}
+	}
+	assertConnectorHubSafeStrings(t, body)
+}
+
 func TestOperationsChecklistAccessMatrixMethodsAndRoutes(t *testing.T) {
 	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
 		t.Run(string(role), func(t *testing.T) {
@@ -2417,6 +2564,55 @@ func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
 	t.Helper()
 	if flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.VendorCompatibilityClaimed || flags.ProductionGradeETAClaimed {
 		t.Fatalf("launchpad flags must all be false: %+v", flags)
+	}
+}
+
+func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
+	t.Helper()
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 {
+		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
+	}
+	seenIDs := map[string]bool{}
+	for _, category := range hub.Categories {
+		if category.ID == "" || category.Label == "" || category.Status == "" || category.Summary == "" || category.ConnectorShape == "" || len(category.Inputs) == 0 || len(category.Outputs) == 0 || category.FailureBehavior == "" || category.ClaimBoundary == "" || category.DocsLinks == nil || category.CommandSuggestions == nil || category.AdminLinks == nil {
+			t.Fatalf("invalid connector category shape: %+v", category)
+		}
+		if seenIDs[category.ID] {
+			t.Fatalf("duplicate connector category id %q", category.ID)
+		}
+		seenIDs[category.ID] = true
+		for _, link := range category.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("category %s has unsafe docs link %q", category.ID, link)
+			}
+		}
+		for _, link := range category.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("category %s has unsafe admin link %q", category.ID, link)
+			}
+		}
+	}
+}
+
+func assertConnectorHubFlagsFalse(t *testing.T, flags connectorHubClaimFlags) {
+	t.Helper()
+	if flags.DynamicBackendPluginLoadingEnabled || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ConsumerStatusesChanged || flags.ExternalEvidenceCreated || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.HostedSaaSClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("connector hub flags must all be false: %+v", flags)
+	}
+}
+
+func assertConnectorHubSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("connector hub leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "vendor_compatible", "hardware_certified", "dynamic_plugin_loading_enabled"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("connector hub emits forbidden label %q: %s", forbidden, body)
+		}
 	}
 }
 
