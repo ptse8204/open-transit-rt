@@ -118,8 +118,9 @@ func buildOperationsTelemetrySimulator(page operationsPage) operationsTelemetryS
 		Boundary:    "Private authenticated simulator guide only; viewing this page executes no command, sends no telemetry, reads no private diagnostics, collects no device token, creates no evidence, and changes no consumer status.",
 		ScenarioDir: telemetrySimulatorScenarioDir,
 		TargetRules: []string{
+			"Every send uses the authenticated POST /v1/telemetry boundary; the simulator must not write directly to telemetry tables.",
 			"Loopback local sends may use the seeded demo credential from the operator shell.",
-			"Reference deployments require HTTPS and an operator-owned private credential outside the browser.",
+			"Reference deployments use operator-owned private credentials outside the browser and should target the deployment's private/admin-safe telemetry base URL.",
 			"Dry runs preview the synthetic scenario shape without sending telemetry.",
 		},
 		CredentialHandling: []string{

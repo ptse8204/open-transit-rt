@@ -22,6 +22,7 @@ type operationsFeedHealthView struct {
 type operationsFeedHealthRow struct {
 	ID               string   `json:"id"`
 	Label            string   `json:"label"`
+	PublicPath       string   `json:"public_path"`
 	Status           string   `json:"status"`
 	StatusText       string   `json:"status_text"`
 	CurrentSignal    string   `json:"current_signal"`
@@ -114,6 +115,7 @@ func buildFeedsJSONHealthRow(page operationsPage) operationsFeedHealthRow {
 	return operationsFeedHealthRow{
 		ID:               "feeds_json",
 		Label:            "feeds.json",
+		PublicPath:       feedHealthPublicPath("feeds_json"),
 		Status:           status,
 		StatusText:       statusText,
 		CurrentSignal:    signal,
@@ -136,6 +138,7 @@ func buildFeedHealthRow(page operationsPage, feedType string, label string) oper
 	return operationsFeedHealthRow{
 		ID:               feedType,
 		Label:            label,
+		PublicPath:       feedHealthPublicPath(feedType),
 		Status:           status,
 		StatusText:       feedHealthStatusText(status),
 		CurrentSignal:    feedHealthCurrentSignal(page, feedType, feed, hasFeed),
@@ -147,6 +150,23 @@ func buildFeedHealthRow(page operationsPage, feedType string, label string) oper
 		DoesNotProve:     feedHealthDoesNotProve(feedType),
 		AdminLinks:       feedHealthAdminLinks(feedType),
 		DocsLinks:        feedHealthDocsLinks(feedType),
+	}
+}
+
+func feedHealthPublicPath(feedType string) string {
+	switch feedType {
+	case "feeds_json":
+		return "/public/feeds.json"
+	case "schedule":
+		return "/public/gtfs/schedule.zip"
+	case "vehicle_positions":
+		return "/public/gtfsrt/vehicle_positions.pb"
+	case "trip_updates":
+		return "/public/gtfsrt/trip_updates.pb"
+	case "alerts":
+		return "/public/gtfsrt/alerts.pb"
+	default:
+		return ""
 	}
 }
 

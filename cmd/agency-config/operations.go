@@ -1179,8 +1179,8 @@ func setupSteps(page operationsPage) []setupStepView {
 			Status:     missingOrValue(page.ActiveFeedVersion, "missing active feed"),
 			Source:     "feed discovery",
 			Evidence:   feedEvidence(page, "schedule"),
-			NextAction: "Use CLI GTFS ZIP import for agency ZIPs or GTFS Studio for typed draft authoring and publish.",
-			ActionURL:  "/admin/gtfs-studio",
+			NextAction: "Use browser GTFS ZIP upload or safe URL import first; use GTFS Studio when typed draft authoring is needed.",
+			ActionURL:  "/admin/operations/gtfs-import",
 		},
 		{
 			Name:       "Publication bootstrap",
@@ -1812,7 +1812,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <div class="card-grid" aria-label="Primary operations actions">
 <section class="card"><h3>Start setup</h3><p>Walk through agency profile, GTFS, feeds, telemetry, validators, connectors, and readiness.</p><p><a href="/admin/operations/setup-wizard">Open setup wizard</a></p></section>
 <section class="card"><h3>Import GTFS</h3><p>Use an admin-only browser path for ZIP upload or safe URL import, with the existing importer and validation feedback.</p><p><a href="/admin/operations/gtfs-import">Open GTFS import</a></p></section>
-<section class="card"><h3>Check feed health</h3><p>Review feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts in plain language.</p><p><a href="/admin/operations/feed-health">Open feed health</a></p></section>
+<section class="card"><h3>Check feed health</h3><p>Use the five-path command center for feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts.</p><p><a href="/admin/operations/feed-health">Open feed health</a></p></section>
 <section class="card"><h3>Connect telemetry</h3><p>Rotate device credentials and inspect latest accepted vehicle observations.</p><p><a href="/admin/operations/devices">Manage devices</a></p></section>
 <section class="card"><h3>Try synthetic telemetry</h3><p>Use committed simulator scenarios from the browser guide, then run copyable commands from an operator shell.</p><p><a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p></section>
 <section class="card"><h3>Use connectors</h3><p>Choose sidecar, manifest, command-adapter, and conformance paths without dynamic backend code loading.</p><p><a href="/admin/operations/connectors">Open Connector Hub</a></p></section>
@@ -2053,11 +2053,11 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h3>Next Actions</h3>
 <table><tbody>
 <tr><th>Validation feedback</th><td><a href="/admin/operations/gtfs-quality">Review GTFS quality triage</a> and stored import validation messages before relying on the feed.</td></tr>
-<tr><th>Feed health</th><td><a href="/admin/operations/feeds">Review private feed health</a> after a successful publish.</td></tr>
+<tr><th>Feed health</th><td><a href="/admin/operations/feed-health">Review the five-path feed health command center</a> after a successful publish.</td></tr>
 <tr><th>Typed edits</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> when an agency needs draft authoring instead of ZIP import.</td></tr>
 <tr><th>CLI fallback</th><td>Keep using the documented CLI import path for large files, scripted imports, or runtimes where browser import is unavailable.</td></tr>
 </tbody></table>
-<p class="muted">Browser import accepts a ZIP upload or a safe HTTP(S) URL, runs the existing importer, and stores only normal import and validation records. Private/local URLs are blocked unless the runtime explicitly enables local testing overrides.</p>
+<p class="muted">Browser import accepts a ZIP upload or a safe HTTP(S) URL, runs the existing importer, and stores only normal import and validation records. Private/local URLs are blocked unless the runtime explicitly enables local testing overrides. After import, review GTFS quality, validator health, and all five public feed paths before treating the dataset as ready for wider operator review.</p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -2092,6 +2092,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Feed Health Dashboard</h2>
 <p class="warning">{{.FeedHealth.Boundary}}</p>
+<p>This command center tracks exactly five public paths: <code>/public/feeds.json</code>, <code>/public/gtfs/schedule.zip</code>, <code>/public/gtfsrt/vehicle_positions.pb</code>, <code>/public/gtfsrt/trip_updates.pb</code>, and <code>/public/gtfsrt/alerts.pb</code>.</p>
 <p><a href="/admin/operations/feed-health.json">Export private feed health JSON</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/reliability">Open reliability diagnostics</a></p>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.FeedHealth.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
@@ -2107,6 +2108,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{range .FeedHealth.Rows}}
 <section class="card">
 <h3>{{.Label}}</h3>
+{{if .PublicPath}}<p><strong>Public path:</strong> <code>{{.PublicPath}}</code></p>{{end}}
 <p class="status">{{.StatusText}} <span class="pill">{{.Status}}</span></p>
 <p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
 <p><strong>What this means:</strong> {{.WhatThisMeans}}</p>
@@ -2363,7 +2365,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><th><code>production_grade_eta_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
 <tr><th><code>compliance_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ComplianceClaimed}}</td></tr>
 </tbody></table>
-<p class="muted">Use the device page for credential rotation and the telemetry page for accepted-event freshness. Keep simulator diagnostics local/private unless a future evidence-specific authorization and redaction process exists.</p>
+<p class="muted">Use the device page for credential rotation, the simulator guide for synthetic <code>/v1/telemetry</code> sends, and the telemetry page for accepted-event freshness. Keep simulator diagnostics local/private unless a future evidence-specific authorization and redaction process exists.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

@@ -22,7 +22,7 @@ http://localhost:8080/admin/operations
 
 On the Operations Console home, start with **Start Here**.
 
-It groups the first-run path into:
+Treat it as the single first-run cockpit. It groups the path into:
 
 1. Set agency/publication metadata.
 2. Import or publish GTFS.
@@ -45,6 +45,7 @@ Use this path when you only want to review the product from a browser:
 - review publication metadata;
 - use browser GTFS import if you have an admin role;
 - open feed health;
+- review GTFS quality triage after import;
 - open readiness;
 - open Connector Hub;
 - open telemetry simulator guidance;
@@ -84,6 +85,7 @@ Admins can upload a GTFS ZIP or import from a safe URL. After an import, review:
 
 ```text
 /admin/operations/gtfs-quality
+/admin/operations/validation-health
 /admin/operations/feed-health
 ```
 
@@ -92,9 +94,10 @@ fallback.
 
 ## Check The Five Feed Paths
 
-Use the Start Here copy section or open:
+Use the Start Here copy section and the feed health command center:
 
 ```text
+/admin/operations/feed-health
 /admin/operations/feeds
 ```
 
@@ -107,6 +110,9 @@ Confirm these paths are listed:
 - `/public/gtfsrt/alerts.pb`
 
 Local listing is not a consumer or compliance claim.
+
+Feed Health should show exactly those five paths with a current signal,
+freshness, validator context, health context, and next action for each row.
 
 ## Review Readiness And Help
 

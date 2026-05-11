@@ -13,11 +13,13 @@ http://localhost:8080/admin/operations
 ## Home
 
 The home page starts with **Start Here**. Use it as the first-run acceptance
-path. It shows:
+cockpit. It shows:
 
 - no-developer and developer paths;
 - ordered first-run tasks;
 - five copyable public feed URLs;
+- links into browser GTFS import, feed health, telemetry, readiness, and
+  Connector Hub;
 - local demo / deployment / evidence boundary;
 - all-false claim flags.
 
@@ -53,8 +55,9 @@ Open:
 ```
 
 Admins can upload a GTFS ZIP or import from a safe URL. The import path uses the
-existing importer and validation records. It does not create retained evidence
-or agency approval.
+existing importer and validation records, then points operators to GTFS quality,
+validator health, and the five public feed paths. It does not create retained
+evidence or agency approval.
 
 ## Feed Health
 
@@ -64,9 +67,16 @@ Open:
 /admin/operations/feed-health
 ```
 
-Feed Health summarizes feeds.json, schedule, Vehicle Positions, Trip Updates,
-and Alerts. Use this page to see whether URLs, validation context, freshness,
-and next actions are visible.
+Feed Health is the five-path command center for:
+
+- `/public/feeds.json`
+- `/public/gtfs/schedule.zip`
+- `/public/gtfsrt/vehicle_positions.pb`
+- `/public/gtfsrt/trip_updates.pb`
+- `/public/gtfsrt/alerts.pb`
+
+Use this page to see whether exact paths, URLs, validation context, freshness,
+health context, and next actions are visible.
 
 ## Readiness
 
@@ -87,10 +97,11 @@ Open:
 /admin/operations/connectors
 ```
 
-Connector Hub explains optional sidecars, manifests, command adapters, telemetry
-sources, prediction boundaries, validator adapters, monitoring/export, and
-consumer/discovery boundaries. It does not load arbitrary backend plugins or
-prove vendor compatibility.
+Connector Hub explains optional sidecars, manifests, command adapters,
+telemetry sources, prediction boundaries, validator adapters, monitoring/export,
+and consumer/discovery boundaries. Treat it as the starting point for manifest,
+redaction, fail-closed, and synthetic conformance review. It does not load
+arbitrary backend plugins or prove vendor compatibility.
 
 ## Telemetry Simulator
 
@@ -100,7 +111,8 @@ Open:
 /admin/operations/telemetry-simulator
 ```
 
-This page explains synthetic scenarios and copyable shell commands. It does not
+This page explains synthetic scenarios and copyable shell commands that use the
+authenticated `/v1/telemetry` boundary from an operator shell. It does not
 collect tokens or execute commands in the browser.
 
 ## GTFS Quality
@@ -111,8 +123,10 @@ Open:
 /admin/operations/gtfs-quality
 ```
 
-Use this page to review static validator and internal importer findings. Admins
-can rerun the allowlisted static validator from the existing admin action.
+Use this page to review static validator and internal importer findings by
+likely owner, affected files, safe fix path, verification step, and escalation
+trigger. Admins can rerun the allowlisted static validator from the existing
+admin action.
 
 ## Validation Health
 

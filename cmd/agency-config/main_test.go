@@ -1612,6 +1612,18 @@ func TestFeedHealthJSONShapeFlagsRowsAndMissingData(t *testing.T) {
 	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
 		t.Fatalf("row ids = %v, want %v", ids, wantIDs)
 	}
+	wantPaths := map[string]string{
+		"feeds_json":        "/public/feeds.json",
+		"schedule":          "/public/gtfs/schedule.zip",
+		"vehicle_positions": "/public/gtfsrt/vehicle_positions.pb",
+		"trip_updates":      "/public/gtfsrt/trip_updates.pb",
+		"alerts":            "/public/gtfsrt/alerts.pb",
+	}
+	for id, wantPath := range wantPaths {
+		if rowsByID[id].PublicPath != wantPath {
+			t.Fatalf("row %s public_path = %q, want %q", id, rowsByID[id].PublicPath, wantPath)
+		}
+	}
 	if rowsByID["feeds_json"].Status != checklistStatusOK || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "all HTTPS=true") || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "discoverable=true") {
 		t.Fatalf("feeds_json row did not include HTTPS/discoverability readiness: %+v", rowsByID["feeds_json"])
 	}
@@ -1682,7 +1694,7 @@ func TestFeedHealthHTMLPlainLanguageBoundariesAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Feed Health Dashboard", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Does not prove"} {
+	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five public paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Does not prove"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}

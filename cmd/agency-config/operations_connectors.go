@@ -134,7 +134,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 			[]string{"stable feed URL metadata", "license/contact metadata", "validation status"},
 			[]string{"prepared consumer packet records", "private readiness summaries"},
 			"Do not contact targets or change statuses without retained target-originated or operator-retained authorization artifacts.",
-			[]string{"make audit-final-claim-review", "make generate-compliance-evidence-packet"},
+			[]string{"make external-connection-check", "make audit-final-claim-review"},
 			[]string{"/admin/operations/consumers", "/admin/operations/readiness"},
 			[]string{"docs/consumer-submission-evidence.md", "docs/evidence/consumer-submissions/README.md", "docs/compliance-evidence-checklist.md"},
 			"Prepared packets are not submission, review, acceptance, ingestion, listing, display, compliance, or public launch proof.",
@@ -143,7 +143,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 	return connectorHubView{
 		GeneratedAt:      page.GeneratedAt,
 		AgencyID:         page.AgencyID,
-		Boundary:         "Private authenticated Connector Hub only; viewing it creates no evidence, contacts no external party, changes no consumer status, and records no approval, compatibility, compliance, hosted-service, SLA, or production-readiness outcome.",
+		Boundary:         "Private authenticated Connector Hub only; viewing it creates no evidence, contacts no external party, changes no consumer status, and records no approval, compatibility, compliance, hosted-service, SLA, production-readiness, or ETA-quality outcome. Treat it as the starting point for manifest, redaction, fail-closed, and adapter-conformance review.",
 		PluginDefinition: safePluginDefinition,
 		Categories:       categories,
 		Registry:         connectorRegistryForSection(page.Section),
