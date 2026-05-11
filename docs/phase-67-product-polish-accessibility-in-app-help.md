@@ -10,8 +10,11 @@ navigation groups, active page state, route-stability tests, and a current
 Phase 61+ roadmap link in the Launchpad decision gate. Checkpoint 000003
 improved accessibility-oriented shared markup, keyboard-visible focus states,
 mobile layout constraints, table overflow behavior, and explicit form labels
-and submit buttons while preserving existing POST contracts. Phase 67 must stay
-inside the private Operations Console product surface. It must not create retained
+and submit buttons while preserving existing POST contracts. Checkpoint 000004
+added private GET-only help routes, a static/derived help JSON model,
+contextual help panels for major Operations Console sections, and all-false
+claim flags for help. Phase 67 must stay inside the private Operations
+Console product surface. It must not create retained
 evidence, write protected evidence paths, contact external parties, change
 consumer statuses, change public feed URLs, change telemetry ingest,
 change GTFS-RT protobuf semantics, change validator execution semantics,
@@ -34,7 +37,7 @@ supporting signals.
 - Completed: `Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`
 - Completed: `Phase 67 -- Checkpoint 000002: improve operations console information architecture`
 - Completed: `Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`
-- Planned: `Phase 67 -- Checkpoint 000004: implement in-app help system`
+- Completed: `Phase 67 -- Checkpoint 000004: implement in-app help system`
 - Planned: `Phase 67 -- Checkpoint 000005: close product polish accessibility and help`
 
 ## Existing State
@@ -53,9 +56,10 @@ supporting signals.
   hard to scan on small screens and does not group work by operator intent.
 - Shared layout has basic responsive CSS, but it can better support landmarks,
   skip links, active navigation, focus visibility, and table/form ergonomics.
-- Help text exists throughout individual pages, but there is no consistent
-  contextual help model for GTFS, GTFS-RT, connectors, readiness, validators,
-  telemetry, and claim/evidence boundaries.
+- Help text now has a consistent private model at `/admin/operations/help`
+  and `/admin/operations/help.json`, plus contextual shared-layout panels for
+  GTFS, GTFS-RT, connectors, readiness, validators, telemetry, and
+  claim/evidence boundaries.
 
 ## Checkpoint Scope
 

@@ -190,14 +190,19 @@ active-page state, route-stability tests, and a current Phase 61+ roadmap link
 from the Launchpad decision gate. Checkpoint 000003 improved
 accessibility-oriented shared markup, keyboard-visible focus states, mobile
 layout constraints, table overflow behavior, and explicit form labels and
-submit buttons while preserving existing POST contracts. Phase 66 closed after
+submit buttons while preserving existing POST contracts. Checkpoint 000004
+added private GET-only help routes at `/admin/operations/help` and
+`/admin/operations/help.json`, a bounded static/derived help model for GTFS,
+GTFS-RT, connectors, readiness, validators, telemetry, and claim/evidence
+boundaries, contextual help panels in the shared Operations Console layout,
+and all-false help claim flags. Phase 66 closed after
 improving release-candidate workflow, local bootstrap preflight and first-run
 messaging, Docker image publishing decision docs, and a repository-native
 docs/demo site plan. Phase 66 did not create retained evidence, publish
 artifacts, push images, change consumer statuses, or claim hosted SaaS,
 universal production readiness, SLA/uptime, agency adoption, consumer
 acceptance, public launch, or compliance. The next checkpoint is
-`Phase 67 -- Checkpoint 000004: implement in-app help system`.
+`Phase 67 -- Checkpoint 000005: close product polish accessibility and help`.
 
 Keep Phase 67 focused on private Operations Console information architecture,
 accessibility, responsive layout, keyboard-friendly UI, and in-app help for
@@ -1834,7 +1839,7 @@ Phase 60 targeted verification:
 
 Continue with Phase 67 -- Product Polish, Accessibility, and In-App Help. The
 default next work is
-`Phase 67 -- Checkpoint 000004: implement in-app help system`.
+`Phase 67 -- Checkpoint 000005: close product polish accessibility and help`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

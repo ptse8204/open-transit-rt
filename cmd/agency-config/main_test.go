@@ -2054,6 +2054,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		"/admin/operations/telemetry-simulator",
 		"/admin/operations/devices",
 		"/admin/alerts/console",
+		"/admin/operations/help",
 		"/admin/operations/consumers",
 		"/admin/operations/evidence",
 		"/admin/operations/setup",
@@ -2086,6 +2087,7 @@ func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *test
 		{path: "/admin/operations/gtfs-quality", href: "/admin/operations/gtfs-quality"},
 		{path: "/admin/operations/telemetry", href: "/admin/operations/telemetry"},
 		{path: "/admin/operations/connectors/tests", href: "/admin/operations/connectors/tests"},
+		{path: "/admin/operations/help", href: "/admin/operations/help"},
 		{path: "/admin/operations/consumers", href: "/admin/operations/consumers"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
@@ -2101,6 +2103,173 @@ func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *test
 			}
 			if got := strings.Count(body, `aria-current="page"`); got != 1 {
 				t.Fatalf("%s aria-current count = %d, want 1: %s", tc.path, got, body)
+			}
+		})
+	}
+}
+
+func TestOperationsHelpRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/help", "/admin/operations/help.json", "/admin/operations/help/", "/admin/operations/help.json/"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/help", "/admin/operations/help.json", "/admin/operations/help/", "/admin/operations/help.json/"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+		if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+			t.Fatalf("unauth %s Cache-Control = %q, want no-store", path, got)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/help", "/admin/operations/help.json", "/admin/operations/help/", "/admin/operations/help.json/"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/help?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/help.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/help.json", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public help route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsHelpJSONShapeFlagsAndNoLeakage(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/help.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var view operationsHelpView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode help JSON: %v", err)
+	}
+	assertOperationsHelpShape(t, view)
+	assertOperationsHelpFlagsFalse(t, view.ClaimFlags)
+	assertOperationsHelpSafeStrings(t, rr.Body.String())
+	if view.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
+	}
+	if len(view.ContextualHelp.Topics) == 0 || view.ContextualHelp.AllTopicsURL != "/admin/operations/help" || view.ContextualHelp.JSONURL != "/admin/operations/help.json" {
+		t.Fatalf("invalid contextual help: %+v", view.ContextualHelp)
+	}
+}
+
+func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/help", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Operations Console Help",
+		`id="help-gtfs"`,
+		`id="help-gtfs_rt"`,
+		`id="help-connectors"`,
+		`id="help-readiness"`,
+		`id="help-validators"`,
+		`id="help-telemetry"`,
+		`id="help-claims_evidence"`,
+		safePluginDefinition,
+		`backend_command_execution_enabled`,
+		`consumer_statuses_changed`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("help HTML missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/help", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "vendor compatible", "certified hardware"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("help HTML contains forbidden string %q: %s", forbidden, body)
+		}
+	}
+	assertOperationsHelpSafeStrings(t, body)
+}
+
+func TestOperationsSharedLayoutRendersContextualHelpForMajorSections(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, tc := range []struct {
+		path string
+		want []string
+	}{
+		{path: "/admin/operations/gtfs-import", want: []string{`Help for GTFS import`, `help-gtfs`, `help-validators`}},
+		{path: "/admin/operations/feed-health", want: []string{`Help for feed health`, `help-gtfs_rt`, `help-readiness`}},
+		{path: "/admin/operations/connectors", want: []string{`Help for Connector Hub`, `help-connectors`, `help-claims_evidence`}},
+		{path: "/admin/operations/telemetry-simulator", want: []string{`Help for telemetry simulator`, `help-telemetry`, `help-gtfs_rt`}},
+		{path: "/admin/operations/readiness", want: []string{`Help for readiness`, `help-readiness`, `help-claims_evidence`}},
+		{path: "/admin/operations/validation-health", want: []string{`Help for validator health`, `help-validators`, `help-claims_evidence`}},
+		{path: "/admin/operations/evidence", want: []string{`Help for evidence`, `help-claims_evidence`, `help-readiness`}},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			for _, want := range append([]string{`class="context-help"`, `<strong>Next:</strong>`, `/admin/operations/help`, `/admin/operations/help.json`}, tc.want...) {
+				if !strings.Contains(body, want) {
+					t.Fatalf("%s contextual help missing %q: %s", tc.path, want, body)
+				}
+			}
+			if strings.Contains(body, `<form method="post" action="/admin/operations/help"`) {
+				t.Fatalf("%s contextual help must not add help POST form: %s", tc.path, body)
 			}
 		})
 	}
@@ -4158,6 +4327,59 @@ func assertSetupWizardFlagsFalse(t *testing.T, flags setupWizardClaimFlags) {
 	}
 }
 
+func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
+	t.Helper()
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Topics) != 7 {
+		t.Fatalf("invalid help top-level shape: %+v", view)
+	}
+	wantIDs := []string{"gtfs", "gtfs_rt", "connectors", "readiness", "validators", "telemetry", "claims_evidence"}
+	var gotIDs []string
+	for _, topic := range view.Topics {
+		gotIDs = append(gotIDs, topic.ID)
+		if topic.ID == "" || topic.Label == "" || topic.Summary == "" || topic.WhatToReview == "" || topic.NextAction == "" || topic.DoesNotProve == "" || topic.ClaimBoundary == "" || len(topic.AdminLinks) == 0 || len(topic.DocsLinks) == 0 {
+			t.Fatalf("invalid help topic shape: %+v", topic)
+		}
+		for _, link := range topic.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("topic %s has unsafe admin link %q", topic.ID, link)
+			}
+		}
+		for _, link := range topic.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("topic %s has unsafe docs link %q", topic.ID, link)
+			}
+		}
+		if topic.ID == "connectors" && topic.PluginDefinition != safePluginDefinition {
+			t.Fatalf("connectors topic plugin definition = %q, want safe definition", topic.PluginDefinition)
+		}
+	}
+	if strings.Join(gotIDs, ",") != strings.Join(wantIDs, ",") {
+		t.Fatalf("topic ids = %v, want %v", gotIDs, wantIDs)
+	}
+}
+
+func assertOperationsHelpFlagsFalse(t *testing.T, flags operationsHelpClaimFlags) {
+	t.Helper()
+	if flags.BackendCommandExecutionEnabled || flags.CacheDiagnosticsRead || flags.ExternalNetworkContacted || flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.SecretsCollected || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ProductionAVLReliabilityClaimed || flags.ProductionGradeETAQualityClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.DynamicBackendPluginLoadingEnabled {
+		t.Fatalf("help flags must all be false: %+v", flags)
+	}
+}
+
+func assertOperationsHelpSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_report", "stdout", "stderr", "argv", "portal automation"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("help leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "compliance_achieved", "vendor_compatible", "hardware_certified", "dynamic_plugin_loading_enabled"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("help emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
 	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 || len(hub.Registry.Entries) != 5 {
@@ -5203,6 +5425,22 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))
 	mux.Handle("/admin/operations/telemetry-simulator.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/help", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/help/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/help.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/help.json/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))

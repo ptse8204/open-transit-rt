@@ -88,8 +88,13 @@ visible keyboard focus styles, responsive/mobile constraints, table overflow
 behavior, and explicit form labels and submit buttons while preserving
 existing POST names, actions, role checks, CSRF behavior, and private route
 boundaries.
+Checkpoint 000004 added private GET-only help routes at
+`/admin/operations/help` and `/admin/operations/help.json`, a static/derived
+help model for GTFS, GTFS-RT, connectors, readiness, validators, telemetry,
+and claim/evidence boundaries, contextual shared-layout help panels, and
+all-false help claim flags.
 The next checkpoint is
-`Phase 67 -- Checkpoint 000004: implement in-app help system`.
+`Phase 67 -- Checkpoint 000005: close product polish accessibility and help`.
 
 Phase 66 checkpoint history: Checkpoint 000001 added the Phase 66 plan in
 `docs/phase-66-release-candidate-and-installability.md`.
@@ -1227,8 +1232,10 @@ in-app help plan. Checkpoint 000002 improved private Operations Console
 information architecture with grouped navigation, active-page state, and
 route-stability tests. Checkpoint 000003 improved accessibility-oriented
 shared markup, keyboard-visible focus states, mobile layout constraints, and
-form labels/buttons. The next checkpoint is `Phase 67 --
-Checkpoint 000004: implement in-app help system`. For
+form labels/buttons. Checkpoint 000004 added the private in-app help routes,
+static/derived help JSON, contextual help panels, and all-false help claim
+flags. The next checkpoint is `Phase 67 -- Checkpoint 000005: close product
+polish accessibility and help`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

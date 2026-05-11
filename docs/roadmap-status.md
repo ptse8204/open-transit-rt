@@ -222,8 +222,11 @@ route-stability tests, and a current Phase 61+ roadmap link from the
 Launchpad decision gate. Checkpoint 000003 improved accessibility-oriented
 shared markup, keyboard-visible focus styles, responsive/mobile constraints,
 table overflow behavior, and explicit form labels/buttons without changing
-runtime contracts. The next checkpoint is
-`Phase 67 -- Checkpoint 000004: implement in-app help system`.
+runtime contracts. Checkpoint 000004 added private GET-only help routes,
+static/derived help JSON, contextual Operations Console help panels, and
+all-false help claim flags without creating evidence or changing consumer
+statuses. The next checkpoint is
+`Phase 67 -- Checkpoint 000005: close product polish accessibility and help`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

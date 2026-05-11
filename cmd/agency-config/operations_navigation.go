@@ -62,6 +62,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 		{
 			Label: "Records and boundaries",
 			Items: []operationsNavItem{
+				{Label: "Help", Href: "/admin/operations/help", Section: "help"},
 				{Label: "Consumers", Href: "/admin/operations/consumers", Section: "consumers"},
 				{Label: "Evidence", Href: "/admin/operations/evidence", Section: "evidence"},
 			},
