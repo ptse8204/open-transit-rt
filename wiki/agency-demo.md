@@ -3,8 +3,9 @@
 The agency demo is the fastest way to see the project working end to end in
 about 30 minutes.
 
-New to the project? Start with [Can My Agency Use This?](can-my-agency-use-this.md)
-or go straight to [Local Quickstart](local-quickstart.md).
+New to the project? Start with [Small Agency Quick Start](small-agency-quick-start.md)
+or [Browser-First Setup](browser-first-setup.md). Use this demo when you want a
+fuller scripted verification path after the UI-first path.
 
 ![Illustrative agency journey from GTFS import or GTFS Studio drafts through schedule publication, authenticated telemetry, validation, and public GTFS plus GTFS Realtime feeds.](assets/agency-journey-to-public-feeds.png)
 
@@ -42,7 +43,7 @@ For the detailed script reference, see [docs/tutorials/agency-demo-flow.md](../d
 
 ## Next Steps
 
-- 🚀 [Run a local/reference trial](agency-adoption-checklist.md)
-- 🧩 [Connect GPS or AVL data](connector-cookbook.md)
-- ✅ [Review readiness evidence](readiness-and-evidence.md)
-- ⭐ [Support or contribute](support-and-contribute.md)
+- [Run a local/reference trial](agency-adoption-checklist.md)
+- [Connect GPS or AVL data](connector-cookbook.md)
+- [Review readiness and evidence boundaries](readiness-and-evidence.md)
+- [Support or contribute](support-and-contribute.md)

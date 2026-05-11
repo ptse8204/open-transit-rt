@@ -118,7 +118,13 @@ Optional or deferred, not currently integrated as external systems:
 
 Phase 11 does not add new backend features or external adapters. It closes the evidence layer by documenting what the repo proves, what a deployment must prove, and what third parties must confirm.
 
-The next hardening track should collect deployment evidence: real HTTPS feed root, production validation records, live scorecard export, monitoring and alerting assets, operations runbooks, and third-party submission or acceptance records.
+A future optional authorization-gated evidence track may collect deployment
+evidence: real HTTPS feed root, production validation records, live scorecard
+export, monitoring and alerting assets, operations runbooks, and third-party
+submission or acceptance records. Without explicit written authorization,
+claim target, allowed tools, retention rules, redaction rules, and stop
+conditions, those tracks remain closed and no retained evidence should be
+collected.
 
 ## Phase 12 Step 2 Evidence Result
 

@@ -53,6 +53,7 @@ type operationsPage struct {
 	ReadinessItems         []readinessItemView
 	ReadinessV2            operationsReadinessV2View
 	Checklist              operatorChecklistView
+	FirstRun               operationsFirstRunView
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
@@ -190,6 +191,7 @@ type reliabilityReader interface {
 
 func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/admin/operations" {
+		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -828,6 +830,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ReadinessItems = readinessItems(page)
 	page.ReadinessV2 = buildOperationsReadinessV2(page)
 	page.Checklist = buildOperatorChecklist(page)
+	page.FirstRun = buildOperationsFirstRun(page)
 	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page)
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
@@ -1671,7 +1674,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 .operations-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem;margin:1rem 0 1.25rem}.nav-group{border:1px solid #d8dee4;border-radius:6px;padding:.55rem;background:#fff}.nav-group-label{font-weight:700;margin:0 0 .4rem}.nav-links{display:flex;flex-wrap:wrap;gap:.35rem}.nav-link{border:1px solid #d8dee4;border-radius:4px;padding:.45rem .6rem;min-height:2.25rem;text-decoration:none;color:#1f2933;background:#fff}.nav-link:focus,.nav-link:hover{border-color:#6b7280;background:#f6f8fa}.nav-link.current{border-color:#1f2933;background:#1f2933;color:#fff}
 table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
 th{background:#f6f8fa}.pill{display:inline-block;border:1px solid #c8d1dc;border-radius:3px;padding:.1rem .35rem;background:#f6f8fa}
-.hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3{margin-top:0}.card p{margin:.4rem 0}.status{font-weight:600}.context-help{border:1px solid #c8d1dc;background:#f8fafc;border-radius:6px;padding:1rem;margin:1rem 0}.context-help h2{font-size:1.05rem;margin:0 0 .6rem}.context-help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.75rem}.context-help-topic{border-left:3px solid #2563eb;padding-left:.65rem}.context-help-topic h3{font-size:1rem;margin:.1rem 0}.context-help-topic p{margin:.3rem 0}
+.hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3{margin-top:0}.card p{margin:.4rem 0}.status{font-weight:600}.copy-value{display:block;border:1px solid #d8dee4;background:#f6f8fa;border-radius:4px;padding:.45rem;white-space:pre-wrap;overflow-wrap:anywhere}.context-help{border:1px solid #c8d1dc;background:#f8fafc;border-radius:6px;padding:1rem;margin:1rem 0}.context-help h2{font-size:1.05rem;margin:0 0 .6rem}.context-help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.75rem}.context-help-topic{border-left:3px solid #2563eb;padding-left:.65rem}.context-help-topic h3{font-size:1rem;margin:.1rem 0}.context-help-topic p{margin:.3rem 0}
 .warning{background:#fff8c5}.ok{background:#dafbe1}.bad{background:#ffebe9}.muted{color:#59636e}.token{border:1px solid #f0c36d;background:#fff8c5;padding:1rem}
 form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{min-width:22rem;max-width:100%;padding:.45rem} button{padding:.5rem .8rem;min-height:2.25rem}
 @media (max-width:700px){body{margin:0;padding:1rem}.operations-nav,.card-grid,.context-help-grid{grid-template-columns:1fr}.nav-links{display:grid;grid-template-columns:1fr}.nav-link,button{width:100%}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}input,select,textarea{min-width:0;width:100%}}
@@ -1741,12 +1744,71 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutEnd" .}}
 {{end}}
 
+{{define "firstRunPanel"}}
+<section class="hero" aria-labelledby="first-run-heading">
+<h2 id="first-run-heading">Start Here</h2>
+<p>{{.Boundary}}</p>
+<p class="muted">{{.LocalDemoDeploymentEvidenceBoundary}}</p>
+<p><strong>Task status:</strong> {{.Counts.Tasks}} tasks · ok {{index .Counts.Statuses "ok"}} · needs review {{index .Counts.Statuses "needs_review"}} · missing {{index .Counts.Statuses "missing"}} · blocked {{index .Counts.Statuses "blocked"}} · unknown {{index .Counts.Statuses "unknown"}}</p>
+<div class="card-grid" aria-label="First-run evaluator paths">
+{{range .Paths}}<section class="card" id="first-run-path-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
+<p><strong>What it means:</strong> {{.Meaning}}</p>
+<p><strong>First action:</strong> {{.FirstAction}}</p>
+<p><strong>Console:</strong> <a href="{{.UILink}}">{{.UILink}}</a></p>
+<p><strong>Docs:</strong> <code>{{.DocsLink}}</code></p>
+<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+</section>{{end}}
+</div>
+<h3>First-Run Acceptance Tasks</h3>
+<table><thead><tr><th>Order</th><th>Task</th><th>Status</th><th>Current signal</th><th>What it means</th><th>Next action</th><th>Console</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Tasks}}<tr><td>{{.Order}}</td><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td><a href="{{.UILink}}">{{.UILink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Copy These Five Feed URLs</h3>
+<table><thead><tr><th>Feed</th><th>Status</th><th>Copy value</th><th>Current link</th><th>Meaning</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .FeedURLs}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td><code class="copy-value">{{.CopyValue}}</code></td><td>{{if .URL}}<a href="{{.URL}}">{{.URL}}</a>{{else}}missing{{end}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}<br><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<details>
+<summary>Claim flags for this first-run guide</summary>
+<table><tbody>
+<tr><th><code>backend_command_execution_enabled</code></th><td>{{.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
+<tr><th><code>cache_diagnostics_read</code></th><td>{{.ClaimFlags.CacheDiagnosticsRead}}</td></tr>
+<tr><th><code>external_network_contacted</code></th><td>{{.ClaimFlags.ExternalNetworkContacted}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>secrets_collected</code></th><td>{{.ClaimFlags.SecretsCollected}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>agency_approval_claimed</code></th><td>{{.ClaimFlags.AgencyApprovalClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>hardware_certification_claimed</code></th><td>{{.ClaimFlags.HardwareCertificationClaimed}}</td></tr>
+<tr><th><code>production_avl_reliability_claimed</code></th><td>{{.ClaimFlags.ProductionAVLReliabilityClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_quality_claimed</code></th><td>{{.ClaimFlags.ProductionGradeETAQualityClaimed}}</td></tr>
+<tr><th><code>sla_claimed</code></th><td>{{.ClaimFlags.SLAClaimed}}</td></tr>
+<tr><th><code>uptime_guarantee_claimed</code></th><td>{{.ClaimFlags.UptimeGuaranteeClaimed}}</td></tr>
+<tr><th><code>dynamic_backend_plugin_loading_enabled</code></th><td>{{.ClaimFlags.DynamicBackendPluginLoadingEnabled}}</td></tr>
+<tr><th><code>release_candidate_approval_claimed</code></th><td>{{.ClaimFlags.ReleaseCandidateApprovalClaimed}}</td></tr>
+<tr><th><code>managed_support_commitment_claimed</code></th><td>{{.ClaimFlags.ManagedSupportCommitmentClaimed}}</td></tr>
+<tr><th><code>final_deployment_ownership_claimed</code></th><td>{{.ClaimFlags.FinalDeploymentOwnershipClaimed}}</td></tr>
+<tr><th><code>consumer_ingestion_workflow_completed</code></th><td>{{.ClaimFlags.ConsumerIngestionWorkflowCompleted}}</td></tr>
+<tr><th><code>production_multi_tenant_hosting_claimed</code></th><td>{{.ClaimFlags.ProductionMultiTenantHostingClaimed}}</td></tr>
+</tbody></table>
+</details>
+</section>
+{{end}}
+
 {{define "dashboard"}}
 {{template "layoutStart" .}}
 <div class="hero">
 <h2>Agency Operations Home</h2>
 <p>Start with setup, GTFS, telemetry, feed health, readiness, and connector options. This private console is an operator workflow; it creates no retained evidence and records no approval, compliance, consumer, hosted-service, vendor, SLA, or production-grade ETA outcome.</p>
 </div>
+{{template "firstRunPanel" .FirstRun}}
 <div class="card-grid" aria-label="Primary operations actions">
 <section class="card"><h3>Start setup</h3><p>Walk through agency profile, GTFS, feeds, telemetry, validators, connectors, and readiness.</p><p><a href="/admin/operations/setup-wizard">Open setup wizard</a></p></section>
 <section class="card"><h3>Import GTFS</h3><p>Use an admin-only browser path for ZIP upload or safe URL import, with the existing importer and validation feedback.</p><p><a href="/admin/operations/gtfs-import">Open GTFS import</a></p></section>
@@ -1799,6 +1861,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Private Agency Launchpad</h2>
 <p class="warning">This launchpad is private operator diagnostics. It creates no evidence, contacts no external party, changes no consumer status, and records no approval, compliance, public launch, hosted SaaS, vendor, SLA, or production-grade ETA claim.</p>
 <p><a href="/admin/operations/launchpad.json">Export private launchpad JSON</a> · <a href="/admin/operations/checklist">Open private checklist</a> · <a href="/admin/operations/readiness">Open readiness review</a></p>
+{{template "firstRunPanel" .FirstRun}}
 <table><tbody>
 <tr><th>Boundary</th><td>{{.Launchpad.Boundary}}</td></tr>
 <tr><th><code>external_evidence_created</code></th><td>{{.Launchpad.ClaimFlags.ExternalEvidenceCreated}}</td></tr>

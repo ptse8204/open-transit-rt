@@ -100,6 +100,13 @@ These questions do not block the next phase.
   live feeds, contact external parties, or support any stronger public launch,
   compliance, agency, consumer, hosted service, SLA/uptime,
   production-readiness, vendor, marketplace, or ETA-quality claim.
+- Answered in Phase 69 for UI-first product acceptance: use
+  `make agency-app-up`, open the private Operations Console, follow Start Here,
+  and run `make audit-product-acceptance` for a local read-only check of the
+  README/wiki/docs product path. This does not create evidence, contact
+  external parties, change consumer statuses, or support stronger compliance,
+  agency, consumer, final-root, hosted SaaS, SLA/uptime,
+  production-readiness, vendor, marketplace, or ETA-quality claims.
 - Should production HTTPS termination be owned by this repo or by deployment infrastructure?
 - Phase 10 documents the current pilot path as Postgres/PostGIS through Compose plus deployment-owned Go service process management and a TLS reverse proxy. A fully packaged app-container or Kubernetes path remains open.
 

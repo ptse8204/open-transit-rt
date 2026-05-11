@@ -15,8 +15,8 @@ not change core database state directly.
 
    ```text
    POST /v1/telemetry
-   Authorization: Bearer <device-token>
-   Content-Type: application/json
+   Bearer device token required
+   JSON telemetry payload required
    ```
 
 4. Use deployment-owned device credentials.
@@ -25,6 +25,31 @@ not change core database state directly.
 6. Keep diagnostics redacted and private by default.
 
 Detailed guide: [Device And AVL Integration](../docs/tutorials/device-avl-integration.md).
+
+## Start In The UI
+
+Before writing adapter code, open:
+
+```text
+/admin/operations/connectors
+/admin/operations/connectors/tests
+/admin/operations/telemetry-simulator
+```
+
+Use those pages to decide whether you are bringing GPS data, replaying a CSV,
+testing a prediction sidecar, checking validators, or exporting monitoring
+summaries. The browser pages are guidance only; they do not execute connector
+commands or contact external systems.
+
+## Practical Recipes
+
+| Recipe | Start with | Verify with | What it does not prove |
+| --- | --- | --- | --- |
+| I have GPS or AVL observations | Transform to `POST /v1/telemetry` with deployment-owned device tokens | `/admin/operations/telemetry`, `/admin/operations/feed-health`, `make telemetry-simulator` | Vendor compatibility or real AVL reliability |
+| I have a CSV replay | Use `examples/connectors/telemetry-csv-replay` with synthetic or redacted fields | `make test-connector-examples` | Production data quality or hardware certification |
+| I need predictions | Keep Trip Updates behind `internal/prediction.Adapter` or an external sidecar boundary | `make adapter-conformance` | Production-grade ETA quality |
+| I need validation checks | Use server-owned allowlisted validator IDs | `/admin/operations/validation-health` | CAL-ITP/Caltrans compliance |
+| I need monitoring/export | Keep redacted summaries local until a separate sharing decision exists | `examples/connectors/monitoring-export` | SLA, uptime, or notification delivery |
 
 ## Example Paths
 

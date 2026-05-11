@@ -23,6 +23,7 @@ It supersedes the earlier local artifact language that used `Post-60` or `Phase 
 | 66 | Release Candidate and Installability | RC packaging, installer/bootstrap UX, Docker image decision, demo/docs site | `Phase 66 -- Checkpoint 00000N: ...` |
 | 67 | Product Polish, Accessibility, and In-App Help | IA cleanup, responsive/accessibility polish, in-app help system | `Phase 67 -- Checkpoint 00000N: ...` |
 | 68+ | Optional Authorized Evidence Tracks | Real agency/final-root/consumer/vendor/ETA evidence only when authorized | `Phase 68+ -- Checkpoint 00000N: ...` |
+| 69 | Maintainer Product Acceptance and UI-First Agency Usability Trial | UI-first product acceptance, README/wiki/docs path cleanup, small-agency walkthroughs, and local acceptance audits without evidence intake | `Phase 69 -- Checkpoint 00000N: ...` |
 
 ## How To Use This Folder
 
@@ -44,6 +45,10 @@ phase-prompts/phase-66-release-candidate-and-installability.md
 phase-prompts/phase-67-product-polish-accessibility-in-app-help.md
 phase-prompts/phase-68-plus-optional-evidence-tracks.md
 ```
+
+Phase 69 is a product acceptance bridge after Phase 68+ closed as
+authorization-gated. It is not evidence intake and does not reopen final-root,
+consumer, agency, vendor, or ETA proof tracks.
 
 ## Commit Pattern
 

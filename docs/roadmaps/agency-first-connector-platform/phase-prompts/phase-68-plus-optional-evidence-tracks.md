@@ -8,7 +8,7 @@ Possible future phases:
 
 ```text
 Phase 68 — Authorized Agency Trial Intake
-Phase 69 — Authorized Final Public Root Evidence
+Future authorized final public root evidence track
 Phase 70 — Authorized Consumer Submission Evidence
 Phase 71 — Authorized Real AVL/Vendor Integration Evidence
 Phase 72 — Authorized Real-World ETA Quality Study

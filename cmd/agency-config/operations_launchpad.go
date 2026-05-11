@@ -12,6 +12,7 @@ type agencyLaunchpadView struct {
 	GeneratedAt   time.Time                 `json:"generated_at"`
 	AgencyID      string                    `json:"agency_id"`
 	Boundary      string                    `json:"boundary"`
+	FirstRun      operationsFirstRunView    `json:"first_run"`
 	Sections      []agencyLaunchpadSection  `json:"sections"`
 	Counts        agencyLaunchpadCounts     `json:"counts"`
 	ClaimFlags    agencyLaunchpadClaimFlags `json:"claim_flags"`
@@ -194,6 +195,7 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 		GeneratedAt: page.GeneratedAt,
 		AgencyID:    page.AgencyID,
 		Boundary:    "Private authenticated operator workflow only; viewing it creates no evidence, contacts no external party, changes no consumer status, and records no approval or compliance outcome.",
+		FirstRun:    page.FirstRun,
 		Sections:    sections,
 		Counts:      launchpadCounts(sections),
 		ClaimFlags:  agencyLaunchpadClaimFlags{},

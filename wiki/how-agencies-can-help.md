@@ -8,7 +8,8 @@ feedback.
 
 Agencies can help by:
 
-- trying the 30-minute local/reference workflow;
+- trying the [Small Agency Quick Start](small-agency-quick-start.md);
+- walking the [browser-first setup path](browser-first-setup.md);
 - testing with a public GTFS ZIP;
 - reporting setup or validator blockers with exact commands;
 - reviewing deployment docs for missing operational assumptions;

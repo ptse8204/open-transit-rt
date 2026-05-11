@@ -14,16 +14,20 @@ acceptance, final-root proof, CAL-ITP/Caltrans compliance, hosted SaaS
 availability, production readiness, vendor compatibility, or production-grade
 ETA quality.
 
-## Related Context
+## Related Guides
 
-- [Phase 39 Handoff](../handoffs/phase-39.md)
-- [Phase 40 Handoff](../handoffs/phase-40.md)
+- [Small Agency Quick Start](../../wiki/small-agency-quick-start.md)
+- [Browser-First Setup](../../wiki/browser-first-setup.md)
+- [Operations Console Tour](../../wiki/operations-console-tour.md)
 - [OCI/OCL Reference Deployment](../deployment/oci-reference-deployment.md)
 - [Reusable Agency Onboarding](reusable-agency-onboarding.md)
 - [Integration Adapter Kit](../integration-adapter-kit.md)
 - [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md)
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md)
 - [Evidence Redaction Policy](../evidence/redaction-policy.md)
+
+Maintainer phase handoffs remain available under `docs/handoffs/` for project
+history, but they are not required to run this operator trial.
 
 ## 1. Prepare The Deployment Path
 

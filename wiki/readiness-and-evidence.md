@@ -5,10 +5,15 @@ Open Transit RT helps with the technical foundations for Caltrans/CAL-ITP-style 
 For agency-facing wording without compliance jargon, start with
 [CAL-ITP Readiness Plain English](calitp-readiness-plain-english.md).
 
+For the browser path, open `/admin/operations/readiness` after following
+[Small Agency Quick Start](small-agency-quick-start.md). The UI shows readiness
+signals and missing evidence separately.
+
 ## What Open Transit RT Can Support
 
 - stable public GTFS and GTFS Realtime feed paths
 - `feeds.json` discovery metadata
+- private Operations Console feed health and readiness rows
 - validation workflow records
 - license and technical contact metadata
 - compliance scorecard snapshots
@@ -40,6 +45,6 @@ milestones only for agencies that choose public launch or compliance claims.
 
 ## Next Steps
 
-- 🧭 [Can My Agency Use This?](can-my-agency-use-this.md)
-- 🚀 [Review deployment guidance](deployment-guide.md)
-- ⭐ [Support or contribute](support-and-contribute.md)
+- [Can My Agency Use This?](can-my-agency-use-this.md)
+- [Review deployment guidance](deployment-guide.md)
+- [Support or contribute](support-and-contribute.md)

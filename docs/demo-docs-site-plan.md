@@ -20,11 +20,12 @@ without reading phase history.
 
 | Section | Source Today | Purpose | Boundary |
 | --- | --- | --- | --- |
-| Start | `README.md`, `wiki/README.md` | Explain the product and fastest local evaluator path | No hosted-service or public-launch claim |
-| Try Locally | `wiki/agency-demo.md`, `docs/tutorials/agency-first-run.md`, `docs/tutorials/local-quickstart.md` | Guide a 30-minute local demo | Local evaluator workflow only |
+| Start | `README.md`, `wiki/README.md`, `wiki/small-agency-quick-start.md` | Explain the product, local app command, Operations Console, and Start Here path | No hosted-service or public-launch claim |
+| Browser Setup | `wiki/browser-first-setup.md`, `wiki/operations-console-tour.md`, `docs/tutorials/small-agency-acceptance-script.md` | Guide the UI-first acceptance workflow | Private local evaluator workflow only |
 | Agency Fit | `wiki/can-my-agency-use-this.md`, `docs/agency-one-pager.md` | Help agencies decide whether a self-hosted path fits | No agency approval or adoption claim |
+| Public GTFS Trial | `wiki/agency-adoption-checklist.md`, `docs/tutorials/reusable-agency-onboarding.md` | Guide a one-day local/reference GTFS trial | Evaluation checklist, not adoption proof |
 | Connectors | `docs/integration-adapter-kit.md`, `wiki/connector-cookbook.md`, `docs/connectors/plugin-contract.md` | Explain sidecars, manifests, command adapters, and examples | No dynamic plugin loading or vendor compatibility claim |
-| Readiness | `wiki/calitp-readiness-plain-english.md`, `docs/release-candidate-readiness.md`, `docs/roadmap-status.md` | Explain readiness signals, validators, and release-candidate checks | No compliance or production-readiness claim |
+| Readiness | `wiki/calitp-readiness-plain-english.md`, `docs/release-candidate-readiness.md`, `docs/roadmap-status.md` | Explain readiness signals, UI signal versus missing deployment evidence, validators, and release-candidate checks | No compliance or production-readiness claim |
 | Deploy | `wiki/deployment-guide.md`, `docs/tutorials/deploy-with-docker-compose.md`, `docs/upgrade-and-rollback.md` | Point to self-hosted evaluation and local/source release paths | No hosted SaaS or registry-published app image claim |
 | Help Improve | `wiki/how-agencies-can-help.md`, `wiki/support-and-contribute.md`, `CONTRIBUTING.md` | Invite safe feedback, issues, docs, connector examples, and authorized pilots | No external contact automation |
 

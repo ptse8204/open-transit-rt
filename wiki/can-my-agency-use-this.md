@@ -35,14 +35,16 @@ This project is not currently a fit if you need:
 Run the 30-minute local evaluator path:
 
 ```bash
+make check
 make agency-app-up
-make telemetry-simulator
 ```
 
 This starts the local app, imports the committed demo GTFS fixture, publishes
-the five public feed paths, and sends synthetic telemetry through real device
-auth. See [Agency Demo](agency-demo.md) and
-[Agency First Run](../docs/tutorials/agency-first-run.md).
+the five public feed paths, and exposes the private Operations Console. Open
+`/admin/operations` and click **Start Here**. See
+[Small Agency Quick Start](small-agency-quick-start.md),
+[Browser-First Setup](browser-first-setup.md), and
+[Operations Console Tour](operations-console-tour.md).
 
 ## Try Your Public GTFS ZIP
 
@@ -52,7 +54,7 @@ Run a local/reference trial with your public GTFS ZIP:
 make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip
 ```
 
-Use [Agency Adoption Checklist](agency-adoption-checklist.md) and
+Use [Agency Evaluation Checklist](agency-adoption-checklist.md) and
 [Reusable Agency Onboarding](../docs/tutorials/reusable-agency-onboarding.md)
 for the full one-day evaluator path.
 

@@ -1,59 +1,50 @@
 # Documentation Home
 
-Use this page to find the right guide without reading the whole repository
-history. Public readers should start with the wiki and persona routes below.
-Maintainers can use the deeper reference sections when they need phase history,
-requirements, or evidence boundaries.
+Use this page when the wiki does not go deep enough. Public readers should
+start with the task guides first; maintainers can use the lower sections for
+release, evidence, claim-boundary, and project-history references.
 
 ![Illustrative contribution paths: report a bug, improve docs, suggest a feature, submit code, and help with evidence runbooks.](assets/how-to-contribute-paths.png)
 
-## Start By Persona
+## Public User Docs
 
-| Need | Guide |
-| --- | --- |
-| Decide whether the project fits an agency or civic technology trial | [Can My Agency Use This?](../wiki/can-my-agency-use-this.md) |
-| Run the 30-minute local demo | [Agency Demo](../wiki/agency-demo.md) |
-| Start the local app package | [Agency First Run](tutorials/agency-first-run.md) |
-| Import a public GTFS ZIP | [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md) |
-| Run a one-day local/reference trial | [Agency Adoption Checklist](../wiki/agency-adoption-checklist.md) |
-| Connect GPS, AVL, CSV, or a sidecar source | [Connector Cookbook](../wiki/connector-cookbook.md) |
-| Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](../wiki/calitp-readiness-plain-english.md) |
-| Check release-candidate evaluator readiness | [Release-Candidate Readiness](release-candidate-readiness.md) |
-| Review future docs/demo site structure | [Demo And Documentation Site Plan](demo-docs-site-plan.md) |
-| Help as an agency, operator, or contributor | [How Agencies Can Help](../wiki/how-agencies-can-help.md) |
-| Contribute code or docs | [Contributing](../CONTRIBUTING.md) |
+- [Small Agency Quick Start](../wiki/small-agency-quick-start.md)
+- [Browser-First Setup](../wiki/browser-first-setup.md)
+- [Operations Console Tour](../wiki/operations-console-tour.md)
+- [Can My Agency Use This?](../wiki/can-my-agency-use-this.md)
+- [Agency Evaluation Checklist](../wiki/agency-adoption-checklist.md)
+- [CAL-ITP Readiness Plain English](../wiki/calitp-readiness-plain-english.md)
 
-## Practical Guides
+These pages answer what you can do in the UI, what still needs a technical
+helper, and what the local evaluation does not prove.
 
-These are command-level references for people running or evaluating the
-project:
+## Operator Docs
 
-- [Local Quickstart](tutorials/local-quickstart.md)
 - [Agency First Run](tutorials/agency-first-run.md)
-- [Agency Demo Flow](tutorials/agency-demo-flow.md)
+- [Small-Agency Acceptance Script](tutorials/small-agency-acceptance-script.md)
 - [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md)
 - [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
 - [Agency Launchpad](tutorials/agency-launchpad.md)
 - [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md)
-- [Telemetry Simulator And Device Trial](tutorials/telemetry-simulator-and-device-trial.md)
-- [Device And AVL Integration](tutorials/device-avl-integration.md)
-- [External Adapter Conformance](tutorials/external-adapter-conformance.md)
 - [GTFS Validation Triage](tutorials/gtfs-validation-triage.md)
+- [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)
-- [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 
-## Connector And Integration References
+## Integrator Docs
 
 - [Integration Adapter Kit](integration-adapter-kit.md)
 - [Connector Plugin Contract](connectors/plugin-contract.md)
+- [Connector Cookbook](../wiki/connector-cookbook.md)
+- [Device And AVL Integration](tutorials/device-avl-integration.md)
+- [Device Token Lifecycle](tutorials/device-token-lifecycle.md)
+- [External Adapter Conformance](tutorials/external-adapter-conformance.md)
 - [External Connection Readiness](external-connection-readiness.md)
-- [Phase 61+ Agency-First Connector Platform Roadmap](roadmaps/agency-first-connector-platform/README.md)
 - [Examples Index](../examples/README.md)
 - [Test Fixture Index](../testdata/README.md)
 - [Dependencies](dependencies.md)
 
-## Release, Upgrade, And Evaluator Checks
+## Release-Candidate Docs
 
 - [Release-Candidate Readiness](release-candidate-readiness.md)
 - [Release Process](release-process.md)
@@ -63,14 +54,15 @@ project:
 - [Demo And Documentation Site Plan](demo-docs-site-plan.md)
 - [Changelog](../CHANGELOG.md)
 
-## Readiness And Evidence
+Release-candidate checks are local maintainer diagnostics. They do not tag,
+publish, push images, create retained evidence, or prove production readiness.
 
-These pages explain what evidence exists and what it can, and cannot, prove:
+## Evidence And Claim-Boundary Docs
 
 - [Readiness And Evidence](../wiki/readiness-and-evidence.md)
-- [CAL-ITP Readiness Plain English](../wiki/calitp-readiness-plain-english.md)
 - [Compliance Evidence Checklist](compliance-evidence-checklist.md)
 - [California Readiness Summary](california-readiness-summary.md)
+- [CAL-ITP / Caltrans Requirements](requirements-calitp-compliance.md)
 - [Phase 60 Final Claim Review](phase-60-final-claim-review-and-public-closeout.md)
 - [Consumer Submission Evidence](consumer-submission-evidence.md)
 - [Consumer Submission Tracker](evidence/consumer-submissions/README.md)
@@ -78,13 +70,11 @@ These pages explain what evidence exists and what it can, and cannot, prove:
 - [Captured Evidence Index](evidence/captured/README.md)
 
 Formal agency approval, final feed-root evidence, and consumer acceptance are
-not required to use or improve the software; they are future evidence
-milestones only for agencies that choose public launch or compliance claims.
+not required for local evaluation or open-source contribution. They are future
+authorization-gated evidence tracks only when a maintainer explicitly supplies
+the required scope, retention, redaction, and stop conditions.
 
 ## Architecture And Requirements
-
-Use these when checking product boundaries, integration points, and design
-decisions:
 
 - [Architecture](architecture.md)
 - [Dependencies](dependencies.md)
@@ -94,11 +84,10 @@ decisions:
 - [Trip Updates Requirements](requirements-trip-updates.md)
 - [CAL-ITP / Caltrans Requirements](requirements-calitp-compliance.md)
 
-## Maintainer History
+## Maintainer Docs And History
 
-Detailed phase notes are retained as project history. They should not override
-the current Phase 61+ agency-first connector platform roadmap unless a current
-maintainer task explicitly reopens them.
+Detailed phase history and notes are retained as project history. They should
+not be the first path for a small-agency evaluator.
 
 - [Current Status](current-status.md)
 - [Latest Handoff](handoffs/latest.md)
@@ -110,6 +99,6 @@ maintainer task explicitly reopens them.
 - [Maintainer Handoffs](handoffs/)
 - [Documentation Assets](assets/README.md)
 
-Public-facing pages should stay plain and reader-friendly. Detailed evidence
-records, operational notes, and implementation history belong here rather than
-in the top-level README.
+Public-facing pages should stay task-based and reader-friendly. Detailed
+evidence records, operational notes, and implementation history belong in the
+deeper docs instead of the top-level README.

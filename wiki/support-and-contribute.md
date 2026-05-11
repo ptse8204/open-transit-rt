@@ -13,8 +13,9 @@ A GitHub star is a simple way to show support, similar to a like or bookmark. St
 ## How Agencies Can Help
 
 Agencies can help the project by trying the local/reference workflow, testing
-with their public GTFS ZIP, contributing connector examples, reviewing
-deployment docs, sharing non-sensitive feedback, or sponsoring a later pilot.
+with their public GTFS ZIP, walking the browser-first Operations Console path,
+contributing connector examples, reviewing deployment docs, sharing
+non-sensitive feedback, or sponsoring a later pilot.
 Formal agency approval, final feed-root evidence, and consumer acceptance are
 not required to use or improve the software; they are future evidence
 milestones only for agencies that choose public launch or compliance claims.
@@ -50,7 +51,7 @@ Do not post tokens, DB URLs, private keys, admin URLs with secrets, private port
 
 ## Keep Exploring
 
-- 🧭 [How It Works](how-it-works.md)
-- 💻 [Local Quickstart](local-quickstart.md)
-- 🧩 [Connector Cookbook](connector-cookbook.md)
-- ✅ [Readiness And Evidence](readiness-and-evidence.md)
+- [Small Agency Quick Start](small-agency-quick-start.md)
+- [Operations Console Tour](operations-console-tour.md)
+- [Connector Cookbook](connector-cookbook.md)
+- [Readiness And Evidence](readiness-and-evidence.md)

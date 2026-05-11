@@ -72,7 +72,7 @@ GTFS is the schedule data format used by trip planners. It describes routes, sto
 
 In this repo, a GTFS ZIP can be imported, validated by the internal importer, and published as the active schedule feed. The local app imports the small committed fixture so you can see the feed URLs work.
 
-For a real agency ZIP, use [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md) before importing. That guide covers source permission, metadata approval, validation triage, publish review, privacy/redaction checks, and the Phase 23 final-root boundary. Do not treat the local demo fixture or demo metadata as agency-approved.
+For a real agency ZIP, use [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md) before importing. That guide covers source permission, metadata approval, validation triage, publish review, privacy/redaction checks, and final-root claim boundaries. Do not treat the local demo fixture or demo metadata as agency-approved.
 
 If you already have a reviewed agency ID and GTFS URL, use
 [Reusable Agency Onboarding](reusable-agency-onboarding.md). That flow imports
@@ -160,7 +160,12 @@ The guided setup checklist is available at:
 http://localhost:8080/admin/operations/setup
 ```
 
-It shows feed URLs, validation status, telemetry freshness, safe device binding information, Alerts links, consumer evidence status, setup next actions, and the status source for each setup step. Admin routes still require an admin token; the local proxy does not make them public.
+Start with the **Start Here** section on `/admin/operations`, then use the
+setup wizard at `/admin/operations/setup-wizard`. The setup checklist shows
+feed URLs, validation status, telemetry freshness, safe device binding
+information, Alerts links, consumer evidence status, setup next actions, and
+the status source for each setup step. Admin routes still require an admin
+token; the local proxy does not make them public.
 
 ## Why Validation Matters
 

@@ -407,8 +407,11 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "Start Here", "No-developer path", "Developer path", "Copy These Five Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -908,6 +911,8 @@ func TestOperationsLaunchpadJSONShapeFlagsAndNoLeakage(t *testing.T) {
 	}
 	assertLaunchpadShape(t, launchpad)
 	assertLaunchpadFlagsFalse(t, launchpad.ClaimFlags)
+	assertFirstRunShape(t, launchpad.FirstRun)
+	assertFirstRunFlagsFalse(t, launchpad.FirstRun.ClaimFlags)
 	assertLaunchpadSafeStrings(t, rr.Body.String())
 	if launchpad.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", launchpad.AgencyID)
@@ -926,6 +931,9 @@ func TestOperationsLaunchpadJSONShapeFlagsAndNoLeakage(t *testing.T) {
 				t.Fatalf("section %s unsafe admin link %q", section.ID, link)
 			}
 		}
+	}
+	if launchpad.FirstRun.FeedURLs[0].CopyValue != "https://pilot.example.org/public/feeds.json" {
+		t.Fatalf("feeds.json copy value = %q", launchpad.FirstRun.FeedURLs[0].CopyValue)
 	}
 
 	missingHandler := newOperationsTestHandler(&handler{store: &fakePublicationStore{discoveryErr: errors.New("missing discovery"), scorecardErr: errors.New("missing scorecard"), consumersErr: errors.New("missing consumers")}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
@@ -946,7 +954,12 @@ func TestOperationsLaunchpadJSONShapeFlagsAndNoLeakage(t *testing.T) {
 			t.Fatalf("missing-data section %s status = ok, want missing/unknown/review/blocker", id)
 		}
 	}
+	assertFirstRunShape(t, missing.FirstRun)
+	if status := firstRunTaskStatus(missing.FirstRun, "metadata"); status == checklistStatusOK {
+		t.Fatalf("missing-data first-run metadata status = ok, want missing/review/blocker/unknown")
+	}
 	assertLaunchpadFlagsFalse(t, missing.ClaimFlags)
+	assertFirstRunFlagsFalse(t, missing.FirstRun.ClaimFlags)
 }
 
 func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
@@ -967,7 +980,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Agency Launchpad", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Private Agency Launchpad", "Start Here", "First-Run Acceptance Tasks", "Copy These Five Feed URLs", "No-developer path", "Developer path", "Validation health", "VP/TU/Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -981,6 +994,85 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		}
 	}
 	assertLaunchpadSafeStrings(t, body)
+}
+
+func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
+	now := time.Date(2026, 5, 10, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`, GeneratedAt: now, PublicationEnvironment: "pilot",
+			PublicBaseURL:         "https://pilot.example.org",
+			TechnicalContactEmail: "ops@example.org",
+			License:               compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"},
+			Feeds: []compliance.FeedMetadata{
+				{FeedType: "schedule", CanonicalPublicURL: "https://pilot.example.org/public/gtfs/schedule.zip", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "passed", LastValidationAt: &now},
+				{FeedType: "vehicle_positions", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/vehicle_positions.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "trip_updates", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/trip_updates.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "alerts", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/alerts.pb", ActiveFeedVersionID: "feed-v1"},
+			},
+			Readiness: compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true},
+		},
+		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
+	}
+	srv := newOperationsTestHandler(&handler{
+		store:   store,
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now}}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+			Event: telemetry.Event{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now, Lat: 1, Lon: 2}, ReceivedAt: now,
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
+	body := rr.Body.String()
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("dashboard did not escape script-like metadata: %s", body)
+	}
+	for _, want := range []string{
+		"Start Here",
+		"Task status:",
+		"No-developer path",
+		"Developer path",
+		"First-Run Acceptance Tasks",
+		"Metadata",
+		"GTFS",
+		"Five feed URLs",
+		"Validation health",
+		"Telemetry",
+		"VP/TU/Alerts",
+		"Readiness",
+		"Connectors",
+		"Support/RC checks",
+		"Copy These Five Feed URLs",
+		"https://pilot.example.org/public/feeds.json",
+		"https://pilot.example.org/public/gtfs/schedule.zip",
+		"https://pilot.example.org/public/gtfsrt/vehicle_positions.pb",
+		"https://pilot.example.org/public/gtfsrt/trip_updates.pb",
+		"https://pilot.example.org/public/gtfsrt/alerts.pb",
+		"local wiring only",
+		"separate authorized intake",
+		"external_evidence_created",
+		"consumer_statuses_changed",
+		"compliance_claimed",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("dashboard body missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/admin/operations/first-run", "/public/operations", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("dashboard contains forbidden %q: %s", forbidden, body)
+		}
+	}
 }
 
 func TestSetupWizardRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
@@ -4327,6 +4419,75 @@ func assertSetupWizardFlagsFalse(t *testing.T, flags setupWizardClaimFlags) {
 	}
 }
 
+func assertFirstRunShape(t *testing.T, firstRun operationsFirstRunView) {
+	t.Helper()
+	if firstRun.AgencyID == "" || firstRun.Boundary == "" || firstRun.LocalDemoDeploymentEvidenceBoundary == "" || len(firstRun.Paths) != 2 || len(firstRun.Tasks) != 9 || len(firstRun.FeedURLs) != 5 || firstRun.Counts.Tasks != len(firstRun.Tasks) || firstRun.Counts.FeedURLs != len(firstRun.FeedURLs) {
+		t.Fatalf("invalid first-run top-level shape: %+v", firstRun)
+	}
+	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
+	wantTaskIDs := []string{"metadata", "gtfs", "five_feed_urls", "validation_health", "telemetry", "vp_tu_alerts", "readiness", "connectors", "support_rc_checks"}
+	var gotTaskIDs []string
+	for index, task := range firstRun.Tasks {
+		gotTaskIDs = append(gotTaskIDs, task.ID)
+		if task.Order != index+1 || task.ID == "" || task.Label == "" || task.Status == "" || task.CurrentSignal == "" || task.Meaning == "" || task.NextAction == "" || task.UILink == "" || task.DocsLink == "" || task.DoesNotProve == "" {
+			t.Fatalf("invalid first-run task shape: %+v", task)
+		}
+		if !allowedStatuses[task.Status] {
+			t.Fatalf("first-run task %q status = %q, want neutral status", task.ID, task.Status)
+		}
+		if !strings.HasPrefix(task.UILink, "/admin/") {
+			t.Fatalf("first-run task %s unsafe UI link %q", task.ID, task.UILink)
+		}
+		if !strings.HasPrefix(task.DocsLink, "docs/") {
+			t.Fatalf("first-run task %s unsafe docs link %q", task.ID, task.DocsLink)
+		}
+	}
+	if strings.Join(gotTaskIDs, ",") != strings.Join(wantTaskIDs, ",") {
+		t.Fatalf("first-run task ids = %v, want %v", gotTaskIDs, wantTaskIDs)
+	}
+	wantPathIDs := []string{"no_developer", "developer"}
+	var gotPathIDs []string
+	for _, path := range firstRun.Paths {
+		gotPathIDs = append(gotPathIDs, path.ID)
+		if path.ID == "" || path.Label == "" || path.CurrentSignal == "" || path.Meaning == "" || path.FirstAction == "" || path.UILink == "" || path.DocsLink == "" || path.DoesNotProve == "" {
+			t.Fatalf("invalid first-run path shape: %+v", path)
+		}
+		if !strings.HasPrefix(path.UILink, "/admin/") {
+			t.Fatalf("first-run path %s unsafe UI link %q", path.ID, path.UILink)
+		}
+		if !strings.HasPrefix(path.DocsLink, "docs/") {
+			t.Fatalf("first-run path %s unsafe docs link %q", path.ID, path.DocsLink)
+		}
+	}
+	if strings.Join(gotPathIDs, ",") != strings.Join(wantPathIDs, ",") {
+		t.Fatalf("first-run path ids = %v, want %v", gotPathIDs, wantPathIDs)
+	}
+	wantFeedIDs := []string{"feeds_json", "schedule", "vehicle_positions", "trip_updates", "alerts"}
+	var gotFeedIDs []string
+	for _, row := range firstRun.FeedURLs {
+		gotFeedIDs = append(gotFeedIDs, row.ID)
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.CopyValue == "" || row.Source == "" || row.Meaning == "" || row.NextAction == "" || row.DocsLink == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid first-run feed URL shape: %+v", row)
+		}
+		if !allowedStatuses[row.Status] {
+			t.Fatalf("first-run feed %q status = %q, want neutral status", row.ID, row.Status)
+		}
+		if !strings.HasPrefix(row.DocsLink, "docs/") {
+			t.Fatalf("first-run feed %s unsafe docs link %q", row.ID, row.DocsLink)
+		}
+	}
+	if strings.Join(gotFeedIDs, ",") != strings.Join(wantFeedIDs, ",") {
+		t.Fatalf("first-run feed ids = %v, want %v", gotFeedIDs, wantFeedIDs)
+	}
+}
+
+func assertFirstRunFlagsFalse(t *testing.T, flags operationsFirstRunClaimFlags) {
+	t.Helper()
+	if flags.BackendCommandExecutionEnabled || flags.CacheDiagnosticsRead || flags.ExternalNetworkContacted || flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.SecretsCollected || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ProductionAVLReliabilityClaimed || flags.ProductionGradeETAQualityClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.DynamicBackendPluginLoadingEnabled || flags.ReleaseCandidateApprovalClaimed || flags.ManagedSupportCommitmentClaimed || flags.FinalDeploymentOwnershipClaimed || flags.ConsumerIngestionWorkflowCompleted || flags.ProductionMultiTenantHostingClaimed {
+		t.Fatalf("first-run flags must all be false: %+v", flags)
+	}
+}
+
 func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	t.Helper()
 	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Topics) != 7 {
@@ -4617,6 +4778,15 @@ func launchpadSectionStatus(launchpad agencyLaunchpadView, id string) string {
 	for _, section := range launchpad.Sections {
 		if section.ID == id {
 			return section.Status
+		}
+	}
+	return ""
+}
+
+func firstRunTaskStatus(firstRun operationsFirstRunView, id string) string {
+	for _, task := range firstRun.Tasks {
+		if task.ID == id {
+			return task.Status
 		}
 	}
 	return ""

@@ -1,6 +1,9 @@
 # Requirements — Cal-ITP / Caltrans Technical Compliance and Marketplace Gaps
 
-These requirements formalize the gap between the current starter plan and a system that is technically compliant with Caltrans transit data guidelines, plus the additional gap between technical compliance and marketplace-vendor equivalence.
+These requirements formalize the gap between the current Open Transit RT
+software capabilities, the deployment evidence required before stronger
+Caltrans/CAL-ITP-style public claims, and the separate non-code work required
+for marketplace-vendor equivalence.
 
 ---
 
@@ -223,13 +226,14 @@ If the goal is to resemble a California Mobility Marketplace vendor offering, th
 
 ---
 
-## RQ-4G — Compliance dashboard and scorecard
+## RQ-4G — Readiness dashboard and scorecard
 
 ### Goal
-The product must show compliance posture transparently.
+The product must show readiness posture transparently without treating local
+software signals as deployment evidence.
 
 ### Required behaviors
-- Per-agency compliance dashboard with sections:
+- Per-agency readiness dashboard with sections:
   - GTFS Schedule
   - Vehicle Positions
   - Trip Updates
@@ -237,27 +241,46 @@ The product must show compliance posture transparently.
   - validation status
   - license/discoverability
   - consumer ingestion status
-- Show red/yellow/green state for:
-  - not implemented
-  - implemented but unhealthy
-  - implemented and compliant
-- Exportable compliance report for agency review
+- Show status for:
+  - missing software capability
+  - capability available but unhealthy or unconfigured
+  - capability available but missing deployment/operator evidence
+  - deployment evidence reviewed for the selected scope
+- Exportable readiness report for agency review
 
 ### Acceptance criteria
-- A user can see exactly why an agency is not yet compliant.
-- A user can download a compliance checklist or status report.
+- A user can see exactly which software capability, deployment evidence, or
+  third-party confirmation is still missing before stronger public claims.
+- A user can download a readiness checklist or status report.
 
 ---
 
-## Current gap summary
+## Current capability and evidence summary
 
-The current starter plan is **not yet compliant** because it does not yet fully provide:
-- Trip Updates
-- Alerts
-- full public/stable publication workflow
-- validator-clean outputs across all feeds
-- open-license/discoverability workflow
-- consumer ingestion workflow
-- marketplace-vendor packaging
+Software capability exists for GTFS import/publication, stable feed paths,
+Vehicle Positions, Trip Updates, Alerts, validation workflows, feed health,
+readiness workflows, telemetry ingest, and connector boundaries.
 
-It does provide a foundation that can evolve into compliance if the requirements in this document are implemented.
+That capability is useful for local evaluation and open-source contribution,
+but it is not deployment/compliance evidence for a specific agency-owned public
+root. Stronger public claims still require retained, public-safe evidence for
+the exact claim and deployment scope.
+
+Remaining evidence and service gaps include:
+
+- agency-owned or agency-approved public root proof;
+- current DNS, TLS, anonymous fetch, redirect, and URL-permanence evidence;
+- current validator-clean records for schedule, Vehicle Positions, Trip
+  Updates, and Alerts on the deployed feeds;
+- agency-approved license, contact, and source-of-truth website proof;
+- consumer or aggregator submission, review, acceptance, ingestion, listing,
+  or display records from the named target;
+- real device/vendor AVL proof, real-world realtime quality proof, and
+  production operations evidence;
+- marketplace-vendor packaging, support commitments, and service operations.
+
+External proof tracks are optional and authorization-gated. Evidence packet
+generation, readiness exports, and local audits summarize signals and gaps; by
+themselves they do not prove compliance, agency approval, consumer acceptance,
+vendor compatibility, final-root readiness, production readiness, SLA/uptime,
+or production-grade ETA quality.

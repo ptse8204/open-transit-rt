@@ -29,6 +29,16 @@ A real public deployment still needs deployment-specific work:
 - provider or regional source-of-truth pages;
 - consumer or aggregator submissions when the agency chooses that path.
 
+## Readiness Matrix
+
+| Area | UI signal you can review | Missing deployment evidence before stronger claims |
+| --- | --- | --- |
+| Static GTFS | Browser import, active schedule, public `schedule.zip`, GTFS quality guidance, and validator-health rows. | Agency-approved final dataset, public HTTPS fetch proof, current validator record, license/contact approval, and source-of-truth website listing. |
+| Vehicle Positions | Public Vehicle Positions feed path, feed-health row, telemetry freshness, and readiness row. | Real device telemetry, deployed-feed validator result, stale/unmatched handling review, and operations monitoring proof. |
+| Trip Updates | Public Trip Updates feed path, prediction adapter boundary, feed-health row, and readiness row. | Real operating-data coverage, deployed-feed validator result, agency review of conservative predictions, and consumer acceptance if claimed. |
+| Alerts | Public Alerts feed path, alert lifecycle capability, feed-health row, and readiness row. | Operator alert workflow proof, deployed-feed validator result, live alert lifecycle evidence, and consumer acceptance if claimed. |
+| Discovery and consumers | `feeds.json`, metadata workflow, prepared consumer/aggregator records, and readiness status. | Provider or regional website listing, target-specific submission/review records, and target-originated acceptance/ingestion/listing/display proof. |
+
 ## Claims To Avoid
 
 Do not describe a local run or reference trial as:

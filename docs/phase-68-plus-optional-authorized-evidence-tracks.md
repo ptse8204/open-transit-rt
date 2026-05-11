@@ -48,10 +48,10 @@ document blockers only.
 | Track | Current state | Gate required before work | CP000001/CP000002 boundary |
 | --- | --- | --- | --- |
 | Phase 68 -- Agency trial | Blocked/gated | Written agency/operator authorization, named agency scope, public-safe artifact plan, redaction plan, allowed contact/tools, and stop conditions | Do not contact an agency, record agency feedback, or claim trial progress. |
-| Phase 69 -- Final public root | Blocked/gated | Written authorization for the exact root, approved DNS/TLS/redirect/fetch/validator evidence plan, retention location, redaction rules, and rollback instructions | Do not fetch or verify a final root, write evidence, or claim final-root proof. |
-| Phase 70 -- Consumer submission | Blocked/gated | Written selected-target authorization, target path evidence, exact feed scope, approved operator action plan, public-safe retained artifacts, and status-transition criteria | Do not contact consumers, automate portals, add artifacts, or move statuses. |
-| Phase 71 -- AVL/vendor | Blocked/gated | Written vendor/device authorization, payload/data-sharing approval, credential handling plan, redaction plan, conformance criteria, and stop conditions | Do not ingest real vendor data, add compatibility evidence, or claim vendor support. |
-| Phase 72 -- ETA quality | Blocked/gated | Written study authorization, real observed-arrival/departure data approval, metric definitions, privacy/redaction plan, and artifact retention rules | Do not collect real-world ETA data, compute retained results, or claim ETA quality. |
+| Future final public root evidence track | Blocked/gated | Written authorization for the exact root, approved DNS/TLS/redirect/fetch/validator evidence plan, retention location, redaction rules, and rollback instructions | Do not fetch or verify a final root, write evidence, or claim final-root proof. |
+| Future consumer submission evidence track | Blocked/gated | Written selected-target authorization, target path evidence, exact feed scope, approved operator action plan, public-safe retained artifacts, and status-transition criteria | Do not contact consumers, automate portals, add artifacts, or move statuses. |
+| Future AVL/vendor evidence track | Blocked/gated | Written vendor/device authorization, payload/data-sharing approval, credential handling plan, redaction plan, conformance criteria, and stop conditions | Do not ingest real vendor data, add compatibility evidence, or claim vendor support. |
+| Future ETA quality evidence track | Blocked/gated | Written study authorization, real observed-arrival/departure data approval, metric definitions, privacy/redaction plan, and artifact retention rules | Do not collect real-world ETA data, compute retained results, or claim ETA quality. |
 
 ## Required Future Intake Fields
 
