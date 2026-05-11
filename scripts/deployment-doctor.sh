@@ -602,11 +602,33 @@ record_https_posture() {
     return 0
   fi
   add_check "https_posture" "public_root" "passed" "non-loopback public root uses HTTPS"
-  if command -v openssl >/dev/null 2>&1; then
+  if command -v python3 >/dev/null 2>&1; then
     cert_meta="$OUT_REAL/https/certificate.summary"
     set +e
-    echo | openssl s_client -servername "$PUBLIC_BASE_HOST" -connect "$PUBLIC_BASE_HOST:443" 2>/dev/null |
-      openssl x509 -noout -subject -issuer -dates >"$cert_meta" 2>/dev/null
+    python3 - "$PUBLIC_BASE_HOST" "$CONNECT_TIMEOUT_SECONDS" >"$cert_meta" 2>/dev/null <<'PY'
+import socket
+import ssl
+import sys
+
+host = sys.argv[1]
+timeout = float(sys.argv[2])
+context = ssl.create_default_context()
+with socket.create_connection((host, 443), timeout=timeout) as sock:
+    with context.wrap_socket(sock, server_hostname=host) as tls:
+        cert = tls.getpeercert()
+
+def name(parts):
+    values = []
+    for group in parts or []:
+        for key, value in group:
+            values.append(f"{key}={value}")
+    return ", ".join(values)
+
+print(f"subject={name(cert.get('subject'))}")
+print(f"issuer={name(cert.get('issuer'))}")
+print(f"notBefore={cert.get('notBefore', '')}")
+print(f"notAfter={cert.get('notAfter', '')}")
+PY
     rc=$?
     set -e
     if [ "$rc" -eq 0 ]; then
@@ -616,7 +638,7 @@ record_https_posture() {
       rm -f "$cert_meta"
     fi
   else
-    add_check "https_posture" "tls_certificate" "unavailable" "openssl missing"
+    add_check "https_posture" "tls_certificate" "unavailable" "python3 missing"
   fi
   if command -v curl >/dev/null 2>&1; then
     http_url="http://$PUBLIC_BASE_HOST"
