@@ -17,8 +17,9 @@ before planning new product phases.
 Phase 61 -- Agency-First UI And Connector Hub is complete. Phase 62 -- Guided
 Setup and Browser GTFS Import is complete. Phase 63 -- Feed Health and
 Readiness UX is complete. Phase 64 -- Connector Platform and SDKs is complete.
-Phase 65 -- Operator Workflow and Data Quality UX is complete. The current
-active phase is Phase 66 -- Release Candidate and Installability.
+Phase 65 -- Operator Workflow and Data Quality UX is complete. Phase 66 --
+Release Candidate and Installability is complete. The current active phase is
+Phase 67 -- Product Polish, Accessibility, and In-App Help.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -73,7 +74,14 @@ Phase 63 closeout lives in
 
 The current default work is Phase 67 -- Product Polish, Accessibility, and
 In-App Help.
-Checkpoint 000001 added the Phase 66 plan in
+Phase 67 Checkpoint 000001 added the scoped product polish, accessibility, and
+in-app help plan in
+`docs/phase-67-product-polish-accessibility-in-app-help.md`, corrected stale
+current-roadmap wording, and kept protected evidence/status paths untouched.
+The next checkpoint is
+`Phase 67 -- Checkpoint 000002: improve operations console information architecture`.
+
+Phase 66 checkpoint history: Checkpoint 000001 added the Phase 66 plan in
 `docs/phase-66-release-candidate-and-installability.md`.
 Checkpoint 000002 prepared the first release-candidate workflow in
 `docs/release-candidate-readiness.md`, the release process docs, and the
@@ -119,9 +127,7 @@ publishing decision: no published app image, no registry push, and no hosted
 service claim. Checkpoint 000005 added the docs/demo site plan as
 repository-native planning only with no hosting, marketing launch, evidence
 collection, or public-launch claim. Checkpoint 000006 closed Phase 66 with
-validation, protected-path, consumer-tracker, and claim-boundary review. The
-next checkpoint is `Phase 67 -- Checkpoint 000001: add product polish and
-accessibility plan`.
+validation, protected-path, consumer-tracker, and claim-boundary review.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 

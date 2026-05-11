@@ -2,10 +2,15 @@
 
 ## Status
 
-Post-60 productization is the active default roadmap. It is not Phase 61, and
-it does not reopen Phases 0 through 60.
+This page is retained as historical Post-60 productization context.
+The current forward product roadmap is the maintainer-authorized Phase 61+
+agency-first connector platform roadmap in
+`docs/roadmaps/agency-first-connector-platform/`. This naming change does not
+reopen Phases 0 through 60 or invalidate the bounded Post-60 productization
+work already completed.
 
-The default next work is product quality and external connection maturity:
+The historical Post-60 default work was product quality and external
+connection maturity:
 clear agency evaluator paths, release-candidate checks, connector contracts,
 adapter conformance, generic examples, operator launchpad workflow, and
 readiness gap reporting. Real-world evidence tracks remain optional and

@@ -97,12 +97,13 @@ decisions:
 ## Maintainer History
 
 Detailed phase notes are retained as project history. They should not override
-the current Post-60 productization direction unless a current maintainer task
-explicitly reopens them.
+the current Phase 61+ agency-first connector platform roadmap unless a current
+maintainer task explicitly reopens them.
 
 - [Current Status](current-status.md)
 - [Latest Handoff](handoffs/latest.md)
-- [Post-60 Product Roadmap](post-60-product-roadmap.md)
+- [Phase 61+ Product Roadmap](roadmaps/agency-first-connector-platform/README.md)
+- [Historical Post-60 Product Roadmap](post-60-product-roadmap.md)
 - [Roadmap Status](roadmap-status.md)
 - [Backlog](backlog.md)
 - [Open Questions](open-questions.md)

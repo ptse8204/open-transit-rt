@@ -181,13 +181,17 @@ production-grade ETA quality.
 ## Default Next Work
 
 The active work is Phase 67 -- Product Polish, Accessibility, and In-App Help.
-Phase 66 closed after improving release-candidate workflow, local bootstrap
-preflight and first-run messaging, Docker image publishing decision docs, and a
-repository-native docs/demo site plan. Phase 66 did not create retained
-evidence, publish artifacts, push images, change consumer statuses, or claim
-hosted SaaS, universal production readiness, SLA/uptime, agency adoption,
-consumer acceptance, public launch, or compliance. The next checkpoint is
-`Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`.
+Checkpoint 000001 added the scoped product polish, accessibility, and in-app
+help plan in `docs/phase-67-product-polish-accessibility-in-app-help.md` and
+aligned stale roadmap pointers so the Phase 61+ roadmap remains the current
+forward product path. Phase 66 closed after improving release-candidate
+workflow, local bootstrap preflight and first-run messaging, Docker image
+publishing decision docs, and a repository-native docs/demo site plan. Phase
+66 did not create retained evidence, publish artifacts, push images, change
+consumer statuses, or claim hosted SaaS, universal production readiness,
+SLA/uptime, agency adoption, consumer acceptance, public launch, or
+compliance. The next checkpoint is
+`Phase 67 -- Checkpoint 000002: improve operations console information architecture`.
 
 Keep Phase 67 focused on private Operations Console information architecture,
 accessibility, responsive layout, keyboard-friendly UI, and in-app help for
@@ -1823,7 +1827,8 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 67 -- Product Polish, Accessibility, and In-App Help. The
-default next work is `Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`.
+default next work is
+`Phase 67 -- Checkpoint 000002: improve operations console information architecture`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

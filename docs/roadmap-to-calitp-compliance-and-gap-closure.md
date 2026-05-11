@@ -1,10 +1,10 @@
 # Roadmap To Cal-ITP Compliance And GTFS-RT Gap Closure
 
-**Status:** Phase 60 closed; Post-60 productization is the default roadmap
+**Status:** Phase 60 closed; Phase 61+ is the current forward product roadmap
 **Intended repo path:** `docs/roadmap-to-calitp-compliance-and-gap-closure.md`
 **Generated for review:** 2026-05-08
 **Phase 54 refresh date:** 2026-05-09
-**Current repo baseline:** Phases 0 through 60 are closed for their documented scopes. Phase 60 closed for final claim review and public closeout. Post-60 default work is product quality and external connection maturity, not real agency/public pilot evidence.
+**Current repo baseline:** Phases 0 through 60 are closed for their documented scopes. Phase 60 closed for final claim review and public closeout. The current forward roadmap uses Phase 61+ naming for agency-first UI, guided setup, connector-platform, release, polish, and authorization-gated evidence scaffolding. Optional real agency/public pilot evidence remains authorization-gated.
 
 This roadmap plans the path from the current self-hosted agency-reuse prototype
 to a fully evidence-backed, open-source GTFS / GTFS-Realtime operations stack
@@ -17,10 +17,11 @@ adopted or approved by an agency, available as hosted SaaS, production-ready
 for all deployments, vendor-compatible, marketplace approved, agency-owned
 final-root proven, or production-grade ETA quality proven.
 
-## Post-60 Default Direction
+## Phase 61+ Default Direction
 
-Post-60 work does not start Phase 61 and does not make real agency/public pilot
-evidence the default path. The default roadmap is productization:
+The maintainer-authorized Phase 61+ roadmap continues the bounded
+productization path and does not make real agency/public pilot evidence the
+default path. The default roadmap is:
 
 - release-candidate readiness from a fresh clone;
 - connector plugin contracts using sidecar and manifest boundaries;

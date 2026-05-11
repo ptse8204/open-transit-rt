@@ -213,8 +213,11 @@ release-candidate workflow, improved bootstrap/preflight UX, documented the
 Docker image publishing decision as source/local-image only, added the
 docs/demo site plan, and closed with validation, protected-path,
 consumer-tracker, and claim-boundary review.
-Phase 67 — Product Polish, Accessibility, and In-App Help is active. The next
-checkpoint is `Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`.
+Phase 67 — Product Polish, Accessibility, and In-App Help is active.
+Checkpoint 000001 added the scoped product polish, accessibility, and in-app
+help plan and aligned stale roadmap pointers so the Phase 61+ roadmap remains
+the forward product path. The next checkpoint is
+`Phase 67 -- Checkpoint 000002: improve operations console information architecture`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
