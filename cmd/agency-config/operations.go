@@ -53,6 +53,7 @@ type operationsPage struct {
 	ReadinessItems         []readinessItemView
 	Checklist              operatorChecklistView
 	Launchpad              agencyLaunchpadView
+	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
 	GTFSQuality            compliance.GTFSQualityTriage
 	GTFSQualityNotice      string
@@ -213,6 +214,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderConnectorHubJSON(w, r)
+	case "setup-wizard":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderSetupWizard(w, r)
+	case "setup-wizard.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderSetupWizardJSON(w, r)
 	case "checklist":
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -715,6 +730,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.Launchpad = buildAgencyLaunchpad(page)
+	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
 	return page
 }
@@ -1556,6 +1572,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <nav>
 <a href="/admin/operations">Dashboard</a>
 <a href="/admin/operations/launchpad">Launchpad</a>
+<a href="/admin/operations/setup-wizard">Setup Wizard</a>
 <a href="/admin/operations/connectors">Connector Hub</a>
 <a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
@@ -1569,8 +1586,6 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/evidence">Evidence</a>
 <a href="/admin/operations/setup">Setup</a>
 <a href="/admin/operations/checklist">Checklist</a>
-<a href="/admin/operations/launchpad.json">Launchpad JSON</a>
-<a href="/admin/operations/checklist.json">Checklist JSON</a>
 <a href="/admin/gtfs-studio">GTFS Studio</a>
 </nav>
 {{end}}
@@ -1583,7 +1598,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p>Start with setup, GTFS, telemetry, feed health, readiness, and connector options. This private console is an operator workflow; it creates no retained evidence and records no approval, compliance, consumer, hosted-service, vendor, SLA, or production-grade ETA outcome.</p>
 </div>
 <div class="card-grid" aria-label="Primary operations actions">
-<section class="card"><h3>Start setup</h3><p>Store agency metadata, feed URL metadata, and validator choices.</p><p><a href="/admin/operations/setup">Open setup</a></p></section>
+<section class="card"><h3>Start setup</h3><p>Walk through agency profile, GTFS, feeds, telemetry, validators, connectors, and readiness.</p><p><a href="/admin/operations/setup-wizard">Open setup wizard</a></p></section>
 <section class="card"><h3>Check feeds</h3><p>Review feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts records.</p><p><a href="/admin/operations/feeds">Review feed health</a></p></section>
 <section class="card"><h3>Connect telemetry</h3><p>Rotate device credentials and inspect latest accepted vehicle observations.</p><p><a href="/admin/operations/devices">Manage devices</a></p></section>
 <section class="card"><h3>Use connectors</h3><p>Choose sidecar, manifest, command-adapter, and conformance paths without dynamic backend code loading.</p><p><a href="/admin/operations/connectors">Open Connector Hub</a></p></section>
@@ -1602,6 +1617,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Dashboard Sections</h2>
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
 <tr><td>Private agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
+<tr><td>Setup wizard</td><td>{{len .SetupWizard.Stages}} staged setup rows</td><td>{{formatTime .SetupWizard.GeneratedAt}}</td><td><a href="/admin/operations/setup-wizard">open wizard</a> · <a href="/admin/operations/setup-wizard.json">export JSON</a></td></tr>
 <tr><td>Connector Hub</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
@@ -1653,6 +1669,31 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{range .Launchpad.DecisionNotes}}<tr><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">No POST action exists for this page. Missing data remains missing or unknown until the underlying private source records change.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "setup-wizard"}}
+{{template "layoutStart" .}}
+<h2>Setup Wizard</h2>
+<p class="warning">{{.SetupWizard.Boundary}}</p>
+<p><a href="/admin/operations/setup-wizard.json">Export private setup wizard JSON</a> · <a href="/admin/operations/setup">Open guided setup</a> · <a href="/admin/operations/checklist">Open private checklist</a></p>
+<table><tbody>
+<tr><th><code>external_evidence_created</code></th><td>{{.SetupWizard.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.SetupWizard.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.SetupWizard.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.SetupWizard.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.SetupWizard.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>agency_approval_claimed</code></th><td>{{.SetupWizard.ClaimFlags.AgencyApprovalClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.SetupWizard.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.SetupWizard.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.SetupWizard.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.SetupWizard.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.SetupWizard.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+</tbody></table>
+<table><thead><tr><th>ID</th><th>Stage</th><th>Status</th><th>Current signal</th><th>Primary action</th><th>Console</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
+{{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.AdminLink}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+<p class="muted">This wizard is GET-only. It does not upload GTFS, mutate setup state, run validators, contact external systems, or create public routes.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

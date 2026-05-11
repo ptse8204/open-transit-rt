@@ -851,6 +851,181 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 	assertLaunchpadSafeStrings(t, body)
 }
 
+func TestSetupWizardRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/setup-wizard", "/admin/operations/setup-wizard.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/setup-wizard", "/admin/operations/setup-wizard.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/setup-wizard", "/admin/operations/setup-wizard.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/setup-wizard?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/setup-wizard.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/setup-wizard.json", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public setup wizard route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestSetupWizardJSONShapeFlagsAndStages(t *testing.T) {
+	now := time.Date(2026, 5, 10, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: "Demo Agency", GeneratedAt: now, PublicationEnvironment: "pilot",
+			PublicBaseURL:         "https://pilot.example.org",
+			TechnicalContactEmail: "ops@example.org",
+			License:               compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"},
+			Feeds: []compliance.FeedMetadata{
+				{FeedType: "schedule", CanonicalPublicURL: "https://pilot.example.org/public/gtfs/schedule.zip", ActiveFeedVersionID: "feed-v1", LastValidationStatus: "passed", LastValidationAt: &now},
+				{FeedType: "vehicle_positions", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/vehicle_positions.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "trip_updates", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/trip_updates.pb", ActiveFeedVersionID: "feed-v1"},
+				{FeedType: "alerts", CanonicalPublicURL: "https://pilot.example.org/public/gtfsrt/alerts.pb", ActiveFeedVersionID: "feed-v1"},
+			},
+			Readiness: compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true},
+		},
+		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
+	}
+	srv := newOperationsTestHandler(&handler{
+		store:   store,
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now}}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{{
+			Event: telemetry.Event{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now, Lat: 1, Lon: 2}, ReceivedAt: now,
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/setup-wizard.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var wizard operationsSetupWizardView
+	if err := json.Unmarshal(rr.Body.Bytes(), &wizard); err != nil {
+		t.Fatalf("decode setup wizard: %v", err)
+	}
+	assertSetupWizardShape(t, wizard)
+	assertSetupWizardFlagsFalse(t, wizard.ClaimFlags)
+	assertSetupWizardSafeStrings(t, rr.Body.String())
+	if wizard.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", wizard.AgencyID)
+	}
+	var ids []string
+	for _, stage := range wizard.Stages {
+		ids = append(ids, stage.ID)
+	}
+	wantIDs := []string{"agency_profile", "publication_metadata", "gtfs", "feeds", "telemetry", "validators", "connectors", "readiness"}
+	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
+		t.Fatalf("stage ids = %v, want %v", ids, wantIDs)
+	}
+
+	missingHandler := newOperationsTestHandler(&handler{store: &fakePublicationStore{discoveryErr: errors.New("missing discovery"), scorecardErr: errors.New("missing scorecard"), consumersErr: errors.New("missing consumers")}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/setup-wizard.json", nil)
+	rr = httptest.NewRecorder()
+	missingHandler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("missing status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var missing operationsSetupWizardView
+	if err := json.Unmarshal(rr.Body.Bytes(), &missing); err != nil {
+		t.Fatalf("decode missing setup wizard: %v", err)
+	}
+	for _, id := range []string{"agency_profile", "publication_metadata", "gtfs", "feeds", "telemetry"} {
+		if status := setupWizardStageStatus(missing, id); status == checklistStatusOK {
+			t.Fatalf("missing-data stage %s status = ok, want missing/unknown/review/blocker", id)
+		}
+	}
+	assertSetupWizardFlagsFalse(t, missing.ClaimFlags)
+}
+
+func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`,
+			License: compliance.License{Name: "Demo License", URL: "https://example.org/license"},
+		},
+		scorecardErr: errors.New("no scorecard"),
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/setup-wizard", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Setup Wizard", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Publication metadata", "GTFS", "Feeds", "Telemetry", "Validators", "Connectors", "Readiness"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html body missing %q: %s", want, body)
+		}
+	}
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("html did not escape script-like metadata: %s", body)
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/setup-wizard", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "gtfs upload"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("setup wizard html contains forbidden %q: %s", forbidden, body)
+		}
+	}
+	assertSetupWizardSafeStrings(t, body)
+}
+
 func TestConnectorHubRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
 		t.Run(string(role), func(t *testing.T) {
@@ -2567,6 +2742,42 @@ func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
 	}
 }
 
+func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
+	t.Helper()
+	if wizard.AgencyID == "" || wizard.Boundary == "" || len(wizard.Stages) != 8 || wizard.Counts.Stages != len(wizard.Stages) {
+		t.Fatalf("invalid setup wizard top-level shape: %+v", wizard)
+	}
+	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
+	seenIDs := map[string]bool{}
+	for _, stage := range wizard.Stages {
+		if stage.ID == "" || stage.Label == "" || stage.Status == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.AdminLink == "" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
+			t.Fatalf("invalid setup wizard stage shape: %+v", stage)
+		}
+		if seenIDs[stage.ID] {
+			t.Fatalf("duplicate setup wizard stage id %q", stage.ID)
+		}
+		seenIDs[stage.ID] = true
+		if !allowedStatuses[stage.Status] {
+			t.Fatalf("stage %q status = %q, want neutral status", stage.ID, stage.Status)
+		}
+		if !strings.HasPrefix(stage.AdminLink, "/admin/") {
+			t.Fatalf("stage %s has unsafe admin link %q", stage.ID, stage.AdminLink)
+		}
+		for _, link := range stage.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("stage %s has unsafe docs link %q", stage.ID, link)
+			}
+		}
+	}
+}
+
+func assertSetupWizardFlagsFalse(t *testing.T, flags setupWizardClaimFlags) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.VendorCompatibilityClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("setup wizard flags must all be false: %+v", flags)
+	}
+}
+
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
 	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 {
@@ -2631,10 +2842,34 @@ func assertLaunchpadSafeStrings(t *testing.T, body string) {
 	}
 }
 
+func assertSetupWizardSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("setup wizard leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "compliance_achieved"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("setup wizard emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
 func launchpadSectionStatus(launchpad agencyLaunchpadView, id string) string {
 	for _, section := range launchpad.Sections {
 		if section.ID == id {
 			return section.Status
+		}
+	}
+	return ""
+}
+
+func setupWizardStageStatus(wizard operationsSetupWizardView, id string) string {
+	for _, stage := range wizard.Stages {
+		if stage.ID == id {
+			return stage.Status
 		}
 	}
 	return ""
