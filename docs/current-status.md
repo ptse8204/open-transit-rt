@@ -37,20 +37,21 @@ feedback, and keeps the CLI import path available. It creates no retained
 evidence, changes no consumer statuses, and makes no compliance, adoption,
 acceptance, hosted-service, vendor-compatibility, production-readiness, public
 launch, or ETA-quality claim.
-Phase 63 is active for Feed Health and Readiness UX. Checkpoint 000002 added
-private read-only feed health routes at `/admin/operations/feed-health` and
-`/admin/operations/feed-health.json`. They summarize exactly five feed rows
+Phase 63 is complete for Feed Health and Readiness UX. It added private
+read-only feed health routes at `/admin/operations/feed-health` and
+`/admin/operations/feed-health.json`, summarizing exactly five feed rows
 (`feeds.json`, schedule, Vehicle Positions, Trip Updates, and Alerts) with
 plain-language status, freshness, validator context, health context, next
-actions, and "does not prove" boundaries. Checkpoint 000003 added private
-readiness checklist v2 at `/admin/operations/readiness` plus
+actions, and "does not prove" boundaries. It also added private readiness
+checklist v2 at `/admin/operations/readiness` plus
 `/admin/operations/readiness.json`, with rows for discovery metadata, feed
 health, static GTFS quality, Vehicle Positions, Trip Updates, Alerts,
 validator health, reliability, telemetry/devices, scorecard, and consumer
 prepared tracker signals. These dashboards reuse existing private records and
 add no public route, migration, evidence write, consumer status change, or
 stronger compliance/adoption/acceptance/hosted-service/vendor/production/public
-launch/ETA claim. The next Phase 63 checkpoint is closeout.
+launch/ETA claim. The next active roadmap phase is Phase 64 -- Connector
+Platform and SDKs.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -157,23 +158,27 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The active work is Phase 63 -- Feed Health and Readiness UX. Phase 63 has
-added the private plain-language feed-health dashboard and readiness checklist
-v2. The next checkpoint should close the phase without weakening claim
+The active work is Phase 64 -- Connector Platform and SDKs. Phase 63 is closed
+after adding the private feed-health dashboard and readiness checklist v2. The
+next checkpoint should add the Phase 64 plan without weakening claim
 boundaries:
 
-- keep the Phase 63 routes and docs consistent;
-- rerun baseline validation;
-- confirm protected evidence and consumer tracker status are unchanged;
-- record the closeout and move to Phase 64 only after the claim-boundary review
-  is clean.
+- scope connector manifest registry UI, test runner UX, and SDK/example
+  improvements;
+- keep connectors as optional sidecars, command adapters, manifests, or
+  connector processes;
+- preserve connector manifest schema and adapter contracts unless a narrow,
+  reviewed Phase 64 checkpoint explicitly requires a bounded change;
+- avoid dynamic backend plugin loading, real vendor payloads, credentials,
+  vendor compatibility claims, and evidence/status changes.
 
 This roadmap does not create evidence, move consumer statuses, contact external
 parties, or strengthen any compliance, adoption, hosted service, vendor, public
 launch, or ETA-quality claim.
 
-Phase 63 planning is captured in
-`docs/phase-63-feed-health-and-readiness-ux.md`.
+Phase 63 closeout is captured in
+`docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 planning should start
+from `docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-64-connector-platform-and-sdks.md`.
 
 Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
 
@@ -1796,11 +1801,11 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-Continue with Phase 63 -- Feed Health and Readiness UX. The default next work
-is checkpoint closeout for the feed-health and readiness UX work. Connector
-contract quality, adapter conformance, generic connector examples, private
-operator launchpad workflow, and `.cache`-only readiness gap checks remain
-later roadmap work. For public/status wording work, start with
+Continue with Phase 64 -- Connector Platform and SDKs. The default next work
+is `Phase 64 -- Checkpoint 000001: add connector platform and SDK plan`.
+Connector manifest registry UI, connector test runner UX, and telemetry,
+prediction, validator, and monitoring/export connector examples remain inside
+Phase 64. For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:

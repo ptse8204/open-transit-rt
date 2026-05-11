@@ -171,10 +171,17 @@ connector/plugin wording limited to optional sidecars, manifests, command
 adapters, or connector processes. Phase 61 created no evidence, changed no
 consumer statuses, added no dynamic backend plugin loading, and made no
 stronger claim.
+Phase 62 — Guided Setup And Browser GTFS Import is complete for its bounded
+private Operations Console scope. It added the setup wizard and admin-only
+browser GTFS import flow without public routes, migrations, retained evidence,
+consumer status changes, or stronger claims.
+Phase 63 — Feed Health And Readiness UX is complete for its bounded private
+Operations Console scope. It added the feed-health dashboard and readiness
+checklist v2 for existing private signals without public routes, schema
+changes, retained evidence, consumer status changes, or stronger claims.
 
-The immediate next step is Phase 62 — Guided Setup And Browser GTFS Import.
-Start with the Phase 62 prompt and a fresh read-only planning pass before
-implementation.
+The immediate next step is Phase 64 — Connector Platform And SDKs. Start with
+the Phase 64 prompt and a fresh read-only planning pass before implementation.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality
@@ -182,4 +189,7 @@ evidence remain future optional paths when retained claim-specific artifacts are
 available. Do not make stronger public claims from Phase 33 beyond local/pilot
 public-GTFS dataset handling.
 
-Use `docs/track-b-productization-roadmap.md` for the forward roadmap, `docs/roadmap-post-phase-14.md` for historical post-Phase-14 context, and `docs/handoffs/latest.md` for the current handoff state.
+Use `docs/roadmaps/agency-first-connector-platform/README.md` for the Phase
+61+ forward roadmap, `docs/track-b-productization-roadmap.md` for historical
+Track B context, `docs/roadmap-post-phase-14.md` for older post-Phase-14
+context, and `docs/handoffs/latest.md` for the current handoff state.

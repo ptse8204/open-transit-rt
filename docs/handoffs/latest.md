@@ -15,8 +15,9 @@ from `docs/roadmaps/agency-first-connector-platform/00-CODEX-READ-ME-FIRST.md`
 before planning new product phases.
 
 Phase 61 -- Agency-First UI And Connector Hub is complete. Phase 62 -- Guided
-Setup and Browser GTFS Import is complete. The current active phase is Phase 63
--- Feed Health and Readiness UX.
+Setup and Browser GTFS Import is complete. Phase 63 -- Feed Health and
+Readiness UX is complete. The current active phase is Phase 64 -- Connector
+Platform and SDKs.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -46,30 +47,32 @@ not add public routes, migrations, evidence writes, consumer status changes, or
 stronger compliance/adoption/acceptance/hosted-service/vendor/production/ETA
 claims.
 
-Phase 63 must make feed health and CAL-ITP-style readiness easier to understand
-without requiring operators to read diagnostic tables. Checkpoint 000002 added
-private read-only feed health routes at `/admin/operations/feed-health` and
-`/admin/operations/feed-health.json`. They summarize `feeds.json`, schedule,
+Phase 63 made feed health and CAL-ITP-style readiness easier to understand
+without requiring operators to read diagnostic tables. It added private
+read-only feed health routes at `/admin/operations/feed-health` and
+`/admin/operations/feed-health.json`, summarizing `feeds.json`, schedule,
 Vehicle Positions, Trip Updates, and Alerts with plain-language status,
 freshness, validator context, health context, next actions, and "does not
-prove" boundaries. Checkpoint 000003 added private readiness checklist v2 at
-`/admin/operations/readiness` and `/admin/operations/readiness.json`. It
-returns only the v2 model in JSON, keeps all claim flags false, and explains
-readiness item, status, current signal, meaning, why it matters, next action,
-what it does not prove, and admin/doc links for discovery, feed health, GTFS
-quality, Vehicle Positions, Trip Updates, Alerts, validator health,
-reliability, telemetry/devices, scorecard, and consumer prepared tracker
-signals. The next checkpoint is Phase 63 closeout. Do not claim SLA/uptime
-proof or CAL-ITP/Caltrans compliance.
+prove" boundaries. It also added private readiness checklist v2 at
+`/admin/operations/readiness` and `/admin/operations/readiness.json`. The JSON
+returns only the v2 model, keeps all claim flags false, and explains readiness
+item, status, current signal, meaning, why it matters, next action, what it
+does not prove, and admin/doc links for discovery, feed health, GTFS quality,
+Vehicle Positions, Trip Updates, Alerts, validator health, reliability,
+telemetry/devices, scorecard, and consumer prepared tracker signals. Phase 63
+is closed. Do not claim SLA/uptime proof or CAL-ITP/Caltrans compliance.
 
-Phase 63 planning lives in
+Phase 63 closeout lives in
 `docs/phase-63-feed-health-and-readiness-ux.md`.
 
-The current default work is Phase 63 closeout. Release-candidate readiness,
-connector contracts, adapter conformance, generic connector examples, private
-agency launchpad workflow, and `.cache`-only Caltrans-style readiness gap
-summaries remain later roadmap work. Optional evidence tracks remain future
-authorization-gated work and are not the default continuation path.
+The current default work is Phase 64 -- Connector Platform and SDKs. Start
+from
+`docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-64-connector-platform-and-sdks.md`.
+Phase 64 should make connector manifests, conformance, and SDK examples more
+visible and testable without dynamic backend plugin loading, real credentials,
+real vendor payloads, vendor compatibility claims, or evidence/status changes.
+Optional evidence tracks remain future authorization-gated work and are not the
+default continuation path.
 
 Post-60 Checkpoints 000009 through 000012 completed the agency-ready
 productization pass:
@@ -1150,14 +1153,11 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue with Phase 63 -- Feed Health and Readiness UX. Phases 0 through 60
-remain closed, Phase 61 and Phase 62 are complete, and the next Phase 63
-checkpoint is closeout for the feed-health and readiness UX work. Release
-candidate readiness, connector contract quality, adapter conformance, generic
-connector examples, private agency launchpad workflow, and `.cache`-only
-readiness gap summaries remain later roadmap work. For public/status wording
-work, start with `make audit-final-claim-review` and keep unsupported claims
-removed or bounded.
+Continue with Phase 64 -- Connector Platform and SDKs. Phases 0 through 60
+remain closed, and Phases 61, 62, and 63 are complete. The next checkpoint is
+`Phase 64 -- Checkpoint 000001: add connector platform and SDK plan`. For
+public/status wording work, start with `make audit-final-claim-review` and
+keep unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted
