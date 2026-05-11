@@ -46,7 +46,7 @@ fi
 
 echo "==> Installing base system packages via dnf..."
 dnf install -y --setopt=install_weak_deps=False \
-  curl wget unzip zip git ca-certificates python3
+  curl wget unzip zip git ca-certificates python3 java-17-openjdk-headless
 echo "==> Base system packages installed."
 
 if ! swapon --show | grep -q '/swapfile-extra' 2>/dev/null; then

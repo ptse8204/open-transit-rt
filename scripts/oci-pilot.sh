@@ -153,7 +153,7 @@ cmd_push() {
   fi
 
   echo "==> Creating remote directory structure..."
-  ssh_run "sudo mkdir -p ${OCI_REMOTE_DIR}/{bin,app/db/migrations,app/testdata,app/deploy/systemd,app/deploy/oci,app/scripts,.cache/validators,data,ops,backups,evidence}"
+  ssh_run "sudo mkdir -p ${OCI_REMOTE_DIR}/{bin,app/db/migrations,app/testdata,app/tools/validators,app/deploy/systemd,app/deploy/oci,app/scripts,.cache/validators,data,ops,backups,evidence}"
   ssh_run "sudo chown -R ${OCI_APP_USER}:${OCI_APP_USER} ${OCI_REMOTE_DIR}"
   ssh_run "sudo chmod 750 ${OCI_REMOTE_DIR}"
 
@@ -166,6 +166,9 @@ cmd_push() {
 
   echo "==> Uploading testdata (GTFS fixtures)..."
   copy_dir_to_remote "testdata" "${OCI_REMOTE_DIR}/app/testdata"
+
+  echo "==> Uploading validator lock metadata..."
+  copy_dir_to_remote "tools/validators" "${OCI_REMOTE_DIR}/app/tools/validators"
 
   echo "==> Uploading deploy assets (systemd units, OCI config)..."
   copy_dir_to_remote "deploy/systemd" "${OCI_REMOTE_DIR}/app/deploy/systemd"
