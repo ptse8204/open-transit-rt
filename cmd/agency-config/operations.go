@@ -83,6 +83,7 @@ type operationsPage struct {
 	DeviceToken            string
 	DeviceTokenMeta        devices.RebindResult
 	Links                  []evidenceLink
+	NavGroups              []operationsNavGroup
 	Section                string
 	StaleThreshold         time.Duration
 }
@@ -733,6 +734,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		EnvironmentLabel: firstNonEmpty(os.Getenv("PUBLICATION_ENVIRONMENT"), "unknown"),
 		CSRFToken:        csrfToken(h.csrfSecret, principal),
 		Section:          section,
+		NavGroups:        operationsNavGroups(section),
 		StaleThreshold:   staleThreshold(),
 		IsAdmin:          principal.HasAny(auth.RoleAdmin),
 		Links: []evidenceLink{
@@ -1648,8 +1650,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <!doctype html><html><head><meta charset="utf-8"><title>{{.Title}}</title>
 <style>
 body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:2rem;line-height:1.4;color:#1f2933}
-nav{display:flex;flex-wrap:wrap;gap:.45rem;margin:1rem 0 1.25rem}nav a{border:1px solid #d8dee4;border-radius:4px;padding:.32rem .5rem;text-decoration:none;color:#1f2933;background:#fff}
-nav a:focus,nav a:hover{border-color:#6b7280;background:#f6f8fa} table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
+.operations-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem;margin:1rem 0 1.25rem}.nav-group{border:1px solid #d8dee4;border-radius:6px;padding:.55rem;background:#fff}.nav-group-label{font-weight:700;margin:0 0 .4rem}.nav-links{display:flex;flex-wrap:wrap;gap:.35rem}.nav-link{border:1px solid #d8dee4;border-radius:4px;padding:.32rem .5rem;text-decoration:none;color:#1f2933;background:#fff}.nav-link:focus,.nav-link:hover{border-color:#6b7280;background:#f6f8fa}.nav-link.current{border-color:#1f2933;background:#1f2933;color:#fff}
+table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
 th{background:#f6f8fa}.pill{display:inline-block;border:1px solid #c8d1dc;border-radius:3px;padding:.1rem .35rem;background:#f6f8fa}
 .hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3{margin-top:0}.card p{margin:.4rem 0}.status{font-weight:600}
 .warning{background:#fff8c5}.ok{background:#dafbe1}.bad{background:#ffebe9}.muted{color:#59636e}.token{border:1px solid #f0c36d;background:#fff8c5;padding:1rem}
@@ -1658,28 +1660,11 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 </style></head><body>
 <h1>{{.Title}}</h1>
 <p>Agency: <strong>{{.AgencyID}}</strong> · environment: <span class="pill">{{.EnvironmentLabel}}</span> · generated: {{formatTime .GeneratedAt}}</p>
-<nav>
-<a href="/admin/operations">Dashboard</a>
-<a href="/admin/operations/launchpad">Launchpad</a>
-<a href="/admin/operations/setup-wizard">Setup Wizard</a>
-<a href="/admin/operations/connectors">Connector Hub</a>
-<a href="/admin/operations/connectors/tests">Connector Tests</a>
-<a href="/admin/operations/gtfs-import">GTFS Import</a>
-<a href="/admin/operations/feed-health">Feed Health</a>
-<a href="/admin/operations/readiness">Readiness</a>
-<a href="/admin/operations/feeds">Feeds</a>
-<a href="/admin/operations/gtfs-quality">GTFS Quality</a>
-<a href="/admin/operations/validation-health">Validator Health</a>
-<a href="/admin/operations/reliability">Reliability</a>
-<a href="/admin/operations/telemetry">Telemetry</a>
-<a href="/admin/operations/telemetry-simulator">Simulator</a>
-<a href="/admin/operations/devices">Devices</a>
-<a href="/admin/alerts/console">Alerts</a>
-<a href="/admin/operations/consumers">Consumers</a>
-<a href="/admin/operations/evidence">Evidence</a>
-<a href="/admin/operations/setup">Setup</a>
-<a href="/admin/operations/checklist">Checklist</a>
-<a href="/admin/gtfs-studio">GTFS Studio</a>
+<nav class="operations-nav" aria-label="Operations Console sections">
+{{range .NavGroups}}<section class="nav-group" aria-label="{{.Label}}">
+<p class="nav-group-label">{{.Label}}</p>
+<div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</div>
+</section>{{end}}
 </nav>
 {{end}}
 {{define "layoutEnd"}}</body></html>{{end}}

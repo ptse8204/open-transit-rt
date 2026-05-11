@@ -216,8 +216,11 @@ consumer-tracker, and claim-boundary review.
 Phase 67 — Product Polish, Accessibility, and In-App Help is active.
 Checkpoint 000001 added the scoped product polish, accessibility, and in-app
 help plan and aligned stale roadmap pointers so the Phase 61+ roadmap remains
-the forward product path. The next checkpoint is
-`Phase 67 -- Checkpoint 000002: improve operations console information architecture`.
+the forward product path. Checkpoint 000002 improved the private Operations
+Console information architecture with grouped navigation, active-page state,
+route-stability tests, and a current Phase 61+ roadmap link from the
+Launchpad decision gate. The next checkpoint is
+`Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

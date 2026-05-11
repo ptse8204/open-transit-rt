@@ -2012,6 +2012,100 @@ func TestOperationsChecklistNavigationLinks(t *testing.T) {
 	}
 }
 
+func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		`aria-label="Operations Console sections"`,
+		"Start",
+		"GTFS and feeds",
+		"Realtime operations",
+		"Connectors",
+		"Readiness and diagnostics",
+		"Records and boundaries",
+		`href="/admin/operations" aria-current="page"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("navigation missing %q: %s", want, body)
+		}
+	}
+	for _, href := range []string{
+		"/admin/operations",
+		"/admin/operations/launchpad",
+		"/admin/operations/setup-wizard",
+		"/admin/operations/connectors",
+		"/admin/operations/connectors/tests",
+		"/admin/operations/gtfs-import",
+		"/admin/operations/feed-health",
+		"/admin/operations/readiness",
+		"/admin/operations/feeds",
+		"/admin/operations/gtfs-quality",
+		"/admin/operations/validation-health",
+		"/admin/operations/reliability",
+		"/admin/operations/telemetry",
+		"/admin/operations/telemetry-simulator",
+		"/admin/operations/devices",
+		"/admin/alerts/console",
+		"/admin/operations/consumers",
+		"/admin/operations/evidence",
+		"/admin/operations/setup",
+		"/admin/operations/checklist",
+		"/admin/gtfs-studio",
+	} {
+		if !strings.Contains(body, `href="`+href+`"`) {
+			t.Fatalf("navigation missing stable href %q: %s", href, body)
+		}
+	}
+	if got := strings.Count(body, `aria-current="page"`); got != 1 {
+		t.Fatalf("aria-current count = %d, want 1: %s", got, body)
+	}
+	for _, forbidden := range []string{"agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "vendor compatible", "certified hardware"} {
+		if strings.Contains(strings.ToLower(body), forbidden) {
+			t.Fatalf("navigation body contains forbidden claim %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, tc := range []struct {
+		path string
+		href string
+	}{
+		{path: "/admin/operations/feed-health", href: "/admin/operations/feed-health"},
+		{path: "/admin/operations/gtfs-quality", href: "/admin/operations/gtfs-quality"},
+		{path: "/admin/operations/telemetry", href: "/admin/operations/telemetry"},
+		{path: "/admin/operations/connectors/tests", href: "/admin/operations/connectors/tests"},
+		{path: "/admin/operations/consumers", href: "/admin/operations/consumers"},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			if !strings.Contains(body, `href="`+tc.href+`" aria-current="page"`) {
+				t.Fatalf("%s did not mark current nav item %q: %s", tc.path, tc.href, body)
+			}
+			if got := strings.Count(body, `aria-current="page"`); got != 1 {
+				t.Fatalf("%s aria-current count = %d, want 1: %s", tc.path, got, body)
+			}
+		})
+	}
+}
+
 func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	doctor, err := os.ReadFile(filepath.Join("..", "..", "scripts", "deployment-doctor.sh"))
 	if err != nil {

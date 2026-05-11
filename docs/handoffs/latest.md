@@ -78,8 +78,13 @@ Phase 67 Checkpoint 000001 added the scoped product polish, accessibility, and
 in-app help plan in
 `docs/phase-67-product-polish-accessibility-in-app-help.md`, corrected stale
 current-roadmap wording, and kept protected evidence/status paths untouched.
+Checkpoint 000002 grouped the private Operations Console navigation by
+operator intent, added active-page state, preserved existing route paths, and
+updated the Launchpad decision-gate docs link to the current Phase 61+
+roadmap. It did not add public routes, evidence writes, consumer status
+changes, runtime contract changes, or stronger claims.
 The next checkpoint is
-`Phase 67 -- Checkpoint 000002: improve operations console information architecture`.
+`Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`.
 
 Phase 66 checkpoint history: Checkpoint 000001 added the Phase 66 plan in
 `docs/phase-66-release-candidate-and-installability.md`.
@@ -1212,12 +1217,11 @@ target-originated evidence supports a target-specific status transition.
 
 Continue with Phase 67 -- Product Polish, Accessibility, and In-App Help.
 Phases 0 through 60 remain closed, and Phases 61, 62, 63, 64, 65, and 66 are complete.
-Checkpoint 000001 added the Phase 65 plan. Checkpoint 000002 improved private
-device and vehicle onboarding UI. Checkpoint 000003 added the private
-telemetry simulator guide UI. Checkpoint 000004 improved private GTFS quality
-fix guidance. Checkpoint 000005 closed Phase 65. Phase 66 closed release
-candidate and installability work. The next checkpoint is `Phase 67 --
-Checkpoint 000001: add product polish and accessibility plan`. For
+Phase 67 Checkpoint 000001 added the product polish, accessibility, and
+in-app help plan. Checkpoint 000002 improved private Operations Console
+information architecture with grouped navigation, active-page state, and
+route-stability tests. The next checkpoint is `Phase 67 --
+Checkpoint 000003: improve accessibility and mobile layout`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

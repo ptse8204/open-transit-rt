@@ -2,10 +2,13 @@
 
 ## Status
 
-In progress. Checkpoint 000001 adds this scoped plan for Operations Console
+In progress. Checkpoint 000001 added this scoped plan for Operations Console
 information architecture, accessibility-oriented markup and responsive layout,
-contextual in-app help, and phase closeout. Phase 67 must stay inside the
-private Operations Console product surface. It must not create retained
+contextual in-app help, and phase closeout. Checkpoint 000002 improved the
+private Operations Console information architecture with operator-intent
+navigation groups, active page state, route-stability tests, and a current
+Phase 61+ roadmap link in the Launchpad decision gate. Phase 67 must stay
+inside the private Operations Console product surface. It must not create retained
 evidence, write protected evidence paths, contact external parties, change
 consumer statuses, change public feed URLs, change telemetry ingest,
 change GTFS-RT protobuf semantics, change validator execution semantics,
@@ -26,7 +29,7 @@ supporting signals.
 ## Checkpoints
 
 - Completed: `Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`
-- Planned: `Phase 67 -- Checkpoint 000002: improve operations console information architecture`
+- Completed: `Phase 67 -- Checkpoint 000002: improve operations console information architecture`
 - Planned: `Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`
 - Planned: `Phase 67 -- Checkpoint 000004: implement in-app help system`
 - Planned: `Phase 67 -- Checkpoint 000005: close product polish accessibility and help`
