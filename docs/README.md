@@ -4,10 +4,14 @@ Use this page when the wiki does not go deep enough. Public readers should
 start with the task guides first; maintainers can use the lower sections for
 release, evidence, claim-boundary, and project-history references.
 
+Start with the public product explainer site when you want the shortest
+overview: [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/).
+
 ![Illustrative contribution paths: report a bug, improve docs, suggest a feature, submit code, and help with evidence runbooks.](assets/how-to-contribute-paths.png)
 
 ## Public User Docs
 
+- [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
 - [Small Agency Quick Start](../wiki/small-agency-quick-start.md)
 - [Browser-First Setup](../wiki/browser-first-setup.md)
 - [Operations Console Tour](../wiki/operations-console-tour.md)

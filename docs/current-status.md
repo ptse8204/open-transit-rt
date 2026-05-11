@@ -116,6 +116,14 @@ It created no retained evidence, contacted no external party, changed no
 consumer status, and made no compliance, agency adoption, consumer acceptance,
 final-root, hosted SaaS, production-readiness, vendor-compatibility, SLA, or
 ETA-quality claim.
+Phase 70 is complete for the GitHub Pages product explainer site. It added a
+dependency-free static site under `site/`, a GitHub Pages workflow that deploys
+only that static site, real browser-rendered local/demo Operations Console
+screenshots, and README/docs/wiki links to the public explainer URL. It created
+no retained evidence, contacted no external party, changed no consumer status,
+and made no compliance, agency adoption, consumer acceptance, final-root,
+hosted SaaS, production-readiness, vendor-compatibility, SLA, or ETA-quality
+claim.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -225,6 +233,7 @@ production-grade ETA quality.
 Phases 61 through 67 are complete. Phase 68+ is closed blocker-only /
 authorization-gated for the current no-authorization review. Phase 69 is
 complete for maintainer product acceptance and UI-first agency usability.
+Phase 70 is complete for the GitHub Pages product explainer site.
 
 The default next work is a product-quality and external-connection maturity
 gate for `v0.1.0-rc.1`, not a full `v0.1.0` release and not evidence
@@ -246,6 +255,11 @@ The product screenshots and diagrams under
 local/demo documentation aids only. They are not retained evidence and do not
 strengthen production, compliance, adoption, consumer, final-root, vendor, or
 ETA-quality claims.
+
+The GitHub Pages product explainer site at
+`https://ptse8204.github.io/open-transit-rt/` is also documentation only. It is
+not a hosted SaaS offer, production launch, consumer submission, compliance
+claim, agency approval, or evidence packet.
 
 Do not collect retained evidence, contact agencies, contact vendors, contact
 consumers, fetch final-root proof, move consumer statuses, or make stronger
@@ -1886,11 +1900,12 @@ Phase 60 targeted verification:
 Proceed with maintainer review or a separately scoped product phase. Any
 future evidence intake is optional and requires explicit written authorization
 first. Phase 68+ is closed blocker-only / authorization-gated for the current
-no-authorization review, and Phase 69 is complete for UI-first product
-acceptance. The default next work is not evidence collection. For public/status
-wording work, start with `make audit-final-claim-review` and
-`make audit-product-acceptance`, and keep unsupported claims removed or
-bounded.
+no-authorization review, Phase 69 is complete for UI-first product acceptance,
+and Phase 70 is complete for the GitHub Pages product explainer site. The
+default next work is the `v0.1.0-rc.1` product-quality and external-connection
+maturity gate, not evidence collection. For public/status wording work, start
+with `make audit-final-claim-review` and `make audit-product-acceptance`, and
+keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

@@ -9,6 +9,9 @@ GTFS Realtime feed types, ingest vehicle telemetry through documented
 boundaries, monitor feed health, review CAL-ITP-style readiness, and keep
 stronger deployment or consumer claims separate from local evaluation.
 
+Public explainer site:
+[https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
+
 Current maintainer next step: improve product quality and external-connection
 maturity through a `v0.1.0-rc.1` release-candidate gate before any full
 `v0.1.0` release. See
@@ -167,6 +170,7 @@ evaluation or open-source contribution.
 
 ## Documentation
 
+- [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
 - [Small Agency Quick Start](wiki/small-agency-quick-start.md)
 - [Browser-First Setup](wiki/browser-first-setup.md)
 - [Operations Console Tour](wiki/operations-console-tour.md)

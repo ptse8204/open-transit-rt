@@ -31,6 +31,7 @@ authorization-gated evidence tracks.
 | 67 | Product Polish, Accessibility, and In-App Help | IA cleanup, responsive/accessibility polish, in-app help system | `Phase 67 -- Checkpoint 00000N: ...` |
 | 68+ | Optional Authorized Evidence Tracks | Real agency/final-root/consumer/vendor/ETA evidence only when authorized | `Phase 68+ -- Checkpoint 00000N: ...` |
 | 69 | Maintainer Product Acceptance and UI-First Agency Usability Trial | UI-first product acceptance, README/wiki/docs path cleanup, small-agency walkthroughs, and local acceptance audits without evidence intake | `Phase 69 -- Checkpoint 00000N: ...` |
+| 70 | GitHub Pages Product Explainer Site | Static public explainer site, local/demo UI screenshots, and claim-bounded reader paths | `Phase 70 -- Checkpoint 00000N: ...` |
 
 ## How To Use This Folder
 

@@ -7,6 +7,9 @@ developer integrators evaluate a self-hosted path for GTFS and GTFS Realtime
 operations. It is open-source software, not hosted SaaS, not a CAD/AVL
 replacement, and not proof of agency approval or consumer acceptance.
 
+Public product explainer site:
+[https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/).
+
 [Star the repo](https://github.com/ptse8204/open-transit-rt) if this work is
 useful to you.
 
@@ -19,7 +22,8 @@ useful to you.
 1. [Small Agency Quick Start](small-agency-quick-start.md)
 2. [Browser-First Setup](browser-first-setup.md)
 3. [Operations Console Tour](operations-console-tour.md)
-4. [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
+4. [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
+5. [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
 
 Fast local command:
 

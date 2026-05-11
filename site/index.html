@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Transit RT</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span><span>Open Transit RT</span></a>
+      <div class="nav-links">
+        <a href="how-it-works.html">How it works</a>
+        <a href="ui-tour.html">UI tour</a>
+        <a href="quickstart.html">Quickstart</a>
+        <a href="connectors.html">Connectors</a>
+        <a href="readiness.html">Readiness</a>
+        <a href="status.html">Status</a>
+        <a href="contribute.html">Contribute</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-inner hero-grid">
+        <div>
+          <p class="eyebrow">Self-hosted GTFS and GTFS Realtime operations</p>
+          <h1>Open Transit RT</h1>
+          <p class="lede">A modular open-source backend for small agencies, civic technologists, and developer integrators evaluating schedule import, telemetry ingest, conservative matching, and public GTFS Realtime feed publication.</p>
+          <div class="actions">
+            <a class="button" href="quickstart.html">Try the local evaluator</a>
+            <a class="button secondary" href="ui-tour.html">Review the UI tour</a>
+          </div>
+        </div>
+        <figure class="hero-card">
+          <img src="assets/diagrams/data-flow-through-system.png" alt="Illustrative data flow from GTFS inputs and telemetry through Open Transit RT to validation and public feeds.">
+          <figcaption class="caption">Illustrative product diagram. It is documentation, not evidence of deployment, compliance, adoption, or consumer acceptance.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>What This Is</h2>
+        <p>Open Transit RT focuses on the backend path from schedule data and vehicle observations to public transit data feeds. It keeps operational controls private and public feed paths stable.</p>
+      </div>
+      <div class="grid three">
+        <article class="panel">
+          <span class="tag">Schedule</span>
+          <h3>Import or author GTFS</h3>
+          <p>Bring a GTFS ZIP or use GTFS Studio drafts, then activate a published schedule feed version.</p>
+        </article>
+        <article class="panel">
+          <span class="tag">Realtime</span>
+          <h3>Publish Vehicle Positions first</h3>
+          <p>Authenticated telemetry feeds conservative matching, with unknown states preferred over false certainty.</p>
+        </article>
+        <article class="panel">
+          <span class="tag">Boundaries</span>
+          <h3>Keep Trip Updates pluggable</h3>
+          <p>Trip Updates run behind a prediction adapter so deterministic and external predictors can be evaluated separately.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>Reader Paths</h2>
+        <p>Start with the path that matches your role. The deeper repository docs remain the source for commands, contracts, and release-candidate checks.</p>
+      </div>
+      <div class="grid two">
+        <article class="panel">
+          <h3>Small agency evaluator</h3>
+          <p>Use the local evaluator, review the Operations Console, and decide whether a self-hosted path is worth deeper technical help.</p>
+          <p><a href="quickstart.html">Open quickstart</a></p>
+        </article>
+        <article class="panel">
+          <h3>Developer integrator</h3>
+          <p>Review telemetry, prediction, validator, monitoring, and consumer-discovery connector boundaries before building an adapter.</p>
+          <p><a href="connectors.html">Open connector guide</a></p>
+        </article>
+        <article class="panel">
+          <h3>Maintainer</h3>
+          <p>Use the release-candidate readiness path and local checks before considering a `v0.1.0-rc.1` review.</p>
+          <p><a href="readiness.html">Open readiness path</a></p>
+        </article>
+        <article class="panel">
+          <h3>Contributor</h3>
+          <p>Help with docs, tests, synthetic fixtures, connector examples, and issue reports that stay inside the product boundary.</p>
+          <p><a href="contribute.html">Open contribution paths</a></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="callout boundary">
+        <strong>Claim boundary.</strong>
+        <p>This site does not claim CAL-ITP/Caltrans compliance, consumer submission or acceptance, agency adoption or approval, final-root readiness, hosted SaaS, production readiness, vendor compatibility, SLA coverage, or production-grade ETA quality.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>Open Transit RT is MIT-licensed open-source software for local evaluation and operator-controlled deployments.</p>
+      <p><a href="https://github.com/ptse8204/open-transit-rt">GitHub repository</a></p>
+    </div>
+  </footer>
+</body>
+</html>

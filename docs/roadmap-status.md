@@ -8,11 +8,19 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-The default next milestone is a local release-candidate review for
-`v0.1.0-rc.1`, not a full `v0.1.0` release and not a real agency pilot. The
-release-candidate gate should prove that a clean checkout can run the product
-quality and external-connection checks below with clear blockers, redaction
-rules, and no stronger public claims.
+The default next path is product review, public explanation, and local
+release-candidate readiness:
+
+1. maintainer product review of the local evaluator and Operations Console;
+2. GitHub Pages product explainer site for public orientation;
+3. local release-candidate review for `v0.1.0-rc.1`, not a full `v0.1.0`
+   release;
+4. external-connection maturity across telemetry, predictors, validators,
+   monitoring/export, feed-consumer metadata, and redaction boundaries.
+
+The release-candidate gate should prove that a clean checkout can run the
+product-quality and external-connection checks below with clear blockers,
+redaction rules, and no stronger public claims.
 
 Real pilots, final-root proof, consumer submission, and vendor proof remain
 optional evidence tracks only. Start one of those tracks only when a maintainer
@@ -21,6 +29,7 @@ tools, public-safe retention rules, redaction rules, and stop conditions.
 
 Useful visual documentation lives under:
 
+- [product explainer site](https://ptse8204.github.io/open-transit-rt/)
 - [product screenshots](assets/product-screenshots/README.md)
 - [product diagrams](assets/product-diagrams/README.md)
 
@@ -40,6 +49,7 @@ assessment.
 | --- | --- | --- |
 | Release maturity | No public release / release-candidate gate yet. | Prepare `v0.1.0-rc.1` from a clean checkout before any full `v0.1.0` tag. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
+| Product explanation | The repo now has public-friendly docs and local/demo screenshots, but the Pages site should stay claim-bounded and aligned with the docs. | Keep GitHub Pages content static, documentation-only, screenshot-backed, and linked to deeper docs. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
 | Telemetry/device path | The telemetry simulator and AVL adapter send mode exercise `POST /v1/telemetry`, but real device and vendor evidence is absent. | Keep using synthetic/local telemetry diagnostics; treat real device/vendor proof as optional evidence when authorized. |
@@ -60,9 +70,11 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
+1. Review the maintainer product path: local evaluator, Operations Console,
+   GitHub Pages product explainer site, screenshots, and current docs.
+2. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
-2. Run the release-candidate readiness gate:
+3. Run the release-candidate readiness gate:
 
    ```bash
    git status --short
@@ -75,7 +87,7 @@ assessment.
    make audit-final-claim-review
    ```
 
-3. Confirm the local app startup path and fetch all five public feed paths:
+4. Confirm the local app startup path and fetch all five public feed paths:
 
    ```bash
    make agency-app-up
@@ -87,7 +99,7 @@ assessment.
    make agency-app-down
    ```
 
-4. Run one public GTFS trial as a local diagnostic when network access and data
+5. Run one public GTFS trial as a local diagnostic when network access and data
    terms allow:
 
    ```bash
@@ -97,7 +109,7 @@ assessment.
    Record exact blockers. Do not treat the run as final-root proof, agency
    adoption, consumer acceptance, or compliance evidence.
 
-5. Exercise external-connection readiness with synthetic/local data:
+6. Exercise external-connection readiness with synthetic/local data:
 
    ```bash
    make telemetry-simulator
@@ -105,10 +117,10 @@ assessment.
    make adapter-conformance
    ```
 
-6. Review these surfaces before improving public wording: validator health,
+7. Review these surfaces before improving public wording: validator health,
    monitoring/export diagnostics, feed URL and metadata expectations,
    connector/adaptor conformance, and redaction checks.
-7. Keep all real pilots, final-root proof, consumer submission, and vendor
+8. Keep all real pilots, final-root proof, consumer submission, and vendor
    proof as authorization-gated optional evidence tracks.
 
 > **What this proves:** these checks can show that a local checkout has a
@@ -378,14 +390,22 @@ evidence, contacting external parties, changing consumer statuses, or making
 stronger compliance, adoption, acceptance, final-root, hosted SaaS,
 production-readiness, vendor, SLA, or ETA-quality claims.
 
+Phase 70 — GitHub Pages Product Explainer Site is complete for its bounded
+documentation/product-site scope. It added a dependency-free static Pages site,
+a Pages workflow that deploys only `site/`, local/demo UI screenshots, and
+links from the README, docs, and wiki. It created no retained evidence,
+contacted no external party, changed no consumer status, and made no stronger
+compliance, adoption, acceptance, final-root, hosted SaaS, production-readiness,
+vendor, SLA, or ETA-quality claim.
+
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality
 evidence remain future optional paths when retained claim-specific artifacts are
 available. Do not make stronger public claims from Phase 33 beyond local/pilot
-public-GTFS dataset handling. The Phase 61-69 roadmap execution is ready for
-maintainer review as an agency-first connector platform; that review state is
-not external evidence.
+public-GTFS dataset handling. The Phase 61-70 roadmap execution is ready for
+maintainer review as an agency-first connector platform and public explainer
+path; that review state is not external evidence.
 
 Use `docs/roadmaps/agency-first-connector-platform/README.md` for the Phase
 61+ forward roadmap, `docs/track-b-productization-roadmap.md` for historical
