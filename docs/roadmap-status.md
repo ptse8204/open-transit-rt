@@ -207,9 +207,9 @@ validator semantic changes, evidence writes, consumer status changes, or
 stronger claims. Checkpoint 000005 closed Phase 65 with validation,
 protected-path, consumer-tracker, and claim-boundary review.
 
-Phase 66 — Release Candidate And Installability is active. The next checkpoint
-is `Phase 66 -- Checkpoint 000001: add release candidate and installability
-plan`.
+Phase 66 — Release Candidate And Installability is active. Checkpoint 000001
+added the release-candidate and installability plan. The next checkpoint is
+`Phase 66 -- Checkpoint 000002: prepare first release candidate workflow`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

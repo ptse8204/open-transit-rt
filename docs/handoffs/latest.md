@@ -71,7 +71,8 @@ Phase 63 closeout lives in
 `docs/handoffs/phase-65.md`.
 
 The current default work is Phase 66 -- Release Candidate and Installability.
-Start from the roadmap pack and add the Phase 66 plan.
+Checkpoint 000001 added the Phase 66 plan in
+`docs/phase-66-release-candidate-and-installability.md`.
 Phase 64 Checkpoint 000001 added the Phase 64 plan in
 `docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
 private Connector Hub manifest registry UI and bounded JSON registry model
@@ -100,9 +101,10 @@ surfaces for committed synthetic scenarios and copyable operator-shell
 commands. Checkpoint 000004 improved private GTFS quality guidance with likely
 owners, affected files, safe fix paths, verification steps, escalation
 triggers, and all-false claim flags. Checkpoint 000005 closed Phase 65 with
-validation, protected-path, consumer-tracker, and claim-boundary review. The
-next checkpoint is `Phase 66 -- Checkpoint 000001: add release candidate and
-installability plan`.
+validation, protected-path, consumer-tracker, and claim-boundary review.
+Checkpoint 000001 added the Phase 66 release-candidate and installability plan.
+The next checkpoint is `Phase 66 -- Checkpoint 000002: prepare first release
+candidate workflow`.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1191,8 +1193,7 @@ Checkpoint 000001 added the Phase 65 plan. Checkpoint 000002 improved private
 device and vehicle onboarding UI. Checkpoint 000003 added the private
 telemetry simulator guide UI. Checkpoint 000004 improved private GTFS quality
 fix guidance. Checkpoint 000005 closed Phase 65. The next checkpoint is
-`Phase 66 -- Checkpoint 000001: add release candidate and installability
-plan`. For
+`Phase 66 -- Checkpoint 000002: prepare first release candidate workflow`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
