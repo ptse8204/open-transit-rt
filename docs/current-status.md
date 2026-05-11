@@ -19,8 +19,12 @@ claim boundaries. Checkpoints 000009 through 000012 turned the repo toward
 agency-facing open-source product evaluation: MIT licensing, a clearer
 README/wiki front door, agency trial paths, connector contribution paths,
 `make help`, a lightweight no-network `make check`, lean no-claim CI, and
-release-candidate/readiness blocker language. Optional real-world evidence
-tracks remain authorization-gated and are not the default next work. The
+release-candidate/readiness blocker language. Phase 67 is complete for product
+polish, accessibility-oriented markup, responsive layout, and private in-app
+help. Optional real-world evidence tracks remain authorization-gated and are
+not evidence collection unless the maintainer supplies explicit written
+authorization, a claim target, allowed tools, public-safe retention rules,
+redaction rules, and stop conditions. The
 Phase 61+ roadmap lives at
 `docs/roadmaps/agency-first-connector-platform/README.md`.
 Phase 61 is complete for the agency-first UI and Connector Hub scope. It added
@@ -73,6 +77,26 @@ copyable operator-shell commands, target/credential guidance, and all-false
 claim flags. Checkpoint 000004 improved private GTFS quality guidance with
 likely owners, affected files, safe fix paths, verification steps, escalation
 triggers, and all-false claim flags. Checkpoint 000005 closed Phase 65 with
+validation, protected-path, consumer-tracker, and claim-boundary review.
+Phase 66 -- Release Candidate and Installability is complete. Checkpoint
+000001 added the release-candidate and installability plan. Checkpoint 000002
+prepared the first release-candidate workflow. Checkpoint 000003 improved
+local bootstrap preflight and first-run blocker guidance. Checkpoint 000004
+documented Docker image publishing as source/local-image only with no registry
+publication or hosted-service claim. Checkpoint 000005 added the repository
+docs/demo site plan. Checkpoint 000006 closed Phase 66 with validation,
+protected-path, consumer-tracker, and claim-boundary review.
+Phase 67 -- Product Polish, Accessibility, and In-App Help is complete.
+Checkpoint 000001 added the scoped Phase 67 plan. Checkpoint 000002 grouped
+private Operations Console navigation by operator intent and added active-page
+state. Checkpoint 000003 improved accessibility-oriented shared markup,
+keyboard-visible focus states, mobile layout constraints, table overflow
+behavior, and explicit form labels/buttons while preserving existing POST
+contracts. Checkpoint 000004 added private GET-only help routes at
+`/admin/operations/help` and `/admin/operations/help.json`, a bounded
+static/derived help model for GTFS, GTFS-RT, connectors, readiness,
+validators, telemetry, and claim/evidence boundaries, contextual help panels,
+and all-false help claim flags. Checkpoint 000005 closed Phase 67 with
 validation, protected-path, consumer-tracker, and claim-boundary review.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
@@ -180,34 +204,17 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The active work is Phase 67 -- Product Polish, Accessibility, and In-App Help.
-Checkpoint 000001 added the scoped product polish, accessibility, and in-app
-help plan in `docs/phase-67-product-polish-accessibility-in-app-help.md` and
-aligned stale roadmap pointers so the Phase 61+ roadmap remains the current
-forward product path. Checkpoint 000002 improved the private Operations
-Console information architecture with grouped navigation by operator intent,
-active-page state, route-stability tests, and a current Phase 61+ roadmap link
-from the Launchpad decision gate. Checkpoint 000003 improved
-accessibility-oriented shared markup, keyboard-visible focus states, mobile
-layout constraints, table overflow behavior, and explicit form labels and
-submit buttons while preserving existing POST contracts. Checkpoint 000004
-added private GET-only help routes at `/admin/operations/help` and
-`/admin/operations/help.json`, a bounded static/derived help model for GTFS,
-GTFS-RT, connectors, readiness, validators, telemetry, and claim/evidence
-boundaries, contextual help panels in the shared Operations Console layout,
-and all-false help claim flags. Phase 66 closed after
-improving release-candidate workflow, local bootstrap preflight and first-run
-messaging, Docker image publishing decision docs, and a repository-native
-docs/demo site plan. Phase 66 did not create retained evidence, publish
-artifacts, push images, change consumer statuses, or claim hosted SaaS,
-universal production readiness, SLA/uptime, agency adoption, consumer
-acceptance, public launch, or compliance. The next checkpoint is
-`Phase 67 -- Checkpoint 000005: close product polish accessibility and help`.
+Phase 67 is complete. The default next work is Phase 68+ optional authorized
+evidence-track readiness: review and, if needed, improve authorization-gated
+scaffolding and blocker language only. Do not collect retained evidence,
+contact agencies, contact vendors, contact consumers, fetch final-root proof,
+move consumer statuses, or make stronger public claims unless the maintainer
+provides explicit written authorization, a specific claim target, allowed
+tools, redaction and retention rules, and stop conditions.
 
-Keep Phase 67 focused on private Operations Console information architecture,
-accessibility, responsive layout, keyboard-friendly UI, and in-app help for
-GTFS, GTFS-RT, connectors, readiness, validators, telemetry, and claim
-boundaries. Do not change protected runtime contracts or evidence/status paths.
+If no such authorization exists, keep Phase 68+ closed or paused as
+authorization-gated scaffolding/blocker documentation. Phases 0 through 60
+remain closed and were not reopened by the Phase 61+ roadmap.
 
 Phase 63 closeout is captured in
 `docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 closeout is captured
@@ -1837,9 +1844,9 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-Continue with Phase 67 -- Product Polish, Accessibility, and In-App Help. The
-default next work is
-`Phase 67 -- Checkpoint 000005: close product polish accessibility and help`.
+Continue with Phase 68+ optional authorized evidence tracks only as
+authorization-gated scaffolding or blocker documentation. The default next
+work is not evidence collection.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

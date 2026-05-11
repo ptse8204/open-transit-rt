@@ -213,7 +213,7 @@ release-candidate workflow, improved bootstrap/preflight UX, documented the
 Docker image publishing decision as source/local-image only, added the
 docs/demo site plan, and closed with validation, protected-path,
 consumer-tracker, and claim-boundary review.
-Phase 67 — Product Polish, Accessibility, and In-App Help is active.
+Phase 67 — Product Polish, Accessibility, and In-App Help is complete.
 Checkpoint 000001 added the scoped product polish, accessibility, and in-app
 help plan and aligned stale roadmap pointers so the Phase 61+ roadmap remains
 the forward product path. Checkpoint 000002 improved the private Operations
@@ -225,8 +225,13 @@ table overflow behavior, and explicit form labels/buttons without changing
 runtime contracts. Checkpoint 000004 added private GET-only help routes,
 static/derived help JSON, contextual Operations Console help panels, and
 all-false help claim flags without creating evidence or changing consumer
-statuses. The next checkpoint is
-`Phase 67 -- Checkpoint 000005: close product polish accessibility and help`.
+statuses. Checkpoint 000005 closed Phase 67 with validation, protected-path,
+consumer-tracker, and claim-boundary review.
+
+Phase 68+ optional evidence-track readiness is authorization-gated. Without
+explicit written authorization, a specific claim target, allowed tools,
+public-safe retention and redaction rules, and stop conditions, the safe work
+is blocker/scaffolding documentation only. It is not evidence collection.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

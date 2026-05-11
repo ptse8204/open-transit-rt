@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Checkpoint 000001 added this scoped plan for Operations Console
+Complete. Checkpoint 000001 added this scoped plan for Operations Console
 information architecture, accessibility-oriented markup and responsive layout,
 contextual in-app help, and phase closeout. Checkpoint 000002 improved the
 private Operations Console information architecture with operator-intent
@@ -13,16 +13,18 @@ mobile layout constraints, table overflow behavior, and explicit form labels
 and submit buttons while preserving existing POST contracts. Checkpoint 000004
 added private GET-only help routes, a static/derived help JSON model,
 contextual help panels for major Operations Console sections, and all-false
-claim flags for help. Phase 67 must stay inside the private Operations
-Console product surface. It must not create retained
-evidence, write protected evidence paths, contact external parties, change
-consumer statuses, change public feed URLs, change telemetry ingest,
-change GTFS-RT protobuf semantics, change validator execution semantics,
-change connector manifest schema, change prediction adapter behavior, weaken
-auth boundaries, or claim compliance, agency adoption, consumer acceptance,
-hosted SaaS, production readiness, vendor compatibility, hardware
-certification, production AVL reliability, production-grade ETA quality, SLA,
-or public launch completion.
+claim flags for help. Checkpoint 000005 closed Phase 67 with full closeout
+validation, protected-path checks, consumer-tracker review, and a Phase 67
+handoff. Phase 67 stayed inside the private Operations Console product
+surface. It created no retained evidence, wrote no protected evidence paths,
+contacted no external party, changed no consumer status, changed no public
+feed URL, changed no telemetry ingest, changed no GTFS-RT protobuf semantics,
+changed no validator execution semantics, changed no connector manifest
+schema, changed no prediction adapter behavior, weakened no auth boundary,
+and made no compliance, agency adoption, consumer acceptance, hosted SaaS,
+production readiness, vendor compatibility, hardware certification,
+production AVL reliability, production-grade ETA quality, SLA, accessibility
+certification, or public launch claim.
 
 ## Goal
 
@@ -38,7 +40,7 @@ supporting signals.
 - Completed: `Phase 67 -- Checkpoint 000002: improve operations console information architecture`
 - Completed: `Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`
 - Completed: `Phase 67 -- Checkpoint 000004: implement in-app help system`
-- Planned: `Phase 67 -- Checkpoint 000005: close product polish accessibility and help`
+- Completed: `Phase 67 -- Checkpoint 000005: close product polish accessibility and help`
 
 ## Existing State
 
