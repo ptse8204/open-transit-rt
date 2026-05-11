@@ -29,9 +29,9 @@ Local app packaging starts the full Open Transit RT demo stack behind
 http://localhost:8080. It is for local evaluation only, not production TLS or
 admin network-boundary configuration.
 
-First-run blockers usually mean Docker is missing or stopped, the Docker
-Compose plugin cannot render deploy/docker-compose.yml, host ports 8080 or
-55432 are already in use, or first-run image/module pulls need network access.
+First-run blockers usually mean Docker is missing or stopped, Docker Compose plugin
+rendering fails for deploy/docker-compose.yml, host ports 8080 or 55432 are already
+in use, or first-run image/module pulls need network access.
 EOF
 }
 

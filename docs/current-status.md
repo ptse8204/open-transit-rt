@@ -180,29 +180,19 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The active work is Phase 66 -- Release Candidate and Installability. Phase 65
-closed after improving device/vehicle onboarding, private telemetry simulator
-guidance, and GTFS quality fix guidance without changing protected runtime
-contracts or creating stronger evidence, adoption, compliance, hosted-service,
-vendor, public-launch, or ETA-quality claims. Checkpoint 000001 added the
-Phase 66 plan for release-candidate workflow, installer/bootstrap UX, Docker
-image publishing decision, demo/docs website planning, and closeout.
-Checkpoint 000002 prepared the first release-candidate workflow with an
-ordered review sequence, validation matrix, release-note inputs, local package
-audit matrix, and private diagnostic summary fields. Checkpoint 000003 added a
-local bootstrap preflight, clearer missing-tool and Docker/DB readiness
-messages, and first-run blocker docs. Checkpoint 000004 documented the Docker
-image publishing decision: source/local-image only, no registry publication,
-and no hosted-service or image-publication claim. Checkpoint 000005 added the
-docs/demo site plan as repository-native planning only, with no hosting,
-marketing launch, evidence collection, or public-launch claim. The next
-checkpoint is `Phase 66 -- Checkpoint 000006: close release candidate and
-installability`.
+The active work is Phase 67 -- Product Polish, Accessibility, and In-App Help.
+Phase 66 closed after improving release-candidate workflow, local bootstrap
+preflight and first-run messaging, Docker image publishing decision docs, and a
+repository-native docs/demo site plan. Phase 66 did not create retained
+evidence, publish artifacts, push images, change consumer statuses, or claim
+hosted SaaS, universal production readiness, SLA/uptime, agency adoption,
+consumer acceptance, public launch, or compliance. The next checkpoint is
+`Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`.
 
-Keep Phase 66 focused on clean install, bootstrap, preflight/doctor, release
-candidate packaging/docs, and lean validation. Do not claim hosted SaaS,
-universal production readiness, SLA/uptime, agency adoption, consumer
-acceptance, public launch, or compliance.
+Keep Phase 67 focused on private Operations Console information architecture,
+accessibility, responsive layout, keyboard-friendly UI, and in-app help for
+GTFS, GTFS-RT, connectors, readiness, validators, telemetry, and claim
+boundaries. Do not change protected runtime contracts or evidence/status paths.
 
 Phase 63 closeout is captured in
 `docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 closeout is captured
@@ -1832,8 +1822,8 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-Continue with Phase 66 -- Release Candidate and Installability. The default
-next work is `Phase 66 -- Checkpoint 000006: close release candidate and installability`.
+Continue with Phase 67 -- Product Polish, Accessibility, and In-App Help. The
+default next work is `Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

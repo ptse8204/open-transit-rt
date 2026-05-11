@@ -207,19 +207,14 @@ validator semantic changes, evidence writes, consumer status changes, or
 stronger claims. Checkpoint 000005 closed Phase 65 with validation,
 protected-path, consumer-tracker, and claim-boundary review.
 
-Phase 66 — Release Candidate And Installability is active. Checkpoint 000001
-added the release-candidate and installability plan. Checkpoint 000002
-prepared the first release-candidate workflow with an ordered review sequence,
-validation matrix, release-note inputs, local package audit matrix, and private
-diagnostic summary fields. Checkpoint 000003 added a local bootstrap preflight,
-clearer missing-tool and Docker/DB readiness messages, and first-run blocker
-docs. Checkpoint 000004 documented the Docker image publishing decision as
-source/local-image only with no registry publication, published app image,
-hosted-service claim, or image-publication claim. Checkpoint 000005 added the
-docs/demo site plan as repository-native planning only with no hosting,
-marketing launch, evidence collection, or public-launch claim. The next
-checkpoint is `Phase 66 -- Checkpoint 000006: close release candidate and
-installability`.
+Phase 66 — Release Candidate And Installability is complete. It added the
+release-candidate and installability plan, prepared the first
+release-candidate workflow, improved bootstrap/preflight UX, documented the
+Docker image publishing decision as source/local-image only, added the
+docs/demo site plan, and closed with validation, protected-path,
+consumer-tracker, and claim-boundary review.
+Phase 67 — Product Polish, Accessibility, and In-App Help is active. The next
+checkpoint is `Phase 67 -- Checkpoint 000001: add product polish and accessibility plan`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

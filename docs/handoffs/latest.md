@@ -68,9 +68,11 @@ Phase 63 closeout lives in
 `docs/phase-64-connector-platform-and-sdks.md` and
 `docs/handoffs/phase-64.md`. Phase 65 closeout lives in
 `docs/phase-65-operator-workflow-and-data-quality-ux.md` and
-`docs/handoffs/phase-65.md`.
+`docs/handoffs/phase-65.md`. Phase 66 closeout lives in
+`docs/handoffs/phase-66.md`.
 
-The current default work is Phase 66 -- Release Candidate and Installability.
+The current default work is Phase 67 -- Product Polish, Accessibility, and
+In-App Help.
 Checkpoint 000001 added the Phase 66 plan in
 `docs/phase-66-release-candidate-and-installability.md`.
 Checkpoint 000002 prepared the first release-candidate workflow in
@@ -116,8 +118,10 @@ first-run blocker docs. Checkpoint 000004 documented the Docker image
 publishing decision: no published app image, no registry push, and no hosted
 service claim. Checkpoint 000005 added the docs/demo site plan as
 repository-native planning only with no hosting, marketing launch, evidence
-collection, or public-launch claim. The next checkpoint is `Phase 66 --
-Checkpoint 000006: close release candidate and installability`.
+collection, or public-launch claim. Checkpoint 000006 closed Phase 66 with
+validation, protected-path, consumer-tracker, and claim-boundary review. The
+next checkpoint is `Phase 67 -- Checkpoint 000001: add product polish and
+accessibility plan`.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1200,13 +1204,14 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue with Phase 66 -- Release Candidate and Installability. Phases 0
-through 60 remain closed, and Phases 61, 62, 63, 64, and 65 are complete.
+Continue with Phase 67 -- Product Polish, Accessibility, and In-App Help.
+Phases 0 through 60 remain closed, and Phases 61, 62, 63, 64, 65, and 66 are complete.
 Checkpoint 000001 added the Phase 65 plan. Checkpoint 000002 improved private
 device and vehicle onboarding UI. Checkpoint 000003 added the private
 telemetry simulator guide UI. Checkpoint 000004 improved private GTFS quality
-fix guidance. Checkpoint 000005 closed Phase 65. The next checkpoint is
-`Phase 66 -- Checkpoint 000006: close release candidate and installability`. For
+fix guidance. Checkpoint 000005 closed Phase 65. Phase 66 closed release
+candidate and installability work. The next checkpoint is `Phase 67 --
+Checkpoint 000001: add product polish and accessibility plan`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

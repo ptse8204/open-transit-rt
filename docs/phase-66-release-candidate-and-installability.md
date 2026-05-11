@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Checkpoint 000001 added this plan for release-candidate workflow,
+Complete. Checkpoint 000001 added this plan for release-candidate workflow,
 installer/bootstrap UX, Docker image publishing decision, demo/docs website
 planning, and closeout. Checkpoint 000002 prepared the first release-candidate
 workflow by adding the ordered review sequence, validation matrix, release-note
@@ -38,7 +38,7 @@ production readiness.
 - Completed: `Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`
 - Completed: `Phase 66 -- Checkpoint 000004: document Docker image publishing decision`
 - Completed: `Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`
-- Planned: `Phase 66 -- Checkpoint 000006: close release candidate and installability`
+- Completed: `Phase 66 -- Checkpoint 000006: close release candidate and installability`
 
 ## Existing State
 
