@@ -47,12 +47,14 @@ stronger compliance/adoption/acceptance/hosted-service/vendor/production/ETA
 claims.
 
 Phase 63 must make feed health and CAL-ITP-style readiness easier to understand
-without requiring operators to read diagnostic tables. Expected work includes
-plain-language status for `feeds.json`, schedule, Vehicle Positions, Trip
-Updates, and Alerts; freshness and validator context; next actions; and a
-readiness checklist v2 that explains what each signal means, why it matters,
-what to do next, and what it does not prove. Do not claim SLA/uptime proof or
-CAL-ITP/Caltrans compliance.
+without requiring operators to read diagnostic tables. Checkpoint 000002 added
+private read-only feed health routes at `/admin/operations/feed-health` and
+`/admin/operations/feed-health.json`. They summarize `feeds.json`, schedule,
+Vehicle Positions, Trip Updates, and Alerts with plain-language status,
+freshness, validator context, health context, next actions, and "does not
+prove" boundaries. The next checkpoint is readiness checklist v2: explain what
+each readiness signal means, why it matters, what to do next, and what it does
+not prove. Do not claim SLA/uptime proof or CAL-ITP/Caltrans compliance.
 
 Phase 63 planning lives in
 `docs/phase-63-feed-health-and-readiness-ux.md`.
@@ -1143,12 +1145,16 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue with Post-60 productization. Do not start Phase 61. The default next
-work is release-candidate readiness, connector contract quality, adapter
-conformance, generic connector examples, private agency launchpad workflow,
-and `.cache`-only readiness gap summaries. For public/status wording work,
-start with `make audit-final-claim-review` and keep unsupported claims removed
-or bounded.
+Continue with Phase 63 -- Feed Health and Readiness UX. Phases 0 through 60
+remain closed, Phase 61 and Phase 62 are complete, and the next Phase 63
+checkpoint is readiness checklist v2. The default next work is explaining
+readiness signals, validator state, freshness, why each signal matters, what
+operators should do next, and what the signals do not prove. Release-candidate
+readiness, connector contract quality, adapter conformance, generic connector
+examples, private agency launchpad workflow, and `.cache`-only readiness gap
+summaries remain later roadmap work. For public/status wording work, start
+with `make audit-final-claim-review` and keep unsupported claims removed or
+bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

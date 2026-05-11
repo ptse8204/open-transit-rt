@@ -37,6 +37,16 @@ feedback, and keeps the CLI import path available. It creates no retained
 evidence, changes no consumer statuses, and makes no compliance, adoption,
 acceptance, hosted-service, vendor-compatibility, production-readiness, public
 launch, or ETA-quality claim.
+Phase 63 is active for Feed Health and Readiness UX. Checkpoint 000002 added
+private read-only feed health routes at `/admin/operations/feed-health` and
+`/admin/operations/feed-health.json`. They summarize exactly five feed rows
+(`feeds.json`, schedule, Vehicle Positions, Trip Updates, and Alerts) with
+plain-language status, freshness, validator context, health context, next
+actions, and "does not prove" boundaries. The dashboard reuses existing private
+discovery, validation-health, reliability, and Trip Updates diagnostics records;
+it adds no public route, migration, evidence write, consumer status change, or
+stronger compliance/adoption/acceptance/hosted-service/vendor/production/public
+launch/ETA claim. The next Phase 63 checkpoint is readiness checklist v2.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -143,10 +153,11 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The active work is Phase 63 -- Feed Health and Readiness UX. Phase 63 should
-make feed health, validator state, freshness, and CAL-ITP-style readiness
-plain-language in the private Operations Console while continuing to improve
-the existing self-hosted backend without weakening claim boundaries:
+The active work is Phase 63 -- Feed Health and Readiness UX. Phase 63 has
+added the private plain-language feed-health dashboard; the next checkpoint
+should make CAL-ITP-style readiness signals plain-language in the private
+Operations Console while continuing to improve the existing self-hosted backend
+without weakening claim boundaries:
 
 - keep the agency-facing front door and command map current as workflows
   evolve;
@@ -1787,11 +1798,13 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 63 -- Feed Health and Readiness UX. The default next work
-is plain-language feed health, validator state, freshness, readiness next
-actions, connector contract quality, adapter conformance, generic connector
-examples, private operator launchpad workflow, and `.cache`-only readiness gap
-checks. For public/status wording work, start with
-`make audit-final-claim-review` and keep unsupported claims removed or bounded.
+is readiness checklist v2: explain readiness signals, validator state,
+freshness, why each signal matters, what operators should do next, and what the
+signals do not prove. Connector contract quality, adapter conformance, generic
+connector examples, private operator launchpad workflow, and `.cache`-only
+readiness gap checks remain later roadmap work. For public/status wording work,
+start with `make audit-final-claim-review` and keep unsupported claims removed
+or bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

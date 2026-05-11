@@ -2,7 +2,9 @@
 
 ## Status
 
-Planned.
+In progress. Checkpoint 000001 added this plan. Checkpoint 000002 added the
+private feed-health dashboard and JSON export. Checkpoint 000003 remains the
+readiness checklist v2 implementation.
 
 Phase 63 makes feed health, validator state, freshness, and CAL-ITP-style
 readiness easier to understand inside the private Operations Console. It must
@@ -13,23 +15,25 @@ production-readiness, consumer-acceptance, or evidence claims.
 
 ## Checkpoints
 
-- `Phase 63 -- Checkpoint 000001: add feed health and readiness UX plan`
-- `Phase 63 -- Checkpoint 000002: implement feed health dashboard`
-- `Phase 63 -- Checkpoint 000003: implement readiness checklist v2`
-- `Phase 63 -- Checkpoint 000004: close feed health and readiness UX`
+- Completed: `Phase 63 -- Checkpoint 000001: add feed health and readiness UX plan`
+- Completed: `Phase 63 -- Checkpoint 000002: implement feed health dashboard`
+- Next: `Phase 63 -- Checkpoint 000003: implement readiness checklist v2`
+- Pending closeout: `Phase 63 -- Checkpoint 000004: close feed health and readiness UX`
 
-## Planned Scope
+## Checkpoint Scope
 
 ### Feed Health Dashboard
 
-- Add a private Operations Console feed-health dashboard.
-- Show exactly five operator-facing rows:
+- Added a private Operations Console feed-health dashboard at
+  `/admin/operations/feed-health`.
+- Added private JSON output at `/admin/operations/feed-health.json`.
+- Shows exactly five operator-facing rows:
   - `feeds.json`
   - `schedule`
   - `vehicle_positions`
   - `trip_updates`
   - `alerts`
-- For each row, show:
+- For each row, shows:
   - plain-language status;
   - what the status means;
   - freshness or generated/checked time where available;
@@ -37,10 +41,13 @@ production-readiness, consumer-acceptance, or evidence claims.
   - feed health or diagnostic context where available;
   - next action;
   - what the row does not prove.
-- Add JSON output for the feed-health model so private diagnostics can be
-  exported without creating evidence.
 - Link feed-health dashboard from the Operations Console dashboard, Launchpad,
-  setup wizard, and existing feeds/readiness pages where appropriate.
+  setup wizard, feeds page, and readiness page.
+- Keep the dashboard private and read-only. It creates no retained evidence,
+  changes no consumer status, and makes no compliance, SLA, uptime,
+  production-readiness, public-launch, consumer-acceptance, final-root, agency
+  approval/adoption, vendor-compatibility, hardware-certification,
+  production-AVL-reliability, or ETA-quality claim.
 
 ### Readiness Checklist V2
 

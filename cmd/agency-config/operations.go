@@ -55,6 +55,7 @@ type operationsPage struct {
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
+	FeedHealth             operationsFeedHealthView
 	GTFSImportResult       *gtfsImportResultView
 	GTFSImportNotice       string
 	GTFSImportError        string
@@ -231,6 +232,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderSetupWizardJSON(w, r)
+	case "feed-health":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderFeedHealth(w, r)
+	case "feed-health.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderFeedHealthJSON(w, r)
 	case "gtfs-import":
 		w.Header().Set("Cache-Control", "no-store")
 		switch r.Method {
@@ -745,6 +760,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
+	page.FeedHealth = buildOperationsFeedHealth(page)
 	return page
 }
 
@@ -1588,6 +1604,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/setup-wizard">Setup Wizard</a>
 <a href="/admin/operations/connectors">Connector Hub</a>
 <a href="/admin/operations/gtfs-import">GTFS Import</a>
+<a href="/admin/operations/feed-health">Feed Health</a>
 <a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
 <a href="/admin/operations/gtfs-quality">GTFS Quality</a>
@@ -1614,7 +1631,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <div class="card-grid" aria-label="Primary operations actions">
 <section class="card"><h3>Start setup</h3><p>Walk through agency profile, GTFS, feeds, telemetry, validators, connectors, and readiness.</p><p><a href="/admin/operations/setup-wizard">Open setup wizard</a></p></section>
 <section class="card"><h3>Import GTFS</h3><p>Use an admin-only browser path for ZIP upload or safe URL import, with the existing importer and validation feedback.</p><p><a href="/admin/operations/gtfs-import">Open GTFS import</a></p></section>
-<section class="card"><h3>Check feeds</h3><p>Review feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts records.</p><p><a href="/admin/operations/feeds">Review feed health</a></p></section>
+<section class="card"><h3>Check feed health</h3><p>Review feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts in plain language.</p><p><a href="/admin/operations/feed-health">Open feed health</a></p></section>
 <section class="card"><h3>Connect telemetry</h3><p>Rotate device credentials and inspect latest accepted vehicle observations.</p><p><a href="/admin/operations/devices">Manage devices</a></p></section>
 <section class="card"><h3>Use connectors</h3><p>Choose sidecar, manifest, command-adapter, and conformance paths without dynamic backend code loading.</p><p><a href="/admin/operations/connectors">Open Connector Hub</a></p></section>
 </div>
@@ -1635,6 +1652,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td>Setup wizard</td><td>{{len .SetupWizard.Stages}} staged setup rows</td><td>{{formatTime .SetupWizard.GeneratedAt}}</td><td><a href="/admin/operations/setup-wizard">open wizard</a> · <a href="/admin/operations/setup-wizard.json">export JSON</a></td></tr>
 <tr><td>Connector Hub</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
 <tr><td>Browser GTFS import</td><td>admin-only ZIP upload or URL import</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/gtfs-import">import GTFS with validation feedback</a></td></tr>
+<tr><td>Feed health dashboard</td><td>{{len .FeedHealth.Rows}} plain-language rows</td><td>{{formatTime .FeedHealth.GeneratedAt}}</td><td><a href="/admin/operations/feed-health">open feed health</a> · <a href="/admin/operations/feed-health.json">export JSON</a></td></tr>
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
@@ -1811,6 +1829,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>CAL-ITP-Style Readiness Workflow</h2>
 <p class="warning">Open Transit RT supports CAL-ITP-style readiness workflows. This page does not claim CAL-ITP/Caltrans compliance.</p>
 <p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
+<p><a href="/admin/operations/feed-health">Open plain-language feed health</a> · <a href="/admin/operations/feed-health.json">Export private feed health JSON</a></p>
 <p><a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a></p>
 <p><a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
 <p class="muted">Each row ties the status to an existing source and gives the next operator action for missing or weak signals. Consumer statuses remain prepared unless retained target-originated evidence supports a target-specific change.</p>
@@ -1818,6 +1837,42 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{range .ReadinessItems}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">No external evidence is created by viewing this page, and this workflow does not contact consumers, validators, agency systems, or external portals.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "feed-health"}}
+{{template "layoutStart" .}}
+<h2>Feed Health Dashboard</h2>
+<p class="warning">{{.FeedHealth.Boundary}}</p>
+<p><a href="/admin/operations/feed-health.json">Export private feed health JSON</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/reliability">Open reliability diagnostics</a></p>
+<table><tbody>
+<tr><th><code>external_evidence_created</code></th><td>{{.FeedHealth.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.FeedHealth.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.FeedHealth.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.FeedHealth.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>sla_claimed</code></th><td>{{.FeedHealth.ClaimFlags.SLAClaimed}}</td></tr>
+<tr><th><code>uptime_guarantee_claimed</code></th><td>{{.FeedHealth.ClaimFlags.UptimeGuaranteeClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.FeedHealth.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.FeedHealth.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+</tbody></table>
+<div class="card-grid" aria-label="Plain-language feed health rows">
+{{range .FeedHealth.Rows}}
+<section class="card">
+<h3>{{.Label}}</h3>
+<p class="status">{{.StatusText}} <span class="pill">{{.Status}}</span></p>
+<p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
+<p><strong>What this means:</strong> {{.WhatThisMeans}}</p>
+<p><strong>Freshness:</strong> {{.Freshness}}</p>
+<p><strong>Validator context:</strong> {{.ValidatorContext}}</p>
+<p><strong>Health context:</strong> {{.HealthContext}}</p>
+<p><strong>Next action:</strong> {{.NextAction}}</p>
+<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+{{if .AdminLinks}}<p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>{{end}}
+{{if .DocsLinks}}<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>{{end}}
+</section>
+{{end}}
+</div>
+<p class="muted">This dashboard summarizes existing private records only. Missing records stay missing or unknown until the underlying source records change.</p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -1833,7 +1888,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 </tbody></table>
 {{end}}
 <p class="muted">This view shows repo/deployment evidence only. Third-party consumer acceptance requires retained confirmation from the named consumer.</p>
-<p><a href="/admin/operations/gtfs-quality">Review GTFS quality triage actions</a> · <a href="/admin/operations/validation-health">Review private validator health diagnostics</a></p>
+<p><a href="/admin/operations/feed-health">Open plain-language feed health</a> · <a href="/admin/operations/gtfs-quality">Review GTFS quality triage actions</a> · <a href="/admin/operations/validation-health">Review private validator health diagnostics</a></p>
 {{template "layoutEnd" .}}
 {{end}}
 

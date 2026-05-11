@@ -1293,6 +1293,190 @@ func TestGTFSImportRejectsUnexpectedFieldsAndCookieCSRF(t *testing.T) {
 	}
 }
 
+func TestFeedHealthRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/feed-health", "/admin/operations/feed-health.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/feed-health", "/admin/operations/feed-health.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/feed-health", "/admin/operations/feed-health.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/feed-health?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/feed-health.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/feed-health.json", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public feed health route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestFeedHealthJSONShapeFlagsRowsAndMissingData(t *testing.T) {
+	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
+	srv := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/feed-health.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var health operationsFeedHealthView
+	if err := json.Unmarshal(rr.Body.Bytes(), &health); err != nil {
+		t.Fatalf("decode feed health: %v", err)
+	}
+	assertFeedHealthShape(t, health)
+	assertFeedHealthFlagsFalse(t, health.ClaimFlags)
+	assertFeedHealthSafeStrings(t, rr.Body.String())
+	if health.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", health.AgencyID)
+	}
+	var ids []string
+	rowsByID := map[string]operationsFeedHealthRow{}
+	for _, row := range health.Rows {
+		ids = append(ids, row.ID)
+		rowsByID[row.ID] = row
+	}
+	wantIDs := []string{"feeds_json", "schedule", "vehicle_positions", "trip_updates", "alerts"}
+	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
+		t.Fatalf("row ids = %v, want %v", ids, wantIDs)
+	}
+	if rowsByID["feeds_json"].Status != checklistStatusOK || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "all HTTPS=true") || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "discoverable=true") {
+		t.Fatalf("feeds_json row did not include HTTPS/discoverability readiness: %+v", rowsByID["feeds_json"])
+	}
+	for _, id := range []string{"vehicle_positions", "trip_updates", "alerts"} {
+		if strings.Contains(strings.ToLower(rowsByID[id].Freshness), "generated") {
+			t.Fatalf("realtime row %s should not label revision metadata as generated freshness: %+v", id, rowsByID[id])
+		}
+	}
+	for _, link := range rowsByID["alerts"].AdminLinks {
+		if link == "/admin/alerts/console" {
+			t.Fatalf("alerts feed health row links to unregistered alerts console route: %+v", rowsByID["alerts"].AdminLinks)
+		}
+	}
+
+	notDiscoverableStore := feedHealthTestStore(t)
+	notDiscoverableStore.discovery.Readiness.HTTPSURLs = false
+	notDiscoverableStore.discovery.Readiness.Discoverable = false
+	notDiscoverableHandler := newOperationsTestHandler(&handler{store: notDiscoverableStore, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/feed-health.json", nil)
+	rr = httptest.NewRecorder()
+	notDiscoverableHandler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("not-discoverable status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var notDiscoverable operationsFeedHealthView
+	if err := json.Unmarshal(rr.Body.Bytes(), &notDiscoverable); err != nil {
+		t.Fatalf("decode not-discoverable feed health: %v", err)
+	}
+	if notDiscoverable.Rows[0].ID != "feeds_json" || notDiscoverable.Rows[0].Status == checklistStatusOK {
+		t.Fatalf("feeds_json status with non-HTTPS/non-discoverable metadata = %+v, want needs review", notDiscoverable.Rows[0])
+	}
+
+	missingHandler := newOperationsTestHandler(&handler{store: &fakePublicationStore{discoveryErr: errors.New("missing discovery"), scorecardErr: errors.New("missing scorecard"), consumersErr: errors.New("missing consumers")}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/feed-health.json", nil)
+	rr = httptest.NewRecorder()
+	missingHandler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("missing status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var missing operationsFeedHealthView
+	if err := json.Unmarshal(rr.Body.Bytes(), &missing); err != nil {
+		t.Fatalf("decode missing feed health: %v", err)
+	}
+	assertFeedHealthShape(t, missing)
+	for _, row := range missing.Rows {
+		if row.Status == checklistStatusOK {
+			t.Fatalf("missing-data row %s status = ok, want missing/review/blocker/unknown", row.ID)
+		}
+	}
+	assertFeedHealthFlagsFalse(t, missing.ClaimFlags)
+}
+
+func TestFeedHealthHTMLPlainLanguageBoundariesAndEscapes(t *testing.T) {
+	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
+	store := feedHealthTestStore(t)
+	store.discovery.AgencyName = `<script>alert("x")</script>`
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/feed-health", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Feed Health Dashboard", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Does not prove"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html body missing %q: %s", want, body)
+		}
+	}
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("html did not escape script-like metadata: %s", body)
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/feed-health", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "SLA coverage", "uptime guarantee"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("feed health html contains forbidden %q: %s", forbidden, body)
+		}
+	}
+	assertFeedHealthSafeStrings(t, body)
+}
+
 func TestConnectorHubRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
 		t.Run(string(role), func(t *testing.T) {
@@ -3079,6 +3263,50 @@ func assertConnectorHubFlagsFalse(t *testing.T, flags connectorHubClaimFlags) {
 	}
 }
 
+func assertFeedHealthShape(t *testing.T, health operationsFeedHealthView) {
+	t.Helper()
+	if health.GeneratedAt.IsZero() || health.AgencyID == "" || health.Boundary == "" || len(health.Rows) != 5 || health.Counts.Rows != 5 {
+		t.Fatalf("invalid feed health shape: %+v", health)
+	}
+	for _, row := range health.Rows {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.StatusText == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.Freshness == "" || row.ValidatorContext == "" || row.HealthContext == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid feed health row: %+v", row)
+		}
+		for _, link := range row.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("row %s has unsafe admin link %q", row.ID, link)
+			}
+		}
+		for _, link := range row.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("row %s has unsafe docs link %q", row.ID, link)
+			}
+		}
+	}
+}
+
+func assertFeedHealthFlagsFalse(t *testing.T, flags operationsFeedHealthClaims) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed {
+		t.Fatalf("feed health flags must all be false: %+v", flags)
+	}
+}
+
+func assertFeedHealthSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_report", "stdout", "stderr", "argv"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("feed health leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "compliance_achieved", "sla_covered", "uptime_guaranteed"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("feed health emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
 func assertConnectorHubSafeStrings(t *testing.T, body string) {
 	t.Helper()
 	lower := strings.ToLower(body)
@@ -3381,6 +3609,54 @@ func validationHealthTestDiscovery(now time.Time) compliance.FeedDiscovery {
 		{FeedType: "trip_updates", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/trip_updates.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", RevisionTimestamp: &now},
 		{FeedType: "alerts", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/alerts.pb", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", RevisionTimestamp: &now},
 	}}
+}
+
+func feedHealthTestStore(t testing.TB) *fakePublicationStore {
+	t.Helper()
+	now := time.Date(2026, 5, 11, 12, 0, 0, 0, time.UTC)
+	discovery := validationHealthTestDiscovery(now)
+	discovery.GeneratedAt = now
+	discovery.PublicBaseURL = "https://feeds.example.org"
+	discovery.TechnicalContactEmail = "ops@example.org"
+	discovery.License = compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"}
+	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true}
+	for i := range discovery.Feeds {
+		discovery.Feeds[i].LastValidationStatus = "passed"
+		discovery.Feeds[i].LastValidationAt = &now
+		discovery.Feeds[i].LastHealthStatus = "ok"
+		discovery.Feeds[i].LastHealthAt = &now
+	}
+	endpointAvailable := true
+	freshness := 20.0
+	latency := 120.0
+	invalid := 0.0
+	matched := 96.0
+	coverage := 98.0
+	records := []compliance.ReliabilityFeedHealthRecord{}
+	for _, feedType := range []string{"schedule", "vehicle_positions", "trip_updates", "alerts"} {
+		records = append(records, compliance.ReliabilityFeedHealthRecord{
+			FeedType:               feedType,
+			SnapshotAt:             now,
+			EndpointAvailable:      &endpointAvailable,
+			FreshnessSeconds:       &freshness,
+			GenerationLatencyMS:    &latency,
+			InvalidResponsePercent: &invalid,
+			MatchedVehiclePercent:  &matched,
+			CoveragePercent:        &coverage,
+		})
+	}
+	return &fakePublicationStore{
+		discovery: discovery,
+		validationRecords: []compliance.ValidationReportRecord{
+			validationHealthRecord(1, "schedule", "feed-v1", "passed", now),
+			validationHealthRecord(2, "vehicle_positions", "feed-v1", "passed", now),
+			validationHealthRecord(3, "trip_updates", "feed-v1", "passed", now),
+			validationHealthRecord(4, "alerts", "feed-v1", "passed", now),
+		},
+		reliabilityHealth:    records,
+		reliabilityIncidents: compliance.NormalizeReliabilityIncidentRollup(now, 0, nil, nil, nil, nil, nil, 10),
+		tripDiagnostics:      compliance.TripUpdatesDiagnosticsSummary{Recorded: true, SnapshotAt: now, AdapterName: "deterministic", DiagnosticsStatus: "recorded", DiagnosticsReason: "test diagnostics", ActiveFeedVersionID: "feed-v1"},
+	}
 }
 
 func validationHealthRecord(id int64, feedType, feedVersionID, status string, createdAt time.Time) compliance.ValidationReportRecord {

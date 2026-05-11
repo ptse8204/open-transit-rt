@@ -117,10 +117,10 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 			"Five feeds",
 			fiveFeedsLaunchpadStatus(page),
 			fiveFeedsLaunchpadSignal(page),
-			[]string{"Confirm feeds.json plus schedule, Vehicle Positions, Trip Updates, and Alerts are listed.", "Use smoke checks before relying on any public feed path."},
+			[]string{"Confirm feeds.json plus schedule, Vehicle Positions, Trip Updates, and Alerts are listed.", "Use the plain-language feed health dashboard before relying on any public feed path."},
 			[]string{"docs/tutorials/operator-smoke-and-support-bundle.md", "docs/requirements-calitp-compliance.md"},
 			[]string{"make operator-smoke", "make validator-health"},
-			[]string{"/admin/operations/feeds", "/admin/operations/validation-health"},
+			[]string{"/admin/operations/feed-health", "/admin/operations/feeds", "/admin/operations/validation-health"},
 			"Feed availability is not consumer acceptance, correctness proof, or compliance proof.",
 		),
 		launchpadSection(
