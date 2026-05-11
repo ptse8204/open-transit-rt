@@ -17,7 +17,8 @@ before planning new product phases.
 Phase 61 -- Agency-First UI And Connector Hub is complete. Phase 62 -- Guided
 Setup and Browser GTFS Import is complete. Phase 63 -- Feed Health and
 Readiness UX is complete. Phase 64 -- Connector Platform and SDKs is complete.
-The current active phase is Phase 65 -- Operator Workflow and Data Quality UX.
+Phase 65 -- Operator Workflow and Data Quality UX is complete. The current
+active phase is Phase 66 -- Release Candidate and Installability.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -65,11 +66,12 @@ is closed. Do not claim SLA/uptime proof or CAL-ITP/Caltrans compliance.
 Phase 63 closeout lives in
 `docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 closeout lives in
 `docs/phase-64-connector-platform-and-sdks.md` and
-`docs/handoffs/phase-64.md`.
+`docs/handoffs/phase-64.md`. Phase 65 closeout lives in
+`docs/phase-65-operator-workflow-and-data-quality-ux.md` and
+`docs/handoffs/phase-65.md`.
 
-The current default work is Phase 65 -- Operator Workflow and Data Quality UX.
-Start from
-`docs/phase-65-operator-workflow-and-data-quality-ux.md`.
+The current default work is Phase 66 -- Release Candidate and Installability.
+Start from the roadmap pack and add the Phase 66 plan.
 Phase 64 Checkpoint 000001 added the Phase 64 plan in
 `docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
 private Connector Hub manifest registry UI and bounded JSON registry model
@@ -83,8 +85,8 @@ independence, no-public-mutation flags, and withheld-output diagnostics.
 Checkpoint 000006 added a monitoring/export SDK-style helper and synthetic
 validator allowlist example. Checkpoint 000007 closed Phase 64 with
 validation, protected-path, consumer-tracker, and claim-boundary review.
-Phase 65 should improve device/vehicle onboarding, telemetry simulator UX,
-GTFS quality guidance, and operator troubleshooting without changing protected
+Phase 65 improved device/vehicle onboarding, telemetry simulator UX, GTFS
+quality guidance, and operator troubleshooting without changing protected
 runtime contracts or creating production fleet reliability/compliance claims.
 Checkpoint 000001 added the Phase 65 plan in
 `docs/phase-65-operator-workflow-and-data-quality-ux.md`. The next checkpoint
@@ -97,8 +99,10 @@ freshness/assignment next actions. Checkpoint 000003 added
 surfaces for committed synthetic scenarios and copyable operator-shell
 commands. Checkpoint 000004 improved private GTFS quality guidance with likely
 owners, affected files, safe fix paths, verification steps, escalation
-triggers, and all-false claim flags. The next checkpoint is `Phase 65 --
-Checkpoint 000005: close operator workflow and data quality UX`.
+triggers, and all-false claim flags. Checkpoint 000005 closed Phase 65 with
+validation, protected-path, consumer-tracker, and claim-boundary review. The
+next checkpoint is `Phase 66 -- Checkpoint 000001: add release candidate and
+installability plan`.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1181,13 +1185,14 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue with Phase 65 -- Operator Workflow and Data Quality UX. Phases 0
-through 60 remain closed, and Phases 61, 62, 63, and 64 are complete.
+Continue with Phase 66 -- Release Candidate and Installability. Phases 0
+through 60 remain closed, and Phases 61, 62, 63, 64, and 65 are complete.
 Checkpoint 000001 added the Phase 65 plan. Checkpoint 000002 improved private
 device and vehicle onboarding UI. Checkpoint 000003 added the private
 telemetry simulator guide UI. Checkpoint 000004 improved private GTFS quality
-fix guidance. The next checkpoint is `Phase 65 -- Checkpoint 000005: close
-operator workflow and data quality UX`. For
+fix guidance. Checkpoint 000005 closed Phase 65. The next checkpoint is
+`Phase 66 -- Checkpoint 000001: add release candidate and installability
+plan`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

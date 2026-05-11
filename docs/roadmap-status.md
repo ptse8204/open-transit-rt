@@ -193,7 +193,7 @@ status changes, raw validator commands, SLA/uptime claims, named predictor
 compatibility claims, or production-grade ETA claims. Checkpoint 000007 closed
 Phase 64 with validation, protected-path, consumer-tracker, and claim-boundary
 review.
-Phase 65 — Operator Workflow And Data Quality UX is active. Checkpoint 000001
+Phase 65 — Operator Workflow And Data Quality UX is complete. Checkpoint 000001
 added the scoped plan for device/vehicle onboarding UI, telemetry simulator UI,
 GTFS quality fix guidance, and closeout. Checkpoint 000002 improved the
 private device and vehicle onboarding UI without changing device credential
@@ -204,7 +204,12 @@ collection, `.cache` reads, telemetry sends, evidence writes, consumer status
 changes, or stronger claims. Checkpoint 000004 improved private GTFS quality
 guidance without automatic GTFS edits, draft mutation, schedule publish,
 validator semantic changes, evidence writes, consumer status changes, or
-stronger claims. The next checkpoint is Phase 65 closeout.
+stronger claims. Checkpoint 000005 closed Phase 65 with validation,
+protected-path, consumer-tracker, and claim-boundary review.
+
+Phase 66 — Release Candidate And Installability is active. The next checkpoint
+is `Phase 66 -- Checkpoint 000001: add release candidate and installability
+plan`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

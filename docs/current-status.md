@@ -62,7 +62,7 @@ helpers and withheld-output diagnostics. Checkpoint 000006 added a
 monitoring/export SDK-style helper and a synthetic validator allowlist example.
 Checkpoint 000007 closed Phase 64 with validation, protected-path,
 consumer-tracker, and claim-boundary review. Phase 65 -- Operator Workflow and
-Data Quality UX is active. Checkpoint 000001 added the Phase 65 plan for
+Data Quality UX is complete. Checkpoint 000001 added the Phase 65 plan for
 device/vehicle onboarding UI, telemetry simulator UI, GTFS quality fix
 guidance, operator troubleshooting, and closeout. Checkpoint 000002 improved
 the private device and vehicle onboarding UI with guided use cases, non-admin
@@ -72,7 +72,8 @@ telemetry simulator guide UI with committed synthetic scenario metadata,
 copyable operator-shell commands, target/credential guidance, and all-false
 claim flags. Checkpoint 000004 improved private GTFS quality guidance with
 likely owners, affected files, safe fix paths, verification steps, escalation
-triggers, and all-false claim flags.
+triggers, and all-false claim flags. Checkpoint 000005 closed Phase 65 with
+validation, protected-path, consumer-tracker, and claim-boundary review.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -179,34 +180,24 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The active work is Phase 65 -- Operator Workflow and Data Quality UX. Phase 64
-is closed after adding private connector registry/test-instruction surfaces,
-SDK-style telemetry, prediction, and monitoring helpers, and synthetic
-telemetry, prediction, monitoring/export, and validator allowlist examples.
-Phase 65 planning is captured in
-`docs/phase-65-operator-workflow-and-data-quality-ux.md`. The next checkpoint
-is `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`.
-Keep the work inside private operator workflow/data-quality UX:
+The active work is Phase 66 -- Release Candidate and Installability. Phase 65
+closed after improving device/vehicle onboarding, private telemetry simulator
+guidance, and GTFS quality fix guidance without changing protected runtime
+contracts or creating stronger evidence, adoption, compliance, hosted-service,
+vendor, public-launch, or ETA-quality claims. The next checkpoint is `Phase 66
+-- Checkpoint 000001: add release candidate and installability plan`.
 
-- preserve the completed device/vehicle onboarding guidance without changing
-  telemetry ingest contracts or device credential semantics;
-- preserve the completed telemetry simulator guide without adding browser-side
-  command execution, token collection, `.cache` reads, or real fleet
-  reliability claims;
-- preserve the completed GTFS quality guidance without automatic GTFS edits,
-  draft mutation, schedule publish, validator semantic changes, or compliance
-  claims;
-- preserve protected evidence paths, prepared-only consumer tracker state,
-  public/private route boundaries, and unsupported-claim boundaries.
-
-This roadmap does not create evidence, move consumer statuses, contact external
-parties, or strengthen any compliance, adoption, hosted service, vendor, public
-launch, or ETA-quality claim.
+Keep Phase 66 focused on clean install, bootstrap, preflight/doctor, release
+candidate packaging/docs, and lean validation. Do not claim hosted SaaS,
+universal production readiness, SLA/uptime, agency adoption, consumer
+acceptance, public launch, or compliance.
 
 Phase 63 closeout is captured in
 `docs/phase-63-feed-health-and-readiness-ux.md`. Phase 64 closeout is captured
 in `docs/phase-64-connector-platform-and-sdks.md` and
-`docs/handoffs/phase-64.md`.
+`docs/handoffs/phase-64.md`. Phase 65 closeout is captured in
+`docs/phase-65-operator-workflow-and-data-quality-ux.md` and
+`docs/handoffs/phase-65.md`.
 
 Phase 0 scaffolding, Phase 1 durable telemetry foundation, Phase 2 deterministic trip matching, Phase 3 Vehicle Positions production feed, Phase 4 GTFS import/publish, and Phase 5 GTFS Studio draft/publish are complete. The repo can format, test, start Postgres/PostGIS, run migrations, seed local agencies, execute the bootstrap flow, import GTFS ZIP files, edit typed GTFS drafts, publish drafts, and run DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, and Trip Updates diagnostics tests.
 
@@ -1829,8 +1820,8 @@ Phase 60 targeted verification:
 
 ## Next Recommended Step
 
-Continue with Phase 65 -- Operator Workflow and Data Quality UX. The default
-next work is `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`.
+Continue with Phase 66 -- Release Candidate and Installability. The default
+next work is `Phase 66 -- Checkpoint 000001: add release candidate and installability plan`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

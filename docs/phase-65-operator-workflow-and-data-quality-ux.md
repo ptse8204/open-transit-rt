@@ -2,15 +2,18 @@
 
 ## Status
 
-In progress. Checkpoint 000001 added this plan and kept implementation scoped
-to private operator workflow UX, existing device credential behavior, generated
+Complete. Checkpoint 000001 added this plan and kept implementation scoped to
+private operator workflow UX, existing device credential behavior, generated
 telemetry simulator guidance, and GTFS quality fix guidance. Checkpoint 000002
 improved the private device and vehicle onboarding UI. Checkpoint 000003 added
 the private telemetry simulator guide UI. Checkpoint 000004 improved the
-private GTFS quality fix guidance UI. Phase 65 must
-preserve telemetry ingest contracts, device credential semantics, GTFS import
-and publish boundaries, validator execution semantics, public feed URLs,
-consumer tracker state, protected evidence paths, and unsupported-claim
+private GTFS quality fix guidance UI. Checkpoint 000005 closed Phase 65 after
+validation, protected-path review, consumer-tracker review, and
+claim-boundary review.
+
+Phase 65 preserved telemetry ingest contracts, device credential semantics,
+GTFS import and publish boundaries, validator execution semantics, public feed
+URLs, consumer tracker state, protected evidence paths, and unsupported-claim
 boundaries.
 
 ## Goal
@@ -26,7 +29,7 @@ next?" without requiring operators to read phase history or raw diagnostics.
 - Completed: `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`
 - Completed: `Phase 65 -- Checkpoint 000003: implement telemetry simulator UI`
 - Completed: `Phase 65 -- Checkpoint 000004: implement GTFS quality fix guidance UI`
-- Planned: `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`
+- Completed: `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`
 
 ## Existing State
 
@@ -190,11 +193,12 @@ Protected paths remain untouched:
 
 ## Validation Plan
 
+Closeout verification passed from `/Users/edwintse/Downloads/open-transit-rt`:
+
 - `git diff --check`
 - `go test ./cmd/agency-config`
-- `go test ./cmd/telemetry-simulator` if simulator helpers change
-- `go test ./internal/devices ./internal/telemetry ./internal/gtfs` when
-  related boundaries are touched
+- `go test ./internal/compliance`
+- `go test ./cmd/agency-config ./cmd/telemetry-simulator ./internal/devices ./internal/telemetry`
 - `make check`
 - `make test`
 - `make external-connection-check`
@@ -208,10 +212,7 @@ Protected paths remain untouched:
 - `git diff --exit-code -- db/migrations go.mod go.sum`
 - `docker compose -f deploy/docker-compose.yml config`
 
-Run DB-backed integration checks only if a checkpoint touches behavior that
-requires the database. If Java, Docker, validator tooling, or pinned images are
-unavailable, record the environment blocker and continue with
-non-environment-dependent checks.
+No DB-backed migration or integration behavior changed in this phase.
 
 ## Claim Boundary
 
