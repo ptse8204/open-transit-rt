@@ -22,6 +22,41 @@ git rev-parse HEAD
 The working tree should be clean before tagging. If it is not clean, do not
 produce release artifacts from that checkout.
 
+## Release-Candidate Review
+
+Before preparing tags or release notes, generate a private local
+release-candidate review summary:
+
+```bash
+make check
+make release-candidate-check
+```
+
+Review the five files under `.cache/release-candidate-check/<timestamp>/`:
+
+- `summary.json`;
+- `summary.md`;
+- `manifest.json`;
+- `manifest.md`;
+- `check-log.txt`.
+
+The summary should be used to identify local blockers, missing tools, skipped
+optional checks, and release-note inputs. It is not retained evidence,
+publication approval, hosted-service proof, production-readiness proof,
+consumer acceptance, agency approval, vendor compatibility, or compliance
+evidence.
+
+For package review, generate and audit a local source package:
+
+```bash
+RELEASE_PACKAGE_VERSION=v0.22.0 make release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 make audit-release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 RUN_RELEASE_PACKAGE=true make release-candidate-check
+```
+
+Dirty packages and blocked checks must be recorded as local diagnostics, not
+release-ready artifacts.
+
 ## Version And Pinning
 
 Choose a tag such as `v0.22.0` and record:
@@ -67,6 +102,7 @@ make test
 make test-release-package
 make realtime-quality
 make smoke
+make audit-final-claim-review
 docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```

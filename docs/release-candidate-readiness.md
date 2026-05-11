@@ -71,6 +71,113 @@ Optional audit of an existing local source package:
 RELEASE_PACKAGE_DIR=.cache/release-package/<version> RUN_RELEASE_PACKAGE=true make release-candidate-check
 ```
 
+## First Release-Candidate Review Sequence
+
+Use this sequence for the first maintainer release-candidate review from a
+clean checkout. The output is a local review packet, not proof of production
+readiness.
+
+1. Confirm the source state:
+
+   ```sh
+   git status --short
+   git describe --tags --always --dirty
+   git rev-parse HEAD
+   ```
+
+   Do not tag or publish from a dirty checkout. Dirty checkouts may still be
+   used for local diagnostics while implementation work is active.
+
+2. Run the bounded repo check:
+
+   ```sh
+   make check
+   ```
+
+   Fix JSON, shell syntax, protected-status, or claim-audit failures before
+   proceeding.
+
+3. Generate the private release-candidate diagnostic:
+
+   ```sh
+   make release-candidate-check
+   ```
+
+   Review `summary.md`, `summary.json`, `manifest.md`, `manifest.json`, and
+   `check-log.txt` under `.cache/release-candidate-check/<timestamp>/`. The
+   summary captures source metadata such as `git describe --tags --always
+   --dirty`, commit SHA, branch, dirty state, and pre-tag review mode for
+   release-note drafting.
+
+4. Run validator, test, package, and Docker Compose checks as the local
+   environment allows:
+
+   ```sh
+   make validate
+   make test
+   make test-release-package
+   docker compose -f deploy/docker-compose.yml config
+   ```
+
+   If Java, Docker, network access, pinned validator assets, or local ports are
+   unavailable, record the exact command and blocker. Do not convert a skipped
+   or blocked check into a readiness or compliance claim.
+
+5. Generate and audit a local source package only when a maintainer needs a
+   package review:
+
+   ```sh
+   RELEASE_PACKAGE_VERSION=<tag-or-rc> make release-package
+   RELEASE_PACKAGE_DIR=.cache/release-package/<tag-or-rc> make audit-release-package
+   RELEASE_PACKAGE_DIR=.cache/release-package/<tag-or-rc> RUN_RELEASE_PACKAGE=true make release-candidate-check
+   ```
+
+   Release packages under `.cache` are local diagnostics until a maintainer
+   cuts an actual release.
+
+6. Draft release notes from `docs/release-notes-template.md`. State `None`
+   for unchanged migration, security, dependency, operations, and evidence or
+   claim sections. List blocked commands exactly.
+
+## Validation Matrix
+
+| Check | Expected Local Output | Blocker Handling |
+| --- | --- | --- |
+| `make check` | No-network repo validation passes | Fix before continuing |
+| `make release-candidate-check` | `.cache/release-candidate-check/<timestamp>/` with five files | Record blocker rows; do not claim production readiness |
+| `make validate` | Validator-backed repo validation passes | Record Java, Docker, network, or pinned-tool blocker exactly |
+| `make test` | Go tests pass | Fix or record blocker before tagging |
+| `make test-release-package` | Local package helper tests pass | Fix package helper before relying on package diagnostics |
+| `docker compose -f deploy/docker-compose.yml config` | Compose config renders | Record Docker CLI/Compose blocker exactly |
+| `make audit-final-claim-review` | Claim and consumer tracker audit passes | Fix unsupported wording or protected status drift before continuing |
+
+## Release Note Inputs
+
+When a release candidate becomes a tagged release, release notes should record:
+
+- source tag or planned tag;
+- commit SHA;
+- dirty or clean state;
+- release-candidate diagnostic output directory;
+- local release package path and checksum manifest, if generated;
+- SBOM and provenance metadata status, if generated;
+- local Docker image tag, if built;
+- validation commands and results;
+- blocked commands with exact reasons;
+- confirmation that no retained evidence, consumer status change, image push,
+  hosted-service claim, production-readiness claim, or compliance claim was
+  created by the release-candidate helper.
+
+## Local Package Audit Matrix
+
+| Package Item | Review Command | Boundary |
+| --- | --- | --- |
+| Source archive and checksum | `make release-package` | Local package diagnostic only until a release is cut |
+| Manifest files | `make audit-release-package` | Manifest presence is not hosted-service proof |
+| SBOM/provenance metadata | `make audit-release-package` | Metadata is local supply-chain context |
+| Dirty state | `make audit-release-package` | Dirty packages are not release-ready artifacts |
+| Optional local image metadata | `RELEASE_PACKAGE_IMAGE_TAG=<tag> make release-package` | Local image metadata is not a published production image |
+
 ## Environment Blockers
 
 `make release-candidate-check` records validator and local tooling blockers
@@ -103,6 +210,11 @@ The script writes exactly:
 
 These files are private local diagnostics only. They are not evidence packets,
 not release artifacts, and not publication approval.
+
+`summary.json` and `summary.md` also include source metadata, release-note
+inputs, the ordered first release-candidate workflow, and the local package
+audit matrix. These fields help maintainers draft release notes from the local
+checkout; they do not tag, publish, push images, or approve a release.
 
 ## Claim Boundary
 

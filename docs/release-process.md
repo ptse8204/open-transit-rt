@@ -57,14 +57,28 @@ Maintainers with repository write access may cut releases. A release should not 
 
 ## Pre-Release Checklist
 
-Run and record all required final checks:
+Run the release-candidate workflow before tagging:
+
+```bash
+make check
+make release-candidate-check
+```
+
+Review `docs/release-candidate-readiness.md` for the ordered workflow,
+validation matrix, release-note inputs, and local package audit matrix. Treat
+the generated `.cache/release-candidate-check/<timestamp>/` files as private
+local diagnostics only. They are not retained evidence, publication approval,
+or production-readiness proof.
+
+Then run and record all required final checks:
 
 ```bash
 make validate
 make test
+make test-release-package
 make realtime-quality
 make smoke
-make test-release-package
+make audit-final-claim-review
 docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```

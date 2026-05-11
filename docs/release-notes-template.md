@@ -29,6 +29,7 @@ Source:
 
 - Clean install from source tag: `<supported / notes>`
 - Local app verification: `<commands or link>`
+- Release-candidate diagnostic: `<.cache/release-candidate-check path and status, or None>`
 - Local release package: `<package path and audit result or None>`
 - Local Docker image build: `<image tag or None>`
 - Published production Docker image: `None; deferred unless a future release says otherwise.`
@@ -75,14 +76,17 @@ production-grade ETA quality unless retained evidence supports that exact claim.
 
 ## Checks
 
-Record final check results:
+Record release-candidate and final check results:
 
 ```bash
+make check
+make release-candidate-check
 make validate
 make test
 make test-release-package
 make realtime-quality
 make smoke
+make audit-final-claim-review
 docker compose -f deploy/docker-compose.yml config
 git diff --check
 ```
@@ -90,3 +94,10 @@ git diff --check
 Blocked checks:
 
 - `<None, or exact command and reason>`
+
+Release-candidate summary:
+
+- Output directory: `<.cache/release-candidate-check/... or None>`
+- Overall status: `<passed / needs_review / not_checked / blocker>`
+- Package audit status: `<passed / needs_review / not_checked / blocker / None>`
+- Claim-boundary result: `<no retained evidence, consumer status change, image push, hosted-service claim, production-readiness claim, or compliance claim / notes>`

@@ -170,7 +170,7 @@ run_check() {
   if sh -c "$command" >>"$LOG_FILE" 2>&1; then
     add_check "$id" "$label" "passed" "completed"
   else
-    add_check "$id" "$label" "blocker" "command failed; see check-log.txt"
+    add_check "$id" "$label" "blocker" "command failed for $id; see check-log.txt"
   fi
 }
 
@@ -198,7 +198,11 @@ for path in \
   scripts/validator-health.sh \
   scripts/operations-reliability.sh \
   scripts/operations-notify.sh \
-  testdata/gtfs/valid-small/agency.txt
+  testdata/gtfs/valid-small/agency.txt \
+  docs/release-candidate-readiness.md \
+  docs/release-process.md \
+  docs/release-checklist.md \
+  docs/release-notes-template.md
 do
   file_check "file_$path" "Required file $path" "$path"
 done
@@ -213,6 +217,13 @@ if command -v docker >/dev/null 2>&1; then
   add_check "tool_docker" "Docker CLI" "passed" "docker CLI present"
 else
   add_check "tool_docker" "Docker CLI" "needs_review" "docker CLI missing; local app and realtime validator wrapper may be unavailable"
+fi
+
+if command -v java >/dev/null 2>&1; then
+  JAVA_VERSION="$(java -version 2>&1 | sed -n '1p')"
+  add_check "tool_java" "Java runtime" "passed" "$JAVA_VERSION"
+else
+  add_check "tool_java" "Java runtime" "needs_review" "java missing; pinned MobilityData GTFS Validator execution may be unavailable"
 fi
 
 for tool in python3 git curl make; do
@@ -265,6 +276,7 @@ fi
 python3 - "$ROOT_DIR" "$OUT_REAL" "$CHECKS_TSV" "$TIMESTAMP" "$DRY_RUN" "$RUN_LOCAL_APP" "$RUN_RELEASE_PACKAGE" <<'PY'
 import json
 import pathlib
+import subprocess
 import sys
 
 root = pathlib.Path(sys.argv[1]).resolve()
@@ -274,6 +286,29 @@ timestamp = sys.argv[4]
 dry_run = sys.argv[5] == "true"
 run_local_app = sys.argv[6] == "true"
 run_release_package = sys.argv[7] == "true"
+
+def git_output(*args):
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except Exception:
+        return "unavailable"
+    value = result.stdout.strip()
+    return value or "unavailable"
+
+source = {
+    "describe": git_output("describe", "--tags", "--always", "--dirty"),
+    "commit_sha": git_output("rev-parse", "HEAD"),
+    "branch": git_output("branch", "--show-current"),
+}
+source_status = git_output("status", "--short")
+source["dirty"] = source_status not in ("", "unavailable")
+source["pre_tag_review"] = True
 
 rows = []
 with checks_path.open() as fh:
@@ -300,6 +335,97 @@ public_feed_paths = [
     "/public/gtfsrt/alerts.pb",
 ]
 
+review_sequence = [
+    {
+        "step": "clean_checkout",
+        "command": "git status --short",
+        "expected": "no uncommitted files before tagging or publishing release notes",
+        "blocker_handling": "do not tag from a dirty checkout; use diagnostics only until the tree is clean",
+    },
+    {
+        "step": "lightweight_repo_check",
+        "command": "make check",
+        "expected": "no-network/no-Docker/no-validator-install checks pass",
+        "blocker_handling": "fix repository, JSON, script syntax, or claim-audit failures before continuing",
+    },
+    {
+        "step": "release_candidate_diagnostic",
+        "command": "make release-candidate-check",
+        "expected": "private .cache summary with passed, needs_review, not_checked, or blocker rows",
+        "blocker_handling": "record exact blockers; do not convert the summary into production or compliance proof",
+    },
+    {
+        "step": "package_audit",
+        "command": "make release-package && RELEASE_PACKAGE_DIR=.cache/release-package/<version> make audit-release-package",
+        "expected": "local source package manifest, checksums, SBOM/provenance metadata, and audit result",
+        "blocker_handling": "dirty or failed packages remain local diagnostics and are not release-ready artifacts",
+    },
+    {
+        "step": "release_notes_draft",
+        "command": "edit docs/release-notes-template.md copy",
+        "expected": "notes list scope, migrations, operations/security/dependency changes, limitations, checks, and blockers",
+        "blocker_handling": "state None for unchanged sections and list blocked commands without stronger claims",
+    },
+]
+
+release_note_inputs = {
+    "source": [
+        "git tag or planned tag",
+        "commit SHA",
+        "dirty/clean state",
+        "release-candidate diagnostic output directory",
+    ],
+    "package": [
+        "local release package path",
+        "source archive checksum",
+        "SBOM/provenance status",
+        "local image metadata status when supplied",
+    ],
+    "validation": [
+        "make check",
+        "make validate or exact validator blocker",
+        "make test",
+        "make test-release-package",
+        "docker compose -f deploy/docker-compose.yml config",
+        "make audit-final-claim-review",
+    ],
+    "claim_boundaries": [
+        "no retained evidence created",
+        "no consumer statuses changed",
+        "no release published by this helper",
+        "no tag created by this helper",
+        "no image pushed by this helper",
+    ],
+}
+
+package_audit_matrix = [
+    {
+        "item": "source archive",
+        "check": "make release-package records archive name and SHA-256 checksum",
+        "claim_boundary": "local package diagnostic only until a maintainer cuts a release",
+    },
+    {
+        "item": "manifest files",
+        "check": "make audit-release-package verifies required package files and JSON shape",
+        "claim_boundary": "manifest presence is not hosted service or production-readiness proof",
+    },
+    {
+        "item": "SBOM and provenance metadata",
+        "check": "audit confirms metadata files exist and match the local package summary",
+        "claim_boundary": "metadata is local supply-chain context, not external acceptance evidence",
+    },
+    {
+        "item": "dirty state",
+        "check": "package summary records whether the checkout was dirty",
+        "claim_boundary": "dirty packages are diagnostics and not release-ready artifacts",
+    },
+    {
+        "item": "local image metadata",
+        "check": "optional metadata is recorded only when RELEASE_PACKAGE_IMAGE_TAG is supplied",
+        "claim_boundary": "local image metadata does not mean a published production image exists",
+    },
+]
+
 claim_flags = {
     "retained_evidence_created": False,
     "consumer_statuses_changed": False,
@@ -322,10 +448,14 @@ summary = {
     "dry_run": dry_run,
     "run_local_app": run_local_app,
     "run_release_package": run_release_package,
+    "source": source,
     "gtfs_import_fixture": "testdata/gtfs/valid-small",
     "public_feed_paths": public_feed_paths,
     "counts": counts,
     "checks": rows,
+    "review_sequence": review_sequence,
+    "release_note_inputs": release_note_inputs,
+    "package_audit_matrix": package_audit_matrix,
     "claim_flags": claim_flags,
     "boundary": "Private local diagnostics only; not evidence, not a release publication, not compliance proof, not consumer acceptance, not agency approval, not hosted service availability, not vendor compatibility, and not production readiness.",
 }
@@ -334,6 +464,7 @@ manifest = {
     "generated_at": timestamp,
     "output_files": ["summary.json", "summary.md", "manifest.json", "manifest.md", "check-log.txt"],
     "default_output_root": ".cache/release-candidate-check",
+    "workflow_document": "docs/release-candidate-readiness.md",
     "retained_evidence_created": False,
     "consumer_statuses_changed": False,
     "external_parties_contacted": False,
@@ -356,6 +487,11 @@ lines = [
     f"- Dry run: `{str(dry_run).lower()}`",
     f"- Local app check: `{'requested' if run_local_app else 'not_checked'}`",
     f"- Release package check: `{'requested' if run_release_package else 'not_checked'}`",
+    f"- Source describe: `{source['describe']}`",
+    f"- Commit SHA: `{source['commit_sha']}`",
+    f"- Branch: `{source['branch']}`",
+    f"- Dirty checkout: `{str(source['dirty']).lower()}`",
+    "- Review mode: `pre-tag local diagnostics`",
     "- GTFS import fixture: `testdata/gtfs/valid-small`",
     "- Public feed paths: `/public/feeds.json`, `/public/gtfs/schedule.zip`, `/public/gtfsrt/vehicle_positions.pb`, `/public/gtfsrt/trip_updates.pb`, `/public/gtfsrt/alerts.pb`",
     "",
@@ -365,6 +501,26 @@ lines = [
 ]
 for row in rows:
     lines.append(f"- `{row['status']}` {row['label']}: {row['detail']}")
+lines.extend([
+    "",
+    "## First Release-Candidate Workflow",
+])
+for item in review_sequence:
+    lines.append(
+        f"- `{item['step']}`: run `{item['command']}`; expected {item['expected']}; blocker handling: {item['blocker_handling']}."
+    )
+lines.extend([
+    "",
+    "## Release Note Inputs",
+])
+for group, values in release_note_inputs.items():
+    lines.append(f"- `{group}`: " + "; ".join(values))
+lines.extend([
+    "",
+    "## Local Package Audit Matrix",
+])
+for item in package_audit_matrix:
+    lines.append(f"- `{item['item']}`: {item['check']}; boundary: {item['claim_boundary']}.")
 (out / "summary.md").write_text("\n".join(lines) + "\n")
 
 manifest_md = [

@@ -24,6 +24,10 @@ func TestReleaseCandidateCheckDryRunExactFilesAndClaimFlags(t *testing.T) {
 	if summary["dry_run"] != true {
 		t.Fatalf("dry_run = %v, want true", summary["dry_run"])
 	}
+	source, ok := summary["source"].(map[string]any)
+	if !ok || source["describe"] == nil || source["commit_sha"] == nil || source["pre_tag_review"] != true {
+		t.Fatalf("source metadata missing describe, commit_sha, or pre_tag_review: %#v", summary["source"])
+	}
 	flags := summary["claim_flags"].(map[string]any)
 	for _, key := range []string{
 		"retained_evidence_created",
@@ -41,6 +45,29 @@ func TestReleaseCandidateCheckDryRunExactFilesAndClaimFlags(t *testing.T) {
 	} {
 		if flags[key] != false {
 			t.Fatalf("claim flag %s = %v, want false", key, flags[key])
+		}
+	}
+	sequence, ok := summary["review_sequence"].([]any)
+	if !ok || len(sequence) < 5 {
+		t.Fatalf("review_sequence length = %d, want at least 5", len(sequence))
+	}
+	inputs, ok := summary["release_note_inputs"].(map[string]any)
+	if !ok || inputs["validation"] == nil || inputs["claim_boundaries"] == nil {
+		t.Fatalf("release_note_inputs missing validation or claim boundaries: %#v", summary["release_note_inputs"])
+	}
+	matrix, ok := summary["package_audit_matrix"].([]any)
+	if !ok || len(matrix) < 5 {
+		t.Fatalf("package_audit_matrix length = %d, want at least 5", len(matrix))
+	}
+	summaryText := readReleaseCandidateOutputFile(t, root, outputRel, "summary.md")
+	for _, want := range []string{
+		"First Release-Candidate Workflow",
+		"Release Note Inputs",
+		"Local Package Audit Matrix",
+		"pre-tag local diagnostics",
+	} {
+		if !strings.Contains(summaryText, want) {
+			t.Fatalf("summary.md missing %q", want)
 		}
 	}
 }
@@ -121,6 +148,8 @@ func TestReleaseCandidateCheckHelpAndDocsBoundary(t *testing.T) {
 		"consumer acceptance",
 		"vendor compatibility",
 		"production readiness",
+		"pre-tag",
+		"local diagnostics",
 	} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("missing boundary phrase %q", want)
@@ -162,6 +191,15 @@ func readReleaseCandidateSummary(t *testing.T, root, outputRel string) map[strin
 		t.Fatal(err)
 	}
 	return summary
+}
+
+func readReleaseCandidateOutputFile(t *testing.T, root, outputRel, name string) string {
+	t.Helper()
+	body, err := os.ReadFile(filepath.Join(root, outputRel, name))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(body)
 }
 
 func assertReleaseCandidateExactFiles(t *testing.T, root, outputRel string) {
