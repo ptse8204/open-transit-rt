@@ -32,6 +32,17 @@ func TestParseGTFSZipValidSmall(t *testing.T) {
 	}
 }
 
+func TestParseGTFSZipContextCanceled(t *testing.T) {
+	payload := zipFixture(t, "../../testdata/gtfs/valid-small", nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, report := parseGTFSZipContext(ctx, payload, "demo-agency")
+	if report.Status != ImportStatusFailed || !hasImportCode(report, "import_canceled") {
+		t.Fatalf("canceled import report status=%q errors=%+v, want import_canceled failure", report.Status, report.Errors)
+	}
+}
+
 func TestParseGTFSZipPreservesAfterMidnightTimes(t *testing.T) {
 	payload := zipFixture(t, "../../testdata/gtfs/after-midnight", nil)
 	feed, report := parseGTFSZip(payload, "overnight-agency")

@@ -1047,7 +1047,7 @@ func (s *DraftService) draftFeed(ctx context.Context, draft Draft) (parsedFeed, 
 	if len(feed.Calendars) == 0 && len(feed.CalendarDates) == 0 {
 		report.addError("", 0, "missing_service_source", "at least one usable service source from calendars or calendar_dates is required")
 	}
-	validateFeed(&feed, &report)
+	validateFeed(ctx, &feed, &report)
 	report.Status = ImportStatusPublished
 	if report.hasErrors() {
 		report.Status = ImportStatusFailed

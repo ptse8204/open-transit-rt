@@ -194,6 +194,9 @@ validate_inputs() {
       ;;
     *) fail "PUBLICATION_ENVIRONMENT must be dev or production" ;;
   esac
+  if [ "$MODE" = "running" ] && [ -z "$GTFS_IMPORT_BIN" ] && [ -x "$ROOT_DIR/../bin/gtfs-import" ]; then
+    GTFS_IMPORT_BIN="$ROOT_DIR/../bin/gtfs-import"
+  fi
 }
 
 print_plan() {

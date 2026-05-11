@@ -156,7 +156,7 @@ func (s *ImportService) ImportZip(ctx context.Context, opts ImportOptions) (Impo
 		ByteSize: int64(len(payload)),
 	}
 
-	feed, report := parseGTFSZip(payload, opts.AgencyID)
+	feed, report := parseGTFSZipContext(ctx, payload, opts.AgencyID)
 	report.Metadata = map[string]string{
 		"source_filename": source.Filename,
 		"source_sha256":   source.SHA256,
@@ -821,6 +821,10 @@ type importFrequency struct {
 }
 
 func parseGTFSZip(payload []byte, agencyID string) (parsedFeed, ImportReport) {
+	return parseGTFSZipContext(context.Background(), payload, agencyID)
+}
+
+func parseGTFSZipContext(ctx context.Context, payload []byte, agencyID string) (parsedFeed, ImportReport) {
 	report := ImportReport{
 		Status: ImportStatusStarted,
 		Counts: map[string]int{},
@@ -857,15 +861,18 @@ func parseGTFSZip(payload []byte, agencyID string) (parsedFeed, ImportReport) {
 		report.addError("", 0, "missing_service_source", "at least one usable service source from calendar.txt or calendar_dates.txt is required")
 	}
 
-	feed.Agencies = parseAgencies(openCSV(files["agency.txt"], &report), agencyID, &report)
-	feed.Routes = parseRoutes(openCSV(files["routes.txt"], &report), &report)
-	feed.Stops = parseStops(openCSV(files["stops.txt"], &report), &report)
-	feed.Calendars = parseCalendars(openCSV(files["calendar.txt"], &report), &report)
-	feed.CalendarDates = parseCalendarDates(openCSV(files["calendar_dates.txt"], &report), &report)
-	feed.Trips = parseTrips(openCSV(files["trips.txt"], &report), &report)
-	feed.StopTimes = parseStopTimes(openCSV(files["stop_times.txt"], &report), &report)
-	feed.ShapePoints = parseShapes(openCSV(files["shapes.txt"], &report), &report)
-	feed.Frequencies = parseFrequencies(openCSV(files["frequencies.txt"], &report), &report)
+	if importContextCanceled(ctx, &report) {
+		return feed, report
+	}
+	feed.Agencies = parseAgencies(ctx, openCSV(ctx, files["agency.txt"], &report), agencyID, &report)
+	feed.Routes = parseRoutes(ctx, openCSV(ctx, files["routes.txt"], &report), &report)
+	feed.Stops = parseStops(ctx, openCSV(ctx, files["stops.txt"], &report), &report)
+	feed.Calendars = parseCalendars(ctx, openCSV(ctx, files["calendar.txt"], &report), &report)
+	feed.CalendarDates = parseCalendarDates(ctx, openCSV(ctx, files["calendar_dates.txt"], &report), &report)
+	feed.Trips = parseTrips(ctx, openCSV(ctx, files["trips.txt"], &report), &report)
+	feed.StopTimes = parseStopTimes(ctx, openCSV(ctx, files["stop_times.txt"], &report), &report)
+	feed.ShapePoints = parseShapes(ctx, openCSV(ctx, files["shapes.txt"], &report), &report)
+	feed.Frequencies = parseFrequencies(ctx, openCSV(ctx, files["frequencies.txt"], &report), &report)
 
 	report.Counts["agency"] = len(feed.Agencies)
 	report.Counts["routes"] = len(feed.Routes)
@@ -877,7 +884,10 @@ func parseGTFSZip(payload []byte, agencyID string) (parsedFeed, ImportReport) {
 	report.Counts["shapes"] = len(feed.ShapePoints)
 	report.Counts["frequencies"] = len(feed.Frequencies)
 
-	validateFeed(&feed, &report)
+	if importContextCanceled(ctx, &report) {
+		return feed, report
+	}
+	validateFeed(ctx, &feed, &report)
 	report.Status = ImportStatusPublished
 	if report.hasErrors() {
 		report.Status = ImportStatusFailed
@@ -896,8 +906,43 @@ type csvRow struct {
 	values map[string]string
 }
 
-func openCSV(file *zip.File, report *ImportReport) csvTable {
+func importContextCanceled(ctx context.Context, report *ImportReport) bool {
+	if ctx == nil {
+		return false
+	}
+	select {
+	case <-ctx.Done():
+		if report != nil && !reportHasImportCode(*report, "import_canceled") {
+			report.addError("", 0, "import_canceled", ctx.Err().Error())
+			report.Status = ImportStatusFailed
+		}
+		return true
+	default:
+		return false
+	}
+}
+
+func reportHasImportCode(report ImportReport, code string) bool {
+	for _, msg := range report.Errors {
+		if msg.Code == code {
+			return true
+		}
+	}
+	return false
+}
+
+func importContextCanceledEvery(ctx context.Context, report *ImportReport, index int) bool {
+	if index%5000 != 0 {
+		return false
+	}
+	return importContextCanceled(ctx, report)
+}
+
+func openCSV(ctx context.Context, file *zip.File, report *ImportReport) csvTable {
 	if file == nil {
+		return csvTable{}
+	}
+	if importContextCanceled(ctx, report) {
 		return csvTable{}
 	}
 	rc, err := file.Open()
@@ -910,6 +955,9 @@ func openCSV(file *zip.File, report *ImportReport) csvTable {
 	if err != nil {
 		report.addError(file.Name, 0, "read_file_failed", err.Error())
 		return csvTable{}
+	}
+	if importContextCanceled(ctx, report) {
+		return csvTable{name: file.Name}
 	}
 	reader := csv.NewReader(bytes.NewReader(payload))
 	reader.FieldsPerRecord = -1
@@ -929,6 +977,9 @@ func openCSV(file *zip.File, report *ImportReport) csvTable {
 	}
 	rows := make([]csvRow, 0, len(records)-1)
 	for i, record := range records[1:] {
+		if importContextCanceledEvery(ctx, report, i) {
+			return csvTable{name: file.Name, rows: rows}
+		}
 		values := make(map[string]string, len(header))
 		for j, key := range header {
 			if j < len(record) {
@@ -942,9 +993,12 @@ func openCSV(file *zip.File, report *ImportReport) csvTable {
 	return csvTable{name: file.Name, rows: rows}
 }
 
-func parseAgencies(table csvTable, requestedAgencyID string, report *ImportReport) []importAgency {
+func parseAgencies(ctx context.Context, table csvTable, requestedAgencyID string, report *ImportReport) []importAgency {
 	var agencies []importAgency
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return agencies
+		}
 		id := row.required("agency_id", report)
 		agency := importAgency{
 			ID:       id,
@@ -971,10 +1025,13 @@ func parseAgencies(table csvTable, requestedAgencyID string, report *ImportRepor
 	return agencies
 }
 
-func parseRoutes(table csvTable, report *ImportReport) []importRoute {
+func parseRoutes(ctx context.Context, table csvTable, report *ImportReport) []importRoute {
 	var routes []importRoute
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return routes
+		}
 		id := row.required("route_id", report)
 		if id != "" && seen[id] {
 			report.addError(row.file, row.number, "duplicate_route", fmt.Sprintf("route_id %q is duplicated", id))
@@ -995,10 +1052,13 @@ func parseRoutes(table csvTable, report *ImportReport) []importRoute {
 	return routes
 }
 
-func parseStops(table csvTable, report *ImportReport) []importStop {
+func parseStops(ctx context.Context, table csvTable, report *ImportReport) []importStop {
 	var stops []importStop
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return stops
+		}
 		id := row.required("stop_id", report)
 		if id != "" && seen[id] {
 			report.addError(row.file, row.number, "duplicate_stop", fmt.Sprintf("stop_id %q is duplicated", id))
@@ -1019,10 +1079,13 @@ func parseStops(table csvTable, report *ImportReport) []importStop {
 	return stops
 }
 
-func parseCalendars(table csvTable, report *ImportReport) []importCalendar {
+func parseCalendars(ctx context.Context, table csvTable, report *ImportReport) []importCalendar {
 	var calendars []importCalendar
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return calendars
+		}
 		serviceID := row.required("service_id", report)
 		if serviceID != "" && seen[serviceID] {
 			report.addError(row.file, row.number, "duplicate_calendar_service", fmt.Sprintf("calendar service_id %q is duplicated", serviceID))
@@ -1048,10 +1111,13 @@ func parseCalendars(table csvTable, report *ImportReport) []importCalendar {
 	return calendars
 }
 
-func parseCalendarDates(table csvTable, report *ImportReport) []importCalendarDate {
+func parseCalendarDates(ctx context.Context, table csvTable, report *ImportReport) []importCalendarDate {
 	var dates []importCalendarDate
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return dates
+		}
 		serviceID := row.required("service_id", report)
 		date := row.requiredDate("date", report)
 		key := serviceID + "\x00" + date
@@ -1068,10 +1134,13 @@ func parseCalendarDates(table csvTable, report *ImportReport) []importCalendarDa
 	return dates
 }
 
-func parseTrips(table csvTable, report *ImportReport) []importTrip {
+func parseTrips(ctx context.Context, table csvTable, report *ImportReport) []importTrip {
 	var trips []importTrip
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return trips
+		}
 		id := row.required("trip_id", report)
 		if id != "" && seen[id] {
 			report.addError(row.file, row.number, "duplicate_trip", fmt.Sprintf("trip_id %q is duplicated", id))
@@ -1093,10 +1162,13 @@ func parseTrips(table csvTable, report *ImportReport) []importTrip {
 	return trips
 }
 
-func parseStopTimes(table csvTable, report *ImportReport) []importStopTime {
+func parseStopTimes(ctx context.Context, table csvTable, report *ImportReport) []importStopTime {
 	var stopTimes []importStopTime
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return stopTimes
+		}
 		tripID := row.required("trip_id", report)
 		arrival := row.get("arrival_time")
 		departure := row.get("departure_time")
@@ -1129,10 +1201,13 @@ func parseStopTimes(table csvTable, report *ImportReport) []importStopTime {
 	return stopTimes
 }
 
-func parseShapes(table csvTable, report *ImportReport) []importShapePoint {
+func parseShapes(ctx context.Context, table csvTable, report *ImportReport) []importShapePoint {
 	var points []importShapePoint
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return points
+		}
 		shapeID := row.required("shape_id", report)
 		sequence := row.requiredInt("shape_pt_sequence", report)
 		key := shapeID + "\x00" + strconv.Itoa(sequence)
@@ -1156,10 +1231,13 @@ func parseShapes(table csvTable, report *ImportReport) []importShapePoint {
 	return points
 }
 
-func parseFrequencies(table csvTable, report *ImportReport) []importFrequency {
+func parseFrequencies(ctx context.Context, table csvTable, report *ImportReport) []importFrequency {
 	var frequencies []importFrequency
 	seen := map[string]bool{}
-	for _, row := range table.rows {
+	for i, row := range table.rows {
+		if importContextCanceledEvery(ctx, report, i) {
+			return frequencies
+		}
 		tripID := row.required("trip_id", report)
 		startTime := row.required("start_time", report)
 		endTime := row.required("end_time", report)
@@ -1196,20 +1274,29 @@ func parseFrequencies(table csvTable, report *ImportReport) []importFrequency {
 	return frequencies
 }
 
-func validateFeed(feed *parsedFeed, report *ImportReport) {
+func validateFeed(ctx context.Context, feed *parsedFeed, report *ImportReport) {
 	routes := map[string]bool{}
-	for _, route := range feed.Routes {
+	for i, route := range feed.Routes {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		routes[route.ID] = true
 		if route.AgencyID != "" && route.AgencyID != feed.AgencyID {
 			report.addError("routes.txt", 0, "route_agency_mismatch", fmt.Sprintf("route_id %q references agency_id %q, want %q", route.ID, route.AgencyID, feed.AgencyID))
 		}
 	}
 	stops := map[string]bool{}
-	for _, stop := range feed.Stops {
+	for i, stop := range feed.Stops {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		stops[stop.ID] = true
 	}
 	usableServices := map[string]bool{}
-	for _, calendar := range feed.Calendars {
+	for i, calendar := range feed.Calendars {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		if !calendar.hasActiveWeekday() {
 			report.addError("calendar.txt", 0, "unusable_calendar_service", fmt.Sprintf("service_id %q has no active weekdays", calendar.ServiceID))
 			continue
@@ -1218,7 +1305,10 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 			usableServices[calendar.ServiceID] = true
 		}
 	}
-	for _, date := range feed.CalendarDates {
+	for i, date := range feed.CalendarDates {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		if date.ExceptionType == 1 && date.ServiceID != "" && date.Date != "" {
 			usableServices[date.ServiceID] = true
 		}
@@ -1229,11 +1319,19 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 
 	shapes := map[string]bool{}
 	byShape := map[string][]importShapePoint{}
-	for _, point := range feed.ShapePoints {
+	for i, point := range feed.ShapePoints {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		shapes[point.ShapeID] = true
 		byShape[point.ShapeID] = append(byShape[point.ShapeID], point)
 	}
+	shapeIndex := 0
 	for shapeID, points := range byShape {
+		if importContextCanceledEvery(ctx, report, shapeIndex) {
+			return
+		}
+		shapeIndex++
 		sort.Slice(points, func(i, j int) bool { return points[i].Sequence < points[j].Sequence })
 		var previousSequence int
 		var previousDist float64
@@ -1255,7 +1353,10 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 	}
 
 	trips := map[string]importTrip{}
-	for _, trip := range feed.Trips {
+	for i, trip := range feed.Trips {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		trips[trip.ID] = trip
 		if !routes[trip.RouteID] {
 			report.addError("trips.txt", 0, "unknown_route", fmt.Sprintf("trip_id %q references unknown route_id %q", trip.ID, trip.RouteID))
@@ -1267,7 +1368,10 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 			report.addError("trips.txt", 0, "unknown_shape", fmt.Sprintf("trip_id %q references unknown shape_id %q", trip.ID, trip.ShapeID))
 		}
 	}
-	for _, stopTime := range feed.StopTimes {
+	for i, stopTime := range feed.StopTimes {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		if _, ok := trips[stopTime.TripID]; !ok {
 			report.addError("stop_times.txt", 0, "unknown_trip", fmt.Sprintf("stop_times references unknown trip_id %q", stopTime.TripID))
 		}
@@ -1275,7 +1379,10 @@ func validateFeed(feed *parsedFeed, report *ImportReport) {
 			report.addError("stop_times.txt", 0, "unknown_stop", fmt.Sprintf("stop_times references unknown stop_id %q", stopTime.StopID))
 		}
 	}
-	for _, frequency := range feed.Frequencies {
+	for i, frequency := range feed.Frequencies {
+		if importContextCanceledEvery(ctx, report, i) {
+			return
+		}
 		if _, ok := trips[frequency.TripID]; !ok {
 			report.addError("frequencies.txt", 0, "unknown_frequency_trip", fmt.Sprintf("frequencies references unknown trip_id %q", frequency.TripID))
 		}
