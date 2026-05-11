@@ -4,10 +4,17 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
-Post-60 productization is the active default roadmap. This is not Phase 61,
-and Phases 0 through 60 remain closed for their documented scopes.
+Phases 0 through 60 remain closed for their documented scopes. After the
+Post-60 agency-ready productization audit, the maintainer authorized Phase 61+
+as the forward product roadmap naming for agency-first UI, guided setup,
+connector-platform, release, and product-polish work.
 
-The current default work is agency-facing open-source product quality and
+The Phase 61+ agency-first connector platform roadmap lives at
+`docs/roadmaps/agency-first-connector-platform/README.md`; Codex should start
+from `docs/roadmaps/agency-first-connector-platform/00-CODEX-READ-ME-FIRST.md`
+before planning new product phases.
+
+The current default work remains agency-facing open-source product quality and
 external connection maturity: clear evaluator paths, release-candidate
 readiness checks, connector contracts, adapter conformance, generic connector
 examples, private agency launchpad workflow, and `.cache`-only

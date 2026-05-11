@@ -47,6 +47,7 @@ project:
 - [Integration Adapter Kit](integration-adapter-kit.md)
 - [Connector Plugin Contract](connectors/plugin-contract.md)
 - [External Connection Readiness](external-connection-readiness.md)
+- [Phase 61+ Agency-First Connector Platform Roadmap](roadmaps/agency-first-connector-platform/README.md)
 - [Examples Index](../examples/README.md)
 - [Test Fixture Index](../testdata/README.md)
 - [Dependencies](dependencies.md)

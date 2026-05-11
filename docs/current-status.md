@@ -12,13 +12,17 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 Open Transit RT is a technically broad, evidence-bounded open-source backend
 for GTFS and GTFS Realtime publication. Phases 0 through 60 are closed for
-their documented scopes. The active default roadmap is Post-60
-productization, not Phase 61. Checkpoints 000009 through 000012 turn the repo
-toward agency-facing open-source product evaluation: MIT licensing, a clearer
+their documented scopes. The forward product roadmap now uses Phase 61+
+naming. This is a maintainer-approved naming change after Post-60
+productization; it does not reopen Phases 0-60 and does not weaken evidence or
+claim boundaries. Checkpoints 000009 through 000012 turned the repo toward
+agency-facing open-source product evaluation: MIT licensing, a clearer
 README/wiki front door, agency trial paths, connector contribution paths,
 `make help`, a lightweight no-network `make check`, lean no-claim CI, and
 release-candidate/readiness blocker language. Optional real-world evidence
-tracks remain authorization-gated and are not the default next work.
+tracks remain authorization-gated and are not the default next work. The
+Phase 61+ roadmap lives at
+`docs/roadmaps/agency-first-connector-platform/README.md`.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
