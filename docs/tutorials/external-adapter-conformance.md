@@ -11,6 +11,17 @@ Run the full suite:
 make adapter-conformance
 ```
 
+Private UI guidance:
+
+```text
+/admin/operations/connectors/tests
+```
+
+The Operations Console page lists the fixed offline checks as generated
+instructions only. It does not execute commands, read commands from connector
+manifests, capture output, run validators, start sidecars, write evidence,
+contact external parties, or change consumer statuses.
+
 Run one section:
 
 ```sh

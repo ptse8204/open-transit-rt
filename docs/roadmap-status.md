@@ -181,10 +181,11 @@ checklist v2 for existing private signals without public routes, schema
 changes, retained evidence, consumer status changes, or stronger claims.
 Phase 64 — Connector Platform And SDKs is active. Checkpoint 000001 added the
 scoped connector platform and SDK plan. Checkpoint 000002 added the private
-Connector Hub manifest registry UI from safe committed synthetic examples. The
-next checkpoint is a generated connector test-runner instructions UI without
-dynamic backend plugin loading, command execution, evidence writes, consumer
-status changes, or vendor compatibility claims.
+Connector Hub manifest registry UI from safe committed synthetic examples.
+Checkpoint 000003 added private generated connector test instructions without
+backend command execution. The next checkpoint improves telemetry connector
+SDK-style examples without dynamic backend plugin loading, evidence writes,
+consumer status changes, real vendor payloads, or vendor compatibility claims.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

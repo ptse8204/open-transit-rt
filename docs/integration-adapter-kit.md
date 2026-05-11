@@ -103,6 +103,12 @@ Use the offline conformance suite to check required synthetic cases:
 make adapter-conformance
 ```
 
+The private Operations Console also renders generated connector test
+instructions at `/admin/operations/connectors/tests`. That page is guidance
+only: it does not execute commands from the browser, run validators, start
+sidecars, contact external systems, write evidence, or change consumer
+statuses.
+
 The CLI covers telemetry malformed/stale/future/wrong-agency/unknown-device/
 low-quality/duplicate/out-of-order cases, prediction timeout/malformed/stale/
 wrong-agency/low-confidence cases, validator allowlisting, and monitoring

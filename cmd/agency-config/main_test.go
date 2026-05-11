@@ -1773,6 +1773,134 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 	assertConnectorHubSafeStrings(t, body)
 }
 
+func TestConnectorTestsRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/connectors/tests", "/admin/operations/connectors/tests.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/connectors/tests", "/admin/operations/connectors/tests.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/connectors/tests", "/admin/operations/connectors/tests.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/tests?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/tests.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/connectors/tests.json", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public connector test route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestConnectorTestsJSONShapeFlagsAndCommands(t *testing.T) {
+	srv := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/tests.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var view connectorTestsView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode connector tests: %v", err)
+	}
+	assertConnectorTestsShape(t, view)
+	assertConnectorTestsFlagsFalse(t, view.ClaimFlags)
+	assertConnectorTestsSafeStrings(t, rr.Body.String())
+	wantCommands := []string{
+		"make external-connection-check",
+		"make adapter-conformance",
+		"go run ./cmd/adapter-conformance manifest --suite testdata/adapter-conformance",
+		"go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
+		"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
+		"go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance",
+		"go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+		"make test-connector-examples",
+	}
+	var gotCommands []string
+	for _, command := range view.Commands {
+		gotCommands = append(gotCommands, command.CommandLine)
+	}
+	if strings.Join(gotCommands, "\n") != strings.Join(wantCommands, "\n") {
+		t.Fatalf("commands = %v, want %v", gotCommands, wantCommands)
+	}
+}
+
+func TestConnectorTestsHTMLInstructionsOnly(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/tests", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Connector Test Instructions", "make external-connection-check", "make adapter-conformance", "make test-connector-examples", "Telemetry connector cases", "Prediction connector cases", "Validator connector cases", "Monitoring/export connector cases", "does not execute commands", "read manifest-provided commands"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html body missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/connectors", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "vendor compatible", "certified hardware", "marketplace"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("connector tests html contains forbidden %q: %s", forbidden, body)
+		}
+	}
+	assertConnectorTestsSafeStrings(t, body)
+}
+
 func TestOperationsChecklistAccessMatrixMethodsAndRoutes(t *testing.T) {
 	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
 		t.Run(string(role), func(t *testing.T) {
@@ -3428,6 +3556,35 @@ func assertConnectorHubFlagsFalse(t *testing.T, flags connectorHubClaimFlags) {
 	}
 }
 
+func assertConnectorTestsShape(t *testing.T, view connectorTestsView) {
+	t.Helper()
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Commands) != 8 {
+		t.Fatalf("invalid connector tests top-level shape: %+v", view)
+	}
+	seenIDs := map[string]bool{}
+	for _, command := range view.Commands {
+		if command.ID == "" || command.Label == "" || command.CommandLine == "" || command.Validates == "" || command.Inputs == "" || command.FailureNextAction == "" || command.DoesNotProve == "" || len(command.DocsLinks) == 0 {
+			t.Fatalf("invalid connector test command shape: %+v", command)
+		}
+		if seenIDs[command.ID] {
+			t.Fatalf("duplicate connector test command id %q", command.ID)
+		}
+		seenIDs[command.ID] = true
+		for _, link := range command.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") && !strings.HasPrefix(link, "examples/") {
+				t.Fatalf("command %s has unsafe docs link %q", command.ID, link)
+			}
+		}
+	}
+}
+
+func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags) {
+	t.Helper()
+	if flags.BackendCommandExecutionEnabled || flags.ManifestCommandExecutionEnabled || flags.ExternalNetworkContacted || flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.VendorCompatibilityClaimed || flags.ProductionReadinessClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("connector test flags must all be false: %+v", flags)
+	}
+}
+
 func assertFeedHealthShape(t *testing.T, health operationsFeedHealthView) {
 	t.Helper()
 	if health.GeneratedAt.IsZero() || health.AgencyID == "" || health.Boundary == "" || len(health.Rows) != 5 || health.Counts.Rows != 5 {
@@ -3533,6 +3690,21 @@ func assertConnectorHubSafeStrings(t *testing.T, body string) {
 	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "vendor_compatible", "hardware_certified", "dynamic_plugin_loading_enabled"} {
 		if strings.Contains(lower, forbidden) {
 			t.Fatalf("connector hub emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
+func assertConnectorTestsSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_validator_command", "raw_command", "shell"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("connector tests leak forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "vendor_compatible", "hardware_certified", "dynamic_plugin_loading_enabled"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("connector tests emit forbidden label %q: %s", forbidden, body)
 		}
 	}
 }

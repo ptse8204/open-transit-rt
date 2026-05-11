@@ -56,6 +56,7 @@ type operationsPage struct {
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
+	ConnectorTests         connectorTestsView
 	FeedHealth             operationsFeedHealthView
 	GTFSImportResult       *gtfsImportResultView
 	GTFSImportNotice       string
@@ -219,6 +220,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderConnectorHubJSON(w, r)
+	case "connectors/tests":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderConnectorTests(w, r)
+	case "connectors/tests.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderConnectorTestsJSON(w, r)
 	case "setup-wizard":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
@@ -777,6 +792,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
+	page.ConnectorTests = buildConnectorTests(page)
 	return page
 }
 
@@ -1619,6 +1635,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/launchpad">Launchpad</a>
 <a href="/admin/operations/setup-wizard">Setup Wizard</a>
 <a href="/admin/operations/connectors">Connector Hub</a>
+<a href="/admin/operations/connectors/tests">Connector Tests</a>
 <a href="/admin/operations/gtfs-import">GTFS Import</a>
 <a href="/admin/operations/feed-health">Feed Health</a>
 <a href="/admin/operations/readiness">Readiness</a>
@@ -1800,7 +1817,37 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td colspan="8">No committed connector manifests were loaded. Review diagnostics and run <code>make external-connection-check</code>.</td></tr>
 {{end}}
 </tbody></table>
+<p><a href="/admin/operations/connectors/tests">Open connector test instructions</a> for fixed offline checks.</p>
 <p class="muted">Connector Hub is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "connector-tests"}}
+{{template "layoutStart" .}}
+<h2>Connector Test Instructions</h2>
+<p class="warning">{{.ConnectorTests.Boundary}}</p>
+<table><tbody>
+<tr><th><code>backend_command_execution_enabled</code></th><td>{{.ConnectorTests.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
+<tr><th><code>manifest_command_execution_enabled</code></th><td>{{.ConnectorTests.ClaimFlags.ManifestCommandExecutionEnabled}}</td></tr>
+<tr><th><code>external_network_contacted</code></th><td>{{.ConnectorTests.ClaimFlags.ExternalNetworkContacted}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.ConnectorTests.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.ConnectorTests.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.ConnectorTests.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+</tbody></table>
+<table><thead><tr><th>Check</th><th>Copyable instruction</th><th>What it validates</th><th>Inputs</th><th>Failure next action</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+{{range .ConnectorTests.Commands}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td><code>{{.CommandLine}}</code></td>
+<td>{{.Validates}}</td>
+<td>{{.Inputs}}</td>
+<td>{{.FailureNextAction}}</td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<p class="muted">This page is GET-only generated guidance. It does not execute commands, read manifest-provided commands, run validators, start sidecars, write files, contact external parties, or change consumer status.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

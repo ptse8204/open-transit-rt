@@ -6,7 +6,8 @@ In progress. Checkpoint 000001 added this plan and kept implementation scoped
 to private connector-platform UX, local synthetic examples, and offline
 conformance checks. Checkpoint 000002 added the private Connector Hub manifest
 registry UI and bounded JSON registry model from committed synthetic example
-manifests.
+manifests. Checkpoint 000003 added private connector test instructions for
+fixed offline checks, without backend command execution.
 
 Phase 64 turns the existing connector/plugin architecture into a visible,
 testable developer platform for telemetry, prediction, validator,
@@ -25,7 +26,7 @@ backend.
 
 - Completed: `Phase 64 -- Checkpoint 000001: add connector platform and SDK plan`
 - Completed: `Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`
-- Planned: `Phase 64 -- Checkpoint 000003: implement connector test runner UI`
+- Completed: `Phase 64 -- Checkpoint 000003: implement connector test runner UI`
 - Planned: `Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`
 - Planned: `Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`
 - Planned: `Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`
@@ -75,6 +76,17 @@ mutate status.
   parties, run arbitrary commands, write retained evidence, change consumer
   statuses, or claim compatibility, compliance, production readiness, or
   ETA quality.
+
+Checkpoint 000003 added `/admin/operations/connectors/tests` and
+`/admin/operations/connectors/tests.json` as private GET-only generated
+instructions for fixed offline checks. The page lists manifest/example checks,
+full adapter conformance, targeted conformance sections, and connector example
+tests. It records false claim flags for backend command execution, manifest
+command execution, external network contact, evidence creation, consumer
+status changes, compatibility, compliance, production readiness, and ETA
+quality. It does not execute commands from the web request, read
+manifest-provided commands, capture output, write files, contact external
+systems, or mutate status.
 
 ### Telemetry Connector SDK Examples
 
