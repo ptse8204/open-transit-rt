@@ -4,6 +4,13 @@ This directory is the canonical repo location for the forward product roadmap th
 
 It supersedes the earlier local artifact language that used `Post-60` or `Phase 60 continuation` checkpoint names. The content and product direction remain the same: make Open Transit RT easier for small agencies, civic technologists, and integrators to use through better UI, guided setup, connector/plugin visibility, and release-quality workflows.
 
+The current canonical review and next-step sequence is
+[`docs/roadmap-status.md#review-and-recommendations`](../../roadmap-status.md#review-and-recommendations).
+The default next product gate is `v0.1.0-rc.1` readiness before any full
+`v0.1.0` release, with external-connection maturity as a product-quality path
+and real pilots/final-root/consumer/vendor proof left as optional
+authorization-gated evidence tracks.
+
 ## Current State
 
 - Phases 0 through 60 are closed.
@@ -74,6 +81,11 @@ Phase 61 -- Checkpoint 000004: fix connector hub audit gaps
 ## Core Product Goal
 
 Open Transit RT should become a self-hosted, open-source GTFS / GTFS-Realtime operations platform that a small agency can use through a friendly UI, connect to external GPS/AVL/prediction/monitoring systems through safe connector plugins, and publish reliable feed outputs without proprietary vendor lock-in.
+
+Vehicle Positions remain the first high-quality realtime output. Optional
+Vehicle Positions fields need reliability gates, and external predictors should
+be tested in shadow or fail-closed modes while deterministic prediction remains
+the safe Trip Updates fallback.
 
 ## Non-Goals
 

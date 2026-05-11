@@ -21,6 +21,11 @@ Open Transit RT provides a mostly Go backend with Postgres/PostGIS for:
 - running validation, scorecard, and evidence workflows;
 - supporting local demos and pilot evaluation.
 
+The current recommended project path is product quality and
+external-connection maturity through a `v0.1.0-rc.1` release-candidate gate.
+Real pilots, final-root proof, consumer submission, and vendor proof are
+optional evidence tracks only when authorized.
+
 ## Who It Helps
 
 - Agencies evaluating whether they can publish and operate their own feeds.
@@ -34,15 +39,18 @@ The repo has local demo tooling, GTFS import, GTFS Studio draft/publish flows, a
 
 Current evidence includes local validation/demo workflows and the OCI DuckDNS pilot evidence packet. The OCI host is pilot evidence only, not agency-owned final-root proof.
 
-## Pilot Path
+## Local Evaluation Path
 
-1. Review the [Agency Pilot Program](agency-pilot-program.md).
-2. Walk through the [Agency Pilot Checklist](agency-pilot-checklist.md).
-3. Start the local app with `make agency-app-up`.
-4. Import a public-safe GTFS ZIP or use the committed demo feed.
-5. Review public feed URLs, validation records, and Operations Console setup status.
-6. Test device telemetry or the documented AVL/vendor dry-run path.
-7. Record public-safe feedback with the [Agency Feedback Template](agency-feedback-template.md).
+1. Start the local app with `make agency-app-up`.
+2. Follow Start Here in the private Operations Console.
+3. Import a public-safe GTFS ZIP or use the committed demo feed.
+4. Review public feed URLs, validation records, and Operations Console setup status.
+5. Test device telemetry or the documented AVL/vendor dry-run path with
+   synthetic or public-safe data.
+6. Review the
+   [canonical recommendations](roadmap-status.md#review-and-recommendations).
+7. Use the [Agency Pilot Program](agency-pilot-program.md) only if a real
+   pilot is explicitly authorized.
 
 ## Requirements
 
@@ -70,7 +78,11 @@ No agency-owned or agency-approved final feed root exists in repo evidence today
 
 ## Next Steps For An Agency
 
-- Start with the local demo and pilot checklist.
+- Start with the local demo, release-candidate readiness, and connector
+  readiness checks.
 - Confirm data ownership, publication metadata, and redaction rules.
-- Decide whether the next retained evidence target is agency-owned final-root proof, real agency pilot evidence, real deployment operations evidence, or an authorized target-specific consumer submission.
+- Decide whether any optional retained evidence target is needed later:
+  agency-owned final-root proof, real agency pilot evidence, real deployment
+  operations evidence, authorized target-specific consumer submission, or real
+  device/vendor proof.
 - Pause stronger public claims until that real retained evidence exists.

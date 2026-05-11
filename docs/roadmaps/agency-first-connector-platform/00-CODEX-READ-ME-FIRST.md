@@ -9,6 +9,11 @@ This is the first file Codex should read before planning any new product work.
 - The maintainer has now authorized future roadmap work to use **Phase 61, Phase 62, Phase 63, ...** naming instead of more `Post-60` or `Phase 60 continuation` checkpoint names.
 - This is a forward-looking naming change only. It does **not** reopen Phase 60 or any earlier phase.
 - Optional evidence/adoption work remains authorization-gated and is not the default product path.
+- The current default next work is `v0.1.0-rc.1` product readiness and
+  external-connection maturity, not a real agency pilot or public proof by
+  default.
+- Use `docs/roadmap-status.md#review-and-recommendations` as the canonical
+  review, scorecard, and next-step section.
 
 ## Canonical Roadmap Location
 

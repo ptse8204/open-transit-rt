@@ -7,6 +7,10 @@ evaluate whether a checkout is ready for a release-candidate review. It writes
 private diagnostics under `.cache/release-candidate-check/<timestamp>` by
 default.
 
+The next recommended milestone is `v0.1.0-rc.1`. Do not treat the first RC
+review as a full `v0.1.0` release gate until the local checks, blockers,
+release notes, and claim audit have been reviewed from a clean checkout.
+
 The check does not tag, publish, push images, create retained evidence, contact
 external services, change consumer statuses, or make production-readiness,
 consumer-acceptance, agency-approval, hosted-service, vendor-compatibility, or
@@ -17,14 +21,16 @@ CAL-ITP/Caltrans compliance claims.
 The readiness check summarizes:
 
 - fresh-clone prerequisites and required repo files;
+- clean checkout source metadata;
 - pinned validator tooling status;
 - Docker Compose configuration;
 - final claim audit status;
 - Go validation, test, and smoke command follow-ups;
 - local app startup path;
-- GTFS import fixture path;
+- GTFS import fixture path and a public GTFS trial when explicitly run;
 - five public feed paths;
 - telemetry simulator dry-run path;
+- connector/adaptor conformance follow-ups;
 - deployment doctor;
 - validator health;
 - operations reliability;
@@ -71,7 +77,7 @@ Optional audit of an existing local source package:
 RELEASE_PACKAGE_DIR=.cache/release-package/<version> RUN_RELEASE_PACKAGE=true make release-candidate-check
 ```
 
-## First Release-Candidate Review Sequence
+## First `v0.1.0-rc.1` Review Sequence
 
 Use this sequence for the first maintainer release-candidate review from a
 clean checkout. The output is a local review packet, not proof of production
@@ -128,15 +134,30 @@ readiness.
    package review:
 
    ```sh
-   RELEASE_PACKAGE_VERSION=<tag-or-rc> make release-package
-   RELEASE_PACKAGE_DIR=.cache/release-package/<tag-or-rc> make audit-release-package
-   RELEASE_PACKAGE_DIR=.cache/release-package/<tag-or-rc> RUN_RELEASE_PACKAGE=true make release-candidate-check
+   RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 make release-package
+   RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package
+   RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true make release-candidate-check
    ```
 
    Release packages under `.cache` are local diagnostics until a maintainer
    cuts an actual release.
 
-6. Draft release notes from `docs/release-notes-template.md`. State `None`
+6. Run external-connection maturity checks:
+
+   ```sh
+   make external-connection-check
+   make adapter-conformance
+   make test-connector-examples
+   ```
+
+   Confirm telemetry connector paths send only to authenticated
+   `POST /v1/telemetry`, external predictors stay behind
+   `internal/prediction.Adapter`, deterministic Trip Updates remain the safe
+   fallback, monitoring/export surfaces are redacted/no-send by default, and
+   feed-consumer URL/metadata workflows do not automate submissions or status
+   changes.
+
+7. Draft release notes from `docs/release-notes-template.md`. State `None`
    for unchanged migration, security, dependency, operations, and evidence or
    claim sections. List blocked commands exactly.
 
@@ -151,6 +172,9 @@ readiness.
 | `make test-release-package` | Local package helper tests pass | Fix package helper before relying on package diagnostics |
 | `docker compose -f deploy/docker-compose.yml config` | Compose config renders | Record Docker CLI/Compose blocker exactly |
 | `make audit-final-claim-review` | Claim and consumer tracker audit passes | Fix unsupported wording or protected status drift before continuing |
+| `make external-connection-check` | Connector manifests pass local checks | Fix manifest or boundary drift before stronger connector wording |
+| `make adapter-conformance` | Synthetic adapter conformance passes | Record exact unsupported adapter cases |
+| `make telemetry-simulator` | Synthetic/local telemetry reaches the authenticated ingest path when configured | Record app, token, or local service blockers |
 
 ## Release Note Inputs
 

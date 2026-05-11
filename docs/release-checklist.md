@@ -30,6 +30,9 @@ release-candidate review summary:
 ```bash
 make check
 make release-candidate-check
+make external-connection-check
+make adapter-conformance
+make audit-final-claim-review
 ```
 
 Review the five files under `.cache/release-candidate-check/<timestamp>/`:
@@ -49,9 +52,9 @@ evidence.
 For package review, generate and audit a local source package:
 
 ```bash
-RELEASE_PACKAGE_VERSION=v0.22.0 make release-package
-RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 make audit-release-package
-RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 RUN_RELEASE_PACKAGE=true make release-candidate-check
+RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 make release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true make release-candidate-check
 ```
 
 Dirty packages and blocked checks must be recorded as local diagnostics, not
@@ -59,9 +62,10 @@ release-ready artifacts.
 
 ## Version And Pinning
 
-Choose a tag such as `v0.22.0` and record:
+Choose a release-candidate tag such as `v0.1.0-rc.1` before any full
+`v0.1.0` tag, and record:
 
-- source tag, for example `v0.22.0`;
+- source tag, for example `v0.1.0-rc.1`;
 - commit SHA from `git rev-parse HEAD`;
 - dirty/clean state from `git describe --tags --always --dirty`;
 - local release package directory and checksum manifest, if generated;
@@ -74,7 +78,7 @@ the short commit SHA:
 
 ```bash
 docker build -f deploy/Dockerfile.local \
-  -t open-transit-rt-local:v0.22.0 \
+  -t open-transit-rt-local:v0.1.0-rc.1 \
   -t open-transit-rt-local:67e6c95 \
   .
 ```
@@ -96,8 +100,8 @@ Phase 66 Docker decision:
 Phase 57 adds local release packages:
 
 ```bash
-RELEASE_PACKAGE_VERSION=v0.22.0 make release-package
-RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 make audit-release-package
+RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 make release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package
 ```
 
 Actual release packages should be generated from a clean checkout. Dirty
@@ -145,7 +149,7 @@ Use a clean checkout of the tag:
 ```bash
 git clone https://github.com/ptse8204/open-transit-rt.git
 cd open-transit-rt
-git checkout v0.22.0
+git checkout v0.1.0-rc.1
 git describe --tags --always --dirty
 ```
 
@@ -159,15 +163,17 @@ make agency-app-up
 curl -fsS http://localhost:8080/public/feeds.json >/tmp/open-transit-feeds.json
 curl -fsS http://localhost:8080/public/gtfs/schedule.zip >/tmp/open-transit-schedule.zip
 curl -fsS http://localhost:8080/public/gtfsrt/vehicle_positions.pb >/tmp/open-transit-vp.pb
+curl -fsS http://localhost:8080/public/gtfsrt/trip_updates.pb >/tmp/open-transit-tu.pb
+curl -fsS http://localhost:8080/public/gtfsrt/alerts.pb >/tmp/open-transit-alerts.pb
 make agency-app-down
 ```
 
 Minimum local image proof:
 
 ```bash
-docker build -f deploy/Dockerfile.local -t open-transit-rt-local:v0.22.0 .
-docker image inspect open-transit-rt-local:v0.22.0 >/tmp/open-transit-image.json
-docker run --rm open-transit-rt-local:v0.22.0 sh -c '/app/bin/migrate 2>&1 | grep -q "usage: migrate"'
+docker build -f deploy/Dockerfile.local -t open-transit-rt-local:v0.1.0-rc.1 .
+docker image inspect open-transit-rt-local:v0.1.0-rc.1 >/tmp/open-transit-image.json
+docker run --rm open-transit-rt-local:v0.1.0-rc.1 sh -c '/app/bin/migrate 2>&1 | grep -q "usage: migrate"'
 ```
 
 The image proof confirms a built binary exists in the image. Full runtime proof
@@ -205,14 +211,14 @@ production image publication, or production-readiness proof.
 After checks pass and notes are ready:
 
 ```bash
-git tag -a v0.22.0 -m "Open Transit RT v0.22.0"
-git show v0.22.0 --stat
+git tag -a v0.1.0-rc.1 -m "Open Transit RT v0.1.0-rc.1"
+git show v0.1.0-rc.1 --stat
 ```
 
 Push only after confirming the tag points at the intended clean `main` commit:
 
 ```bash
-git push origin v0.22.0
+git push origin v0.1.0-rc.1
 ```
 
 After tagging, update phase handoff/status docs only when the release closes a

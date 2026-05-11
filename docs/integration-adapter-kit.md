@@ -16,6 +16,9 @@ testing, not arbitrary dynamic plugin loading. These contracts help operators
 evaluate adapters safely; they do not create evidence or prove third-party
 compatibility.
 
+For the current post-60 scorecard and release-candidate next steps, use
+[Roadmap Status: Review And Recommendations](roadmap-status.md#review-and-recommendations).
+
 ## Adapter Decision Tree
 
 Use the existing boundary that matches the system being integrated:
@@ -56,6 +59,10 @@ Use the existing boundary that matches the system being integrated:
 10. Review the Operations Console and public Vehicle Positions output.
 11. Use `/admin/operations/readiness` to review CAL-ITP-style readiness gaps
    without converting workflow status into a compliance or acceptance claim.
+
+For release-candidate review, add `make external-connection-check`,
+`make adapter-conformance`, validator-health review, telemetry simulator
+review, and a final redaction check before improving public connector wording.
 
 The Phase 37 onboarding flow establishes the active schedule/feed baseline.
 Phase 38 integration work starts after that baseline exists; it does not
@@ -157,6 +164,13 @@ The detailed contract, payload fields, response behavior, token handling,
 Operations Console checks, and troubleshooting matrix live in
 [Device And AVL Integration](tutorials/device-avl-integration.md). That guide
 is the source for operator-level telemetry instructions.
+
+Readiness for this boundary means the adapter can demonstrate, with synthetic
+or operator-redacted data, that AVL/device observations become authenticated
+`POST /v1/telemetry` requests and that malformed, stale, future-dated,
+wrong-agency, unknown-device, low-quality, duplicate, or out-of-order
+observations fail closed. It is not real device proof, vendor compatibility, or
+production AVL reliability proof.
 
 ## Synthetic Telemetry Simulator
 
@@ -262,6 +276,13 @@ text, credentials, headers, or cookies.
 Use `external_http_shadow` when evaluating a sidecar without changing the
 public Trip Updates output. Shadow diagnostics are bounded redacted counts and
 status only; they are not ETA-quality evidence.
+
+Deterministic prediction remains the safe fallback. External predictors should
+be reviewed in shadow or fail-closed modes until request construction, output
+normalization, active-feed validation, stale output rejection,
+wrong-agency/wrong-feed rejection, diagnostics, and redaction behavior are
+repeatable. Vehicle Positions must continue independently when the predictor is
+missing, slow, malformed, or unavailable.
 
 Named predictor work should still follow this lifecycle:
 

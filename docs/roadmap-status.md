@@ -6,6 +6,135 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ![Illustrative evidence maturity ladder from code exists to hosted evidence, prepared packet, submitted, under review, and accepted.](assets/evidence-maturity-ladder.png)
 
+## What To Do Next
+
+The default next milestone is a local release-candidate review for
+`v0.1.0-rc.1`, not a full `v0.1.0` release and not a real agency pilot. The
+release-candidate gate should prove that a clean checkout can run the product
+quality and external-connection checks below with clear blockers, redaction
+rules, and no stronger public claims.
+
+Real pilots, final-root proof, consumer submission, and vendor proof remain
+optional evidence tracks only. Start one of those tracks only when a maintainer
+has supplied explicit written authorization, the exact claim target, allowed
+tools, public-safe retention rules, redaction rules, and stop conditions.
+
+Useful visual documentation lives under:
+
+- [product screenshots](assets/product-screenshots/README.md)
+- [product diagrams](assets/product-diagrams/README.md)
+
+Those assets are local/demo documentation aids only. They are not retained
+evidence and do not prove production, compliance, adoption, consumer
+acceptance, final-root readiness, vendor compatibility, or ETA quality.
+
+## Review And Recommendations
+
+This is the canonical review/recommendations section for the current post-60
+project direction. Other docs should link here instead of duplicating the full
+assessment.
+
+### Main Weaknesses / Risks
+
+| Area | Current risk | Product-quality next action |
+| --- | --- | --- |
+| Release maturity | No public release / release-candidate gate yet. | Prepare `v0.1.0-rc.1` from a clean checkout before any full `v0.1.0` tag. |
+| Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
+| Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
+| Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
+| Telemetry/device path | The telemetry simulator and AVL adapter send mode exercise `POST /v1/telemetry`, but real device and vendor evidence is absent. | Keep using synthetic/local telemetry diagnostics; treat real device/vendor proof as optional evidence when authorized. |
+| External predictor path | Deterministic Trip Updates are the safe default; external HTTP sidecars are optional and disabled by default. | Test external predictors only in shadow or fail-closed modes behind `internal/prediction.Adapter`. |
+| Connector/adaptor conformance | The connector model is documented and has synthetic examples, but real connector maturity depends on conformance and redaction review. | Run `make external-connection-check`, `make adapter-conformance`, and connector/adaptor conformance checks before stronger integration wording. |
+| Claim discipline | The codebase is strong enough to invite overclaiming about compliance, adoption, consumer status, SaaS, production, vendors, or ETA quality. | Run the final claim audit and keep optional evidence tracks separate from default product work. |
+
+### Scorecard
+
+| Capability | Current assessment | Next gate |
+| --- | --- | --- |
+| Self-hosted GTFS/GTFS-RT backend | Strong local/product foundation for GTFS import/authoring, telemetry ingest, Vehicle Positions, pluggable Trip Updates, Alerts, validation, and private Operations Console workflows. | `v0.1.0-rc.1` clean-checkout review. |
+| Release-candidate readiness | Partly ready: helper scripts and docs exist, but there is no public RC gate yet. | Clean checkout, `make check`, `make validate`, `make test`, local app startup, public GTFS trial, five feed fetches, validator health, telemetry simulator, connector conformance, and final claim audit. |
+| External-connection readiness | Promising but evidence-limited: sidecar/manifests/SDK-style examples exist for telemetry, prediction, validator, monitoring, and consumer/discovery boundaries. | AVL/device to `POST /v1/telemetry`, external predictor adapter shadow/fail-closed review, validator tooling, monitoring/export surfaces, feed-consumer URL/metadata expectations, and redaction checks. |
+| Vehicle Positions | Product direction is strong because Vehicle Positions remain independent of external predictor availability. | Gate optional Vehicle Positions fields behind reliability, freshness, and consumer-safety checks; prefer omission over false certainty. |
+| Trip Updates | Safe default exists through deterministic prediction and valid empty/fallback behavior. | Keep deterministic predictor as fallback; test external predictors only in shadow or fail-closed mode with sanitized DTOs and output validation. |
+| Evidence/adoption/compliance claims | Evidence remains limited for external/adoption/compliance claims. | Treat real pilots, final-root proof, consumer submission, and vendor proof as optional evidence tracks when authorized. |
+
+### Recommended Next Steps
+
+1. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
+   checkout passes the repo's release-candidate diagnostics.
+2. Run the release-candidate readiness gate:
+
+   ```bash
+   git status --short
+   make check
+   make validate
+   make test
+   RUN_LOCAL_APP=true make release-candidate-check
+   make external-connection-check
+   make adapter-conformance
+   make audit-final-claim-review
+   ```
+
+3. Confirm the local app startup path and fetch all five public feed paths:
+
+   ```bash
+   make agency-app-up
+   curl -fsS http://localhost:8080/public/feeds.json >/tmp/open-transit-feeds.json
+   curl -fsS http://localhost:8080/public/gtfs/schedule.zip >/tmp/open-transit-schedule.zip
+   curl -fsS http://localhost:8080/public/gtfsrt/vehicle_positions.pb >/tmp/open-transit-vp.pb
+   curl -fsS http://localhost:8080/public/gtfsrt/trip_updates.pb >/tmp/open-transit-tu.pb
+   curl -fsS http://localhost:8080/public/gtfsrt/alerts.pb >/tmp/open-transit-alerts.pb
+   make agency-app-down
+   ```
+
+4. Run one public GTFS trial as a local diagnostic when network access and data
+   terms allow:
+
+   ```bash
+   make agency-pilot-up AGENCY_ID=public-trial GTFS_URL=https://example.org/gtfs.zip
+   ```
+
+   Record exact blockers. Do not treat the run as final-root proof, agency
+   adoption, consumer acceptance, or compliance evidence.
+
+5. Exercise external-connection readiness with synthetic/local data:
+
+   ```bash
+   make telemetry-simulator
+   make external-connection-check
+   make adapter-conformance
+   ```
+
+6. Review these surfaces before improving public wording: validator health,
+   monitoring/export diagnostics, feed URL and metadata expectations,
+   connector/adaptor conformance, and redaction checks.
+7. Keep all real pilots, final-root proof, consumer submission, and vendor
+   proof as authorization-gated optional evidence tracks.
+
+> **What this proves:** these checks can show that a local checkout has a
+> coherent product-quality gate, repeatable diagnostics, safer connector
+> boundaries, and clear blocker reporting.
+>
+> **What this does not prove:** these checks do not prove CAL-ITP/Caltrans
+> compliance, consumer submission or acceptance, agency adoption or approval,
+> agency-owned final-root readiness, hosted SaaS, paid support, SLA coverage,
+> production readiness, vendor compatibility, hardware certification, or
+> production-grade ETA quality.
+
+### Final Assessment
+
+Open Transit RT is a strong self-hosted GTFS/GTFS-RT backend for local
+evaluation and operator-controlled deployments. Its best near-term path is to
+raise product quality through a `v0.1.0-rc.1` release-candidate gate, then
+continue hardening external connections around telemetry, predictors,
+validators, monitoring/export, and feed-consumer metadata expectations.
+
+The project is still evidence-limited for external, adoption, final-root,
+consumer, compliance, hosted-service, vendor, and ETA-quality claims. That is a
+claim boundary, not a product blocker: use the software, improve the product,
+and keep optional evidence tracks separate until they are authorized and backed
+by retained public-safe artifacts.
+
 ## What Works Today
 
 Open Transit RT has technical foundations for:

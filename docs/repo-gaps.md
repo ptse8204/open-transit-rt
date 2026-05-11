@@ -58,6 +58,21 @@ themselves.
 
 ## Current Product And Operations Gaps
 
+- No public release / release-candidate gate yet. The next product gate should
+  be `v0.1.0-rc.1` before any full `v0.1.0` tag.
+- Clean-checkout release-candidate readiness still needs one repeatable run
+  that covers `make check`, `make validate`, `make test`, local app startup,
+  a public GTFS trial when allowed, five public feed fetches, validator health,
+  telemetry simulator, connector/adaptor conformance, and final claim audit.
+- External-connection readiness still needs tighter repeatable review across
+  AVL/device input to `POST /v1/telemetry`, external predictor adapters,
+  validator tooling, monitoring/export surfaces, feed-consumer URL/metadata
+  expectations, and redaction checks.
+- Optional Vehicle Positions fields need reliability gates before they are
+  emitted broadly; omitted/unknown values remain safer than false certainty.
+- External predictors need continued shadow or fail-closed testing behind
+  `internal/prediction.Adapter`; deterministic prediction remains the safe
+  fallback path for Trip Updates.
 - Agency-owned final-root deployment flow backed by retained evidence.
 - Hosted login/SSO and server-side admin JWT `jti` replay tracking.
 - Full operator UI for manual override workflows.
@@ -72,6 +87,11 @@ themselves.
   and backed by current target documentation.
 - Production multi-tenant hosting proof.
 - Marketplace/vendor-equivalent service packaging and support commitments.
+
+The current action-oriented review lives in
+[Roadmap Status: Review And Recommendations](roadmap-status.md#review-and-recommendations).
+It treats real pilots, final-root proof, consumer submission, and vendor proof
+as optional evidence tracks only when authorized.
 
 ## Claim Boundary
 

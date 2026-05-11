@@ -23,9 +23,11 @@ Accessibility, and In-App Help is complete. Phase 68+ -- Optional Authorized
 Evidence Tracks is closed blocker-only / authorization-gated for the current
 no-authorization review after Checkpoint 000002. Phase 69 -- Maintainer
 Product Acceptance And UI-First Agency Usability Trial is complete. The
-current default next work is maintainer review or a separately scoped product
-phase. Any future evidence intake is optional and requires explicit written
-authorization first.
+current default next work is product quality and external-connection maturity:
+prepare `v0.1.0-rc.1` before any full `v0.1.0` release, run the clean-checkout
+release-candidate gate, and review connector/adaptor conformance. The canonical
+review is `docs/roadmap-status.md#review-and-recommendations`. Any future
+evidence intake is optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -112,12 +114,16 @@ was collected, no external party was contacted, no final public root was
 fetched or verified, no consumer status was moved, and protected evidence paths
 and consumer tracker status records remained unchanged.
 
-The current default next work is maintainer review or a separately scoped
-product phase. Any future evidence intake is optional and requires explicit
-written authorization first. If no explicit written authorization, exact claim
-target, allowed tools, public-safe retention plan, redaction rules, and stop
-conditions exist, keep evidence tracks closed as authorization-gated blockers
-without collecting retained evidence or contacting anyone.
+The current default next work is `v0.1.0-rc.1` product readiness and
+external-connection maturity, not real agency pilot work or public proof by
+default. The gate should cover a clean checkout, `make check`,
+`make validate`, `make test`, local app startup, a public GTFS trial when
+allowed, five public feed fetches, validator health, telemetry simulator,
+connector/adaptor conformance, and final claim audit. If no explicit written
+authorization, exact claim target, allowed tools, public-safe retention plan,
+redaction rules, and stop conditions exist, keep evidence tracks closed as
+authorization-gated blockers without collecting retained evidence or contacting
+anyone.
 
 Phase 69 improved the UI-first product acceptance path without evidence
 intake. It added the private Operations Console Start Here workflow, five-feed

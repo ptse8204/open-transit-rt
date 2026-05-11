@@ -19,6 +19,7 @@ useful to you.
 1. [Small Agency Quick Start](small-agency-quick-start.md)
 2. [Browser-First Setup](browser-first-setup.md)
 3. [Operations Console Tour](operations-console-tour.md)
+4. [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
 
 Fast local command:
 
@@ -43,6 +44,7 @@ Click **Start Here** in the private Operations Console.
 | Understand what to click in the private UI | [Operations Console Tour](operations-console-tour.md) |
 | Use your own public GTFS ZIP | [Agency Evaluation Checklist](agency-adoption-checklist.md) |
 | Connect GPS, AVL, CSV, or sidecar telemetry | [Connector Cookbook](connector-cookbook.md) |
+| Review release-candidate and connector maturity | [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations) |
 | Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](calitp-readiness-plain-english.md) |
 | Understand readiness and evidence boundaries | [Readiness And Evidence](readiness-and-evidence.md) |
 | Plan a self-hosted evaluator or pilot deployment | [Deployment Guide](deployment-guide.md) |
@@ -71,9 +73,9 @@ or approval, consumer acceptance, final-root readiness, hosted SaaS,
 production readiness, vendor compatibility, SLA coverage, or production-grade
 ETA quality.
 
-Formal agency approval, final feed-root evidence, and consumer acceptance are
-optional future evidence tracks for agencies that choose public launch or
-compliance claims. They are not required to use or improve the software.
+Formal agency approval, final feed-root evidence, consumer acceptance, real
+agency pilots, and vendor proof are optional future evidence tracks when
+authorized. They are not required to use or improve the software.
 
 ## Maintainers And Project History
 

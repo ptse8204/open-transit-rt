@@ -20,6 +20,7 @@ helper, and what the local evaluation does not prove.
 
 ## Operator Docs
 
+- [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 - [Agency First Run](tutorials/agency-first-run.md)
 - [Small-Agency Acceptance Script](tutorials/small-agency-acceptance-script.md)
 - [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md)
@@ -44,6 +45,12 @@ helper, and what the local evaluation does not prove.
 - [Test Fixture Index](../testdata/README.md)
 - [Dependencies](dependencies.md)
 
+External-connection maturity means synthetic/local review of telemetry to
+`POST /v1/telemetry`, predictor adapters behind `internal/prediction.Adapter`,
+validator tooling, monitoring/export surfaces, feed-consumer URL/metadata
+expectations, and redaction checks. Real vendor proof remains optional
+evidence only when authorized.
+
 ## Release-Candidate Docs
 
 - [Release-Candidate Readiness](release-candidate-readiness.md)
@@ -56,6 +63,19 @@ helper, and what the local evaluation does not prove.
 
 Release-candidate checks are local maintainer diagnostics. They do not tag,
 publish, push images, create retained evidence, or prove production readiness.
+The next recommended release milestone is `v0.1.0-rc.1` before any full
+`v0.1.0` release.
+
+## Visual Documentation
+
+- [Product Screenshots](assets/product-screenshots/README.md)
+- [Product Diagrams](assets/product-diagrams/README.md)
+- [Documentation Assets](assets/README.md)
+
+Product screenshots and diagrams are local/demo documentation aids only. They
+must not be stored under `docs/evidence`, called evidence, or used as proof of
+production, compliance, adoption, consumer acceptance, final-root readiness,
+vendor compatibility, or ETA quality.
 
 ## Evidence And Claim-Boundary Docs
 

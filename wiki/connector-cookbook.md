@@ -7,6 +7,9 @@ The preferred integration shape is sidecar plus manifest plus conformance
 tests. Connectors do not load as dynamic Go plugins, do not bypass auth, and do
 not change core database state directly.
 
+For the current product-quality scorecard, see
+[Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations).
+
 ## Bring Your Own GPS Source
 
 1. Keep the original source system outside this repository.
@@ -51,6 +54,11 @@ commands or contact external systems.
 | I need validation checks | Use server-owned allowlisted validator IDs | `/admin/operations/validation-health` | CAL-ITP/Caltrans compliance |
 | I need monitoring/export | Keep redacted summaries local until a separate sharing decision exists | `examples/connectors/monitoring-export` | SLA, uptime, or notification delivery |
 
+The release-candidate path should also review feed-consumer URL and metadata
+expectations, redaction checks, validator tooling, and monitoring/export
+surfaces. Consumer/discovery workflows must not automate submissions or change
+target statuses.
+
 ## Example Paths
 
 | Example | Purpose |
@@ -81,6 +89,9 @@ prediction remains the default.
 Use the generic external HTTP adapter only when explicitly configured. Shadow
 mode is appropriate for evaluation because it keeps public Trip Updates output
 on the deterministic path while recording bounded diagnostics.
+Fail-closed mode is appropriate only when valid empty/adapted Trip Updates and
+diagnostics are acceptable for the review. External predictor output must be
+validated before serialization.
 
 ## Monitoring And Export
 

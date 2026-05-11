@@ -4,7 +4,9 @@ This document defines the expected release process for Open Transit RT. It is a 
 
 ## Versioning And Tags
 
-Use git tags for release points. Until the project declares a stronger compatibility policy, prefer simple semantic version tags such as `v0.22.0`.
+Use git tags for release points. Until the project declares a stronger
+compatibility policy, prefer a first release-candidate tag such as
+`v0.1.0-rc.1` before any full `v0.1.0` release tag.
 
 Patch tags should be used for narrowly scoped fixes. Minor tags may include docs, operations, packaging, or runtime improvements. Major tags should be reserved for future incompatible contracts after maintainers document those contracts.
 
@@ -53,10 +55,10 @@ does not publish artifacts, push images, sign releases, contact registries, or
 create evidence. Dirty packages are diagnostics only and are marked not
 release-ready.
 
-Operators can pin a local Docker image to the release tag:
+Operators can pin a local Docker image to the reviewed source tag:
 
 ```bash
-docker build -f deploy/Dockerfile.local -t open-transit-rt-local:v0.22.0 .
+docker build -f deploy/Dockerfile.local -t open-transit-rt-local:v0.1.0-rc.1 .
 ```
 
 ## Who Can Cut A Release
@@ -70,10 +72,14 @@ Run the release-candidate workflow before tagging:
 ```bash
 make check
 make release-candidate-check
+make external-connection-check
+make adapter-conformance
+make audit-final-claim-review
 ```
 
 Review `docs/release-candidate-readiness.md` for the ordered workflow,
-validation matrix, release-note inputs, and local package audit matrix. Treat
+validation matrix, release-note inputs, connector/adaptor conformance checks,
+and local package audit matrix. Treat
 the generated `.cache/release-candidate-check/<timestamp>/` files as private
 local diagnostics only. They are not retained evidence, publication approval,
 or production-readiness proof.
@@ -132,12 +138,14 @@ Release notes must not convert implementation, validation, replay, or pilot evid
 Do not claim:
 
 - CAL-ITP/Caltrans compliance;
-- consumer submission, review, ingestion, or acceptance;
-- agency endorsement;
+- consumer submission, review, acceptance, ingestion, listing, or display;
+- agency adoption, approval, or endorsement;
+- agency-owned final-root readiness;
 - hosted SaaS availability;
 - marketplace/vendor equivalence;
 - paid support or SLA coverage;
 - universal production readiness;
+- vendor compatibility or hardware certification;
 - production-grade ETA quality.
 
 Any release note that changes consumer or evidence status must point to retained, redacted, target-originated evidence.

@@ -9,6 +9,11 @@ GTFS Realtime feed types, ingest vehicle telemetry through documented
 boundaries, monitor feed health, review CAL-ITP-style readiness, and keep
 stronger deployment or consumer claims separate from local evaluation.
 
+Current maintainer next step: improve product quality and external-connection
+maturity through a `v0.1.0-rc.1` release-candidate gate before any full
+`v0.1.0` release. See
+[Review And Recommendations](docs/roadmap-status.md#review-and-recommendations).
+
 ## Start The Software UI
 
 From a clean checkout:
@@ -134,9 +139,14 @@ and local checks. Use:
 - `/admin/operations/readiness`
 - [CAL-ITP Readiness Plain English](wiki/calitp-readiness-plain-english.md)
 - [Release-Candidate Readiness](docs/release-candidate-readiness.md)
+- [External Connection Readiness](docs/external-connection-readiness.md)
+- [Product Screenshots](docs/assets/product-screenshots/README.md)
+- [Product Diagrams](docs/assets/product-diagrams/README.md)
 
 Validator output, readiness rows, and release-candidate checks are supporting
 signals. They are not compliance or consumer-acceptance proof by themselves.
+Screenshots and diagrams are local/demo documentation aids only, not retained
+evidence or production/adoption/compliance proof.
 
 ## What This Does Not Prove
 

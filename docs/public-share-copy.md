@@ -10,6 +10,12 @@ is a review input only; it is not public launch evidence and does not change
 consumer, agency, compliance, hosted service, SLA, production-readiness,
 vendor, marketplace, or ETA-quality claim status.
 
+Current public-facing direction should emphasize product quality,
+`v0.1.0-rc.1` release-candidate readiness, and external-connection maturity.
+Do not make a real agency pilot, final-root proof, consumer submission, or
+vendor proof sound like the default next step; those are optional
+authorization-gated evidence tracks.
+
 ## Shared Rules
 
 - Do not use agency, Caltrans/CAL-ITP, consumer, vendor, or validator logos unless retained permission exists.
@@ -26,11 +32,11 @@ Draft: Open Transit RT is an open-source backend for small transit agencies work
 
 ### Medium
 
-Draft: Open Transit RT helps small transit agencies and civic technologists evaluate a lightweight path from GTFS schedules and vehicle telemetry to GTFS Realtime feeds. It is open source, runs locally, and includes validation, scorecard, Operations Console, pilot, and evidence docs. Current consumer packets are prepared only; no consumer acceptance or agency endorsement is claimed.
+Draft: Open Transit RT helps small transit agencies and civic technologists evaluate a lightweight path from GTFS schedules and vehicle telemetry to GTFS Realtime feeds. It is open source, runs locally, and includes validation, scorecard, Operations Console, release-candidate readiness, connector, and evidence-boundary docs. Current consumer packets are prepared only; no consumer acceptance or agency endorsement is claimed.
 
 ### Longer
 
-Draft: Open Transit RT is an open-source transit data backend for agencies, operators, and contributors who want to understand the path from GTFS schedules and vehicle telemetry to public GTFS Realtime feeds. The repo has a local demo flow, GTFS import, authenticated telemetry ingest, conservative trip matching, Vehicle Positions publication, Trip Updates behind an adapter boundary, Alerts, validation records, scorecards, and pilot documentation. It also documents what remains missing: agency-owned final-root proof, consumer submission/acceptance evidence, real agency pilot evidence, and deployment operations evidence.
+Draft: Open Transit RT is an open-source transit data backend for agencies, operators, and contributors who want to understand the path from GTFS schedules and vehicle telemetry to public GTFS Realtime feeds. The repo has a local demo flow, GTFS import, authenticated telemetry ingest, conservative trip matching, Vehicle Positions publication, Trip Updates behind an adapter boundary, Alerts, validation records, scorecards, release-candidate readiness, and connector documentation. It also documents what remains evidence-limited: agency-owned final-root proof, consumer submission/acceptance evidence, real agency pilot evidence, real vendor/device proof, and deployment operations evidence.
 
 ## Agency Or Evaluator Audience
 
@@ -40,11 +46,11 @@ Draft: Evaluating GTFS Realtime options? Open Transit RT offers a local demo, pi
 
 ### Medium
 
-Draft: Open Transit RT can help an agency evaluate GTFS import, telemetry ingest, public feed URLs, validation records, Operations Console setup, and pilot readiness. The docs separate what works locally from what still needs retained evidence, including agency-owned feed roots, consumer submissions, and real deployment operations.
+Draft: Open Transit RT can help an agency evaluate GTFS import, telemetry ingest, public feed URLs, validation records, Operations Console setup, release-candidate readiness, and connector boundaries. The docs separate what works locally from what still needs retained evidence, including agency-owned feed roots, consumer submissions, real pilots, and real deployment operations.
 
 ### Longer
 
-Draft: For agencies exploring GTFS Realtime, Open Transit RT provides a local, open-source evaluation path: start the demo stack, import a public-safe GTFS feed or use the committed sample, review public feed URLs, test device telemetry or a synthetic dry-run AVL adapter path, and walk through validation and evidence docs. The project is careful about boundaries: prepared consumer packets are not submissions, pilot evidence is not agency-owned production proof, and readiness requires deployment-specific records.
+Draft: For agencies exploring GTFS Realtime, Open Transit RT provides a local, open-source evaluation path: start the demo stack, import a public-safe GTFS feed or use the committed sample, review public feed URLs, test device telemetry or a synthetic dry-run AVL adapter path, and walk through validation, release-candidate, connector, and evidence-boundary docs. The project is careful about boundaries: prepared consumer packets are not submissions, local screenshots are not evidence, pilot evidence is not agency-owned production proof, and stronger readiness claims require deployment-specific records.
 
 ## Contributor Audience
 

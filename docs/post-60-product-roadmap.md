@@ -17,6 +17,12 @@ readiness gap reporting. Real-world evidence tracks remain optional and
 require separate authorization, intake, and public-safe retention rules before
 any evidence tool is run.
 
+The current canonical review and next-step sequence is
+[Roadmap Status: Review And Recommendations](roadmap-status.md#review-and-recommendations).
+That section makes `v0.1.0-rc.1` the next product-quality gate before any full
+`v0.1.0` release and keeps real pilots, final-root proof, consumer submission,
+and vendor proof as optional evidence tracks only.
+
 ## Default Workstream
 
 Post-60 work should make Open Transit RT easier and safer to self-host:
@@ -31,6 +37,8 @@ Post-60 work should make Open Transit RT easier and safer to self-host:
 - private operator launchpad workflow for setup-to-readiness review;
 - `.cache`-only Caltrans-style readiness gap summaries;
 - explicit evidence-track routing for later authorized real-world work.
+- local/demo product screenshots and simple diagrams that make docs easier to
+  read without treating visuals as retained evidence or claim proof.
 
 This work improves self-hosted evaluation and integration quality. It is not
 consumer acceptance, agency approval, hosted service availability, or
@@ -56,6 +64,26 @@ not required to use, evaluate, trial, or improve the software. They are future
 evidence milestones only for agencies that choose public launch or compliance
 claims.
 
+## Release-Candidate And External-Connection Readiness
+
+The next default gate is `v0.1.0-rc.1`. A useful release-candidate review
+should cover a clean checkout, `make check`, `make validate`, `make test`,
+local app startup, one public GTFS trial when allowed, five public feed fetches,
+validator health, telemetry simulator, connector/adaptor conformance, and final
+claim audit.
+
+External-connection maturity should cover AVL/device input to authenticated
+`POST /v1/telemetry`, external predictor adapters in shadow or fail-closed
+modes, validator tooling, monitoring/export surfaces, feed-consumer URL and
+metadata expectations, and redaction checks.
+
+> **What this proves:** local product quality and connector boundary maturity
+> are easier to evaluate.
+>
+> **What this does not prove:** production readiness, compliance, adoption,
+> consumer acceptance, final-root readiness, vendor compatibility, SLA
+> coverage, or production-grade ETA quality.
+
 ## External Connection Model
 
 Use sidecars, manifests, command adapters, fixtures, and conformance tests.
@@ -74,6 +102,9 @@ Connector classes:
 
 Vehicle Positions must remain independent of external predictor availability,
 and deterministic prediction remains the default Trip Updates path.
+Optional Vehicle Positions fields should be emitted only behind reliability
+gates. External predictors should be reviewed in shadow or fail-closed modes so
+deterministic prediction remains the safe fallback.
 
 ## Optional Evidence Tracks
 

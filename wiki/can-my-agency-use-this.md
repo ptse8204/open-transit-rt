@@ -15,8 +15,8 @@ Open Transit RT is worth evaluating if you have or want:
 - a telemetry source that can be transformed into `POST /v1/telemetry`;
 - a preference for conservative matching that uses unknown instead of false
   certainty;
-- validation, readiness, and connector checks that can run before any public
-  launch claim.
+- validation, release-candidate readiness, and connector checks that can run
+  before any public launch claim.
 
 ## Not A Fit Yet
 
@@ -74,3 +74,10 @@ CAL-ITP/Caltrans compliance. Formal agency approval, final feed-root evidence,
 and consumer acceptance are not required to use or improve the software; they
 are future evidence milestones only for agencies that choose public launch or
 compliance claims.
+
+The current default next step is product quality and external-connection
+maturity through the
+[Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
+path, including `v0.1.0-rc.1` readiness before any full `v0.1.0` release.
+Real pilots, final-root proof, consumer submission, and vendor proof remain
+optional evidence tracks only when authorized.

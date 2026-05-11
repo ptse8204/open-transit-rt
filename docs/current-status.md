@@ -224,10 +224,28 @@ production-grade ETA quality.
 
 Phases 61 through 67 are complete. Phase 68+ is closed blocker-only /
 authorization-gated for the current no-authorization review. Phase 69 is
-complete for maintainer product acceptance and UI-first agency usability. The
-default next work is maintainer review or a separately scoped product phase,
-not evidence collection. Any future evidence intake is optional and requires
-explicit written authorization first.
+complete for maintainer product acceptance and UI-first agency usability.
+
+The default next work is a product-quality and external-connection maturity
+gate for `v0.1.0-rc.1`, not a full `v0.1.0` release and not evidence
+collection. Use the canonical
+[Review And Recommendations](roadmap-status.md#review-and-recommendations)
+section for the current scorecard, risks, and next-step sequence.
+
+The release-candidate gate should start from a clean checkout and cover
+`make check`, `make validate`, `make test`, local app startup, a public GTFS
+trial when data terms and network access allow, five public feed fetches,
+validator health, the telemetry simulator, connector/adaptor conformance, and
+the final claim audit. External-connection maturity should focus on AVL/device
+input to authenticated `POST /v1/telemetry`, external predictor adapters in
+shadow or fail-closed modes, validator tooling, monitoring/export surfaces,
+feed-consumer URL and metadata expectations, and redaction checks.
+
+The product screenshots and diagrams under
+`docs/assets/product-screenshots/` and `docs/assets/product-diagrams/` are
+local/demo documentation aids only. They are not retained evidence and do not
+strengthen production, compliance, adoption, consumer, final-root, vendor, or
+ETA-quality claims.
 
 Do not collect retained evidence, contact agencies, contact vendors, contact
 consumers, fetch final-root proof, move consumer statuses, or make stronger

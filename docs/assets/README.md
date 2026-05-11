@@ -4,6 +4,18 @@ These are repo-owned documentation visuals. They are used to teach the current O
 
 Public-facing copies of selected PNG assets also live under `wiki/assets/` so `/wiki` pages do not depend on internal relative paths.
 
+Local/demo product screenshots and simple product diagrams have their own
+manifests:
+
+- [Product Screenshots](product-screenshots/README.md)
+- [Product Diagrams](product-diagrams/README.md)
+
+Those assets are documentation aids only. They are not retained evidence and
+must not be used as proof of production readiness, CAL-ITP/Caltrans
+compliance, agency adoption or approval, consumer acceptance, final-root
+readiness, hosted SaaS availability, SLA coverage, vendor compatibility, or
+production-grade ETA quality.
+
 ## Visual Review Rule
 
 Every generated or generated-assisted image must be manually reviewed before it is referenced in docs.

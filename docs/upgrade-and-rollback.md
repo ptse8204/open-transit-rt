@@ -7,12 +7,14 @@ equivalence, or CAL-ITP/Caltrans compliance.
 
 ## Clean Install From A Source Tag
 
-Use tags as the normal install anchor:
+Use tags as the normal install anchor. The next recommended public tag shape
+is `v0.1.0-rc.1`; a full `v0.1.0` should wait until the release-candidate
+gate is reviewed.
 
 ```bash
 git clone https://github.com/ptse8204/open-transit-rt.git
 cd open-transit-rt
-git checkout v0.22.0
+git checkout v0.1.0-rc.1
 git describe --tags --always --dirty
 git rev-parse HEAD
 ```
@@ -27,14 +29,16 @@ make agency-app-up
 curl -fsS http://localhost:8080/public/feeds.json >/tmp/open-transit-feeds.json
 curl -fsS http://localhost:8080/public/gtfs/schedule.zip >/tmp/open-transit-schedule.zip
 curl -fsS http://localhost:8080/public/gtfsrt/vehicle_positions.pb >/tmp/open-transit-vp.pb
+curl -fsS http://localhost:8080/public/gtfsrt/trip_updates.pb >/tmp/open-transit-tu.pb
+curl -fsS http://localhost:8080/public/gtfsrt/alerts.pb >/tmp/open-transit-alerts.pb
 make agency-app-down
 ```
 
 Build a local Docker image from the same tag:
 
 ```bash
-docker build -f deploy/Dockerfile.local -t open-transit-rt-local:v0.22.0 .
-docker image inspect open-transit-rt-local:v0.22.0 >/tmp/open-transit-image.json
+docker build -f deploy/Dockerfile.local -t open-transit-rt-local:v0.1.0-rc.1 .
+docker image inspect open-transit-rt-local:v0.1.0-rc.1 >/tmp/open-transit-image.json
 ```
 
 Use local Docker image tags for local evaluation only. Published/versioned
@@ -51,7 +55,7 @@ acceptance, agency approval, or production-readiness proof.
 
 Operators should record all of the following for each install or upgrade:
 
-- source tag, such as `v0.22.0`;
+- source tag, such as `v0.1.0-rc.1`;
 - commit SHA from `git rev-parse HEAD`;
 - dirty/clean state from `git describe --tags --always --dirty`;
 - local Docker image tag, if built;
@@ -67,8 +71,8 @@ Phase 57 adds a local release package helper that creates a source archive,
 checksums, SBOM metadata, and provenance metadata under ignored `.cache`:
 
 ```bash
-RELEASE_PACKAGE_VERSION=v0.22.0 make release-package
-RELEASE_PACKAGE_DIR=.cache/release-package/v0.22.0 make audit-release-package
+RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 make release-package
+RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package
 ```
 
 Release packages are install/review artifacts only. They are not retained
