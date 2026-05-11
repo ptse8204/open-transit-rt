@@ -131,7 +131,7 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 			[]string{"Bind or rotate device credentials.", "Send synthetic telemetry through the authenticated ingest path before reviewing Vehicle Positions."},
 			[]string{"docs/tutorials/telemetry-simulator-and-device-trial.md", "docs/tutorials/device-avl-integration.md"},
 			[]string{"make telemetry-simulator"},
-			[]string{"/admin/operations/devices", "/admin/operations/telemetry"},
+			[]string{"/admin/operations/devices", "/admin/operations/telemetry-simulator", "/admin/operations/telemetry"},
 			"Telemetry diagnostics do not prove vendor compatibility or production AVL reliability.",
 		),
 		launchpadSection(

@@ -198,7 +198,11 @@ added the scoped plan for device/vehicle onboarding UI, telemetry simulator UI,
 GTFS quality fix guidance, and closeout. Checkpoint 000002 improved the
 private device and vehicle onboarding UI without changing device credential
 semantics, telemetry ingest contracts, public routes, evidence paths, consumer
-statuses, or stronger claims. The next checkpoint is telemetry simulator UI.
+statuses, or stronger claims. Checkpoint 000003 added a private GET-only
+telemetry simulator guide UI and JSON export without command execution, token
+collection, `.cache` reads, telemetry sends, evidence writes, consumer status
+changes, or stronger claims. The next checkpoint is GTFS quality fix guidance
+UI.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

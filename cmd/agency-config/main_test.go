@@ -3479,6 +3479,163 @@ func TestOperationsDevicesAndTelemetryAvoidUnsupportedClaims(t *testing.T) {
 	}
 }
 
+func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/telemetry-simulator", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Telemetry Simulator Guide",
+		"viewing this page executes no command",
+		"reads no private diagnostics",
+		"collects no device token",
+		"on-route",
+		"stale",
+		"out-of-order",
+		"unknown-device",
+		"low-quality-gps",
+		"after-midnight",
+		"block-transition",
+		"SCENARIO=on-route DRY_RUN=true make telemetry-simulator",
+		"SCENARIO=on-route make telemetry-simulator",
+		"SCENARIO=on-route RUN_MATCHER=true make telemetry-simulator",
+		"backend_command_execution_enabled",
+		"telemetry_sent_by_web_request",
+		"device_token_collected_by_browser",
+		"cache_diagnostics_read_enabled",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("simulator guide missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{
+		"<form",
+		"name=\"device_token\"",
+		"DEVICE_TOKEN=",
+		"Authorization:",
+		"Bearer ",
+		"\"payload\"",
+		"\"lat\"",
+		"\"lon\"",
+		"payload_json",
+		"token_hash",
+		"private_debug",
+		"vendor_id",
+	} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("simulator guide exposes forbidden token/payload/control text %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestOperationsTelemetrySimulatorJSONIsPrivateBoundedAndNoExecution(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/telemetry-simulator.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var view operationsTelemetrySimulatorView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode simulator JSON: %v: %s", err, rr.Body.String())
+	}
+	if view.AgencyID != "demo-agency" {
+		t.Fatalf("agency = %q, want demo-agency", view.AgencyID)
+	}
+	if view.ScenarioDir != telemetrySimulatorScenarioDir {
+		t.Fatalf("scenario dir = %q, want %q", view.ScenarioDir, telemetrySimulatorScenarioDir)
+	}
+	if view.LoadError != "" {
+		t.Fatalf("load error = %q", view.LoadError)
+	}
+	if len(view.Scenarios) < 7 {
+		t.Fatalf("scenario count = %d, want at least 7", len(view.Scenarios))
+	}
+	if view.Scenarios[0].Name != "on-route" || !view.Scenarios[0].DefaultLocal {
+		t.Fatalf("first scenario = %+v, want default on-route first", view.Scenarios[0])
+	}
+	flags := view.ClaimFlags
+	if flags.BackendCommandExecutionEnabled || flags.TelemetrySentByWebRequest || flags.DeviceTokenCollectedByBrowser || flags.CacheDiagnosticsReadEnabled ||
+		flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed ||
+		flags.ProductionAVLClaimed || flags.RealRealtimeClaimed || flags.ProductionGradeETAClaimed || flags.ComplianceClaimed {
+		t.Fatalf("claim flags should all be false: %+v", flags)
+	}
+	body := rr.Body.String()
+	for _, forbidden := range []string{"\"payload\"", "\"lat\"", "\"lon\"", "DEVICE_TOKEN=", "Authorization:", "Bearer ", "token_hash", "private_debug", "vendor_id"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("simulator JSON exposes forbidden field or secret-like text %q: %s", forbidden, body)
+		}
+	}
+
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodDelete} {
+		req := httptest.NewRequest(method, "/admin/operations/telemetry-simulator", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("%s status = %d, want 405", method, rr.Code)
+		}
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/telemetry-simulator?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("cross-agency status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/telemetry-simulator", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public simulator route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsTelemetrySimulatorAvoidsUnsupportedClaims(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations/telemetry-simulator", "/admin/operations/telemetry-simulator.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		body := strings.ToLower(rr.Body.String())
+		for _, forbidden := range []string{
+			"cal-itp/caltrans compliant",
+			"consumer accepted",
+			"accepted by",
+			"agency approved",
+			"agency adopted",
+			"production ready",
+			"public launch complete",
+			"hosted saas",
+			"uptime guarantee",
+			"vendor compatible",
+			"hardware certified",
+			"production avl reliable",
+			"real realtime",
+			"production-grade eta quality is proven",
+		} {
+			if strings.Contains(body, forbidden) {
+				t.Fatalf("%s body contains unsupported claim %q: %s", path, forbidden, rr.Body.String())
+			}
+		}
+	}
+}
+
 func TestOperationsDeviceRebindRequiresAdminRole(t *testing.T) {
 	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor} {
 		t.Run(string(role), func(t *testing.T) {
@@ -4719,6 +4876,14 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))
 	mux.Handle("/admin/operations/reliability.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/telemetry-simulator", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/telemetry-simulator.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))

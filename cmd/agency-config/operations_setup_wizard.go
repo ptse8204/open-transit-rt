@@ -114,7 +114,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 			telemetryLaunchpadStatus(page),
 			telemetryLaunchpadSignal(page),
 			"Bind devices and send authenticated sample telemetry through existing ingest flows.",
-			"/admin/operations/telemetry",
+			"/admin/operations/telemetry-simulator",
 			[]string{"docs/tutorials/telemetry-simulator-and-device-trial.md", "docs/tutorials/device-avl-integration.md"},
 			"Telemetry visibility does not prove real vendor compatibility, hardware certification, or fleet reliability.",
 		),

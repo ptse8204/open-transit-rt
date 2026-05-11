@@ -58,6 +58,7 @@ type operationsPage struct {
 	ConnectorHub           connectorHubView
 	ConnectorTests         connectorTestsView
 	FeedHealth             operationsFeedHealthView
+	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
 	GTFSImportNotice       string
 	GTFSImportError        string
@@ -278,6 +279,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderReadinessV2JSON(w, r)
+	case "telemetry-simulator":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderTelemetrySimulator(w, r)
+	case "telemetry-simulator.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderTelemetrySimulatorJSON(w, r)
 	case "gtfs-import":
 		w.Header().Set("Cache-Control", "no-store")
 		switch r.Method {
@@ -793,6 +808,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ReadinessItems = readinessItems(page)
 	page.ReadinessV2 = buildOperationsReadinessV2(page)
 	page.Checklist = buildOperatorChecklist(page)
+	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page)
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
@@ -1648,6 +1664,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/validation-health">Validator Health</a>
 <a href="/admin/operations/reliability">Reliability</a>
 <a href="/admin/operations/telemetry">Telemetry</a>
+<a href="/admin/operations/telemetry-simulator">Simulator</a>
 <a href="/admin/operations/devices">Devices</a>
 <a href="/admin/alerts/console">Alerts</a>
 <a href="/admin/operations/consumers">Consumers</a>
@@ -1670,6 +1687,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <section class="card"><h3>Import GTFS</h3><p>Use an admin-only browser path for ZIP upload or safe URL import, with the existing importer and validation feedback.</p><p><a href="/admin/operations/gtfs-import">Open GTFS import</a></p></section>
 <section class="card"><h3>Check feed health</h3><p>Review feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts in plain language.</p><p><a href="/admin/operations/feed-health">Open feed health</a></p></section>
 <section class="card"><h3>Connect telemetry</h3><p>Rotate device credentials and inspect latest accepted vehicle observations.</p><p><a href="/admin/operations/devices">Manage devices</a></p></section>
+<section class="card"><h3>Try synthetic telemetry</h3><p>Use committed simulator scenarios from the browser guide, then run copyable commands from an operator shell.</p><p><a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p></section>
 <section class="card"><h3>Use connectors</h3><p>Choose sidecar, manifest, command-adapter, and conformance paths without dynamic backend code loading.</p><p><a href="/admin/operations/connectors">Open Connector Hub</a></p></section>
 </div>
 <h2>Readiness</h2>
@@ -1697,6 +1715,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td>Operations reliability</td><td>{{.Reliability.OverallStatus}} overall</td><td>{{formatTime .Reliability.GeneratedAt}}</td><td><a href="/admin/operations/reliability">review private reliability diagnostics</a> · <a href="/admin/operations/reliability.json">JSON</a></td></tr>
 <tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessV2.Rows}} checklist v2 rows</td><td>{{formatTime .ReadinessV2.GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a> · <a href="/admin/operations/readiness.json">export JSON</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
+<tr><td>Telemetry simulator guide</td><td>{{if .TelemetrySimulator.LoadError}}{{.TelemetrySimulator.LoadError}}{{else}}{{len .TelemetrySimulator.Scenarios}} synthetic scenarios{{end}}</td><td>{{formatTime .TelemetrySimulator.GeneratedAt}}</td><td><a href="/admin/operations/telemetry-simulator">review simulator commands</a> · <a href="/admin/operations/telemetry-simulator.json">export JSON</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
 <tr><td>Scorecard</td><td>{{if .Scorecard}}{{.Scorecard.OverallStatus}}{{else}}{{.ScorecardError}}{{end}}</td><td>{{formatTimePtr .ScorecardUpdatedAt}}</td><td><a href="/admin/operations/evidence">find scorecard evidence</a></td></tr>
 <tr><td>Consumer status</td><td>{{if .ConsumerError}}{{.ConsumerError}}{{else}}{{len .Consumers}} targets shown{{end}}</td><td>{{formatTimePtr .ConsumersUpdatedAt}}</td><td><a href="/admin/operations/consumers">review evidence-only statuses</a></td></tr>
@@ -2155,6 +2174,45 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{range .Telemetry}}<tr><td>{{.VehicleID}}</td><td>{{.DeviceID}}</td><td>{{formatTime .ObservedAt}}</td><td>{{.AgeSeconds}}</td><td>{{if .Stale}}stale{{else}}fresh{{end}}</td><td>{{if .AssignmentState}}{{.AssignmentState}}{{else}}not available{{end}}{{if .DegradedState}} / {{.DegradedState}}{{end}}</td><td>{{.TripID}}</td><td>{{.RouteID}}</td><td>{{.Confidence}}</td><td>{{join .ReasonCodes ", "}}</td><td>{{formatTimePtr .AssignmentAt}}</td></tr>{{end}}
 </tbody></table>{{end}}
 <p class="muted">Safe diagnostics omit raw telemetry payloads, full score details, token fields, and private debug blobs.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "telemetry-simulator"}}
+{{template "layoutStart" .}}
+<h2>Telemetry Simulator Guide</h2>
+<p class="warning">{{.TelemetrySimulator.Boundary}}</p>
+<p>The browser guide reads committed synthetic scenario metadata from <code>{{.TelemetrySimulator.ScenarioDir}}</code>. It does not read private simulator output, run commands, collect device tokens, or send telemetry from the web request.</p>
+<div class="card-grid">
+<section class="card"><h3>Target rules</h3>{{range .TelemetrySimulator.TargetRules}}<p>{{.}}</p>{{end}}</section>
+<section class="card"><h3>Credential handling</h3>{{range .TelemetrySimulator.CredentialHandling}}<p>{{.}}</p>{{end}}</section>
+<section class="card"><h3>Diagnostics policy</h3><p>{{.TelemetrySimulator.DiagnosticsPolicy}}</p></section>
+</div>
+{{if .TelemetrySimulator.LoadError}}<p class="bad">{{.TelemetrySimulator.LoadError}}. Next action: confirm the committed scenario fixtures are present before running simulator commands.</p>{{end}}
+<h3>Operator Commands</h3>
+<table><thead><tr><th>Command</th><th>What it does</th><th>Operator prep</th><th>Failure next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .TelemetrySimulator.Commands}}<tr><td><code>{{.CommandLine}}</code></td><td>{{.WhatItDoes}}</td><td>{{.OperatorPrep}}</td><td>{{.FailureNextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Synthetic Scenarios</h3>
+{{if not .TelemetrySimulator.Scenarios}}<p class="warning">No simulator scenarios are available. Next action: restore the committed synthetic fixtures under <code>{{.TelemetrySimulator.ScenarioDir}}</code>.</p>{{else}}
+<table><thead><tr><th>Scenario</th><th>Purpose</th><th>Events</th><th>Requirements</th><th>Expected statuses</th><th>Commands</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .TelemetrySimulator.Scenarios}}<tr><td>{{.Name}}{{if .DefaultLocal}}<br><span class="pill">default local</span>{{end}}<br><span class="muted">reference: {{.ReferenceTime}}</span></td><td>{{.Description}}</td><td>{{.EventCount}}{{if .EventLabels}}<br><span class="muted">{{join .EventLabels ", "}}</span>{{end}}</td><td>{{if .Requires}}{{range .Requires}}<span class="pill">{{.}}</span> {{end}}{{else}}none recorded{{end}}</td><td>HTTP {{range .ExpectedHTTPStatus}}<span class="pill">{{.}}</span> {{end}}<br>ingest {{if .ExpectedIngestState}}{{range .ExpectedIngestState}}<span class="pill">{{.}}</span> {{end}}{{else}}not recorded{{end}}</td><td>{{range .Commands}}<code>{{.CommandLine}}</code><br>{{end}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>{{end}}
+<h3>Claim Flags</h3>
+<table><tbody>
+<tr><th><code>backend_command_execution_enabled</code></th><td>{{.TelemetrySimulator.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
+<tr><th><code>telemetry_sent_by_web_request</code></th><td>{{.TelemetrySimulator.ClaimFlags.TelemetrySentByWebRequest}}</td></tr>
+<tr><th><code>device_token_collected_by_browser</code></th><td>{{.TelemetrySimulator.ClaimFlags.DeviceTokenCollectedByBrowser}}</td></tr>
+<tr><th><code>cache_diagnostics_read_enabled</code></th><td>{{.TelemetrySimulator.ClaimFlags.CacheDiagnosticsReadEnabled}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.TelemetrySimulator.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>hardware_certification_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.HardwareCertificationClaimed}}</td></tr>
+<tr><th><code>production_avl_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ProductionAVLClaimed}}</td></tr>
+<tr><th><code>real_realtime_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.RealRealtimeClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ComplianceClaimed}}</td></tr>
+</tbody></table>
+<p class="muted">Use the device page for credential rotation and the telemetry page for accepted-event freshness. Keep simulator diagnostics local/private unless a future evidence-specific authorization and redaction process exists.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

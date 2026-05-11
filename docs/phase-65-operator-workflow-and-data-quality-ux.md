@@ -5,7 +5,8 @@
 In progress. Checkpoint 000001 added this plan and kept implementation scoped
 to private operator workflow UX, existing device credential behavior, generated
 telemetry simulator guidance, and GTFS quality fix guidance. Checkpoint 000002
-improved the private device and vehicle onboarding UI. Phase 65 must
+improved the private device and vehicle onboarding UI. Checkpoint 000003 added
+the private telemetry simulator guide UI. Phase 65 must
 preserve telemetry ingest contracts, device credential semantics, GTFS import
 and publish boundaries, validator execution semantics, public feed URLs,
 consumer tracker state, protected evidence paths, and unsupported-claim
@@ -22,7 +23,7 @@ next?" without requiring operators to read phase history or raw diagnostics.
 
 - Completed: `Phase 65 -- Checkpoint 000001: add operator workflow and data quality UX plan`
 - Completed: `Phase 65 -- Checkpoint 000002: implement device and vehicle onboarding UI`
-- Planned: `Phase 65 -- Checkpoint 000003: implement telemetry simulator UI`
+- Completed: `Phase 65 -- Checkpoint 000003: implement telemetry simulator UI`
 - Planned: `Phase 65 -- Checkpoint 000004: implement GTFS quality fix guidance UI`
 - Planned: `Phase 65 -- Checkpoint 000005: close operator workflow and data quality UX`
 
@@ -90,6 +91,15 @@ hardware-specific identifiers.
   runs must not be described as real fleet reliability, real vendor AVL
   compatibility, real realtime data, production-grade ETA quality, compliance,
   or consumer acceptance evidence.
+
+Checkpoint 000003 added `/admin/operations/telemetry-simulator` and
+`/admin/operations/telemetry-simulator.json` as private GET-only guide
+surfaces. The UI reads committed synthetic scenario metadata from
+`testdata/telemetry-simulator`, shows target rules, credential-handling
+guidance, private diagnostics policy, scenario requirements, and copyable
+operator-shell commands. It does not execute commands, send telemetry, collect
+device credentials, read `.cache` diagnostics, expose raw scenario payloads,
+write evidence, or change consumer statuses.
 
 ### GTFS Quality Fix Guidance UI
 

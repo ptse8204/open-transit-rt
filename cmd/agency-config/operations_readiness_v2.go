@@ -128,7 +128,7 @@ func buildOperationsReadinessV2(page operationsPage) operationsReadinessV2View {
 			"Vehicle Positions are the first production-grade public output target and the base signal for any later prediction adapter.",
 			readinessV2RealtimeNext(page, "vehicle_positions"),
 			"Does not prove production AVL reliability, real vendor compatibility, hardware certification, consumer display, or compliance.",
-			[]string{"/admin/operations/feed-health", "/admin/operations/telemetry", "/admin/operations/devices"},
+			[]string{"/admin/operations/feed-health", "/admin/operations/telemetry-simulator", "/admin/operations/telemetry", "/admin/operations/devices"},
 			[]string{"docs/requirements-2a-2f.md", "docs/tutorials/device-avl-integration.md"},
 		),
 		readinessV2Row(
@@ -188,8 +188,8 @@ func buildOperationsReadinessV2(page operationsPage) operationsReadinessV2View {
 			"Realtime feed quality depends on device identity, accepted telemetry, stale handling, and conservative assignment behavior.",
 			readinessV2TelemetryDeviceNext(page),
 			"Does not prove real fleet reliability, vendor AVL compatibility, hardware certification, or production AVL coverage.",
-			[]string{"/admin/operations/devices", "/admin/operations/telemetry"},
-			[]string{"docs/tutorials/agency-first-run.md", "docs/tutorials/operator-smoke-and-support-bundle.md"},
+			[]string{"/admin/operations/devices", "/admin/operations/telemetry-simulator", "/admin/operations/telemetry"},
+			[]string{"docs/tutorials/telemetry-simulator-and-device-trial.md", "docs/tutorials/agency-first-run.md", "docs/tutorials/operator-smoke-and-support-bundle.md"},
 		),
 		readinessV2Row(
 			"operations_scorecard",

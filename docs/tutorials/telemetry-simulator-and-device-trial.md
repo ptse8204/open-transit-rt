@@ -84,6 +84,19 @@ non-secret convenience values.
 
 ## Scenarios
 
+The private Operations Console also has a browser guide:
+
+```text
+/admin/operations/telemetry-simulator
+/admin/operations/telemetry-simulator.json
+```
+
+That page reads committed synthetic scenario metadata, shows target rules,
+credential-handling guidance, private diagnostics policy, and copyable
+operator-shell commands. It is guidance only: it does not execute commands,
+send telemetry, collect device tokens, read `.cache` diagnostics, create
+evidence, or change consumer statuses.
+
 List scenarios:
 
 ```bash
