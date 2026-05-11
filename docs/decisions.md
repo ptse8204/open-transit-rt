@@ -494,3 +494,24 @@ workflow aid only; it is not approval, agency adoption, CAL-ITP/Caltrans
 compliance, consumer acceptance, final-root proof, public launch, hosted SaaS,
 paid support, SLA coverage, production readiness, vendor compatibility,
 production AVL reliability, or production-grade ETA proof.
+
+## ADR-0042 — Keep Docker image distribution source/local-only in Phase 66
+
+Phase 66 does not publish versioned production Docker images. The supported
+distribution anchors remain source tags, exact commit SHAs, local release
+packages, and deployment-owned local Docker builds from a reviewed checkout or
+tag.
+
+Maintainers and operators may build local images with `deploy/Dockerfile.local`
+for evaluation, release-candidate review, or deployment-owned packaging. Those
+local image tags are local metadata only. They are not registry-published
+artifacts, hosted service availability, support commitments, or production
+readiness proof.
+
+A future image publication track would require an explicit maintainer decision
+covering registry ownership, tag policy, supported architectures, build
+provenance, vulnerability review, signing/attestation expectations, base-image
+update policy, rollback policy, release-note language, and a no-secrets/no-
+evidence artifact audit. Until that exists, do not push images, publish
+registry tags, tell operators to pull a registry-published app image, or imply
+a hosted SaaS or published app image exists.

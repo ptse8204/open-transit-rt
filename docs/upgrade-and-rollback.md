@@ -40,6 +40,13 @@ docker image inspect open-transit-rt-local:v0.22.0 >/tmp/open-transit-image.json
 Use local Docker image tags for local evaluation only. Published/versioned
 production Docker images are deferred.
 
+Phase 66 keeps image distribution source/local-only. Operators should not
+expect a registry-published app image to pull. If a deployment owner builds an
+image, record the source tag or commit, local image tag,
+checksum or image inspect output if retained privately, and rollback source.
+Do not treat a local image build as hosted-service, compliance, consumer
+acceptance, agency approval, or production-readiness proof.
+
 ## Version Pinning
 
 Operators should record all of the following for each install or upgrade:

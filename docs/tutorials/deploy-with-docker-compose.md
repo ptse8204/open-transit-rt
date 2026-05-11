@@ -56,6 +56,25 @@ make agency-app-reset
 
 The local app profile uses `deploy/Dockerfile.local` and `deploy/Caddyfile.local`. It does not bake generated credentials or `.cache` material into the image.
 
+## Docker Image Publishing Decision
+
+Phase 66 keeps Docker image distribution source/local-only. The repo supports
+local builds from a reviewed checkout or source tag; it does not publish a
+registry app image and does not ask operators to pull one from a registry.
+
+If a deployment owner builds an image, keep the tag deployment-owned, record
+the source tag or commit, and keep any image inspect/checksum output private
+unless it is intentionally redacted for an approved release artifact. Do not
+run `docker push` or document registry tags as published Open Transit RT images
+unless a future maintainer decision defines registry ownership, tag policy,
+build provenance, vulnerability review, signing/attestation expectations,
+architecture support, base-image update policy, release-note wording, and
+rollback.
+
+Local image builds are installability signals only. They are not hosted SaaS,
+paid support, SLA coverage, consumer acceptance, agency approval, compliance,
+or production-readiness proof.
+
 ## Production-Like Environment
 
 Set real secrets and avoid the dev placeholders from `.env.example`:

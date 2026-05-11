@@ -81,6 +81,9 @@ This is a local evaluator workflow. It is not hosted SaaS availability,
 production readiness, agency approval, consumer acceptance, or CAL-ITP/Caltrans
 compliance.
 
+Docker support is local build/evaluation only in the current release-candidate
+path. No published Open Transit RT app image is currently offered.
+
 ## One-Day Public GTFS Trial
 
 Use the reusable agency onboarding helper when you want to import a public GTFS

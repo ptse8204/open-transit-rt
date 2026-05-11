@@ -213,8 +213,10 @@ prepared the first release-candidate workflow with an ordered review sequence,
 validation matrix, release-note inputs, local package audit matrix, and private
 diagnostic summary fields. Checkpoint 000003 added a local bootstrap preflight,
 clearer missing-tool and Docker/DB readiness messages, and first-run blocker
-docs. The next checkpoint is `Phase 66 -- Checkpoint 000004: document Docker
-image publishing decision`.
+docs. Checkpoint 000004 documented the Docker image publishing decision as
+source/local-image only with no registry publication, published app image,
+hosted-service claim, or image-publication claim. The next checkpoint is
+`Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

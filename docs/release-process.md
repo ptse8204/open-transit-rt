@@ -31,6 +31,14 @@ The current supported distribution anchors are:
 
 Published/versioned production Docker images are deferred. Do not claim a production image exists unless a future release adds and documents one.
 
+Phase 66 keeps Docker image distribution source/local-only. A release may
+document how to build a local image from a reviewed tag, and release notes may
+record a deployment-owned local image tag when one was built. A release must
+not tell operators to pull a registry-published Open Transit RT app image, push
+a registry tag, or imply hosted SaaS availability unless a future maintainer
+decision defines registry ownership, tag policy, build provenance, image audit,
+signing or attestation expectations, and rollback.
+
 Phase 57 adds a local package helper:
 
 ```bash

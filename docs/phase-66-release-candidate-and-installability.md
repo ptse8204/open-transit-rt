@@ -9,7 +9,10 @@ workflow by adding the ordered review sequence, validation matrix, release-note
 inputs, package audit matrix, and private diagnostic summary fields.
 Checkpoint 000003 improved installer and bootstrap UX with a local bootstrap
 preflight, clearer missing-tool and Docker/DB readiness messages, and
-operator-facing blocker docs. Phase 66 must keep release candidate and
+operator-facing blocker docs. Checkpoint 000004 documented the Docker image
+publishing decision: source tags, exact commits, local release packages, and
+deployment-owned local image builds remain supported, while registry-published
+app images stay deferred. Phase 66 must keep release candidate and
 installability work bounded to evaluator workflows and local/self-hosted
 packaging. It must not create retained evidence, publish artifacts, push
 images, change consumer statuses, or claim hosted SaaS, production readiness,
@@ -30,7 +33,7 @@ production readiness.
 - Completed: `Phase 66 -- Checkpoint 000001: add release candidate and installability plan`
 - Completed: `Phase 66 -- Checkpoint 000002: prepare first release candidate workflow`
 - Completed: `Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`
-- Planned: `Phase 66 -- Checkpoint 000004: document Docker image publishing decision`
+- Completed: `Phase 66 -- Checkpoint 000004: document Docker image publishing decision`
 - Planned: `Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`
 - Planned: `Phase 66 -- Checkpoint 000006: close release candidate and installability`
 

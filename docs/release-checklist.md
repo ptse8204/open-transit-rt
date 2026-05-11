@@ -82,6 +82,17 @@ docker build -f deploy/Dockerfile.local \
 Published/versioned production Docker images are deferred. Current distribution
 guidance supports source tags and local Docker builds only.
 
+Phase 66 Docker decision:
+
+- do not run `docker push` as part of the release-candidate or tagging
+  checklist;
+- do not create or document registry tags as published app images;
+- record local image tags only as deployment-owned or maintainer-local build
+  metadata;
+- require a future explicit maintainer decision before publishing any official
+  image, including registry ownership, tag policy, provenance, vulnerability
+  review, signing/attestation expectations, architecture support, and rollback.
+
 Phase 57 adds local release packages:
 
 ```bash

@@ -55,7 +55,7 @@ This table is the current external dependency and integration status. It separat
 | MobilityData GTFS Realtime Validator | Integrated as validation tooling | Docker-backed wrapper pinned by image digest; invoked through allowlisted validator IDs with server-derived artifacts. |
 | GTFS Realtime protobuf Go bindings | Integrated | Used only at feed serialization boundaries. |
 | Go toolchain | Integrated developer/runtime build tool | Version follows `go.mod`; used for build, test, and service commands. |
-| Docker / Docker Compose | Integrated local tooling | Provisions local Postgres/PostGIS and supports the Docker-backed GTFS-RT validator wrapper; app containers are not packaged in this repo. |
+| Docker / Docker Compose | Integrated local tooling | Provisions local Postgres/PostGIS, supports the Docker-backed GTFS-RT validator wrapper, and supports deployment-owned local app image builds; Phase 66 keeps image distribution source/local-only with no published production registry image. |
 | Task | Optional local tooling | Mirrors Make targets; Makefile remains independently supported. |
 | Local demo tools `curl`, `zip`, `unzip` | Integrated local demo tooling | Used only by `scripts/demo-agency-flow.sh`; not runtime service dependencies. |
 | Phase 17 pilot operations helpers | Integrated deployment tooling | `scripts/pilot-ops.sh` provides dry-run-capable validator, backup, restore-drill, feed-monitor, and scorecard-export helpers; systemd timer examples are under `deploy/systemd/`. |
@@ -1172,6 +1172,47 @@ hosted SaaS availability, hosted service operation, production image
 publication, production readiness, compliance, agency adoption, consumer
 acceptance, vendor compatibility, marketplace approval, SLA/uptime, or
 production-grade ETA quality.
+
+---
+
+## Phase 66 Docker image publishing decision
+
+### Classification
+Local packaging and deployment-owned build guidance
+
+### Purpose
+Keep Docker image use bounded to local development, local app evaluation,
+release-candidate review, validator wrappers, and deployment-owned image builds
+from source tags or exact commits.
+
+### Startup / provisioning
+- Local app builds use `deploy/Dockerfile.local` through
+  `make agency-app-up` or an explicit `docker build` command.
+- Release notes may record a local image tag when an operator builds one.
+- No Phase 66 command pushes images, publishes registry tags, creates a hosted
+  service, or asks operators to pull a registry-published app image.
+
+### Integration boundary
+- Docker images are local build artifacts or deployment-owned artifacts only.
+- Registry publication is deferred until a future explicit maintainer decision
+  defines registry ownership, tag policy, build provenance, signing or
+  attestation expectations, vulnerability review, architecture support,
+  base-image update policy, rollback policy, and release wording.
+- Local image metadata may be recorded in release package diagnostics only when
+  `RELEASE_PACKAGE_IMAGE_TAG` is supplied.
+
+### Failure behavior
+- Missing Docker, Docker Compose, network access for first-run pulls, or image
+  build failures are local setup blockers.
+- A blocked local image build should be recorded as a release-candidate or
+  installability blocker, not as evidence of production readiness or
+  compliance.
+
+### Claim boundary
+Phase 66 does not create a published production Docker image, hosted SaaS,
+paid support, SLA/uptime, production readiness, agency adoption, consumer
+acceptance, vendor compatibility, marketplace approval, compliance, or
+production-grade ETA claim.
 
 ---
 
