@@ -14,6 +14,25 @@ The Phase 61+ agency-first connector platform roadmap lives at
 from `docs/roadmaps/agency-first-connector-platform/00-CODEX-READ-ME-FIRST.md`
 before planning new product phases.
 
+Phase 61 -- Agency-First UI And Connector Hub is complete. The current next
+phase is Phase 62 -- Guided Setup and Browser GTFS Import.
+
+Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
+wording, improved `/admin/operations` with agency-first action cards, and
+added private read-only Connector Hub routes at `/admin/operations/connectors`
+and `/admin/operations/connectors.json`. Connector Hub explains telemetry,
+prediction, validator, monitoring/export, and consumer/discovery connector
+paths, and defines plugins as optional sidecars, manifests, command adapters,
+or connector processes rather than arbitrary dynamic backend code loading.
+
+Phase 61 created no retained evidence, wrote nothing under protected evidence
+paths, contacted no external party, changed no consumer status, changed no
+public feed URL, added no migration, and made no compliance, agency approval,
+agency adoption, consumer acceptance, hosted-service, paid-support, SLA,
+production-readiness, vendor-compatibility, hardware-certification, public
+launch, production AVL reliability, or production-grade ETA claim. All seven
+consumer and aggregator targets remain `prepared`.
+
 The current default work remains agency-facing open-source product quality and
 external connection maturity: clear evaluator paths, release-candidate
 readiness checks, connector contracts, adapter conformance, generic connector

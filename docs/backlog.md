@@ -351,3 +351,19 @@ This backlog is organized by phase. `docs/phase-plan.md` remains the phase contr
   changed, and no public launch, compliance, agency adoption, consumer
   acceptance, hosted service, SLA/uptime, production-readiness, vendor,
   marketplace, or ETA-quality claim was added.
+
+## Phase 61 — Agency-First UI And Connector Hub
+
+- Complete for the approved agency-first UI and Connector Hub scope. The repo
+  now has the Phase 61+ roadmap pack, source-of-truth docs aligned to the new
+  naming, Operations Console action cards, private Connector Hub routes at
+  `/admin/operations/connectors` and `/admin/operations/connectors.json`, safe
+  plugin wording, and focused route/claim-boundary tests.
+- Closure outcome: no retained evidence was created, no protected evidence
+  path was changed, no consumer or aggregator was contacted, no consumer
+  status was changed, no dynamic backend plugin loader was added, and no
+  compliance, agency approval/adoption, consumer acceptance, hosted SaaS,
+  paid-support, SLA, production-readiness, vendor-compatibility,
+  hardware-certification, public-launch, production AVL reliability, or
+  production-grade ETA claim was added.
+- Remaining later work: Phase 62 guided setup and browser GTFS import.

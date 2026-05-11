@@ -23,6 +23,11 @@ release-candidate/readiness blocker language. Optional real-world evidence
 tracks remain authorization-gated and are not the default next work. The
 Phase 61+ roadmap lives at
 `docs/roadmaps/agency-first-connector-platform/README.md`.
+Phase 61 is complete for the agency-first UI and Connector Hub scope. It added
+the private Connector Hub routes, source-of-truth roadmap adoption, dashboard
+action cards, and safe plugin/sidecar wording without creating evidence,
+changing consumer statuses, adding dynamic plugin loading, or making stronger
+claims.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -129,8 +134,9 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The default next work is to improve the existing self-hosted backend without
-weakening claim boundaries:
+The default next work is Phase 62 -- Guided Setup and Browser GTFS Import,
+while continuing to improve the existing self-hosted backend without weakening
+claim boundaries:
 
 - keep the agency-facing front door and command map current as workflows
   evolve;

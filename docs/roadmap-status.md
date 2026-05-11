@@ -164,9 +164,17 @@ Supply Chain, Phase 58 — Optional Marketplace / Vendor-Equivalent Pack, Phase
 Closeout are complete for their bounded scopes. Phase 60 added local claim
 audit tooling and a final claim-to-evidence review only; it created no retained
 evidence, changed no consumer statuses, and added no stronger claim.
+Phase 61 — Agency-First UI And Connector Hub is complete for its bounded
+product scope. It adopted the Phase 61+ roadmap naming, added the private
+Connector Hub and agency-first Operations Console dashboard cards, and kept
+connector/plugin wording limited to optional sidecars, manifests, command
+adapters, or connector processes. Phase 61 created no evidence, changed no
+consumer statuses, added no dynamic backend plugin loading, and made no
+stronger claim.
 
-The immediate next step is maintenance or the next master-approved phase. Start
-with a fresh read-only planning pass before implementation.
+The immediate next step is Phase 62 — Guided Setup And Browser GTFS Import.
+Start with the Phase 62 prompt and a fresh read-only planning pass before
+implementation.
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot
 evidence, real device/vendor AVL evidence, or real-world realtime quality
