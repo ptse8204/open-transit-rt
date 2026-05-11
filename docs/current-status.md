@@ -187,14 +187,17 @@ aligned stale roadmap pointers so the Phase 61+ roadmap remains the current
 forward product path. Checkpoint 000002 improved the private Operations
 Console information architecture with grouped navigation by operator intent,
 active-page state, route-stability tests, and a current Phase 61+ roadmap link
-from the Launchpad decision gate. Phase 66 closed after improving
-release-candidate workflow, local bootstrap preflight and first-run messaging,
-Docker image publishing decision docs, and a repository-native docs/demo site
-plan. Phase 66 did not create retained evidence, publish artifacts, push
-images, change consumer statuses, or claim hosted SaaS, universal production
-readiness, SLA/uptime, agency adoption, consumer acceptance, public launch, or
-compliance. The next checkpoint is
-`Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`.
+from the Launchpad decision gate. Checkpoint 000003 improved
+accessibility-oriented shared markup, keyboard-visible focus states, mobile
+layout constraints, table overflow behavior, and explicit form labels and
+submit buttons while preserving existing POST contracts. Phase 66 closed after
+improving release-candidate workflow, local bootstrap preflight and first-run
+messaging, Docker image publishing decision docs, and a repository-native
+docs/demo site plan. Phase 66 did not create retained evidence, publish
+artifacts, push images, change consumer statuses, or claim hosted SaaS,
+universal production readiness, SLA/uptime, agency adoption, consumer
+acceptance, public launch, or compliance. The next checkpoint is
+`Phase 67 -- Checkpoint 000004: implement in-app help system`.
 
 Keep Phase 67 focused on private Operations Console information architecture,
 accessibility, responsive layout, keyboard-friendly UI, and in-app help for
@@ -1831,7 +1834,7 @@ Phase 60 targeted verification:
 
 Continue with Phase 67 -- Product Polish, Accessibility, and In-App Help. The
 default next work is
-`Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`.
+`Phase 67 -- Checkpoint 000004: implement in-app help system`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

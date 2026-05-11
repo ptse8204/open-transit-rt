@@ -83,8 +83,13 @@ operator intent, added active-page state, preserved existing route paths, and
 updated the Launchpad decision-gate docs link to the current Phase 61+
 roadmap. It did not add public routes, evidence writes, consumer status
 changes, runtime contract changes, or stronger claims.
+Checkpoint 000003 improved accessibility-oriented shared layout markup,
+visible keyboard focus styles, responsive/mobile constraints, table overflow
+behavior, and explicit form labels and submit buttons while preserving
+existing POST names, actions, role checks, CSRF behavior, and private route
+boundaries.
 The next checkpoint is
-`Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`.
+`Phase 67 -- Checkpoint 000004: implement in-app help system`.
 
 Phase 66 checkpoint history: Checkpoint 000001 added the Phase 66 plan in
 `docs/phase-66-release-candidate-and-installability.md`.
@@ -1220,8 +1225,10 @@ Phases 0 through 60 remain closed, and Phases 61, 62, 63, 64, 65, and 66 are com
 Phase 67 Checkpoint 000001 added the product polish, accessibility, and
 in-app help plan. Checkpoint 000002 improved private Operations Console
 information architecture with grouped navigation, active-page state, and
-route-stability tests. The next checkpoint is `Phase 67 --
-Checkpoint 000003: improve accessibility and mobile layout`. For
+route-stability tests. Checkpoint 000003 improved accessibility-oriented
+shared markup, keyboard-visible focus states, mobile layout constraints, and
+form labels/buttons. The next checkpoint is `Phase 67 --
+Checkpoint 000004: implement in-app help system`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

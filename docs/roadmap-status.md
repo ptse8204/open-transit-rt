@@ -219,8 +219,11 @@ help plan and aligned stale roadmap pointers so the Phase 61+ roadmap remains
 the forward product path. Checkpoint 000002 improved the private Operations
 Console information architecture with grouped navigation, active-page state,
 route-stability tests, and a current Phase 61+ roadmap link from the
-Launchpad decision gate. The next checkpoint is
-`Phase 67 -- Checkpoint 000003: improve accessibility and mobile layout`.
+Launchpad decision gate. Checkpoint 000003 improved accessibility-oriented
+shared markup, keyboard-visible focus styles, responsive/mobile constraints,
+table overflow behavior, and explicit form labels/buttons without changing
+runtime contracts. The next checkpoint is
+`Phase 67 -- Checkpoint 000004: implement in-app help system`.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

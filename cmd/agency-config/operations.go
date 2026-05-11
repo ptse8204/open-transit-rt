@@ -1647,27 +1647,31 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 	"gtfsQualityGuidanceClass": gtfsQualityGuidanceClass,
 }).Parse(`
 {{define "layoutStart"}}
-<!doctype html><html><head><meta charset="utf-8"><title>{{.Title}}</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title>
 <style>
-body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:2rem;line-height:1.4;color:#1f2933}
-.operations-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem;margin:1rem 0 1.25rem}.nav-group{border:1px solid #d8dee4;border-radius:6px;padding:.55rem;background:#fff}.nav-group-label{font-weight:700;margin:0 0 .4rem}.nav-links{display:flex;flex-wrap:wrap;gap:.35rem}.nav-link{border:1px solid #d8dee4;border-radius:4px;padding:.32rem .5rem;text-decoration:none;color:#1f2933;background:#fff}.nav-link:focus,.nav-link:hover{border-color:#6b7280;background:#f6f8fa}.nav-link.current{border-color:#1f2933;background:#1f2933;color:#fff}
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:2rem;line-height:1.4;color:#1f2933;overflow-wrap:anywhere}.skip-link{position:absolute;left:-999px;top:.5rem;background:#1f2933;color:#fff;padding:.5rem .75rem;border-radius:4px;z-index:10}.skip-link:focus,.skip-link:focus-visible{left:.5rem}.operations-header{margin-bottom:1rem}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,main:focus-visible{outline:3px solid #2563eb;outline-offset:2px}
+.operations-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem;margin:1rem 0 1.25rem}.nav-group{border:1px solid #d8dee4;border-radius:6px;padding:.55rem;background:#fff}.nav-group-label{font-weight:700;margin:0 0 .4rem}.nav-links{display:flex;flex-wrap:wrap;gap:.35rem}.nav-link{border:1px solid #d8dee4;border-radius:4px;padding:.45rem .6rem;min-height:2.25rem;text-decoration:none;color:#1f2933;background:#fff}.nav-link:focus,.nav-link:hover{border-color:#6b7280;background:#f6f8fa}.nav-link.current{border-color:#1f2933;background:#1f2933;color:#fff}
 table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
 th{background:#f6f8fa}.pill{display:inline-block;border:1px solid #c8d1dc;border-radius:3px;padding:.1rem .35rem;background:#f6f8fa}
 .hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3{margin-top:0}.card p{margin:.4rem 0}.status{font-weight:600}
 .warning{background:#fff8c5}.ok{background:#dafbe1}.bad{background:#ffebe9}.muted{color:#59636e}.token{border:1px solid #f0c36d;background:#fff8c5;padding:1rem}
-form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{min-width:22rem;max-width:100%;padding:.35rem} button{padding:.4rem .7rem}
-@media (max-width:700px){body{margin:1rem}table{display:block;overflow-x:auto}input,select,textarea{min-width:0;width:100%}}
+form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{min-width:22rem;max-width:100%;padding:.45rem} button{padding:.5rem .8rem;min-height:2.25rem}
+@media (max-width:700px){body{margin:0;padding:1rem}.operations-nav,.card-grid{grid-template-columns:1fr}.nav-links{display:grid;grid-template-columns:1fr}.nav-link,button{width:100%}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}input,select,textarea{min-width:0;width:100%}}
 </style></head><body>
+<a class="skip-link" href="#operations-main">Skip to main content</a>
+<header class="operations-header">
 <h1>{{.Title}}</h1>
 <p>Agency: <strong>{{.AgencyID}}</strong> · environment: <span class="pill">{{.EnvironmentLabel}}</span> · generated: {{formatTime .GeneratedAt}}</p>
+</header>
 <nav class="operations-nav" aria-label="Operations Console sections">
 {{range .NavGroups}}<section class="nav-group" aria-label="{{.Label}}">
 <p class="nav-group-label">{{.Label}}</p>
 <div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</div>
 </section>{{end}}
 </nav>
+<main id="operations-main" tabindex="-1">
 {{end}}
-{{define "layoutEnd"}}</body></html>{{end}}
+{{define "layoutEnd"}}</main></body></html>{{end}}
 
 {{define "dashboard"}}
 {{template "layoutStart" .}}
@@ -1895,9 +1899,9 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="import_gtfs">
 <input type="hidden" name="source_type" value="upload">
-<label>GTFS ZIP <input type="file" name="gtfs_zip" accept=".zip,application/zip,application/octet-stream" required></label>
-<label>Notes <textarea name="notes" maxlength="500" rows="3" placeholder="Optional operator note without credentials or private paths"></textarea></label>
-<button>Import ZIP</button>
+<label for="gtfs_upload_zip">GTFS ZIP</label><input id="gtfs_upload_zip" type="file" name="gtfs_zip" accept=".zip,application/zip,application/octet-stream" required>
+<label for="gtfs_upload_notes">Notes</label><textarea id="gtfs_upload_notes" name="notes" maxlength="500" rows="3" placeholder="Optional operator note without credentials or private paths"></textarea>
+<button type="submit">Import ZIP</button>
 </form>
 </section>
 <section class="card">
@@ -1906,9 +1910,9 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="import_gtfs">
 <input type="hidden" name="source_type" value="url">
-<label>GTFS ZIP URL <input name="gtfs_url" maxlength="2048" placeholder="https://agency.example/gtfs.zip" required></label>
-<label>Notes <textarea name="notes" maxlength="500" rows="3" placeholder="Optional operator note without credentials or private paths"></textarea></label>
-<button>Import URL</button>
+<label for="gtfs_import_url">GTFS ZIP URL</label><input id="gtfs_import_url" type="url" name="gtfs_url" maxlength="2048" placeholder="https://agency.example/gtfs.zip" required>
+<label for="gtfs_url_notes">Notes</label><textarea id="gtfs_url_notes" name="notes" maxlength="500" rows="3" placeholder="Optional operator note without credentials or private paths"></textarea>
+<button type="submit">Import URL</button>
 </form>
 </section>
 </div>
@@ -2043,7 +2047,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <form method="post" action="/admin/operations/gtfs-quality">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="rerun_static_validator">
-<button>Rerun static MobilityData validator</button>
+<button type="submit">Rerun static MobilityData validator</button>
 </form>
 {{else}}<p class="muted">Rerun action is available only to admins.</p>{{end}}
 {{template "gtfsQualitySection" .GTFSQuality.Canonical}}
@@ -2071,7 +2075,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <form method="post" action="/admin/operations/validation-health">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="run_all">
-<button>Run allowlisted validators</button>
+<button type="submit">Run allowlisted validators</button>
 </form>
 {{else}}<p class="muted">Run action is available only to admins.</p>{{end}}
 {{template "validationHealthRows" .ValidationHealth}}
@@ -2247,10 +2251,10 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <form method="post" action="/admin/operations/devices">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="agency_id" value="{{.AgencyID}}">
-<label>Device ID <input name="device_id" required></label>
-<label>Vehicle ID <input name="vehicle_id" required></label>
-<label>Reason <input name="reason" placeholder="rotation or rebind reason"></label>
-<button>Rotate / rebind token</button>
+<label for="device_rebind_device_id">Device ID</label><input id="device_rebind_device_id" name="device_id" required>
+<label for="device_rebind_vehicle_id">Vehicle ID</label><input id="device_rebind_vehicle_id" name="vehicle_id" required>
+<label for="device_rebind_reason">Reason</label><input id="device_rebind_reason" name="reason" placeholder="rotation or rebind reason">
+<button type="submit">Rotate / rebind token</button>
 </form>
 {{else}}
 <p class="muted">Admins can rotate or rebind device tokens. This view shows operational status only.</p>
@@ -2317,13 +2321,13 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <form method="post" action="/admin/operations/setup">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="publication_bootstrap">
-<label>Public base URL <input name="public_base_url" maxlength="2048" required value="{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else}}{{.Discovery.PublicBaseURL}}{{end}}"></label>
-<label>Feed base URL <input name="feed_base_url" maxlength="2048" required value="{{.PublicationConfig.FeedBaseURL}}"></label>
-<label>Technical contact email <input name="technical_contact_email" maxlength="320" value="{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else}}{{.Discovery.TechnicalContactEmail}}{{end}}"></label>
-<label>License name <input name="license_name" maxlength="160" value="{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else}}{{.Discovery.License.Name}}{{end}}"></label>
-<label>License URL <input name="license_url" maxlength="2048" value="{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else}}{{.Discovery.License.URL}}{{end}}"></label>
-<label>Publication environment <input name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}"></label>
-<button>Store publication metadata</button>
+<label for="setup_public_base_url">Public base URL</label><input id="setup_public_base_url" type="url" name="public_base_url" maxlength="2048" required value="{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else}}{{.Discovery.PublicBaseURL}}{{end}}">
+<label for="setup_feed_base_url">Feed base URL</label><input id="setup_feed_base_url" type="url" name="feed_base_url" maxlength="2048" required value="{{.PublicationConfig.FeedBaseURL}}">
+<label for="setup_technical_contact_email">Technical contact email</label><input id="setup_technical_contact_email" type="email" name="technical_contact_email" maxlength="320" value="{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else}}{{.Discovery.TechnicalContactEmail}}{{end}}">
+<label for="setup_license_name">License name</label><input id="setup_license_name" name="license_name" maxlength="160" value="{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else}}{{.Discovery.License.Name}}{{end}}">
+<label for="setup_license_url">License URL</label><input id="setup_license_url" type="url" name="license_url" maxlength="2048" value="{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else}}{{.Discovery.License.URL}}{{end}}">
+<label for="setup_publication_environment">Publication environment</label><input id="setup_publication_environment" name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}">
+<button type="submit">Store publication metadata</button>
 </form>
 
 <h2>GTFS Import And Authoring</h2>
@@ -2345,13 +2349,13 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <form method="post" action="/admin/operations/setup">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="run_validation">
-<label>Feed type <select name="feed_type">
+<label for="setup_validation_feed_type">Feed type</label><select id="setup_validation_feed_type" name="feed_type">
 <option value="schedule">schedule</option>
 <option value="vehicle_positions">vehicle_positions</option>
 <option value="trip_updates">trip_updates</option>
 <option value="alerts">alerts</option>
-</select></label>
-<button>Run allowlisted validation</button>
+</select>
+<button type="submit">Run allowlisted validation</button>
 </form>
 {{if .DiscoveryError}}<p class="warning">No validation records are available because publication metadata is missing.</p>{{else}}{{template "feedTable" .}}{{end}}
 

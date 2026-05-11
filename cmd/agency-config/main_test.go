@@ -2106,6 +2106,159 @@ func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *test
 	}
 }
 
+func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		`<html lang="en">`,
+		`<meta name="viewport" content="width=device-width, initial-scale=1">`,
+		`class="skip-link" href="#operations-main"`,
+		`<header class="operations-header">`,
+		`<nav class="operations-nav" aria-label="Operations Console sections">`,
+		`<main id="operations-main" tabindex="-1">`,
+		`</main></body></html>`,
+		`:focus-visible`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("shared layout missing %q: %s", want, body)
+		}
+	}
+}
+
+func TestOperationsConsoleMobileCSSKeepsTablesFormsAndLongValuesUsable(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		`*{box-sizing:border-box}`,
+		`overflow-wrap:anywhere`,
+		`@media (max-width:700px)`,
+		`table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}`,
+		`input,select,textarea{min-width:0;width:100%}`,
+		`.nav-link,button{width:100%}`,
+		`a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,main:focus-visible`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("mobile/focus CSS missing %q: %s", want, body)
+		}
+	}
+}
+
+func TestOperationsConsoleFormsUseLabelsAndSubmitButtonsWithoutChangingContracts(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	for _, tc := range []struct {
+		path string
+		want []string
+	}{
+		{
+			path: "/admin/operations/gtfs-import",
+			want: []string{
+				`<form method="post" enctype="multipart/form-data" action="/admin/operations/gtfs-import?csrf_token=`,
+				`name="action" value="import_gtfs"`,
+				`name="source_type" value="upload"`,
+				`for="gtfs_upload_zip"`,
+				`id="gtfs_upload_zip" type="file" name="gtfs_zip"`,
+				`for="gtfs_upload_notes"`,
+				`id="gtfs_upload_notes" name="notes"`,
+				`<button type="submit">Import ZIP</button>`,
+				`<form method="post" action="/admin/operations/gtfs-import">`,
+				`name="source_type" value="url"`,
+				`for="gtfs_import_url"`,
+				`id="gtfs_import_url" type="url" name="gtfs_url"`,
+				`for="gtfs_url_notes"`,
+				`id="gtfs_url_notes" name="notes"`,
+				`<button type="submit">Import URL</button>`,
+			},
+		},
+		{
+			path: "/admin/operations/gtfs-quality",
+			want: []string{
+				`<form method="post" action="/admin/operations/gtfs-quality">`,
+				`name="action" value="rerun_static_validator"`,
+				`<button type="submit">Rerun static MobilityData validator</button>`,
+			},
+		},
+		{
+			path: "/admin/operations/validation-health",
+			want: []string{
+				`<form method="post" action="/admin/operations/validation-health">`,
+				`name="action" value="run_all"`,
+				`<button type="submit">Run allowlisted validators</button>`,
+			},
+		},
+		{
+			path: "/admin/operations/devices",
+			want: []string{
+				`<form method="post" action="/admin/operations/devices">`,
+				`name="agency_id" value="demo-agency"`,
+				`for="device_rebind_device_id"`,
+				`id="device_rebind_device_id" name="device_id"`,
+				`for="device_rebind_vehicle_id"`,
+				`id="device_rebind_vehicle_id" name="vehicle_id"`,
+				`for="device_rebind_reason"`,
+				`id="device_rebind_reason" name="reason"`,
+				`<button type="submit">Rotate / rebind token</button>`,
+			},
+		},
+		{
+			path: "/admin/operations/setup",
+			want: []string{
+				`<form method="post" action="/admin/operations/setup">`,
+				`name="action" value="publication_bootstrap"`,
+				`for="setup_public_base_url"`,
+				`id="setup_public_base_url" type="url" name="public_base_url"`,
+				`for="setup_feed_base_url"`,
+				`id="setup_feed_base_url" type="url" name="feed_base_url"`,
+				`for="setup_technical_contact_email"`,
+				`id="setup_technical_contact_email" type="email" name="technical_contact_email"`,
+				`for="setup_license_name"`,
+				`id="setup_license_name" name="license_name"`,
+				`for="setup_license_url"`,
+				`id="setup_license_url" type="url" name="license_url"`,
+				`for="setup_publication_environment"`,
+				`id="setup_publication_environment" name="publication_environment"`,
+				`<button type="submit">Store publication metadata</button>`,
+				`name="action" value="run_validation"`,
+				`for="setup_validation_feed_type"`,
+				`id="setup_validation_feed_type" name="feed_type"`,
+				`<button type="submit">Run allowlisted validation</button>`,
+			},
+		},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			for _, want := range tc.want {
+				if !strings.Contains(body, want) {
+					t.Fatalf("%s missing form contract %q: %s", tc.path, want, body)
+				}
+			}
+		})
+	}
+}
+
 func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	doctor, err := os.ReadFile(filepath.Join("..", "..", "scripts", "deployment-doctor.sh"))
 	if err != nil {
