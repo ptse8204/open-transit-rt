@@ -33,6 +33,7 @@ a prediction adapter, and Alerts are part of the public feed set.
 | Testing synthetic telemetry | `make telemetry-simulator` |
 | Connecting GPS, AVL, or another telemetry source | [Integration Adapter Kit](docs/integration-adapter-kit.md) and [Connector Cookbook](wiki/connector-cookbook.md) |
 | Reviewing release-candidate readiness from a fresh clone | `make release-candidate-check` |
+| Reviewing a future docs/demo site structure | [Demo And Documentation Site Plan](docs/demo-docs-site-plan.md) |
 | Reviewing CAL-ITP-style readiness | [Plain-English Readiness Guide](wiki/calitp-readiness-plain-english.md) |
 | Contributing | [How Agencies Can Help](wiki/how-agencies-can-help.md) and [CONTRIBUTING.md](CONTRIBUTING.md) |
 

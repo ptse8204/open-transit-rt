@@ -114,8 +114,10 @@ matrix, and private diagnostic summary fields. Checkpoint 000003 added a local
 bootstrap preflight, clearer missing-tool and Docker/DB readiness messages, and
 first-run blocker docs. Checkpoint 000004 documented the Docker image
 publishing decision: no published app image, no registry push, and no hosted
-service claim. The next checkpoint is `Phase 66 -- Checkpoint 000005: add demo
-site or documentation website plan`.
+service claim. Checkpoint 000005 added the docs/demo site plan as
+repository-native planning only with no hosting, marketing launch, evidence
+collection, or public-launch claim. The next checkpoint is `Phase 66 --
+Checkpoint 000006: close release candidate and installability`.
 Optional evidence tracks remain future authorization-gated work and are not the
 default continuation path.
 
@@ -1204,7 +1206,7 @@ Checkpoint 000001 added the Phase 65 plan. Checkpoint 000002 improved private
 device and vehicle onboarding UI. Checkpoint 000003 added the private
 telemetry simulator guide UI. Checkpoint 000004 improved private GTFS quality
 fix guidance. Checkpoint 000005 closed Phase 65. The next checkpoint is
-`Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`. For
+`Phase 66 -- Checkpoint 000006: close release candidate and installability`. For
 public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 

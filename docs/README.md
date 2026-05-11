@@ -19,6 +19,7 @@ requirements, or evidence boundaries.
 | Connect GPS, AVL, CSV, or a sidecar source | [Connector Cookbook](../wiki/connector-cookbook.md) |
 | Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](../wiki/calitp-readiness-plain-english.md) |
 | Check release-candidate evaluator readiness | [Release-Candidate Readiness](release-candidate-readiness.md) |
+| Review future docs/demo site structure | [Demo And Documentation Site Plan](demo-docs-site-plan.md) |
 | Help as an agency, operator, or contributor | [How Agencies Can Help](../wiki/how-agencies-can-help.md) |
 | Contribute code or docs | [Contributing](../CONTRIBUTING.md) |
 
@@ -59,6 +60,7 @@ project:
 - [Release Checklist](release-checklist.md)
 - [Release Notes Template](release-notes-template.md)
 - [Upgrade And Rollback](upgrade-and-rollback.md)
+- [Demo And Documentation Site Plan](demo-docs-site-plan.md)
 - [Changelog](../CHANGELOG.md)
 
 ## Readiness And Evidence

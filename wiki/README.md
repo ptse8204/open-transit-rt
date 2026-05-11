@@ -35,6 +35,7 @@ fastest way to see the product shape before reading deeper docs.
 | Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](calitp-readiness-plain-english.md) |
 | Plan a self-hosted deployment | [Deployment Guide](deployment-guide.md) |
 | Understand readiness and evidence boundaries | [Readiness And Evidence](readiness-and-evidence.md) |
+| Review future docs/demo site structure | [Demo And Documentation Site Plan](../docs/demo-docs-site-plan.md) |
 | Help improve the project | [How Agencies Can Help](how-agencies-can-help.md) |
 | Contribute code or docs | [Support And Contribute](support-and-contribute.md) |
 

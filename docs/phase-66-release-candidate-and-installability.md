@@ -12,13 +12,16 @@ preflight, clearer missing-tool and Docker/DB readiness messages, and
 operator-facing blocker docs. Checkpoint 000004 documented the Docker image
 publishing decision: source tags, exact commits, local release packages, and
 deployment-owned local image builds remain supported, while registry-published
-app images stay deferred. Phase 66 must keep release candidate and
-installability work bounded to evaluator workflows and local/self-hosted
-packaging. It must not create retained evidence, publish artifacts, push
-images, change consumer statuses, or claim hosted SaaS, production readiness,
-SLA/uptime, agency adoption, consumer acceptance, public launch, vendor
-compatibility, hardware certification, production AVL reliability,
-production-grade ETA quality, or CAL-ITP/Caltrans compliance.
+app images stay deferred. Checkpoint 000005 added a docs/demo site plan that
+keeps future public-friendly documentation repository-native and explicitly
+separate from hosting, marketing launch, evidence collection, or public-launch
+claims. Phase 66 must keep release candidate and installability work bounded to
+evaluator workflows and local/self-hosted packaging. It must not create
+retained evidence, publish artifacts, push images, change consumer statuses, or
+claim hosted SaaS, production readiness, SLA/uptime, agency adoption, consumer
+acceptance, public launch, vendor compatibility, hardware certification,
+production AVL reliability, production-grade ETA quality, or CAL-ITP/Caltrans
+compliance.
 
 ## Goal
 
@@ -34,7 +37,7 @@ production readiness.
 - Completed: `Phase 66 -- Checkpoint 000002: prepare first release candidate workflow`
 - Completed: `Phase 66 -- Checkpoint 000003: improve installer and bootstrap UX`
 - Completed: `Phase 66 -- Checkpoint 000004: document Docker image publishing decision`
-- Planned: `Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`
+- Completed: `Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`
 - Planned: `Phase 66 -- Checkpoint 000006: close release candidate and installability`
 
 ## Existing State

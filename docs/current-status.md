@@ -193,8 +193,11 @@ audit matrix, and private diagnostic summary fields. Checkpoint 000003 added a
 local bootstrap preflight, clearer missing-tool and Docker/DB readiness
 messages, and first-run blocker docs. Checkpoint 000004 documented the Docker
 image publishing decision: source/local-image only, no registry publication,
-and no hosted-service or image-publication claim. The next checkpoint is `Phase
-66 -- Checkpoint 000005: add demo site or documentation website plan`.
+and no hosted-service or image-publication claim. Checkpoint 000005 added the
+docs/demo site plan as repository-native planning only, with no hosting,
+marketing launch, evidence collection, or public-launch claim. The next
+checkpoint is `Phase 66 -- Checkpoint 000006: close release candidate and
+installability`.
 
 Keep Phase 66 focused on clean install, bootstrap, preflight/doctor, release
 candidate packaging/docs, and lean validation. Do not claim hosted SaaS,
@@ -1830,7 +1833,7 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 66 -- Release Candidate and Installability. The default
-next work is `Phase 66 -- Checkpoint 000005: add demo site or documentation website plan`.
+next work is `Phase 66 -- Checkpoint 000006: close release candidate and installability`.
 For public/status wording work, start with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
