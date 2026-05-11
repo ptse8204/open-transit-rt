@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"open-transit-rt/internal/auth"
+	connectorpkg "open-transit-rt/internal/connectors"
 )
 
 const safePluginDefinition = "In Open Transit RT, a plugin is an optional sidecar, command adapter, manifest, or connector process. It is not arbitrary dynamic code loaded into the backend."
@@ -15,6 +16,7 @@ type connectorHubView struct {
 	Boundary         string                 `json:"boundary"`
 	PluginDefinition string                 `json:"plugin_definition"`
 	Categories       []connectorCategory    `json:"categories"`
+	Registry         connectorpkg.Registry  `json:"registry"`
 	ClaimFlags       connectorHubClaimFlags `json:"claim_flags"`
 }
 
@@ -144,8 +146,16 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 		Boundary:         "Private authenticated Connector Hub only; viewing it creates no evidence, contacts no external party, changes no consumer status, and records no approval, compatibility, compliance, hosted-service, SLA, or production-readiness outcome.",
 		PluginDefinition: safePluginDefinition,
 		Categories:       categories,
+		Registry:         connectorRegistryForSection(page.Section),
 		ClaimFlags:       connectorHubClaimFlags{},
 	}
+}
+
+func connectorRegistryForSection(section string) connectorpkg.Registry {
+	if section != "connectors" {
+		return connectorpkg.Registry{}
+	}
+	return connectorpkg.LoadExampleRegistry()
 }
 
 func connectorCategoryView(id string, label string, status string, summary string, shape string, inputs []string, outputs []string, failure string, commands []string, adminLinks []string, docsLinks []string, boundary string) connectorCategory {

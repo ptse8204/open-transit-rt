@@ -69,8 +69,10 @@ The current default work is Phase 64 -- Connector Platform and SDKs. Start
 from
 `docs/roadmaps/agency-first-connector-platform/phase-prompts/phase-64-connector-platform-and-sdks.md`.
 Checkpoint 000001 added the Phase 64 plan in
-`docs/phase-64-connector-platform-and-sdks.md`. The next checkpoint is
-`Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`.
+`docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
+private Connector Hub manifest registry UI and bounded JSON registry model
+from committed synthetic example manifests. The next checkpoint is
+`Phase 64 -- Checkpoint 000003: implement connector test runner UI`.
 Phase 64 should make connector manifests, conformance, and SDK-style examples
 more visible and testable without dynamic backend plugin loading, real
 credentials, real vendor payloads, vendor compatibility claims, or
@@ -1159,10 +1161,11 @@ target-originated evidence supports a target-specific status transition.
 
 Continue with Phase 64 -- Connector Platform and SDKs. Phases 0 through 60
 remain closed, and Phases 61, 62, and 63 are complete. Phase 64 Checkpoint
-000001 added the connector platform and SDK plan. The next checkpoint is
-`Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`.
-For public/status wording work, start with `make audit-final-claim-review` and
-keep unsupported claims removed or bounded.
+000001 added the connector platform and SDK plan, and Checkpoint 000002 added
+the private Connector Hub manifest registry UI. The next checkpoint is
+`Phase 64 -- Checkpoint 000003: implement connector test runner UI`. For
+public/status wording work, start with `make audit-final-claim-review` and keep
+unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

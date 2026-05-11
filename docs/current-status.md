@@ -51,8 +51,10 @@ prepared tracker signals. These dashboards reuse existing private records and
 add no public route, migration, evidence write, consumer status change, or
 stronger compliance/adoption/acceptance/hosted-service/vendor/production/public
 launch/ETA claim. Phase 64 -- Connector Platform and SDKs is active.
-Checkpoint 000001 added the connector platform and SDK plan; the next
-checkpoint should implement the private connector manifest registry UI.
+Checkpoint 000001 added the connector platform and SDK plan. Checkpoint
+000002 added the private Connector Hub manifest registry UI from committed
+synthetic example manifests; the next checkpoint should implement the private
+connector test runner instructions UI.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -162,13 +164,14 @@ production-grade ETA quality.
 The active work is Phase 64 -- Connector Platform and SDKs. Phase 63 is closed
 after adding the private feed-health dashboard and readiness checklist v2. The
 Phase 64 plan is now captured in
-`docs/phase-64-connector-platform-and-sdks.md`. The next checkpoint is
-`Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`
+`docs/phase-64-connector-platform-and-sdks.md`. Checkpoint 000002 added the
+private Connector Hub manifest registry UI and JSON model from committed
+`examples/connectors/*/connector.json` manifests. The next checkpoint is
+`Phase 64 -- Checkpoint 000003: implement connector test runner UI`
 without weakening claim boundaries:
 
-- build a private read-only registry from safe committed connector manifests;
-- keep connector test runner UX and SDK/example improvements inside later
-  scoped checkpoints;
+- add generated copyable instructions for fixed offline connector checks;
+- keep SDK/example improvements inside later scoped checkpoints;
 - keep connectors as optional sidecars, command adapters, manifests, or
   connector processes;
 - preserve connector manifest schema and adapter contracts unless a narrow,
@@ -1806,10 +1809,10 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 64 -- Connector Platform and SDKs. The default next work
-is `Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`.
-Connector test runner UX and telemetry, prediction, validator, and
-monitoring/export connector examples remain inside later Phase 64 checkpoints.
-For public/status wording work, start with
+is `Phase 64 -- Checkpoint 000003: implement connector test runner UI`.
+Telemetry, prediction, validator, and monitoring/export connector examples
+remain inside later Phase 64 checkpoints. For public/status wording work, start
+with
 `make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:

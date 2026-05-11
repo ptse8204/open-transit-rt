@@ -1777,6 +1777,29 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 </section>
 {{end}}
 </div>
+<h3>Manifest Registry</h3>
+<p>Read-only registry of committed synthetic connector example manifests. It does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.</p>
+{{if .ConnectorHub.Registry.Diagnostics}}
+<table><thead><tr><th>Level</th><th>Code</th><th>Path</th><th>Message</th></tr></thead><tbody>
+{{range .ConnectorHub.Registry.Diagnostics}}<tr><td>{{.Level}}</td><td><code>{{.Code}}</code></td><td><code>{{.Path}}</code></td><td>{{.Message}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
+<table><thead><tr><th>Connector</th><th>Type</th><th>Mode</th><th>Contracts</th><th>Failure / redaction</th><th>Conformance</th><th>Boundary</th><th>Docs</th></tr></thead><tbody>
+{{range .ConnectorHub.Registry.Entries}}
+<tr>
+<td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorID}}</code><br><code>{{.SourcePath}}</code></td>
+<td>{{.ConnectorType}}</td>
+<td>{{.ModeName}}<br>{{if .DisabledByDefault}}disabled by default{{else}}review before use{{end}}</td>
+<td>inputs: {{range .InputContracts}}{{.Name}} (<code>{{.Schema}}</code>)<br>{{end}}outputs: {{range .OutputContracts}}{{.Name}} (<code>{{.Schema}}</code>)<br>{{end}}</td>
+<td>{{if .FailureBehavior.FailClosed}}fail closed{{else}}review failure behavior{{end}}; {{.FailureBehavior.DegradedState}}<br>secret storage: {{.RedactionPolicy.SecretStorage}}</td>
+<td>{{len .ConformanceCases}} synthetic cases</td>
+<td>claims: {{join .ClaimBoundary.PositiveClaims ", "}}<br>not claimed: {{join .ClaimBoundary.NotClaimed ", "}}</td>
+<td><code>{{.DocsLink}}</code></td>
+</tr>
+{{else}}
+<tr><td colspan="8">No committed connector manifests were loaded. Review diagnostics and run <code>make external-connection-check</code>.</td></tr>
+{{end}}
+</tbody></table>
 <p class="muted">Connector Hub is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
 {{template "layoutEnd" .}}
 {{end}}

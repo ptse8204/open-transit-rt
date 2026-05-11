@@ -2,9 +2,11 @@
 
 ## Status
 
-In progress. Checkpoint 000001 adds this plan and keeps implementation scoped
+In progress. Checkpoint 000001 added this plan and kept implementation scoped
 to private connector-platform UX, local synthetic examples, and offline
-conformance checks.
+conformance checks. Checkpoint 000002 added the private Connector Hub manifest
+registry UI and bounded JSON registry model from committed synthetic example
+manifests.
 
 Phase 64 turns the existing connector/plugin architecture into a visible,
 testable developer platform for telemetry, prediction, validator,
@@ -22,7 +24,7 @@ backend.
 ## Checkpoints
 
 - Completed: `Phase 64 -- Checkpoint 000001: add connector platform and SDK plan`
-- Planned: `Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`
+- Completed: `Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`
 - Planned: `Phase 64 -- Checkpoint 000003: implement connector test runner UI`
 - Planned: `Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`
 - Planned: `Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`
@@ -46,6 +48,16 @@ backend.
 - Do not accept user-uploaded manifests, execute manifest commands, load Go
   plugins, mutate connector state, add public routes, or change the manifest
   schema.
+
+Checkpoint 000002 added `internal/connectors.LoadExampleRegistry` and surfaced
+its bounded registry model inside the existing private Connector Hub JSON and
+HTML views. The registry reads only committed
+`examples/connectors/*/connector.json` manifests, records diagnostics for
+missing or invalid committed examples, and exposes bounded summaries of
+contracts, failure behavior, redaction posture, claim boundaries, docs links,
+and synthetic conformance cases. It does not accept runtime paths, load
+plugins, execute commands, write files, contact networks, change schemas, or
+mutate status.
 
 ### Connector Test Runner UI
 

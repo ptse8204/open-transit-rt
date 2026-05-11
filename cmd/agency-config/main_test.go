@@ -1717,6 +1717,26 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
 		t.Fatalf("category ids = %v, want %v", ids, wantIDs)
 	}
+	var registryIDs []string
+	for _, entry := range hub.Registry.Entries {
+		registryIDs = append(registryIDs, entry.ConnectorID)
+		if entry.SourcePath == "" || !strings.HasPrefix(entry.SourcePath, "examples/connectors/") {
+			t.Fatalf("registry entry has unsafe source path: %+v", entry)
+		}
+		if entry.SchemaVersion != "open-transit-rt.connector.v1" || !strings.HasPrefix(entry.ConnectorID, "example.") || entry.DisplayName == "" || entry.ConnectorType == "" || entry.ModeName == "" || entry.DocsLink == "" {
+			t.Fatalf("registry entry missing bounded manifest summary: %+v", entry)
+		}
+		if !entry.DisabledByDefault || !entry.FailureBehavior.FailClosed || len(entry.InputContracts) == 0 || len(entry.OutputContracts) == 0 || len(entry.ConformanceCases) == 0 {
+			t.Fatalf("registry entry must remain disabled, fail-closed, and conformance-backed: %+v", entry)
+		}
+	}
+	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller"}
+	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
+		t.Fatalf("registry ids = %v, want %v", registryIDs, wantRegistryIDs)
+	}
+	if len(hub.Registry.Diagnostics) != 0 {
+		t.Fatalf("registry diagnostics = %+v, want none", hub.Registry.Diagnostics)
+	}
 }
 
 func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
@@ -1737,7 +1757,7 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Hub", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Telemetry / GPS / AVL source", "Prediction engine", "Validator connector", "Monitoring / export connector", "Consumer / discovery workflow"} {
+	for _, want := range []string{"Connector Hub", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Telemetry / GPS / AVL source", "Prediction engine", "Validator connector", "Monitoring / export connector", "Consumer / discovery workflow", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "disabled by default", "fail closed", "synthetic cases"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -3360,7 +3380,7 @@ func assertSetupWizardFlagsFalse(t *testing.T, flags setupWizardClaimFlags) {
 
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
-	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 {
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 || len(hub.Registry.Entries) != 4 {
 		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
 	}
 	seenIDs := map[string]bool{}
@@ -3381,6 +3401,22 @@ func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 			if !strings.HasPrefix(link, "/admin/") {
 				t.Fatalf("category %s has unsafe admin link %q", category.ID, link)
 			}
+		}
+	}
+	seenRegistryIDs := map[string]bool{}
+	for _, entry := range hub.Registry.Entries {
+		if entry.SourcePath == "" || entry.SchemaVersion == "" || entry.ConnectorID == "" || entry.ConnectorType == "" || entry.DisplayName == "" || entry.Description == "" || entry.ModeName == "" || entry.DocsLink == "" || len(entry.InputContracts) == 0 || len(entry.OutputContracts) == 0 || len(entry.ConformanceCases) == 0 {
+			t.Fatalf("invalid connector registry entry shape: %+v", entry)
+		}
+		if seenRegistryIDs[entry.ConnectorID] {
+			t.Fatalf("duplicate connector registry id %q", entry.ConnectorID)
+		}
+		seenRegistryIDs[entry.ConnectorID] = true
+		if !strings.HasPrefix(entry.SourcePath, "examples/connectors/") || strings.Contains(entry.SourcePath, "..") || strings.HasPrefix(entry.SourcePath, "/") {
+			t.Fatalf("registry entry %s has unsafe source path %q", entry.ConnectorID, entry.SourcePath)
+		}
+		if !strings.HasPrefix(entry.DocsLink, "examples/connectors/") && !strings.HasPrefix(entry.DocsLink, "docs/") {
+			t.Fatalf("registry entry %s has unsafe docs link %q", entry.ConnectorID, entry.DocsLink)
 		}
 	}
 }
