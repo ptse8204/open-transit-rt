@@ -89,6 +89,13 @@ Stage 5 adds generic connector examples under `examples/connectors/` for:
 - prediction sidecar stub shape;
 - monitoring/export summary shape.
 
+Telemetry examples share a small stdlib-only SDK-style helper under
+`examples/connectors/sdk/telemetry` for synthetic dry-run normalization,
+fail-closed drop reasons, quality checks, stale/future timestamp handling, and
+no-send event output. It is example helper code for adapter authors, not a
+production vendor SDK, hardware certification, production AVL reliability
+claim, or vendor compatibility claim.
+
 These examples use synthetic fixtures only and are included in local manifest
 and conformance checks. They are developer examples, not real vendor adapters,
 not consumer/discovery automation, not evidence packets, and not proof of

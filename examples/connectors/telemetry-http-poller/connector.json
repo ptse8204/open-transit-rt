@@ -14,7 +14,7 @@
       "description": "Local fixture shaped like upstream observations without vendor fields.",
       "schema": "open-transit-rt.telemetry.synthetic-observations.v1",
       "media_types": ["application/json"],
-      "required_fields": ["agency_id", "device_id", "vehicle_id", "timestamp", "latitude", "longitude"]
+      "required_fields": ["synthetic_only", "agency_id", "device_id", "vehicle_id", "timestamp", "latitude", "longitude", "quality"]
     }
   ],
   "output_contracts": [
@@ -50,4 +50,3 @@
     }
   ]
 }
-

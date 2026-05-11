@@ -7,7 +7,9 @@ to private connector-platform UX, local synthetic examples, and offline
 conformance checks. Checkpoint 000002 added the private Connector Hub manifest
 registry UI and bounded JSON registry model from committed synthetic example
 manifests. Checkpoint 000003 added private connector test instructions for
-fixed offline checks, without backend command execution.
+fixed offline checks, without backend command execution. Checkpoint 000004
+improved telemetry connector SDK-style examples with a shared synthetic
+dry-run normalization helper.
 
 Phase 64 turns the existing connector/plugin architecture into a visible,
 testable developer platform for telemetry, prediction, validator,
@@ -27,7 +29,7 @@ backend.
 - Completed: `Phase 64 -- Checkpoint 000001: add connector platform and SDK plan`
 - Completed: `Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`
 - Completed: `Phase 64 -- Checkpoint 000003: implement connector test runner UI`
-- Planned: `Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`
+- Completed: `Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`
 - Planned: `Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`
 - Planned: `Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`
 - Planned: `Phase 64 -- Checkpoint 000007: close connector platform and SDKs`
@@ -98,6 +100,17 @@ systems, or mutate status.
   compatibility claims.
 - Preserve the authenticated `/v1/telemetry` contract and keep example sends
   disabled by default.
+
+Checkpoint 000004 added `examples/connectors/sdk/telemetry` as a small
+stdlib-only helper for SDK-style example code. The telemetry HTTP poller and
+CSV replay examples now share dry-run normalization, fail-closed drop reasons,
+quality checks, stale/future timestamp handling, coordinate validation, and
+no-send event output. The CSV fixture includes a synthetic low-quality row so
+the example visibly reports drops as well as events. The support-code
+directory is ignored by the manifest registry because it is not a connector
+manifest. These examples remain synthetic and generic; they do not create
+credentials, send to `/v1/telemetry`, add real vendor payloads, prove
+production AVL reliability, or claim vendor compatibility.
 
 ### Prediction Connector SDK Examples
 

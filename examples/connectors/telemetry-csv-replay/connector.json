@@ -11,10 +11,10 @@
   "input_contracts": [
     {
       "name": "Synthetic telemetry CSV",
-      "description": "Local CSV fixture with agency, device, vehicle, timestamp, and coordinates.",
+      "description": "Local CSV fixture with agency, device, vehicle, timestamp, coordinates, and quality.",
       "schema": "open-transit-rt.telemetry.synthetic-csv.v1",
       "media_types": ["text/csv"],
-      "required_fields": ["synthetic_only", "agency_id", "device_id", "vehicle_id", "observed_at", "latitude", "longitude"]
+      "required_fields": ["synthetic_only", "agency_id", "device_id", "vehicle_id", "observed_at", "latitude", "longitude", "quality"]
     }
   ],
   "output_contracts": [

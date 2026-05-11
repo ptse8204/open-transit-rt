@@ -73,8 +73,10 @@ Checkpoint 000001 added the Phase 64 plan in
 private Connector Hub manifest registry UI and bounded JSON registry model
 from committed synthetic example manifests. Checkpoint 000003 added private
 GET-only connector test instructions at `/admin/operations/connectors/tests`
-without backend command execution. The next checkpoint is
-`Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`.
+without backend command execution. Checkpoint 000004 improved telemetry
+connector SDK-style examples with a shared synthetic dry-run normalization
+helper. The next checkpoint is
+`Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`.
 Phase 64 should make connector manifests, conformance, and SDK-style examples
 more visible and testable without dynamic backend plugin loading, real
 credentials, real vendor payloads, vendor compatibility claims, or
@@ -1165,9 +1167,10 @@ Continue with Phase 64 -- Connector Platform and SDKs. Phases 0 through 60
 remain closed, and Phases 61, 62, and 63 are complete. Phase 64 Checkpoint
 000001 added the connector platform and SDK plan, and Checkpoint 000002 added
 the private Connector Hub manifest registry UI. Checkpoint 000003 added
-private connector test instructions without backend command execution. The next
+private connector test instructions without backend command execution, and
+Checkpoint 000004 improved telemetry connector SDK-style examples. The next
 checkpoint is
-`Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`.
+`Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`.
 For public/status wording work, start with `make audit-final-claim-review` and
 keep unsupported claims removed or bounded.
 

@@ -19,6 +19,10 @@ const (
 	maxRegistryItems        = 16
 )
 
+var exampleRegistrySupportDirs = map[string]bool{
+	"sdk": true,
+}
+
 type Registry struct {
 	Entries     []RegistryEntry      `json:"entries"`
 	Diagnostics []RegistryDiagnostic `json:"diagnostics"`
@@ -127,7 +131,7 @@ func loadExampleRegistry(repoRoot string) Registry {
 			})
 			continue
 		}
-		if dir.IsDir() {
+		if dir.IsDir() && !exampleRegistrySupportDirs[dir.Name()] {
 			connectorDirs = append(connectorDirs, dir)
 		}
 	}

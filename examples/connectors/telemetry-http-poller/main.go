@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	telemetrysdk "open-transit-rt/examples/connectors/sdk/telemetry"
 )
 
 const defaultFixture = "examples/connectors/telemetry-http-poller/fixtures/observations.json"
@@ -23,28 +25,6 @@ type Observation struct {
 type ObservationFixture struct {
 	SyntheticOnly bool          `json:"synthetic_only"`
 	Observations  []Observation `json:"observations"`
-}
-
-type TelemetryEvent struct {
-	AgencyID    string  `json:"agency_id"`
-	DeviceID    string  `json:"device_id"`
-	VehicleID   string  `json:"vehicle_id"`
-	ObservedAt  string  `json:"observed_at"`
-	Latitude    float64 `json:"latitude"`
-	Longitude   float64 `json:"longitude"`
-	Source      string  `json:"source"`
-	DryRun      bool    `json:"dry_run"`
-	NetworkSend bool    `json:"network_send"`
-}
-
-type Drop struct {
-	DeviceID string `json:"device_id"`
-	Reason   string `json:"reason"`
-}
-
-type Summary struct {
-	Events []TelemetryEvent `json:"events"`
-	Drops  []Drop           `json:"drops"`
 }
 
 func main() {
@@ -86,36 +66,27 @@ func readObservations(path string) ([]Observation, error) {
 	return observations, nil
 }
 
-func Transform(observations []Observation, now time.Time) Summary {
-	var summary Summary
+func Transform(observations []Observation, now time.Time) telemetrysdk.Summary {
+	var parsed []telemetrysdk.Observation
+	var summary telemetrysdk.Summary
 	for _, observation := range observations {
 		observedAt, err := time.Parse(time.RFC3339, observation.Timestamp)
-		switch {
-		case observation.AgencyID == "" || observation.DeviceID == "" || observation.VehicleID == "":
-			summary.Drops = append(summary.Drops, Drop{DeviceID: observation.DeviceID, Reason: "missing identity"})
-		case err != nil:
-			summary.Drops = append(summary.Drops, Drop{DeviceID: observation.DeviceID, Reason: "invalid timestamp"})
-		case observedAt.After(now.Add(30 * time.Second)):
-			summary.Drops = append(summary.Drops, Drop{DeviceID: observation.DeviceID, Reason: "future timestamp"})
-		case now.Sub(observedAt) > 2*time.Minute:
-			summary.Drops = append(summary.Drops, Drop{DeviceID: observation.DeviceID, Reason: "stale observation"})
-		case observation.Quality < 0.5:
-			summary.Drops = append(summary.Drops, Drop{DeviceID: observation.DeviceID, Reason: "low quality"})
-		case observation.Latitude < -90 || observation.Latitude > 90 || observation.Longitude < -180 || observation.Longitude > 180:
-			summary.Drops = append(summary.Drops, Drop{DeviceID: observation.DeviceID, Reason: "invalid coordinates"})
-		default:
-			summary.Events = append(summary.Events, TelemetryEvent{
-				AgencyID:    observation.AgencyID,
-				DeviceID:    observation.DeviceID,
-				VehicleID:   observation.VehicleID,
-				ObservedAt:  observedAt.Format(time.RFC3339),
-				Latitude:    observation.Latitude,
-				Longitude:   observation.Longitude,
-				Source:      "synthetic-http-poller",
-				DryRun:      true,
-				NetworkSend: false,
-			})
+		if err != nil {
+			summary.Drops = append(summary.Drops, telemetrysdk.Drop{DeviceID: observation.DeviceID, VehicleID: observation.VehicleID, Reason: telemetrysdk.ReasonInvalidTimestamp})
+			continue
 		}
+		parsed = append(parsed, telemetrysdk.Observation{
+			AgencyID:   observation.AgencyID,
+			DeviceID:   observation.DeviceID,
+			VehicleID:  observation.VehicleID,
+			ObservedAt: observedAt,
+			Latitude:   observation.Latitude,
+			Longitude:  observation.Longitude,
+			Quality:    observation.Quality,
+		})
 	}
+	normalized := telemetrysdk.NormalizeBatch(parsed, telemetrysdk.Options{Now: now, Source: "synthetic-http-poller"})
+	summary.Events = append(summary.Events, normalized.Events...)
+	summary.Drops = append(summary.Drops, normalized.Drops...)
 	return summary
 }

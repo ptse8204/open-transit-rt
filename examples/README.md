@@ -27,6 +27,11 @@ make adapter-conformance
 | `connectors/predictor-sidecar-stub` | The Trip Updates predictor sidecar boundary | No production-grade ETA quality or named predictor compatibility |
 | `connectors/monitoring-export` | Redacted monitoring/export summary shape | No notification delivery, monitoring service, SLA, or evidence creation |
 
+Telemetry examples share a small SDK-style helper under
+`connectors/sdk/telemetry` for dry-run normalization, fail-closed drop reasons,
+and no-send event output. It is example code for adapter authors, not a
+production vendor SDK or compatibility claim.
+
 ## Fixture Boundary
 
 Examples use synthetic fixtures only. Do not add real device tokens, API keys,

@@ -183,9 +183,11 @@ Phase 64 — Connector Platform And SDKs is active. Checkpoint 000001 added the
 scoped connector platform and SDK plan. Checkpoint 000002 added the private
 Connector Hub manifest registry UI from safe committed synthetic examples.
 Checkpoint 000003 added private generated connector test instructions without
-backend command execution. The next checkpoint improves telemetry connector
-SDK-style examples without dynamic backend plugin loading, evidence writes,
-consumer status changes, real vendor payloads, or vendor compatibility claims.
+backend command execution. Checkpoint 000004 improved telemetry connector
+SDK-style examples with a shared synthetic dry-run helper. The next checkpoint
+improves the prediction connector SDK-style example without dynamic backend
+plugin loading, evidence writes, consumer status changes, named predictor
+compatibility claims, or production-grade ETA claims.
 
 External-proof tracks such as agency-owned/final-root proof,
 authorized target-specific consumer submission evidence, real agency pilot

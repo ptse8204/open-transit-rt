@@ -1,3 +1,4 @@
-synthetic_only,agency_id,device_id,vehicle_id,observed_at,latitude,longitude
-true,agency-demo,device-201,vehicle-201,2026-05-10T16:00:00Z,34.05210,-118.24350
-true,agency-demo,device-202,vehicle-202,2026-05-10T16:00:30Z,34.05240,-118.24310
+synthetic_only,agency_id,device_id,vehicle_id,observed_at,latitude,longitude,quality
+true,agency-demo,device-201,vehicle-201,2026-05-10T16:00:00Z,34.05210,-118.24350,0.96
+true,agency-demo,device-202,vehicle-202,2026-05-10T16:00:30Z,34.05240,-118.24310,0.94
+true,agency-demo,device-low,vehicle-low,2026-05-10T16:00:40Z,34.05255,-118.24300,0.20
