@@ -42,11 +42,15 @@ private read-only feed health routes at `/admin/operations/feed-health` and
 `/admin/operations/feed-health.json`. They summarize exactly five feed rows
 (`feeds.json`, schedule, Vehicle Positions, Trip Updates, and Alerts) with
 plain-language status, freshness, validator context, health context, next
-actions, and "does not prove" boundaries. The dashboard reuses existing private
-discovery, validation-health, reliability, and Trip Updates diagnostics records;
-it adds no public route, migration, evidence write, consumer status change, or
+actions, and "does not prove" boundaries. Checkpoint 000003 added private
+readiness checklist v2 at `/admin/operations/readiness` plus
+`/admin/operations/readiness.json`, with rows for discovery metadata, feed
+health, static GTFS quality, Vehicle Positions, Trip Updates, Alerts,
+validator health, reliability, telemetry/devices, scorecard, and consumer
+prepared tracker signals. These dashboards reuse existing private records and
+add no public route, migration, evidence write, consumer status change, or
 stronger compliance/adoption/acceptance/hosted-service/vendor/production/public
-launch/ETA claim. The next Phase 63 checkpoint is readiness checklist v2.
+launch/ETA claim. The next Phase 63 checkpoint is closeout.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -154,20 +158,15 @@ production-grade ETA quality.
 ## Default Next Work
 
 The active work is Phase 63 -- Feed Health and Readiness UX. Phase 63 has
-added the private plain-language feed-health dashboard; the next checkpoint
-should make CAL-ITP-style readiness signals plain-language in the private
-Operations Console while continuing to improve the existing self-hosted backend
-without weakening claim boundaries:
+added the private plain-language feed-health dashboard and readiness checklist
+v2. The next checkpoint should close the phase without weakening claim
+boundaries:
 
-- keep the agency-facing front door and command map current as workflows
-  evolve;
-- continue improving connector examples and adapter conformance with synthetic
-  fixtures only;
-- use `make check` for lightweight evaluator confidence and the heavier
-  validator/release/readiness commands when local tooling is available;
-- keep Caltrans-style readiness gap summaries in ignored `.cache` diagnostics;
-- route optional real-world evidence through explicit intake before any
-  retained evidence work.
+- keep the Phase 63 routes and docs consistent;
+- rerun baseline validation;
+- confirm protected evidence and consumer tracker status are unchanged;
+- record the closeout and move to Phase 64 only after the claim-boundary review
+  is clean.
 
 This roadmap does not create evidence, move consumer statuses, contact external
 parties, or strengthen any compliance, adoption, hosted service, vendor, public
@@ -1798,13 +1797,11 @@ Phase 60 targeted verification:
 ## Next Recommended Step
 
 Continue with Phase 63 -- Feed Health and Readiness UX. The default next work
-is readiness checklist v2: explain readiness signals, validator state,
-freshness, why each signal matters, what operators should do next, and what the
-signals do not prove. Connector contract quality, adapter conformance, generic
-connector examples, private operator launchpad workflow, and `.cache`-only
-readiness gap checks remain later roadmap work. For public/status wording work,
-start with `make audit-final-claim-review` and keep unsupported claims removed
-or bounded.
+is checkpoint closeout for the feed-health and readiness UX work. Connector
+contract quality, adapter conformance, generic connector examples, private
+operator launchpad workflow, and `.cache`-only readiness gap checks remain
+later roadmap work. For public/status wording work, start with
+`make audit-final-claim-review` and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

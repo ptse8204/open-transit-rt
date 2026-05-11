@@ -3,8 +3,8 @@
 ## Status
 
 In progress. Checkpoint 000001 added this plan. Checkpoint 000002 added the
-private feed-health dashboard and JSON export. Checkpoint 000003 remains the
-readiness checklist v2 implementation.
+private feed-health dashboard and JSON export. Checkpoint 000003 added the
+private readiness checklist v2 page and JSON export.
 
 Phase 63 makes feed health, validator state, freshness, and CAL-ITP-style
 readiness easier to understand inside the private Operations Console. It must
@@ -17,8 +17,8 @@ production-readiness, consumer-acceptance, or evidence claims.
 
 - Completed: `Phase 63 -- Checkpoint 000001: add feed health and readiness UX plan`
 - Completed: `Phase 63 -- Checkpoint 000002: implement feed health dashboard`
-- Next: `Phase 63 -- Checkpoint 000003: implement readiness checklist v2`
-- Pending closeout: `Phase 63 -- Checkpoint 000004: close feed health and readiness UX`
+- Completed: `Phase 63 -- Checkpoint 000003: implement readiness checklist v2`
+- Next: `Phase 63 -- Checkpoint 000004: close feed health and readiness UX`
 
 ## Checkpoint Scope
 
@@ -51,7 +51,22 @@ production-readiness, consumer-acceptance, or evidence claims.
 
 ### Readiness Checklist V2
 
-- Add or replace the private readiness checklist with a v2 model that includes:
+- Added private readiness checklist v2 at `/admin/operations/readiness`.
+- Added private JSON output at `/admin/operations/readiness.json` that returns
+  only the v2 readiness model and false claim flags.
+- The v2 model includes rows for:
+  - feed discovery and metadata;
+  - plain-language feed health;
+  - static GTFS quality;
+  - Vehicle Positions readiness;
+  - Trip Updates adapter boundary;
+  - Service Alerts readiness;
+  - validator health;
+  - operations reliability diagnostics;
+  - telemetry and device setup;
+  - operations scorecard;
+  - consumer prepared tracker.
+- Each row includes:
   - readiness item;
   - status;
   - current signal;
@@ -60,11 +75,10 @@ production-readiness, consumer-acceptance, or evidence claims.
   - what to do next;
   - what it does not prove;
   - source route/doc links where useful.
-- Keep CAL-ITP-style readiness wording bounded to readiness workflows and
+- Keeps CAL-ITP-style readiness wording bounded to readiness workflows and
   supporting signals.
-- Keep consumer tracker states prepared-only unless retained target-originated
+- Keeps consumer tracker states prepared-only unless retained target-originated
   evidence exists.
-- Add JSON output for the v2 readiness model.
 
 ## Non-Goals
 

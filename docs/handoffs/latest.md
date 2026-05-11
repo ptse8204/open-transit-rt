@@ -52,18 +52,23 @@ private read-only feed health routes at `/admin/operations/feed-health` and
 `/admin/operations/feed-health.json`. They summarize `feeds.json`, schedule,
 Vehicle Positions, Trip Updates, and Alerts with plain-language status,
 freshness, validator context, health context, next actions, and "does not
-prove" boundaries. The next checkpoint is readiness checklist v2: explain what
-each readiness signal means, why it matters, what to do next, and what it does
-not prove. Do not claim SLA/uptime proof or CAL-ITP/Caltrans compliance.
+prove" boundaries. Checkpoint 000003 added private readiness checklist v2 at
+`/admin/operations/readiness` and `/admin/operations/readiness.json`. It
+returns only the v2 model in JSON, keeps all claim flags false, and explains
+readiness item, status, current signal, meaning, why it matters, next action,
+what it does not prove, and admin/doc links for discovery, feed health, GTFS
+quality, Vehicle Positions, Trip Updates, Alerts, validator health,
+reliability, telemetry/devices, scorecard, and consumer prepared tracker
+signals. The next checkpoint is Phase 63 closeout. Do not claim SLA/uptime
+proof or CAL-ITP/Caltrans compliance.
 
 Phase 63 planning lives in
 `docs/phase-63-feed-health-and-readiness-ux.md`.
 
-The current default work remains agency-facing open-source product quality and
-external connection maturity: clear evaluator paths, release-candidate
-readiness checks, connector contracts, adapter conformance, generic connector
-examples, private agency launchpad workflow, and `.cache`-only
-Caltrans-style readiness gap summaries. Optional evidence tracks remain future
+The current default work is Phase 63 closeout. Release-candidate readiness,
+connector contracts, adapter conformance, generic connector examples, private
+agency launchpad workflow, and `.cache`-only Caltrans-style readiness gap
+summaries remain later roadmap work. Optional evidence tracks remain future
 authorization-gated work and are not the default continuation path.
 
 Post-60 Checkpoints 000009 through 000012 completed the agency-ready
@@ -1147,14 +1152,12 @@ target-originated evidence supports a target-specific status transition.
 
 Continue with Phase 63 -- Feed Health and Readiness UX. Phases 0 through 60
 remain closed, Phase 61 and Phase 62 are complete, and the next Phase 63
-checkpoint is readiness checklist v2. The default next work is explaining
-readiness signals, validator state, freshness, why each signal matters, what
-operators should do next, and what the signals do not prove. Release-candidate
-readiness, connector contract quality, adapter conformance, generic connector
-examples, private agency launchpad workflow, and `.cache`-only readiness gap
-summaries remain later roadmap work. For public/status wording work, start
-with `make audit-final-claim-review` and keep unsupported claims removed or
-bounded.
+checkpoint is closeout for the feed-health and readiness UX work. Release
+candidate readiness, connector contract quality, adapter conformance, generic
+connector examples, private agency launchpad workflow, and `.cache`-only
+readiness gap summaries remain later roadmap work. For public/status wording
+work, start with `make audit-final-claim-review` and keep unsupported claims
+removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted

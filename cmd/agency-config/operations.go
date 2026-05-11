@@ -51,6 +51,7 @@ type operationsPage struct {
 	Consumers              []consumerStatusView
 	RuntimeConsumers       []consumerStatusView
 	ReadinessItems         []readinessItemView
+	ReadinessV2            operationsReadinessV2View
 	Checklist              operatorChecklistView
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
@@ -246,6 +247,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderFeedHealthJSON(w, r)
+	case "readiness":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderReadinessV2(w, r)
+	case "readiness.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderReadinessV2JSON(w, r)
 	case "gtfs-import":
 		w.Header().Set("Cache-Control", "no-store")
 		switch r.Method {
@@ -309,7 +324,7 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderReliabilityJSON(w, r)
-	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup", "readiness":
+	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
 			return
@@ -751,16 +766,17 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	} else {
 		page.Devices = bindings
 	}
-	page.SetupSteps = setupSteps(page)
-	page.ReadinessItems = readinessItems(page)
-	page.Checklist = buildOperatorChecklist(page)
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
+	page.FeedHealth = buildOperationsFeedHealth(page)
+	page.SetupSteps = setupSteps(page)
+	page.ReadinessItems = readinessItems(page)
+	page.ReadinessV2 = buildOperationsReadinessV2(page)
+	page.Checklist = buildOperatorChecklist(page)
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
-	page.FeedHealth = buildOperationsFeedHealth(page)
 	return page
 }
 
@@ -1658,7 +1674,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
 <tr><td>Validator health</td><td>{{.ValidationHealth.OverallStatus}} overall; tooling {{.ValidationHealth.ToolingStatus}}</td><td>{{formatTime .ValidationHealth.GeneratedAt}}</td><td><a href="/admin/operations/validation-health">review private validator diagnostics</a> · <a href="/admin/operations/validation-health.json">JSON</a></td></tr>
 <tr><td>Operations reliability</td><td>{{.Reliability.OverallStatus}} overall</td><td>{{formatTime .Reliability.GeneratedAt}}</td><td><a href="/admin/operations/reliability">review private reliability diagnostics</a> · <a href="/admin/operations/reliability.json">JSON</a></td></tr>
-<tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessItems}} checklist items</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a></td></tr>
+<tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessV2.Rows}} checklist v2 rows</td><td>{{formatTime .ReadinessV2.GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a> · <a href="/admin/operations/readiness.json">export JSON</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
 <tr><td>Scorecard</td><td>{{if .Scorecard}}{{.Scorecard.OverallStatus}}{{else}}{{.ScorecardError}}{{end}}</td><td>{{formatTimePtr .ScorecardUpdatedAt}}</td><td><a href="/admin/operations/evidence">find scorecard evidence</a></td></tr>
@@ -1826,16 +1842,27 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 {{define "readiness"}}
 {{template "layoutStart" .}}
-<h2>CAL-ITP-Style Readiness Workflow</h2>
-<p class="warning">Open Transit RT supports CAL-ITP-style readiness workflows. This page does not claim CAL-ITP/Caltrans compliance.</p>
+<h2>Readiness Checklist V2</h2>
+<p class="warning">{{.ReadinessV2.Boundary}}</p>
 <p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p><a href="/admin/operations/feed-health">Open plain-language feed health</a> · <a href="/admin/operations/feed-health.json">Export private feed health JSON</a></p>
-<p><a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a></p>
-<p><a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
-<p class="muted">Each row ties the status to an existing source and gives the next operator action for missing or weak signals. Consumer statuses remain prepared unless retained target-originated evidence supports a target-specific change.</p>
-<table><thead><tr><th>Readiness item</th><th>Status</th><th>Status source</th><th>Current evidence/signal</th><th>Next action</th><th>Claim boundary</th></tr></thead><tbody>
-{{range .ReadinessItems}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
-</tbody></table>
+<p><a href="/admin/operations/readiness.json">Export private readiness v2 JSON</a> · <a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a> · <a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
+<p class="muted">Each Readiness item card explains the current private signal, why it matters, the next operator action, and the boundary around stronger claims. Consumer tracker states remain prepared unless retained target-originated evidence supports a target-specific change. Claim flags are available in the private JSON export and remain false.</p>
+<div class="card-grid" aria-label="Readiness checklist v2 rows">
+{{range .ReadinessV2.Rows}}
+<section class="card">
+<h3>{{.ReadinessItem}}</h3>
+<p class="status">Status <span class="pill">{{.Status}}</span></p>
+<p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
+<p><strong>What this means:</strong> {{.WhatThisMeans}}</p>
+<p><strong>Why it matters:</strong> {{.WhyItMatters}}</p>
+<p><strong>What to do next:</strong> {{.WhatToDoNext}}</p>
+<p><strong>What it does not prove:</strong> {{.WhatItDoesNotProve}}</p>
+<p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>
+<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>
+</section>
+{{end}}
+</div>
 <p class="muted">No external evidence is created by viewing this page, and this workflow does not contact consumers, validators, agency systems, or external portals.</p>
 {{template "layoutEnd" .}}
 {{end}}

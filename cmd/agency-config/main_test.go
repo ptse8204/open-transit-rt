@@ -459,7 +459,7 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 	coverage := 75.0
 	store := &fakePublicationStore{
 		discovery: compliance.FeedDiscovery{
-			AgencyID: "demo-agency", AgencyName: "Demo Agency", GeneratedAt: now, PublicationEnvironment: "dev",
+			AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`, GeneratedAt: now, PublicationEnvironment: "dev",
 			PublicBaseURL:         "https://feeds.example.org",
 			TechnicalContactEmail: "ops@example.org",
 			License:               compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"},
@@ -508,30 +508,32 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("readiness v2 html did not escape script-like metadata: %s", body)
+	}
 	for _, want := range []string{
-		"CAL-ITP-Style Readiness Workflow",
-		"supports CAL-ITP-style readiness workflows",
-		"does not claim CAL-ITP/Caltrans compliance",
-		"Status source",
-		"Next action",
-		"Claim boundary",
-		"Stable public URLs",
-		"Static GTFS feed",
-		"Vehicle Positions",
-		"Trip Updates",
-		"Alerts",
-		"License/contact metadata",
-		"Validation status",
-		"Telemetry freshness",
-		"Operations status",
-		"Consumer packet preparedness",
-		"feed discovery and published_feed records",
-		"validation records",
-		"telemetry latest rows",
-		"scorecard snapshots",
-		"docs/evidence tracker paths",
+		"Readiness Checklist V2",
+		"Private authenticated readiness checklist v2 only",
+		"Readiness item",
+		"Current signal",
+		"What this means",
+		"Why it matters",
+		"What to do next",
+		"What it does not prove",
+		"Feed discovery and metadata",
+		"Plain-language feed health",
+		"Static GTFS quality",
+		"Vehicle Positions readiness",
+		"Trip Updates adapter boundary",
+		"Service Alerts readiness",
+		"Validator health",
+		"Operations reliability diagnostics",
+		"Telemetry and device setup",
+		"Operations scorecard",
+		"Consumer prepared tracker",
+		"target-specific statuses",
 		"target-originated evidence",
-		"Prepared packets are not submitted, under review, accepted, listed, displayed, or ingested.",
+		"Does not prove submission, review, acceptance, listing, display, ingestion, consumer approval, or Caltrans/CAL-ITP compliance.",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
@@ -544,6 +546,13 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 		"production ready",
 		"proves final-root",
 		"hosted SaaS",
+		"external_evidence_created",
+		"status counts=map",
+		"all_required=",
+		"public_base_url=",
+		"HTTPS=",
+		"license=",
+		"contact=",
 	} {
 		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
 			t.Fatalf("body overclaims %q: %s", forbidden, body)
@@ -555,6 +564,126 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("agency conflict status = %d, want 403", rr.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/readiness.json?agency_id=demo-agency", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("json status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("json Cache-Control = %q, want no-store", got)
+	}
+	var readiness operationsReadinessV2View
+	if err := json.Unmarshal(rr.Body.Bytes(), &readiness); err != nil {
+		t.Fatalf("decode readiness v2: %v", err)
+	}
+	assertReadinessV2Shape(t, readiness)
+	assertReadinessV2FlagsFalse(t, readiness.ClaimFlags)
+	assertReadinessV2SafeStrings(t, rr.Body.String())
+	if readiness.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", readiness.AgencyID)
+	}
+	var top map[string]json.RawMessage
+	if err := json.Unmarshal(rr.Body.Bytes(), &top); err != nil {
+		t.Fatalf("decode readiness v2 top-level: %v", err)
+	}
+	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "rows": true, "counts": true, "claim_flags": true}
+	for key := range top {
+		if !wantTop[key] {
+			t.Fatalf("readiness JSON should return only the v2 model, unexpected top-level key %q in %s", key, rr.Body.String())
+		}
+	}
+	for key := range wantTop {
+		if _, ok := top[key]; !ok {
+			t.Fatalf("readiness JSON missing top-level key %q in %s", key, rr.Body.String())
+		}
+	}
+
+	missingHandler := newOperationsTestHandler(&handler{store: &fakePublicationStore{discoveryErr: errors.New("missing discovery"), scorecardErr: errors.New("missing scorecard"), consumersErr: errors.New("missing consumers")}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/readiness.json", nil)
+	rr = httptest.NewRecorder()
+	missingHandler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("missing readiness json status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var missing operationsReadinessV2View
+	if err := json.Unmarshal(rr.Body.Bytes(), &missing); err != nil {
+		t.Fatalf("decode missing readiness v2: %v", err)
+	}
+	assertReadinessV2Shape(t, missing)
+	for _, row := range missing.Rows {
+		if row.Status == checklistStatusOK {
+			t.Fatalf("missing-data readiness row %s status = ok, want missing/review/blocker/unknown", row.ID)
+		}
+	}
+	assertReadinessV2FlagsFalse(t, missing.ClaimFlags)
+}
+
+func TestOperationsReadinessV2RoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/readiness", "/admin/operations/readiness.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/readiness", "/admin/operations/readiness.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/readiness", "/admin/operations/readiness.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/readiness?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/readiness.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/readiness.json", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public readiness route status = %d, want 404", rr.Code)
 	}
 }
 
@@ -3303,6 +3432,56 @@ func assertFeedHealthSafeStrings(t *testing.T, body string) {
 	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "compliance_achieved", "sla_covered", "uptime_guaranteed"} {
 		if strings.Contains(lower, forbidden) {
 			t.Fatalf("feed health emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
+func assertReadinessV2Shape(t *testing.T, readiness operationsReadinessV2View) {
+	t.Helper()
+	if readiness.GeneratedAt.IsZero() || readiness.AgencyID == "" || readiness.Boundary == "" || len(readiness.Rows) != 11 || readiness.Counts.Rows != 11 {
+		t.Fatalf("invalid readiness v2 shape: %+v", readiness)
+	}
+	wantIDs := []string{"discovery_metadata", "feed_health", "static_gtfs_quality", "vehicle_positions", "trip_updates", "alerts", "validation_health", "operations_reliability", "telemetry_devices", "operations_scorecard", "consumer_prepared_tracker"}
+	var gotIDs []string
+	for _, row := range readiness.Rows {
+		gotIDs = append(gotIDs, row.ID)
+		if row.ID == "" || row.ReadinessItem == "" || row.Status == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.WhyItMatters == "" || row.WhatToDoNext == "" || row.WhatItDoesNotProve == "" {
+			t.Fatalf("invalid readiness v2 row: %+v", row)
+		}
+		for _, link := range row.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("row %s has unsafe admin link %q", row.ID, link)
+			}
+		}
+		for _, link := range row.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("row %s has unsafe docs link %q", row.ID, link)
+			}
+		}
+	}
+	if strings.Join(gotIDs, ",") != strings.Join(wantIDs, ",") {
+		t.Fatalf("row ids = %v, want %v", gotIDs, wantIDs)
+	}
+}
+
+func assertReadinessV2FlagsFalse(t *testing.T, flags operationsReadinessV2Claims) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.VendorCompatibilityClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("readiness v2 flags must all be false: %+v", flags)
+	}
+}
+
+func assertReadinessV2SafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "raw telemetry", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_report", "stdout", "stderr", "argv"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("readiness v2 leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "compliance_achieved", "sla_covered", "uptime_guaranteed"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("readiness v2 emits forbidden label %q: %s", forbidden, body)
 		}
 	}
 }
