@@ -9,7 +9,9 @@ registry UI and bounded JSON registry model from committed synthetic example
 manifests. Checkpoint 000003 added private connector test instructions for
 fixed offline checks, without backend command execution. Checkpoint 000004
 improved telemetry connector SDK-style examples with a shared synthetic
-dry-run normalization helper.
+dry-run normalization helper. Checkpoint 000005 improved the prediction
+connector SDK-style example with a shared synthetic dry-run request/response
+helper.
 
 Phase 64 turns the existing connector/plugin architecture into a visible,
 testable developer platform for telemetry, prediction, validator,
@@ -30,7 +32,7 @@ backend.
 - Completed: `Phase 64 -- Checkpoint 000002: implement connector manifest registry UI`
 - Completed: `Phase 64 -- Checkpoint 000003: implement connector test runner UI`
 - Completed: `Phase 64 -- Checkpoint 000004: improve telemetry connector SDK examples`
-- Planned: `Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`
+- Completed: `Phase 64 -- Checkpoint 000005: improve prediction connector SDK examples`
 - Planned: `Phase 64 -- Checkpoint 000006: improve monitoring export connector examples`
 - Planned: `Phase 64 -- Checkpoint 000007: close connector platform and SDKs`
 
@@ -120,6 +122,16 @@ production AVL reliability, or claim vendor compatibility.
 - Do not add a named predictor integration, change default Trip Updates
   behavior, change `internal/prediction.Adapter`, or claim production-grade ETA
   quality.
+
+Checkpoint 000005 added `examples/connectors/sdk/prediction` as a small
+stdlib-only helper for sanitized dry-run prediction request/response examples.
+The predictor sidecar stub now reports active feed and Vehicle Positions
+references, explicit no-send and no-public-mutation flags, withheld-output
+diagnostics for low confidence, missing telemetry, and missing trip descriptor
+cases, and counts for eligible/no-op versus withheld states. It emits no Trip
+Updates, does not change runtime prediction defaults, does not call named
+predictors, does not change `internal/prediction.Adapter`, and does not claim
+production-grade ETA quality.
 
 ### Validator And Monitoring/Export Connector Examples
 

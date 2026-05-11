@@ -96,6 +96,12 @@ no-send event output. It is example helper code for adapter authors, not a
 production vendor SDK, hardware certification, production AVL reliability
 claim, or vendor compatibility claim.
 
+The predictor sidecar stub uses `examples/connectors/sdk/prediction` for a
+sanitized dry-run request/response shape, withheld-output diagnostics,
+Vehicle Positions independence, and explicit no public Trip Updates mutation.
+It is not a named predictor integration, runtime compatibility claim, or
+production-grade ETA quality claim.
+
 These examples use synthetic fixtures only and are included in local manifest
 and conformance checks. They are developer examples, not real vendor adapters,
 not consumer/discovery automation, not evidence packets, and not proof of

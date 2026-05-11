@@ -3,7 +3,7 @@
   "connector_id": "example.predictor-sidecar-stub",
   "type": "prediction",
   "display_name": "Synthetic predictor sidecar stub",
-  "description": "Synthetic dry-run predictor boundary stub that returns diagnostics without producing public Trip Updates.",
+  "description": "Synthetic dry-run predictor boundary stub that returns withheld-output diagnostics without producing public Trip Updates.",
   "mode": {
     "name": "prediction_sidecar_dry_run",
     "disabled_by_default": true
@@ -20,7 +20,7 @@
   "output_contracts": [
     {
       "name": "Prediction adapter response",
-      "description": "Dry-run diagnostics with no public Trip Updates feed mutation.",
+      "description": "Dry-run diagnostics with no public Trip Updates feed mutation and no network send.",
       "schema": "open-transit-rt.prediction.adapter-response.v1",
       "media_types": ["application/json"],
       "produces": ["dry_run_stdout"]

@@ -25,6 +25,20 @@
       "start_date": "20260510",
       "start_time": "10:05:00",
       "confidence": 0.21
+    },
+    {
+      "vehicle_id": "vehicle-no-telemetry",
+      "trip_id": "trip-demo-missing-telemetry",
+      "start_date": "20260510",
+      "start_time": "10:10:00",
+      "confidence": 0.9
+    },
+    {
+      "vehicle_id": "vehicle-no-trip",
+      "trip_id": "",
+      "start_date": "20260510",
+      "start_time": "10:15:00",
+      "confidence": 0.9
     }
   ]
 }

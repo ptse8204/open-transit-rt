@@ -32,6 +32,11 @@ Telemetry examples share a small SDK-style helper under
 and no-send event output. It is example code for adapter authors, not a
 production vendor SDK or compatibility claim.
 
+The prediction sidecar stub uses `connectors/sdk/prediction` for sanitized
+dry-run request/response examples, withheld-output diagnostics, and explicit
+Vehicle Positions independence. It is not a named predictor integration and
+does not prove ETA quality.
+
 ## Fixture Boundary
 
 Examples use synthetic fixtures only. Do not add real device tokens, API keys,
