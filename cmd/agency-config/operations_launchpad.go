@@ -95,10 +95,10 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 			"GTFS",
 			gtfsLaunchpadStatus(page),
 			gtfsLaunchpadSignal(page),
-			[]string{"Import a GTFS ZIP or publish a GTFS Studio draft.", "Use GTFS quality triage for validator and importer findings."},
+			[]string{"Import a GTFS ZIP through the browser or CLI, or publish a GTFS Studio draft.", "Use GTFS quality triage for validator and importer findings."},
 			[]string{"docs/tutorials/real-agency-gtfs-onboarding.md", "docs/tutorials/gtfs-validation-triage.md"},
 			[]string{"make agency-pilot-up", "go run ./cmd/gtfs-import --help"},
-			[]string{"/admin/gtfs-studio", "/admin/operations/gtfs-quality"},
+			[]string{"/admin/operations/gtfs-import", "/admin/gtfs-studio", "/admin/operations/gtfs-quality"},
 			"GTFS publication signals are not agency approval or CAL-ITP/Caltrans compliance.",
 		),
 		launchpadSection(

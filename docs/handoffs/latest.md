@@ -40,6 +40,18 @@ write retained evidence, change consumer statuses, or claim compliance,
 approval, acceptance, hosted service, vendor compatibility, production
 readiness, or ETA quality.
 
+Phase 62 Checkpoint 000002 added `/admin/operations/setup-wizard` and
+`/admin/operations/setup-wizard.json` as private setup guidance. Phase 62
+Checkpoint 000003 added `/admin/operations/gtfs-import` as an admin-only
+browser GTFS import path for ZIP upload or safe URL import. The route derives
+agency and actor from the authenticated principal, stores raw ZIP bytes only in
+temporary runtime storage, reuses `internal/gtfs.ImportService.ImportZip`,
+renders bounded import/validation results, blocks client-supplied paths and
+validator/argv fields, and keeps CLI import and GTFS Studio available. It does
+not add public routes, migrations, evidence writes, consumer status changes, or
+stronger compliance/adoption/acceptance/hosted-service/vendor/production/ETA
+claims.
+
 The current default work remains agency-facing open-source product quality and
 external connection maturity: clear evaluator paths, release-candidate
 readiness checks, connector contracts, adapter conformance, generic connector

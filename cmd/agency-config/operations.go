@@ -55,6 +55,9 @@ type operationsPage struct {
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
+	GTFSImportResult       *gtfsImportResultView
+	GTFSImportNotice       string
+	GTFSImportError        string
 	GTFSQuality            compliance.GTFSQualityTriage
 	GTFSQualityNotice      string
 	GTFSQualityError       string
@@ -228,6 +231,16 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderSetupWizardJSON(w, r)
+	case "gtfs-import":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderGTFSImport(w, r)
+		case http.MethodPost:
+			h.operationsGTFSImportPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
 	case "checklist":
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -1574,6 +1587,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <a href="/admin/operations/launchpad">Launchpad</a>
 <a href="/admin/operations/setup-wizard">Setup Wizard</a>
 <a href="/admin/operations/connectors">Connector Hub</a>
+<a href="/admin/operations/gtfs-import">GTFS Import</a>
 <a href="/admin/operations/readiness">Readiness</a>
 <a href="/admin/operations/feeds">Feeds</a>
 <a href="/admin/operations/gtfs-quality">GTFS Quality</a>
@@ -1599,6 +1613,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 </div>
 <div class="card-grid" aria-label="Primary operations actions">
 <section class="card"><h3>Start setup</h3><p>Walk through agency profile, GTFS, feeds, telemetry, validators, connectors, and readiness.</p><p><a href="/admin/operations/setup-wizard">Open setup wizard</a></p></section>
+<section class="card"><h3>Import GTFS</h3><p>Use an admin-only browser path for ZIP upload or safe URL import, with the existing importer and validation feedback.</p><p><a href="/admin/operations/gtfs-import">Open GTFS import</a></p></section>
 <section class="card"><h3>Check feeds</h3><p>Review feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts records.</p><p><a href="/admin/operations/feeds">Review feed health</a></p></section>
 <section class="card"><h3>Connect telemetry</h3><p>Rotate device credentials and inspect latest accepted vehicle observations.</p><p><a href="/admin/operations/devices">Manage devices</a></p></section>
 <section class="card"><h3>Use connectors</h3><p>Choose sidecar, manifest, command-adapter, and conformance paths without dynamic backend code loading.</p><p><a href="/admin/operations/connectors">Open Connector Hub</a></p></section>
@@ -1619,6 +1634,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td>Private agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
 <tr><td>Setup wizard</td><td>{{len .SetupWizard.Stages}} staged setup rows</td><td>{{formatTime .SetupWizard.GeneratedAt}}</td><td><a href="/admin/operations/setup-wizard">open wizard</a> · <a href="/admin/operations/setup-wizard.json">export JSON</a></td></tr>
 <tr><td>Connector Hub</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
+<tr><td>Browser GTFS import</td><td>admin-only ZIP upload or URL import</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/gtfs-import">import GTFS with validation feedback</a></td></tr>
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
@@ -1728,6 +1744,65 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{end}}
 </div>
 <p class="muted">Connector Hub is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "gtfs-import"}}
+{{template "layoutStart" .}}
+<h2>Browser GTFS Import</h2>
+<p class="warning">Private admin-only import path. Raw GTFS ZIP bytes are written to temporary runtime storage for the import attempt and then removed. This page creates no retained evidence, contacts no consumers, records no agency approval, and makes no CAL-ITP/Caltrans compliance, public launch, hosted-service, vendor compatibility, production-readiness, or production-grade ETA claim.</p>
+{{if .GTFSImportNotice}}<p class="ok">{{.GTFSImportNotice}}</p>{{end}}
+{{if .GTFSImportError}}<p class="bad">{{.GTFSImportError}}</p>{{end}}
+{{if .GTFSImportResult}}
+<h3>Last Import Attempt From This Page</h3>
+<table><tbody>
+<tr><th>Status</th><td>{{.GTFSImportResult.Status}}</td></tr>
+<tr><th>Import ID</th><td>{{.GTFSImportResult.ImportID}}</td></tr>
+<tr><th>Feed version</th><td>{{if .GTFSImportResult.FeedVersionID}}{{.GTFSImportResult.FeedVersionID}}{{else}}not published{{end}}</td></tr>
+<tr><th>Errors</th><td>{{.GTFSImportResult.ErrorCount}}</td></tr>
+<tr><th>Warnings</th><td>{{.GTFSImportResult.WarningCount}}</td></tr>
+<tr><th>Info</th><td>{{.GTFSImportResult.InfoCount}}</td></tr>
+<tr><th>Validation report stored</th><td>{{.GTFSImportResult.ReportStored}}</td></tr>
+{{if .GTFSImportResult.FailureMessage}}<tr><th>Failure message</th><td>{{.GTFSImportResult.FailureMessage}}</td></tr>{{end}}
+</tbody></table>
+{{if .GTFSImportResult.Counts}}<table><thead><tr><th>GTFS file</th><th>Rows</th></tr></thead><tbody>{{range .GTFSImportResult.Counts}}<tr><td>{{.Label}}</td><td>{{.Count}}</td></tr>{{end}}</tbody></table>{{end}}
+{{end}}
+{{if .IsAdmin}}
+<div class="card-grid" aria-label="GTFS import options">
+<section class="card">
+<h3>Upload ZIP</h3>
+<form method="post" enctype="multipart/form-data" action="/admin/operations/gtfs-import?csrf_token={{.CSRFToken}}">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="import_gtfs">
+<input type="hidden" name="source_type" value="upload">
+<label>GTFS ZIP <input type="file" name="gtfs_zip" accept=".zip,application/zip,application/octet-stream" required></label>
+<label>Notes <textarea name="notes" maxlength="500" rows="3" placeholder="Optional operator note without credentials or private paths"></textarea></label>
+<button>Import ZIP</button>
+</form>
+</section>
+<section class="card">
+<h3>Import From URL</h3>
+<form method="post" action="/admin/operations/gtfs-import">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="import_gtfs">
+<input type="hidden" name="source_type" value="url">
+<label>GTFS ZIP URL <input name="gtfs_url" maxlength="2048" placeholder="https://agency.example/gtfs.zip" required></label>
+<label>Notes <textarea name="notes" maxlength="500" rows="3" placeholder="Optional operator note without credentials or private paths"></textarea></label>
+<button>Import URL</button>
+</form>
+</section>
+</div>
+{{else}}
+<p class="warning">Import actions require an admin role. Read-only, operator, and editor roles can review this page and use the linked quality/health views, but cannot upload or import GTFS from the browser.</p>
+{{end}}
+<h3>Next Actions</h3>
+<table><tbody>
+<tr><th>Validation feedback</th><td><a href="/admin/operations/gtfs-quality">Review GTFS quality triage</a> and stored import validation messages before relying on the feed.</td></tr>
+<tr><th>Feed health</th><td><a href="/admin/operations/feeds">Review private feed health</a> after a successful publish.</td></tr>
+<tr><th>Typed edits</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> when an agency needs draft authoring instead of ZIP import.</td></tr>
+<tr><th>CLI fallback</th><td>Keep using the documented CLI import path for large files, scripted imports, or runtimes where browser import is unavailable.</td></tr>
+</tbody></table>
+<p class="muted">Browser import accepts a ZIP upload or a safe HTTP(S) URL, runs the existing importer, and stores only normal import and validation records. Private/local URLs are blocked unless the runtime explicitly enables local testing overrides.</p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -2013,8 +2088,9 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 </form>
 
 <h2>GTFS Import And Authoring</h2>
-<p>Source: feed discovery. Browser ZIP upload is deferred in Phase 26 because upload security, size limits, validation, and role checks need a dedicated design.</p>
+<p>Source: feed discovery and the existing GTFS importer. Browser import is admin-only, size-limited, temporary-file based, and uses the same validation and publish pipeline as the CLI import path.</p>
 <table><tbody>
+<tr><th>Browser import</th><td><a href="/admin/operations/gtfs-import">Import a GTFS ZIP by upload or safe URL</a>.</td></tr>
 <tr><th>CLI ZIP import</th><td>Use the existing GTFS import flow documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
 <tr><th>Typed authoring</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> for draft authoring and publish.</td></tr>
 <tr><th>Validation triage</th><td>Use <code>docs/tutorials/gtfs-validation-triage.md</code> and the validation form below.</td></tr>

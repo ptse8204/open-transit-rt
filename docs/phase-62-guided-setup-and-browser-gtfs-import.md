@@ -2,13 +2,34 @@
 
 ## Status
 
-Planned.
+In progress.
 
 Phase 62 reduces command-line dependence by improving the private Operations
 Console setup flow and adding an authenticated browser GTFS import path. It
 must reuse the existing GTFS import/publish pipeline, preserve public feed
 contracts, avoid schema changes, keep raw uploads and downloaded ZIP files out
 of committed repository paths, and avoid compliance or evidence claims.
+
+Checkpoint 000002 added the private setup wizard. Checkpoint 000003 adds the
+admin-only browser GTFS import route while keeping the CLI import path
+available.
+
+## Implementation Notes
+
+Checkpoint 000003 adds `/admin/operations/gtfs-import` for admin-only GTFS ZIP
+upload or safe URL import. The route derives agency and actor from the
+authenticated principal, writes ZIP bytes only to temporary runtime storage,
+deletes the temporary file after the import attempt, and calls
+`internal/gtfs.ImportService.ImportZip` so validation, import records, active
+feed activation, failure behavior, and validation-report storage match the CLI
+path.
+
+The page shows bounded status, import ID, feed version, validation counts,
+stored-report status, row counts, and next actions. It does not render raw ZIP
+bytes, temporary paths, raw reports, validator argv, credentials, or private
+URLs. URL import blocks embedded credentials, non-HTTP(S) schemes, private or
+internal hosts unless explicitly allowed for local testing, secret-looking
+queries, oversized downloads, and unsafe redirects.
 
 ## Checkpoints
 
@@ -62,7 +83,7 @@ of committed repository paths, and avoid compliance or evidence claims.
 
 - `cmd/agency-config/main.go`
 - `cmd/agency-config/operations.go`
-- new or existing `cmd/agency-config/operations_gtfs_import.go`
+- `cmd/agency-config/operations_gtfs_import.go`
 - `cmd/agency-config/main_test.go`
 - `docs/current-status.md`
 - `docs/handoffs/latest.md`

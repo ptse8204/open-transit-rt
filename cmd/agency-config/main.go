@@ -74,6 +74,7 @@ type handler struct {
 	devices    devices.Store
 	telemetry  telemetry.Repository
 	state      state.Repository
+	gtfsImport gtfsImportRunner
 	ready      pinger
 	admin      adminAuth
 	csrfSecret string
@@ -120,11 +121,13 @@ func newHandler(agencyID string, scheduleBuilder scheduleBuilder, store publicat
 func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource) http.Handler {
 	var telemetryRepo telemetry.Repository
 	var stateRepo state.Repository
+	var gtfsImporter gtfsImportRunner
 	if pool, ok := ready.(*pgxpool.Pool); ok {
 		telemetryRepo = telemetry.NewPostgresRepository(pool)
 		stateRepo = state.NewPostgresRepository(pool)
+		gtfsImporter = gtfs.NewImportService(pool)
 	}
-	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, ready: ready, admin: admin, csrfSecret: os.Getenv("CSRF_SECRET"), cache: newScheduleZIPCache(), realtime: realtime}
+	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: os.Getenv("CSRF_SECRET"), cache: newScheduleZIPCache(), realtime: realtime}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
@@ -143,6 +146,13 @@ func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, st
 	}))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/gtfs-import", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, gtfsBrowserImportMaxBytes+gtfsBrowserImportMemoryBytes)
+		}
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/gtfs-quality", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			r.Body = http.MaxBytesReader(w, r.Body, gtfsQualityPostMaxBytes)

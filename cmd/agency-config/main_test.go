@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +22,7 @@ import (
 	"open-transit-rt/internal/compliance"
 	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/feed/schedule"
+	"open-transit-rt/internal/gtfs"
 	"open-transit-rt/internal/prediction"
 	"open-transit-rt/internal/state"
 	"open-transit-rt/internal/telemetry"
@@ -437,7 +440,7 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 		"docs/evidence tracker",
 		"not observed yet",
 		"prepared is not submitted or accepted",
-		"Browser ZIP upload is deferred",
+		"Browser import is admin-only",
 		"Validation is supporting evidence only",
 	} {
 		if !strings.Contains(body, want) {
@@ -1024,6 +1027,270 @@ func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		}
 	}
 	assertSetupWizardSafeStrings(t, body)
+}
+
+func TestGTFSImportRouteAuthMatrixAndBoundaries(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run("get_"+string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-import", nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("GET status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+				t.Fatalf("Cache-Control = %q, want no-store", got)
+			}
+			body := rr.Body.String()
+			if role == auth.RoleAdmin && !strings.Contains(body, `method="post"`) {
+				t.Fatalf("admin GTFS import page does not include import forms: %s", body)
+			}
+			if role != auth.RoleAdmin && strings.Contains(body, `<form`) {
+				t.Fatalf("non-admin GTFS import page includes mutation form: %s", body)
+			}
+		})
+	}
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor} {
+		t.Run("post_forbidden_"+string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, gtfsImport: &fakeGTFSImportRunner{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", strings.NewReader("action=import_gtfs&source_type=url&gtfs_url=https%3A%2F%2Fexample.org%2Fgtfs.zip"))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusForbidden {
+				t.Fatalf("POST status = %d, want 403: %s", rr.Code, rr.Body.String())
+			}
+		})
+	}
+
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, gtfsImport: &fakeGTFSImportRunner{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodPut, "/admin/operations/gtfs-import", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("PUT status = %d, want 405", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-import?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/gtfs-import", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestGTFSImportUploadUsesTempFileAndImporter(t *testing.T) {
+	importer := &fakeGTFSImportRunner{result: gtfs.ImportResult{
+		ImportID:      42,
+		AgencyID:      "demo-agency",
+		FeedVersionID: "gtfs-import-42",
+		Status:        gtfs.ImportStatusPublished,
+		WarningCount:  1,
+		InfoCount:     2,
+		Counts:        map[string]int{"stops.txt": 4, "trips.txt": 2},
+		ReportStored:  true,
+	}}
+	srv := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, gtfsImport: importer}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	body, contentType := gtfsImportMultipartBody(t, "agency.zip", []byte("zip payload"), map[string]string{
+		"action":      "import_gtfs",
+		"source_type": "upload",
+		"notes":       "operator supplied zip",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", body)
+	req.Header.Set("Content-Type", contentType)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if importer.calls != 1 {
+		t.Fatalf("import calls = %d, want 1", importer.calls)
+	}
+	if importer.opts.AgencyID != "demo-agency" || importer.opts.ActorID != "admin@example.com" {
+		t.Fatalf("opts = %+v, want principal agency and actor", importer.opts)
+	}
+	if !strings.Contains(importer.opts.Notes, "browser_gtfs_import") || !strings.Contains(importer.opts.Notes, "operator supplied zip") {
+		t.Fatalf("notes = %q, want browser import note", importer.opts.Notes)
+	}
+	if !importer.pathExistsDuringCall {
+		t.Fatalf("temporary ZIP path did not exist during import")
+	}
+	if string(importer.payload) != "zip payload" {
+		t.Fatalf("payload = %q, want uploaded bytes", importer.payload)
+	}
+	if _, err := os.Stat(importer.opts.ZipPath); !os.IsNotExist(err) {
+		t.Fatalf("temporary ZIP still exists or stat error is not not-exist: %v", err)
+	}
+	response := rr.Body.String()
+	for _, want := range []string{"GTFS import finished", "gtfs-import-42", "stops.txt", "Validation report stored"} {
+		if !strings.Contains(response, want) {
+			t.Fatalf("response missing %q: %s", want, response)
+		}
+	}
+	for _, forbidden := range []string{importer.opts.ZipPath, "zip payload", "/tmp/", "/var/lib", "agency approved", "consumer accepted", "CAL-ITP/Caltrans compliant"} {
+		if forbidden != "" && strings.Contains(strings.ToLower(response), strings.ToLower(forbidden)) {
+			t.Fatalf("response leaks or overclaims %q: %s", forbidden, response)
+		}
+	}
+}
+
+func TestGTFSImportValidationFailureRendersBoundedResult(t *testing.T) {
+	result := gtfs.ImportResult{
+		ImportID:       7,
+		AgencyID:       "demo-agency",
+		Status:         gtfs.ImportStatusFailed,
+		ErrorCount:     2,
+		WarningCount:   1,
+		ReportStored:   true,
+		FailureMessage: "validation failed",
+	}
+	importer := &fakeGTFSImportRunner{result: result, err: &gtfs.ImportError{Result: result, Err: errors.New("raw validator path /tmp/private/report.json")}}
+	srv := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, gtfsImport: importer}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	body, contentType := gtfsImportMultipartBody(t, "agency.zip", []byte("bad zip payload"), map[string]string{
+		"action":      "import_gtfs",
+		"source_type": "upload",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", body)
+	req.Header.Set("Content-Type", contentType)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 bounded validation result: %s", rr.Code, rr.Body.String())
+	}
+	response := rr.Body.String()
+	for _, want := range []string{"validation failed", "not published", "GTFS import finished with stored validation feedback"} {
+		if !strings.Contains(response, want) {
+			t.Fatalf("response missing %q: %s", want, response)
+		}
+	}
+	for _, forbidden := range []string{"/tmp/private", "bad zip payload", "agency approved", "consumer accepted"} {
+		if strings.Contains(strings.ToLower(response), strings.ToLower(forbidden)) {
+			t.Fatalf("response leaks or overclaims %q: %s", forbidden, response)
+		}
+	}
+}
+
+func TestGTFSImportURLDownloadAndUnsafeRejection(t *testing.T) {
+	importer := &fakeGTFSImportRunner{result: gtfs.ImportResult{ImportID: 8, AgencyID: "demo-agency", FeedVersionID: "gtfs-import-8", Status: gtfs.ImportStatusPublished, ReportStored: true}}
+	srv := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, gtfsImport: importer}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", strings.NewReader(url.Values{
+		"action":      {"import_gtfs"},
+		"source_type": {"url"},
+		"gtfs_url":    {"http://localhost:12345/gtfs.zip?token=secret"},
+	}.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("unsafe status = %d, want 400: %s", rr.Code, rr.Body.String())
+	}
+	if importer.calls != 0 {
+		t.Fatalf("unsafe URL invoked importer %d time(s), want 0", importer.calls)
+	}
+	if strings.Contains(rr.Body.String(), "localhost:12345") || strings.Contains(rr.Body.String(), "secret") {
+		t.Fatalf("unsafe URL response leaks raw URL: %s", rr.Body.String())
+	}
+
+	t.Setenv("ALLOW_BROWSER_GTFS_IMPORT_PRIVATE_URLS", "true")
+	t.Setenv("ALLOW_BROWSER_GTFS_IMPORT_INSECURE_HTTP", "true")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("downloaded zip"))
+	}))
+	defer server.Close()
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", strings.NewReader(url.Values{
+		"action":      {"import_gtfs"},
+		"source_type": {"url"},
+		"gtfs_url":    {server.URL + "/gtfs.zip"},
+	}.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("download status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if importer.calls != 1 {
+		t.Fatalf("download import calls = %d, want 1", importer.calls)
+	}
+	if string(importer.payload) != "downloaded zip" {
+		t.Fatalf("download payload = %q, want downloaded bytes", importer.payload)
+	}
+}
+
+func TestGTFSImportRejectsUnexpectedFieldsAndCookieCSRF(t *testing.T) {
+	importer := &fakeGTFSImportRunner{result: gtfs.ImportResult{ImportID: 9, AgencyID: "demo-agency", Status: gtfs.ImportStatusPublished, ReportStored: true}}
+	srv := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, gtfsImport: importer}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", strings.NewReader(url.Values{
+		"action":          {"import_gtfs"},
+		"source_type":     {"url"},
+		"gtfs_url":        {"https://example.org/gtfs.zip"},
+		"agency_id":       {"other"},
+		"feed_version_id": {"feed-v2"},
+		"zip_path":        {"/tmp/private.zip"},
+		"argv":            {"--unsafe"},
+	}.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("unexpected field status = %d, want 400: %s", rr.Code, rr.Body.String())
+	}
+	if importer.calls != 0 {
+		t.Fatalf("unexpected fields invoked importer %d time(s), want 0", importer.calls)
+	}
+	for _, forbidden := range []string{"/tmp/private.zip", "--unsafe", "feed-v2"} {
+		if strings.Contains(rr.Body.String(), forbidden) {
+			t.Fatalf("unexpected field response leaks %q: %s", forbidden, rr.Body.String())
+		}
+	}
+
+	cookieAuth := auth.TestAuthenticator{Principal: auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodCookie}}
+	srv = newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}, gtfsImport: importer, csrfSecret: "test-csrf"}, cookieAuth)
+	body, contentType := gtfsImportMultipartBody(t, "agency.zip", []byte("zip payload"), map[string]string{
+		"action":      "import_gtfs",
+		"source_type": "upload",
+	})
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", body)
+	req.Header.Set("Content-Type", contentType)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("cookie missing csrf status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+
+	token := csrfToken("test-csrf", auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodCookie})
+	body, contentType = gtfsImportMultipartBody(t, "agency.zip", []byte("zip payload"), map[string]string{
+		"action":      "import_gtfs",
+		"source_type": "upload",
+	})
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import?csrf_token="+token, body)
+	req.Header.Set("Content-Type", contentType)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("cookie query csrf status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
 }
 
 func TestConnectorHubRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
@@ -3582,6 +3849,13 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	}))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/gtfs-import", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, gtfsBrowserImportMaxBytes+gtfsBrowserImportMemoryBytes)
+		}
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/gtfs-quality", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			r.Body = http.MaxBytesReader(w, r.Body, gtfsQualityPostMaxBytes)
@@ -3609,6 +3883,53 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	}))
 	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
 	return mux
+}
+
+type fakeGTFSImportRunner struct {
+	result               gtfs.ImportResult
+	err                  error
+	calls                int
+	opts                 gtfs.ImportOptions
+	payload              []byte
+	pathExistsDuringCall bool
+}
+
+func (f *fakeGTFSImportRunner) ImportZip(ctx context.Context, opts gtfs.ImportOptions) (gtfs.ImportResult, error) {
+	f.calls++
+	f.opts = opts
+	if _, err := os.Stat(opts.ZipPath); err == nil {
+		f.pathExistsDuringCall = true
+	}
+	payload, err := os.ReadFile(opts.ZipPath)
+	if err == nil {
+		f.payload = append([]byte(nil), payload...)
+	}
+	if f.err != nil {
+		return f.result, f.err
+	}
+	return f.result, ctx.Err()
+}
+
+func gtfsImportMultipartBody(t *testing.T, filename string, payload []byte, fields map[string]string) (*bytes.Buffer, string) {
+	t.Helper()
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	for key, value := range fields {
+		if err := writer.WriteField(key, value); err != nil {
+			t.Fatalf("write field %s: %v", key, err)
+		}
+	}
+	part, err := writer.CreateFormFile("gtfs_zip", filename)
+	if err != nil {
+		t.Fatalf("create form file: %v", err)
+	}
+	if _, err := part.Write(payload); err != nil {
+		t.Fatalf("write form file: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+	return body, writer.FormDataContentType()
 }
 
 func readyDiscovery() compliance.FeedDiscovery {

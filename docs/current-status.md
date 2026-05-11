@@ -28,6 +28,15 @@ the private Connector Hub routes, source-of-truth roadmap adoption, dashboard
 action cards, and safe plugin/sidecar wording without creating evidence,
 changing consumer statuses, adding dynamic plugin loading, or making stronger
 claims.
+Phase 62 is in progress. Checkpoint 000002 added the private setup wizard, and
+Checkpoint 000003 added the admin-only browser GTFS import route at
+`/admin/operations/gtfs-import`. The browser route supports ZIP upload and
+safe URL import through the existing GTFS import/publish pipeline, writes raw
+ZIP bytes only to temporary runtime storage, renders bounded validation/import
+feedback, and keeps the CLI import path available. It creates no retained
+evidence, changes no consumer statuses, and makes no compliance, adoption,
+acceptance, hosted-service, vendor-compatibility, production-readiness, public
+launch, or ETA-quality claim.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -135,9 +144,9 @@ production-grade ETA quality.
 ## Default Next Work
 
 The active work is Phase 62 -- Guided Setup and Browser GTFS Import. Phase 62
-should add a private setup wizard and authenticated browser GTFS import flow by
-reusing the existing import/publish pipeline, while continuing to improve the
-existing self-hosted backend without weakening claim boundaries:
+should now be audited and closed after validating the setup wizard and browser
+GTFS import route, while continuing to improve the existing self-hosted backend
+without weakening claim boundaries:
 
 - keep the agency-facing front door and command map current as workflows
   evolve;
