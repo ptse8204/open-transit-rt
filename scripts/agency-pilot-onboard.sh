@@ -15,6 +15,7 @@ PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-http://localhost:8080}"
 ADMIN_BASE_URL="${ADMIN_BASE_URL:-}"
 ADMIN_TOKEN="${ADMIN_TOKEN:-}"
 IMPORT_TIMEOUT="${GTFS_IMPORT_TIMEOUT:-15m}"
+GTFS_IMPORT_BIN="${GTFS_IMPORT_BIN:-}"
 ADMIN_SUBJECT="${ADMIN_SUBJECT:-admin@example.com}"
 TECHNICAL_CONTACT_EMAIL="${TECHNICAL_CONTACT_EMAIL:-operator-placeholder@example.invalid}"
 FEED_LICENSE_NAME="${FEED_LICENSE_NAME:-replace-with-agency-approved-license}"
@@ -42,6 +43,7 @@ Options:
   --admin-token TOKEN         required in running mode unless already available
   --admin-subject SUBJECT     local admin JWT subject, default admin@example.com
   --import-timeout DURATION   0, 90s, 15m, or 1h style duration, default 15m
+  --gtfs-import-bin PATH      running-mode gtfs-import binary path; falls back to go run
   --technical-contact-email EMAIL
   --feed-license-name NAME
   --feed-license-url URL
@@ -54,7 +56,7 @@ Options:
 
 Environment fallbacks:
   AGENCY_ID, GTFS_URL, PUBLIC_BASE_URL, ADMIN_BASE_URL, ADMIN_TOKEN,
-  GTFS_IMPORT_TIMEOUT, TECHNICAL_CONTACT_EMAIL, FEED_LICENSE_NAME,
+  GTFS_IMPORT_TIMEOUT, GTFS_IMPORT_BIN, TECHNICAL_CONTACT_EMAIL, FEED_LICENSE_NAME,
   FEED_LICENSE_URL, PUBLICATION_ENVIRONMENT, ADMIN_SUBJECT, MODE,
   STRICT_VALIDATORS, SKIP_VALIDATORS
 
@@ -206,6 +208,7 @@ Agency pilot onboarding plan:
   public_base_url: $PUBLIC_BASE_URL
   admin_base_url: $ADMIN_BASE_URL
   import_timeout: $IMPORT_TIMEOUT
+  gtfs_import_bin: ${GTFS_IMPORT_BIN:-go run ./cmd/gtfs-import}
   technical_contact_email: $TECHNICAL_CONTACT_EMAIL
   feed_license_name: $FEED_LICENSE_NAME
   feed_license_url: $FEED_LICENSE_URL
@@ -229,6 +232,7 @@ parse_args() {
       --admin-token) ADMIN_TOKEN="${2:-}"; shift 2 ;;
       --admin-subject) ADMIN_SUBJECT="${2:-}"; shift 2 ;;
       --import-timeout) IMPORT_TIMEOUT="${2:-}"; shift 2 ;;
+      --gtfs-import-bin) GTFS_IMPORT_BIN="${2:-}"; shift 2 ;;
       --technical-contact-email) TECHNICAL_CONTACT_EMAIL="${2:-}"; shift 2 ;;
       --feed-license-name) FEED_LICENSE_NAME="${2:-}"; shift 2 ;;
       --feed-license-url) FEED_LICENSE_URL="${2:-}"; shift 2 ;;
@@ -451,11 +455,10 @@ import_local_compose() {
 }
 
 import_running() {
-  need go
   : "${DATABASE_URL:?running mode requires DATABASE_URL for gtfs-import}"
-  log "Import requested GTFS through local Go command against configured DATABASE_URL"
+  log "Import requested GTFS against configured DATABASE_URL"
   import_output="$RUN_DIR/import-result.json"
-  if ! DATABASE_URL="$DATABASE_URL" go run ./cmd/gtfs-import \
+  if ! run_gtfs_import_running \
       -agency-id "$AGENCY_ID" \
       -zip "$SOURCE_ZIP" \
       -actor-id agency-pilot-onboard \
@@ -472,8 +475,26 @@ import_running() {
 
 preflight_running() {
   : "${DATABASE_URL:?running mode requires DATABASE_URL for agency/admin upsert and gtfs-import}"
-  need go
   need psql
+  if [ -n "$GTFS_IMPORT_BIN" ]; then
+    if [ ! -x "$GTFS_IMPORT_BIN" ]; then
+      fail "GTFS_IMPORT_BIN is set but is not executable: $GTFS_IMPORT_BIN"
+    fi
+    return 0
+  fi
+  need go
+  if [ ! -d ./cmd/gtfs-import ]; then
+    fail "running mode without --gtfs-import-bin requires the Go source tree at ./cmd/gtfs-import"
+  fi
+}
+
+run_gtfs_import_running() {
+  export DATABASE_URL
+  if [ -n "$GTFS_IMPORT_BIN" ]; then
+    "$GTFS_IMPORT_BIN" "$@"
+  else
+    go run ./cmd/gtfs-import "$@"
+  fi
 }
 
 admin_token_local_compose() {
