@@ -14,7 +14,7 @@ The Phase 61+ agency-first connector platform roadmap lives at
 from `docs/roadmaps/agency-first-connector-platform/00-CODEX-READ-ME-FIRST.md`
 before planning new product phases.
 
-Phase 61 -- Agency-First UI And Connector Hub is complete. The current next
+Phase 61 -- Agency-First UI And Connector Hub is complete. The current active
 phase is Phase 62 -- Guided Setup and Browser GTFS Import.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -32,6 +32,13 @@ agency adoption, consumer acceptance, hosted-service, paid-support, SLA,
 production-readiness, vendor-compatibility, hardware-certification, public
 launch, production AVL reliability, or production-grade ETA claim. All seven
 consumer and aggregator targets remain `prepared`.
+
+Phase 62 must add a private setup wizard and browser GTFS import flow by
+reusing the existing GTFS import/publish pipeline. It must not add migrations,
+change public feed contracts, write raw GTFS ZIP files to committed paths,
+write retained evidence, change consumer statuses, or claim compliance,
+approval, acceptance, hosted service, vendor compatibility, production
+readiness, or ETA quality.
 
 The current default work remains agency-facing open-source product quality and
 external connection maturity: clear evaluator paths, release-candidate

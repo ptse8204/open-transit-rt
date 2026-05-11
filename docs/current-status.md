@@ -134,9 +134,10 @@ production-grade ETA quality.
 
 ## Default Next Work
 
-The default next work is Phase 62 -- Guided Setup and Browser GTFS Import,
-while continuing to improve the existing self-hosted backend without weakening
-claim boundaries:
+The active work is Phase 62 -- Guided Setup and Browser GTFS Import. Phase 62
+should add a private setup wizard and authenticated browser GTFS import flow by
+reusing the existing import/publish pipeline, while continuing to improve the
+existing self-hosted backend without weakening claim boundaries:
 
 - keep the agency-facing front door and command map current as workflows
   evolve;
