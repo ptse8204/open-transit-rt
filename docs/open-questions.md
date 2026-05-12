@@ -101,7 +101,7 @@ These questions do not block the next phase.
   compliance, agency, consumer, hosted service, SLA/uptime,
   production-readiness, vendor, marketplace, or ETA-quality claim.
 - Answered in Phase 69 for UI-first product acceptance: use
-  `make agency-app-up`, open the private Operations Console, follow Start Here,
+  `make agency-app-up`, open the private Operations Console, follow Agency Operations Cockpit / Start Here,
   and run `make audit-product-acceptance` for a local read-only check of the
   README/wiki/docs product path. This does not create evidence, contact
   external parties, change consumer statuses, or support stronger compliance,

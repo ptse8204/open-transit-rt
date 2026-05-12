@@ -42,7 +42,7 @@ Current evidence includes local validation/demo workflows and the OCI DuckDNS pi
 ## Local Evaluation Path
 
 1. Start the local app with `make agency-app-up`.
-2. Follow Start Here in the private Operations Console.
+2. Follow Agency Operations Cockpit / Start Here in the private Operations Console.
 3. Import a public-safe GTFS ZIP or use the committed demo feed.
 4. Review public feed URLs, validation records, and Operations Console setup status.
 5. Test device telemetry or the documented AVL/vendor dry-run path with

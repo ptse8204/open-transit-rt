@@ -39,9 +39,9 @@ Open the private Operations Console:
 http://localhost:8080/admin/operations
 ```
 
-Click **Agency Operations Cockpit** first. It shows setup progress, primary
-action cards, ordered first-run tasks, the five public feed URLs, maintenance
-tasks, and what each page does not prove.
+Click **Agency Operations Cockpit / Start Here** first. It shows setup
+progress, primary action cards, ordered first-run tasks, the five public feed
+URLs, maintenance tasks, and what each page does not prove.
 
 Stop the local app with:
 
@@ -79,9 +79,9 @@ Then open:
 http://localhost:8080/admin/operations
 ```
 
-Follow **Start Here**. The local package imports the committed demo GTFS
-fixture, publishes local feed paths, and prints the next private UI and token
-instructions.
+Follow **Agency Operations Cockpit / Start Here**. The local package imports
+the committed demo GTFS fixture, publishes local feed paths, and prints the
+next private UI and token instructions.
 
 Detailed guide: [Small Agency Quick Start](wiki/small-agency-quick-start.md).
 

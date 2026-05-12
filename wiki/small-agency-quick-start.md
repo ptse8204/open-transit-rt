@@ -69,9 +69,9 @@ Open the local URL printed by the command, normally:
 http://localhost:8080/admin/operations
 ```
 
-Look for the **Start Here** section at the top of the Operations Console. It
-shows a no-developer browser path, a developer path, ordered first-run tasks,
-and the five public feed URLs.
+Look for **Agency Operations Cockpit / Start Here** at the top of the
+Operations Console. It shows a no-developer browser path, a developer path,
+ordered first-run tasks, and the five public feed URLs.
 
 ## Follow The Setup Wizard
 
@@ -111,10 +111,11 @@ The local demo normally exposes:
 /public/gtfsrt/alerts.pb
 ```
 
-In the Operations Console, the Start Here section and Feeds page show the
-configured URLs. The local URLs are useful for local evaluation; a public
-deployment still needs stable HTTPS hosting, source-of-truth listing, validation
-records, and any authorized evidence required for stronger claims.
+In the Operations Console, the Agency Operations Cockpit / Start Here path and
+Feeds page show the configured URLs. The local URLs are useful for local
+evaluation; a public deployment still needs stable HTTPS hosting,
+source-of-truth listing, validation records, and any authorized evidence
+required for stronger claims.
 
 ## Review Feed Health
 

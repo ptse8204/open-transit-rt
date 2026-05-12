@@ -25,7 +25,7 @@ should make the repo feel like one coherent open-source product path:
 
 1. start the local app;
 2. open the private UI;
-3. follow a visible Start Here path;
+3. follow a visible Agency Operations Cockpit / Start Here path;
 4. import or publish GTFS;
 5. check the five public feed paths;
 6. review validation health, feed health, readiness, connectors, and telemetry;
@@ -188,8 +188,9 @@ Phase 69 is complete for the approved product acceptance and UI-first agency
 usability scope.
 
 It improved the private Operations Console home and launchpad with a visible
-Start Here path, ordered first-run tasks, five public feed URLs, no-developer
-and developer paths, and local demo / deployment / evidence-claim boundaries.
+Agency Operations Cockpit / Start Here path, ordered first-run tasks, five
+public feed URLs, no-developer and developer paths, and local demo /
+deployment / evidence-claim boundaries.
 It added browser-first small-agency walkthroughs, reshaped README/wiki/docs
 navigation around task-based product evaluation, clarified
 capability-versus-evidence wording, and added local product acceptance audit

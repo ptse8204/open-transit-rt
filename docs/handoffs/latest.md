@@ -26,8 +26,8 @@ Product Acceptance And UI-First Agency Usability Trial is complete. Phase 70
 -- GitHub Pages Product Explainer Site is complete. Phase 71 --
 Adoption-First Productization And No-CLI Agency Operations is complete. The
 current default next work is `v0.1.0-rc.1` agency evaluation release-candidate
-hardening: run the clean-checkout release-candidate gate, review the
-browser-first Agency Operations Cockpit path, verify off-host validation and
+hardening: run the clean-checkout release-candidate gate, review the browser
+Agency Operations Cockpit / Start Here path, verify off-host validation and
 reference diagnostics, and review connector/adaptor conformance. The canonical
 review is `docs/roadmap-status.md#review-and-recommendations`. Any future
 evidence intake is optional and requires explicit written authorization first.
@@ -129,10 +129,10 @@ authorization-gated blockers without collecting retained evidence or contacting
 anyone.
 
 Phase 69 improved the UI-first product acceptance path without evidence
-intake. It added the private Operations Console Start Here workflow, five-feed
-URL copy section, no-developer/developer paths, browser-first small-agency
-walkthroughs, README/wiki/docs task navigation, capability-versus-evidence
-cleanup, and `make audit-product-acceptance` /
+intake. It added the private Operations Console first-click label, `Agency Operations Cockpit / Start Here`,
+five-feed URL copy section, no-developer/developer paths, browser-first
+small-agency walkthroughs, README/wiki/docs task navigation,
+capability-versus-evidence cleanup, and `make audit-product-acceptance` /
 `make test-product-acceptance`. It created no retained evidence, contacted no
 external party, changed no consumer status, and made no compliance, agency
 adoption, consumer acceptance, final-root, hosted SaaS,

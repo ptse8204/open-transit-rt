@@ -18,9 +18,10 @@ Open the local URL printed by the command, normally:
 http://localhost:8080/admin/operations
 ```
 
-## Use Start Here First
+## Use Agency Operations Cockpit / Start Here First
 
-On the Operations Console home, start with **Start Here**.
+On the Operations Console home, start with **Agency Operations Cockpit / Start
+Here**.
 
 Treat it as the single first-run cockpit. It groups the path into:
 
@@ -94,7 +95,8 @@ fallback.
 
 ## Check The Five Feed Paths
 
-Use the Start Here copy section and the feed health command center:
+Use the Agency Operations Cockpit / Start Here copy section and the feed
+health command center:
 
 ```text
 /admin/operations/feed-health

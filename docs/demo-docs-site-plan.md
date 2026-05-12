@@ -20,7 +20,7 @@ without reading phase history.
 
 | Section | Source Today | Purpose | Boundary |
 | --- | --- | --- | --- |
-| Start | `README.md`, `wiki/README.md`, `wiki/small-agency-quick-start.md` | Explain the product, local app command, Operations Console, and Start Here path | No hosted-service or public-launch claim |
+| Start | `README.md`, `wiki/README.md`, `wiki/small-agency-quick-start.md` | Explain the product, local app command, Operations Console, and Agency Operations Cockpit / Start Here path | No hosted-service or public-launch claim |
 | Browser Setup | `wiki/browser-first-setup.md`, `wiki/operations-console-tour.md`, `docs/tutorials/small-agency-acceptance-script.md` | Guide the UI-first acceptance workflow | Private local evaluator workflow only |
 | Agency Fit | `wiki/can-my-agency-use-this.md`, `docs/agency-one-pager.md` | Help agencies decide whether a self-hosted path fits | No agency approval or adoption claim |
 | Public GTFS Trial | `wiki/agency-adoption-checklist.md`, `docs/tutorials/reusable-agency-onboarding.md` | Guide a one-day local/reference GTFS trial | Evaluation checklist, not adoption proof |
@@ -68,8 +68,8 @@ published site payload.
 
 When the maintainer authorizes a safe Pages update, update the static site to:
 
-- make "Agency Operations Cockpit" and browser-first GTFS/GTFS-RT operations
-  the main start path;
+- make "Agency Operations Cockpit / Start Here" and browser-first GTFS/GTFS-RT
+  operations the main start path;
 - link to `docs/tutorials/no-cli-agency-first-run.md` and
   `docs/tutorials/small-agency-maintenance-guide.md`;
 - mention `make validate-public-feeds` and `make oci-reference-check` as

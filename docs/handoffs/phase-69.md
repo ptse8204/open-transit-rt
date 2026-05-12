@@ -46,8 +46,8 @@ Checkpoint 000001 used the established master/sub-agent operating model.
   not reopen the stale final-root evidence framing.
 - UI/UX review confirmed the Operations Console should remain server-rendered
   and that the main usability gap is prioritization: a first-time evaluator
-  needs a visible Start Here path, status rollups, actionable feed URLs, and
-  clearer next actions.
+  needs a visible Agency Operations Cockpit / Start Here path, status rollups,
+  actionable feed URLs, and clearer next actions.
 - Documentation / Information Architecture review confirmed README/wiki/docs
   should become a task-based public spine instead of a phase-led reader path.
 - Claim-boundary review found no active positive overclaim and identified
@@ -69,11 +69,18 @@ product acceptance and UI-first agency usability.
 - Complete: `Phase 69 -- Checkpoint 000006: add product acceptance audit helpers`
 - Complete: `Phase 69 -- Checkpoint 000007: close product acceptance review`
 
+## Traceability Note
+
+Phase 69 product work appears to have landed as a bundled implementation commit
+even though this handoff records the planned checkpoint ledger. Future phases
+should preserve checkpoint commits when the plan requests them. This note does
+not weaken the Phase 69 product closeout.
+
 ## Closeout Summary
 
-Phase 69 improved the private Operations Console Start Here path, README/wiki/docs
-navigation, small-agency walkthroughs, capability-versus-evidence wording, and
-local product acceptance audits.
+Phase 69 improved the private Operations Console first-click label, `Agency Operations Cockpit / Start Here`,
+README/wiki/docs navigation, small-agency walkthroughs, capability-versus-evidence
+wording, and local product acceptance audits.
 
 It created no retained evidence, contacted no external party, changed no
 consumer status, and made no compliance, agency adoption, consumer acceptance,

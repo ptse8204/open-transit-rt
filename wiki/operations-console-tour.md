@@ -12,8 +12,8 @@ http://localhost:8080/admin/operations
 
 ## Home
 
-The home page starts with **Start Here**. Use it as the first-run acceptance
-cockpit. It shows:
+The home page starts with **Agency Operations Cockpit / Start Here**. Use it
+as the first-run acceptance cockpit. It shows:
 
 - no-developer and developer paths;
 - ordered first-run tasks;

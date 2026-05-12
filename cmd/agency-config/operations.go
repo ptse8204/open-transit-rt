@@ -1801,7 +1801,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 {{define "firstRunPanel"}}
 <section class="hero" aria-labelledby="first-run-heading">
-<h2 id="first-run-heading">Start Here</h2>
+<h2 id="first-run-heading">First-Run Tasks</h2>
 <p>{{.Boundary}}</p>
 <p class="muted">{{.LocalDemoDeploymentEvidenceBoundary}}</p>
 <p><strong>Task status:</strong> {{.Counts.Tasks}} tasks · ok {{index .Counts.Statuses "ok"}} · needs review {{index .Counts.Statuses "needs_review"}} · missing {{index .Counts.Statuses "missing"}} · blocked {{index .Counts.Statuses "blocked"}} · unknown {{index .Counts.Statuses "unknown"}}</p>
@@ -1860,7 +1860,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{define "dashboard"}}
 {{template "layoutStart" .}}
 <div class="hero">
-<h2>Agency Operations Cockpit</h2>
+<h2>Agency Operations Cockpit / Start Here</h2>
 <p>{{.Cockpit.Boundary}}</p>
 <p><a href="/admin/operations.json">Export private cockpit JSON</a> · <a href="/admin/operations/maintenance">Open maintenance center</a></p>
 </div>

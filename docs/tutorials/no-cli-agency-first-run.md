@@ -23,10 +23,10 @@ browser UI:
 /admin/operations
 ```
 
-Use the Agency Operations Cockpit as the first screen. It shows setup
+Use Agency Operations Cockpit / Start Here as the first screen. It shows setup
 progress, action cards, next actions, and claim boundaries in one place.
 
-## 1. Open The Agency Operations Cockpit
+## 1. Open Agency Operations Cockpit / Start Here
 
 Go to:
 

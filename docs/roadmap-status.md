@@ -407,9 +407,9 @@ evidence work starts.
 
 Phase 69 — Maintainer Product Acceptance And UI-First Agency Usability Trial
 is complete for its bounded product acceptance scope. It improved the private
-Operations Console Start Here workflow, browser-first small-agency
-walkthroughs, README/wiki/docs task navigation, capability-versus-evidence
-wording, and local product acceptance audits without creating retained
+Operations Console first-click label, Agency Operations Cockpit / Start Here,
+browser-first small-agency walkthroughs, README/wiki/docs task navigation,
+capability-versus-evidence wording, and local product acceptance audits without creating retained
 evidence, contacting external parties, changing consumer statuses, or making
 stronger compliance, adoption, acceptance, final-root, hosted SaaS,
 production-readiness, vendor, SLA, or ETA-quality claims.

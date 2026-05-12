@@ -17,7 +17,7 @@ make agency-app-up
 Confirm:
 
 - the local app starts at `http://localhost:8080`;
-- `/admin/operations` shows **Start Here**;
+- `/admin/operations` shows **Agency Operations Cockpit / Start Here**;
 - `/public/feeds.json` is available;
 - the schedule ZIP and three GTFS-Realtime protobuf paths respond;
 - Feed Health, Readiness, Connector Hub, Telemetry Simulator, and Help are

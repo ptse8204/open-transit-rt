@@ -109,9 +109,10 @@ contacted, no final-root proof was fetched or verified, no consumer status was
 moved, and protected evidence paths and consumer tracker status records
 remained unchanged. Prepared consumer packets and targets remain prepared.
 Phase 69 is complete for maintainer product acceptance and UI-first agency
-usability. It improved the private Operations Console Start Here path,
-README/wiki/docs task navigation, browser-first small-agency walkthroughs,
-capability-versus-evidence wording, and local product acceptance audit helpers.
+usability. It improved the private Operations Console first-click label,
+Agency Operations Cockpit / Start Here, README/wiki/docs task navigation,
+browser-first small-agency walkthroughs, capability-versus-evidence wording,
+and local product acceptance audit helpers.
 It created no retained evidence, contacted no external party, changed no
 consumer status, and made no compliance, agency adoption, consumer acceptance,
 final-root, hosted SaaS, production-readiness, vendor-compatibility, SLA, or
@@ -255,8 +256,8 @@ section for the current scorecard, risks, and next-step sequence.
 
 The release-candidate gate should start from a clean checkout and cover
 `make check`, `make validate`, `make test`, local app startup, the browser
-Agency Operations Cockpit path, a public GTFS trial when data terms and
-network access allow, five public feed fetches, off-host validation,
+Agency Operations Cockpit / Start Here path, a public GTFS trial when data
+terms and network access allow, five public feed fetches, off-host validation,
 OCI/reference diagnostics, validator health, the telemetry simulator,
 connector/adaptor conformance, and the final claim audit. External-connection
 maturity should focus on AVL/device

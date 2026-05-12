@@ -8,7 +8,7 @@ They document what the current repo can run today. They do not claim hosted prod
 
 *Exact-behavior flow diagram for `make demo-agency-flow`, rendered from a reviewed SVG spec.*
 
-## Start Here
+## Agency Operations Cockpit / Start Here
 
 - [Agency First Run](agency-first-run.md): start the full local app package and understand the outputs.
 - [Reusable Agency Onboarding](reusable-agency-onboarding.md): provide an agency ID and GTFS URL for local/reference onboarding without manual database edits.

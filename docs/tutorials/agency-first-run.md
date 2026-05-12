@@ -163,15 +163,15 @@ The guided setup checklist is available at:
 http://localhost:8080/admin/operations/setup
 ```
 
-Start with the **Start Here** section on `/admin/operations`, then use the
-setup wizard at `/admin/operations/setup-wizard`. The setup checklist shows
+Start with **Agency Operations Cockpit / Start Here** on `/admin/operations`,
+then use the setup wizard at `/admin/operations/setup-wizard`. The setup checklist shows
 feed URLs, validation status, telemetry freshness, safe device binding
 information, Alerts links, consumer evidence status, setup next actions, and
 the status source for each setup step. Admin routes still require an admin
 token; the local proxy does not make them public.
 
-The Agency Operations Cockpit on `/admin/operations` is the first routine
-review screen. It summarizes setup progress, GTFS import state, active feed
+The Agency Operations Cockpit / Start Here path on `/admin/operations` is the
+first routine review screen. It summarizes setup progress, GTFS import state, active feed
 version, five feed paths, validator state, telemetry, readiness, connectors,
 maintenance, and the next action for every card.
 

@@ -17,7 +17,7 @@ useful to you.
 
 *Illustrative docs navigation graphic, not an app screenshot.*
 
-## Start Here
+## Agency Operations Cockpit / Start Here
 
 1. [Small Agency Quick Start](small-agency-quick-start.md)
 2. [Browser-First Setup](browser-first-setup.md)
@@ -39,7 +39,8 @@ Then open:
 http://localhost:8080/admin/operations
 ```
 
-Click **Start Here** in the private Operations Console.
+Click **Agency Operations Cockpit / Start Here** in the private Operations
+Console.
 
 ## Choose Your Task
 
@@ -61,7 +62,7 @@ Click **Start Here** in the private Operations Console.
 
 ## What You Can Do In The UI
 
-- Follow a Start Here first-run path.
+- Follow the Agency Operations Cockpit / Start Here first-run path.
 - Review setup and publication metadata.
 - Import GTFS through the browser if you have an admin role.
 - Check the five public feed paths.

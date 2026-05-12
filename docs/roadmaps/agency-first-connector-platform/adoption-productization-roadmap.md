@@ -13,7 +13,7 @@ stop conditions exist.
 
 | Order | Workstream | Outcome |
 | --- | --- | --- |
-| 1 | No-CLI agency operations UI | The private Operations Console starts with an Agency Operations Cockpit that shows setup progress, GTFS, five feed paths, validators, telemetry, readiness, connectors, maintenance, and next actions. |
+| 1 | No-CLI agency operations UI | The private Operations Console starts with Agency Operations Cockpit / Start Here, showing setup progress, GTFS, five feed paths, validators, telemetry, readiness, connectors, maintenance, and next actions. |
 | 2 | GTFS import/update/rollback UX | Browser import shows source review, checksum, byte count, import counts, active feed version, schedule identity, and truthful rollback/staging limitations. |
 | 3 | Feed health and validator UX | Feed Health tracks exactly five public paths; Validator Health explains internal import validation, canonical static validation, GTFS-RT validation, tooling states, stale reports, and safe browser-triggered allowlisted runs. |
 | 4 | Synthetic realtime demo and telemetry onboarding | Devices, telemetry, simulator, Vehicle Positions, Trip Updates, and Alerts pages explain what is empty, stale, withheld, matched, unknown, or blocked without exposing token values. |
@@ -32,8 +32,8 @@ Pages assets is a separate branch-specific operation.
 
 When the maintainer authorizes a `gh-pages` update, update the site to:
 
-- make the first-viewport path "Agency Operations Cockpit" and browser-first
-  GTFS/GTFS-RT operations;
+- make the first-viewport path "Agency Operations Cockpit / Start Here" and
+  browser-first GTFS/GTFS-RT operations;
 - add links to `docs/tutorials/no-cli-agency-first-run.md` and
   `docs/tutorials/small-agency-maintenance-guide.md`;
 - mention `make validate-public-feeds` and `make oci-reference-check` as

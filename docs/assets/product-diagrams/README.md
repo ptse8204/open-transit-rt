@@ -14,7 +14,7 @@ Use Markdown or Mermaid so the source stays reviewable.
 flowchart TD
     A["Clean checkout"] --> B["make check"]
     B --> C["make agency-app-up"]
-    C --> D["Operations Console: Start Here"]
+    C --> D["Operations Console: Agency Operations Cockpit / Start Here"]
     D --> E["Import demo or public-safe GTFS"]
     E --> F["Review five public feed paths"]
     F --> G["Review feed health, GTFS quality, and validator health"]

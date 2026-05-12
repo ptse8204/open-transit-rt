@@ -41,7 +41,7 @@ make agency-app-up
 
 This starts the local app, imports the committed demo GTFS fixture, publishes
 the five public feed paths, and exposes the private Operations Console. Open
-`/admin/operations` and click **Start Here**. See
+`/admin/operations` and click **Agency Operations Cockpit / Start Here**. See
 [Small Agency Quick Start](small-agency-quick-start.md),
 [Browser-First Setup](browser-first-setup.md), and
 [Operations Console Tour](operations-console-tour.md).
