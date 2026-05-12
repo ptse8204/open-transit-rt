@@ -18,6 +18,9 @@ packet, and not final-root proof.
 - [Reference Deployment Doctor](reference-deployment-doctor.md) - read-only
   private diagnostics for env, services, routes, validators, DB, backups, and
   restore-drill readiness.
+- [OCI Reference Diagnostic Runs](oci-reference-diagnostic-runs.md) -
+  public-safe summaries of completed reference diagnostics. These are not
+  retained evidence packets.
 - [Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md) -
   guided local/reference evaluation path tying deployment prep, GTFS
   onboarding, readiness review, validators, and the synthetic AVL dry-run
