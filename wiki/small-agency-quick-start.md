@@ -32,7 +32,20 @@ You do not need agency approval, consumer confirmation, final public root
 evidence, vendor credentials, real AVL hardware, or production hosting to run a
 local evaluation.
 
-## 30-Minute Local Demo
+## Start In The Browser
+
+No-developer review starts from the private local URL provided by a technical
+helper, normally:
+
+```text
+http://localhost:8080/admin/operations
+```
+
+Look for **Agency Operations Cockpit / Start Here** at the top of the
+Operations Console. It shows a no-developer browser path, a developer path,
+ordered first-run tasks, and the five public feed URLs.
+
+## Technical Helper Startup
 
 From a clean checkout:
 
@@ -45,10 +58,11 @@ make agency-app-up
 
 `make agency-app-up` starts the local evaluator package, imports the committed
 small GTFS fixture, publishes local feed paths, and prints the local app URL.
-The URL is normally:
+These are technical-helper startup steps, not no-developer evaluator steps.
+The private Operations Console URL is normally:
 
 ```text
-http://localhost:8080
+http://localhost:8080/admin/operations
 ```
 
 If startup fails, run:
@@ -61,17 +75,26 @@ scripts/bootstrap-dev.sh --check
 Common blockers are Docker not running, ports `8080` or `55432` already in use,
 or a stale local demo database volume.
 
-## Open The UI
+## Private Operations Route Map
 
-Open the local URL printed by the command, normally:
+Use these private routes during browser-first review:
 
 ```text
-http://localhost:8080/admin/operations
+/admin/operations
+/admin/operations/setup-wizard
+/admin/operations/gtfs-import
+/admin/operations/feed-health
+/admin/operations/readiness
+/admin/operations/gtfs-quality
+/admin/operations/validation-health
+/admin/operations/devices
+/admin/operations/telemetry
+/admin/operations/telemetry-simulator
+/admin/operations/connectors
+/admin/operations/connectors/tests
+/admin/operations/maintenance
+/admin/operations/help
 ```
-
-Look for **Agency Operations Cockpit / Start Here** at the top of the
-Operations Console. It shows a no-developer browser path, a developer path,
-ordered first-run tasks, and the five public feed URLs.
 
 ## Follow The Setup Wizard
 
@@ -112,7 +135,7 @@ The local demo normally exposes:
 ```
 
 In the Operations Console, the Agency Operations Cockpit / Start Here path and
-Feeds page show the configured URLs. The local URLs are useful for local
+Feed Health show the configured URLs. The local URLs are useful for local
 evaluation; a public deployment still needs stable HTTPS hosting,
 source-of-truth listing, validation records, and any authorized evidence
 required for stronger claims.

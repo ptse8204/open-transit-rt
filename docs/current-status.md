@@ -246,15 +246,26 @@ Phases 61 through 67 are complete. Phase 68+ is closed blocker-only /
 authorization-gated for the current no-authorization review. Phase 69 is
 complete for maintainer product acceptance and UI-first agency usability.
 Phase 70 is complete for the GitHub Pages product explainer site. Phase 71 is
-complete for adoption-first no-CLI agency operations.
+complete for adoption-first no-CLI agency operations. Phase 72 is complete for
+bounded `v0.1.0-rc.1` release-candidate hardening review with `needs_review`
+diagnostics; it did not tag, publish, package, create retained evidence, or
+prove release readiness. Phase 73 CP000001 is complete for documentation-only
+agency UI acceptance planning. Phase 73 CP000002 is complete for local
+no-developer browser walkthrough review with CP000004 copy/orientation
+candidates and no runtime blocker. Phase 73 CP000003 is complete for local
+technical-helper walkthrough review with no product blocker. Phase 73 CP000004
+is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy,
+and browser-first tutorial patching; focused re-review found no remaining
+required edits. Phase 73 CP000005 is complete for small-agency docs and wiki
+navigation freeze; focused re-review found no remaining required edits.
 
-The default next work is a `v0.1.0-rc.1` agency evaluation release-candidate
-hardening pass, not a full `v0.1.0` release, not a real agency pilot, and not
-evidence collection. Use the canonical
+The default next work is Phase 73 CP000006 close agency UI acceptance review,
+not broad UI redesign, not a full `v0.1.0` release, not a
+real agency pilot, and not evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 section for the current scorecard, risks, and next-step sequence.
 
-The release-candidate gate should start from a clean checkout and cover
+Future release-candidate gate cleanup should start from a clean checkout and cover
 `make check`, `make validate`, `make test`, local app startup, the browser
 Agency Operations Cockpit / Start Here path, a public GTFS trial when data
 terms and network access allow, five public feed fetches, off-host validation,
@@ -1917,11 +1928,18 @@ Proceed with maintainer review or a separately scoped product phase. Any
 future evidence intake is optional and requires explicit written authorization
 first. Phase 68+ is closed blocker-only / authorization-gated for the current
 no-authorization review, Phase 69 is complete for UI-first product acceptance,
-and Phase 70 is complete for the GitHub Pages product explainer site. The
-default next work is the `v0.1.0-rc.1` product-quality and external-connection
-maturity gate, not evidence collection. For public/status wording work, start
-with `make audit-final-claim-review` and `make audit-product-acceptance`, and
-keep unsupported claims removed or bounded.
+and Phase 70 is complete for the GitHub Pages product explainer site. Phase 72
+is complete for bounded `v0.1.0-rc.1` hardening review with `needs_review`
+diagnostics. Phase 73 CP000001 is complete for documentation-only agency UI
+acceptance planning, and CP000002 is complete for local no-developer browser
+walkthrough review. CP000003 is complete for local technical-helper
+walkthrough review. CP000004 is complete for narrow UI copy, route-label,
+Devices/Telemetry boundary-copy, and browser-first tutorial patching. CP000005
+is complete for small-agency docs and wiki navigation freeze. The default next
+work is Phase 73 CP000006 close agency UI acceptance review, not evidence
+collection. For public/status wording work,
+start with `make audit-final-claim-review` and `make audit-product-acceptance`,
+and keep unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

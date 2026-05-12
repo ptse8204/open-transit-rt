@@ -24,13 +24,50 @@ Evidence Tracks is closed blocker-only / authorization-gated for the current
 no-authorization review after Checkpoint 000002. Phase 69 -- Maintainer
 Product Acceptance And UI-First Agency Usability Trial is complete. Phase 70
 -- GitHub Pages Product Explainer Site is complete. Phase 71 --
-Adoption-First Productization And No-CLI Agency Operations is complete. The
-current default next work is `v0.1.0-rc.1` agency evaluation release-candidate
-hardening: run the clean-checkout release-candidate gate, review the browser
-Agency Operations Cockpit / Start Here path, verify off-host validation and
-reference diagnostics, and review connector/adaptor conformance. The canonical
-review is `docs/roadmap-status.md#review-and-recommendations`. Any future
-evidence intake is optional and requires explicit written authorization first.
+Adoption-First Productization And No-CLI Agency Operations is complete.
+Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded
+review with `needs_review` diagnostics.
+Phase 72 CP000001 is docs-only planning/status alignment and does not prove
+the release-candidate gate passed. CP000002 clean-checkout gate rehearsal is
+complete with a local pinned-validator tooling blocker. CP000003 diagnostic
+hardening is complete and did not install validators or make validator-clean
+or release-ready claims. CP000004 local app and Operations Console
+verification is complete: local app startup passed, all nine required private
+routes returned authenticated local `200`, all five public feed paths returned
+anonymous local `200`, `/admin/operations` without an admin token returned
+local `401`, and in-app Browser review was unavailable so terminal
+authenticated checks were used as the safe substitute. CP000005 connector and
+adapter conformance gates are complete: `make external-connection-check`,
+`make adapter-conformance`, and `make test-connector-examples` all exited `0`
+against local synthetic fixtures/examples; this is not real vendor/device
+proof, release readiness, or production readiness. CP000006 is complete for
+local pre-tag draft release notes and a known blockers matrix at
+`docs/release-notes-v0.1.0-rc.1-draft.md`; it did not tag, publish, package,
+create retained evidence, or change consumer statuses. CP000007 is complete for
+bounded closeout: final focused checks passed where run, the local-app
+release-candidate diagnostic exited `0` with `overall_status=needs_review`, and
+Phase 72 is not release-ready. Remaining `needs_review` items are dirty
+checkout, release-package audit `not_checked`, no tag/package/published image,
+no retained evidence, and the CP000004 browser automation limitation; terminal
+authenticated checks were the recorded substitute. Consumer tracker statuses
+remain unchanged as a protected boundary. Phase 73 CP000001 is complete for
+documentation-only agency UI acceptance planning. Phase 73 CP000002 is complete
+for local no-developer browser walkthrough review; it found no local route
+runtime blocker and carried narrow CP000004 copy/orientation candidates.
+Phase 73 CP000003 is complete for local no-patch technical-helper walkthrough;
+it found no product blocker and kept protected paths and consumer statuses
+unchanged. Phase 73 CP000004 is complete for narrow UI copy, route-label,
+Devices/Telemetry boundary-copy, and browser-first tutorial patching; focused
+re-review found no remaining required edits. Phase 73 CP000005 is complete for
+small-agency docs and wiki navigation freeze; focused re-review found no
+remaining required edits. The current default next work is Phase 73 CP000006:
+close agency UI acceptance review. The
+canonical review is
+`docs/roadmap-status.md#review-and-recommendations`; the Phase 72 plan is
+`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`, the Phase 73 plan
+is `docs/phase-73-agency-ui-acceptance-and-documentation-freeze.md`, and the
+handoff is `docs/handoffs/phase-73.md`. Any future evidence intake is optional
+and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -117,12 +154,17 @@ was collected, no external party was contacted, no final public root was
 fetched or verified, no consumer status was moved, and protected evidence paths
 and consumer tracker status records remained unchanged.
 
-The current default next work is `v0.1.0-rc.1` product readiness and
-external-connection maturity, not real agency pilot work or public proof by
-default. The gate should cover a clean checkout, `make check`,
-`make validate`, `make test`, local app startup, a public GTFS trial when
-allowed, five public feed fetches, validator health, telemetry simulator,
-connector/adaptor conformance, and final claim audit. If no explicit written
+Phase 73 CP000001 is complete for documentation-only agency UI acceptance
+planning, starting from the completed bounded Phase 72 hardening review.
+Phase 73 CP000002 is complete for local no-developer browser walkthrough
+review. Phase 73 CP000003 is complete for local technical-helper walkthrough
+review. Phase 73 CP000004 is complete for narrow UI copy, route-label,
+Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73
+CP000005 is complete for small-agency docs and wiki navigation freeze. The
+current default next work is Phase 73 CP000006: close agency UI acceptance
+review. Phase 72 did not tag, publish, package, create retained evidence, or
+prove release readiness. This is not real agency pilot work or public proof.
+If no explicit written
 authorization, exact claim target, allowed tools, public-safe retention plan,
 redaction rules, and stop conditions exist, keep evidence tracks closed as
 authorization-gated blockers without collecting retained evidence or contacting
@@ -1278,13 +1320,21 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed with maintainer review or a separately scoped product phase. Any
-future evidence intake is optional and requires explicit written authorization
-first. Phases 0 through 60 remain closed, Phases 61 through 67 are complete,
-Phase 68+ is closed blocker-only / authorization-gated for the current
-no-authorization review, and Phase 69 is complete for UI-first product
-acceptance. The default next work is not evidence collection. For
-public/status wording work, start with `make audit-final-claim-review` and
+Proceed with Phase 73 CP000006: close agency UI acceptance review.
+Start from the
+completed Phase 73 CP000001 acceptance plan, the completed CP000002
+no-developer browser findings, the completed CP000003 technical-helper
+findings, the completed CP000004 UI copy patch, the completed CP000005 docs
+and wiki navigation freeze, the completed bounded Phase 72 hardening review,
+the local pre-tag release-notes draft, and the known blockers. Do not tag,
+publish, package, or create retained evidence unless
+separately authorized. Any future evidence intake is optional and requires
+explicit written authorization first. Phases 0
+through 60 remain closed, Phases 61 through 67 are complete, Phase 68+ is
+closed blocker-only / authorization-gated for the current no-authorization
+review, and Phase 69 is complete for UI-first product acceptance. The default
+next work is not evidence collection. For public/status wording work, start
+with `make audit-final-claim-review` and
 `make audit-product-acceptance`, and keep unsupported claims removed or
 bounded.
 

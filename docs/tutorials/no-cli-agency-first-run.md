@@ -134,7 +134,7 @@ Admins can request allowlisted server-side validator runs from the browser.
 The browser cannot supply validator commands, paths, URLs, argument lists,
 artifacts, binaries, or timeouts.
 
-## 6. Review Devices And Telemetry
+## 6. Review Device Credentials, Telemetry Freshness, And Simulator
 
 Open:
 
@@ -144,10 +144,11 @@ Open:
 /admin/operations/telemetry-simulator
 ```
 
-The UI shows device bindings, token status without token values, vehicle
-binding, latest accepted telemetry time, assignment state, match confidence or
-unknown reason when available, stale telemetry state, and safe simulator
-guidance.
+Device Credentials shows device bindings, token status without token values,
+vehicle binding, and latest token use. Telemetry Freshness shows latest
+accepted telemetry time, assignment state, match confidence or unknown reason
+when available, and stale telemetry state. Telemetry Simulator shows safe
+synthetic scenarios and technical-helper commands.
 
 Token creation and simulator sending may still need a technical helper because
 device tokens must stay in the operator shell and should not be stored in the
@@ -168,7 +169,7 @@ connector processes. They are not arbitrary dynamic backend plugins.
 Use connector pages to understand telemetry, predictor, validator,
 monitoring/export, and discovery boundaries before connecting private systems.
 
-## 8. Review Maintenance
+## 8. Review Maintenance Center
 
 Open:
 
@@ -183,6 +184,18 @@ availability, support-summary instructions, and weekly/monthly tasks.
 
 If a value is not available or not configured, the UI says so. It does not
 turn missing data into OK.
+
+## 9. Review Operations Console Help
+
+Open:
+
+```text
+/admin/operations/help
+```
+
+Operations Console Help explains Start Here, Device Credentials, Telemetry
+Freshness, Telemetry Simulator, Connector Tests, Maintenance Center, GTFS,
+GTFS Realtime, validators, readiness, and evidence boundaries.
 
 ## What Still Needs A Technical Helper
 

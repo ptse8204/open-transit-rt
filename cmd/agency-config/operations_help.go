@@ -84,7 +84,7 @@ func (h *handler) renderOperationsHelpJSON(w http.ResponseWriter, r *http.Reques
 func (h *handler) buildOperationsHelpPage(principal auth.Principal, section string) operationsPage {
 	now := time.Now().UTC().Truncate(time.Second)
 	page := operationsPage{
-		Title:            "Operations Console",
+		Title:            operationsPageTitle(section),
 		AgencyID:         principal.AgencyID,
 		GeneratedAt:      now,
 		EnvironmentLabel: firstNonEmpty(os.Getenv("PUBLICATION_ENVIRONMENT"), "unknown"),
@@ -264,7 +264,7 @@ func helpTopicsByID(topics []operationsHelpTopic, ids []string) []operationsHelp
 func operationsHelpSectionLabel(section string) string {
 	switch section {
 	case "dashboard":
-		return "dashboard"
+		return "Start Here"
 	case "launchpad":
 		return "launchpad"
 	case "setup-wizard":
@@ -284,11 +284,11 @@ func operationsHelpSectionLabel(section string) string {
 	case "connector-tests":
 		return "connector tests"
 	case "telemetry":
-		return "telemetry"
+		return "Telemetry Freshness"
 	case "telemetry-simulator":
-		return "telemetry simulator"
+		return "Telemetry Simulator"
 	case "devices":
-		return "devices"
+		return "Device Credentials"
 	case "readiness":
 		return "readiness"
 	case "checklist":
@@ -302,7 +302,7 @@ func operationsHelpSectionLabel(section string) string {
 	case "evidence":
 		return "evidence"
 	case "help":
-		return "help"
+		return "Operations Console Help"
 	default:
 		return "this section"
 	}

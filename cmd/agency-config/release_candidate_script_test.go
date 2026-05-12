@@ -131,6 +131,50 @@ func TestReleaseCandidateCheckRejectsNonEmptyOutputWithoutForce(t *testing.T) {
 	}
 }
 
+func TestReleaseCandidateCheckPinsValidatorToolingDespiteAmbientStub(t *testing.T) {
+	root := releaseCandidateRepoRoot(t)
+	outputRel := releaseCandidateTempRel(t, root, "validator-pinned")
+	cmd := releaseCandidateCommand(root)
+	cmd.Env = append(os.Environ(),
+		"OUTPUT_DIR="+outputRel,
+		"FORCE=true",
+		"VALIDATOR_TOOLING_MODE=stub",
+		"GTFS_VALIDATOR_PATH="+filepath.Join(root, ".cache", "release-candidate-check-test", "missing-validator.jar"),
+	)
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected validator tooling blocker despite ambient stub mode, got success:\n%s", out)
+	}
+	assertReleaseCandidateExactFiles(t, root, outputRel)
+
+	summary := readReleaseCandidateSummary(t, root, outputRel)
+	if summary["overall_status"] != "blocker" {
+		t.Fatalf("overall_status = %v, want blocker", summary["overall_status"])
+	}
+	check := releaseCandidateCheckByID(t, summary, "validators_check")
+	if check["status"] != "blocker" {
+		t.Fatalf("validators_check status = %v, want blocker; summary=%#v", check["status"], check)
+	}
+	detail, _ := check["detail"].(string)
+	if strings.Contains(detail, "VALIDATOR_TOOLING_MODE=stub") {
+		t.Fatalf("validators_check detail shows ambient stub bypass instead of pinned blocker: %q", detail)
+	}
+	if !strings.Contains(detail, "pinned tooling") {
+		t.Fatalf("validators_check detail = %q, want actionable pinned tooling wording", detail)
+	}
+	if !strings.Contains(detail, "missing pinned tooling") && !strings.Contains(detail, "misconfigured pinned tooling") {
+		t.Fatalf("validators_check detail = %q, want missing/misconfigured pinned tooling wording", detail)
+	}
+	summaryText := readReleaseCandidateOutputFile(t, root, outputRel, "summary.md")
+	if !strings.Contains(summaryText, detail) {
+		t.Fatalf("summary.md missing validators_check blocker detail %q\n%s", detail, summaryText)
+	}
+	logText := readReleaseCandidateOutputFile(t, root, outputRel, "check-log.txt")
+	if !strings.Contains(logText, detail) {
+		t.Fatalf("check-log.txt missing full validator blocker detail %q\n%s", detail, logText)
+	}
+}
+
 func TestReleaseCandidateCheckHelpAndDocsBoundary(t *testing.T) {
 	root := releaseCandidateRepoRoot(t)
 	cmd := releaseCandidateCommand(root, "--help")
@@ -191,6 +235,25 @@ func readReleaseCandidateSummary(t *testing.T, root, outputRel string) map[strin
 		t.Fatal(err)
 	}
 	return summary
+}
+
+func releaseCandidateCheckByID(t *testing.T, summary map[string]any, id string) map[string]any {
+	t.Helper()
+	checks, ok := summary["checks"].([]any)
+	if !ok {
+		t.Fatalf("summary checks missing or wrong type: %#v", summary["checks"])
+	}
+	for _, item := range checks {
+		check, ok := item.(map[string]any)
+		if !ok {
+			t.Fatalf("summary check has wrong type: %#v", item)
+		}
+		if check["id"] == id {
+			return check
+		}
+	}
+	t.Fatalf("summary missing check id %q", id)
+	return nil
 }
 
 func readReleaseCandidateOutputFile(t *testing.T, root, outputRel, name string) string {

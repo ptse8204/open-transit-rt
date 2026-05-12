@@ -11,6 +11,35 @@ The next recommended milestone is `v0.1.0-rc.1`. Do not treat the first RC
 review as a full `v0.1.0` release gate until the local checks, blockers,
 release notes, and claim audit have been reviewed from a clean checkout.
 
+Phase 72 completed the bounded hardening review for `v0.1.0-rc.1`; see
+[`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`](phase-72-v0.1.0-rc.1-release-candidate-hardening.md).
+Phase 72 Checkpoint 000001 is planning/status only. It does not run this gate,
+does not prove any check passed, and does not draft release notes. Checkpoint
+000003 hardens this diagnostic so its validator tooling row explicitly runs in
+pinned mode even when the ambient shell has `VALIDATOR_TOOLING_MODE=stub`, and
+so validator-tooling failures surface the exact final
+`scripts/check-validators.sh` blocker line in `summary.json` and `summary.md`.
+It does not install validators and does not turn missing pinned tooling into a
+validator-clean, release-ready, or compliance claim.
+
+Checkpoint 000004 verified local app startup, the required private Operations
+Console route checks, five anonymous public feed fetches, and the
+unauthenticated admin-route boundary. Checkpoint 000005 verified local synthetic
+connector and adapter conformance gates through `make external-connection-check`,
+`make adapter-conformance`, and `make test-connector-examples`. Phase 72
+Checkpoint 000006 added a local pre-tag release notes and known blockers draft
+at `docs/release-notes-v0.1.0-rc.1-draft.md`. Phase 73 Checkpoint 000001 is
+complete for documentation-only agency UI acceptance planning. Phase 73
+Checkpoint 000002 is complete for local no-developer browser walkthrough
+review. Phase 73 Checkpoint 000003 is complete for local technical-helper
+walkthrough review. Phase 73 Checkpoint 000004 is complete for narrow UI copy,
+route-label, Devices/Telemetry boundary-copy, and browser-first tutorial
+patching. Phase 73 Checkpoint 000005 is complete for small-agency docs and
+wiki navigation freeze. The current default next work is Phase 73 Checkpoint
+000006 close agency UI acceptance review.
+Phase 72 closeout completed with `needs_review` release-candidate diagnostics,
+not a release-ready pass.
+
 The check does not tag, publish, push images, create retained evidence, contact
 external services, change consumer statuses, or make production-readiness,
 consumer-acceptance, agency-approval, hosted-service, vendor-compatibility, or
@@ -222,6 +251,12 @@ network, Docker, Java, or the pinned validator image is unavailable, record the
 exact blocker, confirm non-network checks such as `make check`, and continue
 productization review without converting the blocker into a compliance,
 production-readiness, or consumer-acceptance claim.
+
+The release-candidate diagnostic intentionally forces the validator tooling
+check to `VALIDATOR_TOOLING_MODE=pinned`. `VALIDATOR_TOOLING_MODE=stub` remains
+available for targeted tests and smoke runs that call validator-aware code
+directly, but it cannot make the release-candidate `validators_check` row pass.
+In dry-run mode, `validators_check` remains `not_checked`.
 
 When `RUN_LOCAL_APP=true` is used, likely blockers are Docker daemon
 availability, Docker Compose plugin/config errors, first-run image pull or Go

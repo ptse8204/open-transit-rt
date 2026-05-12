@@ -799,7 +799,7 @@ func setupFormValue(r *http.Request, name string, maxLen int) (string, error) {
 func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal, section string) operationsPage {
 	now := time.Now().UTC().Truncate(time.Second)
 	page := operationsPage{
-		Title:            "Operations Console",
+		Title:            operationsPageTitle(section),
 		AgencyID:         principal.AgencyID,
 		GeneratedAt:      now,
 		EnvironmentLabel: firstNonEmpty(os.Getenv("PUBLICATION_ENVIRONMENT"), "unknown"),
@@ -2428,10 +2428,12 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{define "telemetry"}}
 {{template "layoutStart" .}}
 <h2>Telemetry Freshness</h2>
+<p class="warning">Private telemetry freshness diagnostics only. Viewing this page creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
 <p>Stale threshold: {{.StaleThreshold}}</p>
 <div class="card-grid">
 <section class="card"><h3>Make Vehicle Positions non-empty</h3><p>Create or rotate a device token, configure a device or synthetic simulator from an operator shell, send accepted telemetry to <code>/v1/telemetry</code>, then review this page and Feed Health.</p></section>
 <section class="card"><h3>Why Trip Updates may be empty</h3><p>Trip Updates can be empty when telemetry is missing or stale, assignment confidence is too low, a vehicle is unknown, or the prediction adapter withholds output. Prefer empty or unknown over false certainty.</p></section>
+<section class="card"><h3>Does not prove</h3><p>Fresh or visible telemetry does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p></section>
 </div>
 {{if .TelemetryError}}<p class="warning">{{.TelemetryError}}. Next action: confirm the telemetry service and database are running.</p>{{else if not .Telemetry}}<p class="warning">No telemetry has been accepted yet. Next action: create or rotate a device token, configure the device, then send a sample telemetry event.</p>{{else}}
 <table><thead><tr><th>Vehicle</th><th>Device</th><th>Observed</th><th>Age seconds</th><th>Freshness</th><th>Assignment</th><th>Trip</th><th>Route</th><th>Confidence</th><th>Reasons</th><th>Assignment time</th></tr></thead><tbody>
@@ -2484,11 +2486,13 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Device Credentials</h2>
 <p class="warning">Device tokens are secrets. Store a one-time token immediately; it will not be shown again by this console.</p>
+<p class="warning">Private device credential diagnostics only. Viewing or rotating credentials creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
 <p>The supported browser flow is rotate/rebind. If a device has no credential yet, this uses the existing rebind API path.</p>
 <div class="card-grid">
 <section class="card"><h3>Token status</h3><p>The table shows credential status and dates, never stored token values. New tokens are shown only once after an admin rotate/rebind action.</p></section>
 <section class="card"><h3>Vehicle binding</h3><p>Each device row links a device to a vehicle, latest accepted telemetry time, freshness, assignment state, match confidence where available, and a next action.</p></section>
 <section class="card"><h3>Realtime setup</h3><p>Vehicle Positions need accepted fresh telemetry. Trip Updates may still be empty until matching confidence and prediction diagnostics justify output.</p></section>
+<section class="card"><h3>Does not prove</h3><p>Device bindings and credential rotation do not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p></section>
 </div>
 <h3>Guided Onboarding Use Cases</h3>
 <div class="card-grid">

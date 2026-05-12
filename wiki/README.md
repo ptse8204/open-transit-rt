@@ -27,13 +27,8 @@ useful to you.
 6. [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
 7. [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
 
-Fast local command:
-
-```bash
-make agency-app-up
-```
-
-Then open:
+No-developer review starts from the private local browser URL provided by a
+technical helper, normally:
 
 ```text
 http://localhost:8080/admin/operations
@@ -41,6 +36,36 @@ http://localhost:8080/admin/operations
 
 Click **Agency Operations Cockpit / Start Here** in the private Operations
 Console.
+
+Technical-helper startup command:
+
+```bash
+make agency-app-up
+```
+
+This command starts the local runtime. It is not the first step for
+no-developer review.
+
+## Private Operations Route Map
+
+Keep these private routes findable during browser-first review:
+
+```text
+/admin/operations
+/admin/operations/setup-wizard
+/admin/operations/gtfs-import
+/admin/operations/feed-health
+/admin/operations/readiness
+/admin/operations/gtfs-quality
+/admin/operations/validation-health
+/admin/operations/devices
+/admin/operations/telemetry
+/admin/operations/telemetry-simulator
+/admin/operations/connectors
+/admin/operations/connectors/tests
+/admin/operations/maintenance
+/admin/operations/help
+```
 
 ## Choose Your Task
 

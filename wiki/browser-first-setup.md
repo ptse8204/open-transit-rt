@@ -3,16 +3,20 @@
 This guide shows the private UI path first. It is for evaluators who want to
 understand Open Transit RT from the browser before using deeper CLI tools.
 
-## Start The Local UI
+## Technical Helper Startup
 
-Run:
+A technical helper starts the local runtime from the checkout:
 
 ```bash
 make check
 make agency-app-up
 ```
 
-Open the local URL printed by the command, normally:
+These are startup and health-check commands, not no-developer evaluator steps.
+The helper should leave the app running and provide the private local browser
+URL and any local admin-token instructions printed by `make agency-app-up`.
+
+No-developer evaluators start from the provided private local URL, normally:
 
 ```text
 http://localhost:8080/admin/operations
@@ -20,8 +24,7 @@ http://localhost:8080/admin/operations
 
 ## Use Agency Operations Cockpit / Start Here First
 
-On the Operations Console home, start with **Agency Operations Cockpit / Start
-Here**.
+On the Operations Console home, start with **Agency Operations Cockpit / Start Here**.
 
 Treat it as the single first-run cockpit. It groups the path into:
 
@@ -40,7 +43,12 @@ docs link, and what the row does not prove.
 
 ## No Developer Today
 
-Use this path when you only want to review the product from a browser:
+Use this path when you only want to review the product from a browser. Start
+from the private local URL provided by the technical helper:
+
+```text
+http://localhost:8080/admin/operations
+```
 
 - open the setup wizard;
 - review publication metadata;
@@ -48,9 +56,13 @@ Use this path when you only want to review the product from a browser:
 - open feed health;
 - review GTFS quality triage after import;
 - open readiness;
+- open Device Credentials;
+- open Telemetry Freshness;
+- open Telemetry Simulator guidance;
 - open Connector Hub;
-- open telemetry simulator guidance;
-- open Help when labels are unclear.
+- open Connector Tests;
+- open Maintenance Center;
+- open Operations Console Help when labels are unclear.
 
 Admin-only actions remain admin-only. The UI does not bypass CSRF, role checks,
 or private route boundaries.
@@ -67,6 +79,7 @@ make telemetry-simulator
 
 Then return to the browser and review:
 
+- `/admin/operations/devices`
 - `/admin/operations/telemetry`
 - `/admin/operations/feed-health`
 - `/admin/operations/readiness`
@@ -95,12 +108,11 @@ fallback.
 
 ## Check The Five Feed Paths
 
-Use the Agency Operations Cockpit / Start Here copy section and the feed
-health command center:
+Use the Agency Operations Cockpit / Start Here copy section and the Feed
+Health command center:
 
 ```text
 /admin/operations/feed-health
-/admin/operations/feeds
 ```
 
 Confirm these paths are listed:
@@ -126,8 +138,37 @@ Open:
 ```
 
 Readiness rows show the private signal, why it matters, next action, and claim
-boundary. Help topics explain GTFS, GTFS Realtime, connectors, validators,
-telemetry, readiness, and evidence boundaries.
+boundary. Operations Console Help topics explain GTFS, GTFS Realtime,
+connectors, validators, telemetry, readiness, and evidence boundaries.
+
+## Review Device Credentials And Telemetry Freshness
+
+Open:
+
+```text
+/admin/operations/devices
+/admin/operations/telemetry
+/admin/operations/telemetry-simulator
+```
+
+Device Credentials shows device bindings and token status without exposing
+token values. Telemetry Freshness shows latest accepted telemetry, stale state,
+assignment state, match confidence, or unknown reasons when available.
+Telemetry Simulator remains a technical-helper command guide.
+
+## Review Connector Tests And Maintenance Center
+
+Open:
+
+```text
+/admin/operations/connectors
+/admin/operations/connectors/tests
+/admin/operations/maintenance
+```
+
+Connector Tests show synthetic manifest and conformance guidance. Maintenance
+Center shows active feed, import, five-feed check, validator, backup/restore,
+telemetry freshness, service-health, and support-summary rows where configured.
 
 ## What Needs A Technical Helper
 

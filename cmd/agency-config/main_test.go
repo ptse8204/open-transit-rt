@@ -440,7 +440,7 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "Agency Operations Cockpit / Start Here", "No-developer path", "Developer path", "Copy These Five Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", "<h1>Agency Operations Cockpit / Start Here</h1>", "No-developer path", "Developer path", "Copy These Five Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -2247,6 +2247,9 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	for _, want := range []string{
 		`aria-label="Operations Console sections"`,
 		"Start",
+		`href="/admin/operations" aria-current="page">Start Here</a>`,
+		`href="/admin/operations/devices">Device Credentials</a>`,
+		`href="/admin/operations/telemetry-simulator">Telemetry Simulator</a>`,
 		"GTFS and feeds",
 		"Realtime operations",
 		"Connectors",
@@ -2290,10 +2293,53 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	if got := strings.Count(body, `aria-current="page"`); got != 1 {
 		t.Fatalf("aria-current count = %d, want 1: %s", got, body)
 	}
+	for _, oldLabel := range []string{">Dashboard</a>", ">Devices</a>", ">Simulator</a>"} {
+		if strings.Contains(body, oldLabel) {
+			t.Fatalf("navigation still contains old label %q: %s", oldLabel, body)
+		}
+	}
 	for _, forbidden := range []string{"agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "vendor compatible", "certified hardware"} {
 		if strings.Contains(strings.ToLower(body), forbidden) {
 			t.Fatalf("navigation body contains forbidden claim %q: %s", forbidden, body)
 		}
+	}
+}
+
+func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, tc := range []struct {
+		path  string
+		title string
+	}{
+		{path: "/admin/operations", title: "Agency Operations Cockpit / Start Here"},
+		{path: "/admin/operations/gtfs-import", title: "Browser GTFS Import"},
+		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
+		{path: "/admin/operations/devices", title: "Device Credentials"},
+		{path: "/admin/operations/help", title: "Operations Console Help"},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			for _, want := range []string{"<title>" + tc.title + "</title>", "<h1>" + tc.title + "</h1>"} {
+				if !strings.Contains(body, want) {
+					t.Fatalf("%s missing page-specific title %q: %s", tc.path, want, body)
+				}
+			}
+			if tc.path == "/admin/operations" {
+				firstClick := strings.Index(body, "<h1>Agency Operations Cockpit / Start Here</h1>")
+				helpPanel := strings.Index(body, `class="context-help"`)
+				if firstClick < 0 || helpPanel < 0 || firstClick > helpPanel {
+					t.Fatalf("Start Here label should appear before contextual help: firstClick=%d helpPanel=%d body=%s", firstClick, helpPanel, body)
+				}
+			}
+		})
 	}
 }
 
@@ -2472,7 +2518,7 @@ func TestOperationsSharedLayoutRendersContextualHelpForMajorSections(t *testing.
 		{path: "/admin/operations/gtfs-import", want: []string{`Help for GTFS import`, `help-gtfs`, `help-validators`}},
 		{path: "/admin/operations/feed-health", want: []string{`Help for feed health`, `help-gtfs_rt`, `help-readiness`}},
 		{path: "/admin/operations/connectors", want: []string{`Help for Connector Hub`, `help-connectors`, `help-claims_evidence`}},
-		{path: "/admin/operations/telemetry-simulator", want: []string{`Help for telemetry simulator`, `help-telemetry`, `help-gtfs_rt`}},
+		{path: "/admin/operations/telemetry-simulator", want: []string{`Help for Telemetry Simulator`, `help-telemetry`, `help-gtfs_rt`}},
 		{path: "/admin/operations/readiness", want: []string{`Help for readiness`, `help-readiness`, `help-claims_evidence`}},
 		{path: "/admin/operations/validation-health", want: []string{`Help for validator health`, `help-validators`, `help-claims_evidence`}},
 		{path: "/admin/operations/evidence", want: []string{`Help for evidence`, `help-claims_evidence`, `help-readiness`}},
@@ -4239,7 +4285,18 @@ func TestOperationsDevicesAndTelemetryAvoidUnsupportedClaims(t *testing.T) {
 		if rr.Code != http.StatusOK {
 			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
 		}
-		body := strings.ToLower(rr.Body.String())
+		rawBody := rr.Body.String()
+		body := strings.ToLower(rawBody)
+		for _, want := range []string{
+			"creates no retained evidence",
+			"contacts no vendors or consumers",
+			"changes no consumer status",
+			"does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness",
+		} {
+			if !strings.Contains(rawBody, want) {
+				t.Fatalf("%s body missing boundary copy %q: %s", path, want, rawBody)
+			}
+		}
 		for _, forbidden := range []string{
 			"cal-itp/caltrans compliant",
 			"consumer accepted",
@@ -5637,6 +5694,8 @@ type fakePublicationStore struct {
 }
 
 func (f *fakePublicationStore) BootstrapPublication(_ context.Context, input compliance.BootstrapInput) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.bootstrapInput = input
 	if f.bootstrapErr != nil {
 		return f.bootstrapErr
@@ -5645,6 +5704,8 @@ func (f *fakePublicationStore) BootstrapPublication(_ context.Context, input com
 }
 
 func (f *fakePublicationStore) PublicationConfig(context.Context, string) (compliance.PublicationConfig, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	if f.publicationConfigErr != nil {
 		return compliance.PublicationConfig{}, f.publicationConfigErr
 	}
@@ -5652,6 +5713,8 @@ func (f *fakePublicationStore) PublicationConfig(context.Context, string) (compl
 }
 
 func (f *fakePublicationStore) FeedDiscovery(_ context.Context, agencyID string, _ time.Time) (compliance.FeedDiscovery, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.discoveryAgencyID = agencyID
 	if f.discoveryErr != nil {
 		return compliance.FeedDiscovery{}, f.discoveryErr
@@ -5667,14 +5730,18 @@ func (f *fakePublicationStore) UpsertConsumer(context.Context, compliance.Consum
 }
 
 func (f *fakePublicationStore) ListConsumers(_ context.Context, agencyID string) ([]compliance.ConsumerRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.listConsumersAgencyID = agencyID
 	if f.consumersErr != nil {
 		return nil, f.consumersErr
 	}
-	return f.consumers, nil
+	return append([]compliance.ConsumerRecord(nil), f.consumers...), nil
 }
 
 func (f *fakePublicationStore) LatestScorecard(_ context.Context, agencyID string) (compliance.Scorecard, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.latestScorecardAgencyID = agencyID
 	if f.scorecardErr != nil {
 		return compliance.Scorecard{}, f.scorecardErr
@@ -5683,6 +5750,8 @@ func (f *fakePublicationStore) LatestScorecard(_ context.Context, agencyID strin
 }
 
 func (f *fakePublicationStore) LatestTripUpdatesDiagnostics(context.Context, string) (compliance.TripUpdatesDiagnosticsSummary, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	if f.tripDiagnosticsErr != nil {
 		return compliance.TripUpdatesDiagnosticsSummary{}, f.tripDiagnosticsErr
 	}
@@ -5690,6 +5759,8 @@ func (f *fakePublicationStore) LatestTripUpdatesDiagnostics(context.Context, str
 }
 
 func (f *fakePublicationStore) BuildAndStoreScorecard(_ context.Context, agencyID string, _ time.Time) (compliance.Scorecard, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.buildScorecardAgencyID = agencyID
 	scorecard := f.scorecard
 	if scorecard.AgencyID == "" {
@@ -5728,13 +5799,17 @@ func (f *fakePublicationStore) LatestValidationReport(_ context.Context, agencyI
 }
 
 func (f *fakePublicationStore) LatestReliabilityFeedHealth(context.Context, string, int) ([]compliance.ReliabilityFeedHealthRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	if f.reliabilityHealthErr != nil {
 		return nil, f.reliabilityHealthErr
 	}
-	return f.reliabilityHealth, nil
+	return append([]compliance.ReliabilityFeedHealthRecord(nil), f.reliabilityHealth...), nil
 }
 
 func (f *fakePublicationStore) ReliabilityIncidentRollup(context.Context, string, time.Time, int) (compliance.ReliabilityIncidentRollup, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	if f.reliabilityIncidentsErr != nil {
 		return compliance.ReliabilityIncidentRollup{}, f.reliabilityIncidentsErr
 	}
@@ -5742,12 +5817,15 @@ func (f *fakePublicationStore) ReliabilityIncidentRollup(context.Context, string
 }
 
 type fakeRealtimeArtifacts struct {
+	mu       sync.Mutex
 	payloads map[string][]byte
 	errors   map[string]error
 	calls    map[string]int
 }
 
 func (f *fakeRealtimeArtifacts) RealtimePB(_ context.Context, feedType string) ([]byte, string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	if f.calls == nil {
 		f.calls = map[string]int{}
 	}
@@ -5756,7 +5834,7 @@ func (f *fakeRealtimeArtifacts) RealtimePB(_ context.Context, feedType string) (
 		return nil, "", err
 	}
 	if payload := f.payloads[feedType]; len(payload) > 0 {
-		return payload, "internal_builder", nil
+		return append([]byte(nil), payload...), "internal_builder", nil
 	}
 	return []byte("protobuf-" + feedType), "internal_builder", nil
 }

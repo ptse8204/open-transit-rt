@@ -73,8 +73,9 @@ product acceptance and UI-first agency usability.
 
 Phase 69 product work appears to have landed as a bundled implementation commit
 even though this handoff records the planned checkpoint ledger. Future phases
-should preserve checkpoint commits when the plan requests them. This note does
-not weaken the Phase 69 product closeout.
+should preserve checkpoint commits when the plan requests them. This is a
+process traceability note, not a product rejection, and it does not weaken the
+Phase 69 product closeout.
 
 ## Closeout Summary
 

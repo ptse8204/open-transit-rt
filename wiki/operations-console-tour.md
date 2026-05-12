@@ -103,6 +103,32 @@ and consumer/discovery boundaries. Treat it as the starting point for manifest,
 redaction, fail-closed, and synthetic conformance review. It does not load
 arbitrary backend plugins or prove vendor compatibility.
 
+## Device Credentials
+
+Open:
+
+```text
+/admin/operations/devices
+```
+
+Device Credentials shows device bindings, token status without token values,
+vehicle binding, latest token use, and safe next actions for token rotation or
+rebinding. Treat adjacent telemetry pages as follow-up review after credentials
+are understood.
+
+## Telemetry Freshness
+
+Open:
+
+```text
+/admin/operations/telemetry
+```
+
+Telemetry Freshness shows latest accepted telemetry, stale state, assignment
+state, match confidence, degraded or unknown reasons, and related feed-health
+next actions when available. Use it before assuming a Vehicle Positions or Trip
+Updates issue is caused by feed generation.
+
 ## Telemetry Simulator
 
 Open:
@@ -114,6 +140,18 @@ Open:
 This page explains synthetic scenarios and copyable shell commands that use the
 authenticated `/v1/telemetry` boundary from an operator shell. It does not
 collect tokens or execute commands in the browser.
+
+## Connector Tests
+
+Open:
+
+```text
+/admin/operations/connectors/tests
+```
+
+Connector Tests explain synthetic manifest, sidecar, adapter, and conformance
+checks. Use the Connector Hub first for the boundary overview, then this page
+for local test guidance before connecting private systems.
 
 ## GTFS Quality
 
@@ -151,6 +189,19 @@ Open:
 Reliability shows private diagnostics from existing records. It does not prove
 SLA coverage or uptime.
 
+## Maintenance Center
+
+Open:
+
+```text
+/admin/operations/maintenance
+```
+
+Maintenance Center shows active feed, last import, latest five-feed check,
+validator state, backup/restore configuration presence, telemetry freshness,
+service-health availability, support-summary instructions, and weekly/monthly
+tasks. It keeps missing values visible instead of turning them into OK.
+
 ## Help
 
 Open:
@@ -159,8 +210,8 @@ Open:
 /admin/operations/help
 ```
 
-Help explains the concepts behind each major section and links back to the
-right UI pages and docs.
+Operations Console Help explains the concepts behind each major section and
+links back to the right UI pages and docs.
 
 ## What Needs A Technical Helper
 

@@ -18,7 +18,20 @@ browser-first operations, docs, remote diagnostics, off-host validation, and
 connector usability, not real agency pilot evidence. See
 [Review And Recommendations](docs/roadmap-status.md#review-and-recommendations).
 
-## Start The Software UI
+## Start In The Browser
+
+No-developer review should start from the private local URL provided by a
+technical helper, normally:
+
+```text
+http://localhost:8080/admin/operations
+```
+
+Click **Agency Operations Cockpit / Start Here** first. It shows setup
+progress, primary action cards, ordered first-run tasks, the five public feed
+URLs, maintenance tasks, and what each page does not prove.
+
+## Technical Helper Startup
 
 From a clean checkout:
 
@@ -27,7 +40,12 @@ make check
 make agency-app-up
 ```
 
-The local app normally opens at:
+These commands are startup and health-check steps for a technical helper. They
+are not the first step for no-developer review. The helper should leave the app
+running and provide the private local browser URL and any local admin-token
+instructions printed by `make agency-app-up`.
+
+The local app root normally responds at:
 
 ```text
 http://localhost:8080
@@ -38,10 +56,6 @@ Open the private Operations Console:
 ```text
 http://localhost:8080/admin/operations
 ```
-
-Click **Agency Operations Cockpit / Start Here** first. It shows setup
-progress, primary action cards, ordered first-run tasks, the five public feed
-URLs, maintenance tasks, and what each page does not prove.
 
 Stop the local app with:
 
@@ -65,15 +79,37 @@ make agency-app-down
 - Use the Maintenance Center to see weekly/monthly tasks and technical-helper
   cases.
 
+## Private Operations Route Map
+
+These private browser routes are the acceptance-critical navigation surface:
+
+```text
+/admin/operations
+/admin/operations/setup-wizard
+/admin/operations/gtfs-import
+/admin/operations/feed-health
+/admin/operations/readiness
+/admin/operations/gtfs-quality
+/admin/operations/validation-health
+/admin/operations/devices
+/admin/operations/telemetry
+/admin/operations/telemetry-simulator
+/admin/operations/connectors
+/admin/operations/connectors/tests
+/admin/operations/maintenance
+/admin/operations/help
+```
+
 ## 30-Minute Local Demo
 
-Use the local app package when you want to see the product shape quickly:
+Use the local app package when a technical helper can start the product shape
+quickly:
 
 ```bash
 make agency-app-up
 ```
 
-Then open:
+Then start no-developer review from:
 
 ```text
 http://localhost:8080/admin/operations
@@ -103,8 +139,8 @@ readiness, and show the next maintenance action. See
 [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md) and
 [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md).
 
-Use the reusable onboarding helper only when a technical helper needs a
-scripted import path for a public GTFS ZIP:
+Use the reusable onboarding helper only as a technical-helper fallback for a
+scripted public GTFS ZIP import path:
 
 ```bash
 make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip

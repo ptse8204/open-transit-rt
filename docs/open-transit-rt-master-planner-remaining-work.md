@@ -19,7 +19,14 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 69 is complete for maintainer product acceptance and UI-first agency usability.
 - Phase 70 is complete for the GitHub Pages product explainer site.
 - Phase 71 is complete for adoption-first productization and no-CLI agency operations.
-- The current default next work is `v0.1.0-rc.1` agency evaluation release-candidate hardening.
+- Phase 72 is complete for bounded `v0.1.0-rc.1` agency evaluation release-candidate hardening review.
+- Phase 72 ended with `needs_review` release-candidate diagnostics, not a release-ready pass.
+- Phase 73 Checkpoint 000001 is complete for documentation-only agency UI acceptance planning.
+- Phase 73 Checkpoint 000002 is complete for local no-developer browser walkthrough review.
+- Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review.
+- Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching.
+- Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze.
+- The current default next work is Phase 73 Checkpoint 000006: close agency UI acceptance review.
 - Evidence/adoption/compliance tracks remain optional and authorization-gated.
 
 Do not claim:
@@ -57,6 +64,27 @@ The key strategy is:
 The next Codex instance should act as the **Master Agent**.
 
 If real spawned sub-agents are available, use them. If not, simulate the roles in clearly labeled sections.
+
+### Model Assignment
+
+Use these model levels for the master/sub-agent workflow:
+
+| Role | Model level |
+| --- | --- |
+| Master Agent | GPT-5.5 x-high |
+| Context / Repo Truth Sub-Agent | GPT-5.5 x-high |
+| Planning Sub-Agent | GPT-5.5 x-high |
+| Implementation Sub-Agent | GPT-5.5 high |
+| QA Sub-Agent | GPT-5.5 high |
+| UI/UX Sub-Agent | GPT-5.5 high |
+| Documentation / Information Architecture Sub-Agent | GPT-5.5 high |
+| Claim-Boundary Sub-Agent | GPT-5.5 high |
+
+If Codex can spawn real sub-agents, assign those model levels to the corresponding agents.
+
+If Codex cannot spawn real sub-agents, simulate the roles in clearly labeled sections and still label each simulated role with the intended model level.
+
+The Master Agent must approve the plan before implementation starts and must approve every checkpoint after reviewing all sub-agent reports. The Master Agent may move forward only when no required edits remain.
 
 ### Master Agent
 
@@ -108,20 +136,24 @@ After every checkpoint, the master must report:
 
 ```text
 Checkpoint:
-Sub-agents used or simulated:
+Sub-agents used or simulated, including intended model level:
 Changed files:
 Validation run:
 Blocked checks:
 Protected path status:
 Consumer tracker status:
 Claim-boundary status:
+Master review:
+Required edits:
 Decision:
 Next checkpoint:
 ```
 
-## 5. Immediate patch before Phase 72
+## 5. Completed immediate patch before Phase 72
 
 ### Phase 71 -- Checkpoint 000005: tighten adoption path labels and phase traceability
+
+Status: complete.
 
 Purpose:
 
@@ -129,6 +161,12 @@ Purpose:
 - Use one label everywhere: `Agency Operations Cockpit / Start Here`.
 - Add a traceability note to `docs/handoffs/phase-69.md` explaining that Phase 69 product work appears to have landed as a bundled implementation commit even though the handoff records a checkpoint ledger. This is a process note, not a product rejection.
 - Do not weaken Phase 69 closeout.
+
+Completion note:
+
+- The first-click label is standardized as `Agency Operations Cockpit / Start Here` in the reviewed README/wiki/docs/UI guidance.
+- The Phase 69 traceability note is explicitly a process traceability note, not a product rejection, and does not weaken Phase 69 closeout.
+- Protected evidence paths, consumer statuses, evidence references, route names, filenames, internal identifiers, and claim boundaries remain unchanged.
 
 Likely files:
 
@@ -175,11 +213,13 @@ git status --short -- docs/evidence/consumer-submissions docs/evidence/captured
 
 ## 6. Remaining roadmap
 
-### Phase 72 — v0.1.0-rc.1 Release Candidate Hardening
+### Completed Phase 72 — v0.1.0-rc.1 Release Candidate Hardening
 
-Goal: prove from a clean checkout that the project can be evaluated as a bounded release candidate.
+Completed result: the project now has a bounded `v0.1.0-rc.1` release-candidate evaluation path, with final closeout still `needs_review`.
 
-This is not a final public release, production-readiness claim, compliance claim, or evidence phase.
+This is not a final public release, release-ready pass, production-readiness claim, compliance claim, or evidence phase.
+
+Remaining `needs_review` items: dirty primary checkout, release package audit `not_checked`, no tag/package/published image, no retained evidence, and the CP000004 browser automation limitation. Consumer tracker statuses remain unchanged as a protected boundary, not a `needs_review` item.
 
 Checkpoint sequence:
 
@@ -193,7 +233,7 @@ Phase 72 -- Checkpoint 000006: prepare rc1 release notes and known blockers
 Phase 72 -- Checkpoint 000007: close rc1 hardening review
 ```
 
-Must cover:
+Covered:
 
 - `make check`
 - `make validate`
@@ -208,6 +248,7 @@ Must cover:
   - `/admin/operations/gtfs-quality`
   - `/admin/operations/validation-health`
   - `/admin/operations/devices`
+  - `/admin/operations/telemetry`
   - `/admin/operations/telemetry-simulator`
   - `/admin/operations/connectors`
   - `/admin/operations/maintenance`
@@ -218,14 +259,14 @@ Must cover:
 - `make audit-final-claim-review`
 - Docker Compose config.
 
-Deliverables:
+Deliverables produced/updated:
 
 - `docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`
 - `docs/handoffs/phase-72.md`
 - updates to `docs/release-candidate-readiness.md`
 - updates to `docs/roadmap-status.md`
 - updates to `docs/handoffs/latest.md`
-- release notes draft for `v0.1.0-rc.1`
+- `docs/release-notes-v0.1.0-rc.1-draft.md`
 - known blockers matrix.
 
 Success condition:
@@ -308,7 +349,7 @@ What this does not prove
 
 Deliverables:
 
-- expanded `wiki/connector-cookbook.md` or `docs/tutorials/connector-recipes.md`;
+- expanded existing `wiki/connector-cookbook.md`;
 - updated `docs/integration-adapter-kit.md`;
 - updated examples README;
 - new conformance fixtures if gaps are found.
@@ -389,7 +430,9 @@ Phase 77 -- Checkpoint 000005: close rc1 candidate cut
 
 Deliverables:
 
-- `docs/releases/v0.1.0-rc.1.md` or release notes draft;
+- release notes draft from existing `docs/release-notes-template.md`; use
+  `docs/release-notes-v0.1.0-rc.1-draft.md` until a future release checkpoint
+  approves a different tagged-release path;
 - local `.cache` source package through existing release package tooling;
 - checksum manifest;
 - SBOM/provenance metadata where existing tools support it;
@@ -478,15 +521,32 @@ Start by reading:
 - docs/evidence/consumer-submissions/status.json
 
 Current truth:
-Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, and Phase 71 are complete. Default next work is v0.1.0-rc.1 release candidate hardening, not evidence intake.
+Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Default next work is Phase 73 Checkpoint 000006 close agency UI acceptance review, not evidence intake.
 
-Before Phase 72, perform:
-Phase 71 -- Checkpoint 000005: tighten adoption path labels and phase traceability
+Model assignment:
+Use these model levels for the master/sub-agent workflow:
 
-Then start:
-Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening
+| Role | Model level |
+| --- | --- |
+| Master Agent | GPT-5.5 x-high |
+| Context / Repo Truth Sub-Agent | GPT-5.5 x-high |
+| Planning Sub-Agent | GPT-5.5 x-high |
+| Implementation Sub-Agent | GPT-5.5 high |
+| QA Sub-Agent | GPT-5.5 high |
+| UI/UX Sub-Agent | GPT-5.5 high |
+| Documentation / Information Architecture Sub-Agent | GPT-5.5 high |
+| Claim-Boundary Sub-Agent | GPT-5.5 high |
 
-Use the master/sub-agent workflow:
+If Codex can spawn real sub-agents, assign those model levels to the corresponding agents.
+
+If Codex cannot spawn real sub-agents, simulate the roles in clearly labeled sections and still label each simulated role with the intended model level.
+
+The Master Agent must approve the plan before implementation starts and must approve every checkpoint after reviewing all sub-agent reports. The Master Agent may move forward only when no required edits remain.
+
+Phase 71 -- Checkpoint 000005 is complete. Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded review with `needs_review` diagnostics. Phase 73 -- Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 -- Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 -- Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 -- Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 -- Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Continue with:
+Phase 73 -- Checkpoint 000006: close agency UI acceptance review
+
+Use the master/sub-agent workflow gate:
 - Context / Repo Truth sub-agent
 - Planning sub-agent
 - Implementation sub-agent
@@ -497,7 +557,7 @@ Use the master/sub-agent workflow:
 
 If real sub-agents are unavailable, simulate those roles in labeled sections.
 
-Do not implement until the master approves the checkpoint plan.
+Do not implement until the Master Agent approves the checkpoint plan. The Implementation Sub-Agent executes only approved checkpoint scope.
 
 Protected paths:
 - docs/evidence/captured/**
@@ -513,42 +573,37 @@ Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, tran
 Forbidden claims:
 No CAL-ITP/Caltrans compliance, agency adoption/approval, consumer submission, consumer acceptance, consumer ingestion/listing/display, final-root readiness, hosted SaaS, production readiness, vendor compatibility, hardware certification, SLA/uptime, or production-grade ETA quality.
 
-Primary Phase 72 goal:
-Prove that a clean checkout can run a bounded release-candidate evaluation: make check, make validate, make test, local app startup, five local public feed fetches, browser-first Operations Console walkthrough, connector/adaptor conformance, off-host diagnostics dry-run, product acceptance audit, and final claim audit.
+Primary Phase 73 CP000006 goal:
+Close the agency UI acceptance review by recording the final acceptance result, remaining blockers, validation, protected path review, consumer tracker boundary, and exact next recommendation after CP000005 docs/wiki navigation freeze. Do not treat Phase 72 as a release-ready pass; clean-checkout release-cut proof remains future release-cut cleanup unless separately authorized.
 
-Required final validation:
+Validation for Phase 73 CP000006:
 git status --short
 git diff --check
 make check
-make validate
-make test
-RUN_LOCAL_APP=true make release-candidate-check
-make external-connection-check
-make adapter-conformance
-make test-connector-examples
 make audit-product-acceptance
 make audit-final-claim-review
-docker compose -f deploy/docker-compose.yml config
 python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
 exact seven-target prepared-only consumer tracker check
 git status --short -- docs/evidence/consumer-submissions docs/evidence/captured
 
 Report after each checkpoint:
 Checkpoint:
-Sub-agents used or simulated:
+Sub-agents used or simulated, including intended model level:
 Changed files:
 Validation run:
 Blocked checks:
 Protected path status:
 Consumer tracker status:
 Claim-boundary status:
+Master review:
+Required edits:
 Decision:
 Next checkpoint:
 ```
 
 ## 9. Master planner verdict
 
-The project should now stop broad planning and move into disciplined release-candidate execution.
+The project should now stop broad planning and move into disciplined Phase 73 agency UI acceptance planning.
 
 The product direction is correct:
 
@@ -556,14 +611,13 @@ The product direction is correct:
 - simple README/wiki/docs;
 - connector maturity;
 - clean install;
-- release-candidate diagnostics;
+- completed release-candidate diagnostics with `needs_review` blockers;
 - claim discipline.
 
-The remaining risk is not lack of roadmap. The remaining risk is incomplete release-candidate proof from a clean checkout.
+The remaining risk is not lack of roadmap. The immediate remaining risk is whether the browser-first agency path is acceptance-ready without maintainer narration. Clean-checkout release-cut proof remains separate future release-cut cleanup.
 
 The next master-agent action is:
 
 ```text
-Patch Phase 71 label/traceability consistency.
-Then start Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening.
+Continue Phase 73 -- Checkpoint 000006: close agency UI acceptance review.
 ```

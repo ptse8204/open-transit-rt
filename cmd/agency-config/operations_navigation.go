@@ -18,7 +18,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 		{
 			Label: "Start",
 			Items: []operationsNavItem{
-				{Label: "Dashboard", Href: "/admin/operations", Section: "dashboard"},
+				{Label: "Start Here", Href: "/admin/operations", Section: "dashboard"},
 				{Label: "Launchpad", Href: "/admin/operations/launchpad", Section: "launchpad"},
 				{Label: "Setup Wizard", Href: "/admin/operations/setup-wizard", Section: "setup-wizard"},
 				{Label: "Setup", Href: "/admin/operations/setup", Section: "setup"},
@@ -39,8 +39,8 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			Label: "Realtime operations",
 			Items: []operationsNavItem{
 				{Label: "Telemetry", Href: "/admin/operations/telemetry", Section: "telemetry"},
-				{Label: "Devices", Href: "/admin/operations/devices", Section: "devices"},
-				{Label: "Simulator", Href: "/admin/operations/telemetry-simulator", Section: "telemetry-simulator"},
+				{Label: "Device Credentials", Href: "/admin/operations/devices", Section: "devices"},
+				{Label: "Telemetry Simulator", Href: "/admin/operations/telemetry-simulator", Section: "telemetry-simulator"},
 				{Label: "Alerts", Href: "/admin/alerts/console", Section: "alerts", ExternalAdminSurface: true},
 			},
 		},
@@ -84,4 +84,53 @@ func normalizeOperationsNavSection(section string) string {
 		return "dashboard"
 	}
 	return section
+}
+
+func operationsPageTitle(section string) string {
+	switch normalizeOperationsNavSection(section) {
+	case "dashboard":
+		return "Agency Operations Cockpit / Start Here"
+	case "launchpad":
+		return "Private Agency Launchpad"
+	case "setup-wizard":
+		return "Setup Wizard"
+	case "setup":
+		return "Guided Setup Checklist"
+	case "gtfs-import":
+		return "Browser GTFS Import"
+	case "gtfs-quality":
+		return "GTFS Quality Triage"
+	case "feeds":
+		return "Feed URLs And Validation"
+	case "feed-health":
+		return "Feed Health Dashboard"
+	case "validation-health":
+		return "Validator Health"
+	case "readiness":
+		return "Readiness Checklist V2"
+	case "checklist":
+		return "Private Operator Checklist"
+	case "reliability":
+		return "Operations Reliability"
+	case "maintenance":
+		return "Maintenance Center"
+	case "telemetry":
+		return "Telemetry Freshness"
+	case "telemetry-simulator":
+		return "Telemetry Simulator Guide"
+	case "devices":
+		return "Device Credentials"
+	case "connectors":
+		return "Connector Hub"
+	case "connector-tests":
+		return "Connector Test Instructions"
+	case "consumers":
+		return "Consumer Preparation Tracker"
+	case "evidence":
+		return "Evidence And Runbook Links"
+	case "help":
+		return "Operations Console Help"
+	default:
+		return "Operations Console"
+	}
 }

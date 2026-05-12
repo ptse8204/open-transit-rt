@@ -174,6 +174,29 @@ run_check() {
   fi
 }
 
+run_check_final_blocker_detail() {
+  id="$1"
+  label="$2"
+  command="$3"
+  if [ "$DRY_RUN" = "true" ]; then
+    add_check "$id" "$label" "not_checked" "dry-run: $command"
+    return
+  fi
+  log_cmd "$label" "$command"
+  command_output="$TMP_DIR/$id.out"
+  if sh -c "$command" >"$command_output" 2>&1; then
+    cat "$command_output" >>"$LOG_FILE"
+    add_check "$id" "$label" "passed" "completed"
+  else
+    cat "$command_output" >>"$LOG_FILE"
+    detail="$(awk 'NF { line = $0 } END { print line }' "$command_output" | tr '\t' ' ')"
+    if [ -z "$detail" ]; then
+      detail="command failed for $id; see check-log.txt"
+    fi
+    add_check "$id" "$label" "blocker" "$detail"
+  fi
+}
+
 file_check() {
   id="$1"
   label="$2"
@@ -245,7 +268,7 @@ else
 fi
 
 run_check "compose_config" "Docker Compose config" "docker compose -f deploy/docker-compose.yml config >/dev/null"
-run_check "validators_check" "Pinned validator install/check" "scripts/check-validators.sh"
+run_check_final_blocker_detail "validators_check" "Pinned validator install/check" "VALIDATOR_TOOLING_MODE=pinned scripts/check-validators.sh"
 run_check "claim_audit" "Final claim audit" "scripts/audit-final-claim-review.sh"
 add_check "validate" "Repository validation command" "not_checked" "run make validate after reviewing this summary; this helper keeps repo output bounded to its five diagnostics files"
 add_check "test" "Go unit tests command" "not_checked" "run make test after reviewing this summary; this helper keeps repo output bounded to its five diagnostics files"
@@ -315,7 +338,9 @@ with checks_path.open() as fh:
     header = fh.readline()
     for line in fh:
         ident, label, status, detail = line.rstrip("\n").split("\t", 3)
-        rows.append({"id": ident, "label": label, "status": status, "detail": detail[:260]})
+        if ident != "validators_check":
+            detail = detail[:260]
+        rows.append({"id": ident, "label": label, "status": status, "detail": detail})
 
 order = {"blocker": 4, "needs_review": 3, "not_checked": 2, "passed": 1}
 overall = "passed"
