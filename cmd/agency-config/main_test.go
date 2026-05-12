@@ -447,6 +447,94 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 	}
 }
 
+func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
+	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
+	var view operationsCockpitView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode cockpit JSON: %v", err)
+	}
+	assertOperationsCockpitShape(t, view)
+	assertOperationsCockpitFlagsFalse(t, view.ClaimFlags)
+	if view.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
+	}
+	wantCards := []string{"import_update_gtfs", "review_feed_health", "review_gtfs_quality", "run_review_validator_health", "manage_devices_vehicles", "synthetic_telemetry", "realtime_feed_state", "manage_alerts", "connector_readiness", "maintenance_tasks", "support_summary"}
+	var gotCards []string
+	for _, card := range view.PrimaryCards {
+		gotCards = append(gotCards, card.ID)
+	}
+	if strings.Join(gotCards, ",") != strings.Join(wantCards, ",") {
+		t.Fatalf("cards = %v, want %v", gotCards, wantCards)
+	}
+	for _, forbidden := range []string{"compliance achieved", "consumer accepted", "agency approved", "hosted SaaS", "production ready", "vendor compatible"} {
+		if strings.Contains(strings.ToLower(rr.Body.String()), strings.ToLower(forbidden)) {
+			t.Fatalf("cockpit JSON contains forbidden claim %q: %s", forbidden, rr.Body.String())
+		}
+	}
+
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodDelete} {
+		req := httptest.NewRequest(method, "/admin/operations.json", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("%s status = %d, want 405", method, rr.Code)
+		}
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict status = %d, want 403", rr.Code)
+	}
+}
+
+func TestOperationsCockpitHTMLShowsNoCLIPrimaryFlow(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Agency Operations Cockpit",
+		"Setup Progress",
+		"Primary Actions",
+		`id="cockpit-card-import_update_gtfs"`,
+		`id="cockpit-card-review_feed_health"`,
+		`id="cockpit-card-review_gtfs_quality"`,
+		`id="cockpit-card-run_review_validator_health"`,
+		`id="cockpit-card-manage_devices_vehicles"`,
+		`id="cockpit-card-realtime_feed_state"`,
+		`id="cockpit-card-maintenance_tasks"`,
+		"What should I do next?",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("cockpit HTML missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"compliance achieved", "consumer accepted", "agency approved", "hosted SaaS", "production ready", "vendor compatible"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("cockpit HTML contains forbidden claim %q: %s", forbidden, body)
+		}
+	}
+}
+
 func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 	store := &fakePublicationStore{
 		discoveryErr:         errors.New("no feed config"),
@@ -2183,6 +2271,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		"/admin/operations/gtfs-quality",
 		"/admin/operations/validation-health",
 		"/admin/operations/reliability",
+		"/admin/operations/maintenance",
 		"/admin/operations/telemetry",
 		"/admin/operations/telemetry-simulator",
 		"/admin/operations/devices",
@@ -3521,6 +3610,80 @@ func TestOperationsReliabilityJSONShapeOrderMissingFlagsAndNoLeakage(t *testing.
 	}
 }
 
+func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testing.T) {
+	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
+	t.Setenv("BACKUP_DIR", "/private/withheld")
+	now := time.Date(2026, 5, 12, 12, 0, 0, 0, time.UTC)
+	store := feedHealthTestStore(t)
+	store.discovery.GeneratedAt = now
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations/maintenance", "/admin/operations/maintenance.json"} {
+		req := httptest.NewRequest(http.MethodGet, path+"?agency_id=demo-agency", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+			t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+		}
+	}
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/maintenance.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	var view operationsMaintenanceView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode maintenance JSON: %v", err)
+	}
+	assertMaintenanceShape(t, view)
+	assertMaintenanceFlagsFalse(t, view.ClaimFlags)
+	wantRows := []string{"deployed_version", "active_feed_version", "last_gtfs_import", "last_five_feed_check", "validator_state", "backup_configuration", "restore_drill_configuration", "telemetry_freshness", "service_health"}
+	var gotRows []string
+	for _, row := range view.SummaryRows {
+		gotRows = append(gotRows, row.ID)
+	}
+	if strings.Join(gotRows, ",") != strings.Join(wantRows, ",") {
+		t.Fatalf("maintenance rows = %v, want %v", gotRows, wantRows)
+	}
+	if view.SupportSummary.OutputPath != ".cache/support-bundle/<timestamp>" {
+		t.Fatalf("support output path = %q, want timestamp placeholder", view.SupportSummary.OutputPath)
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundle/"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("maintenance JSON missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"/private/withheld", "postgres://", "Authorization", "Bearer ", "consumer accepted", "production ready", "compliance achieved", "sla_covered"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("maintenance JSON leaked or overclaimed %q: %s", forbidden, body)
+		}
+	}
+
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodDelete} {
+		req := httptest.NewRequest(method, "/admin/operations/maintenance", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("%s status = %d, want 405", method, rr.Code)
+		}
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/maintenance?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/maintenance.json", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public maintenance route status = %d, want 404", rr.Code)
+	}
+}
+
 func TestValidationHealthJSONContractOrderAndNoLeakage(t *testing.T) {
 	now := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
 	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
@@ -4661,13 +4824,93 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 	}
 }
 
+func assertOperationsCockpitShape(t *testing.T, view operationsCockpitView) {
+	t.Helper()
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.SetupProgress) != 8 || len(view.PrimaryCards) != 11 {
+		t.Fatalf("invalid cockpit shape: %+v", view)
+	}
+	seen := map[string]bool{}
+	for _, row := range view.SetupProgress {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.NextAction == "" || row.AdminLink == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid cockpit progress row: %+v", row)
+		}
+		if seen["progress:"+row.ID] {
+			t.Fatalf("duplicate cockpit progress id %q", row.ID)
+		}
+		seen["progress:"+row.ID] = true
+		if !strings.HasPrefix(row.AdminLink, "/admin/") {
+			t.Fatalf("unsafe progress admin link %q", row.AdminLink)
+		}
+	}
+	for _, card := range view.PrimaryCards {
+		if card.ID == "" || card.Label == "" || card.Status == "" || card.CurrentSignal == "" || card.NextAction == "" || card.AdminLink == "" || card.DoesNotProve == "" {
+			t.Fatalf("invalid cockpit card: %+v", card)
+		}
+		if seen["card:"+card.ID] {
+			t.Fatalf("duplicate cockpit card id %q", card.ID)
+		}
+		seen["card:"+card.ID] = true
+		if !strings.HasPrefix(card.AdminLink, "/admin/") {
+			t.Fatalf("unsafe card admin link %q", card.AdminLink)
+		}
+		for _, link := range card.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("unsafe card docs link %q", link)
+			}
+		}
+	}
+}
+
+func assertOperationsCockpitFlagsFalse(t *testing.T, flags operationsCockpitClaimFlag) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("cockpit flags must all be false: %+v", flags)
+	}
+}
+
+func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
+	t.Helper()
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || len(view.Tasks) != 7 {
+		t.Fatalf("invalid maintenance shape: %+v", view)
+	}
+	seen := map[string]bool{}
+	for _, row := range view.SummaryRows {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid maintenance row: %+v", row)
+		}
+		if seen["row:"+row.ID] {
+			t.Fatalf("duplicate maintenance row id %q", row.ID)
+		}
+		seen["row:"+row.ID] = true
+	}
+	for _, task := range view.Tasks {
+		if task.ID == "" || task.Cadence == "" || task.Task == "" || task.Status == "" || task.Owner == "" || task.NextStep == "" {
+			t.Fatalf("invalid maintenance task: %+v", task)
+		}
+		if seen["task:"+task.ID] {
+			t.Fatalf("duplicate maintenance task id %q", task.ID)
+		}
+		seen["task:"+task.ID] = true
+	}
+	if view.SupportSummary.Status == "" || view.SupportSummary.Command == "" || view.SupportSummary.OutputPath == "" || len(view.SupportSummary.Instructions) == 0 {
+		t.Fatalf("invalid maintenance support summary: %+v", view.SupportSummary)
+	}
+}
+
+func assertMaintenanceFlagsFalse(t *testing.T, flags operationsMaintenanceClaimFlags) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.HostedSaaSClaimed || flags.AgencyAdoptionClaimed || flags.ConsumerAcceptanceClaimed || flags.VendorCompatibilityClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("maintenance flags must all be false: %+v", flags)
+	}
+}
+
 func assertFeedHealthShape(t *testing.T, health operationsFeedHealthView) {
 	t.Helper()
 	if health.GeneratedAt.IsZero() || health.AgencyID == "" || health.Boundary == "" || len(health.Rows) != 5 || health.Counts.Rows != 5 {
 		t.Fatalf("invalid feed health shape: %+v", health)
 	}
 	for _, row := range health.Rows {
-		if row.ID == "" || row.Label == "" || row.Status == "" || row.StatusText == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.Freshness == "" || row.ValidatorContext == "" || row.HealthContext == "" || row.NextAction == "" || row.DoesNotProve == "" {
+		if row.ID == "" || row.Label == "" || row.PublicPath == "" || row.ConfiguredURL == "" || row.LastKnownHTTPStatus == "" || row.ByteCount == "" || row.ContentType == "" || row.Checksum == "" || row.LastGenerated == "" || row.LastChecked == "" || row.ValidatorState == "" || row.HealthState == "" || row.Status == "" || row.StatusText == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.Freshness == "" || row.ValidatorContext == "" || row.HealthContext == "" || row.NextAction == "" || row.DoesNotProve == "" {
 			t.Fatalf("invalid feed health row: %+v", row)
 		}
 		for _, link := range row.AdminLinks {
@@ -4680,6 +4923,9 @@ func assertFeedHealthShape(t *testing.T, health operationsFeedHealthView) {
 				t.Fatalf("row %s has unsafe docs link %q", row.ID, link)
 			}
 		}
+	}
+	if health.RealtimeUsefulness.VehiclePositions.ID != "vehicle_positions" || health.RealtimeUsefulness.TripUpdates.ID != "trip_updates" || health.RealtimeUsefulness.Alerts.ID != "alerts" {
+		t.Fatalf("invalid realtime usefulness shape: %+v", health.RealtimeUsefulness)
 	}
 }
 
@@ -5628,6 +5874,10 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	mux := http.NewServeMux()
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/launchpad", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
@@ -5667,6 +5917,14 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))
 	mux.Handle("/admin/operations/reliability.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/maintenance", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/maintenance.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
 	}))

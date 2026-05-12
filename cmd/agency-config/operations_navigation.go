@@ -57,6 +57,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 				{Label: "Readiness", Href: "/admin/operations/readiness", Section: "readiness"},
 				{Label: "Checklist", Href: "/admin/operations/checklist", Section: "checklist"},
 				{Label: "Reliability", Href: "/admin/operations/reliability", Section: "reliability"},
+				{Label: "Maintenance", Href: "/admin/operations/maintenance", Section: "maintenance"},
 			},
 		},
 		{

@@ -53,6 +53,7 @@ type operationsPage struct {
 	ReadinessItems         []readinessItemView
 	ReadinessV2            operationsReadinessV2View
 	Checklist              operatorChecklistView
+	Cockpit                operationsCockpitView
 	FirstRun               operationsFirstRunView
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
@@ -61,8 +62,10 @@ type operationsPage struct {
 	Help                   operationsHelpView
 	ContextHelp            operationsContextHelp
 	FeedHealth             operationsFeedHealthView
+	Maintenance            operationsMaintenanceView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
+	GTFSImportSource       gtfsImportSourceReview
 	GTFSImportNotice       string
 	GTFSImportError        string
 	GTFSQuality            compliance.GTFSQualityTriage
@@ -197,6 +200,15 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderOperations(w, r, "dashboard")
+		return
+	}
+	if r.URL.Path == "/admin/operations.json" {
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderOperationsCockpitJSON(w, r)
 		return
 	}
 	trimmed := strings.Trim(strings.TrimPrefix(r.URL.Path, "/admin/operations/"), "/")
@@ -376,6 +388,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderReliabilityJSON(w, r)
+	case "maintenance":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderMaintenance(w, r)
+	case "maintenance.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderMaintenanceJSON(w, r)
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
@@ -402,6 +428,15 @@ func (h *handler) renderOperations(w http.ResponseWriter, r *http.Request, secti
 	}
 	page := h.buildOperationsPage(r, principal, section)
 	renderOperationsTemplate(w, section, page)
+}
+
+func (h *handler) renderOperationsCockpitJSON(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "dashboard")
+	writeJSON(w, http.StatusOK, page.Cockpit)
 }
 
 func (h *handler) renderGTFSQuality(w http.ResponseWriter, r *http.Request) {
@@ -447,6 +482,24 @@ func (h *handler) renderReliabilityJSON(w http.ResponseWriter, r *http.Request) 
 	}
 	page := h.buildOperationsPage(r, principal, "reliability")
 	writeJSON(w, http.StatusOK, page.Reliability)
+}
+
+func (h *handler) renderMaintenance(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "maintenance")
+	renderOperationsTemplate(w, "maintenance", page)
+}
+
+func (h *handler) renderMaintenanceJSON(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "maintenance")
+	writeJSON(w, http.StatusOK, page.Maintenance)
 }
 
 func (h *handler) operationsValidationHealthPost(w http.ResponseWriter, r *http.Request) {
@@ -826,6 +879,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedHealth = buildOperationsFeedHealth(page)
+	page.Maintenance = buildOperationsMaintenance(page)
 	page.SetupSteps = setupSteps(page)
 	page.ReadinessItems = readinessItems(page)
 	page.ReadinessV2 = buildOperationsReadinessV2(page)
@@ -836,6 +890,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
 	page.ConnectorTests = buildConnectorTests(page)
+	page.Cockpit = buildOperationsCockpit(page)
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
 	page.ContextHelp = page.Help.ContextualHelp
 	return page
@@ -1805,17 +1860,25 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{define "dashboard"}}
 {{template "layoutStart" .}}
 <div class="hero">
-<h2>Agency Operations Home</h2>
-<p>Start with setup, GTFS, telemetry, feed health, readiness, and connector options. This private console is an operator workflow; it creates no retained evidence and records no approval, compliance, consumer, hosted-service, vendor, SLA, or production-grade ETA outcome.</p>
+<h2>Agency Operations Cockpit</h2>
+<p>{{.Cockpit.Boundary}}</p>
+<p><a href="/admin/operations.json">Export private cockpit JSON</a> · <a href="/admin/operations/maintenance">Open maintenance center</a></p>
 </div>
 {{template "firstRunPanel" .FirstRun}}
-<div class="card-grid" aria-label="Primary operations actions">
-<section class="card"><h3>Start setup</h3><p>Walk through agency profile, GTFS, feeds, telemetry, validators, connectors, and readiness.</p><p><a href="/admin/operations/setup-wizard">Open setup wizard</a></p></section>
-<section class="card"><h3>Import GTFS</h3><p>Use an admin-only browser path for ZIP upload or safe URL import, with the existing importer and validation feedback.</p><p><a href="/admin/operations/gtfs-import">Open GTFS import</a></p></section>
-<section class="card"><h3>Check feed health</h3><p>Use the five-path command center for feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts.</p><p><a href="/admin/operations/feed-health">Open feed health</a></p></section>
-<section class="card"><h3>Connect telemetry</h3><p>Rotate device credentials and inspect latest accepted vehicle observations.</p><p><a href="/admin/operations/devices">Manage devices</a></p></section>
-<section class="card"><h3>Try synthetic telemetry</h3><p>Use committed simulator scenarios from the browser guide, then run copyable commands from an operator shell.</p><p><a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p></section>
-<section class="card"><h3>Use connectors</h3><p>Choose sidecar, manifest, command-adapter, and conformance paths without dynamic backend code loading.</p><p><a href="/admin/operations/connectors">Open Connector Hub</a></p></section>
+<h2>Setup Progress</h2>
+<table><thead><tr><th>ID</th><th>Area</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .Cockpit.SetupProgress}}<tr id="cockpit-progress-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td><span class="pill">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td><a href="{{.AdminLink}}">{{.NextAction}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h2>Primary Actions</h2>
+<div class="card-grid" aria-label="Primary agency operations actions">
+{{range .Cockpit.PrimaryCards}}<section class="card" id="cockpit-card-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p class="status">{{.Status}}</p>
+<p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
+<p><strong>What should I do next?</strong> <a href="{{.AdminLink}}">{{.NextAction}}</a></p>
+<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+{{if .DocsLinks}}<p>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</p>{{end}}
+</section>{{end}}
 </div>
 <h2>Readiness</h2>
 {{if .DiscoveryError}}<p class="warning">{{.DiscoveryError}}. Next action: bootstrap publication metadata after a feed is available.</p>{{else}}
@@ -1840,6 +1903,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
 <tr><td>Validator health</td><td>{{.ValidationHealth.OverallStatus}} overall; tooling {{.ValidationHealth.ToolingStatus}}</td><td>{{formatTime .ValidationHealth.GeneratedAt}}</td><td><a href="/admin/operations/validation-health">review private validator diagnostics</a> · <a href="/admin/operations/validation-health.json">JSON</a></td></tr>
 <tr><td>Operations reliability</td><td>{{.Reliability.OverallStatus}} overall</td><td>{{formatTime .Reliability.GeneratedAt}}</td><td><a href="/admin/operations/reliability">review private reliability diagnostics</a> · <a href="/admin/operations/reliability.json">JSON</a></td></tr>
+<tr><td>Maintenance center</td><td>{{.Maintenance.OverallStatus}} overall</td><td>{{formatTime .Maintenance.GeneratedAt}}</td><td><a href="/admin/operations/maintenance">review maintenance tasks</a> · <a href="/admin/operations/maintenance.json">JSON</a></td></tr>
 <tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessV2.Rows}} checklist v2 rows</td><td>{{formatTime .ReadinessV2.GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a> · <a href="/admin/operations/readiness.json">export JSON</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Telemetry simulator guide</td><td>{{if .TelemetrySimulator.LoadError}}{{.TelemetrySimulator.LoadError}}{{else}}{{len .TelemetrySimulator.Scenarios}} synthetic scenarios{{end}}</td><td>{{formatTime .TelemetrySimulator.GeneratedAt}}</td><td><a href="/admin/operations/telemetry-simulator">review simulator commands</a> · <a href="/admin/operations/telemetry-simulator.json">export JSON</a></td></tr>
@@ -1859,7 +1923,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{define "launchpad"}}
 {{template "layoutStart" .}}
 <h2>Private Agency Launchpad</h2>
-<p class="warning">This launchpad is private operator diagnostics. It creates no evidence, contacts no external party, changes no consumer status, and records no approval, compliance, public launch, hosted SaaS, vendor, SLA, or production-grade ETA claim.</p>
+<p class="warning">This launchpad is private operator diagnostics. It creates no evidence, contacts no external party, changes no consumer status, and records no approval, compliance, public launch, hosted service, vendor, SLA, or production-grade ETA claim.</p>
 <p><a href="/admin/operations/launchpad.json">Export private launchpad JSON</a> · <a href="/admin/operations/checklist">Open private checklist</a> · <a href="/admin/operations/readiness">Open readiness review</a></p>
 {{template "firstRunPanel" .FirstRun}}
 <table><tbody>
@@ -2008,6 +2072,26 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p class="warning">Private admin-only import path. Raw GTFS ZIP bytes are written to temporary runtime storage for the import attempt and then removed. This page creates no retained evidence, contacts no consumers, records no agency approval, and makes no CAL-ITP/Caltrans compliance, public launch, hosted-service, vendor compatibility, production-readiness, or production-grade ETA claim.</p>
 {{if .GTFSImportNotice}}<p class="ok">{{.GTFSImportNotice}}</p>{{end}}
 {{if .GTFSImportError}}<p class="bad">{{.GTFSImportError}}</p>{{end}}
+<h3>Current Active Schedule</h3>
+<table><tbody>
+<tr><th>Active feed version</th><td>{{if .ActiveFeedVersion}}<code>{{.ActiveFeedVersion}}</code>{{else}}missing active schedule{{end}}</td></tr>
+<tr><th>Schedule source review</th><td>Use this page to compare a new import's row counts and validation blockers with the current active schedule. Full staged diff and browser rollback execution are not available yet.</td></tr>
+<tr><th>Rollback visibility</th><td>The active feed version is visible here. Prior feed-version listing and rollback execution remain technical-helper workflows until a safe browser rollback view is implemented.</td></tr>
+</tbody></table>
+{{if .GTFSImportSource.SourceType}}
+<h3>GTFS Source Review</h3>
+<table><tbody>
+<tr><th>Source type</th><td>{{.GTFSImportSource.SourceType}}</td></tr>
+<tr><th>Source URL</th><td>{{.GTFSImportSource.SourceURL}}</td></tr>
+<tr><th>Checksum SHA-256</th><td>{{.GTFSImportSource.ChecksumSHA256}}</td></tr>
+<tr><th>Byte count</th><td>{{.GTFSImportSource.ByteCount}}</td></tr>
+<tr><th>Import timestamp</th><td>{{formatTimePtr .GTFSImportSource.ImportTimestamp}}</td></tr>
+<tr><th>Active feed version after import</th><td>{{if .GTFSImportSource.ActiveFeedVersion}}<code>{{.GTFSImportSource.ActiveFeedVersion}}</code>{{else}}not available{{end}}</td></tr>
+<tr><th>Schedule identity summary</th><td>{{.GTFSImportSource.ScheduleIdentitySummary}}</td></tr>
+<tr><th>Update comparison</th><td>{{.GTFSImportSource.UpdateComparison}}</td></tr>
+<tr><th>Rollback visibility</th><td>{{.GTFSImportSource.RollbackVisibility}}</td></tr>
+</tbody></table>
+{{end}}
 {{if .GTFSImportResult}}
 <h3>Last Import Attempt From This Page</h3>
 <table><tbody>
@@ -2020,7 +2104,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <tr><th>Validation report stored</th><td>{{.GTFSImportResult.ReportStored}}</td></tr>
 {{if .GTFSImportResult.FailureMessage}}<tr><th>Failure message</th><td>{{.GTFSImportResult.FailureMessage}}</td></tr>{{end}}
 </tbody></table>
-{{if .GTFSImportResult.Counts}}<table><thead><tr><th>GTFS file</th><th>Rows</th></tr></thead><tbody>{{range .GTFSImportResult.Counts}}<tr><td>{{.Label}}</td><td>{{.Count}}</td></tr>{{end}}</tbody></table>{{end}}
+{{if .GTFSImportResult.Counts}}<h3>Import Counts</h3><table><thead><tr><th>GTFS file</th><th>Rows</th></tr></thead><tbody>{{range .GTFSImportResult.Counts}}<tr><td>{{.Label}}</td><td>{{.Count}}</td></tr>{{end}}</tbody></table>{{end}}
 {{end}}
 {{if .IsAdmin}}
 <div class="card-grid" aria-label="GTFS import options">
@@ -2054,6 +2138,9 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <table><tbody>
 <tr><th>Validation feedback</th><td><a href="/admin/operations/gtfs-quality">Review GTFS quality triage</a> and stored import validation messages before relying on the feed.</td></tr>
 <tr><th>Feed health</th><td><a href="/admin/operations/feed-health">Review the five-path feed health command center</a> after a successful publish.</td></tr>
+<tr><th>Validator health</th><td><a href="/admin/operations/validation-health">Run or review allowlisted validator health</a>; browser requests cannot supply validator commands, paths, URLs, argument lists, binaries, artifacts, or timeouts.</td></tr>
+<tr><th>Update decision</th><td>Compare current active schedule, new import counts, warnings, and blockers. If staged comparison is required, use a technical helper until browser staging comparison is implemented.</td></tr>
+<tr><th>Rollback</th><td>Use the active feed version shown above and the operator rollback documentation. This page does not fake a rollback button.</td></tr>
 <tr><th>Typed edits</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> when an agency needs draft authoring instead of ZIP import.</td></tr>
 <tr><th>CLI fallback</th><td>Keep using the documented CLI import path for large files, scripted imports, or runtimes where browser import is unavailable.</td></tr>
 </tbody></table>
@@ -2109,6 +2196,15 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <section class="card">
 <h3>{{.Label}}</h3>
 {{if .PublicPath}}<p><strong>Public path:</strong> <code>{{.PublicPath}}</code></p>{{end}}
+<p><strong>Configured URL:</strong> <code>{{.ConfiguredURL}}</code></p>
+<p><strong>Last known HTTP status:</strong> {{.LastKnownHTTPStatus}}</p>
+<p><strong>Byte count:</strong> {{.ByteCount}}</p>
+<p><strong>Content type:</strong> {{.ContentType}}</p>
+<p><strong>Checksum:</strong> {{.Checksum}}</p>
+<p><strong>Last generated:</strong> {{.LastGenerated}}</p>
+<p><strong>Last checked:</strong> {{.LastChecked}}</p>
+<p><strong>Validator state:</strong> {{.ValidatorState}}</p>
+<p><strong>Health state:</strong> {{.HealthState}}</p>
 <p class="status">{{.StatusText}} <span class="pill">{{.Status}}</span></p>
 <p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
 <p><strong>What this means:</strong> {{.WhatThisMeans}}</p>
@@ -2121,6 +2217,12 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{if .DocsLinks}}<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>{{end}}
 </section>
 {{end}}
+</div>
+<h3>Realtime Usefulness</h3>
+<div class="card-grid" aria-label="Realtime usefulness rows">
+<section class="card" id="realtime-usefulness-vehicle-positions"><h3>{{.FeedHealth.RealtimeUsefulness.VehiclePositions.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.VehiclePositions.State}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.LatestSignal}}</p><p><strong>Stale or suppressed:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.StaleOrHeld}}</p><p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.VehiclePositions.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.VehiclePositions.NextAction}}</a></p><p><strong>Does not prove:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.DoesNotProve}}</p></section>
+<section class="card" id="realtime-usefulness-trip-updates"><h3>{{.FeedHealth.RealtimeUsefulness.TripUpdates.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.TripUpdates.State}}</p><p><strong>Adapter:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.Adapter}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.LatestSignal}}</p><p><strong>Withheld / stale:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.StaleOrHeld}}</p>{{if .FeedHealth.RealtimeUsefulness.TripUpdates.Details}}<p><strong>Withheld reasons:</strong> {{range .FeedHealth.RealtimeUsefulness.TripUpdates.Details}}<span class="pill">{{.Label}}: {{.Count}}</span> {{end}}</p>{{end}}<p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.TripUpdates.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.TripUpdates.NextAction}}</a></p><p><strong>Does not prove:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.DoesNotProve}}</p></section>
+<section class="card" id="realtime-usefulness-alerts"><h3>{{.FeedHealth.RealtimeUsefulness.Alerts.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.Alerts.State}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.LatestSignal}}</p><p><strong>Stale or held:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.StaleOrHeld}}</p><p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.Alerts.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.Alerts.NextAction}}</a></p><p><strong>Does not prove:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.DoesNotProve}}</p></section>
 </div>
 <p class="muted">This dashboard summarizes existing private records only. Missing records stay missing or unknown until the underlying source records change.</p>
 {{template "layoutEnd" .}}
@@ -2194,6 +2296,11 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{if .ValidationHealthNotice}}<p class="ok">{{.ValidationHealthNotice}}</p>{{end}}
 {{if .ValidationHealthError}}<p class="bad">{{.ValidationHealthError}}</p>{{end}}
 <p class="warning">This page is private diagnostics only. It does not create evidence packets, contact consumers, change consumer statuses, claim CAL-ITP/Caltrans compliance, or claim production readiness.</p>
+<div class="card-grid">
+<section class="card"><h3>Internal import validation</h3><p>Open Transit RT importer checks required GTFS structure and blocks unsafe activation paths. It helps explain import failures, but it is not the canonical MobilityData validator.</p></section>
+<section class="card"><h3>Canonical static validation</h3><p>MobilityData static GTFS validation reviews the active schedule artifact when pinned tooling is installed and the schedule artifact is available.</p></section>
+<section class="card"><h3>GTFS-Realtime validation</h3><p>Realtime validation reviews server-owned Vehicle Positions, Trip Updates, and Alerts protobuf artifacts. Browser requests cannot supply commands, paths, argument lists, artifacts, validator binaries, URLs, or timeouts.</p></section>
+</div>
 <table><tbody>
 <tr><th>Overall status</th><td>{{.ValidationHealth.OverallStatus}}</td></tr>
 <tr><th>Tooling status</th><td>{{.ValidationHealth.ToolingStatus}}</td></tr>
@@ -2220,7 +2327,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Operations Reliability</h2>
 {{if .ReliabilityError}}<p class="warning">{{.ReliabilityError}}.</p>{{end}}
-<p class="warning">This page is private operations diagnostics only. It does not create evidence, change consumer statuses, claim compliance, claim production readiness, claim SLA coverage, guarantee uptime, claim hosted SaaS availability, claim agency adoption, claim consumer acceptance, claim vendor compatibility, or claim production-grade ETA quality.</p>
+<p class="warning">This page is private operations diagnostics only. It does not create evidence, change consumer statuses, claim compliance, claim production readiness, claim SLA coverage, guarantee uptime, claim hosted service availability, claim agency adoption, claim consumer acceptance, claim vendor compatibility, or claim production-grade ETA quality.</p>
 <table><tbody>
 <tr><th>Overall status</th><td>{{.Reliability.OverallStatus}}</td></tr>
 <tr><th>Generated at</th><td>{{formatTime .Reliability.GeneratedAt}}</td></tr>
@@ -2322,6 +2429,10 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Telemetry Freshness</h2>
 <p>Stale threshold: {{.StaleThreshold}}</p>
+<div class="card-grid">
+<section class="card"><h3>Make Vehicle Positions non-empty</h3><p>Create or rotate a device token, configure a device or synthetic simulator from an operator shell, send accepted telemetry to <code>/v1/telemetry</code>, then review this page and Feed Health.</p></section>
+<section class="card"><h3>Why Trip Updates may be empty</h3><p>Trip Updates can be empty when telemetry is missing or stale, assignment confidence is too low, a vehicle is unknown, or the prediction adapter withholds output. Prefer empty or unknown over false certainty.</p></section>
+</div>
 {{if .TelemetryError}}<p class="warning">{{.TelemetryError}}. Next action: confirm the telemetry service and database are running.</p>{{else if not .Telemetry}}<p class="warning">No telemetry has been accepted yet. Next action: create or rotate a device token, configure the device, then send a sample telemetry event.</p>{{else}}
 <table><thead><tr><th>Vehicle</th><th>Device</th><th>Observed</th><th>Age seconds</th><th>Freshness</th><th>Assignment</th><th>Trip</th><th>Route</th><th>Confidence</th><th>Reasons</th><th>Assignment time</th></tr></thead><tbody>
 {{range .Telemetry}}<tr><td>{{.VehicleID}}</td><td>{{.DeviceID}}</td><td>{{formatTime .ObservedAt}}</td><td>{{.AgeSeconds}}</td><td>{{if .Stale}}stale{{else}}fresh{{end}}</td><td>{{if .AssignmentState}}{{.AssignmentState}}{{else}}not available{{end}}{{if .DegradedState}} / {{.DegradedState}}{{end}}</td><td>{{.TripID}}</td><td>{{.RouteID}}</td><td>{{.Confidence}}</td><td>{{join .ReasonCodes ", "}}</td><td>{{formatTimePtr .AssignmentAt}}</td></tr>{{end}}
@@ -2374,6 +2485,11 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Device Credentials</h2>
 <p class="warning">Device tokens are secrets. Store a one-time token immediately; it will not be shown again by this console.</p>
 <p>The supported browser flow is rotate/rebind. If a device has no credential yet, this uses the existing rebind API path.</p>
+<div class="card-grid">
+<section class="card"><h3>Token status</h3><p>The table shows credential status and dates, never stored token values. New tokens are shown only once after an admin rotate/rebind action.</p></section>
+<section class="card"><h3>Vehicle binding</h3><p>Each device row links a device to a vehicle, latest accepted telemetry time, freshness, assignment state, match confidence where available, and a next action.</p></section>
+<section class="card"><h3>Realtime setup</h3><p>Vehicle Positions need accepted fresh telemetry. Trip Updates may still be empty until matching confidence and prediction diagnostics justify output.</p></section>
+</div>
 <h3>Guided Onboarding Use Cases</h3>
 <div class="card-grid">
 {{range .DeviceOnboarding}}<section class="card"><h3>{{.Name}}</h3><p>{{.When}}</p><p><strong>Next:</strong> {{.NextStep}}</p>{{if .AdminOnly}}<p class="muted">Admin required.</p>{{end}}</section>{{end}}
@@ -2400,6 +2516,40 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutEnd" .}}
 {{end}}
 
+{{define "maintenance"}}
+{{template "layoutStart" .}}
+<h2>Maintenance Center</h2>
+<p class="warning">{{.Maintenance.Boundary}}</p>
+<p><a href="/admin/operations/maintenance.json">Export private maintenance JSON</a> · <a href="/admin/operations/feed-health">Open feed health</a> · <a href="/admin/operations/validation-health">Open validator health</a></p>
+<table><tbody>
+<tr><th>Overall status</th><td>{{.Maintenance.OverallStatus}}</td></tr>
+<tr><th>Generated at</th><td>{{formatTime .Maintenance.GeneratedAt}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.Maintenance.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.Maintenance.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.Maintenance.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.Maintenance.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>sla_claimed</code></th><td>{{.Maintenance.ClaimFlags.SLAClaimed}}</td></tr>
+<tr><th><code>uptime_guarantee_claimed</code></th><td>{{.Maintenance.ClaimFlags.UptimeGuaranteeClaimed}}</td></tr>
+</tbody></table>
+<h3>Summary</h3>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Maintenance.SummaryRows}}<tr id="maintenance-row-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Next Maintenance Tasks</h3>
+<table><thead><tr><th>ID</th><th>Cadence</th><th>Task</th><th>Status</th><th>Owner</th><th>Next step</th></tr></thead><tbody>
+{{range .Maintenance.Tasks}}<tr id="maintenance-task-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Cadence}}</td><td>{{.Task}}</td><td>{{.Status}}</td><td>{{.Owner}}</td><td>{{.NextStep}}</td></tr>{{end}}
+</tbody></table>
+<h3>Support Summary</h3>
+<table><tbody>
+<tr><th>Status</th><td>{{.Maintenance.SupportSummary.Status}}</td></tr>
+<tr><th>Command</th><td><code>{{.Maintenance.SupportSummary.Command}}</code></td></tr>
+<tr><th>Private output path</th><td><code>{{.Maintenance.SupportSummary.OutputPath}}</code></td></tr>
+<tr><th>Instructions</th><td>{{range .Maintenance.SupportSummary.Instructions}}<p>{{.}}</p>{{end}}</td></tr>
+</tbody></table>
+<p class="muted">Use this page for routine private maintenance decisions. It intentionally says not configured or not available instead of treating missing records as ok.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
 {{define "consumers"}}
 {{template "layoutStart" .}}
 <h2>Consumer Submission Evidence</h2>
@@ -2423,7 +2573,7 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <table><thead><tr><th>Record</th><th>Repo file path</th><th>Last updated</th></tr></thead><tbody>
 {{range .Links}}<tr><td>{{.Label}}</td><td><code>{{.Path}}</code></td><td>{{.UpdatedAt}}</td></tr>{{end}}
 </tbody></table>
-<p class="muted">These links help operators find repo/deployment evidence. They do not assert consumer acceptance, hosted SaaS availability, agency endorsement, or universal production readiness.</p>
+<p class="muted">These links help operators find repo/deployment evidence. They do not assert consumer acceptance, hosted service availability, agency endorsement, or universal production readiness.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

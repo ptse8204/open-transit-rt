@@ -136,7 +136,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 			"Review connector boundaries before connecting optional external systems.",
 			"/admin/operations/connectors",
 			[]string{"docs/connectors/plugin-contract.md", "docs/tutorials/external-adapter-conformance.md", "docs/integration-adapter-kit.md"},
-			"Connector setup does not claim vendor compatibility, external acceptance, hosted SaaS, or production ETA quality.",
+			"Connector setup does not claim vendor compatibility, external acceptance, hosted service availability, or production ETA quality.",
 		),
 		setupWizardStage(
 			"readiness",

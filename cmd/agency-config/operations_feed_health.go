@@ -11,29 +11,59 @@ import (
 )
 
 type operationsFeedHealthView struct {
-	GeneratedAt time.Time                  `json:"generated_at"`
-	AgencyID    string                     `json:"agency_id"`
-	Boundary    string                     `json:"boundary"`
-	Rows        []operationsFeedHealthRow  `json:"rows"`
-	Counts      operationsFeedHealthCounts `json:"counts"`
-	ClaimFlags  operationsFeedHealthClaims `json:"claim_flags"`
+	GeneratedAt        time.Time                        `json:"generated_at"`
+	AgencyID           string                           `json:"agency_id"`
+	Boundary           string                           `json:"boundary"`
+	Rows               []operationsFeedHealthRow        `json:"rows"`
+	RealtimeUsefulness operationsRealtimeUsefulnessView `json:"realtime_usefulness"`
+	Counts             operationsFeedHealthCounts       `json:"counts"`
+	ClaimFlags         operationsFeedHealthClaims       `json:"claim_flags"`
 }
 
 type operationsFeedHealthRow struct {
-	ID               string   `json:"id"`
-	Label            string   `json:"label"`
-	PublicPath       string   `json:"public_path"`
-	Status           string   `json:"status"`
-	StatusText       string   `json:"status_text"`
-	CurrentSignal    string   `json:"current_signal"`
-	WhatThisMeans    string   `json:"what_this_means"`
-	Freshness        string   `json:"freshness"`
-	ValidatorContext string   `json:"validator_context"`
-	HealthContext    string   `json:"health_context"`
-	NextAction       string   `json:"next_action"`
-	DoesNotProve     string   `json:"does_not_prove"`
-	AdminLinks       []string `json:"admin_links"`
-	DocsLinks        []string `json:"docs_links"`
+	ID                  string   `json:"id"`
+	Label               string   `json:"label"`
+	PublicPath          string   `json:"public_path"`
+	ConfiguredURL       string   `json:"configured_url"`
+	LastKnownHTTPStatus string   `json:"last_known_http_status"`
+	ByteCount           string   `json:"byte_count"`
+	ContentType         string   `json:"content_type"`
+	Checksum            string   `json:"checksum"`
+	LastGenerated       string   `json:"last_generated"`
+	LastChecked         string   `json:"last_checked"`
+	ValidatorState      string   `json:"validator_state"`
+	HealthState         string   `json:"health_state"`
+	Status              string   `json:"status"`
+	StatusText          string   `json:"status_text"`
+	CurrentSignal       string   `json:"current_signal"`
+	WhatThisMeans       string   `json:"what_this_means"`
+	Freshness           string   `json:"freshness"`
+	ValidatorContext    string   `json:"validator_context"`
+	HealthContext       string   `json:"health_context"`
+	NextAction          string   `json:"next_action"`
+	DoesNotProve        string   `json:"does_not_prove"`
+	AdminLinks          []string `json:"admin_links"`
+	DocsLinks           []string `json:"docs_links"`
+}
+
+type operationsRealtimeUsefulnessView struct {
+	VehiclePositions operationsRealtimeUsefulnessRow `json:"vehicle_positions"`
+	TripUpdates      operationsRealtimeUsefulnessRow `json:"trip_updates"`
+	Alerts           operationsRealtimeUsefulnessRow `json:"alerts"`
+}
+
+type operationsRealtimeUsefulnessRow struct {
+	ID           string      `json:"id"`
+	Label        string      `json:"label"`
+	State        string      `json:"state"`
+	Count        string      `json:"count"`
+	LatestSignal string      `json:"latest_signal"`
+	StaleOrHeld  string      `json:"stale_or_withheld"`
+	Adapter      string      `json:"adapter,omitempty"`
+	NextAction   string      `json:"next_action"`
+	AdminLink    string      `json:"admin_link"`
+	DoesNotProve string      `json:"does_not_prove"`
+	Details      []countView `json:"details,omitempty"`
 }
 
 type operationsFeedHealthCounts struct {
@@ -81,12 +111,13 @@ func buildOperationsFeedHealth(page operationsPage) operationsFeedHealthView {
 		buildFeedHealthRow(page, "alerts", "Alerts"),
 	}
 	return operationsFeedHealthView{
-		GeneratedAt: page.GeneratedAt,
-		AgencyID:    page.AgencyID,
-		Boundary:    "Private authenticated feed-health dashboard only; viewing it creates no evidence, changes no consumer status, contacts no external party, and records no compliance, SLA, uptime proof, consumer-acceptance, public-launch, or production-readiness outcome.",
-		Rows:        rows,
-		Counts:      feedHealthCounts(rows),
-		ClaimFlags:  operationsFeedHealthClaims{},
+		GeneratedAt:        page.GeneratedAt,
+		AgencyID:           page.AgencyID,
+		Boundary:           "Private authenticated feed-health dashboard only; viewing it creates no evidence, changes no consumer status, contacts no external party, and records no compliance, SLA, uptime proof, consumer-acceptance, public-launch, or production-readiness outcome.",
+		Rows:               rows,
+		RealtimeUsefulness: buildRealtimeUsefulness(page, rows),
+		Counts:             feedHealthCounts(rows),
+		ClaimFlags:         operationsFeedHealthClaims{},
 	}
 }
 
@@ -113,20 +144,29 @@ func buildFeedsJSONHealthRow(page operationsPage) operationsFeedHealthRow {
 		}
 	}
 	return operationsFeedHealthRow{
-		ID:               "feeds_json",
-		Label:            "feeds.json",
-		PublicPath:       feedHealthPublicPath("feeds_json"),
-		Status:           status,
-		StatusText:       statusText,
-		CurrentSignal:    signal,
-		WhatThisMeans:    "The discovery document can tell operators and consumers where the feed URLs and metadata are expected to be.",
-		Freshness:        freshness,
-		ValidatorContext: "feeds.json is not itself a GTFS validator result; review each feed validator row separately.",
-		HealthContext:    "Metadata presence is a readiness signal, not a public fetch or consumer-ingestion proof.",
-		NextAction:       next,
-		DoesNotProve:     "Does not prove consumer acceptance, listing, display, ingestion, final-root ownership, or CAL-ITP/Caltrans compliance.",
-		AdminLinks:       []string{"/admin/operations/feeds", "/admin/operations/setup"},
-		DocsLinks:        []string{"docs/requirements-calitp-compliance.md", "docs/tutorials/calitp-readiness-checklist.md"},
+		ID:                  "feeds_json",
+		Label:               "feeds.json",
+		PublicPath:          feedHealthPublicPath("feeds_json"),
+		ConfiguredURL:       feedsJSONConfiguredURL(page),
+		LastKnownHTTPStatus: "not recorded by the current private feed-health model",
+		ByteCount:           "not recorded by the current private feed-health model",
+		ContentType:         "application/json expected; last observed content type is not recorded",
+		Checksum:            "not recorded by the current private feed-health model",
+		LastGenerated:       formatTimeForText(&page.Discovery.GeneratedAt),
+		LastChecked:         "not recorded separately from feed discovery generation",
+		ValidatorState:      "not a GTFS validator artifact",
+		HealthState:         "metadata readiness only",
+		Status:              status,
+		StatusText:          statusText,
+		CurrentSignal:       signal,
+		WhatThisMeans:       "The discovery document can tell operators and consumers where the feed URLs and metadata are expected to be.",
+		Freshness:           freshness,
+		ValidatorContext:    "feeds.json is not itself a GTFS validator result; review each feed validator row separately.",
+		HealthContext:       "Metadata presence is a readiness signal, not a public fetch or consumer-ingestion proof.",
+		NextAction:          next,
+		DoesNotProve:        "Does not prove consumer acceptance, listing, display, ingestion, final-root ownership, or CAL-ITP/Caltrans compliance.",
+		AdminLinks:          []string{"/admin/operations/feeds", "/admin/operations/setup"},
+		DocsLinks:           []string{"docs/requirements-calitp-compliance.md", "docs/tutorials/calitp-readiness-checklist.md"},
 	}
 }
 
@@ -136,21 +176,102 @@ func buildFeedHealthRow(page operationsPage, feedType string, label string) oper
 	reliability := feedHealthReliabilityRow(page, feedType)
 	status := feedHealthStatus(page, feedType, feed, hasFeed, validation, reliability)
 	return operationsFeedHealthRow{
-		ID:               feedType,
-		Label:            label,
-		PublicPath:       feedHealthPublicPath(feedType),
-		Status:           status,
-		StatusText:       feedHealthStatusText(status),
-		CurrentSignal:    feedHealthCurrentSignal(page, feedType, feed, hasFeed),
-		WhatThisMeans:    feedHealthMeaning(feedType),
-		Freshness:        feedHealthFreshness(feed, hasFeed, reliability),
-		ValidatorContext: feedHealthValidatorContext(validation),
-		HealthContext:    feedHealthHealthContext(page, feedType, feed, hasFeed, reliability),
-		NextAction:       feedHealthNextAction(page, feedType, feed, hasFeed, validation, reliability, status),
-		DoesNotProve:     feedHealthDoesNotProve(feedType),
-		AdminLinks:       feedHealthAdminLinks(feedType),
-		DocsLinks:        feedHealthDocsLinks(feedType),
+		ID:                  feedType,
+		Label:               label,
+		PublicPath:          feedHealthPublicPath(feedType),
+		ConfiguredURL:       feedHealthConfiguredURL(feed, hasFeed),
+		LastKnownHTTPStatus: feedHealthHTTPStatus(reliability),
+		ByteCount:           "not recorded by the current private feed-health model",
+		ContentType:         feedHealthContentType(feedType),
+		Checksum:            "not recorded by the current private feed-health model",
+		LastGenerated:       feedHealthLastGenerated(feed, hasFeed),
+		LastChecked:         feedHealthLastChecked(feed, hasFeed, reliability),
+		ValidatorState:      feedHealthValidatorState(validation),
+		HealthState:         feedHealthHealthState(feed, hasFeed, reliability),
+		Status:              status,
+		StatusText:          feedHealthStatusText(status),
+		CurrentSignal:       feedHealthCurrentSignal(page, feedType, feed, hasFeed),
+		WhatThisMeans:       feedHealthMeaning(feedType),
+		Freshness:           feedHealthFreshness(feed, hasFeed, reliability),
+		ValidatorContext:    feedHealthValidatorContext(validation),
+		HealthContext:       feedHealthHealthContext(page, feedType, feed, hasFeed, reliability),
+		NextAction:          feedHealthNextAction(page, feedType, feed, hasFeed, validation, reliability, status),
+		DoesNotProve:        feedHealthDoesNotProve(feedType),
+		AdminLinks:          feedHealthAdminLinks(feedType),
+		DocsLinks:           feedHealthDocsLinks(feedType),
 	}
+}
+
+func feedsJSONConfiguredURL(page operationsPage) string {
+	if strings.TrimSpace(page.Discovery.PublicBaseURL) == "" {
+		return "not configured"
+	}
+	return strings.TrimRight(page.Discovery.PublicBaseURL, "/") + "/public/feeds.json"
+}
+
+func feedHealthConfiguredURL(feed compliance.FeedMetadata, hasFeed bool) string {
+	if !hasFeed || strings.TrimSpace(feed.CanonicalPublicURL) == "" {
+		return "not configured"
+	}
+	return feed.CanonicalPublicURL
+}
+
+func feedHealthHTTPStatus(row *compliance.ReliabilityFeedRow) string {
+	if row == nil || row.EndpointAvailable == nil {
+		return "not recorded"
+	}
+	if *row.EndpointAvailable {
+		return "endpoint available in private reliability snapshot; exact HTTP status code not recorded"
+	}
+	return "endpoint unavailable in private reliability snapshot; exact HTTP status code not recorded"
+}
+
+func feedHealthContentType(feedType string) string {
+	switch feedType {
+	case "schedule":
+		return "application/zip expected; last observed content type is not recorded"
+	case "vehicle_positions", "trip_updates", "alerts":
+		return "application/x-protobuf expected; last observed content type is not recorded"
+	default:
+		return "not recorded"
+	}
+}
+
+func feedHealthLastGenerated(feed compliance.FeedMetadata, hasFeed bool) string {
+	if !hasFeed || feed.RevisionTimestamp == nil {
+		return "not available"
+	}
+	return formatTimeForText(feed.RevisionTimestamp)
+}
+
+func feedHealthLastChecked(feed compliance.FeedMetadata, hasFeed bool, row *compliance.ReliabilityFeedRow) string {
+	if row != nil && row.SnapshotAt != nil {
+		return formatTimeForText(row.SnapshotAt)
+	}
+	if hasFeed && feed.LastHealthAt != nil {
+		return formatTimeForText(feed.LastHealthAt)
+	}
+	if hasFeed && feed.LastValidationAt != nil {
+		return formatTimeForText(feed.LastValidationAt)
+	}
+	return "not available"
+}
+
+func feedHealthValidatorState(row *compliance.ValidationHealthRow) string {
+	if row == nil {
+		return "not available"
+	}
+	return row.HealthStatus
+}
+
+func feedHealthHealthState(feed compliance.FeedMetadata, hasFeed bool, row *compliance.ReliabilityFeedRow) string {
+	if row != nil {
+		return row.Status
+	}
+	if hasFeed && strings.TrimSpace(feed.LastHealthStatus) != "" {
+		return feed.LastHealthStatus
+	}
+	return "not available"
 }
 
 func feedHealthPublicPath(feedType string) string {
@@ -400,6 +521,104 @@ func feedHealthDocsLinks(feedType string) []string {
 		return []string{"docs/requirements-calitp-compliance.md"}
 	default:
 		return []string{"docs/requirements-calitp-compliance.md"}
+	}
+}
+
+func buildRealtimeUsefulness(page operationsPage, feedRows []operationsFeedHealthRow) operationsRealtimeUsefulnessView {
+	return operationsRealtimeUsefulnessView{
+		VehiclePositions: vehiclePositionsUsefulness(page),
+		TripUpdates:      tripUpdatesUsefulness(page),
+		Alerts:           alertsUsefulness(feedRows),
+	}
+}
+
+func vehiclePositionsUsefulness(page operationsPage) operationsRealtimeUsefulnessRow {
+	state := "unknown"
+	count := "public Vehicle Positions entity count is not recorded"
+	signal := "no accepted latest telemetry rows are available to this console"
+	next := "Create or review device credentials, then send a safe sample telemetry event."
+	if len(page.Telemetry) > 0 {
+		state = "potentially non-empty"
+		count = fmt.Sprintf("%d latest telemetry rows available; public protobuf entity count not recorded", len(page.Telemetry))
+		signal = fmt.Sprintf("latest telemetry %s; stale latest rows=%d", formatTimeForText(page.TelemetryUpdatedAt), page.StaleCount)
+		next = "Review stale/suppressed rows and the public Vehicle Positions feed-health row."
+		if page.StaleCount == len(page.Telemetry) {
+			state = "stale"
+		}
+	}
+	return operationsRealtimeUsefulnessRow{
+		ID:           "vehicle_positions",
+		Label:        "Vehicle Positions",
+		State:        state,
+		Count:        count,
+		LatestSignal: signal,
+		StaleOrHeld:  fmt.Sprintf("%d stale latest telemetry rows", page.StaleCount),
+		NextAction:   next,
+		AdminLink:    "/admin/operations/telemetry",
+		DoesNotProve: "Does not prove real fleet reliability, vendor compatibility, hardware certification, consumer display, or compliance.",
+	}
+}
+
+func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow {
+	if !page.TripUpdatesQuality.Recorded {
+		return operationsRealtimeUsefulnessRow{
+			ID:           "trip_updates",
+			Label:        "Trip Updates",
+			State:        "not recorded",
+			Count:        "Trip Updates diagnostics are not available",
+			LatestSignal: page.TripUpdatesQuality.Message,
+			StaleOrHeld:  "withheld counts are not available until diagnostics are recorded",
+			Adapter:      "not available",
+			NextAction:   "Review telemetry and assignment confidence first; Trip Updates may be empty when prediction output is defensibly withheld.",
+			AdminLink:    "/admin/operations/feeds",
+			DoesNotProve: "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
+		}
+	}
+	state := "generated"
+	if page.TripUpdatesQuality.TripUpdatesEmitted == 0 {
+		state = "empty or withheld"
+	}
+	return operationsRealtimeUsefulnessRow{
+		ID:           "trip_updates",
+		Label:        "Trip Updates",
+		State:        state,
+		Count:        fmt.Sprintf("%d emitted from %d eligible candidates", page.TripUpdatesQuality.TripUpdatesEmitted, page.TripUpdatesQuality.EligiblePredictionCandidates),
+		LatestSignal: fmt.Sprintf("%s/%s at %s", page.TripUpdatesQuality.DiagnosticsStatus, page.TripUpdatesQuality.DiagnosticsReason, formatTimeForText(page.TripUpdatesQuality.SnapshotAt)),
+		StaleOrHeld:  fmt.Sprintf("%d unknown, %d ambiguous, %d stale telemetry rows", page.TripUpdatesQuality.UnknownAssignments, page.TripUpdatesQuality.AmbiguousAssignments, page.TripUpdatesQuality.StaleTelemetryRows),
+		Adapter:      firstNonEmpty(page.TripUpdatesQuality.AdapterName, "not available"),
+		NextAction:   "Review withheld reasons, matching confidence, stale telemetry, and adapter fallback state before relying on Trip Updates.",
+		AdminLink:    "/admin/operations/feeds",
+		DoesNotProve: "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
+		Details:      page.TripUpdatesQuality.WithheldByReason,
+	}
+}
+
+func alertsUsefulness(feedRows []operationsFeedHealthRow) operationsRealtimeUsefulnessRow {
+	state := "not available yet"
+	signal := "active alert count is not exposed in this Operations Console model"
+	count := "active alert count not available"
+	next := "Open the Alerts Console to review active, planned, or archived alerts, then check the Alerts feed row."
+	for _, row := range feedRows {
+		if row.ID == "alerts" {
+			if row.Status == checklistStatusOK {
+				state = "feed configured"
+			} else {
+				state = row.StatusText
+			}
+			signal = row.CurrentSignal
+			break
+		}
+	}
+	return operationsRealtimeUsefulnessRow{
+		ID:           "alerts",
+		Label:        "Alerts",
+		State:        state,
+		Count:        count,
+		LatestSignal: signal,
+		StaleOrHeld:  "not available in this private summary",
+		NextAction:   next,
+		AdminLink:    "/admin/alerts/console",
+		DoesNotProve: "Does not prove consumer display, agency approval, public launch completion, or compliance.",
 	}
 }
 

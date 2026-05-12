@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -41,6 +43,19 @@ type gtfsImportResultView struct {
 	FailureMessage string
 }
 
+type gtfsImportSourceReview struct {
+	SourceType              string
+	SourceURL               string
+	ChecksumSHA256          string
+	ByteCount               int64
+	ImportTimestamp         *time.Time
+	ActiveFeedVersion       string
+	ScheduleIdentitySummary string
+	UpdateComparison        string
+	RollbackVisibility      string
+	NextActions             []string
+}
+
 func (h *handler) renderGTFSImport(w http.ResponseWriter, r *http.Request) {
 	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
@@ -58,28 +73,28 @@ func (h *handler) operationsGTFSImportPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if err := parseGTFSImportForm(r); err != nil {
-		h.renderGTFSImportStatus(w, r, principal, http.StatusRequestEntityTooLarge, "", "GTFS import request was blocked because the form body is invalid or too large.", nil)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusRequestEntityTooLarge, "", "GTFS import request was blocked because the form body is invalid or too large.", nil, gtfsImportSourceReview{})
 		return
 	}
 	if principal.Method == auth.MethodCookie && strings.TrimSpace(h.csrfSecret) != "" && strings.TrimSpace(r.FormValue("csrf_token")) != csrfToken(h.csrfSecret, principal) {
-		h.renderGTFSImportStatus(w, r, principal, http.StatusForbidden, "", "GTFS import request was blocked because the CSRF token is invalid.", nil)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusForbidden, "", "GTFS import request was blocked because the CSRF token is invalid.", nil, gtfsImportSourceReview{})
 		return
 	}
 	if err := rejectGTFSImportUnexpectedFields(r); err != nil {
-		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", err.Error(), nil)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", err.Error(), nil, gtfsImportSourceReview{})
 		return
 	}
 	if strings.TrimSpace(r.FormValue("action")) != "import_gtfs" {
-		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", "GTFS import accepts only the import_gtfs action.", nil)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", "GTFS import accepts only the import_gtfs action.", nil, gtfsImportSourceReview{})
 		return
 	}
 	if h.gtfsImport == nil {
-		h.renderGTFSImportStatus(w, r, principal, http.StatusServiceUnavailable, "", "GTFS import service is not available in this runtime. Use the CLI import path or start the console with a database-backed runtime.", nil)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusServiceUnavailable, "", "GTFS import service is not available in this runtime. Use the CLI import path or start the console with a database-backed runtime.", nil, gtfsImportSourceReview{})
 		return
 	}
 	notes, err := gtfsImportNotes(r.FormValue("notes"))
 	if err != nil {
-		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", err.Error(), nil)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", err.Error(), nil, gtfsImportSourceReview{})
 		return
 	}
 
@@ -89,9 +104,10 @@ func (h *handler) operationsGTFSImportPost(w http.ResponseWriter, r *http.Reques
 		defer cleanup()
 	}
 	if err != nil {
-		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", err.Error(), nil)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusBadRequest, "", err.Error(), nil, gtfsImportSourceReview{})
 		return
 	}
+	sourceReview := gtfsImportSourceReviewFromPath(tmpPath, sourceType, r.FormValue("gtfs_url"), time.Now().UTC().Truncate(time.Second))
 
 	ctx, cancel := context.WithTimeout(r.Context(), gtfsBrowserImportTimeout())
 	defer cancel()
@@ -102,24 +118,29 @@ func (h *handler) operationsGTFSImportPost(w http.ResponseWriter, r *http.Reques
 		Notes:    notes,
 	})
 	view := gtfsImportResultFromResult(result)
+	sourceReview.ActiveFeedVersion = firstNonEmpty(result.FeedVersionID, sourceReview.ActiveFeedVersion)
+	sourceReview.ScheduleIdentitySummary = gtfsImportScheduleIdentity(result)
 	if err != nil {
 		var importErr *gtfs.ImportError
 		if errors.As(err, &importErr) {
 			view = gtfsImportResultFromResult(importErr.Result)
-			h.renderGTFSImportStatus(w, r, principal, http.StatusOK, "", gtfsImportSafeFailure(importErr.Result), view)
+			sourceReview.ActiveFeedVersion = firstNonEmpty(importErr.Result.FeedVersionID, sourceReview.ActiveFeedVersion)
+			sourceReview.ScheduleIdentitySummary = gtfsImportScheduleIdentity(importErr.Result)
+			h.renderGTFSImportStatus(w, r, principal, http.StatusOK, "", gtfsImportSafeFailure(importErr.Result), view, sourceReview)
 			return
 		}
-		h.renderGTFSImportStatus(w, r, principal, http.StatusInternalServerError, "", "GTFS import could not finish. Check database/import service health and retry from the CLI if the browser path remains unavailable.", view)
+		h.renderGTFSImportStatus(w, r, principal, http.StatusInternalServerError, "", "GTFS import could not finish. Check database/import service health and retry from the CLI if the browser path remains unavailable.", view, sourceReview)
 		return
 	}
-	h.renderGTFSImportStatus(w, r, principal, http.StatusOK, "GTFS import finished through the existing import pipeline. Review GTFS quality, validator health, and feed health before treating the feed as ready.", "", view)
+	h.renderGTFSImportStatus(w, r, principal, http.StatusOK, "GTFS import finished through the existing import pipeline. Review GTFS quality, validator health, and feed health before treating the feed as ready.", "", view, sourceReview)
 }
 
-func (h *handler) renderGTFSImportStatus(w http.ResponseWriter, r *http.Request, principal auth.Principal, status int, notice string, message string, result *gtfsImportResultView) {
+func (h *handler) renderGTFSImportStatus(w http.ResponseWriter, r *http.Request, principal auth.Principal, status int, notice string, message string, result *gtfsImportResultView, source gtfsImportSourceReview) {
 	page := h.buildOperationsPage(r, principal, "gtfs-import")
 	page.GTFSImportNotice = notice
 	page.GTFSImportError = message
 	page.GTFSImportResult = result
+	page.GTFSImportSource = source
 	w.Header().Set("Cache-Control", "no-store")
 	if status != http.StatusOK {
 		w.WriteHeader(status)
@@ -411,6 +432,71 @@ func gtfsImportDisplayFailure(value string) string {
 		return "details withheld from the page; review the stored validation report"
 	}
 	return value
+}
+
+func gtfsImportSourceReviewFromPath(path string, sourceType string, rawURL string, at time.Time) gtfsImportSourceReview {
+	review := gtfsImportSourceReview{
+		SourceType:              gtfsImportSourceTypeLabel(sourceType, rawURL),
+		SourceURL:               gtfsImportSourceURL(sourceType, rawURL),
+		ImportTimestamp:         &at,
+		ScheduleIdentitySummary: "not available until import completes",
+		UpdateComparison:        "Current active schedule versus new import comparison is not exposed by the current browser model. Review counts and validation blockers before relying on an activation decision.",
+		RollbackVisibility:      "The browser shows the active feed version after import. Prior feed-version listing or rollback execution is not implemented here; use the documented operator rollback path when needed.",
+		NextActions: []string{
+			"Review GTFS quality.",
+			"Review feed health.",
+			"Run or review validator health.",
+			"Use rollback documentation or operator support if the active feed must be reverted.",
+		},
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		review.ChecksumSHA256 = "not available"
+		return review
+	}
+	defer file.Close()
+	hash := sha256.New()
+	n, err := io.Copy(hash, file)
+	if err != nil {
+		review.ChecksumSHA256 = "not available"
+		return review
+	}
+	review.ByteCount = n
+	review.ChecksumSHA256 = hex.EncodeToString(hash.Sum(nil))
+	return review
+}
+
+func gtfsImportSourceTypeLabel(sourceType string, rawURL string) string {
+	if sourceType == "url" || strings.TrimSpace(rawURL) != "" {
+		return "URL import"
+	}
+	return "uploaded ZIP"
+}
+
+func gtfsImportSourceURL(sourceType string, rawURL string) string {
+	if sourceType != "url" && strings.TrimSpace(rawURL) == "" {
+		return "not applicable for upload"
+	}
+	if gtfsImportTextLooksSecret(rawURL) {
+		return "withheld because URL looked secret-bearing"
+	}
+	return strings.TrimSpace(rawURL)
+}
+
+func gtfsImportScheduleIdentity(result gtfs.ImportResult) string {
+	if result.Status == "" {
+		return "not available until import completes"
+	}
+	parts := []string{}
+	for _, key := range []string{"routes", "stops", "trips", "stop_times", "shapes"} {
+		if value, ok := result.Counts[key]; ok {
+			parts = append(parts, fmt.Sprintf("%s=%d", key, value))
+		}
+	}
+	if len(parts) == 0 {
+		return "import completed without row-count summary"
+	}
+	return strings.Join(parts, "; ")
 }
 
 func gtfsBrowserImportTimeout() time.Duration {

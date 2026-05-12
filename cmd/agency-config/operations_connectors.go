@@ -123,7 +123,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 			[]string{"make operations-reliability", "make operations-notify"},
 			[]string{"/admin/operations/reliability", "/admin/operations/validation-health"},
 			[]string{"docs/tutorials/self-hosted-operations-notifications.md", "docs/deployment/reference-deployment-doctor.md"},
-			"Monitoring connectors do not prove SLA coverage, uptime guarantees, hosted SaaS availability, or production readiness.",
+			"Monitoring connectors do not prove SLA coverage, uptime guarantees, hosted service availability, or production readiness.",
 		),
 		connectorCategoryView(
 			"consumer_discovery",

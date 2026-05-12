@@ -131,7 +131,7 @@ func buildConnectorTests(page operationsPage) connectorTestsView {
 				"Monitoring/export fixtures keep redaction and no-send defaults.",
 				"Synthetic monitoring redaction and no-send fixtures.",
 				"Fix redaction or no-send defaults. Keep webhook destinations, tokens, and external notification sends out of the example.",
-				"SLA coverage, uptime guarantees, hosted SaaS availability, production readiness, or retained evidence.",
+				"SLA coverage, uptime guarantees, hosted service availability, production readiness, or retained evidence.",
 				[]string{"docs/tutorials/self-hosted-operations-notifications.md", "docs/runbooks/small-agency-pilot-operations.md"},
 			),
 			connectorTestCommandView(
