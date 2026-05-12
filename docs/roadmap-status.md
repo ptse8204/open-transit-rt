@@ -8,23 +8,27 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-The default next path is Phase 73 CP000006: close agency UI acceptance review,
-following completed Phase 73 CP000001 agency UI acceptance planning, completed
-CP000002 no-developer browser walkthrough, completed CP000003 technical-helper
+Phase 73 CP000006 is complete for agency UI acceptance closeout, following
+completed Phase 73 CP000001 agency UI acceptance planning, completed CP000002
+no-developer browser walkthrough, completed CP000003 technical-helper
 walkthrough, completed CP000004 UI copy and empty-state patching, completed
 CP000005 small-agency docs/wiki navigation freeze, and completed bounded Phase
 72 hardening review. Phase 72 ended with `needs_review` release-candidate
 diagnostics, not a release-ready pass.
 
-Continue the post-Phase-72 sequence with:
+Continue the post-Phase-73 sequence with:
 
-1. agency UI acceptance closeout in Phase 73 CP000006;
-2. private OCI/reference diagnostics and off-host public feed validation as
+1. maintainer review of the Phase 73 closeout;
+2. separately authorized future release-cut cleanup/release-candidate gate or
+   future product phase;
+3. private OCI/reference diagnostics and off-host public feed validation as
    product-support checks, not evidence;
-3. future local release-candidate review for `v0.1.0-rc.1`, not a full
+4. future local release-candidate review for `v0.1.0-rc.1`, not a full
    `v0.1.0` release;
-4. release-candidate package diagnostics only when explicitly approved;
-5. tag, package, publish, or retain evidence only if separately authorized.
+5. release-candidate package diagnostics only when explicitly approved;
+6. tag, package, publish, or retain evidence only if separately authorized.
+
+Phase 74 is not active unless separately authorized.
 
 The Phase 72 plan lives at
 [`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`](phase-72-v0.1.0-rc.1-release-candidate-hardening.md).
@@ -59,7 +63,7 @@ assessment.
 
 | Area | Current risk | Product-quality next action |
 | --- | --- | --- |
-| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 CP000001 added agency UI acceptance planning, CP000002 completed local no-developer browser walkthrough review, CP000003 completed local technical-helper walkthrough review, CP000004 completed narrow UI copy and tutorial patching, and CP000005 completed small-agency docs/wiki navigation freeze. | Run Phase 73 CP000006 agency UI acceptance closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate. |
+| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 CP000001 added agency UI acceptance planning, CP000002 completed local no-developer browser walkthrough review, CP000003 completed local technical-helper walkthrough review, CP000004 completed narrow UI copy and tutorial patching, CP000005 completed small-agency docs/wiki navigation freeze, and CP000006 completed agency UI acceptance closeout. | Run maintainer review of the Phase 73 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a `gh-pages` product explainer site with local/demo screenshots. | Keep GitHub Pages content static, documentation-only, screenshot-backed, and linked to deeper docs. |
 | Browser-first operations | Phase 71 improves the private Agency Operations Cockpit, feed health, GTFS import review, validator/quality guidance, telemetry guidance, and Maintenance Center. | Use `/admin/operations` as the first agency surface; keep shell commands as technical-helper paths. |
@@ -84,7 +88,7 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Continue with Phase 73 CP000006 agency UI acceptance closeout.
+1. Review the completed Phase 73 CP000006 agency UI acceptance closeout.
 2. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
@@ -92,9 +96,11 @@ assessment.
    complete local synthetic diagnostics only.
 4. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-5. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
+5. Separately authorize future release-cut cleanup or a future product phase;
+   do not make Phase 74 active by default.
+6. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
-6. Run the release-candidate readiness gate:
+7. Run the release-candidate readiness gate:
 
    ```bash
    git status --short
@@ -109,7 +115,7 @@ assessment.
    make audit-final-claim-review
    ```
 
-7. Repeat the local app startup path and five public feed fetches only when a
+8. Repeat the local app startup path and five public feed fetches only when a
    later checkpoint needs a fresh local signal:
 
    ```bash
@@ -122,7 +128,7 @@ assessment.
    make agency-app-down
    ```
 
-8. Review the browser-first agency operations path when a later checkpoint
+9. Review the browser-first agency operations path when a later checkpoint
    needs a fresh local UI signal:
 
    ```text
@@ -142,7 +148,7 @@ assessment.
    /admin/operations/help
    ```
 
-9. Run one public GTFS trial as a local diagnostic when network access and data
+10. Run one public GTFS trial as a local diagnostic when network access and data
    terms allow:
 
    ```bash
@@ -152,7 +158,7 @@ assessment.
    Record exact blockers. Do not treat the run as final-root proof, agency
    adoption, consumer acceptance, or compliance evidence.
 
-10. Exercise external-connection readiness with synthetic/local data:
+11. Exercise external-connection readiness with synthetic/local data:
 
    ```bash
    make telemetry-simulator
@@ -160,10 +166,10 @@ assessment.
    make adapter-conformance
    ```
 
-11. Review these surfaces before improving public wording: validator health,
+12. Review these surfaces before improving public wording: validator health,
    monitoring/export diagnostics, feed URL and metadata expectations,
    connector/adaptor conformance, and redaction checks.
-12. Keep all real pilots, final-root proof, consumer submission, and vendor
+13. Keep all real pilots, final-root proof, consumer submission, and vendor
    proof as authorization-gated optional evidence tracks.
 
 > **What this locally shows:** these checks can show that a local checkout has a

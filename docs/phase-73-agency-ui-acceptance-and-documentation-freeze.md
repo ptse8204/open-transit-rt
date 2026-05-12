@@ -7,14 +7,15 @@ Checkpoint 000001 is complete for documentation-only planning. Checkpoint
 is complete for the technical-helper walkthrough. Checkpoint 000004 is
 complete for UI copy, label, boundary-copy, and browser-first tutorial
 patching. Checkpoint 000005 is complete for small-agency docs and wiki
-navigation freeze. This phase is now ready for CP000006: close agency UI
-acceptance review.
+navigation freeze. Checkpoint 000006 is complete for the agency UI acceptance
+closeout. Phase 73 is now closed as a bounded documentation/status acceptance
+closeout after CP000001 through CP000005.
 
-Phase 73 does not add new routes, change runtime behavior, create retained
-evidence, contact external parties, move consumer statuses, tag, package,
-publish, or claim release readiness. CP000006 may record final acceptance
-results, remaining blockers, validation, protected path review, consumer
-tracker boundary, and exact next recommendation only.
+Phase 73 did not add new routes in CP000006, change runtime behavior, create
+retained evidence, contact external parties, move consumer statuses, tag,
+package, publish, or claim release readiness. CP000006 recorded final
+acceptance results, remaining blockers, validation status, protected path
+review, consumer tracker boundary, and the exact next recommendation only.
 
 Phase 72 remains complete only as a bounded `v0.1.0-rc.1` hardening review
 with `needs_review` diagnostics. Phase 72 did not prove release readiness,
@@ -195,16 +196,16 @@ updates.
 | --- | --- | --- | --- |
 | Phase 73 plan exists | complete | CP000006 closeout | Documentation planning only |
 | Phase 73 handoff exists | complete | CP000006 closeout | Handoff only |
-| `docs/current-status.md` next step points to CP000006 | complete_in_cp000005 | CP000006 closeout | Status alignment only |
-| `docs/handoffs/latest.md` next step points to CP000006 | complete_in_cp000005 | CP000006 closeout | Status alignment only |
-| `docs/roadmap-status.md` next step points to CP000006 | complete_in_cp000005 | CP000006 closeout | Public-readable roadmap alignment only |
+| `docs/current-status.md` records CP000006 complete | complete_in_cp000006 | CP000006 closeout | Status alignment only |
+| `docs/handoffs/latest.md` records CP000006 complete | complete_in_cp000006 | CP000006 closeout | Status alignment only |
+| `docs/roadmap-status.md` records CP000006 complete | complete_in_cp000006 | CP000006 closeout | Public-readable roadmap alignment only |
 | `git diff --check` | complete | every checkpoint | Whitespace/syntax guard only |
-| `make audit-final-claim-review` | complete | CP000006 closeout | Unsupported-claim guard only |
+| `make audit-final-claim-review` | complete_in_cp000006 | CP000006 closeout | Unsupported-claim guard only |
 | No-developer browser walkthrough | complete_in_cp000002 | CP000002 | Browser comprehension signal only |
 | Technical-helper walkthrough | complete_in_cp000003 | CP000003 | Product-support signal only |
 | UI copy and empty-state patch review | complete_in_cp000004 | CP000004 | Narrow UI/docs polish only |
 | Small-agency docs/wiki navigation freeze | complete_in_cp000005 | CP000005 | Navigation and wording freeze only |
-| Claim-boundary closeout | not_run_in_cp000001 | CP000006 | No stronger claims |
+| Claim-boundary closeout | complete_in_cp000006 | CP000006 | No stronger claims |
 
 ## CP000002 Result
 
@@ -400,9 +401,42 @@ or add release/compliance/production claims.
 5. `CP000005 -- freeze small-agency docs and wiki navigation` -- complete with
    small-agency docs/wiki route-map, technical-helper startup, Feed Health
    navigation, and sub-agent review updates.
-6. `CP000006 -- close agency UI acceptance review`
-   - Record final acceptance result, remaining blockers, validation, protected
-     path review, consumer tracker boundary, and exact next recommendation.
+6. `CP000006 -- close agency UI acceptance review` -- complete with final
+   acceptance result, remaining blockers, validation status, protected path
+   review, consumer tracker boundary, and exact next recommendation.
+
+## CP000006 Result
+
+CP000006 closes Phase 73 as a bounded documentation/status acceptance closeout
+after CP000001 through CP000005. The final acceptance result is that the
+browser-first agency path has no remaining Phase 73 required edits after the
+local no-developer walkthrough, the local technical-helper walkthrough, the
+CP000004 UI copy/boundary patch, and the CP000005 docs/wiki navigation freeze.
+
+CP000006 did not rerun the local app or create a fresh local app validation
+signal. Earlier local route, authentication, and feed-path checks remain
+recorded under CP000002 through CP000004 as local product-support signals only.
+CP000006 records status and boundaries; it is not release validation, public
+proof, retained evidence collection, external consumer work, final-root proof,
+or a release-cut checkpoint.
+
+Remaining blockers and deferrals after Phase 73:
+
+- Phase 72 remains complete only as bounded `v0.1.0-rc.1` hardening review
+  with `needs_review` diagnostics; it is not release-ready.
+- No release tag, package, registry image, publication, or release readiness
+  claim exists.
+- No retained evidence was collected in CP000006.
+- No consumer tracker status moved in CP000006.
+- Real pilots, final-root proof, consumer/aggregator proof, vendor/device
+  proof, production operations proof, and public release-cut work remain
+  separate authorization-gated or future product work.
+
+Protected path review for CP000006: the approved closeout scope did not require
+edits under protected evidence paths, consumer tracker records, migrations, or
+module files. The consumer tracker boundary remains exactly seven prepared-only
+targets: Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility
+Database, and transit.land.
 
 ## Protected Paths
 
@@ -451,9 +485,10 @@ Stop and hand back to the maintainer if any checkpoint would require:
 
 ## Claim Boundaries
 
-Phase 73 may claim only that the repository has an agency UI acceptance plan
-and, after later checkpoints, that local walkthroughs found or resolved
-specific browser-first usability issues.
+Phase 73 may claim only that the repository has a completed agency UI
+acceptance plan, completed local walkthrough findings, completed narrow UI/docs
+copy fixes, completed small-agency docs/wiki navigation freeze, and completed
+bounded CP000006 documentation/status closeout.
 
 Phase 73 must not claim CAL-ITP/Caltrans compliance, consumer submission,
 consumer review, consumer acceptance, consumer ingestion, agency approval,
@@ -496,3 +531,21 @@ git status --short -- docs/evidence/consumer-submissions docs/evidence/captured
 ```
 
 The validation results are recorded in `docs/handoffs/phase-73.md`.
+
+## CP000006 Validation
+
+CP000006 is a documentation/status closeout only. It did not require a fresh
+local app run. `git status --short`, `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`, consumer
+tracker JSON parsing, exact seven-target prepared-only tracker validation, and
+protected path status checks passed for this closeout. `make check` remained
+the lightweight repository check and named heavier follow-ups for future
+environments rather than running the release-candidate gate.
+
+## Exact Next-Step Recommendation
+
+Proceed with maintainer review of the Phase 73 closeout. After that review,
+separately authorize either a future release-cut cleanup/release-candidate gate
+or a future product phase. Do not make Phase 74 active, tag, package, publish,
+create retained evidence, contact external parties, or move consumer statuses
+without separate authorization.

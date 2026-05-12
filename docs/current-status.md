@@ -257,11 +257,19 @@ technical-helper walkthrough review with no product blocker. Phase 73 CP000004
 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy,
 and browser-first tutorial patching; focused re-review found no remaining
 required edits. Phase 73 CP000005 is complete for small-agency docs and wiki
-navigation freeze; focused re-review found no remaining required edits.
+navigation freeze; focused re-review found no remaining required edits. Phase
+73 CP000006 is complete for the bounded agency UI acceptance closeout. It
+recorded the final acceptance result, remaining blockers/deferrals, validation
+status, protected path review, consumer tracker boundary, and exact next
+recommendation without rerunning the local app, collecting retained evidence,
+moving consumer statuses, tagging, packaging, publishing, or claiming release
+readiness.
 
-The default next work is Phase 73 CP000006 close agency UI acceptance review,
-not broad UI redesign, not a full `v0.1.0` release, not a
-real agency pilot, and not evidence collection. Use the canonical
+The exact next recommendation is maintainer review of the Phase 73 closeout,
+then separately authorize a future release-cut cleanup/release-candidate gate
+or a future product phase. Phase 74 is not active, and the next step is not
+broad UI redesign, a full `v0.1.0` release, a real agency pilot, or evidence
+collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 section for the current scorecard, risks, and next-step sequence.
 
@@ -1935,11 +1943,14 @@ acceptance planning, and CP000002 is complete for local no-developer browser
 walkthrough review. CP000003 is complete for local technical-helper
 walkthrough review. CP000004 is complete for narrow UI copy, route-label,
 Devices/Telemetry boundary-copy, and browser-first tutorial patching. CP000005
-is complete for small-agency docs and wiki navigation freeze. The default next
-work is Phase 73 CP000006 close agency UI acceptance review, not evidence
-collection. For public/status wording work,
-start with `make audit-final-claim-review` and `make audit-product-acceptance`,
-and keep unsupported claims removed or bounded.
+is complete for small-agency docs and wiki navigation freeze. CP000006 is
+complete for the bounded agency UI acceptance closeout. The exact next
+recommendation is maintainer review of the Phase 73 closeout, then separately
+authorize a future release-cut cleanup/release-candidate gate or a future
+product phase. Phase 74 is not active, and the next step is not evidence
+collection. For public/status wording work, start with
+`make audit-final-claim-review` and `make audit-product-acceptance`, and keep
+unsupported claims removed or bounded.
 
 Future optional proof tracks remain:
 - agency-owned or agency-approved final-root proof

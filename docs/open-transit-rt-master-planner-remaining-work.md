@@ -26,7 +26,9 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review.
 - Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching.
 - Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze.
-- The current default next work is Phase 73 Checkpoint 000006: close agency UI acceptance review.
+- Phase 73 Checkpoint 000006 is complete for bounded agency UI acceptance closeout.
+- The exact next recommendation is maintainer review of the Phase 73 closeout, then separately authorize a future release-cut cleanup/release-candidate gate or a future product phase.
+- Phase 74 is not active unless separately authorized.
 - Evidence/adoption/compliance tracks remain optional and authorization-gated.
 
 Do not claim:
@@ -275,6 +277,8 @@ Success condition:
 
 ### Phase 73 — Agency UI Acceptance And Documentation Freeze
 
+Status: complete after Checkpoint 000006.
+
 Goal: freeze the browser-first agency path so a non-expert evaluator can follow it without maintainer narration.
 
 Checkpoint sequence:
@@ -310,6 +314,8 @@ Deliverables:
 - updated operations console tour;
 - updated acceptance checklist for UI pages;
 - screenshot guidance only if images are real local/demo captures and not evidence.
+
+Completion note: CP000006 closed Phase 73 as a bounded documentation/status acceptance closeout after CP000001 through CP000005. The browser-first agency path has no remaining Phase 73 required edits after the local walkthroughs, UI/docs copy patch, and docs/wiki navigation freeze. CP000006 did not rerun the local app, create retained evidence, move consumer statuses, tag, package, publish, or claim release readiness.
 
 ### Phase 74 — Connector Maturity And Adapter Recipes
 
@@ -521,7 +527,7 @@ Start by reading:
 - docs/evidence/consumer-submissions/status.json
 
 Current truth:
-Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Default next work is Phase 73 Checkpoint 000006 close agency UI acceptance review, not evidence intake.
+Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Exact next recommendation: maintainer review of the Phase 73 closeout, then separately authorize a future release-cut cleanup/release-candidate gate or a future product phase. Phase 74 is not active by default. The default next work is not evidence intake.
 
 Model assignment:
 Use these model levels for the master/sub-agent workflow:
@@ -543,8 +549,7 @@ If Codex cannot spawn real sub-agents, simulate the roles in clearly labeled sec
 
 The Master Agent must approve the plan before implementation starts and must approve every checkpoint after reviewing all sub-agent reports. The Master Agent may move forward only when no required edits remain.
 
-Phase 71 -- Checkpoint 000005 is complete. Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded review with `needs_review` diagnostics. Phase 73 -- Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 -- Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 -- Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 -- Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 -- Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Continue with:
-Phase 73 -- Checkpoint 000006: close agency UI acceptance review
+Phase 71 -- Checkpoint 000005 is complete. Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded review with `needs_review` diagnostics. Phase 73 -- Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 -- Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 -- Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 -- Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 -- Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 -- Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Continue with maintainer review of the Phase 73 closeout, then separately authorize a future release-cut cleanup/release-candidate gate or a future product phase. Do not make Phase 74 active by default.
 
 Use the master/sub-agent workflow gate:
 - Context / Repo Truth sub-agent
@@ -573,10 +578,10 @@ Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, tran
 Forbidden claims:
 No CAL-ITP/Caltrans compliance, agency adoption/approval, consumer submission, consumer acceptance, consumer ingestion/listing/display, final-root readiness, hosted SaaS, production readiness, vendor compatibility, hardware certification, SLA/uptime, or production-grade ETA quality.
 
-Primary Phase 73 CP000006 goal:
-Close the agency UI acceptance review by recording the final acceptance result, remaining blockers, validation, protected path review, consumer tracker boundary, and exact next recommendation after CP000005 docs/wiki navigation freeze. Do not treat Phase 72 as a release-ready pass; clean-checkout release-cut proof remains future release-cut cleanup unless separately authorized.
+Primary Phase 73 CP000006 result:
+Closed the agency UI acceptance review by recording the final acceptance result, remaining blockers, validation status, protected path review, consumer tracker boundary, and exact next recommendation after CP000005 docs/wiki navigation freeze. Do not treat Phase 72 as a release-ready pass; clean-checkout release-cut proof remains future release-cut cleanup unless separately authorized.
 
-Validation for Phase 73 CP000006:
+Validation recorded for Phase 73 CP000006:
 git status --short
 git diff --check
 make check
@@ -603,7 +608,9 @@ Next checkpoint:
 
 ## 9. Master planner verdict
 
-The project should now stop broad planning and move into disciplined Phase 73 agency UI acceptance planning.
+Phase 73 agency UI acceptance closeout is complete. The project should now stop
+broad planning and move into maintainer review of the Phase 73 closeout before
+any separately authorized release-cut cleanup or future product phase.
 
 The product direction is correct:
 
@@ -614,10 +621,15 @@ The product direction is correct:
 - completed release-candidate diagnostics with `needs_review` blockers;
 - claim discipline.
 
-The remaining risk is not lack of roadmap. The immediate remaining risk is whether the browser-first agency path is acceptance-ready without maintainer narration. Clean-checkout release-cut proof remains separate future release-cut cleanup.
+The remaining risk is not lack of roadmap. Phase 73 records that the
+browser-first agency path has no remaining Phase 73 required edits after local
+walkthroughs and docs/wiki freeze. Clean-checkout release-cut proof remains
+separate future release-cut cleanup.
 
 The next master-agent action is:
 
 ```text
-Continue Phase 73 -- Checkpoint 000006: close agency UI acceptance review.
+Review the completed Phase 73 -- Checkpoint 000006 closeout, then separately
+authorize a future release-cut cleanup/release-candidate gate or future product
+phase. Do not make Phase 74 active by default.
 ```

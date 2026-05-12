@@ -8,7 +8,9 @@ local public feed checks, and narrow CP000004 copy/orientation candidates.
 CP000003 is complete for the no-patch technical-helper walkthrough. CP000004
 is complete for narrow UI copy, label, boundary-copy, and browser-first
 tutorial patching. CP000005 is complete for small-agency docs and wiki
-navigation freeze.
+navigation freeze. CP000006 is complete for the agency UI acceptance closeout.
+Phase 73 is closed as a bounded documentation/status acceptance closeout after
+CP000001 through CP000005.
 
 CP000004 changed only approved UI copy/templates, Operations Console route
 labels, tests, and browser-first docs/tutorial wording. CP000001, CP000002,
@@ -68,9 +70,12 @@ adoption, final-root readiness, or public launch completion.
 - Phase 73 CP000005 is complete for small-agency docs and wiki navigation
   freeze. It found and fixed one Documentation / IA route-consistency blocker
   around duplicate Feeds page wording, then passed focused re-review.
-- The default next work is CP000006 close agency UI acceptance review, not
-  broad UI redesign, not evidence collection, not release
-  packaging, and not consumer submission.
+- Phase 73 CP000006 is complete for final acceptance closeout, remaining
+  blockers/deferrals, validation status, protected path review, consumer
+  tracker boundary, and exact next recommendation.
+- The exact next recommendation is maintainer review of the Phase 73 closeout,
+  then separately authorize a future release-cut cleanup/release-candidate gate
+  or a future product phase. Phase 74 is not active.
 
 ## Checkpoint Sequence
 
@@ -87,7 +92,9 @@ adoption, final-root readiness, or public launch completion.
 5. `CP000005 -- freeze small-agency docs and wiki navigation` -- complete with
    small-agency docs/wiki route-map, technical-helper startup, Feed Health
    navigation, and sub-agent review updates.
-6. `CP000006 -- close agency UI acceptance review` -- pending.
+6. `CP000006 -- close agency UI acceptance review` -- complete with final
+   acceptance result, blockers/deferrals, validation status, protected path
+   review, consumer tracker boundary, and exact next recommendation.
 
 ## CP000002 Result
 
@@ -249,6 +256,36 @@ consumer status, changed no protected paths, and added no release readiness,
 compliance, adoption, consumer, final-root, hosted-service, production,
 vendor, hardware, SLA, or ETA-quality claim.
 
+## CP000006 Result
+
+CP000006 closed the agency UI acceptance review as a documentation/status
+closeout. The final acceptance result is that the browser-first agency path has
+no remaining Phase 73 required edits after the CP000002 no-developer
+walkthrough, CP000003 technical-helper walkthrough, CP000004 UI copy/boundary
+patch, and CP000005 small-agency docs/wiki navigation freeze.
+
+CP000006 did not rerun the local app, did not create a fresh local route or
+feed-path validation signal, and did not broaden the UI. Earlier local app
+walkthrough and public feed checks remain recorded as local product-support
+signals only. CP000006 itself records closeout status, boundaries, and next
+recommendation.
+
+Remaining blockers and deferrals:
+
+- Phase 72 remains complete only as bounded `v0.1.0-rc.1` hardening review
+  with `needs_review` diagnostics; it is not release-ready.
+- No release tag, source package, registry image, publication, or release
+  readiness claim exists.
+- No retained evidence was collected or updated.
+- No consumer tracker status moved.
+- Real pilots, final-root proof, consumer/aggregator proof, vendor/device
+  proof, production operations proof, release-cut cleanup, and future product
+  phases remain separate authorization-gated or separately scoped work.
+
+CP000006 did not create retained evidence, contact external parties, tag,
+package, publish, move consumer statuses, change protected paths, or add
+release/compliance/production claims.
+
 ## Protected Paths
 
 Do not edit or generate files under:
@@ -262,16 +299,20 @@ Do not edit or generate files under:
 - `go.mod`;
 - `go.sum`.
 
-For CP000002, CP000003, CP000004, and CP000005, do not treat walkthrough,
-smoke-check, or docs-freeze notes as retained evidence and do not move
-consumer statuses.
+For CP000002, CP000003, CP000004, CP000005, and CP000006, do not treat
+walkthrough, smoke-check, docs-freeze, or closeout notes as retained evidence
+and do not move consumer statuses.
 
 ## Consumer Tracker State
 
 Prepared-only. All seven consumer and aggregator targets remain `prepared`.
-Phase 73 CP000001, CP000002, CP000003, CP000004, and CP000005 did not submit,
-contact, automate portals, refresh target-originated records, or move any
-target beyond `prepared`.
+Phase 73 CP000001, CP000002, CP000003, CP000004, CP000005, and CP000006 did
+not submit, contact, automate portals, refresh target-originated records, or
+move any target beyond `prepared`.
+
+The consumer tracker boundary remains exactly seven prepared-only targets:
+Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database,
+and transit.land.
 
 Prepared packets remain review artifacts only. They are not submission,
 review, acceptance, rejection, listing, ingestion, compliance, or public-launch
@@ -281,9 +322,9 @@ evidence.
 
 Phase 73 may claim only documentation-only planning after CP000001, local
 browser-walkthrough findings after CP000002, local technical-helper walkthrough
-findings after CP000003, narrow UI/docs copy fixes after CP000004, and
-small-agency docs/wiki navigation freeze after CP000005. Later checkpoints may
-claim only their completed, validated closeout scope.
+findings after CP000003, narrow UI/docs copy fixes after CP000004,
+small-agency docs/wiki navigation freeze after CP000005, and bounded
+documentation/status closeout after CP000006.
 
 Do not claim CAL-ITP/Caltrans compliance, consumer submission, consumer review,
 consumer acceptance, consumer ingestion, agency approval, agency adoption,
@@ -390,10 +431,23 @@ completion.
 | Documentation / IA Sub-Agent review | first pass found `/admin/operations/feeds` route inconsistency; focused re-review passed |
 | Claim-Boundary Sub-Agent review | passed after focused patch; no unsupported claims |
 
+### CP000006
+
+| Command | Result |
+| --- | --- |
+| `git diff --check` | passed |
+| `make check` | passed; lightweight check completed and named heavier follow-ups for future environments |
+| `make audit-product-acceptance` | passed; consumer tracker had exactly seven prepared-only targets and protected evidence paths had no status |
+| `make audit-final-claim-review` | passed; final claim review audit preserved seven prepared consumer targets |
+| `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` | passed |
+| exact seven-target prepared-only consumer tracker check | passed |
+| `git status --short -- docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod go.sum` | passed; protected evidence, migration, and module paths clean |
+| full local app walkthrough | not rerun in CP000006; earlier local walkthroughs remain CP000002 through CP000004 product-support signals |
+
 ## Exact Next-Step Recommendation
 
-Proceed with CP000006: close agency UI acceptance review. Record final
-acceptance result, remaining blockers, validation, protected path review,
-consumer tracker boundary, and exact next recommendation. This remains
-agency-path acceptance work, not broad redesign, evidence collection, release
-packaging, tagging, publishing, or consumer submission.
+Proceed with maintainer review of the Phase 73 closeout. After that review,
+separately authorize either a future release-cut cleanup/release-candidate gate
+or a future product phase. Do not make Phase 74 active, tag, package, publish,
+create retained evidence, contact external parties, or move consumer statuses
+without separate authorization.

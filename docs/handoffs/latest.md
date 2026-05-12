@@ -60,8 +60,11 @@ unchanged. Phase 73 CP000004 is complete for narrow UI copy, route-label,
 Devices/Telemetry boundary-copy, and browser-first tutorial patching; focused
 re-review found no remaining required edits. Phase 73 CP000005 is complete for
 small-agency docs and wiki navigation freeze; focused re-review found no
-remaining required edits. The current default next work is Phase 73 CP000006:
-close agency UI acceptance review. The
+remaining required edits. Phase 73 CP000006 is complete for bounded agency UI
+acceptance closeout after CP000001 through CP000005. The exact next
+recommendation is maintainer review of the Phase 73 closeout, then separately
+authorize a future release-cut cleanup/release-candidate gate or a future
+product phase. Phase 74 is not active. The
 canonical review is
 `docs/roadmap-status.md#review-and-recommendations`; the Phase 72 plan is
 `docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`, the Phase 73 plan
@@ -160,9 +163,12 @@ Phase 73 CP000002 is complete for local no-developer browser walkthrough
 review. Phase 73 CP000003 is complete for local technical-helper walkthrough
 review. Phase 73 CP000004 is complete for narrow UI copy, route-label,
 Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73
-CP000005 is complete for small-agency docs and wiki navigation freeze. The
-current default next work is Phase 73 CP000006: close agency UI acceptance
-review. Phase 72 did not tag, publish, package, create retained evidence, or
+CP000005 is complete for small-agency docs and wiki navigation freeze. Phase
+73 CP000006 is complete for bounded agency UI acceptance closeout. The exact
+next recommendation is maintainer review of the Phase 73 closeout, then
+separately authorize a future release-cut cleanup/release-candidate gate or a
+future product phase. Phase 74 is not active. Phase 72 did not tag, publish,
+package, create retained evidence, or
 prove release readiness. This is not real agency pilot work or public proof.
 If no explicit written
 authorization, exact claim target, allowed tools, public-safe retention plan,
@@ -1320,23 +1326,23 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed with Phase 73 CP000006: close agency UI acceptance review.
-Start from the
-completed Phase 73 CP000001 acceptance plan, the completed CP000002
-no-developer browser findings, the completed CP000003 technical-helper
-findings, the completed CP000004 UI copy patch, the completed CP000005 docs
-and wiki navigation freeze, the completed bounded Phase 72 hardening review,
-the local pre-tag release-notes draft, and the known blockers. Do not tag,
-publish, package, or create retained evidence unless
-separately authorized. Any future evidence intake is optional and requires
-explicit written authorization first. Phases 0
-through 60 remain closed, Phases 61 through 67 are complete, Phase 68+ is
-closed blocker-only / authorization-gated for the current no-authorization
-review, and Phase 69 is complete for UI-first product acceptance. The default
-next work is not evidence collection. For public/status wording work, start
-with `make audit-final-claim-review` and
-`make audit-product-acceptance`, and keep unsupported claims removed or
-bounded.
+Proceed with maintainer review of the Phase 73 closeout. Phase 73 CP000006 is
+complete after the completed CP000001 acceptance plan, CP000002 no-developer
+browser findings, CP000003 technical-helper findings, CP000004 UI copy patch,
+CP000005 docs/wiki navigation freeze, completed bounded Phase 72 hardening
+review, local pre-tag release-notes draft, and known blockers. After maintainer
+review, separately authorize either a future release-cut cleanup or
+release-candidate gate, or a future product phase. Phase 74 is not active.
+
+Do not tag, publish, package, or create retained evidence unless separately
+authorized. Any future evidence intake is optional and requires explicit
+written authorization first. Phases 0 through 60 remain closed, Phases 61
+through 67 are complete, Phase 68+ is closed blocker-only /
+authorization-gated for the current no-authorization review, and Phase 69 is
+complete for UI-first product acceptance. The default next work is not evidence
+collection. For public/status wording work, start with
+`make audit-final-claim-review` and `make audit-product-acceptance`, and keep
+unsupported claims removed or bounded.
 
 Future final-root work should use `make collect-final-root-evidence` and
 `make audit-final-root-evidence` only when a real final root and redacted
