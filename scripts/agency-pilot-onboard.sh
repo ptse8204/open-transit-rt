@@ -16,6 +16,8 @@ ADMIN_BASE_URL="${ADMIN_BASE_URL:-}"
 ADMIN_TOKEN="${ADMIN_TOKEN:-}"
 IMPORT_TIMEOUT="${GTFS_IMPORT_TIMEOUT:-15m}"
 GTFS_IMPORT_BIN="${GTFS_IMPORT_BIN:-}"
+PUBLIC_FETCH_CONNECT_TIMEOUT="${PUBLIC_FETCH_CONNECT_TIMEOUT:-10}"
+PUBLIC_FETCH_TIMEOUT="${PUBLIC_FETCH_TIMEOUT:-90}"
 ADMIN_SUBJECT="${ADMIN_SUBJECT:-admin@example.com}"
 TECHNICAL_CONTACT_EMAIL="${TECHNICAL_CONTACT_EMAIL:-operator-placeholder@example.invalid}"
 FEED_LICENSE_NAME="${FEED_LICENSE_NAME:-replace-with-agency-approved-license}"
@@ -44,6 +46,7 @@ Options:
   --admin-subject SUBJECT     local admin JWT subject, default admin@example.com
   --import-timeout DURATION   0, 90s, 15m, or 1h style duration, default 15m
   --gtfs-import-bin PATH      running-mode gtfs-import binary path; falls back to go run
+  --public-fetch-timeout SEC  max seconds for each public-path fetch, default 90
   --technical-contact-email EMAIL
   --feed-license-name NAME
   --feed-license-url URL
@@ -56,9 +59,9 @@ Options:
 
 Environment fallbacks:
   AGENCY_ID, GTFS_URL, PUBLIC_BASE_URL, ADMIN_BASE_URL, ADMIN_TOKEN,
-  GTFS_IMPORT_TIMEOUT, GTFS_IMPORT_BIN, TECHNICAL_CONTACT_EMAIL, FEED_LICENSE_NAME,
-  FEED_LICENSE_URL, PUBLICATION_ENVIRONMENT, ADMIN_SUBJECT, MODE,
-  STRICT_VALIDATORS, SKIP_VALIDATORS
+  GTFS_IMPORT_TIMEOUT, GTFS_IMPORT_BIN, PUBLIC_FETCH_CONNECT_TIMEOUT,
+  PUBLIC_FETCH_TIMEOUT, TECHNICAL_CONTACT_EMAIL, FEED_LICENSE_NAME, FEED_LICENSE_URL,
+  PUBLICATION_ENVIRONMENT, ADMIN_SUBJECT, MODE, STRICT_VALIDATORS, SKIP_VALIDATORS
 
 Notes:
   local-compose mode starts/builds/migrates/services directly and imports only
@@ -174,6 +177,12 @@ validate_inputs() {
   if ! printf "%s" "$IMPORT_TIMEOUT" | grep -Eq '^(0|[0-9]+(ns|us|ms|s|m|h))$'; then
     fail "--import-timeout must be 0 or a simple Go duration such as 90s, 15m, or 1h"
   fi
+  if ! printf "%s" "$PUBLIC_FETCH_CONNECT_TIMEOUT" | grep -Eq '^[1-9][0-9]*$'; then
+    fail "PUBLIC_FETCH_CONNECT_TIMEOUT must be a positive whole number of seconds"
+  fi
+  if ! printf "%s" "$PUBLIC_FETCH_TIMEOUT" | grep -Eq '^[1-9][0-9]*$'; then
+    fail "--public-fetch-timeout or PUBLIC_FETCH_TIMEOUT must be a positive whole number of seconds"
+  fi
   if [ "$MODE" = "running" ] && [ -z "$ADMIN_TOKEN" ]; then
     fail "running mode requires --admin-token or ADMIN_TOKEN"
   fi
@@ -236,6 +245,7 @@ parse_args() {
       --admin-subject) ADMIN_SUBJECT="${2:-}"; shift 2 ;;
       --import-timeout) IMPORT_TIMEOUT="${2:-}"; shift 2 ;;
       --gtfs-import-bin) GTFS_IMPORT_BIN="${2:-}"; shift 2 ;;
+      --public-fetch-timeout) PUBLIC_FETCH_TIMEOUT="${2:-}"; shift 2 ;;
       --technical-contact-email) TECHNICAL_CONTACT_EMAIL="${2:-}"; shift 2 ;;
       --feed-license-name) FEED_LICENSE_NAME="${2:-}"; shift 2 ;;
       --feed-license-url) FEED_LICENSE_URL="${2:-}"; shift 2 ;;
@@ -269,7 +279,7 @@ wait_for_url() {
   url="$1"
   label="$2"
   attempt=0
-  until curl -fsS "$url" >/dev/null 2>&1; do
+  until curl --connect-timeout "$PUBLIC_FETCH_CONNECT_TIMEOUT" --max-time "$PUBLIC_FETCH_TIMEOUT" -fsS "$url" >/dev/null 2>&1; do
     attempt=$((attempt + 1))
     if [ "$attempt" -ge 45 ]; then
       fail "$label did not become ready at $url"
@@ -282,7 +292,7 @@ fetch_nonempty() {
   url="$1"
   out="$2"
   label="$3"
-  if ! curl -fsS -o "$out" "$url"; then
+  if ! curl --connect-timeout "$PUBLIC_FETCH_CONNECT_TIMEOUT" --max-time "$PUBLIC_FETCH_TIMEOUT" -fsS -o "$out" "$url"; then
     fail "could not fetch $label from $url"
   fi
   if [ ! -s "$out" ]; then
