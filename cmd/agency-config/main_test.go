@@ -205,6 +205,35 @@ func TestPublicScheduleRemainsAnonymous(t *testing.T) {
 	}
 }
 
+func TestPublicScheduleUsesCachedSnapshot(t *testing.T) {
+	builder := &countingScheduleBuilder{snapshot: schedule.Snapshot{
+		AgencyID:      "demo-agency",
+		FeedVersionID: "feed-demo",
+		RevisionTime:  time.Now().UTC(),
+		Payload:       []byte("schedule zip bytes"),
+	}}
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		builder,
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		authRejectAll{},
+		&fakeRealtimeArtifacts{},
+	)
+	for i := 0; i < 3; i++ {
+		req := httptest.NewRequest(http.MethodGet, "/public/gtfs/schedule.zip", nil)
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("request %d status = %d, want 200", i+1, rr.Code)
+		}
+	}
+	if builder.snapshotCalls != 1 {
+		t.Fatalf("schedule snapshots built %d times, want 1 cached build", builder.snapshotCalls)
+	}
+}
+
 func TestPublicFeedsJSONIsQueryRoutedAndPublicMetadataOnly(t *testing.T) {
 	now := time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC)
 	store := &fakePublicationStore{discoveries: map[string]compliance.FeedDiscovery{
@@ -5241,6 +5270,17 @@ func (f *countingScheduleBuilder) Snapshot(context.Context, time.Time) (schedule
 	return f.snapshot, nil
 }
 
+func (f *countingScheduleBuilder) SnapshotKey(context.Context) (schedule.SnapshotKey, error) {
+	if f.err != nil {
+		return schedule.SnapshotKey{}, f.err
+	}
+	return schedule.SnapshotKey{
+		AgencyID:      f.snapshot.AgencyID,
+		FeedVersionID: f.snapshot.FeedVersionID,
+		RevisionTime:  f.snapshot.RevisionTime,
+	}, nil
+}
+
 func (f *countingScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersionID string, _ time.Time) (schedule.Snapshot, error) {
 	f.snapshotCalls++
 	if f.err != nil {
@@ -5271,6 +5311,17 @@ func (f fakeScheduleBuilder) Snapshot(context.Context, time.Time) (schedule.Snap
 	return f.snapshot, nil
 }
 
+func (f fakeScheduleBuilder) SnapshotKey(context.Context) (schedule.SnapshotKey, error) {
+	if f.err != nil {
+		return schedule.SnapshotKey{}, f.err
+	}
+	return schedule.SnapshotKey{
+		AgencyID:      f.snapshot.AgencyID,
+		FeedVersionID: f.snapshot.FeedVersionID,
+		RevisionTime:  f.snapshot.RevisionTime,
+	}, nil
+}
+
 func (f fakeScheduleBuilder) SnapshotForFeedVersion(_ context.Context, feedVersionID string, _ time.Time) (schedule.Snapshot, error) {
 	if f.err != nil {
 		return schedule.Snapshot{}, f.err
@@ -5292,6 +5343,23 @@ func (f fakeScheduleBuilder) SnapshotForAgency(_ context.Context, agencyID strin
 	snapshot := f.snapshot
 	snapshot.AgencyID = agencyID
 	return snapshot, nil
+}
+
+func (f fakeScheduleBuilder) SnapshotKeyForAgency(_ context.Context, agencyID string) (schedule.SnapshotKey, error) {
+	if f.err != nil {
+		return schedule.SnapshotKey{}, f.err
+	}
+	snapshot := f.snapshot
+	if f.snapshotsByAgency != nil {
+		snapshot = f.snapshotsByAgency[agencyID]
+	} else {
+		snapshot.AgencyID = agencyID
+	}
+	return schedule.SnapshotKey{
+		AgencyID:      snapshot.AgencyID,
+		FeedVersionID: snapshot.FeedVersionID,
+		RevisionTime:  snapshot.RevisionTime,
+	}, nil
 }
 
 type fakePublicationStore struct {

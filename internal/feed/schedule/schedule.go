@@ -22,6 +22,12 @@ type Snapshot struct {
 	Payload       []byte
 }
 
+type SnapshotKey struct {
+	AgencyID      string
+	FeedVersionID string
+	RevisionTime  time.Time
+}
+
 type Builder struct {
 	pool     *pgxpool.Pool
 	agencyID string
@@ -58,6 +64,18 @@ func (b *Builder) Snapshot(ctx context.Context, generatedAt time.Time) (Snapshot
 	}, nil
 }
 
+func (b *Builder) SnapshotKey(ctx context.Context) (SnapshotKey, error) {
+	feed, err := b.activeFeed(ctx)
+	if err != nil {
+		return SnapshotKey{}, err
+	}
+	return SnapshotKey{
+		AgencyID:      b.agencyID,
+		FeedVersionID: feed.ID,
+		RevisionTime:  feed.RevisionTime.UTC(),
+	}, nil
+}
+
 func (b *Builder) SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (Snapshot, error) {
 	if agencyID == "" {
 		return Snapshot{}, fmt.Errorf("agency_id is required")
@@ -66,6 +84,16 @@ func (b *Builder) SnapshotForAgency(ctx context.Context, agencyID string, genera
 		return b.Snapshot(ctx, generatedAt)
 	}
 	return (&Builder{pool: b.pool, agencyID: agencyID}).Snapshot(ctx, generatedAt)
+}
+
+func (b *Builder) SnapshotKeyForAgency(ctx context.Context, agencyID string) (SnapshotKey, error) {
+	if agencyID == "" {
+		return SnapshotKey{}, fmt.Errorf("agency_id is required")
+	}
+	if agencyID == b.agencyID {
+		return b.SnapshotKey(ctx)
+	}
+	return (&Builder{pool: b.pool, agencyID: agencyID}).SnapshotKey(ctx)
 }
 
 func (b *Builder) SnapshotForFeedVersion(ctx context.Context, feedVersionID string, generatedAt time.Time) (Snapshot, error) {

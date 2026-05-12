@@ -49,6 +49,14 @@ type agencyScheduleBuilder interface {
 	SnapshotForAgency(ctx context.Context, agencyID string, generatedAt time.Time) (schedule.Snapshot, error)
 }
 
+type scheduleSnapshotKeyReader interface {
+	SnapshotKey(ctx context.Context) (schedule.SnapshotKey, error)
+}
+
+type agencyScheduleSnapshotKeyReader interface {
+	SnapshotKeyForAgency(ctx context.Context, agencyID string) (schedule.SnapshotKey, error)
+}
+
 type publicationStore interface {
 	BootstrapPublication(ctx context.Context, input compliance.BootstrapInput) error
 	FeedDiscovery(ctx context.Context, agencyID string, generatedAt time.Time) (compliance.FeedDiscovery, error)
@@ -327,6 +335,13 @@ func (h *handler) writeScheduleZIP(w http.ResponseWriter, r *http.Request, agenc
 }
 
 func (h *handler) scheduleSnapshot(ctx context.Context, agencyID string, generatedAt time.Time) (schedule.Snapshot, error) {
+	if key, ok, err := h.scheduleSnapshotKey(ctx, agencyID); err != nil {
+		return schedule.Snapshot{}, err
+	} else if ok {
+		if snapshot, hit := h.cache.get(key, generatedAt); hit {
+			return snapshot, nil
+		}
+	}
 	if agencyID == "" || agencyID == h.agencyID {
 		return h.schedule.Snapshot(ctx, generatedAt)
 	}
@@ -341,6 +356,21 @@ func (h *handler) scheduleSnapshot(ctx context.Context, agencyID string, generat
 		return schedule.Snapshot{}, fmt.Errorf("schedule builder cannot build requested agency")
 	}
 	return snapshot, nil
+}
+
+func (h *handler) scheduleSnapshotKey(ctx context.Context, agencyID string) (schedule.SnapshotKey, bool, error) {
+	if agencyID == "" || agencyID == h.agencyID {
+		if keyer, ok := h.schedule.(scheduleSnapshotKeyReader); ok {
+			key, err := keyer.SnapshotKey(ctx)
+			return key, true, err
+		}
+		return schedule.SnapshotKey{}, false, nil
+	}
+	if keyer, ok := h.schedule.(agencyScheduleSnapshotKeyReader); ok {
+		key, err := keyer.SnapshotKeyForAgency(ctx, agencyID)
+		return key, true, err
+	}
+	return schedule.SnapshotKey{}, false, nil
 }
 
 func (h *handler) publicFeedsJSON(w http.ResponseWriter, r *http.Request) {
@@ -893,11 +923,30 @@ func (c *scheduleZIPCache) store(snapshot schedule.Snapshot) error {
 	if len(snapshot.Payload) > c.maxBytes {
 		return fmt.Errorf("schedule zip exceeds SCHEDULE_ZIP_MAX_BYTES")
 	}
-	key := snapshot.FeedVersionID + ":" + snapshot.RevisionTime.UTC().Format(time.RFC3339Nano)
+	key := scheduleCacheKey(schedule.SnapshotKey{
+		AgencyID:      snapshot.AgencyID,
+		FeedVersionID: snapshot.FeedVersionID,
+		RevisionTime:  snapshot.RevisionTime,
+	})
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.entries = map[string]schedule.Snapshot{key: snapshot}
 	return nil
+}
+
+func (c *scheduleZIPCache) get(key schedule.SnapshotKey, generatedAt time.Time) (schedule.Snapshot, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	snapshot, ok := c.entries[scheduleCacheKey(key)]
+	if !ok {
+		return schedule.Snapshot{}, false
+	}
+	snapshot.GeneratedAt = generatedAt.UTC()
+	return snapshot, true
+}
+
+func scheduleCacheKey(key schedule.SnapshotKey) string {
+	return key.AgencyID + ":" + key.FeedVersionID + ":" + key.RevisionTime.UTC().Format(time.RFC3339Nano)
 }
 
 func scheduleETag(snapshot schedule.Snapshot) string {
