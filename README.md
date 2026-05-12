@@ -12,9 +12,10 @@ stronger deployment or consumer claims separate from local evaluation.
 Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
 
-Current maintainer next step: improve product quality and external-connection
-maturity through a `v0.1.0-rc.1` release-candidate gate before any full
-`v0.1.0` release. See
+Current maintainer next step: continue adoption-first product hardening toward
+a `v0.1.0-rc.1` agency evaluation release candidate. The default path is
+browser-first operations, docs, remote diagnostics, off-host validation, and
+connector usability, not real agency pilot evidence. See
 [Review And Recommendations](docs/roadmap-status.md#review-and-recommendations).
 
 ## Start The Software UI
@@ -38,8 +39,9 @@ Open the private Operations Console:
 http://localhost:8080/admin/operations
 ```
 
-Click **Start Here** first. It shows the no-developer path, developer path,
-ordered first-run tasks, and the five public feed URLs.
+Click **Agency Operations Cockpit** first. It shows setup progress, primary
+action cards, ordered first-run tasks, the five public feed URLs, maintenance
+tasks, and what each page does not prove.
 
 Stop the local app with:
 
@@ -60,6 +62,8 @@ make agency-app-down
 - Try synthetic telemetry through documented commands.
 - Review Connector Hub and connector test guidance.
 - Review CAL-ITP-style readiness and Help.
+- Use the Maintenance Center to see weekly/monthly tasks and technical-helper
+  cases.
 
 ## 30-Minute Local Demo
 
@@ -81,9 +85,26 @@ instructions.
 
 Detailed guide: [Small Agency Quick Start](wiki/small-agency-quick-start.md).
 
-## One-Day Public GTFS Trial
+## Browser-First GTFS Review
 
-Use the reusable onboarding helper when you want to test a public GTFS ZIP:
+Use the browser path first when possible:
+
+```text
+/admin/operations/gtfs-import
+/admin/operations/feed-health
+/admin/operations/gtfs-quality
+/admin/operations/validation-health
+/admin/operations/maintenance
+```
+
+The private UI can import/review GTFS, show active feed version and source
+details, inspect feed health, explain validator state, review telemetry
+readiness, and show the next maintenance action. See
+[No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md) and
+[Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md).
+
+Use the reusable onboarding helper only when a technical helper needs a
+scripted import path for a public GTFS ZIP:
 
 ```bash
 make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip
@@ -143,6 +164,8 @@ and local checks. Use:
 - [CAL-ITP Readiness Plain English](wiki/calitp-readiness-plain-english.md)
 - [Release-Candidate Readiness](docs/release-candidate-readiness.md)
 - [External Connection Readiness](docs/external-connection-readiness.md)
+- [Off-Host Public Feed Validation](docs/deployment/off-host-validation.md)
+- [OCI Reference Check](docs/deployment/oci-reference-check.md)
 - [Product Screenshots](docs/assets/product-screenshots/README.md)
 - [Product Diagrams](docs/assets/product-diagrams/README.md)
 
@@ -173,6 +196,8 @@ evaluation or open-source contribution.
 - [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
 - [Small Agency Quick Start](wiki/small-agency-quick-start.md)
 - [Browser-First Setup](wiki/browser-first-setup.md)
+- [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
+- [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
 - [Operations Console Tour](wiki/operations-console-tour.md)
 - [Wiki Home](wiki/README.md)
 - [Documentation Home](docs/README.md)
@@ -181,6 +206,7 @@ evaluation or open-source contribution.
 - [Current Status](docs/current-status.md)
 - [Latest Handoff](docs/handoffs/latest.md)
 - [Phase 61+ Product Roadmap](docs/roadmaps/agency-first-connector-platform/README.md)
+- [Adoption Productization Roadmap](docs/roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md)
 
 ## Contributing
 

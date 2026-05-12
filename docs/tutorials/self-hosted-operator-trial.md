@@ -23,6 +23,8 @@ ETA quality.
 - [Reusable Agency Onboarding](reusable-agency-onboarding.md)
 - [Integration Adapter Kit](../integration-adapter-kit.md)
 - [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md)
+- [OCI Reference Check](../deployment/oci-reference-check.md)
+- [Off-Host Public Feed Validation](../deployment/off-host-validation.md)
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md)
 - [Evidence Redaction Policy](../evidence/redaction-policy.md)
 
@@ -87,9 +89,15 @@ or consumer evidence.
 ## 3. Verify The Five Public Paths
 
 For a repeatable command that fetches these paths, records sizes/checksums,
-checks the admin boundary, records validator tooling state, and runs the
-synthetic AVL dry-run fixture, use
-[Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md).
+and runs validators from an operator machine when installed, use:
+
+```bash
+PUBLIC_BASE_URL=http://localhost:8080 make validate-public-feeds
+```
+
+For broader local/reference diagnostics, use
+[Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md) and
+[OCI Reference Check](../deployment/oci-reference-check.md).
 
 The onboarding output prints the public base URL. Verify that these paths
 return non-empty responses:
@@ -133,6 +141,16 @@ Trip Updates, Alerts, license/contact metadata, validation, telemetry
 freshness, operations status, and consumer packet preparedness. The page is
 read-only and does not run validators, contact consumers, create evidence, or
 claim CAL-ITP/Caltrans compliance.
+
+Also open:
+
+```text
+/admin/operations/maintenance
+```
+
+Use it for backup/restore configuration presence, latest import/check signals,
+telemetry freshness, validator state, service-health availability, and
+weekly/monthly maintenance next actions.
 
 ## 5. Run, Skip, Or Blocker-Document Validators
 

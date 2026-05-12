@@ -30,6 +30,30 @@ find the right private UI surfaces.
 readiness, consumer acceptance, compliance, hosted SaaS, SLA coverage, vendor
 compatibility, or production-grade ETA quality.
 
+## No-CLI Agency Operations Flow
+
+```mermaid
+flowchart TD
+    A["Private /admin/operations"] --> B["Agency Operations Cockpit"]
+    B --> C["Import or review GTFS"]
+    B --> D["Review five public feed paths"]
+    B --> E["Review GTFS quality and validators"]
+    B --> F["Review devices, telemetry, and realtime usefulness"]
+    B --> G["Review connector readiness"]
+    B --> H["Review Maintenance Center"]
+    H --> I["Weekly/monthly next action"]
+    I --> J["Technical helper only when deployment, validator, token, or diagnostic shell work is needed"]
+```
+
+**What this proves:** a local/demo operator has a browser-first path for
+routine setup, feed review, quality review, realtime usefulness, connector
+review, and maintenance decisions.
+
+**What this does not prove:** agency adoption, compliance, consumer
+acceptance, final-root readiness, hosted service availability, production
+readiness, vendor compatibility, SLA coverage, or production-grade ETA
+quality.
+
 ## External-Connection Flow
 
 ```mermaid

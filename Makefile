@@ -420,6 +420,11 @@ validate:
 	@test -f docs/handoffs/phase-56.md
 	@test -f docs/phase-57-release-packaging-and-supply-chain.md
 	@test -f docs/release-candidate-readiness.md
+	@test -f docs/deployment/oci-reference-check.md
+	@test -f docs/deployment/off-host-validation.md
+	@test -f docs/tutorials/no-cli-agency-first-run.md
+	@test -f docs/tutorials/small-agency-maintenance-guide.md
+	@test -f docs/roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md
 	@test -f docs/caltrans-readiness-gap-report.md
 	@test -f docs/connectors/plugin-contract.md
 	@test -f docs/external-connection-readiness.md

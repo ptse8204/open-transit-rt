@@ -125,6 +125,16 @@ created no retained evidence, contacted no external party, changed no consumer
 status, and made no compliance, agency adoption, consumer acceptance,
 final-root, hosted SaaS, production-readiness, vendor-compatibility, SLA, or
 ETA-quality claim.
+Phase 71 is complete for adoption-first productization and no-CLI agency
+operations. It improved the private Agency Operations Cockpit, browser GTFS
+source/review guidance, feed health and realtime usefulness, validator/GTFS
+quality explanations, telemetry/device/simulator guidance, connector review,
+Maintenance Center, `make oci-reference-check`, `make validate-public-feeds`,
+and adoption docs/wiki/deployment guidance. Phase 71 created no retained
+evidence, contacted no external party, changed no consumer status, added no
+public admin routes, and made no compliance, agency adoption, consumer
+acceptance, final-root, hosted service, production-readiness,
+vendor-compatibility, SLA, uptime, or ETA-quality claim.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -234,19 +244,22 @@ production-grade ETA quality.
 Phases 61 through 67 are complete. Phase 68+ is closed blocker-only /
 authorization-gated for the current no-authorization review. Phase 69 is
 complete for maintainer product acceptance and UI-first agency usability.
-Phase 70 is complete for the GitHub Pages product explainer site.
+Phase 70 is complete for the GitHub Pages product explainer site. Phase 71 is
+complete for adoption-first no-CLI agency operations.
 
-The default next work is a product-quality and external-connection maturity
-gate for `v0.1.0-rc.1`, not a full `v0.1.0` release and not evidence
-collection. Use the canonical
+The default next work is a `v0.1.0-rc.1` agency evaluation release-candidate
+hardening pass, not a full `v0.1.0` release, not a real agency pilot, and not
+evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 section for the current scorecard, risks, and next-step sequence.
 
 The release-candidate gate should start from a clean checkout and cover
-`make check`, `make validate`, `make test`, local app startup, a public GTFS
-trial when data terms and network access allow, five public feed fetches,
-validator health, the telemetry simulator, connector/adaptor conformance, and
-the final claim audit. External-connection maturity should focus on AVL/device
+`make check`, `make validate`, `make test`, local app startup, the browser
+Agency Operations Cockpit path, a public GTFS trial when data terms and
+network access allow, five public feed fetches, off-host validation,
+OCI/reference diagnostics, validator health, the telemetry simulator,
+connector/adaptor conformance, and the final claim audit. External-connection
+maturity should focus on AVL/device
 input to authenticated `POST /v1/telemetry`, external predictor adapters in
 shadow or fail-closed modes, validator tooling, monitoring/export surfaces,
 feed-consumer URL and metadata expectations, and redaction checks.

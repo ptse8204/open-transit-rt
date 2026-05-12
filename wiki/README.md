@@ -21,9 +21,11 @@ useful to you.
 
 1. [Small Agency Quick Start](small-agency-quick-start.md)
 2. [Browser-First Setup](browser-first-setup.md)
-3. [Operations Console Tour](operations-console-tour.md)
-4. [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
-5. [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
+3. [No Command Line First Run](../docs/tutorials/no-cli-agency-first-run.md)
+4. [Small Agency Maintenance Guide](../docs/tutorials/small-agency-maintenance-guide.md)
+5. [Operations Console Tour](operations-console-tour.md)
+6. [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
+7. [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
 
 Fast local command:
 
@@ -45,13 +47,15 @@ Click **Start Here** in the private Operations Console.
 | --- | --- |
 | Decide whether this fits your agency or project | [Can My Agency Use This?](can-my-agency-use-this.md) |
 | Try the browser-first local path | [Small Agency Quick Start](small-agency-quick-start.md) |
+| Avoid command-line-first operations | [No Command Line First Run](../docs/tutorials/no-cli-agency-first-run.md) |
+| Keep the system healthy week to week | [Small Agency Maintenance Guide](../docs/tutorials/small-agency-maintenance-guide.md) |
 | Understand what to click in the private UI | [Operations Console Tour](operations-console-tour.md) |
 | Use your own public GTFS ZIP | [Agency Evaluation Checklist](agency-adoption-checklist.md) |
 | Connect GPS, AVL, CSV, or sidecar telemetry | [Connector Cookbook](connector-cookbook.md) |
 | Review release-candidate and connector maturity | [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations) |
 | Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](calitp-readiness-plain-english.md) |
 | Understand readiness and evidence boundaries | [Readiness And Evidence](readiness-and-evidence.md) |
-| Plan a self-hosted evaluator or pilot deployment | [Deployment Guide](deployment-guide.md) |
+| Plan a self-hosted evaluator or reference deployment | [Deployment Guide](deployment-guide.md) |
 | Help improve the project | [How Agencies Can Help](how-agencies-can-help.md) |
 | Contribute code or docs | [Support And Contribute](support-and-contribute.md) |
 
@@ -62,7 +66,7 @@ Click **Start Here** in the private Operations Console.
 - Import GTFS through the browser if you have an admin role.
 - Check the five public feed paths.
 - Review feed health, GTFS quality, validation health, readiness, connectors,
-  telemetry simulator guidance, and Help.
+  telemetry simulator guidance, Maintenance Center, and Help.
 
 ## What Still Needs A Technical Helper
 

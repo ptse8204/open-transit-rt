@@ -62,3 +62,42 @@ Checkpoint 000001 review:
 - The plan includes protected paths, tests/checks, and success criteria.
 - No evidence collection, consumer status mutation, public-route expansion, or
   stronger claim is authorized.
+
+Checkpoint 000002 review:
+
+- The private Operations Console now starts with an Agency Operations Cockpit
+  model and HTML flow.
+- Feed Health, GTFS import review, validator/quality guidance, telemetry/
+  device guidance, and the Maintenance Center reduce command-line dependence
+  for routine review.
+- Route protection, stable card/row IDs, JSON shape, and all-false claim flags
+  are covered by focused tests.
+
+Checkpoint 000003 review:
+
+- `scripts/oci-reference-check.sh` and `scripts/validate-public-feeds.sh` write
+  private `.cache` diagnostics by default.
+- The helpers reject evidence-like output paths and userinfo/query/fragment
+  public roots, keep all claim flags false, and distinguish failed fetches,
+  missing tooling, artifact gaps, and validation failures.
+- The OCI helper reuses off-host validation and adds optional SSH loopback
+  health without requiring Go on the remote host or printing populated env
+  values.
+
+Checkpoint 000004 review:
+
+- README, docs hub, wiki, deployment docs, tutorials, visual asset guidance,
+  roadmap docs, status, and handoff now point to the adoption-first browser
+  path.
+- New guides cover no-command-line-first run, small-agency maintenance,
+  off-host validation, OCI reference check, and the adoption productization
+  roadmap.
+- The `gh-pages` branch was not edited from this `main` worktree; exact safe
+  site-update notes live in `docs/demo-docs-site-plan.md` and the adoption
+  roadmap.
+
+## Closeout Status
+
+Phase 71 is complete for adoption-first productization and no-CLI agency
+operations. Recommended next phase: Phase 72 -- v0.1.0-rc.1 Release Candidate
+Hardening.

@@ -1,6 +1,9 @@
 # Agency First Run
 
-This guide is for a small agency evaluator who wants to see Open Transit RT run locally without learning every backend service first.
+This guide is for a small agency evaluator who wants to see Open Transit RT
+run locally without learning every backend service first. For the
+browser-first operator path, also read
+[No Command Line First Run](no-cli-agency-first-run.md).
 
 The local package is a demo/evaluation flow. It is not hosted SaaS, not a production deployment, and not proof that Google Maps, Apple Maps, Transit App, or any other consumer has accepted the feeds.
 
@@ -167,6 +170,11 @@ information, Alerts links, consumer evidence status, setup next actions, and
 the status source for each setup step. Admin routes still require an admin
 token; the local proxy does not make them public.
 
+The Agency Operations Cockpit on `/admin/operations` is the first routine
+review screen. It summarizes setup progress, GTFS import state, active feed
+version, five feed paths, validator state, telemetry, readiness, connectors,
+maintenance, and the next action for every card.
+
 ## Why Validation Matters
 
 Validation checks whether schedule and realtime feeds follow the expected GTFS and GTFS Realtime rules. Passing validation is necessary for a credible feed, but it is not the same as consumer acceptance.
@@ -185,6 +193,27 @@ make demo-agency-flow
 ```
 
 For common real GTFS import and validator failures, see [GTFS Validation Triage](gtfs-validation-triage.md).
+
+When a small server cannot run validators comfortably, ask a technical helper
+to run off-host validation from an operator machine:
+
+```bash
+PUBLIC_BASE_URL=http://localhost:8080 make validate-public-feeds
+```
+
+See [Off-Host Public Feed Validation](../deployment/off-host-validation.md).
+
+## Routine Maintenance
+
+Open:
+
+```text
+http://localhost:8080/admin/operations/maintenance
+```
+
+Use this page for weekly/monthly feed health, validator, GTFS, telemetry,
+alerts, backup/restore configuration, and support-summary tasks. See
+[Small Agency Maintenance Guide](small-agency-maintenance-guide.md).
 
 ## What Consumers Still Need To Accept Separately
 

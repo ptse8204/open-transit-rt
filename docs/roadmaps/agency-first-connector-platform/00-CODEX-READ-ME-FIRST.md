@@ -9,9 +9,9 @@ This is the first file Codex should read before planning any new product work.
 - The maintainer has now authorized future roadmap work to use **Phase 61, Phase 62, Phase 63, ...** naming instead of more `Post-60` or `Phase 60 continuation` checkpoint names.
 - This is a forward-looking naming change only. It does **not** reopen Phase 60 or any earlier phase.
 - Optional evidence/adoption work remains authorization-gated and is not the default product path.
-- The current default next work is `v0.1.0-rc.1` product readiness and
-  external-connection maturity, not a real agency pilot or public proof by
-  default.
+- The current default next work is `v0.1.0-rc.1` product readiness,
+  adoption-first browser operations, external-connection maturity, and release
+  hardening, not a real agency pilot or public proof by default.
 - Use `docs/roadmap-status.md#review-and-recommendations` as the canonical
   review, scorecard, and next-step section.
 
@@ -64,6 +64,9 @@ Do **not** use a global checkpoint counter across phases.
 | 66 | Release Candidate and Installability | RC packaging, installer/bootstrap UX, Docker image decision, demo/docs site | `Phase 66 -- Checkpoint 00000N: ...` |
 | 67 | Product Polish, Accessibility, and In-App Help | IA cleanup, responsive/accessibility polish, in-app help system | `Phase 67 -- Checkpoint 00000N: ...` |
 | 68+ | Optional Authorized Evidence Tracks | Real agency/final-root/consumer/vendor/ETA evidence only when authorized | `Phase 68+ -- Checkpoint 00000N: ...` |
+| 69 | Maintainer Product Acceptance and UI-First Agency Usability Trial | UI-first product acceptance and small-agency walkthroughs without evidence intake | `Phase 69 -- Checkpoint 00000N: ...` |
+| 70 | GitHub Pages Product Explainer Site | Static claim-bounded explainer site on `gh-pages` | `Phase 70 -- Checkpoint 00000N: ...` |
+| 71 | Adoption-First Productization And No-CLI Agency Operations | Browser-first cockpit, maintenance, off-host validation, reference diagnostics, and adoption docs | `Phase 71 -- Checkpoint 00000N: ...` |
 
 ## First Commit To Add This Pack
 

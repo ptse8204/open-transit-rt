@@ -12,6 +12,9 @@ Each phase has its own checkpoint sequence starting at `000001`.
 | 66 | Release Candidate and Installability | RC packaging, installer/bootstrap UX, Docker image decision, demo/docs site | `Phase 66 -- Checkpoint 00000N: ...` |
 | 67 | Product Polish, Accessibility, and In-App Help | IA cleanup, responsive/accessibility polish, in-app help system | `Phase 67 -- Checkpoint 00000N: ...` |
 | 68+ | Optional Authorized Evidence Tracks | Real agency/final-root/consumer/vendor/ETA evidence only when authorized | `Phase 68+ -- Checkpoint 00000N: ...` |
+| 69 | Maintainer Product Acceptance and UI-First Agency Usability Trial | UI-first product acceptance and small-agency walkthroughs without evidence intake | `Phase 69 -- Checkpoint 00000N: ...` |
+| 70 | GitHub Pages Product Explainer Site | Static claim-bounded explainer site on `gh-pages` | `Phase 70 -- Checkpoint 00000N: ...` |
+| 71 | Adoption-First Productization And No-CLI Agency Operations | Browser-first cockpit, maintenance, off-host validation, reference diagnostics, and adoption docs | `Phase 71 -- Checkpoint 00000N: ...` |
 
 ## Phase 61 — Agency-First UI and Connector Hub
 
@@ -109,10 +112,17 @@ Use only when explicitly authorized and evidence exists. These are not product b
 | 000001 | `Phase 68+ -- Checkpoint 000001: add optional evidence track blocker documentation` | Document Phase 68+ as authorization-gated and blocker-only when explicit written authorization is absent. |
 | 000002 | `Phase 68+ -- Checkpoint 000002: close optional evidence tracks as authorization-gated` | Close Phase 68+ without evidence collection or status movement unless authorized intake and artifacts are present. |
 
-Possible future phases:
+Default future product phases:
 
-- Phase 68 — Authorized Agency Trial Intake
-- Phase 69 — Authorized Final Public Root Evidence
-- Phase 70 — Authorized Consumer Submission Evidence
-- Phase 71 — Authorized Real AVL/Vendor Integration Evidence
-- Phase 72 — Authorized Real-World ETA Quality Study
+- Phase 72 — v0.1.0-rc.1 Release Candidate Hardening
+- Phase 73 — Guided Realtime Demo And Connector Usability
+- Phase 74 — Agency Evaluation Release Candidate
+
+Optional evidence tracks remain authorization-gated and are not the default
+next step:
+
+- Authorized agency trial intake
+- Authorized final public root evidence
+- Authorized consumer submission evidence
+- Authorized real AVL/vendor integration evidence
+- Authorized real-world ETA quality study

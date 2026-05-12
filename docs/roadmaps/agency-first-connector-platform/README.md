@@ -11,6 +11,10 @@ The default next product gate is `v0.1.0-rc.1` readiness before any full
 and real pilots/final-root/consumer/vendor proof left as optional
 authorization-gated evidence tracks.
 
+Phase 71 keeps that direction adoption-first: browser-first agency operations,
+maintenance, off-host validation, reference diagnostics, and docs/wiki/site
+guidance. A real agency pilot is not the default next step.
+
 ## Current State
 
 - Phases 0 through 60 are closed.
@@ -32,6 +36,7 @@ authorization-gated evidence tracks.
 | 68+ | Optional Authorized Evidence Tracks | Real agency/final-root/consumer/vendor/ETA evidence only when authorized | `Phase 68+ -- Checkpoint 00000N: ...` |
 | 69 | Maintainer Product Acceptance and UI-First Agency Usability Trial | UI-first product acceptance, README/wiki/docs path cleanup, small-agency walkthroughs, and local acceptance audits without evidence intake | `Phase 69 -- Checkpoint 00000N: ...` |
 | 70 | GitHub Pages Product Explainer Site | Static public explainer site on `gh-pages`, local/demo UI screenshots, and claim-bounded reader paths | `Phase 70 -- Checkpoint 00000N: ...` |
+| 71 | Adoption-First Productization And No-CLI Agency Operations | Agency Operations Cockpit, richer GTFS/feed/validator/telemetry/maintenance UI, off-host validation, OCI reference check, and adoption docs | `Phase 71 -- Checkpoint 00000N: ...` |
 
 ## How To Use This Folder
 
@@ -57,6 +62,10 @@ phase-prompts/phase-68-plus-optional-evidence-tracks.md
 Phase 69 is a product acceptance bridge after Phase 68+ closed as
 authorization-gated. It is not evidence intake and does not reopen final-root,
 consumer, agency, vendor, or ETA proof tracks.
+
+Phase 71 is documented in
+[`adoption-productization-roadmap.md`](adoption-productization-roadmap.md).
+It keeps real agency pilot work out of the default next-step sequence.
 
 ## Commit Pattern
 

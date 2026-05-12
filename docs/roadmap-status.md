@@ -9,13 +9,19 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 ## What To Do Next
 
 The default next path is product review, public explanation, and local
-release-candidate readiness:
+release-candidate readiness, now with Phase 71 adoption-first productization:
 
-1. maintainer product review of the local evaluator and Operations Console;
-2. GitHub Pages product explainer site for public orientation;
-3. local release-candidate review for `v0.1.0-rc.1`, not a full `v0.1.0`
+1. maintainer product review of the local evaluator and Agency Operations
+   Cockpit;
+2. browser-first GTFS import/review, feed health, validator, telemetry,
+   connector, and maintenance workflows;
+3. private OCI/reference diagnostics and off-host public feed validation as
+   product-support checks, not evidence;
+4. GitHub Pages product explainer site refresh when a safe `gh-pages` workflow
+   is authorized;
+5. local release-candidate review for `v0.1.0-rc.1`, not a full `v0.1.0`
    release;
-4. external-connection maturity across telemetry, predictors, validators,
+6. external-connection maturity across telemetry, predictors, validators,
    monitoring/export, feed-consumer metadata, and redaction boundaries.
 
 The release-candidate gate should prove that a clean checkout can run the
@@ -50,7 +56,9 @@ assessment.
 | Release maturity | No public release / release-candidate gate yet. | Prepare `v0.1.0-rc.1` from a clean checkout before any full `v0.1.0` tag. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a `gh-pages` product explainer site with local/demo screenshots. | Keep GitHub Pages content static, documentation-only, screenshot-backed, and linked to deeper docs. |
+| Browser-first operations | Phase 71 improves the private Agency Operations Cockpit, feed health, GTFS import review, validator/quality guidance, telemetry guidance, and Maintenance Center. | Use `/admin/operations` as the first agency surface; keep shell commands as technical-helper paths. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
+| Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
 | Telemetry/device path | The telemetry simulator and AVL adapter send mode exercise `POST /v1/telemetry`, but real device and vendor evidence is absent. | Keep using synthetic/local telemetry diagnostics; treat real device/vendor proof as optional evidence when authorized. |
 | External predictor path | Deterministic Trip Updates are the safe default; external HTTP sidecars are optional and disabled by default. | Test external predictors only in shadow or fail-closed modes behind `internal/prediction.Adapter`. |
@@ -84,6 +92,8 @@ assessment.
    RUN_LOCAL_APP=true make release-candidate-check
    make external-connection-check
    make adapter-conformance
+   PUBLIC_BASE_URL=https://feeds.example.org make validate-public-feeds
+   PUBLIC_BASE_URL=https://feeds.example.org make oci-reference-check
    make audit-final-claim-review
    ```
 
@@ -99,7 +109,21 @@ assessment.
    make agency-app-down
    ```
 
-5. Run one public GTFS trial as a local diagnostic when network access and data
+5. Review the browser-first agency operations path:
+
+   ```text
+   /admin/operations
+   /admin/operations/gtfs-import
+   /admin/operations/feed-health
+   /admin/operations/gtfs-quality
+   /admin/operations/validation-health
+   /admin/operations/devices
+   /admin/operations/telemetry-simulator
+   /admin/operations/connectors
+   /admin/operations/maintenance
+   ```
+
+6. Run one public GTFS trial as a local diagnostic when network access and data
    terms allow:
 
    ```bash
@@ -109,7 +133,7 @@ assessment.
    Record exact blockers. Do not treat the run as final-root proof, agency
    adoption, consumer acceptance, or compliance evidence.
 
-6. Exercise external-connection readiness with synthetic/local data:
+7. Exercise external-connection readiness with synthetic/local data:
 
    ```bash
    make telemetry-simulator
@@ -117,10 +141,10 @@ assessment.
    make adapter-conformance
    ```
 
-7. Review these surfaces before improving public wording: validator health,
+8. Review these surfaces before improving public wording: validator health,
    monitoring/export diagnostics, feed URL and metadata expectations,
    connector/adaptor conformance, and redaction checks.
-8. Keep all real pilots, final-root proof, consumer submission, and vendor
+9. Keep all real pilots, final-root proof, consumer submission, and vendor
    proof as authorization-gated optional evidence tracks.
 
 > **What this proves:** these checks can show that a local checkout has a

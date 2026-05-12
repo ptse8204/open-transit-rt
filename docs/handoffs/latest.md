@@ -22,10 +22,13 @@ Release Candidate and Installability is complete. Phase 67 -- Product Polish,
 Accessibility, and In-App Help is complete. Phase 68+ -- Optional Authorized
 Evidence Tracks is closed blocker-only / authorization-gated for the current
 no-authorization review after Checkpoint 000002. Phase 69 -- Maintainer
-Product Acceptance And UI-First Agency Usability Trial is complete. The
-current default next work is product quality and external-connection maturity:
-prepare `v0.1.0-rc.1` before any full `v0.1.0` release, run the clean-checkout
-release-candidate gate, and review connector/adaptor conformance. The canonical
+Product Acceptance And UI-First Agency Usability Trial is complete. Phase 70
+-- GitHub Pages Product Explainer Site is complete. Phase 71 --
+Adoption-First Productization And No-CLI Agency Operations is complete. The
+current default next work is `v0.1.0-rc.1` agency evaluation release-candidate
+hardening: run the clean-checkout release-candidate gate, review the
+browser-first Agency Operations Cockpit path, verify off-host validation and
+reference diagnostics, and review connector/adaptor conformance. The canonical
 review is `docs/roadmap-status.md#review-and-recommendations`. Any future
 evidence intake is optional and requires explicit written authorization first.
 
@@ -134,6 +137,17 @@ cleanup, and `make audit-product-acceptance` /
 external party, changed no consumer status, and made no compliance, agency
 adoption, consumer acceptance, final-root, hosted SaaS,
 production-readiness, vendor-compatibility, SLA, or ETA-quality claim.
+
+Phase 71 improved adoption-first product quality without evidence intake. It
+added the Agency Operations Cockpit JSON/HTML surface, maintenance routes,
+feed health realtime-usefulness rows, GTFS import source review, browser-first
+validator/quality/telemetry guidance, `make oci-reference-check`,
+`make validate-public-feeds`, and adoption docs for no-CLI first run,
+maintenance, off-host validation, and OCI/reference diagnostics. It created no
+retained evidence, contacted no external party, changed no consumer status,
+added no public admin routes, and made no compliance, agency adoption,
+consumer acceptance, final-root, hosted-service, production-readiness,
+vendor-compatibility, SLA, uptime, or ETA-quality claim.
 
 Phase 66 checkpoint history: Checkpoint 000001 added the Phase 66 plan in
 `docs/phase-66-release-candidate-and-installability.md`.

@@ -18,6 +18,12 @@ packet, and not final-root proof.
 - [Reference Deployment Doctor](reference-deployment-doctor.md) - read-only
   private diagnostics for env, services, routes, validators, DB, backups, and
   restore-drill readiness.
+- [OCI Reference Check](oci-reference-check.md) - private reference diagnostic
+  helper for public five-feed fetches, optional SSH loopback health, backup/
+  restore configuration presence, and all-false claim flags.
+- [Off-Host Public Feed Validation](off-host-validation.md) - fetch public
+  artifacts and run validators from an operator machine when the server is too
+  small for validator workloads.
 - [OCI Reference Diagnostic Runs](oci-reference-diagnostic-runs.md) -
   public-safe summaries of completed reference diagnostics. These are not
   retained evidence packets.
@@ -37,3 +43,14 @@ proof, agency adoption proof, or consumer acceptance proof.
 
 Review `docs/evidence/redaction-policy.md` before turning any operator output
 from this path into public evidence.
+
+For adoption-first use, start routine review in the private browser UI:
+
+```text
+/admin/operations
+/admin/operations/feed-health
+/admin/operations/maintenance
+```
+
+Use `make oci-reference-check` and `make validate-public-feeds` as private
+technical-helper diagnostics, not as evidence collection.

@@ -34,6 +34,20 @@ For one guided local/reference evaluation that combines this deployment path,
 handling, and the synthetic AVL dry-run adapter, use
 [Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md).
 
+For browser-first agency operations after deployment, use:
+
+```text
+/admin/operations
+/admin/operations/feed-health
+/admin/operations/gtfs-import
+/admin/operations/validation-health
+/admin/operations/maintenance
+```
+
+These private pages are the normal operator surfaces. Shell diagnostics remain
+technical-helper paths for deployment, off-host validation, support summaries,
+and secure token handling.
+
 ## Server Prerequisites
 
 Target one operator-owned Linux server with:
@@ -347,7 +361,19 @@ and retains it.
 ## Five Public Feed URL Verification
 
 After migrations, service start, metadata bootstrap, and GTFS import, verify
-all five public URLs from outside the server:
+all five public URLs from outside the server. Prefer the off-host helper when
+an operator machine has the repo checkout:
+
+```sh
+PUBLIC_BASE_URL=https://feeds.example.org make validate-public-feeds
+```
+
+This writes private diagnostics under `.cache/validate-public-feeds/<timestamp>`
+and distinguishes failed fetches, missing validator tooling, validator
+failures, and skipped validation. It does not require Java or Docker on the
+tiny reference server.
+
+Manual equivalent:
 
 ```sh
 BASE=https://feeds.example.org
@@ -362,6 +388,22 @@ shasum -a 256 feeds.json schedule.zip vehicle_positions.pb trip_updates.pb alert
 HTTP success, byte counts, and checksums are operator verification data only
 until reviewed and redacted. They do not prove consumer acceptance,
 compliance, final-root ownership, or production readiness.
+
+## OCI Reference Diagnostic
+
+Use the reference check as product-support diagnostics, not evidence:
+
+```sh
+PUBLIC_BASE_URL=https://feeds.example.org make oci-reference-check
+```
+
+When `OCI_HOST` access is configured, the helper also checks loopback health
+for the five services through SSH. It records deployment helper presence,
+backup/restore configuration presence, public fetch/validator state, telemetry
+simulator guidance, and all-false claim flags without printing populated env
+values.
+
+See [OCI Reference Check](oci-reference-check.md).
 
 ## Backup And Restore
 
@@ -432,6 +474,17 @@ The page shows CAL-ITP-style readiness rows with status sources, current
 signals, next actions, and claim boundaries. It is an operator workflow view
 only. It does not create external evidence, submit to consumers, prove an
 agency-owned final root, or claim CAL-ITP/Caltrans compliance.
+
+Also review:
+
+```text
+/admin/operations/maintenance
+```
+
+The Maintenance Center shows active feed version, last GTFS import, latest
+five-feed check when recorded, validator state, backup/restore configuration
+presence, telemetry freshness, service-health availability, support-summary
+instructions, and weekly/monthly tasks.
 
 For the full guided trial around this readiness review, see
 [Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md).

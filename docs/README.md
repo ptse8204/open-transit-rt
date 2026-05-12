@@ -14,6 +14,8 @@ overview: [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.
 - [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
 - [Small Agency Quick Start](../wiki/small-agency-quick-start.md)
 - [Browser-First Setup](../wiki/browser-first-setup.md)
+- [No Command Line First Run](tutorials/no-cli-agency-first-run.md)
+- [Small Agency Maintenance Guide](tutorials/small-agency-maintenance-guide.md)
 - [Operations Console Tour](../wiki/operations-console-tour.md)
 - [Can My Agency Use This?](../wiki/can-my-agency-use-this.md)
 - [Agency Evaluation Checklist](../wiki/agency-adoption-checklist.md)
@@ -26,6 +28,8 @@ helper, and what the local evaluation does not prove.
 
 - [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 - [Agency First Run](tutorials/agency-first-run.md)
+- [No Command Line First Run](tutorials/no-cli-agency-first-run.md)
+- [Small Agency Maintenance Guide](tutorials/small-agency-maintenance-guide.md)
 - [Small-Agency Acceptance Script](tutorials/small-agency-acceptance-script.md)
 - [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md)
 - [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
@@ -35,6 +39,8 @@ helper, and what the local evaluation does not prove.
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)
+- [OCI Reference Check](deployment/oci-reference-check.md)
+- [Off-Host Public Feed Validation](deployment/off-host-validation.md)
 
 ## Integrator Docs
 
@@ -116,6 +122,7 @@ not be the first path for a small-agency evaluator.
 - [Current Status](current-status.md)
 - [Latest Handoff](handoffs/latest.md)
 - [Phase 61+ Product Roadmap](roadmaps/agency-first-connector-platform/README.md)
+- [Adoption Productization Roadmap](roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md)
 - [Historical Post-60 Product Roadmap](post-60-product-roadmap.md)
 - [Roadmap Status](roadmap-status.md)
 - [Backlog](backlog.md)

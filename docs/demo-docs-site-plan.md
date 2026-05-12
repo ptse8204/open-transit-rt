@@ -60,6 +60,26 @@ after deciding:
 Until that decision exists, repository Markdown and wiki pages are the
 canonical public-friendly documentation surfaces.
 
+## Phase 71 gh-pages Update Notes
+
+The `gh-pages` branch is maintained separately from `main`. Phase 71 updates
+the main-branch docs/wiki guidance but does not switch branches or modify the
+published site payload.
+
+When the maintainer authorizes a safe Pages update, update the static site to:
+
+- make "Agency Operations Cockpit" and browser-first GTFS/GTFS-RT operations
+  the main start path;
+- link to `docs/tutorials/no-cli-agency-first-run.md` and
+  `docs/tutorials/small-agency-maintenance-guide.md`;
+- mention `make validate-public-feeds` and `make oci-reference-check` as
+  private diagnostics, not evidence;
+- show Feed Health, Maintenance Center, browser GTFS import, validator health,
+  devices/telemetry, connectors, and readiness as private UI surfaces;
+- keep all screenshots labeled local/demo and claim-bounded;
+- avoid hosted-service, compliance, consumer, adoption, vendor, SLA,
+  production, and ETA-quality claims.
+
 ## Non-Goals
 
 - No marketing site implementation.

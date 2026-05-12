@@ -4,14 +4,14 @@ These phases are optional. They must not block product development.
 
 Use only when the maintainer explicitly authorizes external proof work and public-safe retained evidence is available.
 
-Possible future phases:
+Optional future evidence tracks, not default product phases:
 
 ```text
-Phase 68 — Authorized Agency Trial Intake
-Future authorized final public root evidence track
-Phase 70 — Authorized Consumer Submission Evidence
-Phase 71 — Authorized Real AVL/Vendor Integration Evidence
-Phase 72 — Authorized Real-World ETA Quality Study
+Authorized agency trial intake
+Authorized final public root evidence
+Authorized consumer submission evidence
+Authorized real AVL/vendor integration evidence
+Authorized real-world ETA quality study
 ```
 
 Rules:

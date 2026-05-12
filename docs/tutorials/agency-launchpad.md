@@ -85,7 +85,13 @@ agency-facing review.
 ## 4. Five Feeds
 
 Verify that the five expected feed paths respond from the configured public
-base URL:
+base URL. Prefer the helper when a technical helper has a shell:
+
+```bash
+PUBLIC_BASE_URL=http://localhost:8080 make validate-public-feeds
+```
+
+Manual equivalent:
 
 ```bash
 BASE=http://localhost:8080
@@ -160,6 +166,14 @@ make agency-pilot-up \
 Use strict mode when validator blockers should stop the launchpad review. Use
 skip mode only when the goal is import and feed-path inspection.
 
+When the server is too small for validator workloads, run validators off-host:
+
+```bash
+PUBLIC_BASE_URL=http://localhost:8080 make validate-public-feeds
+```
+
+See [Off-Host Public Feed Validation](../deployment/off-host-validation.md).
+
 ## 7. Readiness
 
 Open the authenticated readiness page through the private admin boundary:
@@ -188,6 +202,17 @@ RUN_LOCAL_APP=true make release-candidate-check
 
 Inspect `.cache/release-candidate-check/<timestamp>/summary.json` and confirm
 every value under `claim_flags` is `false`.
+
+Review maintenance tasks:
+
+```text
+/admin/operations/maintenance
+```
+
+The Maintenance Center shows active feed, last import, latest five-feed check
+when recorded, validator state, backup/restore configuration presence,
+telemetry freshness, service health availability, support-summary guidance,
+and weekly/monthly next actions.
 
 ## 8. Connector Conformance
 
