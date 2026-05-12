@@ -10,7 +10,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: help check build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check adapter-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: help check build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting release-candidate-check test-release-candidate-check external-connection-check adapter-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 help:
 	@printf '%s\n' 'Open Transit RT command map'
@@ -33,6 +33,8 @@ help:
 	@printf '%s\n' ''
 	@printf '%s\n' 'Release/readiness:'
 	@printf '%s\n' '  make release-candidate-check    Local release-candidate diagnostic summary'
+	@printf '%s\n' '  make oci-reference-check        Private OCI/reference deployment diagnostic summary'
+	@printf '%s\n' '  make validate-public-feeds      Off-host five-feed fetch and validator diagnostic'
 	@printf '%s\n' '  make test-release-candidate-check Test release-candidate diagnostic boundaries'
 	@printf '%s\n' '  make release-package            Generate a local .cache source package'
 	@printf '%s\n' '  make audit-release-package      Audit an existing local release package'
@@ -55,7 +57,7 @@ check:
 	@python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
 	@python3 -c 'import json; from pathlib import Path; expected=["Google Maps","Apple Maps","Transit App","Bing Maps","Moovit","Mobility Database","transit.land"]; data=json.loads(Path("docs/evidence/consumer-submissions/status.json").read_text()); records=data.get("targets", []); seen={r["target"]: r.get("status") for r in records}; assert list(seen)==expected, seen; assert all(seen[name]=="prepared" for name in expected), seen'
 	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json testdata/telemetry-simulator/*.json; do python3 -m json.tool "$$f" >/dev/null; done
-	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/release-candidate-check.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/test-product-acceptance.sh; do sh -n "$$s"; done
+	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/release-candidate-check.sh scripts/oci-reference-check.sh scripts/validate-public-feeds.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/test-product-acceptance.sh; do sh -n "$$s"; done
 	@scripts/bootstrap-dev.sh --help >/dev/null
 	@scripts/agency-local-app.sh --help >/dev/null
 	@scripts/audit-final-claim-review.sh >/dev/null
@@ -135,6 +137,12 @@ operations-notify:
 
 operations-reliability:
 	@./scripts/operations-reliability.sh
+
+oci-reference-check:
+	@./scripts/oci-reference-check.sh
+
+validate-public-feeds:
+	@./scripts/validate-public-feeds.sh
 
 multi-agency-hosting:
 	@./scripts/multi-agency-hosting.sh
@@ -297,6 +305,8 @@ validate:
 	@test -f scripts/multi-agency-hosting.sh
 	@test -f scripts/test-multi-agency-hosting.sh
 	@test -f scripts/release-candidate-check.sh
+	@test -f scripts/oci-reference-check.sh
+	@test -f scripts/validate-public-feeds.sh
 	@test -f scripts/external-connection-check.sh
 	@test -f scripts/caltrans-readiness-check.sh
 	@test -f scripts/release-package.sh
@@ -324,6 +334,8 @@ validate:
 	@sh -n scripts/multi-agency-hosting.sh
 	@sh -n scripts/test-multi-agency-hosting.sh
 	@sh -n scripts/release-candidate-check.sh
+	@sh -n scripts/oci-reference-check.sh
+	@sh -n scripts/validate-public-feeds.sh
 	@sh -n scripts/external-connection-check.sh
 	@sh -n scripts/caltrans-readiness-check.sh
 	@sh -n scripts/release-package.sh
@@ -355,6 +367,14 @@ validate:
 	@scripts/multi-agency-hosting.sh --help >/dev/null
 	@OUTPUT_DIR=.cache/validate/multi-agency-hosting FORCE=true scripts/multi-agency-hosting.sh >/dev/null
 	@scripts/release-candidate-check.sh --help >/dev/null
+	@scripts/oci-reference-check.sh --help >/dev/null
+	@scripts/validate-public-feeds.sh --help >/dev/null
+	@rm -rf .cache/validate/oci-reference-check .cache/validate/validate-public-feeds
+	@OUTPUT_DIR=.cache/validate/oci-reference-check FORCE=true scripts/oci-reference-check.sh --public-base-url https://feeds.example.org --dry-run >/dev/null
+	@OUTPUT_DIR=.cache/validate/validate-public-feeds FORCE=true scripts/validate-public-feeds.sh --public-base-url https://feeds.example.org --dry-run >/dev/null
+	@python3 -m json.tool .cache/validate/oci-reference-check/summary.json >/dev/null
+	@python3 -m json.tool .cache/validate/validate-public-feeds/summary.json >/dev/null
+	@python3 -c 'import json; from pathlib import Path; s=json.loads(Path(".cache/validate/oci-reference-check/summary.json").read_text()); assert all(v is False for v in s["claim_flags"].values()), s["claim_flags"]; p=json.loads(Path(".cache/validate/validate-public-feeds/summary.json").read_text()); assert len(p["rows"]) == 5 and all(v is False for v in p["claim_flags"].values()), p'
 	@rm -rf .cache/validate/release-candidate-check
 	@OUTPUT_DIR=.cache/validate/release-candidate-check FORCE=true scripts/release-candidate-check.sh --dry-run >/dev/null
 	@python3 -m json.tool .cache/validate/release-candidate-check/summary.json >/dev/null
