@@ -1697,6 +1697,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 		}
 		return normalized
 	},
+	"operationsCSS": operationsCSS,
 	"feedURL": func(discovery compliance.FeedDiscovery, feedType string) string {
 		for _, feed := range discovery.Feeds {
 			if feed.FeedType == feedType {
@@ -1732,16 +1733,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 }).Parse(`
 {{define "layoutStart"}}
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title>
-<style>
-*{box-sizing:border-box}body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:2rem;line-height:1.4;color:#1f2933;overflow-wrap:anywhere}.skip-link{position:absolute;left:-999px;top:.5rem;background:#1f2933;color:#fff;padding:.5rem .75rem;border-radius:4px;z-index:10}.skip-link:focus,.skip-link:focus-visible{left:.5rem}.operations-header{margin-bottom:1rem}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,main:focus-visible{outline:3px solid #2563eb;outline-offset:2px}
-.operations-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem;margin:1rem 0 1.25rem}.nav-group{border:1px solid #d8dee4;border-radius:6px;padding:.55rem;background:#fff}.nav-group-label{font-weight:700;margin:0 0 .4rem}.nav-links{display:flex;flex-wrap:wrap;gap:.35rem}.nav-link{border:1px solid #d8dee4;border-radius:4px;padding:.45rem .6rem;min-height:2.25rem;text-decoration:none;color:#1f2933;background:#fff}.nav-link:focus,.nav-link:hover{border-color:#6b7280;background:#f6f8fa}.nav-link.current{border-color:#1f2933;background:#1f2933;color:#fff}
-table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
-th{background:#f6f8fa}.pill,.status-chip{display:inline-block;border:1px solid #c8d1dc;border-radius:3px;padding:.1rem .35rem;background:#f6f8fa}.status-chip{font-weight:700}.status-ready,.status-ok{border-color:#86b98d;background:#ecfdf3;color:#14532d}.status-needs-review{border-color:#d6a44f;background:#fff8dc;color:#713f12}.status-missing,.status-blocked{border-color:#e09a93;background:#fff1f0;color:#7f1d1d}.status-unknown,.status-diagnostic-only{border-color:#9ca3af;background:#f9fafb;color:#374151}
-.hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.hero.start-here{border-color:#9bb5d1;background:#f4f8fc}.card-grid,.feed-copy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.feed-copy-grid{grid-template-columns:repeat(auto-fit,minmax(18rem,1fr))}.card,.feed-url-card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3,.feed-url-card h3{margin-top:0}.card p,.feed-url-card p{margin:.4rem 0}.empty-state{border-color:#a8c7e6;background:#f7fbff}.path-card{border-top:4px solid #2563eb}.path-developer{border-top-color:#805ad5}.status{font-weight:600}.copy-value{display:block;border:1px solid #d8dee4;background:#f6f8fa;border-radius:4px;padding:.45rem;white-space:pre-wrap;overflow-wrap:anywhere}.section-note{border:1px solid #d8dee4;background:#fff;padding:.75rem;border-radius:6px;margin:.75rem 0}.context-help{border:1px solid #c8d1dc;background:#f8fafc;border-radius:6px;padding:1rem;margin:1rem 0}.context-help h2{font-size:1.05rem;margin:0 0 .6rem}.context-help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.75rem}.context-help-topic{border-left:3px solid #2563eb;padding-left:.65rem}.context-help-topic h3{font-size:1rem;margin:.1rem 0}.context-help-topic p{margin:.3rem 0}
-.warning{background:#fff8c5}.ok{background:#dafbe1}.bad{background:#ffebe9}.muted{color:#59636e}.token{border:1px solid #f0c36d;background:#fff8c5;padding:1rem}
-form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{min-width:22rem;max-width:100%;padding:.45rem} button{padding:.5rem .8rem;min-height:2.25rem}
-@media (max-width:700px){body{margin:0;padding:1rem}.operations-nav,.card-grid,.feed-copy-grid,.context-help-grid{grid-template-columns:1fr}.nav-links{display:grid;grid-template-columns:1fr}.nav-link,button{width:100%}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}input,select,textarea{min-width:0;width:100%}}
-</style></head><body>
+<style>{{operationsCSS}}</style></head><body>
 <a class="skip-link" href="#operations-main">Skip to main content</a>
 <header class="operations-header">
 <h1>{{.Title}}</h1>
