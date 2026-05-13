@@ -80,6 +80,12 @@ is `docs/phase-73-agency-ui-acceptance-and-documentation-freeze.md`, the Phase
 the current phase handoff is `docs/handoffs/phase-74.md`. Any future evidence
 intake is optional and requires explicit written authorization first.
 
+A maintainer-authorized proposed Consumer-Grade Control Plane roadmap pack
+lives at `docs/roadmaps/consumer-grade-control-plane/README.md`. It is
+planning material only; it does not activate Phase 76+, implement UI/API work,
+create evidence, move consumer statuses, or support compliance/adoption/
+consumer/final-root/SaaS/production/vendor/SLA/ETA claims.
+
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
 added private read-only Connector Hub routes at `/admin/operations/connectors`

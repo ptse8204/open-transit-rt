@@ -20,14 +20,18 @@ release-ready pass.
 Continue the post-Phase-74 sequence with:
 
 1. maintainer review of the Phase 74 CP000008 closeout;
-2. separately authorized future release-cut cleanup/release-candidate gate,
-   postponed connector maturity, or another product phase;
-3. private OCI/reference diagnostics and off-host public feed validation as
+2. review the maintainer-authorized proposed
+   [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
+   as planning guidance only;
+3. separately authorized future Phase 76+ implementation, release-cut cleanup /
+   release-candidate gate, postponed connector maturity, or another product
+   phase;
+4. private OCI/reference diagnostics and off-host public feed validation as
    product-support checks, not evidence;
-4. future local release-candidate review for `v0.1.0-rc.1`, not a full
+5. future local release-candidate review for `v0.1.0-rc.1`, not a full
    `v0.1.0` release;
-5. release-candidate package diagnostics only when explicitly approved;
-6. tag, package, publish, or retain evidence only if separately authorized.
+6. release-candidate package diagnostics only when explicitly approved;
+7. tag, package, publish, or retain evidence only if separately authorized.
 
 The Phase 72 plan lives at
 [`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`](phase-72-v0.1.0-rc.1-release-candidate-hardening.md).
@@ -91,18 +95,22 @@ assessment.
 
 1. Review the completed Phase 74 CP000008 GitHub Pages and agency UI
    product-polish closeout.
-2. Treat Phase 72 CP000004 local app startup, private Operations Console route
+2. Review the proposed/authorized
+   [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
+   as planning material only. It does not make Phase 76+ active,
+   implemented, release-ready, or evidence-backed.
+3. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
-3. Treat Phase 72 CP000005 connector and adapter conformance checks as
+4. Treat Phase 72 CP000005 connector and adapter conformance checks as
    complete local synthetic diagnostics only.
-4. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
+5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-5. Separately authorize future release-cut cleanup, postponed connector
-   maturity, or another product phase.
-6. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
+6. Separately authorize future Phase 76+ implementation, release-cut cleanup,
+   postponed connector maturity, or another product phase.
+7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
-7. Run the release-candidate readiness gate:
+8. Run the release-candidate readiness gate:
 
    ```bash
    git status --short
@@ -117,7 +125,7 @@ assessment.
    make audit-final-claim-review
    ```
 
-8. Repeat the local app startup path and five public feed fetches only when a
+9. Repeat the local app startup path and five public feed fetches only when a
    later checkpoint needs a fresh local signal:
 
    ```bash
@@ -130,7 +138,7 @@ assessment.
    make agency-app-down
    ```
 
-9. Review the browser-first agency operations path when a later checkpoint
+10. Review the browser-first agency operations path when a later checkpoint
    needs a fresh local UI signal:
 
    ```text
@@ -150,7 +158,7 @@ assessment.
    /admin/operations/help
    ```
 
-10. Run one public GTFS trial as a local diagnostic when network access and data
+11. Run one public GTFS trial as a local diagnostic when network access and data
    terms allow:
 
    ```bash
@@ -160,7 +168,7 @@ assessment.
    Record exact blockers. Do not treat the run as final-root proof, agency
    adoption, consumer acceptance, or compliance evidence.
 
-11. Exercise external-connection readiness with synthetic/local data:
+12. Exercise external-connection readiness with synthetic/local data:
 
    ```bash
    make telemetry-simulator
@@ -168,10 +176,10 @@ assessment.
    make adapter-conformance
    ```
 
-12. Review these surfaces before improving public wording: validator health,
+13. Review these surfaces before improving public wording: validator health,
    monitoring/export diagnostics, feed URL and metadata expectations,
    connector/adaptor conformance, and redaction checks.
-13. Keep all real pilots, final-root proof, consumer submission, and vendor
+14. Keep all real pilots, final-root proof, consumer submission, and vendor
    proof as authorization-gated optional evidence tracks.
 
 > **What this locally shows:** these checks can show that a local checkout has a

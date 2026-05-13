@@ -395,19 +395,28 @@ Boundaries:
 - no credentials;
 - no named vendor compatibility claims.
 
-### Phase 75 — Deployment Operations Hardening For Small Hosts
+### Superseded numbering note for old future slots
+
+The following small-host, public-explanation, release-cut, and evidence themes
+were drafted before the maintainer authorized Phase 75 as the
+Consumer-Grade Control Plane Roadmap Pack. They are not active phase
+assignments. Treat them as postponed backlog themes that may be remapped by
+`docs/roadmaps/consumer-grade-control-plane/README.md` or by a later
+separately authorized phase.
+
+### Postponed backlog theme — Small-Host Deployment Operations Hardening
 
 Goal: make small-host/reference deployment review more realistic and clear.
 
-Checkpoint sequence:
+Possible checkpoint sequence if later re-authorized:
 
 ```text
-Phase 75 -- Checkpoint 000001: add small-host operations hardening plan
-Phase 75 -- Checkpoint 000002: harden off-host validation docs and scripts
-Phase 75 -- Checkpoint 000003: harden backup and restore-drill operator guidance
-Phase 75 -- Checkpoint 000004: harden upgrade and rollback guidance
-Phase 75 -- Checkpoint 000005: harden maintenance center docs and UI guidance
-Phase 75 -- Checkpoint 000006: close small-host operations review
+Future small-host operations -- Checkpoint 000001: add small-host operations hardening plan
+Future small-host operations -- Checkpoint 000002: harden off-host validation docs and scripts
+Future small-host operations -- Checkpoint 000003: harden backup and restore-drill operator guidance
+Future small-host operations -- Checkpoint 000004: harden upgrade and rollback guidance
+Future small-host operations -- Checkpoint 000005: harden maintenance center docs and UI guidance
+Future small-host operations -- Checkpoint 000006: close small-host operations review
 ```
 
 Focus:
@@ -428,18 +437,18 @@ Deliverables:
 - improved `docs/tutorials/small-agency-maintenance-guide.md`;
 - script patches only if actual gaps are found.
 
-### Phase 76 — Public Explanation And Docs/Site Freeze
+### Postponed backlog theme — Public Explanation And Docs/Site Freeze
 
 Goal: align README, wiki, docs, and public explainer site so outside readers receive the same bounded product story.
 
-Checkpoint sequence:
+Possible checkpoint sequence if later re-authorized:
 
 ```text
-Phase 76 -- Checkpoint 000001: add public explanation freeze plan
-Phase 76 -- Checkpoint 000002: audit README wiki docs and gh-pages alignment
-Phase 76 -- Checkpoint 000003: patch public explainer text and links
-Phase 76 -- Checkpoint 000004: patch visual asset guidance and screenshot captions
-Phase 76 -- Checkpoint 000005: close public explanation review
+Future public explanation freeze -- Checkpoint 000001: add public explanation freeze plan
+Future public explanation freeze -- Checkpoint 000002: audit README wiki docs and gh-pages alignment
+Future public explanation freeze -- Checkpoint 000003: patch public explainer text and links
+Future public explanation freeze -- Checkpoint 000004: patch visual asset guidance and screenshot captions
+Future public explanation freeze -- Checkpoint 000005: close public explanation review
 ```
 
 Must preserve:
@@ -449,18 +458,18 @@ Must preserve:
 - No public launch claim.
 - No compliance/adoption/consumer/production/vendor/SLA/ETA claim.
 
-### Phase 77 — v0.1.0-rc.1 Candidate Cut
+### Postponed backlog theme — v0.1.0-rc.1 Candidate Cut
 
 Goal: prepare a source release candidate after Phase 72-76 hardening.
 
-Checkpoint sequence:
+Possible checkpoint sequence if later re-authorized:
 
 ```text
-Phase 77 -- Checkpoint 000001: add rc1 candidate cut plan
-Phase 77 -- Checkpoint 000002: run final rc1 verification matrix
-Phase 77 -- Checkpoint 000003: prepare rc1 release notes and source package
-Phase 77 -- Checkpoint 000004: audit package, claims, docs, and protected paths
-Phase 77 -- Checkpoint 000005: close rc1 candidate cut
+Future rc1 candidate cut -- Checkpoint 000001: add rc1 candidate cut plan
+Future rc1 candidate cut -- Checkpoint 000002: run final rc1 verification matrix
+Future rc1 candidate cut -- Checkpoint 000003: prepare rc1 release notes and source package
+Future rc1 candidate cut -- Checkpoint 000004: audit package, claims, docs, and protected paths
+Future rc1 candidate cut -- Checkpoint 000005: close rc1 candidate cut
 ```
 
 Deliverables:
@@ -487,13 +496,14 @@ make adapter-conformance
 make test-connector-examples
 make audit-product-acceptance
 make audit-final-claim-review
+# only with explicit maintainer authorization; otherwise record blocked/not_checked
 make release-package
 make audit-release-package
 docker compose -f deploy/docker-compose.yml config
 python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
 ```
 
-### Phase 78+ — Optional Authorized Evidence Tracks
+### Postponed backlog theme — Optional Authorized Evidence Tracks
 
 Only after RC hardening, and only with explicit written authorization.
 
@@ -507,7 +517,7 @@ Possible tracks:
 - production deployment evidence;
 - compliance evidence packet for one specific deployment.
 
-Do not start any Phase 78+ evidence track unless the maintainer supplies:
+Do not start any optional evidence track unless the maintainer supplies:
 
 ```text
 exact claim target
@@ -517,6 +527,10 @@ redaction rules
 stop conditions
 operator/agency authorization
 ```
+
+Consumer status movement requires retained, redacted, target-originated
+evidence for the named target and exact feed scope. Operator authorization
+alone is not enough to move a target beyond `prepared`.
 
 ## 7. What not to do
 

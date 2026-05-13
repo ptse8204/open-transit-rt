@@ -136,6 +136,7 @@ not be the first path for a small-agency evaluator.
 - [Latest Handoff](handoffs/latest.md)
 - [Phase 61+ Product Roadmap](roadmaps/agency-first-connector-platform/README.md)
 - [Adoption Productization Roadmap](roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md)
+- [Consumer-Grade Control Plane Proposed/Authorized Roadmap Pack](roadmaps/consumer-grade-control-plane/README.md)
 - [Historical Post-60 Product Roadmap](post-60-product-roadmap.md)
 - [Roadmap Status](roadmap-status.md)
 - [Backlog](backlog.md)

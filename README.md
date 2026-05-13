@@ -256,6 +256,7 @@ evaluation or open-source contribution.
 - [Latest Handoff](docs/handoffs/latest.md)
 - [Phase 61+ Product Roadmap](docs/roadmaps/agency-first-connector-platform/README.md)
 - [Adoption Productization Roadmap](docs/roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md)
+- [Consumer-Grade Control Plane Proposed/Authorized Roadmap Pack](docs/roadmaps/consumer-grade-control-plane/README.md)
 
 ## Contributing
 

@@ -144,6 +144,10 @@ navigation around the same browser-first product path. Phase 74 created no
 retained evidence, contacted no external party, changed no consumer status,
 added no public admin routes, and made no compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim. The previous Phase 74
 connector-maturity slot is postponed to a later separately authorized phase.
+A maintainer-authorized proposed Consumer-Grade Control Plane roadmap pack
+lives at `docs/roadmaps/consumer-grade-control-plane/README.md`. It is
+planning material only and does not make Phase 76+ active, implemented,
+release-ready, or evidence-backed.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -283,8 +287,11 @@ created, no external party was contacted, no consumer status changed, and no
 compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
 was added. The exact next recommendation is maintainer review of the Phase 74
 CP000008 closeout, then separately authorize future release-cut cleanup/
-release-candidate gating, postponed connector maturity, or another product
-phase. The
+release-candidate gating, postponed connector maturity, Phase 76+
+implementation from the proposed
+`docs/roadmaps/consumer-grade-control-plane/README.md` roadmap pack, or another
+product phase. The proposed consumer-grade roadmap is planning guidance only,
+not implemented future work. The
 next step is not broad UI redesign, a full `v0.1.0` release, a real agency
 pilot, or evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
