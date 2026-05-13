@@ -12,9 +12,9 @@
     <nav class="nav" aria-label="Primary navigation">
       <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span><span>Open Transit RT</span></a>
       <div class="nav-links">
-        <a href="how-it-works.html">How it works</a>
+        <a href="quickstart.html">Start Here</a>
         <a href="ui-tour.html" aria-current="page">UI tour</a>
-        <a href="quickstart.html">Quickstart</a>
+        <a href="how-it-works.html">How it works</a>
         <a href="connectors.html">Connectors</a>
         <a href="readiness.html">Readiness</a>
         <a href="status.html">Status</a>
@@ -25,16 +25,20 @@
   <main>
     <section class="hero">
       <div class="hero-inner">
-        <p class="eyebrow">Local/demo product screenshots</p>
+        <p class="eyebrow">Private Operations Console tour</p>
         <h1>UI Tour</h1>
-        <p class="lede">These screenshots are captured from the running local demo app and help readers recognize the private Operations Console surfaces. They are documentation aids only, not evidence.</p>
+        <p class="lede">Use this page to recognize the current browser-first Operations Console path. Existing screenshots are local/demo documentation aids only. If a screenshot is stale or unavailable, this site does not fake it; the surface is shown as an annotated text card instead.</p>
       </div>
     </section>
     <section class="section">
+      <div class="section-header">
+        <h2>Local/Demo Screenshots</h2>
+        <p>These images help identify the product shape. They are not retained evidence and should not be treated as public proof.</p>
+      </div>
       <div class="screenshot-grid">
         <article class="screenshot-card">
           <img src="assets/screenshots/operations-console-overview.png" alt="Operations Console overview page from the local demo app.">
-          <div><h3>Operations Console overview</h3><p>Local/demo product screenshot showing the private operator dashboard and navigation entry points.</p></div>
+          <div><h3>Agency Operations Cockpit / Start Here</h3><p>Local/demo product screenshot showing the private operator dashboard and navigation entry points.</p></div>
         </article>
         <article class="screenshot-card">
           <img src="assets/screenshots/operations-readiness.png" alt="Readiness review page from the local demo app.">
@@ -56,6 +60,45 @@
           <img src="assets/screenshots/telemetry-simulator.png" alt="Telemetry simulator guide page from the local demo app.">
           <div><h3>Telemetry simulator guide</h3><p>Local/demo product screenshot showing committed synthetic scenarios and safe simulator command guidance.</p></div>
         </article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-header">
+        <h2>Required Tour Surfaces</h2>
+        <p>When screenshots are unavailable or stale, use these annotated route cards. Do not invent screenshots.</p>
+      </div>
+      <div class="grid three">
+        <article class="panel"><span class="tag">Start</span><h3>Agency Operations Cockpit / Start Here</h3><p><code>/admin/operations</code></p><p>First browser concept. Shows role paths, first-run tasks, five feed URL copy values, and claim boundaries.</p></article>
+        <article class="panel"><span class="tag">GTFS</span><h3>Browser GTFS Import</h3><p><code>/admin/operations/gtfs-import</code></p><p>Admin-only ZIP upload or safe URL import using the existing import pipeline and temporary runtime ZIP storage.</p></article>
+        <article class="panel"><span class="tag">Feeds</span><h3>Feed Health</h3><p><code>/admin/operations/feed-health</code></p><p>Five public feed paths, current signals, validator context, health context, and next actions.</p></article>
+        <article class="panel"><span class="tag">Readiness</span><h3>Readiness</h3><p><code>/admin/operations/readiness</code></p><p>Plain-language rows that explain current signals and what they do not prove.</p></article>
+        <article class="panel"><span class="tag">GTFS</span><h3>GTFS Quality</h3><p><code>/admin/operations/gtfs-quality</code></p><p>Canonical static validator and internal importer triage with likely owner, safe fix path, and verification guidance.</p></article>
+        <article class="panel"><span class="tag">Validation</span><h3>Validation Health</h3><p><code>/admin/operations/validation-health</code></p><p>Validator tooling, feed artifacts, latest reports, stale state, and allowlisted admin reruns.</p></article>
+        <article class="panel"><span class="tag">Devices</span><h3>Device Credentials</h3><p><code>/admin/operations/devices</code></p><p>Device binding status, one-time token rotation, latest telemetry context, and credential boundaries.</p></article>
+        <article class="panel"><span class="tag">Telemetry</span><h3>Telemetry Freshness</h3><p><code>/admin/operations/telemetry</code></p><p>Accepted observations, stale threshold, assignment state, confidence, and unknown or stale rows.</p></article>
+        <article class="panel"><span class="tag">Simulator</span><h3>Telemetry Simulator</h3><p><code>/admin/operations/telemetry-simulator</code></p><p>Committed synthetic scenarios and copyable operator-shell commands. The page does not send telemetry itself.</p></article>
+        <article class="panel"><span class="tag">Connectors</span><h3>Connector Hub</h3><p><code>/admin/operations/connectors</code></p><p>Telemetry, prediction, validator, monitoring/export, and discovery connector boundaries.</p></article>
+        <article class="panel"><span class="tag">Connectors</span><h3>Connector Tests</h3><p><code>/admin/operations/connectors/tests</code></p><p>Offline synthetic checks for connector manifests and adapter contracts. No commands run from the browser.</p></article>
+        <article class="panel"><span class="tag">Maintenance</span><h3>Maintenance Center</h3><p><code>/admin/operations/maintenance</code></p><p>Weekly/monthly checks, backup and restore configuration presence, support summary guidance, and technical-helper cases.</p></article>
+        <article class="panel"><span class="tag">Help</span><h3>Operations Console Help</h3><p><code>/admin/operations/help</code></p><p>Plain-language topics for GTFS, realtime, validators, telemetry, connectors, readiness, and evidence boundaries.</p></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-header">
+        <h2>Five Feed Paths In The UI</h2>
+        <p>The Feed Health and Start Here surfaces should make these easy to copy or inspect.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feed</th><th>Path</th><th>Boundary</th></tr></thead>
+          <tbody>
+            <tr><td>Discovery metadata</td><td><code>/public/feeds.json</code></td><td>Listing does not prove source-of-truth website publication.</td></tr>
+            <tr><td>GTFS Schedule</td><td><code>/public/gtfs/schedule.zip</code></td><td>Fetching does not prove validator-clean status or agency approval.</td></tr>
+            <tr><td>Vehicle Positions</td><td><code>/public/gtfsrt/vehicle_positions.pb</code></td><td>Availability does not prove real-device reliability or consumer acceptance.</td></tr>
+            <tr><td>Trip Updates</td><td><code>/public/gtfsrt/trip_updates.pb</code></td><td>Availability does not prove production-grade ETA quality.</td></tr>
+            <tr><td>Alerts</td><td><code>/public/gtfsrt/alerts.pb</code></td><td>Availability does not prove consumer display or disruption workflow completeness.</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
     <section class="section">

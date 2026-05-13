@@ -12,9 +12,9 @@
     <nav class="nav" aria-label="Primary navigation">
       <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span><span>Open Transit RT</span></a>
       <div class="nav-links">
-        <a href="how-it-works.html">How it works</a>
+        <a href="quickstart.html">Start Here</a>
         <a href="ui-tour.html">UI tour</a>
-        <a href="quickstart.html">Quickstart</a>
+        <a href="how-it-works.html">How it works</a>
         <a href="connectors.html">Connectors</a>
         <a href="readiness.html">Readiness</a>
         <a href="status.html">Status</a>
@@ -27,13 +27,14 @@
     <section class="hero">
       <div class="hero-inner hero-grid">
         <div>
-          <p class="eyebrow">Self-hosted GTFS and GTFS Realtime operations</p>
+          <p class="eyebrow">Start in the browser</p>
           <h1>Open Transit RT</h1>
-          <p class="lede">A modular open-source backend for small agencies, civic technologists, and developer integrators evaluating schedule import, telemetry ingest, conservative matching, and public GTFS Realtime feed publication.</p>
+          <p class="lede">A small agency or civic technologist should first open the private Operations Console and click <strong>Agency Operations Cockpit / Start Here</strong>. From there, review setup, import or inspect GTFS, check five feed paths, and see what still blocks stronger deployment or public claims.</p>
           <div class="actions">
-            <a class="button" href="quickstart.html">Try the local evaluator</a>
+            <a class="button" href="quickstart.html">Start in the browser</a>
             <a class="button secondary" href="ui-tour.html">Review the UI tour</a>
           </div>
+          <p class="site-boundary">This GitHub Pages site is documentation only. It is not hosted SaaS, not a production deployment, and not public-feed evidence.</p>
         </div>
         <figure class="hero-card">
           <img src="assets/diagrams/data-flow-through-system.png" alt="Illustrative data flow from GTFS inputs and telemetry through Open Transit RT to validation and public feeds.">
@@ -44,53 +45,76 @@
 
     <section class="section">
       <div class="section-header">
-        <h2>What This Is</h2>
-        <p>Open Transit RT focuses on the backend path from schedule data and vehicle observations to public transit data feeds. It keeps operational controls private and public feed paths stable.</p>
+        <h2>First Browser Path</h2>
+        <p>Use the same order in the public docs and the private UI. Shell commands are technical-helper startup, not the first step for a no-developer review.</p>
       </div>
-      <div class="grid three">
+      <div class="timeline compact">
+        <article class="step"><div><h3>Start in the browser</h3><p>Use the local URL from a technical helper, normally <code>http://localhost:8080/admin/operations</code>.</p></div></article>
+        <article class="step"><div><h3>Open Agency Operations Cockpit / Start Here</h3><p>Review no-developer and technical-helper paths, first-run tasks, and boundaries.</p></div></article>
+        <article class="step"><div><h3>Review setup</h3><p>Use setup wizard and publication metadata pages to see what is configured or missing.</p></div></article>
+        <article class="step"><div><h3>Import or review GTFS</h3><p>Use Browser GTFS Import for ZIP upload or safe URL import, or inspect the active published schedule.</p></div></article>
+        <article class="step"><div><h3>Check five feed URLs</h3><p>Review discovery metadata, schedule, Vehicle Positions, Trip Updates, and Alerts in Feed Health.</p></div></article>
+        <article class="step"><div><h3>Review operations surfaces</h3><p>Open feed health, readiness, validation, telemetry, connectors, and maintenance.</p></div></article>
+        <article class="step"><div><h3>Understand what remains</h3><p>Use Help and readiness boundaries before making deployment or stronger public claims.</p></div></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>Two Startup Roles</h2>
+        <p>A browser reviewer and a technical helper do different work. Keep those paths separate so local commands do not become a barrier to product review.</p>
+      </div>
+      <div class="grid two">
         <article class="panel">
-          <span class="tag">Schedule</span>
-          <h3>Import or author GTFS</h3>
-          <p>Bring a GTFS ZIP or use GTFS Studio drafts, then activate a published schedule feed version.</p>
+          <span class="tag">No-developer review</span>
+          <h3>Start with the browser URL</h3>
+          <p>Open the private Operations Console URL provided by a technical helper. Click <strong>Agency Operations Cockpit / Start Here</strong>, then follow setup, GTFS, feed health, readiness, validation, telemetry, connectors, maintenance, and help.</p>
+          <p><a href="quickstart.html">Open Start Here</a></p>
         </article>
         <article class="panel">
-          <span class="tag">Realtime</span>
-          <h3>Publish Vehicle Positions first</h3>
-          <p>Authenticated telemetry feeds conservative matching, with unknown states preferred over false certainty.</p>
-        </article>
-        <article class="panel">
-          <span class="tag">Boundaries</span>
-          <h3>Keep Trip Updates pluggable</h3>
-          <p>Trip Updates run behind a prediction adapter so deterministic and external predictors can be evaluated separately.</p>
+          <span class="tag">Technical-helper startup</span>
+          <h3>Start the local app</h3>
+          <p>Run the documented local startup commands, leave the app running, and hand over the private URL plus any local token instructions. The helper can also run validators, connector checks, and local diagnostics.</p>
+          <p><a href="quickstart.html#technical-helper">Open helper steps</a></p>
         </article>
       </div>
     </section>
 
     <section class="section">
       <div class="section-header">
-        <h2>Reader Paths</h2>
-        <p>Start with the path that matches your role. The deeper repository docs remain the source for commands, contracts, and release-candidate checks.</p>
+        <h2>Documentation Map</h2>
+        <p>These canonical repo docs carry the current browser-first path and deeper operating details.</p>
       </div>
-      <div class="grid two">
+      <div class="grid three">
         <article class="panel">
-          <h3>Small agency evaluator</h3>
-          <p>Use the local evaluator, review the Operations Console, and decide whether a self-hosted path is worth deeper technical help.</p>
-          <p><a href="quickstart.html">Open quickstart</a></p>
+          <h3>README</h3>
+          <p>Main product front door and private route map.</p>
+          <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">Open README</a></p>
         </article>
         <article class="panel">
-          <h3>Developer integrator</h3>
-          <p>Review telemetry, prediction, validator, monitoring, and consumer-discovery connector boundaries before building an adapter.</p>
-          <p><a href="connectors.html">Open connector guide</a></p>
+          <h3>Small Agency Quick Start</h3>
+          <p>Browser-first local evaluator path for small agencies.</p>
+          <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/small-agency-quick-start.md">Open quick start</a></p>
         </article>
         <article class="panel">
-          <h3>Maintainer</h3>
-          <p>Use the release-candidate readiness path and local checks before considering a `v0.1.0-rc.1` review.</p>
-          <p><a href="readiness.html">Open readiness path</a></p>
+          <h3>Browser-First Setup</h3>
+          <p>Separates no-developer review from technical-helper startup.</p>
+          <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/browser-first-setup.md">Open setup guide</a></p>
         </article>
         <article class="panel">
-          <h3>Contributor</h3>
-          <p>Help with docs, tests, synthetic fixtures, connector examples, and issue reports that stay inside the product boundary.</p>
-          <p><a href="contribute.html">Open contribution paths</a></p>
+          <h3>Operations Console Tour</h3>
+          <p>Route-by-route tour of the private Operations Console.</p>
+          <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/operations-console-tour.md">Open tour</a></p>
+        </article>
+        <article class="panel">
+          <h3>No Command Line First Run</h3>
+          <p>Walkthrough for browser review after a helper starts the app.</p>
+          <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/no-cli-agency-first-run.md">Open tutorial</a></p>
+        </article>
+        <article class="panel">
+          <h3>Readiness Status</h3>
+          <p>Current roadmap truth, known blockers, and claim boundaries.</p>
+          <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/roadmap-status.md">Open roadmap status</a></p>
         </article>
       </div>
     </section>
@@ -98,7 +122,7 @@
     <section class="section">
       <div class="callout boundary">
         <strong>Claim boundary.</strong>
-        <p>This site does not claim CAL-ITP/Caltrans compliance, consumer submission or acceptance, agency adoption or approval, final-root readiness, hosted SaaS, production readiness, vendor compatibility, SLA coverage, or production-grade ETA quality.</p>
+        <p>This site does not claim CAL-ITP/Caltrans compliance, consumer submission or acceptance, agency adoption or approval, final-root readiness, hosted SaaS, production readiness, vendor compatibility, hardware certification, SLA coverage, uptime, or production-grade ETA quality.</p>
       </div>
     </section>
   </main>

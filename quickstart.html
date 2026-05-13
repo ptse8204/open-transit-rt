@@ -3,28 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quickstart | Open Transit RT</title>
+  <title>Start Here | Open Transit RT</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-  <header class="site-header"><nav class="nav" aria-label="Primary navigation"><a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span><span>Open Transit RT</span></a><div class="nav-links"><a href="how-it-works.html">How it works</a><a href="ui-tour.html">UI tour</a><a href="quickstart.html" aria-current="page">Quickstart</a><a href="connectors.html">Connectors</a><a href="readiness.html">Readiness</a><a href="status.html">Status</a><a href="contribute.html">Contribute</a></div></nav></header>
+  <header class="site-header"><nav class="nav" aria-label="Primary navigation"><a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span><span>Open Transit RT</span></a><div class="nav-links"><a href="quickstart.html" aria-current="page">Start Here</a><a href="ui-tour.html">UI tour</a><a href="how-it-works.html">How it works</a><a href="connectors.html">Connectors</a><a href="readiness.html">Readiness</a><a href="status.html">Status</a><a href="contribute.html">Contribute</a></div></nav></header>
   <main>
-    <section class="hero"><div class="hero-inner"><p class="eyebrow">Local evaluator</p><h1>Quickstart</h1><p class="lede">Start with the local evaluator when you want to see the product shape without publishing anything or contacting external systems.</p></div></section>
+    <section class="hero"><div class="hero-inner"><p class="eyebrow">Start in the browser</p><h1>Start Here</h1><p class="lede">A no-developer reviewer starts from the private Operations Console URL provided by a technical helper, then clicks <strong>Agency Operations Cockpit / Start Here</strong>. The shell commands belong to the helper path.</p><p class="site-boundary">This is local evaluation guidance. It does not publish a release, create retained evidence, contact external systems, or change consumer status.</p></div></section>
     <section class="section">
       <div class="grid two">
-        <div>
-          <h2>Run Locally</h2>
+        <article class="panel">
+          <span class="tag">No-developer review</span>
+          <h2>Open the private URL</h2>
+          <p>Use the local URL and admin-token instructions from a technical helper. The usual private start path is:</p>
+          <pre><code>http://localhost:8080/admin/operations</code></pre>
+          <p>Click <strong>Agency Operations Cockpit / Start Here</strong>. Review setup, GTFS, five feed paths, health, readiness, validation, telemetry, connectors, maintenance, and help.</p>
+          <p><a href="ui-tour.html">Open the UI tour</a></p>
+        </article>
+        <article class="panel" id="technical-helper">
+          <span class="tag">Technical-helper startup</span>
+          <h2>Start the local app</h2>
           <pre><code>make check
 make agency-app-up</code></pre>
-          <p>Open <code>http://localhost:8080/admin/operations</code> and use Start Here in the private Operations Console.</p>
-          <p>Stop the app with:</p>
+          <p>Leave the app running, then give the reviewer the private Operations Console URL and any local token instructions printed by startup.</p>
           <pre><code>make agency-app-down</code></pre>
-        </div>
+          <p>Use this path for local setup, validators, feed checks, connector checks, and troubleshooting.</p>
+        </article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-header">
+        <h2>Browser-First Flow</h2>
+        <p>Follow this order before interpreting readiness or making deployment decisions.</p>
+      </div>
+      <div class="timeline compact">
+        <article class="step"><div><h3>Start in the browser</h3><p>Open the private Operations Console URL from a technical helper.</p></div></article>
+        <article class="step"><div><h3>Open Agency Operations Cockpit / Start Here</h3><p>Route: <code>/admin/operations</code>. Review the two paths, first-run tasks, five feed URLs, and boundaries.</p></div></article>
+        <article class="step"><div><h3>Review setup</h3><p>Use setup wizard and publication metadata pages to see what is configured or missing.</p></div></article>
+        <article class="step"><div><h3>Import or review GTFS</h3><p>Route: <code>/admin/operations/gtfs-import</code>. Upload a GTFS ZIP, import a safe URL, or inspect active schedule state.</p></div></article>
+        <article class="step"><div><h3>Check five feed URLs</h3><p>Route: <code>/admin/operations/feed-health</code>. Check exactly five public feed paths and next actions.</p></div></article>
+        <article class="step"><div><h3>Review operations surfaces</h3><p>Open Feed Health, Readiness, GTFS Quality, Validation Health, Device Credentials, Telemetry Freshness, Telemetry Simulator, Connector Hub, Connector Tests, and Maintenance Center.</p></div></article>
+        <article class="step"><div><h3>Understand what remains</h3><p>Use Operations Console Help and claim boundaries before making deployment or stronger public claims.</p></div></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-header">
+        <h2>Five Local Public Feed Paths</h2>
+        <p>These are the feed paths to inspect in the private Feed Health page. Listing or fetching them locally does not prove final-root ownership, consumer acceptance, compliance, hosted availability, or production readiness.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feed</th><th>Path</th><th>What to review next</th></tr></thead>
+          <tbody>
+            <tr><td>Discovery metadata</td><td><code>/public/feeds.json</code></td><td>Contact, license, public base URL, and feed list context.</td></tr>
+            <tr><td>GTFS Schedule</td><td><code>/public/gtfs/schedule.zip</code></td><td>Active schedule version, GTFS Quality, and static validator state.</td></tr>
+            <tr><td>Vehicle Positions</td><td><code>/public/gtfsrt/vehicle_positions.pb</code></td><td>Telemetry freshness, stale rows, and GTFS-Realtime validator state.</td></tr>
+            <tr><td>Trip Updates</td><td><code>/public/gtfsrt/trip_updates.pb</code></td><td>Prediction adapter diagnostics, withheld cases, and ETA-quality boundary.</td></tr>
+            <tr><td>Alerts</td><td><code>/public/gtfsrt/alerts.pb</code></td><td>Alerts lifecycle state and realtime validator state.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-header">
+        <h2>Private UI Route Map</h2>
+        <p>These are private authenticated Operations Console surfaces, not public unauthenticated admin routes.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Surface</th><th>Private route</th><th>Use it for</th></tr></thead>
+          <tbody>
+            <tr><td>Agency Operations Cockpit / Start Here</td><td><code>/admin/operations</code></td><td>First browser concept, role paths, first-run tasks, and feed URL copy values.</td></tr>
+            <tr><td>Browser GTFS Import</td><td><code>/admin/operations/gtfs-import</code></td><td>ZIP upload, safe URL import, import feedback, and next quality checks.</td></tr>
+            <tr><td>Feed Health</td><td><code>/admin/operations/feed-health</code></td><td>Five feed paths, freshness, validator context, health context, and next actions.</td></tr>
+            <tr><td>Readiness</td><td><code>/admin/operations/readiness</code></td><td>Plain-language gaps before deployment or stronger claims.</td></tr>
+            <tr><td>GTFS Quality</td><td><code>/admin/operations/gtfs-quality</code></td><td>Static GTFS validator and internal importer triage.</td></tr>
+            <tr><td>Validation Health</td><td><code>/admin/operations/validation-health</code></td><td>Validator tooling, artifacts, stale reports, and allowlisted admin reruns.</td></tr>
+            <tr><td>Device Credentials</td><td><code>/admin/operations/devices</code></td><td>Device binding, one-time token rotation, latest telemetry context, and next action.</td></tr>
+            <tr><td>Telemetry Freshness</td><td><code>/admin/operations/telemetry</code></td><td>Accepted observations, freshness, assignment confidence, and unknown/stale states.</td></tr>
+            <tr><td>Telemetry Simulator</td><td><code>/admin/operations/telemetry-simulator</code></td><td>Committed synthetic scenarios and operator-shell simulator commands.</td></tr>
+            <tr><td>Connector Hub</td><td><code>/admin/operations/connectors</code></td><td>Telemetry, prediction, validator, monitoring, and discovery connector boundaries.</td></tr>
+            <tr><td>Connector Tests</td><td><code>/admin/operations/connectors/tests</code></td><td>Offline synthetic conformance commands and failure next actions.</td></tr>
+            <tr><td>Maintenance Center</td><td><code>/admin/operations/maintenance</code></td><td>Weekly/monthly tasks, backup/restore configuration, support summary guidance.</td></tr>
+            <tr><td>Operations Console Help</td><td><code>/admin/operations/help</code></td><td>Plain-language GTFS, realtime, validator, telemetry, connector, readiness, and evidence help.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="section">
+      <div class="grid two">
         <figure class="diagram-card">
           <img src="assets/diagrams/quickstart-flow.png" alt="Local quickstart flow grouped into setup, publish and ingest, and review output steps.">
           <figcaption class="caption">Exact-behavior quickstart diagram for the local evaluator path.</figcaption>
         </figure>
+        <div class="callout boundary">
+          <strong>What this does not prove.</strong>
+          <p>Local UI review, local feed fetches, validator diagnostics, simulator commands, and screenshots do not prove compliance, agency adoption, consumer acceptance, final-root readiness, hosted SaaS, production readiness, vendor compatibility, SLA/uptime, hardware certification, or production-grade ETA quality.</p>
+        </div>
       </div>
     </section>
     <section class="section">
@@ -40,6 +116,6 @@ make agency-app-up</code></pre>
       </div>
     </section>
   </main>
-  <footer class="site-footer"><div class="footer-inner"><p>The quickstart does not publish a release, create retained evidence, or change consumer status.</p></div></footer>
+  <footer class="site-footer"><div class="footer-inner"><p>The Start Here path does not publish a release, create retained evidence, contact external parties, or change consumer status.</p></div></footer>
 </body>
 </html>
