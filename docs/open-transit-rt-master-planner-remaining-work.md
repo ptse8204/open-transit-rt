@@ -27,11 +27,12 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching.
 - Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze.
 - Phase 73 Checkpoint 000006 is complete for bounded agency UI acceptance closeout.
-- Phase 74 Checkpoints 000001 through 000007 are complete for GitHub Pages and agency UI product polish.
+- Phase 74 Checkpoints 000001 through 000008 are complete for GitHub Pages and agency UI product polish.
+- Phase 74 Checkpoint 000008 reconciled and published the actual `gh-pages` branch with the Phase 74 closeout.
 - GitHub Pages product story is refreshed.
 - Private Operations Console first-run hierarchy is improved.
 - Docs/site/UI now point to the same browser-first product path.
-- The exact next recommendation is maintainer review of the Phase 74 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase.
+- The exact next recommendation is maintainer review of the Phase 74 CP000008 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase.
 - The previous Phase 74 connector-maturity slot is postponed to a later separately authorized phase.
 - Evidence/adoption/compliance tracks remain optional and authorization-gated.
 
@@ -327,7 +328,8 @@ Completed result: Phase 74 refreshed the public GitHub Pages
 documentation-only product story, refreshed the GitHub Pages quickstart and UI
 tour, improved the private Operations Console first-run hierarchy, improved
 empty states and next actions, aligned README/docs/wiki/site navigation around
-the same browser-first product path, and closed the product-polish review.
+the same browser-first product path, reconciled and published the actual
+`gh-pages` branch, and closed the product-polish review.
 
 Closeout boundary: no retained evidence was created, no external party was
 contacted, no consumer status changed, and no
@@ -342,6 +344,7 @@ Phase 74 -- Checkpoint 000004: improve Operations Console visual hierarchy
 Phase 74 -- Checkpoint 000005: improve first-run empty states and next actions
 Phase 74 -- Checkpoint 000006: align docs README wiki and site navigation
 Phase 74 -- Checkpoint 000007: close site and UI product polish review
+Phase 74 -- Checkpoint 000008: reconcile and publish GitHub Pages browser-first refresh
 
 ### Future Phase — Connector Maturity And Adapter Recipes
 
@@ -553,7 +556,7 @@ Start by reading:
 - docs/evidence/consumer-submissions/status.json
 
 Current truth:
-Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Phase 74 Checkpoints 000001 through 000007 are complete for GitHub Pages and agency UI product polish. GitHub Pages product story is refreshed. Private Operations Console first-run hierarchy is improved. Docs/site/UI now point to the same browser-first product path. Exact next recommendation: maintainer review of the Phase 74 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase. The default next work is not evidence intake.
+Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Phase 74 Checkpoints 000001 through 000008 are complete for GitHub Pages and agency UI product polish. CP000008 reconciled and published the actual `gh-pages` branch with the Phase 74 closeout. GitHub Pages product story is refreshed. Private Operations Console first-run hierarchy is improved. Docs/site/UI now point to the same browser-first product path. Exact next recommendation: maintainer review of the Phase 74 CP000008 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase. The default next work is not evidence intake.
 
 Model assignment:
 Use these model levels for the master/sub-agent workflow:
@@ -575,7 +578,7 @@ If Codex cannot spawn real sub-agents, simulate the roles in clearly labeled sec
 
 The Master Agent must approve the plan before implementation starts and must approve every checkpoint after reviewing all sub-agent reports. The Master Agent may move forward only when no required edits remain.
 
-Phase 71 -- Checkpoint 000005 is complete. Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded review with `needs_review` diagnostics. Phase 73 -- Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 -- Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 -- Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 -- Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 -- Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 -- Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Phase 74 -- Checkpoint 000001 through Checkpoint 000007 are complete for GitHub Pages and agency UI product polish. Continue with maintainer review of the Phase 74 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase.
+Phase 71 -- Checkpoint 000005 is complete. Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded review with `needs_review` diagnostics. Phase 73 -- Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 -- Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 -- Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 -- Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 -- Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 -- Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Phase 74 -- Checkpoint 000001 through Checkpoint 000008 are complete for GitHub Pages and agency UI product polish. Continue with maintainer review of the Phase 74 CP000008 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase.
 
 Use the master/sub-agent workflow gate:
 - Context / Repo Truth sub-agent
@@ -634,10 +637,11 @@ Next checkpoint:
 
 ## 9. Master planner verdict
 
-Phase 74 GitHub Pages and agency UI product-polish closeout is complete. The
-project should now stop broad planning and move into maintainer review of the
-Phase 74 closeout before any separately authorized release-cut cleanup,
-postponed connector maturity, or future product phase.
+Phase 74 GitHub Pages and agency UI product-polish closeout is complete
+through CP000008. The project should now stop broad planning and move into
+maintainer review of the Phase 74 CP000008 closeout before any separately
+authorized release-cut cleanup, postponed connector maturity, or future product
+phase.
 
 The product direction is correct:
 
@@ -648,9 +652,10 @@ The product direction is correct:
 - completed release-candidate diagnostics with `needs_review` blockers;
 - claim discipline.
 
-The remaining risk is not lack of roadmap. Phase 74 records that GitHub Pages
-product story is refreshed, the private Operations Console first-run hierarchy
-is improved, docs/site/UI now point to the same browser-first product path, no
+The remaining risk is not lack of roadmap. Phase 74 records that CP000008
+reconciled and published the actual `gh-pages` branch, GitHub Pages product
+story is refreshed, the private Operations Console first-run hierarchy is
+improved, docs/site/UI now point to the same browser-first product path, no
 retained evidence was created, no external party was contacted, no consumer
 status changed, and no compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim was added. Clean-checkout release-cut proof
 and connector maturity remain separate future authorization.
@@ -658,7 +663,7 @@ and connector maturity remain separate future authorization.
 The next master-agent action is:
 
 ```text
-Review the completed Phase 74 -- Checkpoint 000007 closeout, then separately
+Review the completed Phase 74 -- Checkpoint 000008 closeout, then separately
 authorize future release-cut cleanup/release-candidate gating, postponed
 connector maturity, or another product phase.
 ```
