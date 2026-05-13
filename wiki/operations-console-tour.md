@@ -10,12 +10,26 @@ Open it locally after startup:
 http://localhost:8080/admin/operations
 ```
 
+## Browser-First Product Path
+
+Use the same seven-step path from the README, wiki home, docs home, and public
+site:
+
+1. Start in the browser.
+2. Open **Agency Operations Cockpit / Start Here**.
+3. Review setup.
+4. Import or review GTFS.
+5. Check the five public feed URLs.
+6. Review feed health, readiness, validation, telemetry, connectors, and
+   maintenance.
+7. Understand what remains before deployment or stronger claims.
+
 ## Home
 
 The home page starts with **Agency Operations Cockpit / Start Here**. Use it
 as the first-run acceptance cockpit. It shows:
 
-- no-developer and developer paths;
+- no-developer and technical-helper paths;
 - ordered first-run tasks;
 - five copyable public feed URLs;
 - links into browser GTFS import, feed health, telemetry, readiness, and

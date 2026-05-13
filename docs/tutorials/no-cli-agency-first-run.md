@@ -26,6 +26,19 @@ browser UI:
 Use Agency Operations Cockpit / Start Here as the first screen. It shows setup
 progress, action cards, next actions, and claim boundaries in one place.
 
+## Browser-First Product Path
+
+Use this order before interpreting readiness or asking for stronger claims:
+
+1. Start in the browser.
+2. Open **Agency Operations Cockpit / Start Here**.
+3. Review setup.
+4. Import or review GTFS.
+5. Check the five public feed URLs.
+6. Review feed health, readiness, validation, telemetry, connectors, and
+   maintenance.
+7. Understand what remains before deployment or stronger claims.
+
 ## 1. Open Agency Operations Cockpit / Start Here
 
 Go to:

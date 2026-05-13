@@ -28,15 +28,14 @@ On the Operations Console home, start with **Agency Operations Cockpit / Start H
 
 Treat it as the single first-run cockpit. It groups the path into:
 
-1. Set agency/publication metadata.
-2. Import or publish GTFS.
-3. Check the five public feed paths.
-4. Run or review validation health.
-5. Add or test telemetry.
-6. Review Vehicle Positions, Trip Updates, and Alerts.
-7. Review readiness.
-8. Review connectors.
-9. Review support and release-candidate checks.
+1. Start in the browser.
+2. Open **Agency Operations Cockpit / Start Here**.
+3. Review setup.
+4. Import or review GTFS.
+5. Check the five public feed URLs.
+6. Review feed health, readiness, validation, telemetry, connectors, and
+   maintenance.
+7. Understand what remains before deployment or stronger claims.
 
 Each row shows status, current signal, what it means, next action, UI link,
 docs link, and what the row does not prove.
@@ -67,7 +66,7 @@ http://localhost:8080/admin/operations
 Admin-only actions remain admin-only. The UI does not bypass CSRF, role checks,
 or private route boundaries.
 
-## Developer Available
+## Technical Helper Available
 
 Use this path when someone can run local commands:
 

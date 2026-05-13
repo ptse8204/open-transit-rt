@@ -46,6 +46,19 @@ make agency-app-up
 This command starts the local runtime. It is not the first step for
 no-developer review.
 
+## Browser-First Product Path
+
+Use this same order everywhere:
+
+1. Start in the browser.
+2. Open **Agency Operations Cockpit / Start Here**.
+3. Review setup.
+4. Import or review GTFS.
+5. Check the five public feed URLs.
+6. Review feed health, readiness, validation, telemetry, connectors, and
+   maintenance.
+7. Understand what remains before deployment or stronger claims.
+
 ## Private Operations Route Map
 
 Keep these private routes findable during browser-first review:

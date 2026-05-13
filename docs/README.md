@@ -7,6 +7,19 @@ release, evidence, claim-boundary, and project-history references.
 Start with the public product explainer site when you want the shortest
 overview: [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/).
 
+## Browser-First Product Path
+
+Use the same order in the README, wiki, docs, GitHub Pages, and private UI:
+
+1. Start in the browser.
+2. Open **Agency Operations Cockpit / Start Here**.
+3. Review setup.
+4. Import or review GTFS.
+5. Check the five public feed URLs.
+6. Review feed health, readiness, validation, telemetry, connectors, and
+   maintenance.
+7. Understand what remains before deployment or stronger claims.
+
 ![Illustrative contribution paths: report a bug, improve docs, suggest a feature, submit code, and help with evidence runbooks.](assets/how-to-contribute-paths.png)
 
 ## Public User Docs

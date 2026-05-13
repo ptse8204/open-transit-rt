@@ -440,7 +440,7 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", "<h1>Agency Operations Cockpit / Start Here</h1>", "No-developer path", "Developer path", "Copy These Five Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", "<h1>Agency Operations Cockpit / Start Here</h1>", "No-developer path", "Technical-helper path", "Copy These Five Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -1097,7 +1097,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Feed URLs", "No-developer path", "Developer path", "Validation health", "VP/TU/Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "VP/TU/Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1158,7 +1158,9 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"Agency Operations Cockpit / Start Here",
 		"Task status:",
 		"No-developer path",
-		"Developer path",
+		"Technical-helper path",
+		`class="feed-copy-grid"`,
+		`class="status-chip status-needs-review"`,
 		"First-Run Acceptance Tasks",
 		"Metadata",
 		"GTFS",
@@ -1184,6 +1186,11 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Fatalf("dashboard body missing %q: %s", want, body)
 		}
+	}
+	startHereIndex := strings.Index(body, "Start Here: First Actions")
+	helpIndex := strings.Index(body, "Help for Start Here")
+	if startHereIndex < 0 || helpIndex < 0 || startHereIndex > helpIndex {
+		t.Fatalf("dashboard should show Start Here before contextual help: start=%d help=%d body=%s", startHereIndex, helpIndex, body)
 	}
 	for _, forbidden := range []string{`<form`, `method="post"`, "/admin/operations/first-run", "/public/operations", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved"} {
 		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
@@ -2538,6 +2545,50 @@ func TestOperationsSharedLayoutRendersContextualHelpForMajorSections(t *testing.
 			}
 			if strings.Contains(body, `<form method="post" action="/admin/operations/help"`) {
 				t.Fatalf("%s contextual help must not add help POST form: %s", tc.path, body)
+			}
+		})
+	}
+}
+
+func TestOperationsConsoleEmptyStateGuidanceAnswersFirstRunQuestions(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	paths := []string{
+		"/admin/operations/gtfs-import",
+		"/admin/operations/feed-health",
+		"/admin/operations/gtfs-quality",
+		"/admin/operations/validation-health",
+		"/admin/operations/devices",
+		"/admin/operations/telemetry",
+		"/admin/operations/telemetry-simulator",
+		"/admin/operations/connectors",
+		"/admin/operations/connectors/tests",
+		"/admin/operations/maintenance",
+		"/admin/operations/help",
+	}
+	want := []string{
+		`class="card empty-state"`,
+		"What am I seeing?",
+		"Is this bad?",
+		"What should I do next?",
+		"Can I do it in the browser?",
+		"When do I need a technical helper?",
+		"What this does not prove",
+	}
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			for _, text := range want {
+				if !strings.Contains(body, text) {
+					t.Fatalf("%s empty-state guidance missing %q: %s", path, text, body)
+				}
 			}
 		})
 	}

@@ -42,8 +42,21 @@ http://localhost:8080/admin/operations
 ```
 
 Look for **Agency Operations Cockpit / Start Here** at the top of the
-Operations Console. It shows a no-developer browser path, a developer path,
-ordered first-run tasks, and the five public feed URLs.
+Operations Console. It shows a no-developer browser path, a technical-helper
+path, ordered first-run tasks, and the five public feed URLs.
+
+## Browser-First Product Path
+
+Use this order during the local evaluation:
+
+1. Start in the browser.
+2. Open **Agency Operations Cockpit / Start Here**.
+3. Review setup.
+4. Import or review GTFS.
+5. Check the five public feed URLs.
+6. Review feed health, readiness, validation, telemetry, connectors, and
+   maintenance.
+7. Understand what remains before deployment or stronger claims.
 
 ## Technical Helper Startup
 

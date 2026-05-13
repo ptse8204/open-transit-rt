@@ -219,9 +219,9 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			),
 			firstRunPath(
 				"developer",
-				"Developer path",
+				"Technical-helper path",
 				"Use documented Make and Go commands from a terminal; the console only points to the checks and does not execute them.",
-				"Developers can bootstrap local services, import GTFS, run validators, simulator checks, connector conformance, and release-candidate checks through existing CLI workflows.",
+				"A technical helper can bootstrap local services, import GTFS, run validators, simulator checks, connector conformance, and release-candidate checks through existing CLI workflows.",
 				"Follow the docs for local app startup and focused checks, then review the resulting private records here.",
 				"/admin/operations/checklist",
 				"docs/tutorials/self-hosted-operator-trial.md",

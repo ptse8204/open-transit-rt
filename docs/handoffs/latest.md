@@ -61,16 +61,23 @@ Devices/Telemetry boundary-copy, and browser-first tutorial patching; focused
 re-review found no remaining required edits. Phase 73 CP000005 is complete for
 small-agency docs and wiki navigation freeze; focused re-review found no
 remaining required edits. Phase 73 CP000006 is complete for bounded agency UI
-acceptance closeout after CP000001 through CP000005. The exact next
-recommendation is maintainer review of the Phase 73 closeout, then separately
-authorize a future release-cut cleanup/release-candidate gate or a future
-product phase. Phase 74 is not active. The
+acceptance closeout after CP000001 through CP000005. Phase 74 CP000001 through
+CP000007 are complete for GitHub Pages and agency UI product polish: GitHub
+Pages product story is refreshed, private Operations Console first-run
+hierarchy is improved, and docs/site/UI now point to the same browser-first
+product path. Phase 74 created no retained evidence, contacted no external
+party, changed no consumer status, and added no
+compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim.
+The exact next recommendation is maintainer review of the Phase 74 closeout,
+then separately authorize future release-cut cleanup/release-candidate gating,
+postponed connector maturity, or another product phase. The
 canonical review is
 `docs/roadmap-status.md#review-and-recommendations`; the Phase 72 plan is
 `docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`, the Phase 73 plan
-is `docs/phase-73-agency-ui-acceptance-and-documentation-freeze.md`, and the
-handoff is `docs/handoffs/phase-73.md`. Any future evidence intake is optional
-and requires explicit written authorization first.
+is `docs/phase-73-agency-ui-acceptance-and-documentation-freeze.md`, the Phase
+74 plan is `docs/phase-74-github-pages-and-agency-ui-product-polish.md`, and
+the current phase handoff is `docs/handoffs/phase-74.md`. Any future evidence
+intake is optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -164,11 +171,17 @@ review. Phase 73 CP000003 is complete for local technical-helper walkthrough
 review. Phase 73 CP000004 is complete for narrow UI copy, route-label,
 Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73
 CP000005 is complete for small-agency docs and wiki navigation freeze. Phase
-73 CP000006 is complete for bounded agency UI acceptance closeout. The exact
-next recommendation is maintainer review of the Phase 73 closeout, then
-separately authorize a future release-cut cleanup/release-candidate gate or a
-future product phase. Phase 74 is not active. Phase 72 did not tag, publish,
-package, create retained evidence, or
+73 CP000006 is complete for bounded agency UI acceptance closeout. Phase 74
+CP000001 through CP000007 are complete for GitHub Pages and agency UI product
+polish. GitHub Pages product story is refreshed. Private Operations Console
+first-run hierarchy is improved. Docs/site/UI now point to the same
+browser-first product path. No retained evidence was created, no external
+party was contacted, no consumer status changed, and no
+compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
+was added. The exact next recommendation is maintainer review of the Phase 74
+closeout, then separately authorize future release-cut cleanup/release-candidate
+gating, postponed connector maturity, or another product phase.
+Phase 72 did not tag, publish, package, create retained evidence, or
 prove release readiness. This is not real agency pilot work or public proof.
 If no explicit written
 authorization, exact claim target, allowed tools, public-safe retention plan,
@@ -178,7 +191,7 @@ anyone.
 
 Phase 69 improved the UI-first product acceptance path without evidence
 intake. It added the private Operations Console first-click label, `Agency Operations Cockpit / Start Here`,
-five-feed URL copy section, no-developer/developer paths, browser-first
+five-feed URL copy section, no-developer/technical-helper paths, browser-first
 small-agency walkthroughs, README/wiki/docs task navigation,
 capability-versus-evidence cleanup, and `make audit-product-acceptance` /
 `make test-product-acceptance`. It created no retained evidence, contacted no
@@ -1326,13 +1339,14 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed with maintainer review of the Phase 73 closeout. Phase 73 CP000006 is
-complete after the completed CP000001 acceptance plan, CP000002 no-developer
-browser findings, CP000003 technical-helper findings, CP000004 UI copy patch,
-CP000005 docs/wiki navigation freeze, completed bounded Phase 72 hardening
-review, local pre-tag release-notes draft, and known blockers. After maintainer
-review, separately authorize either a future release-cut cleanup or
-release-candidate gate, or a future product phase. Phase 74 is not active.
+Proceed with maintainer review of the Phase 74 closeout. Phase 74 CP000007 is
+complete after the completed public GitHub Pages product-story refresh,
+quickstart/UI tour refresh, private Operations Console hierarchy polish,
+first-run empty-state patching, README/docs/wiki/site navigation alignment,
+completed bounded Phase 73 agency UI acceptance closeout, and completed
+bounded Phase 72 hardening review. After maintainer review, separately
+authorize future release-cut cleanup/release-candidate gating, postponed
+connector maturity, or another product phase.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

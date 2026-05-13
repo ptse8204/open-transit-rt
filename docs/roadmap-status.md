@@ -8,19 +8,19 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 73 CP000006 is complete for agency UI acceptance closeout, following
-completed Phase 73 CP000001 agency UI acceptance planning, completed CP000002
-no-developer browser walkthrough, completed CP000003 technical-helper
-walkthrough, completed CP000004 UI copy and empty-state patching, completed
-CP000005 small-agency docs/wiki navigation freeze, and completed bounded Phase
-72 hardening review. Phase 72 ended with `needs_review` release-candidate
-diagnostics, not a release-ready pass.
+Phase 74 CP000007 is complete for GitHub Pages and agency UI product-polish
+closeout, following the completed GitHub Pages product-story refresh,
+quickstart/UI tour refresh, private Operations Console hierarchy polish,
+first-run empty-state patching, README/docs/wiki/site navigation alignment,
+Phase 73 agency UI acceptance closeout, and bounded Phase 72 hardening review.
+Phase 72 ended with `needs_review` release-candidate diagnostics, not a
+release-ready pass.
 
-Continue the post-Phase-73 sequence with:
+Continue the post-Phase-74 sequence with:
 
-1. maintainer review of the Phase 73 closeout;
-2. separately authorized future release-cut cleanup/release-candidate gate or
-   future product phase;
+1. maintainer review of the Phase 74 closeout;
+2. separately authorized future release-cut cleanup/release-candidate gate,
+   postponed connector maturity, or another product phase;
 3. private OCI/reference diagnostics and off-host public feed validation as
    product-support checks, not evidence;
 4. future local release-candidate review for `v0.1.0-rc.1`, not a full
@@ -28,12 +28,12 @@ Continue the post-Phase-73 sequence with:
 5. release-candidate package diagnostics only when explicitly approved;
 6. tag, package, publish, or retain evidence only if separately authorized.
 
-Phase 74 is not active unless separately authorized.
-
 The Phase 72 plan lives at
 [`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`](phase-72-v0.1.0-rc.1-release-candidate-hardening.md).
 The Phase 73 plan lives at
 [`docs/phase-73-agency-ui-acceptance-and-documentation-freeze.md`](phase-73-agency-ui-acceptance-and-documentation-freeze.md).
+The Phase 74 plan lives at
+[`docs/phase-74-github-pages-and-agency-ui-product-polish.md`](phase-74-github-pages-and-agency-ui-product-polish.md).
 The release-candidate gate should prove that a clean checkout can run the
 product-quality and external-connection checks below with clear blockers,
 redaction rules, and no stronger public claims.
@@ -63,10 +63,10 @@ assessment.
 
 | Area | Current risk | Product-quality next action |
 | --- | --- | --- |
-| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 CP000001 added agency UI acceptance planning, CP000002 completed local no-developer browser walkthrough review, CP000003 completed local technical-helper walkthrough review, CP000004 completed narrow UI copy and tutorial patching, CP000005 completed small-agency docs/wiki navigation freeze, and CP000006 completed agency UI acceptance closeout. | Run maintainer review of the Phase 73 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
+| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
-| Product explanation | The repo now has public-friendly docs and a `gh-pages` product explainer site with local/demo screenshots. | Keep GitHub Pages content static, documentation-only, screenshot-backed, and linked to deeper docs. |
-| Browser-first operations | Phase 71 improves the private Agency Operations Cockpit, feed health, GTFS import review, validator/quality guidance, telemetry guidance, and Maintenance Center. | Use `/admin/operations` as the first agency surface; keep shell commands as technical-helper paths. |
+| Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
+| Browser-first operations | Phase 74 improves the private Operations Console first-run hierarchy, five-feed URL copy path, no-developer/technical-helper split, and empty-state next actions. | Use `/admin/operations` and `Agency Operations Cockpit / Start Here` as the first agency surface; keep shell commands as technical-helper paths. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
@@ -88,7 +88,8 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 73 CP000006 agency UI acceptance closeout.
+1. Review the completed Phase 74 CP000007 GitHub Pages and agency UI
+   product-polish closeout.
 2. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
@@ -96,8 +97,8 @@ assessment.
    complete local synthetic diagnostics only.
 4. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-5. Separately authorize future release-cut cleanup or a future product phase;
-   do not make Phase 74 active by default.
+5. Separately authorize future release-cut cleanup, postponed connector
+   maturity, or another product phase.
 6. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
 7. Run the release-candidate readiness gate:

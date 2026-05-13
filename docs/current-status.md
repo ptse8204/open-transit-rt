@@ -136,6 +136,14 @@ evidence, contacted no external party, changed no consumer status, added no
 public admin routes, and made no compliance, agency adoption, consumer
 acceptance, final-root, hosted service, production-readiness,
 vendor-compatibility, SLA, uptime, or ETA-quality claim.
+Phase 74 is complete for GitHub Pages and agency UI product polish. It
+refreshed the public documentation-only GitHub Pages product story, improved
+the private Operations Console first-run hierarchy, strengthened first-run
+empty states and next actions, and aligned README, docs, wiki, site, and UI
+navigation around the same browser-first product path. Phase 74 created no
+retained evidence, contacted no external party, changed no consumer status,
+added no public admin routes, and made no compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim. The previous Phase 74
+connector-maturity slot is postponed to a later separately authorized phase.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -265,11 +273,17 @@ recommendation without rerunning the local app, collecting retained evidence,
 moving consumer statuses, tagging, packaging, publishing, or claiming release
 readiness.
 
-The exact next recommendation is maintainer review of the Phase 73 closeout,
-then separately authorize a future release-cut cleanup/release-candidate gate
-or a future product phase. Phase 74 is not active, and the next step is not
-broad UI redesign, a full `v0.1.0` release, a real agency pilot, or evidence
-collection. Use the canonical
+Phase 74 CP000001 through CP000007 are complete for GitHub Pages and agency UI
+product polish. GitHub Pages product story is refreshed. Private Operations
+Console first-run hierarchy is improved. Docs/site/UI now point to the same
+browser-first product path. No retained evidence was created, no external
+party was contacted, no consumer status changed, and no
+compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
+was added. The exact next recommendation is maintainer review of the Phase 74
+closeout, then separately authorize future release-cut cleanup/release-candidate
+gating, postponed connector maturity, or another product phase. The
+next step is not broad UI redesign, a full `v0.1.0` release, a real agency
+pilot, or evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 section for the current scorecard, risks, and next-step sequence.
 
@@ -1938,17 +1952,15 @@ first. Phase 68+ is closed blocker-only / authorization-gated for the current
 no-authorization review, Phase 69 is complete for UI-first product acceptance,
 and Phase 70 is complete for the GitHub Pages product explainer site. Phase 72
 is complete for bounded `v0.1.0-rc.1` hardening review with `needs_review`
-diagnostics. Phase 73 CP000001 is complete for documentation-only agency UI
-acceptance planning, and CP000002 is complete for local no-developer browser
-walkthrough review. CP000003 is complete for local technical-helper
-walkthrough review. CP000004 is complete for narrow UI copy, route-label,
-Devices/Telemetry boundary-copy, and browser-first tutorial patching. CP000005
-is complete for small-agency docs and wiki navigation freeze. CP000006 is
-complete for the bounded agency UI acceptance closeout. The exact next
-recommendation is maintainer review of the Phase 73 closeout, then separately
-authorize a future release-cut cleanup/release-candidate gate or a future
-product phase. Phase 74 is not active, and the next step is not evidence
-collection. For public/status wording work, start with
+diagnostics. Phase 73 CP000001 through CP000006 are complete for bounded
+agency UI acceptance closeout. Phase 74 CP000001 through CP000007 are complete
+for GitHub Pages and agency UI product polish: the GitHub Pages product story
+is refreshed, the private Operations Console first-run hierarchy is improved,
+and docs/site/UI now point to the same browser-first product path. The exact
+next recommendation is maintainer review of the Phase 74 closeout, then
+separately authorize future release-cut cleanup/release-candidate gating,
+postponed connector maturity, or another product phase. The next step is not
+evidence collection. For public/status wording work, start with
 `make audit-final-claim-review` and `make audit-product-acceptance`, and keep
 unsupported claims removed or bounded.
 

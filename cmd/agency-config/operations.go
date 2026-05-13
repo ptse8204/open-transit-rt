@@ -1689,6 +1689,14 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 	"lower": func(value string) string {
 		return strings.ToLower(strings.ReplaceAll(value, "_", "-"))
 	},
+	"statusClass": func(value string) string {
+		normalized := strings.ToLower(strings.TrimSpace(value))
+		normalized = strings.NewReplacer("_", "-", " ", "-", "/", "-").Replace(normalized)
+		if normalized == "" {
+			return "unknown"
+		}
+		return normalized
+	},
 	"feedURL": func(discovery compliance.FeedDiscovery, feedType string) string {
 		for _, feed := range discovery.Feeds {
 			if feed.FeedType == feedType {
@@ -1728,11 +1736,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 *{box-sizing:border-box}body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:2rem;line-height:1.4;color:#1f2933;overflow-wrap:anywhere}.skip-link{position:absolute;left:-999px;top:.5rem;background:#1f2933;color:#fff;padding:.5rem .75rem;border-radius:4px;z-index:10}.skip-link:focus,.skip-link:focus-visible{left:.5rem}.operations-header{margin-bottom:1rem}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,main:focus-visible{outline:3px solid #2563eb;outline-offset:2px}
 .operations-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.75rem;margin:1rem 0 1.25rem}.nav-group{border:1px solid #d8dee4;border-radius:6px;padding:.55rem;background:#fff}.nav-group-label{font-weight:700;margin:0 0 .4rem}.nav-links{display:flex;flex-wrap:wrap;gap:.35rem}.nav-link{border:1px solid #d8dee4;border-radius:4px;padding:.45rem .6rem;min-height:2.25rem;text-decoration:none;color:#1f2933;background:#fff}.nav-link:focus,.nav-link:hover{border-color:#6b7280;background:#f6f8fa}.nav-link.current{border-color:#1f2933;background:#1f2933;color:#fff}
 table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
-th{background:#f6f8fa}.pill{display:inline-block;border:1px solid #c8d1dc;border-radius:3px;padding:.1rem .35rem;background:#f6f8fa}
-.hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3{margin-top:0}.card p{margin:.4rem 0}.status{font-weight:600}.copy-value{display:block;border:1px solid #d8dee4;background:#f6f8fa;border-radius:4px;padding:.45rem;white-space:pre-wrap;overflow-wrap:anywhere}.context-help{border:1px solid #c8d1dc;background:#f8fafc;border-radius:6px;padding:1rem;margin:1rem 0}.context-help h2{font-size:1.05rem;margin:0 0 .6rem}.context-help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.75rem}.context-help-topic{border-left:3px solid #2563eb;padding-left:.65rem}.context-help-topic h3{font-size:1rem;margin:.1rem 0}.context-help-topic p{margin:.3rem 0}
+th{background:#f6f8fa}.pill,.status-chip{display:inline-block;border:1px solid #c8d1dc;border-radius:3px;padding:.1rem .35rem;background:#f6f8fa}.status-chip{font-weight:700}.status-ready,.status-ok{border-color:#86b98d;background:#ecfdf3;color:#14532d}.status-needs-review{border-color:#d6a44f;background:#fff8dc;color:#713f12}.status-missing,.status-blocked{border-color:#e09a93;background:#fff1f0;color:#7f1d1d}.status-unknown,.status-diagnostic-only{border-color:#9ca3af;background:#f9fafb;color:#374151}
+.hero{border:1px solid #c8d1dc;background:#f8fafc;padding:1rem;border-radius:6px;margin:1rem 0}.hero.start-here{border-color:#9bb5d1;background:#f4f8fc}.card-grid,.feed-copy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.feed-copy-grid{grid-template-columns:repeat(auto-fit,minmax(18rem,1fr))}.card,.feed-url-card{border:1px solid #d8dee4;border-radius:6px;padding:1rem;background:#fff}.card h3,.feed-url-card h3{margin-top:0}.card p,.feed-url-card p{margin:.4rem 0}.empty-state{border-color:#a8c7e6;background:#f7fbff}.path-card{border-top:4px solid #2563eb}.path-developer{border-top-color:#805ad5}.status{font-weight:600}.copy-value{display:block;border:1px solid #d8dee4;background:#f6f8fa;border-radius:4px;padding:.45rem;white-space:pre-wrap;overflow-wrap:anywhere}.section-note{border:1px solid #d8dee4;background:#fff;padding:.75rem;border-radius:6px;margin:.75rem 0}.context-help{border:1px solid #c8d1dc;background:#f8fafc;border-radius:6px;padding:1rem;margin:1rem 0}.context-help h2{font-size:1.05rem;margin:0 0 .6rem}.context-help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.75rem}.context-help-topic{border-left:3px solid #2563eb;padding-left:.65rem}.context-help-topic h3{font-size:1rem;margin:.1rem 0}.context-help-topic p{margin:.3rem 0}
 .warning{background:#fff8c5}.ok{background:#dafbe1}.bad{background:#ffebe9}.muted{color:#59636e}.token{border:1px solid #f0c36d;background:#fff8c5;padding:1rem}
 form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{min-width:22rem;max-width:100%;padding:.45rem} button{padding:.5rem .8rem;min-height:2.25rem}
-@media (max-width:700px){body{margin:0;padding:1rem}.operations-nav,.card-grid,.context-help-grid{grid-template-columns:1fr}.nav-links{display:grid;grid-template-columns:1fr}.nav-link,button{width:100%}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}input,select,textarea{min-width:0;width:100%}}
+@media (max-width:700px){body{margin:0;padding:1rem}.operations-nav,.card-grid,.feed-copy-grid,.context-help-grid{grid-template-columns:1fr}.nav-links{display:grid;grid-template-columns:1fr}.nav-link,button{width:100%}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}input,select,textarea{min-width:0;width:100%}}
 </style></head><body>
 <a class="skip-link" href="#operations-main">Skip to main content</a>
 <header class="operations-header">
@@ -1745,12 +1753,16 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</div>
 </section>{{end}}
 </nav>
+{{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
+<main id="operations-main" tabindex="-1">
+{{end}}
+
+{{define "contextHelpPanel"}}
 {{if .ContextHelp.Topics}}<aside class="context-help" aria-labelledby="context-help-heading">
 <h2 id="context-help-heading">Help for {{.ContextHelp.Label}}</h2>
 <div class="context-help-grid">{{range .ContextHelp.Topics}}<section class="context-help-topic"><h3>{{.Label}}</h3><p>{{.Summary}}</p><p><strong>Next:</strong> {{.NextAction}}</p><p><a href="/admin/operations/help#help-{{.ID}}">Open topic</a></p></section>{{end}}</div>
 <p class="muted"><a href="{{.ContextHelp.AllTopicsURL}}">Open all help topics</a> · <a href="{{.ContextHelp.JSONURL}}">Export private help JSON</a></p>
 </aside>{{end}}
-<main id="operations-main" tabindex="-1">
 {{end}}
 {{define "layoutEnd"}}</main></body></html>{{end}}
 
@@ -1758,6 +1770,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Operations Console Help</h2>
 <p class="warning">{{.Help.Boundary}}</p>
+<div class="card-grid" aria-label="Help empty or blocked state guidance">
+<section class="card empty-state">
+<h3>When a page is empty or blocked</h3>
+<p><strong>What am I seeing?</strong> The console is showing the latest private records it can read for this agency.</p>
+<p><strong>Is this bad?</strong> Not always. Empty often means first-run setup has not produced that source record yet; blocked means an operator action or configuration is needed.</p>
+<p><strong>What should I do next?</strong> Open Start Here, follow the linked page, and keep missing records missing until the underlying setup, import, validator, telemetry, connector, or maintenance signal exists.</p>
+<p><strong>Can I do it in the browser?</strong> Review can happen in the browser; admin-only browser actions stay on their existing private pages.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for local startup, validator/tooling setup, operator-shell commands, backup/restore configuration, deployment diagnostics, or external integration prep.</p>
+<p><strong>What this does not prove:</strong> Help text does not prove compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, production readiness, vendor compatibility, SLA coverage, hardware certification, or ETA quality.</p>
+</section>
+</div>
 <p><a href="/admin/operations/help.json">Export private help JSON</a> · <a href="/admin/operations">Back to Operations Console</a></p>
 <div class="card-grid" aria-label="Help topics">
 {{range .Help.Topics}}<section class="card" id="help-{{.ID}}">
@@ -1801,12 +1824,12 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 {{define "firstRunPanel"}}
 <section class="hero" aria-labelledby="first-run-heading">
-<h2 id="first-run-heading">First-Run Tasks</h2>
+<h2 id="first-run-heading">Start Here: First Actions</h2>
 <p>{{.Boundary}}</p>
 <p class="muted">{{.LocalDemoDeploymentEvidenceBoundary}}</p>
 <p><strong>Task status:</strong> {{.Counts.Tasks}} tasks · ok {{index .Counts.Statuses "ok"}} · needs review {{index .Counts.Statuses "needs_review"}} · missing {{index .Counts.Statuses "missing"}} · blocked {{index .Counts.Statuses "blocked"}} · unknown {{index .Counts.Statuses "unknown"}}</p>
 <div class="card-grid" aria-label="First-run evaluator paths">
-{{range .Paths}}<section class="card" id="first-run-path-{{.ID}}">
+{{range .Paths}}<section class="card path-card path-{{.ID}}" id="first-run-path-{{.ID}}">
 <h3>{{.Label}}</h3>
 <p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
 <p><strong>What it means:</strong> {{.Meaning}}</p>
@@ -1816,13 +1839,21 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
+<h3>Copy These Five Feed URLs</h3>
+<p class="section-note">Use these values for local review inside the private console. Missing stays missing until publication metadata or feed records exist.</p>
+<div class="feed-copy-grid" aria-label="Copyable public feed URLs">
+{{range .FeedURLs}}<section class="feed-url-card" id="first-run-feed-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span> <code>{{.ID}}</code></p>
+<code class="copy-value">{{.CopyValue}}</code>
+<p><strong>Current link:</strong> {{if .URL}}<a href="{{.URL}}">{{.URL}}</a>{{else}}missing{{end}}</p>
+<p><strong>Next:</strong> {{.NextAction}}</p>
+<p class="muted"><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+</section>{{end}}
+</div>
 <h3>First-Run Acceptance Tasks</h3>
 <table><thead><tr><th>Order</th><th>Task</th><th>Status</th><th>Current signal</th><th>What it means</th><th>Next action</th><th>Console</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Tasks}}<tr><td>{{.Order}}</td><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td><a href="{{.UILink}}">{{.UILink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
-</tbody></table>
-<h3>Copy These Five Feed URLs</h3>
-<table><thead><tr><th>Feed</th><th>Status</th><th>Copy value</th><th>Current link</th><th>Meaning</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
-{{range .FeedURLs}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td><code class="copy-value">{{.CopyValue}}</code></td><td>{{if .URL}}<a href="{{.URL}}">{{.URL}}</a>{{else}}missing{{end}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}<br><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+{{range .Tasks}}<tr><td>{{.Order}}</td><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td><a href="{{.UILink}}">{{.UILink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <details>
 <summary>Claim flags for this first-run guide</summary>
@@ -1859,21 +1890,22 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 
 {{define "dashboard"}}
 {{template "layoutStart" .}}
-<div class="hero">
+<div class="hero start-here">
 <h2>Agency Operations Cockpit / Start Here</h2>
 <p>{{.Cockpit.Boundary}}</p>
 <p><a href="/admin/operations.json">Export private cockpit JSON</a> · <a href="/admin/operations/maintenance">Open maintenance center</a></p>
 </div>
 {{template "firstRunPanel" .FirstRun}}
+{{template "contextHelpPanel" .}}
 <h2>Setup Progress</h2>
 <table><thead><tr><th>ID</th><th>Area</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
-{{range .Cockpit.SetupProgress}}<tr id="cockpit-progress-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td><span class="pill">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td><a href="{{.AdminLink}}">{{.NextAction}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+{{range .Cockpit.SetupProgress}}<tr id="cockpit-progress-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td><a href="{{.AdminLink}}">{{.NextAction}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h2>Primary Actions</h2>
 <div class="card-grid" aria-label="Primary agency operations actions">
 {{range .Cockpit.PrimaryCards}}<section class="card" id="cockpit-card-{{.ID}}">
 <h3>{{.Label}}</h3>
-<p class="status">{{.Status}}</p>
+<p class="status"><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
 <p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
 <p><strong>What should I do next?</strong> <a href="{{.AdminLink}}">{{.NextAction}}</a></p>
 <p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
@@ -1983,6 +2015,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Connector Hub</h2>
 <p class="warning">{{.ConnectorHub.Boundary}}</p>
+<div class="card-grid" aria-label="Connector empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If no connector setup exists</h3>
+<p><strong>What am I seeing?</strong> Connector Hub shows safe local adapter shapes, committed example manifests, and any registry diagnostics.</p>
+<p><strong>Is this bad?</strong> No for a first browser review. It is a blocker only when a deployment depends on an external telemetry, prediction, validator, monitoring, or discovery integration.</p>
+<p><strong>What should I do next?</strong> Pick the connector category, read its boundary, then run the fixed offline connector tests before any authorized integration work.</p>
+<p><strong>Can I do it in the browser?</strong> You can review categories, docs, and manifest diagnostics here; the browser does not load plugins or contact systems.</p>
+<p><strong>When do I need a technical helper?</strong> Use one to run conformance commands, configure sidecars, map credentials, or prepare deployment-owned external connections.</p>
+<p><strong>What this does not prove:</strong> Connector guidance does not prove vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, SLA coverage, production readiness, or ETA quality.</p>
+</section>
+</div>
 <table><tbody>
 <tr><th>Safe plugin definition</th><td>{{.ConnectorHub.PluginDefinition}}</td></tr>
 <tr><th><code>dynamic_backend_plugin_loading_enabled</code></th><td>{{.ConnectorHub.ClaimFlags.DynamicBackendPluginLoadingEnabled}}</td></tr>
@@ -2041,6 +2084,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Connector Test Instructions</h2>
 <p class="warning">{{.ConnectorTests.Boundary}}</p>
+<div class="card-grid" aria-label="Connector test empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If connector tests are not run yet</h3>
+<p><strong>What am I seeing?</strong> This page lists fixed local/offline commands and the synthetic inputs each command checks.</p>
+<p><strong>Is this bad?</strong> Not for review. It becomes a blocker when connector work depends on unverified manifests, examples, or adapter cases.</p>
+<p><strong>What should I do next?</strong> Copy the relevant command into an operator terminal, review any failure, and keep the fix inside synthetic fixtures or adapter boundaries.</p>
+<p><strong>Can I do it in the browser?</strong> No. The browser only shows commands and boundaries; it does not execute commands or read command output.</p>
+<p><strong>When do I need a technical helper?</strong> Use one to run Go/Make checks, diagnose adapter failures, or set up local toolchains.</p>
+<p><strong>What this does not prove:</strong> Passing local synthetic checks does not prove real vendor compatibility, consumer acceptance, compliance, production readiness, external network behavior, or ETA quality.</p>
+</section>
+</div>
 <table><tbody>
 <tr><th><code>backend_command_execution_enabled</code></th><td>{{.ConnectorTests.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
 <tr><th><code>manifest_command_execution_enabled</code></th><td>{{.ConnectorTests.ClaimFlags.ManifestCommandExecutionEnabled}}</td></tr>
@@ -2072,6 +2126,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p class="warning">Private admin-only import path. Raw GTFS ZIP bytes are written to temporary runtime storage for the import attempt and then removed. This page creates no retained evidence, contacts no consumers, records no agency approval, and makes no CAL-ITP/Caltrans compliance, public launch, hosted-service, vendor compatibility, production-readiness, or production-grade ETA claim.</p>
 {{if .GTFSImportNotice}}<p class="ok">{{.GTFSImportNotice}}</p>{{end}}
 {{if .GTFSImportError}}<p class="bad">{{.GTFSImportError}}</p>{{end}}
+<div class="card-grid" aria-label="GTFS import empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If no GTFS is imported yet</h3>
+<p><strong>What am I seeing?</strong> The active schedule row is missing until an imported or published GTFS feed version exists.</p>
+<p><strong>Is this bad?</strong> It is normal on first run, but it blocks useful feed health, validation, telemetry matching, and realtime review.</p>
+<p><strong>What should I do next?</strong> Import a GTFS ZIP or safe GTFS URL, then review GTFS Quality, Validation Health, and Feed Health.</p>
+<p><strong>Can I do it in the browser?</strong> Yes, admins can use ZIP upload or safe URL import on this page.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for local app startup, very large scripted imports, unavailable import service, staged comparisons, or rollback work.</p>
+<p><strong>What this does not prove:</strong> A successful import does not prove validator-clean status, schedule correctness, agency approval, consumer acceptance, compliance, final-root readiness, hosted operation, or production readiness.</p>
+</section>
+</div>
 <h3>Current Active Schedule</h3>
 <table><tbody>
 <tr><th>Active feed version</th><td>{{if .ActiveFeedVersion}}<code>{{.ActiveFeedVersion}}</code>{{else}}missing active schedule{{end}}</td></tr>
@@ -2180,6 +2245,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Feed Health Dashboard</h2>
 <p class="warning">{{.FeedHealth.Boundary}}</p>
 <p>This command center tracks exactly five public paths: <code>/public/feeds.json</code>, <code>/public/gtfs/schedule.zip</code>, <code>/public/gtfsrt/vehicle_positions.pb</code>, <code>/public/gtfsrt/trip_updates.pb</code>, and <code>/public/gtfsrt/alerts.pb</code>.</p>
+<div class="card-grid" aria-label="Feed health empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If feed rows are missing or blocked</h3>
+<p><strong>What am I seeing?</strong> Five expected feed paths are shown with the private metadata, validator, reliability, and freshness signals available right now.</p>
+<p><strong>Is this bad?</strong> Missing is expected before setup or import; blocked means a feed, validator artifact, or reliability signal needs operator attention before stronger review.</p>
+<p><strong>What should I do next?</strong> Use each row's next action, then return here after GTFS import, validator health, telemetry, or reliability records change.</p>
+<p><strong>Can I do it in the browser?</strong> You can review the rows and follow private console links; some fixes happen in GTFS Import, Setup, Validation Health, Devices, or Alerts.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for deployment public-root configuration, off-host validation, loopback feed checks, reliability snapshots, or service diagnostics.</p>
+<p><strong>What this does not prove:</strong> Local feed rows do not prove consumer acceptance, final-root ownership, compliance, hosted availability, service-level guarantees, uptime, production readiness, or public launch.</p>
+</section>
+</div>
 <p><a href="/admin/operations/feed-health.json">Export private feed health JSON</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/reliability">Open reliability diagnostics</a></p>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.FeedHealth.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
@@ -2250,6 +2326,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{if .GTFSQualityNotice}}<p class="ok">{{.GTFSQualityNotice}}</p>{{end}}
 {{if .GTFSQualityError}}<p class="bad">{{.GTFSQualityError}}</p>{{end}}
 <p class="warning">Validator output is diagnostics and supporting signal only. It is not consumer acceptance, not CAL-ITP/Caltrans compliance, not an evidence packet, and not production-readiness proof.</p>
+<div class="card-grid" aria-label="GTFS quality empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If quality data is empty or stale</h3>
+<p><strong>What am I seeing?</strong> GTFS Quality combines the latest internal importer result, canonical static validator result, active feed version, and operator guidance.</p>
+<p><strong>Is this bad?</strong> Empty is expected before GTFS import or validator setup. Blocking errors should be fixed before relying on schedule or realtime outputs.</p>
+<p><strong>What should I do next?</strong> Import or publish GTFS first, identify the source-data owner, fix the source, and rerun the allowlisted static validator when available.</p>
+<p><strong>Can I do it in the browser?</strong> Admins can rerun the configured static validator from this page after an active schedule exists.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for validator installation, source-system export issues, complex calendar/shape/block fixes, or CLI-only imports.</p>
+<p><strong>What this does not prove:</strong> Quality guidance and validator output do not prove compliance, consumer acceptance, agency approval, public launch, hosted operation, or production readiness.</p>
+</section>
+</div>
 <table><tbody>
 <tr><th>Active schedule feed version</th><td>{{if .ActiveFeedVersion}}<code>{{.ActiveFeedVersion}}</code>{{else}}missing active schedule; next action: import or publish a schedule before rerunning validation{{end}}</td></tr>
 <tr><th>Rerun boundary</th><td>Rerun uses only the authenticated agency active published schedule ZIP and the server-side static MobilityData validator mapping.</td></tr>
@@ -2296,6 +2383,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{if .ValidationHealthNotice}}<p class="ok">{{.ValidationHealthNotice}}</p>{{end}}
 {{if .ValidationHealthError}}<p class="bad">{{.ValidationHealthError}}</p>{{end}}
 <p class="warning">This page is private diagnostics only. It does not create evidence packets, contact consumers, change consumer statuses, claim CAL-ITP/Caltrans compliance, or claim production readiness.</p>
+<div class="card-grid" aria-label="Validation health empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If validators are missing or not run</h3>
+<p><strong>What am I seeing?</strong> Validation Health shows server-owned validator tooling state, artifact availability, latest results, staleness, and next actions.</p>
+<p><strong>Is this bad?</strong> Not on first run. It becomes a blocker when feed review depends on unavailable artifacts, missing tooling, failed validation, or stale reports.</p>
+<p><strong>What should I do next?</strong> Import GTFS, confirm feed artifacts exist, then run or review the allowlisted validator health action.</p>
+<p><strong>Can I do it in the browser?</strong> Admins can run the configured all-feed validator health action; other roles can review the current state.</p>
+<p><strong>When do I need a technical helper?</strong> Use one to install pinned validators, configure off-host validators, inspect server logs, or fix missing artifacts.</p>
+<p><strong>What this does not prove:</strong> Validator rows are supporting diagnostics only and do not prove compliance, consumer acceptance, final-root readiness, hosted availability, or production readiness.</p>
+</section>
+</div>
 <div class="card-grid">
 <section class="card"><h3>Internal import validation</h3><p>Open Transit RT importer checks required GTFS structure and blocks unsafe activation paths. It helps explain import failures, but it is not the canonical MobilityData validator.</p></section>
 <section class="card"><h3>Canonical static validation</h3><p>MobilityData static GTFS validation reviews the active schedule artifact when pinned tooling is installed and the schedule artifact is available.</p></section>
@@ -2430,6 +2528,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Telemetry Freshness</h2>
 <p class="warning">Private telemetry freshness diagnostics only. Viewing this page creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
 <p>Stale threshold: {{.StaleThreshold}}</p>
+<div class="card-grid" aria-label="Telemetry empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If no telemetry appears</h3>
+<p><strong>What am I seeing?</strong> Telemetry Freshness shows accepted latest observations, stale state, and conservative assignment results for this agency.</p>
+<p><strong>Is this bad?</strong> It is normal before devices or simulator sends exist, but Vehicle Positions and Trip Updates will remain empty or limited until fresh telemetry arrives.</p>
+<p><strong>What should I do next?</strong> Create or rotate a device credential, send a sample through authenticated ingest, then review freshness and Feed Health.</p>
+<p><strong>Can I do it in the browser?</strong> You can review telemetry and rotate credentials from the browser; sending telemetry happens through a device or operator-shell simulator.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for simulator commands, device networking, ingest target configuration, database-backed matcher diagnostics, or deployment troubleshooting.</p>
+<p><strong>What this does not prove:</strong> Fresh telemetry does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted operation, or production readiness.</p>
+</section>
+</div>
 <div class="card-grid">
 <section class="card"><h3>Make Vehicle Positions non-empty</h3><p>Create or rotate a device token, configure a device or synthetic simulator from an operator shell, send accepted telemetry to <code>/v1/telemetry</code>, then review this page and Feed Health.</p></section>
 <section class="card"><h3>Why Trip Updates may be empty</h3><p>Trip Updates can be empty when telemetry is missing or stale, assignment confidence is too low, a vehicle is unknown, or the prediction adapter withholds output. Prefer empty or unknown over false certainty.</p></section>
@@ -2448,6 +2557,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <h2>Telemetry Simulator Guide</h2>
 <p class="warning">{{.TelemetrySimulator.Boundary}}</p>
 <p>The browser guide reads committed synthetic scenario metadata from <code>{{.TelemetrySimulator.ScenarioDir}}</code>. It does not read private simulator output, run commands, collect device tokens, or send telemetry from the web request.</p>
+<div class="card-grid" aria-label="Telemetry simulator empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If simulator scenarios are unavailable</h3>
+<p><strong>What am I seeing?</strong> The page is a read-only guide to committed synthetic scenarios and fixed operator-shell commands.</p>
+<p><strong>Is this bad?</strong> It is not bad for browser review, but missing fixtures block safe synthetic telemetry practice.</p>
+<p><strong>What should I do next?</strong> Restore committed simulator fixtures or copy a fixed command into an operator shell after the local app and credentials are ready.</p>
+<p><strong>Can I do it in the browser?</strong> No. The browser shows commands and boundaries only; it does not send telemetry or collect tokens.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for local app startup, shell environment setup, seeded credentials, matcher diagnostics, or failed simulator commands.</p>
+<p><strong>What this does not prove:</strong> Synthetic telemetry does not prove real fleet reliability, vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, or ETA quality.</p>
+</section>
+</div>
 <div class="card-grid">
 <section class="card"><h3>Target rules</h3>{{range .TelemetrySimulator.TargetRules}}<p>{{.}}</p>{{end}}</section>
 <section class="card"><h3>Credential handling</h3>{{range .TelemetrySimulator.CredentialHandling}}<p>{{.}}</p>{{end}}</section>
@@ -2488,6 +2608,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 <p class="warning">Device tokens are secrets. Store a one-time token immediately; it will not be shown again by this console.</p>
 <p class="warning">Private device credential diagnostics only. Viewing or rotating credentials creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
 <p>The supported browser flow is rotate/rebind. If a device has no credential yet, this uses the existing rebind API path.</p>
+<div class="card-grid" aria-label="Device credential empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If no devices are listed</h3>
+<p><strong>What am I seeing?</strong> Device Credentials shows configured device-to-vehicle bindings, token status dates, latest accepted telemetry, and assignment context.</p>
+<p><strong>Is this bad?</strong> It is expected before first setup, but it blocks live telemetry and useful Vehicle Positions until at least one credential is installed and reporting.</p>
+<p><strong>What should I do next?</strong> Ask an admin to rotate or create the first device token, install it on the device or simulator, then check Telemetry Freshness.</p>
+<p><strong>Can I do it in the browser?</strong> Admins can rotate or rebind one-time credentials in the browser; read-only users can review status only.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for installing tokens on hardware, configuring device network targets, simulator sends, or diagnosing stale/no telemetry.</p>
+<p><strong>What this does not prove:</strong> A device binding does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted operation, or production readiness.</p>
+</section>
+</div>
 <div class="card-grid">
 <section class="card"><h3>Token status</h3><p>The table shows credential status and dates, never stored token values. New tokens are shown only once after an admin rotate/rebind action.</p></section>
 <section class="card"><h3>Vehicle binding</h3><p>Each device row links a device to a vehicle, latest accepted telemetry time, freshness, assignment state, match confidence where available, and a next action.</p></section>
@@ -2524,6 +2655,17 @@ form{margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{m
 {{template "layoutStart" .}}
 <h2>Maintenance Center</h2>
 <p class="warning">{{.Maintenance.Boundary}}</p>
+<div class="card-grid" aria-label="Maintenance empty or blocked state guidance">
+<section class="card empty-state">
+<h3>If backup, restore, or service checks are missing</h3>
+<p><strong>What am I seeing?</strong> Maintenance summarizes configured and not-configured signals for version, active feed, five-feed checks, validators, backups, restore drills, telemetry, and service diagnostics.</p>
+<p><strong>Is this bad?</strong> Missing is expected on a local first run; it becomes a blocker before depending on routine operations, recovery, support, or stronger deployment claims.</p>
+<p><strong>What should I do next?</strong> Review each summary row, configure missing private backup/restore values where appropriate, and run the linked diagnostics from the operator environment.</p>
+<p><strong>Can I do it in the browser?</strong> You can review status and next steps here; backup/restore configuration and support bundles are operator-shell work.</p>
+<p><strong>When do I need a technical helper?</strong> Use one for backup paths, restore-drill targets, service health checks, support bundles, deployment logs, or redaction review.</p>
+<p><strong>What this does not prove:</strong> Maintenance rows do not prove SLA coverage, uptime, hosted availability, production readiness, compliance, agency adoption, consumer acceptance, or disaster-recovery success.</p>
+</section>
+</div>
 <p><a href="/admin/operations/maintenance.json">Export private maintenance JSON</a> · <a href="/admin/operations/feed-health">Open feed health</a> · <a href="/admin/operations/validation-health">Open validator health</a></p>
 <table><tbody>
 <tr><th>Overall status</th><td>{{.Maintenance.OverallStatus}}</td></tr>
