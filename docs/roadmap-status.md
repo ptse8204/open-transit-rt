@@ -20,7 +20,7 @@ release-ready pass.
 Continue the post-Phase-74 sequence with:
 
 1. maintainer review of the Phase 74 CP000008 closeout;
-2. review the maintainer-authorized proposed
+2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as planning guidance only;
 3. separately authorized future Phase 76+ implementation, release-cut cleanup /
@@ -95,7 +95,7 @@ assessment.
 
 1. Review the completed Phase 74 CP000008 GitHub Pages and agency UI
    product-polish closeout.
-2. Review the proposed/authorized
+2. Review the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as planning material only. It does not make Phase 76+ active,
    implemented, release-ready, or evidence-backed.

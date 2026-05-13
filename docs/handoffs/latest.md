@@ -77,14 +77,14 @@ canonical review is
 `docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`, the Phase 73 plan
 is `docs/phase-73-agency-ui-acceptance-and-documentation-freeze.md`, the Phase
 74 plan is `docs/phase-74-github-pages-and-agency-ui-product-polish.md`, and
-the current phase handoff is `docs/handoffs/phase-74.md`. Any future evidence
-intake is optional and requires explicit written authorization first.
-
-A maintainer-authorized proposed Consumer-Grade Control Plane roadmap pack
-lives at `docs/roadmaps/consumer-grade-control-plane/README.md`. It is
-planning material only; it does not activate Phase 76+, implement UI/API work,
-create evidence, move consumer statuses, or support compliance/adoption/
-consumer/final-root/SaaS/production/vendor/SLA/ETA claims.
+the Phase 74 handoff is `docs/handoffs/phase-74.md`. Phase 75 is complete for
+the Consumer-Grade Control Plane roadmap pack, with closeout at
+`docs/handoffs/phase-75.md`. The pack lives at
+`docs/roadmaps/consumer-grade-control-plane/README.md` and is planning
+material only; it does not activate Phase 76+, implement UI/API work, create
+evidence, move consumer statuses, or support compliance/adoption/consumer/
+final-root/SaaS/production/vendor/SLA/ETA claims. Any future evidence intake
+is optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
