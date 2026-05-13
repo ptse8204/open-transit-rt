@@ -2,7 +2,8 @@
 
 ## Status
 
-Checkpoint 000007 is complete for site and UI product-polish closeout.
+Checkpoint 000008 is complete for reconciling and publishing the actual
+`gh-pages` browser-first refresh.
 
 Phase 74 is authorized by maintainer instruction as `GitHub Pages And Agency
 UI Product Polish`. This supersedes the previous Phase 74 connector-maturity
@@ -64,6 +65,7 @@ for every command.
 5. `CP000005 -- improve first-run empty states and next actions`
 6. `CP000006 -- align docs README wiki and site navigation`
 7. `CP000007 -- close site and UI product polish review`
+8. `CP000008 -- reconcile and publish GitHub Pages refresh`
 
 ## CP000001 Plan
 
@@ -486,10 +488,87 @@ closeout checkpoint.
 Master review: CP000007 is approved. No required edits remain for the Phase
 74 GitHub Pages and agency UI product-polish review.
 
+Next checkpoint: CP000008 -- reconcile and publish GitHub Pages refresh.
+
+## CP000008 Result
+
+Changed `gh-pages` files:
+
+- `status.html`
+
+Changed main-branch status files:
+
+- `docs/current-status.md`
+- `docs/handoffs/latest.md`
+- `docs/handoffs/phase-74.md`
+- `docs/phase-74-github-pages-and-agency-ui-product-polish.md`
+- `docs/roadmap-status.md`
+
+Summary:
+
+- Confirmed the actual `gh-pages` branch is checked out at
+  `/Users/edwintse/Downloads/open-transit-rt-gh-pages`.
+- Reconciled the public status page so Phase 74 Pages/UI polish is complete
+  only after CP000008 updated and published the actual branch.
+- Verified the public site starts from browser review and `Agency Operations
+  Cockpit / Start Here`.
+- Verified `quickstart.html` presents `make check` and `make agency-app-up`
+  as technical-helper startup, not the no-developer first step.
+- Verified `ui-tour.html` covers the required Operations Console surfaces and
+  keeps screenshots as local/demo documentation aids only.
+- Committed and pushed `gh-pages` commit `a8b250e` with message
+  `Phase 74 -- Checkpoint 000008: publish GitHub Pages browser-first refresh`.
+
+Sub-agents used or simulated:
+
+- Context / Repo Truth Sub-Agent, intended GPT-5.5 x-high: simulated after
+  real spawn failed due thread limit.
+- Planning Sub-Agent, intended GPT-5.5 x-high: simulated after real spawn
+  failed due thread limit.
+- Implementation Sub-Agent, intended GPT-5.5 high: simulated/local master
+  implementation because the change had to be applied in the existing
+  `gh-pages` worktree.
+- QA Sub-Agent, intended GPT-5.5 high: simulated.
+- UI/UX Sub-Agent, intended GPT-5.5 high: simulated.
+- Documentation / IA Sub-Agent, intended GPT-5.5 high: simulated.
+- Claim-Boundary Sub-Agent, intended GPT-5.5 high: simulated.
+
+Validation run:
+
+```bash
+# gh-pages worktree
+git status --short
+git diff --check
+rg -n "Agency Operations Cockpit / Start Here|Start in the browser|technical-helper|documentation only|not hosted SaaS|/public/feeds.json|/public/gtfs/schedule.zip|/public/gtfsrt/vehicle_positions.pb|/public/gtfsrt/trip_updates.pb|/public/gtfsrt/alerts.pb" *.html
+rg -n "Try the local evaluator|Run Locally" index.html quickstart.html
+git push origin gh-pages
+
+# main worktree
+git status --short
+git diff --check
+make check
+go test ./cmd/agency-config
+make audit-product-acceptance
+make audit-final-claim-review
+python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
+# exact seven-target prepared-only consumer tracker check
+git status --short -- docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod go.sum
+```
+
+Validation result: passed. The stale CTA check returned no matches in
+`index.html` or `quickstart.html`. Protected evidence, consumer-submission,
+migration, and module paths had no status. The consumer tracker remains
+exactly seven prepared-only targets. No retained evidence, external-party
+contact, consumer status change, release tag/package, connector-maturity work,
+or forbidden claim was introduced.
+
+Master review: CP000008 is approved. No required edits remain for the
+published GitHub Pages reconciliation checkpoint.
+
 Next checkpoint: none for Phase 74. The next recommendation is maintainer
-review of the Phase 74 closeout, then separately authorize future release-cut
-cleanup/release-candidate gating, postponed connector maturity, or another
-product phase.
+review of the Phase 74 CP000008 closeout, then separately authorize future
+release-cut cleanup/release-candidate gating, postponed connector maturity, or
+another product phase.
 
 ## Protected Paths
 

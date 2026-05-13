@@ -8,8 +8,9 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 74 CP000007 is complete for GitHub Pages and agency UI product-polish
-closeout, following the completed GitHub Pages product-story refresh,
+Phase 74 CP000008 is complete for GitHub Pages and agency UI product-polish
+closeout. CP000008 reconciled and published the actual `gh-pages` branch at
+commit `a8b250e`, following the completed GitHub Pages product-story refresh,
 quickstart/UI tour refresh, private Operations Console hierarchy polish,
 first-run empty-state patching, README/docs/wiki/site navigation alignment,
 Phase 73 agency UI acceptance closeout, and bounded Phase 72 hardening review.
@@ -18,7 +19,7 @@ release-ready pass.
 
 Continue the post-Phase-74 sequence with:
 
-1. maintainer review of the Phase 74 closeout;
+1. maintainer review of the Phase 74 CP000008 closeout;
 2. separately authorized future release-cut cleanup/release-candidate gate,
    postponed connector maturity, or another product phase;
 3. private OCI/reference diagnostics and off-host public feed validation as
@@ -63,7 +64,7 @@ assessment.
 
 | Area | Current risk | Product-quality next action |
 | --- | --- | --- |
-| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
+| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed and published GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 CP000008 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
 | Browser-first operations | Phase 74 improves the private Operations Console first-run hierarchy, five-feed URL copy path, no-developer/technical-helper split, and empty-state next actions. | Use `/admin/operations` and `Agency Operations Cockpit / Start Here` as the first agency surface; keep shell commands as technical-helper paths. |
@@ -88,7 +89,7 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 74 CP000007 GitHub Pages and agency UI
+1. Review the completed Phase 74 CP000008 GitHub Pages and agency UI
    product-polish closeout.
 2. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics

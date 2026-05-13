@@ -273,15 +273,18 @@ recommendation without rerunning the local app, collecting retained evidence,
 moving consumer statuses, tagging, packaging, publishing, or claiming release
 readiness.
 
-Phase 74 CP000001 through CP000007 are complete for GitHub Pages and agency UI
-product polish. GitHub Pages product story is refreshed. Private Operations
-Console first-run hierarchy is improved. Docs/site/UI now point to the same
-browser-first product path. No retained evidence was created, no external
-party was contacted, no consumer status changed, and no
+Phase 74 CP000001 through CP000008 are complete for GitHub Pages and agency UI
+product polish. CP000008 reconciled and published the actual `gh-pages`
+branch at commit `a8b250e`, removing the mismatch risk between Phase 74
+closeout docs and the public site. GitHub Pages product story is refreshed.
+Private Operations Console first-run hierarchy is improved. Docs/site/UI now
+point to the same browser-first product path. No retained evidence was
+created, no external party was contacted, no consumer status changed, and no
 compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
 was added. The exact next recommendation is maintainer review of the Phase 74
-closeout, then separately authorize future release-cut cleanup/release-candidate
-gating, postponed connector maturity, or another product phase. The
+CP000008 closeout, then separately authorize future release-cut cleanup/
+release-candidate gating, postponed connector maturity, or another product
+phase. The
 next step is not broad UI redesign, a full `v0.1.0` release, a real agency
 pilot, or evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
@@ -1953,11 +1956,12 @@ no-authorization review, Phase 69 is complete for UI-first product acceptance,
 and Phase 70 is complete for the GitHub Pages product explainer site. Phase 72
 is complete for bounded `v0.1.0-rc.1` hardening review with `needs_review`
 diagnostics. Phase 73 CP000001 through CP000006 are complete for bounded
-agency UI acceptance closeout. Phase 74 CP000001 through CP000007 are complete
-for GitHub Pages and agency UI product polish: the GitHub Pages product story
-is refreshed, the private Operations Console first-run hierarchy is improved,
-and docs/site/UI now point to the same browser-first product path. The exact
-next recommendation is maintainer review of the Phase 74 closeout, then
+agency UI acceptance closeout. Phase 74 CP000001 through CP000008 are complete
+for GitHub Pages and agency UI product polish: CP000008 reconciled and
+published the actual `gh-pages` branch, the GitHub Pages product story is
+refreshed, the private Operations Console first-run hierarchy is improved, and
+docs/site/UI now point to the same browser-first product path. The exact next
+recommendation is maintainer review of the Phase 74 CP000008 closeout, then
 separately authorize future release-cut cleanup/release-candidate gating,
 postponed connector maturity, or another product phase. The next step is not
 evidence collection. For public/status wording work, start with

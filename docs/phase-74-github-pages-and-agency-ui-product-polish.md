@@ -2,7 +2,8 @@
 
 ## Status
 
-Checkpoint 000007 is complete for site and UI product-polish closeout.
+Checkpoint 000008 is complete for reconciling and publishing the actual
+`gh-pages` browser-first refresh.
 Checkpoint 000006 is complete for navigation alignment. Checkpoint 000005 is
 complete for first-run empty states and next actions. Checkpoint 000004 is
 complete for Operations Console visual hierarchy polish. Checkpoint 000003 is
@@ -88,6 +89,11 @@ contracts, connector schemas, or evidence/consumer workflows.
    - Update status, handoff, roadmap, planner, and closeout text.
    - Record validation, protected-path status, consumer tracker status, and
      claim-boundary review.
+8. `CP000008 -- reconcile and publish GitHub Pages refresh`
+   - Verify the actual `gh-pages` branch content.
+   - Patch and publish any mismatch between the public branch and Phase 74
+     closeout wording.
+   - Update main-branch status docs with the published result.
 
 ## CP000001 Result
 
@@ -439,6 +445,40 @@ Validation run for CP000007:
 
 All CP000007 required validation passed. The optional local app startup check
 was not rerun for this docs/status closeout checkpoint.
+
+## CP000008 Result
+
+Checkpoint 000008 reconciled and published the actual `gh-pages` branch.
+
+Changed `gh-pages` file:
+
+- `status.html`
+
+Changed main-branch status files:
+
+- `docs/current-status.md`
+- `docs/handoffs/latest.md`
+- `docs/handoffs/phase-74.md`
+- `docs/phase-74-github-pages-and-agency-ui-product-polish.md`
+- `docs/roadmap-status.md`
+
+The checkpoint verified that the published site now makes `Agency Operations
+Cockpit / Start Here` the first browser concept, starts the quickstart from
+`/admin/operations`, treats `make check` and `make agency-app-up` as
+technical-helper startup, lists all five public feed paths, covers the
+required Operations Console tour surfaces, keeps screenshots as local/demo
+documentation aids only, and preserves the documentation-only / not hosted
+SaaS boundary.
+
+The `gh-pages` branch was committed and pushed at `a8b250e` with message
+`Phase 74 -- Checkpoint 000008: publish GitHub Pages browser-first refresh`.
+
+All CP000008 required validation passed. Protected evidence, consumer tracker,
+migration, and module paths had no status. The consumer tracker remained
+exactly seven prepared-only targets. No retained evidence was created, no
+external party was contacted, no consumer status changed, no release was
+tagged or packaged, no connector maturity work started, and no forbidden claim
+was added.
 
 ## Expected GitHub Pages Changes
 
