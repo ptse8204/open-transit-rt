@@ -328,7 +328,8 @@ Phase 75-90 product-track guide. Phase 76 is complete for private Operations
 Console design-system/app-shell work, Phase 77 is complete for the private
 Admin Control API And Command Model scope, Phase 78 is complete for private
 buildless frontend routing/state/data-loading work, Phase 79 is complete for
-Agency Setup V3, and Phase 80 is complete for GTFS Workbench. The private
+Agency Setup V3, Phase 80 is complete for GTFS Workbench, and Phase 81 is
+complete for the Realtime Operations Center. The private
 setup path now presents an Agency Setup overview with progress, review blocks,
 safe diagnostics, role visibility, technical-helper escalation cards, clearer
 GTFS source review, and admin-only setup forms aligned with the existing POST
@@ -337,8 +338,13 @@ schedule state, import history and checksum comparison, required-file review,
 bounded preview tables, quality and validator summaries, draft publish review,
 schedule history, rollback guidance, and feed-output review. GTFS Studio
 cookie-auth browser mutations enforce CSRF when configured, and read-only draft
-summaries do not present publish/discard forms. The next product-track phase
-is Phase 81 -- Realtime Operations Center. Release-cut cleanup, postponed
+summaries do not present publish/discard forms. The private Realtime Operations
+Center now presents fleet freshness, device not-seen state, assignment
+confidence and reason codes, Vehicle Positions status, Trip Updates withheld
+or fallback diagnostics, Alerts lifecycle links, bounded operator-review rows,
+and realtime quality guidance without browser mutations or public admin
+routes. The next product-track phase is Phase 82 -- Feed Health And Validation
+Center. Release-cut cleanup, postponed
 connector maturity, and optional evidence tracks remain separated by their
 phase gates and claim boundaries. The
 next step is not a full `v0.1.0` release, a real agency

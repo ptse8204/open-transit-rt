@@ -131,10 +131,8 @@ All required edits from these reviews are incorporated into this plan.
 ```text
 Phase 81 -- Checkpoint 000001: add realtime operations center plan
 Phase 81 -- Checkpoint 000002: add fleet and telemetry freshness overview
-Phase 81 -- Checkpoint 000003: add assignment and matching explanation views
-Phase 81 -- Checkpoint 000004: add Trip Updates and Alerts status views
-Phase 81 -- Checkpoint 000005: add realtime issue queue and simulator guidance
-Phase 81 -- Checkpoint 000006: close realtime operations center review
+Phase 81 -- Checkpoint 000003: add realtime operator review diagnostics
+Phase 81 -- Checkpoint 000004: close realtime operations center review
 ```
 
 ## Acceptance Criteria

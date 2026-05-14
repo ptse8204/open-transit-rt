@@ -121,12 +121,19 @@ filters, required-file checklist, GTFS quality and validator-health summaries,
 draft publish review, feed-version history, rollback guidance, and feed-output
 review. GTFS Studio publish/discard/create mutations enforce CSRF for
 cookie-auth requests when configured, and review-only users are not invited
-into publish/discard actions from the draft summary. Phase 80 added no public
-admin route, migration, evidence write, consumer status change, release
-artifact, hosted service claim, production-readiness claim, vendor claim, SLA
-claim, or ETA-quality claim. The next autonomous phase in the authorized
-product track is Phase 81 -- Realtime Operations Center. Any future evidence
-intake is optional and requires explicit written authorization first.
+into publish/discard actions from the draft summary. Phase 81 is complete for
+Realtime Operations Center, with closeout at `docs/handoffs/phase-81.md`: the
+private Operations Console now has `/admin/operations/realtime` and
+`/admin/operations/realtime.json` for fleet freshness, device not-seen state,
+conservative assignment confidence/reason rows, Vehicle Positions status,
+Trip Updates withheld or fallback diagnostics, Alerts lifecycle links, bounded
+operator-review rows, and realtime quality guidance. Phase 80 and Phase 81
+added no public admin route, migration, evidence write, consumer status
+change, release artifact, hosted service claim, production-readiness claim,
+vendor claim, SLA claim, or ETA-quality claim. The next autonomous phase in
+the authorized product track is Phase 82 -- Feed Health And Validation Center.
+Any future evidence intake is optional and requires explicit written
+authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1390,12 +1397,13 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized Phase 75-90 product track with Phase 81 -- Realtime
-Operations Center. Phase 80 closed the GTFS Workbench scope as private
-product work for schedule import review, bounded previews, validation triage,
-draft publish review, schedule history, rollback guidance, and feed-output
-review without evidence writes, consumer status movement, release artifacts,
-or unsupported public claims.
+Continue the authorized Phase 75-90 product track with Phase 82 -- Feed Health
+And Validation Center. Phase 81 closed the Realtime Operations Center scope as
+private product work for fleet freshness, assignment confidence, Vehicle
+Positions status, Trip Updates withheld/fallback diagnostics, Alerts lifecycle
+links, operator-review rows, and realtime quality guidance without evidence
+writes, consumer status movement, release artifacts, or unsupported public
+claims.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit
