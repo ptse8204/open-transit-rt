@@ -22,10 +22,12 @@ remains the latest GitHub Pages publication at commit `a8b250e`.
 Continue the authorized product track with:
 
 1. active Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
-   Stubs, kept to final status/handoff updates, route and feature
-   inventories, validation and blocker matrices, protected-path and
-   consumer-tracker review, claim-boundary review, and future optional
-   evidence gate stubs that each require separate written authorization;
+   Stubs, planned at
+   [Phase 90 Final Control Plane Closeout And Future Evidence Gate Stubs](phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md)
+   and kept to final status/handoff updates, route and feature inventories,
+   validation and blocker matrices, protected-path and consumer-tracker
+   review, claim-boundary review, and future optional evidence gate stubs that
+   each require separate written authorization;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as the bounded planning guide for Phase 87+;
@@ -111,8 +113,10 @@ assessment.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
 6. Continue Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
-   Stubs while keeping release actions and optional evidence tracks separated
-   by their phase gates and claim boundaries.
+   Stubs from
+   [`docs/phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md`](phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md)
+   while keeping release actions and optional evidence tracks separated by
+   their phase gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a later
    authorized release-cut gate passes the repo's release-candidate diagnostics.
 8. For later authorized release-cut review, rerun the release-candidate

@@ -413,7 +413,8 @@ conclusion. Phase 89 did not tag, package, publish an image, create retained
 evidence, contact external parties, change consumer status, or make a
 release-ready claim. Phase 90 -- Final Control Plane Closeout And Future
 Evidence Gate Stubs is the next authorized phase in the Phase 75-90 product
-track.
+track, with plan at
+`docs/phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md`.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

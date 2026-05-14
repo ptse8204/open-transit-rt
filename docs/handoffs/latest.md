@@ -198,8 +198,10 @@ consumer status change, external contact, release-ready claim, compliance
 claim, adoption claim, consumer action claim, final-root claim, hosted-service
 claim, production-readiness claim, vendor claim, hardware claim, SLA/uptime
 claim, or ETA-quality claim. Phase 90 -- Final Control Plane Closeout And
-Future Evidence Gate Stubs is the next authorized phase. Any future evidence
-intake is optional and requires explicit written authorization first.
+Future Evidence Gate Stubs is the next authorized phase, with plan at
+`docs/phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md`.
+Any future evidence intake is optional and requires explicit written
+authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1464,15 +1466,16 @@ target-originated evidence supports a target-specific status transition.
 ## Exact Next-Step Recommendation
 
 Continue Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
-Stubs in the authorized Phase 75-90 product track. Close the full
-consumer-grade control-plane track with final status/handoff updates, route
-and feature inventories, validation and blocker matrices, protected-path and
-consumer-tracker review, claim-boundary review, and future optional evidence
-gate stubs that each require separate written authorization. Do not tag,
-publish, distribute packages, collect evidence, or claim production readiness,
-hosted service, SLA, uptime, release readiness, compliance, agency adoption,
-consumer acceptance, vendor compatibility, hardware certification, real
-vendor/device proof, or evidence.
+Stubs in the authorized Phase 75-90 product track from
+`docs/phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md`.
+Close the full consumer-grade control-plane track with final status/handoff
+updates, route and feature inventories, validation and blocker matrices,
+protected-path and consumer-tracker review, claim-boundary review, and future
+optional evidence gate stubs that each require separate written authorization.
+Do not tag, publish, distribute packages, collect evidence, or claim
+production readiness, hosted service, SLA, uptime, release readiness,
+compliance, agency adoption, consumer acceptance, vendor compatibility,
+hardware certification, real vendor/device proof, or evidence.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit
