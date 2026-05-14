@@ -1351,7 +1351,7 @@ func setupSteps(page operationsPage) []setupStepView {
 			Status:     readinessStatus(page.Discovery.Readiness.LicenseComplete && page.Discovery.Readiness.ContactComplete, page.DiscoveryError),
 			Source:     "publication metadata",
 			Evidence:   licenseContactEvidence(page),
-			NextAction: "Enter an agency-approved open license URL and technical contact, or keep this marked missing.",
+			NextAction: "Enter an operator-provided open license URL and technical contact, or keep this marked missing.",
 			ActionURL:  "/admin/operations/setup#publication-metadata",
 		},
 		{
@@ -1484,7 +1484,7 @@ func readinessItems(page operationsPage) []readinessItemView {
 			Status:        readinessStatus(page.Discovery.Readiness.LicenseComplete && page.Discovery.Readiness.ContactComplete, page.DiscoveryError),
 			Source:        "feed_config, published_feed, and /public/feeds.json metadata",
 			Evidence:      licenseContactEvidence(page),
-			NextAction:    "Replace placeholders with agency-approved open license and monitored technical contact values.",
+			NextAction:    "Replace placeholders with operator-provided open license and monitored technical contact values.",
 			ClaimBoundary: "Metadata completeness is not agency approval unless separate retained approval exists.",
 		},
 		{
@@ -2107,9 +2107,41 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "setup-wizard"}}
 {{template "layoutStart" .}}
-<h2>Setup Wizard</h2>
-<p class="warning">{{.SetupWizard.Boundary}}</p>
-<p><a href="/admin/operations/setup-wizard.json">Export private setup wizard JSON</a> · <a href="/admin/operations/setup">Open guided setup</a> · <a href="/admin/operations/checklist">Open private checklist</a></p>
+<h2>Agency Setup</h2>
+<p class="warning">Set up the agency profile, schedule data, feed links, validation, and first telemetry review. This private page helps operators prepare the system; it does not publish feeds, contact outside services, or prove compliance.</p>
+<p><a href="/admin/operations/setup-wizard.json">Export private setup JSON</a> · <a href="/admin/operations/setup">Open advanced setup details</a> · <a href="/admin/operations/checklist">Open private checklist</a></p>
+<div class="card-grid" aria-label="Agency setup progress">
+<section class="card">
+<h3>Setup Progress</h3>
+<p><span class="status-chip status-{{statusClass .SetupWizard.Summary.Status}}">{{.SetupWizard.Summary.Status}}</span></p>
+<p>{{.SetupWizard.Summary.CompletedStages}} of {{.SetupWizard.Counts.Stages}} stages complete. {{.SetupWizard.Summary.NeedsReviewStages}} need review, {{.SetupWizard.Summary.MissingStages}} are missing, {{.SetupWizard.Summary.BlockedStages}} are blocked, and {{.SetupWizard.Summary.UnknownStages}} are unknown.</p>
+<p class="muted">{{.SetupWizard.Summary.Meaning}}</p>
+</section>
+<section class="card">
+<h3>Next Best Step</h3>
+<p><strong>{{.SetupWizard.Summary.NextStageLabel}}</strong></p>
+<p>{{.SetupWizard.Summary.NextAction}}</p>
+{{if .SetupWizard.Summary.NextActionLink}}<p><a href="{{.SetupWizard.Summary.NextActionLink}}">{{.SetupWizard.Summary.NextActionLink}}</a></p>{{end}}
+</section>
+<section class="card">
+<h3>Advanced Details</h3>
+<p>Use the advanced setup page to edit safe publication metadata as an admin, then return here to review the setup sequence.</p>
+<p><a href="/admin/operations/setup#publication-metadata">Review publication metadata</a></p>
+</section>
+</div>
+<div class="card-grid" aria-label="Agency setup stages">
+{{range .SetupWizard.Stages}}<section class="card">
+<h3>{{.Label}}</h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p><strong>What we see:</strong> {{.CurrentSignal}}</p>
+<p><strong>Next step:</strong> {{.PrimaryAction}}</p>
+{{if .AdminLink}}<p><a href="{{.AdminLink}}">{{.ActionLabel}}</a></p>{{end}}
+<p class="muted">{{.ClaimBoundary}}</p>
+</section>{{end}}
+</div>
+<details>
+<summary>What this page does not do</summary>
+<p>{{.SetupWizard.Boundary}}</p>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.SetupWizard.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>final_root_evidence_created</code></th><td>{{.SetupWizard.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
@@ -2123,8 +2155,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>vendor_compatibility_claimed</code></th><td>{{.SetupWizard.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
 <tr><th><code>production_grade_eta_claimed</code></th><td>{{.SetupWizard.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
 </tbody></table>
+</details>
+<h3>Detailed Setup Signals</h3>
 <table><thead><tr><th>ID</th><th>Stage</th><th>Status</th><th>Current signal</th><th>Primary action</th><th>Console</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
-{{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.AdminLink}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+{{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.ActionLabel}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">This wizard is GET-only. It does not upload GTFS, mutate setup state, run validators, contact external systems, or create public routes.</p>
 {{template "layoutEnd" .}}
@@ -2875,10 +2909,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "setup"}}
 {{template "layoutStart" .}}
-<h2>Guided Setup Checklist</h2>
+<h2>Advanced Setup Details</h2>
 {{if .SetupNotice}}<p class="ok">{{.SetupNotice}}</p>{{end}}
 {{if .SetupError}}<p class="bad">{{.SetupError}}</p>{{end}}
-<p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
+<p><a href="/admin/operations/setup-wizard">Return to Agency Setup</a> · <a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p class="muted">Each status is tied to a named source. Missing records stay missing until publication metadata, feed discovery, validation records, device bindings, telemetry, docs tracker records, or evidence links support a stronger statement.</p>
 <table><thead><tr><th>Step</th><th>Status</th><th>Status source</th><th>Evidence signal</th><th>Next action</th></tr></thead><tbody>
 {{range .SetupSteps}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{if .ActionURL}}<a href="{{.ActionURL}}">{{.NextAction}}</a>{{else}}{{.NextAction}}{{end}}</td></tr>{{end}}

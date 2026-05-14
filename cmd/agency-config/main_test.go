@@ -553,7 +553,8 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		"Guided Setup Checklist",
+		"Advanced Setup Details",
+		"Return to Agency Setup",
 		"publication metadata",
 		"validation records",
 		"device bindings",
@@ -1359,7 +1360,7 @@ func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Setup Wizard", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Publication metadata", "GTFS", "Feeds", "Telemetry", "Validators", "Connectors", "Readiness"} {
+	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Public feed information", "Schedule data", "Feed links", "Vehicle telemetry", "Validation", "Optional connectors", "Readiness review"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -5050,13 +5051,13 @@ func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
 
 func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 	t.Helper()
-	if wizard.AgencyID == "" || wizard.Boundary == "" || len(wizard.Stages) != 8 || wizard.Counts.Stages != len(wizard.Stages) {
+	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Stages) != 8 || wizard.Counts.Stages != len(wizard.Stages) {
 		t.Fatalf("invalid setup wizard top-level shape: %+v", wizard)
 	}
 	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
 	seenIDs := map[string]bool{}
 	for _, stage := range wizard.Stages {
-		if stage.ID == "" || stage.Label == "" || stage.Status == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.AdminLink == "" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
+		if stage.ID == "" || stage.Label == "" || stage.Status == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.ActionLabel == "" || stage.AdminLink == "" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
 			t.Fatalf("invalid setup wizard stage shape: %+v", stage)
 		}
 		if seenIDs[stage.ID] {

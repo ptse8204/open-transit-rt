@@ -20,8 +20,8 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			Items: []operationsNavItem{
 				{Label: "Start Here", Href: "/admin/operations", Section: "dashboard"},
 				{Label: "Private Launchpad", Href: "/admin/operations/launchpad", Section: "launchpad"},
-				{Label: "Setup Wizard", Href: "/admin/operations/setup-wizard", Section: "setup-wizard"},
-				{Label: "Setup", Href: "/admin/operations/setup", Section: "setup"},
+				{Label: "Agency Setup", Href: "/admin/operations/setup-wizard", Section: "setup-wizard"},
+				{Label: "Advanced Setup Details", Href: "/admin/operations/setup", Section: "setup"},
 			},
 		},
 		{
@@ -98,9 +98,9 @@ func operationsPageTitle(section string) string {
 	case "launchpad":
 		return "Private Agency Launchpad"
 	case "setup-wizard":
-		return "Setup Wizard"
+		return "Agency Setup"
 	case "setup":
-		return "Guided Setup Checklist"
+		return "Advanced Setup Details"
 	case "gtfs-import":
 		return "Browser GTFS Import"
 	case "gtfs-quality":

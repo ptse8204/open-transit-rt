@@ -11,9 +11,24 @@ type operationsSetupWizardView struct {
 	GeneratedAt time.Time                    `json:"generated_at"`
 	AgencyID    string                       `json:"agency_id"`
 	Boundary    string                       `json:"boundary"`
+	Summary     operationsSetupWizardSummary `json:"summary"`
 	Stages      []operationsSetupWizardStage `json:"stages"`
 	Counts      operationsSetupWizardCounts  `json:"counts"`
 	ClaimFlags  setupWizardClaimFlags        `json:"claim_flags"`
+}
+
+type operationsSetupWizardSummary struct {
+	Status            string `json:"status"`
+	CompletedStages   int    `json:"completed_stages"`
+	NeedsReviewStages int    `json:"needs_review_stages"`
+	MissingStages     int    `json:"missing_stages"`
+	BlockedStages     int    `json:"blocked_stages"`
+	UnknownStages     int    `json:"unknown_stages"`
+	NextStageID       string `json:"next_stage_id"`
+	NextStageLabel    string `json:"next_stage_label"`
+	NextAction        string `json:"next_action"`
+	NextActionLink    string `json:"next_action_link"`
+	Meaning           string `json:"meaning"`
 }
 
 type operationsSetupWizardStage struct {
@@ -22,6 +37,7 @@ type operationsSetupWizardStage struct {
 	Status        string   `json:"status"`
 	CurrentSignal string   `json:"current_signal"`
 	PrimaryAction string   `json:"primary_action"`
+	ActionLabel   string   `json:"action_label"`
 	AdminLink     string   `json:"admin_link"`
 	DocsLinks     []string `json:"docs_links"`
 	ClaimBoundary string   `json:"claim_boundary"`
@@ -80,7 +96,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 		setupWizardStage(
 			"publication_metadata",
-			"Publication metadata",
+			"Public feed information",
 			metadataStatus(page.Discovery.License.Name, page.Discovery.License.URL, page.Discovery.TechnicalContactEmail),
 			licenseContactEvidence(page),
 			"Store or review public base URL, feed base URL, open license, contact, and environment values.",
@@ -90,7 +106,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 		setupWizardStage(
 			"gtfs",
-			"GTFS",
+			"Schedule data",
 			gtfsLaunchpadStatus(page),
 			gtfsLaunchpadSignal(page),
 			"Use browser import, the CLI import path, or GTFS Studio draft publish; then review validation feedback.",
@@ -100,7 +116,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 		setupWizardStage(
 			"feeds",
-			"Feeds",
+			"Feed links",
 			fiveFeedsLaunchpadStatus(page),
 			fiveFeedsLaunchpadSignal(page),
 			"Review plain-language health for feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts without changing public routes.",
@@ -110,7 +126,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 		setupWizardStage(
 			"telemetry",
-			"Telemetry",
+			"Vehicle telemetry",
 			telemetryLaunchpadStatus(page),
 			telemetryLaunchpadSignal(page),
 			"Bind devices and send authenticated sample telemetry through existing ingest flows.",
@@ -120,7 +136,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 		setupWizardStage(
 			"validators",
-			"Validators",
+			"Validation",
 			validatorLaunchpadStatus(page),
 			validatorLaunchpadSignal(page),
 			"Review private validator health and run only server-side allowlisted validators from existing admin paths.",
@@ -130,7 +146,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 		setupWizardStage(
 			"connectors",
-			"Connectors",
+			"Optional connectors",
 			checklistStatusNeedsReview,
 			"connector hub describes sidecar, manifest, command-adapter, and conformance paths without dynamic backend plugin loading",
 			"Review connector boundaries before connecting optional external systems.",
@@ -140,7 +156,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 		setupWizardStage(
 			"readiness",
-			"Readiness",
+			"Readiness review",
 			readinessLaunchpadStatus(page),
 			readinessLaunchpadSignal(page),
 			"Review readiness rows and private checklist rows, keeping missing evidence marked missing.",
@@ -153,6 +169,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		GeneratedAt: page.GeneratedAt,
 		AgencyID:    page.AgencyID,
 		Boundary:    "Private authenticated setup wizard only; viewing it creates no evidence, changes no state, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, or production-readiness outcome.",
+		Summary:     setupWizardSummary(stages),
 		Stages:      stages,
 		Counts:      setupWizardCounts(stages),
 		ClaimFlags:  setupWizardClaimFlags{},
@@ -171,6 +188,7 @@ func setupWizardStage(id string, label string, status string, signal string, act
 		Status:        normalizeChecklistStatus(status),
 		CurrentSignal: firstNonEmpty(signal, "unknown"),
 		PrimaryAction: firstNonEmpty(action, "Review this stage in the private Operations Console."),
+		ActionLabel:   setupWizardActionLabel(id),
 		AdminLink:     cleanAdminLink,
 		DocsLinks:     safeDocsLinks(docsLinks),
 		ClaimBoundary: firstNonEmpty(boundary, privateBoundary()),
@@ -189,4 +207,62 @@ func setupWizardCounts(stages []operationsSetupWizardStage) operationsSetupWizar
 		counts.Statuses[normalizeChecklistStatus(stage.Status)]++
 	}
 	return counts
+}
+
+func setupWizardSummary(stages []operationsSetupWizardStage) operationsSetupWizardSummary {
+	counts := setupWizardCounts(stages)
+	next := operationsSetupWizardStage{}
+	for _, stage := range stages {
+		if stage.Status != checklistStatusOK {
+			next = stage
+			break
+		}
+	}
+	if next.ID == "" && len(stages) > 0 {
+		next = stages[len(stages)-1]
+	}
+	status := checklistStatusOK
+	if counts.Statuses[checklistStatusBlocked] > 0 {
+		status = checklistStatusBlocked
+	} else if counts.Statuses[checklistStatusMissing] > 0 || counts.Statuses[checklistStatusNeedsReview] > 0 {
+		status = checklistStatusNeedsReview
+	} else if counts.Statuses[checklistStatusUnknown] > 0 {
+		status = checklistStatusUnknown
+	}
+	return operationsSetupWizardSummary{
+		Status:            status,
+		CompletedStages:   counts.Statuses[checklistStatusOK],
+		NeedsReviewStages: counts.Statuses[checklistStatusNeedsReview],
+		MissingStages:     counts.Statuses[checklistStatusMissing],
+		BlockedStages:     counts.Statuses[checklistStatusBlocked],
+		UnknownStages:     counts.Statuses[checklistStatusUnknown],
+		NextStageID:       next.ID,
+		NextStageLabel:    next.Label,
+		NextAction:        next.PrimaryAction,
+		NextActionLink:    next.AdminLink,
+		Meaning:           "Setup progress is a private operator guide for local/reference readiness. It does not prove approval, compliance, consumer acceptance, hosted operation, or production readiness.",
+	}
+}
+
+func setupWizardActionLabel(id string) string {
+	switch id {
+	case "agency_profile":
+		return "Review profile"
+	case "publication_metadata":
+		return "Review feed information"
+	case "gtfs":
+		return "Open schedule import"
+	case "feeds":
+		return "Check feed links"
+	case "telemetry":
+		return "Review telemetry"
+	case "validators":
+		return "Open validation"
+	case "connectors":
+		return "Review connectors"
+	case "readiness":
+		return "Review readiness"
+	default:
+		return "Open section"
+	}
 }
