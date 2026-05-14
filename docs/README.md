@@ -49,6 +49,7 @@ helper, and what the local evaluation does not prove.
 - [Agency Launchpad](tutorials/agency-launchpad.md)
 - [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md)
 - [GTFS Validation Triage](tutorials/gtfs-validation-triage.md)
+- [Prediction And ETA Lab](tutorials/prediction-eta-lab.md)
 - [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)
 - [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)

@@ -3409,6 +3409,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td colspan="9">No aggregate backtest summaries are available yet. Run the fixed local command from an operator shell when synthetic/local backtest review is needed.</td></tr>
 {{end}}
 </tbody></table>
+<h3>Conservative Handling Guide</h3>
+<p class="warning">{{.PredictionLab.HandlingGuide.Boundary}}</p>
+<p><strong>Status:</strong> {{.PredictionLab.HandlingGuide.Status}} · <strong>Next action:</strong> {{.PredictionLab.HandlingGuide.NextAction}}</p>
+<table><thead><tr><th>Situation</th><th>Review signal</th><th>Safe behavior</th><th>Operator step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.HandlingGuide.Rows}}
+<tr><td><strong>{{.Situation}}</strong><br><code>{{.ID}}</code></td><td>{{.ReviewSignal}}</td><td>{{.SafeBehavior}}</td><td>{{.OperatorStep}}</td><td>{{.DoesNotProve}}</td></tr>
+{{end}}
+</tbody></table>
+<h3>Future ETA Proof Gates</h3>
+<p class="warning">{{.PredictionLab.ProofChecklist.Boundary}}</p>
+<p><strong>Status:</strong> {{.PredictionLab.ProofChecklist.Status}} · <strong>Next action:</strong> {{.PredictionLab.ProofChecklist.NextAction}}</p>
+<table><thead><tr><th>Gate</th><th>Required review</th><th>Authorization</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.ProofChecklist.Rows}}
+<tr><td><strong>{{.FutureGate}}</strong><br><code>{{.ID}}</code></td><td>{{.RequiredReview}}</td><td>{{.SeparateAuthorization}}</td><td>{{.DoesNotProve}}</td></tr>
+{{end}}
+</tbody></table>
 <h3>Needs Operator Review</h3>
 <table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
 {{range .PredictionLab.ReviewRows}}

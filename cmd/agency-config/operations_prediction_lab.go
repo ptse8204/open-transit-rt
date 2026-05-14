@@ -22,6 +22,8 @@ type predictionLabView struct {
 	WithheldReasons []predictionLabReason           `json:"withheld_reasons"`
 	ShadowReview    predictionLabShadowReview       `json:"shadow_review"`
 	Backtests       realtimequality.BacktestBrowser `json:"backtests"`
+	HandlingGuide   predictionLabHandlingGuide      `json:"handling_guide"`
+	ProofChecklist  predictionLabProofChecklist     `json:"proof_checklist"`
 	ReviewRows      []predictionLabReviewRow        `json:"review_rows"`
 	Commands        []predictionLabCommand          `json:"commands"`
 	ClaimFlags      predictionLabClaimFlags         `json:"claim_flags"`
@@ -86,6 +88,39 @@ type predictionLabShadowRow struct {
 	FailureBehavior string `json:"failure_behavior"`
 	FirstSafeCheck  string `json:"first_safe_check"`
 	DoesNotProve    string `json:"does_not_prove"`
+}
+
+type predictionLabHandlingGuide struct {
+	Status       string                          `json:"status"`
+	Boundary     string                          `json:"boundary"`
+	NextAction   string                          `json:"next_action"`
+	DoesNotProve string                          `json:"does_not_prove"`
+	Rows         []predictionLabHandlingGuideRow `json:"rows"`
+}
+
+type predictionLabHandlingGuideRow struct {
+	ID           string `json:"id"`
+	Situation    string `json:"situation"`
+	ReviewSignal string `json:"review_signal"`
+	SafeBehavior string `json:"safe_behavior"`
+	OperatorStep string `json:"operator_step"`
+	DoesNotProve string `json:"does_not_prove"`
+}
+
+type predictionLabProofChecklist struct {
+	Status       string                           `json:"status"`
+	Boundary     string                           `json:"boundary"`
+	NextAction   string                           `json:"next_action"`
+	DoesNotProve string                           `json:"does_not_prove"`
+	Rows         []predictionLabProofChecklistRow `json:"rows"`
+}
+
+type predictionLabProofChecklistRow struct {
+	ID                    string `json:"id"`
+	FutureGate            string `json:"future_gate"`
+	RequiredReview        string `json:"required_review"`
+	SeparateAuthorization string `json:"separate_authorization"`
+	DoesNotProve          string `json:"does_not_prove"`
 }
 
 type predictionLabReviewRow struct {
@@ -179,6 +214,8 @@ func buildPredictionLab(page operationsPage) predictionLabView {
 	view.WithheldReasons = buildPredictionLabWithheldReasons(page.TripUpdatesQuality)
 	view.ShadowReview = buildPredictionLabShadowReview(page.TripUpdatesQuality)
 	view.Backtests = buildPredictionLabBacktests()
+	view.HandlingGuide = buildPredictionLabHandlingGuide(page.TripUpdatesQuality)
+	view.ProofChecklist = buildPredictionLabProofChecklist()
 	view.ReviewRows = buildPredictionLabReviewRows(view.Summary, view.WithheldReasons)
 	return view
 }
@@ -435,6 +472,97 @@ func intFromAny(value any) int {
 		return int(typed)
 	default:
 		return 0
+	}
+}
+
+func buildPredictionLabHandlingGuide(quality tripUpdatesQualityView) predictionLabHandlingGuide {
+	status := checklistStatusOK
+	nextAction := "Keep conservative handling active and review freshness, assignment confidence, schedule state, and withheld reasons before relying on ETA-like output."
+	if !quality.Recorded {
+		status = checklistStatusMissing
+		nextAction = "Generate private Trip Updates diagnostics before using the handling guide for an agency review."
+	} else if statusFromRateText(quality.StaleTelemetryRate, quality.UnknownAssignmentRate, quality.AmbiguousAssignmentRate) != checklistStatusOK || totalCountViews(quality.WithheldByReason) > 0 {
+		status = checklistStatusNeedsReview
+		nextAction = "Review the rows below and resolve telemetry, assignment, or schedule gaps before changing predictor settings."
+	}
+	return predictionLabHandlingGuide{
+		Status:       status,
+		Boundary:     "Conservative ETA handling favors unknown, withheld, or fail-closed output over false certainty. This guide explains why the browser may show missing ETA-like output even when Vehicle Positions continue.",
+		NextAction:   nextAction,
+		DoesNotProve: "Conservative handling guidance does not prove real-world ETA accuracy, production-grade ETA quality, consumer display, compliance, vendor compatibility, hardware certification, SLA coverage, or release readiness.",
+		Rows: []predictionLabHandlingGuideRow{
+			{
+				ID:           "stale-telemetry",
+				Situation:    "Telemetry is stale",
+				ReviewSignal: fmt.Sprintf("stale=%s; latest stale rows=%d", firstNonEmpty(quality.StaleTelemetryRate, "not recorded"), quality.StaleTelemetryRows),
+				SafeBehavior: "Withhold Trip Updates or keep Vehicle Positions without a confident trip descriptor when the latest observation is too old.",
+				OperatorStep: "Check device power, clock sync, network delay, reporting cadence, and Realtime Center freshness before expecting ETA-like output.",
+				DoesNotProve: "Freshening one device does not prove production AVL reliability, hardware certification, SLA coverage, or route-wide ETA quality.",
+			},
+			{
+				ID:           "unknown-assignment",
+				Situation:    "Assignment is unknown",
+				ReviewSignal: fmt.Sprintf("unknown=%s; eligible candidates=%d", firstNonEmpty(quality.UnknownAssignmentRate, "not recorded"), quality.EligiblePredictionCandidates),
+				SafeBehavior: "Prefer unknown trip state over fabricating a trip descriptor or future stops from weak evidence.",
+				OperatorStep: "Review service day, route/trip hints, block continuity, after-midnight service, and manual override evidence.",
+				DoesNotProve: "Resolving an assignment does not prove consumer display, compliance, or real-world ETA accuracy.",
+			},
+			{
+				ID:           "ambiguous-assignment",
+				Situation:    "Assignment is ambiguous",
+				ReviewSignal: fmt.Sprintf("ambiguous=%s; manual overrides=%d", firstNonEmpty(quality.AmbiguousAssignmentRate, "not recorded"), quality.ManualOverrideAssignments),
+				SafeBehavior: "Withhold ETA-like Trip Updates when multiple trip instances remain plausible.",
+				OperatorStep: "Use operator knowledge or schedule corrections only when staff have reliable local evidence; otherwise keep the output withheld.",
+				DoesNotProve: "Manual review does not prove agency approval, public consumer ingestion, or production-grade ETA quality.",
+			},
+			{
+				ID:           "low-confidence-or-no-future-stops",
+				Situation:    "Confidence is low or no future stops are safe",
+				ReviewSignal: fmt.Sprintf("coverage=%s; future_stop_coverage=%s", firstNonEmpty(quality.TripUpdatesCoverageRate, "not recorded"), firstNonEmpty(quality.FutureStopCoverageRate, "not recorded")),
+				SafeBehavior: "Emit only the subset of Trip Updates that passes configured confidence, freshness, schedule, and future-stop checks.",
+				OperatorStep: "Review GTFS Workbench, active feed version, current stop sequence, and withheld reasons before changing thresholds.",
+				DoesNotProve: "Higher local coverage does not prove real-world ETA accuracy, consumer acceptance, compliance, or release readiness.",
+			},
+		},
+	}
+}
+
+func buildPredictionLabProofChecklist() predictionLabProofChecklist {
+	return predictionLabProofChecklist{
+		Status:       checklistStatusNeedsReview,
+		Boundary:     "Future ETA proof gates are separate authorization-gated work. They are listed so operators understand what is missing; this page does not collect or retain that proof.",
+		NextAction:   "Keep these gates separate from day-to-day private diagnostics until a maintainer explicitly authorizes evidence scope, retention, redaction, and stop conditions.",
+		DoesNotProve: "Listing future gates does not prove production-grade ETA quality, real-world ETA accuracy, compliance, consumer acceptance, vendor compatibility, hardware certification, hosted service readiness, SLA coverage, or release readiness.",
+		Rows: []predictionLabProofChecklistRow{
+			{
+				ID:                    "field-observed-events",
+				FutureGate:            "Real observed arrival/departure comparison",
+				RequiredReview:        "Targeted, redacted, agency-authorized observed event data compared against versioned predictions with clear denominators and sampling windows.",
+				SeparateAuthorization: "Required before collecting, retaining, or publishing real observed-event evidence.",
+				DoesNotProve:          "Synthetic/local aggregate backtests do not prove real-world ETA accuracy.",
+			},
+			{
+				ID:                    "operating-day-coverage",
+				FutureGate:            "Operating-day and route coverage review",
+				RequiredReview:        "Representative service days, route families, low-frequency trips, after-midnight service, detours, missing telemetry, and cancellation behavior.",
+				SeparateAuthorization: "Required before treating route/day coverage as evidence.",
+				DoesNotProve:          "One route, one day, or one successful fixture does not prove production-grade ETA quality.",
+			},
+			{
+				ID:                    "external-predictor-or-vendor",
+				FutureGate:            "External predictor or device/vendor proof",
+				RequiredReview:        "Named integration behavior, credentials handling, fail-closed behavior, rollback, and operational ownership reviewed with public-safe artifacts.",
+				SeparateAuthorization: "Required before retaining vendor, device, or external-predictor evidence.",
+				DoesNotProve:          "Shadow diagnostics do not prove vendor compatibility, hardware certification, or SLA coverage.",
+			},
+			{
+				ID:                    "consumer-and-release-gates",
+				FutureGate:            "Consumer, release, and public claim gates",
+				RequiredReview:        "Release-candidate validation, public feed root proof, target-originated consumer evidence, and claim-boundary review.",
+				SeparateAuthorization: "Required before consumer status movement, release publishing, or public launch claims.",
+				DoesNotProve:          "Private diagnostics do not prove consumer acceptance, compliance, hosted SaaS, public launch, or release readiness.",
+			},
+		},
 	}
 }
 

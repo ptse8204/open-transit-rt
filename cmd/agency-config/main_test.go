@@ -5521,7 +5521,7 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality", "make realtime-quality-backtest"} {
+	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "Conservative Handling Guide", "Telemetry is stale", "Assignment is ambiguous", "Future ETA Proof Gates", "Real observed arrival/departure comparison", "Required before collecting", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality", "make realtime-quality-backtest"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("prediction lab html missing %q: %s", want, body)
 		}
@@ -6763,7 +6763,7 @@ func assertRealtimeFlagsFalse(t *testing.T, flags operationsRealtimeClaimFlags) 
 
 func assertPredictionLabShape(t *testing.T, view predictionLabView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.Summary.CurrentSignal == "" || view.Summary.NextAction == "" || view.Summary.DoesNotProve == "" || view.Deterministic.Boundary == "" || view.Deterministic.Status == "" || view.Deterministic.ReviewSignal == "" || len(view.Deterministic.Rows) != 4 || len(view.WithheldReasons) == 0 || view.ShadowReview.Boundary == "" || view.ShadowReview.Status == "" || view.ShadowReview.NextAction == "" || view.ShadowReview.DoesNotProve == "" || len(view.ShadowReview.Rows) == 0 || view.Backtests.Boundary == "" || view.Backtests.Status == "" || view.Backtests.RootRef == "" || view.Backtests.Message == "" || len(view.ReviewRows) == 0 || len(view.Commands) != 3 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.Summary.CurrentSignal == "" || view.Summary.NextAction == "" || view.Summary.DoesNotProve == "" || view.Deterministic.Boundary == "" || view.Deterministic.Status == "" || view.Deterministic.ReviewSignal == "" || len(view.Deterministic.Rows) != 4 || len(view.WithheldReasons) == 0 || view.ShadowReview.Boundary == "" || view.ShadowReview.Status == "" || view.ShadowReview.NextAction == "" || view.ShadowReview.DoesNotProve == "" || len(view.ShadowReview.Rows) == 0 || view.Backtests.Boundary == "" || view.Backtests.Status == "" || view.Backtests.RootRef == "" || view.Backtests.Message == "" || view.HandlingGuide.Boundary == "" || view.HandlingGuide.Status == "" || view.HandlingGuide.NextAction == "" || view.HandlingGuide.DoesNotProve == "" || len(view.HandlingGuide.Rows) != 4 || view.ProofChecklist.Boundary == "" || view.ProofChecklist.Status == "" || view.ProofChecklist.NextAction == "" || view.ProofChecklist.DoesNotProve == "" || len(view.ProofChecklist.Rows) != 4 || len(view.ReviewRows) == 0 || len(view.Commands) != 3 {
 		t.Fatalf("invalid prediction lab shape: %+v", view)
 	}
 	for _, row := range view.Deterministic.Rows {
@@ -6784,6 +6784,16 @@ func assertPredictionLabShape(t *testing.T, view predictionLabView) {
 	for _, row := range view.Backtests.Rows {
 		if row.OutputRef == "" || row.Status == "" || row.GeneratedAt == "" || row.MaturityGate == "" || row.PredictionCoverage == "" || row.FutureStopCoverage == "" || row.MAEAbsoluteErrorSeconds == "" || row.P90AbsoluteErrorSeconds == "" || row.WithheldByReason == "" || row.DiagnosticSignal == "" || row.DoesNotProve == "" {
 			t.Fatalf("invalid prediction lab backtest row: %+v", row)
+		}
+	}
+	for _, row := range view.HandlingGuide.Rows {
+		if row.ID == "" || row.Situation == "" || row.ReviewSignal == "" || row.SafeBehavior == "" || row.OperatorStep == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab handling row: %+v", row)
+		}
+	}
+	for _, row := range view.ProofChecklist.Rows {
+		if row.ID == "" || row.FutureGate == "" || row.RequiredReview == "" || row.SeparateAuthorization == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab proof checklist row: %+v", row)
 		}
 	}
 	for _, row := range view.ReviewRows {
