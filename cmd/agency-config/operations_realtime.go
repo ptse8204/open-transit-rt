@@ -20,6 +20,8 @@ type operationsRealtimeView struct {
 	Summary        operationsRealtimeSummary      `json:"summary"`
 	Feeds          []operationsRealtimeFeedStatus `json:"feeds"`
 	Fleet          []operationsRealtimeFleetRow   `json:"fleet"`
+	Issues         []operationsRealtimeIssue      `json:"issues"`
+	Guidance       []operationsRealtimeGuidance   `json:"guidance"`
 	ClaimFlags     operationsRealtimeClaimFlags   `json:"claim_flags"`
 }
 
@@ -73,6 +75,24 @@ type operationsRealtimeFleetRow struct {
 	DoesNotProve     string   `json:"does_not_prove"`
 }
 
+type operationsRealtimeIssue struct {
+	Severity     string `json:"severity"`
+	Area         string `json:"area"`
+	Signal       string `json:"signal"`
+	NextAction   string `json:"next_action"`
+	AdminLink    string `json:"admin_link,omitempty"`
+	DoesNotProve string `json:"does_not_prove"`
+}
+
+type operationsRealtimeGuidance struct {
+	ID           string `json:"id"`
+	Label        string `json:"label"`
+	WhatItMeans  string `json:"what_it_means"`
+	ReviewSignal string `json:"review_signal"`
+	NextAction   string `json:"next_action"`
+	DoesNotProve string `json:"does_not_prove"`
+}
+
 type operationsRealtimeClaimFlags struct {
 	BrowserTelemetrySendEnabled     bool `json:"browser_telemetry_send_enabled"`
 	BackendCommandExecutionEnabled  bool `json:"backend_command_execution_enabled"`
@@ -114,14 +134,17 @@ func (h *handler) renderRealtimeJSON(w http.ResponseWriter, r *http.Request) {
 func buildOperationsRealtime(page operationsPage) operationsRealtimeView {
 	fleet := buildRealtimeFleetRows(page)
 	summary := buildRealtimeSummary(page, fleet)
+	feeds := realtimeFeedStatuses(page)
 	return operationsRealtimeView{
 		GeneratedAt:    page.GeneratedAt,
 		AgencyID:       page.AgencyID,
 		Boundary:       "Private authenticated realtime operations diagnostics only. Viewing this page sends no telemetry, runs no backend command, creates no retained evidence, changes no consumer status, contacts no external party, and records no compliance, consumer-acceptance, vendor, hardware, SLA, public-launch, production-readiness, production AVL reliability, or production-grade ETA claim.",
 		StaleThreshold: page.StaleThreshold.String(),
 		Summary:        summary,
-		Feeds:          realtimeFeedStatuses(page),
+		Feeds:          feeds,
 		Fleet:          fleet,
+		Issues:         realtimeOperatorIssues(page, summary, fleet, feeds),
+		Guidance:       realtimeQualityGuidance(page, summary, feeds),
 		ClaimFlags:     operationsRealtimeClaimFlags{},
 	}
 }
@@ -279,6 +302,170 @@ func realtimeFeedStatuses(page operationsPage) []operationsRealtimeFeedStatus {
 		})
 	}
 	return rows
+}
+
+func realtimeOperatorIssues(page operationsPage, summary operationsRealtimeSummary, fleet []operationsRealtimeFleetRow, feeds []operationsRealtimeFeedStatus) []operationsRealtimeIssue {
+	issues := []operationsRealtimeIssue{}
+	if page.TelemetryError != "" {
+		issues = append(issues, operationsRealtimeIssue{
+			Severity:     checklistStatusBlocked,
+			Area:         "Telemetry repository",
+			Signal:       page.TelemetryError,
+			NextAction:   "Confirm the private telemetry service and database are available.",
+			AdminLink:    "/admin/operations/telemetry",
+			DoesNotProve: "A restored repository connection does not prove production AVL reliability or uptime.",
+		})
+	}
+	if summary.LatestTelemetryRows == 0 {
+		issues = append(issues, operationsRealtimeIssue{
+			Severity:     checklistStatusMissing,
+			Area:         "Fleet freshness",
+			Signal:       summary.CurrentSignal,
+			NextAction:   summary.NextAction,
+			AdminLink:    "/admin/operations/devices",
+			DoesNotProve: "A sample row does not prove vendor compatibility, hardware certification, or production readiness.",
+		})
+	}
+	for _, row := range fleet {
+		if row.Freshness == "stale" {
+			issues = append(issues, operationsRealtimeIssue{
+				Severity:     checklistStatusNeedsReview,
+				Area:         "Stale telemetry",
+				Signal:       fmt.Sprintf("%s / %s was last observed %s; age=%d seconds", firstNonEmpty(row.VehicleID, "unknown vehicle"), firstNonEmpty(row.DeviceID, "unknown device"), row.ObservedAt, row.AgeSeconds),
+				NextAction:   row.NextAction,
+				AdminLink:    "/admin/operations/telemetry",
+				DoesNotProve: row.DoesNotProve,
+			})
+		}
+		if row.Freshness == "not seen" {
+			issues = append(issues, operationsRealtimeIssue{
+				Severity:     checklistStatusMissing,
+				Area:         "Device not seen",
+				Signal:       fmt.Sprintf("%s / %s has a binding but no latest accepted telemetry row", firstNonEmpty(row.VehicleID, "unknown vehicle"), firstNonEmpty(row.DeviceID, "unknown device")),
+				NextAction:   row.NextAction,
+				AdminLink:    "/admin/operations/devices",
+				DoesNotProve: row.DoesNotProve,
+			})
+		}
+		if !isRealtimeMatched(row) && row.Freshness != "not seen" {
+			issues = append(issues, operationsRealtimeIssue{
+				Severity:     checklistStatusNeedsReview,
+				Area:         "Assignment confidence",
+				Signal:       fmt.Sprintf("%s assignment=%s degraded=%s confidence=%s reasons=%s", firstNonEmpty(row.VehicleID, "unknown vehicle"), firstNonEmpty(row.AssignmentState, "not available"), firstNonEmpty(row.DegradedState, "none"), firstNonEmpty(row.Confidence, "not available"), strings.Join(row.ReasonCodes, ", ")),
+				NextAction:   realtimeFleetNextAction(row),
+				AdminLink:    "/admin/operations/telemetry",
+				DoesNotProve: "Low-confidence or unknown assignments should not become public trip certainty.",
+			})
+		}
+	}
+	for _, feed := range feeds {
+		if !realtimeFeedNeedsReview(feed.State) {
+			continue
+		}
+		issues = append(issues, operationsRealtimeIssue{
+			Severity:     checklistStatusNeedsReview,
+			Area:         feed.Label,
+			Signal:       fmt.Sprintf("%s; %s; %s", feed.State, feed.Count, feed.StaleOrWithheld),
+			NextAction:   feed.NextAction,
+			AdminLink:    feed.AdminLink,
+			DoesNotProve: feed.DoesNotProve,
+		})
+	}
+	if len(issues) == 0 {
+		return []operationsRealtimeIssue{{
+			Severity:     checklistStatusOK,
+			Area:         "Current realtime review",
+			Signal:       "No stale, not-seen, low-confidence, or withheld realtime rows are visible in this bounded summary.",
+			NextAction:   "Continue periodic private monitoring of telemetry, assignments, Vehicle Positions, Trip Updates diagnostics, and Alerts lifecycle.",
+			AdminLink:    "/admin/operations/feed-health",
+			DoesNotProve: "A quiet private dashboard does not prove compliance, consumer display, production uptime, or ETA quality.",
+		}}
+	}
+	const limit = 12
+	if len(issues) > limit {
+		issues = append(issues[:limit], operationsRealtimeIssue{
+			Severity:     checklistStatusNeedsReview,
+			Area:         "Bounded issue list",
+			Signal:       fmt.Sprintf("%d additional realtime issue rows are hidden from this browser summary", len(issues)-limit),
+			NextAction:   "Use the private JSON export and underlying diagnostics pages for deeper local review.",
+			AdminLink:    "/admin/operations/realtime.json",
+			DoesNotProve: "A bounded issue count is not an exhaustive operational proof.",
+		})
+	}
+	return issues
+}
+
+func realtimeQualityGuidance(page operationsPage, summary operationsRealtimeSummary, feeds []operationsRealtimeFeedStatus) []operationsRealtimeGuidance {
+	feedByID := map[string]operationsRealtimeFeedStatus{}
+	for _, feed := range feeds {
+		feedByID[feed.ID] = feed
+	}
+	tripUpdates := feedByID["trip_updates"]
+	vehiclePositions := feedByID["vehicle_positions"]
+	alerts := feedByID["alerts"]
+	return []operationsRealtimeGuidance{
+		{
+			ID:           "stale_telemetry",
+			Label:        "Stale telemetry",
+			WhatItMeans:  "A vehicle can have a last known position that is too old for confident realtime service.",
+			ReviewSignal: fmt.Sprintf("%d stale latest telemetry rows at threshold %s", summary.StaleTelemetryRows, page.StaleThreshold),
+			NextAction:   "Check device power, network, clock, and reporting cadence before changing service assignments.",
+			DoesNotProve: "Fresh rows do not prove hardware certification, vendor compatibility, SLA, or production AVL reliability.",
+		},
+		{
+			ID:           "low_confidence_assignments",
+			Label:        "Unknown, ambiguous, or low-confidence assignment",
+			WhatItMeans:  "The safer realtime output is to omit a trip descriptor when matching evidence is weak.",
+			ReviewSignal: fmt.Sprintf("%d unknown or unavailable assignments; %d low-confidence rows", summary.UnknownAssignments, summary.LowConfidenceRows),
+			NextAction:   "Review route/trip hints, service day, after-midnight service, block continuity, and any active operator override.",
+			DoesNotProve: "A matched assignment does not prove public consumer display or production-grade ETA quality.",
+		},
+		{
+			ID:           "out_of_order_low_quality_gps",
+			Label:        "Out-of-order or low-quality GPS",
+			WhatItMeans:  "The browser summary only shows latest accepted rows; rejected or out-of-order samples belong in ingest logs and connector conformance outputs.",
+			ReviewSignal: "If positions jump, stop updating, or timestamps move backward, treat route/trip certainty as suspect.",
+			NextAction:   "Review connector conformance fixtures, telemetry simulator cases, and private ingest diagnostics without exposing raw payloads in HTML.",
+			DoesNotProve: "Synthetic conformance does not prove real vendor compatibility, hardware certification, or real-world fleet accuracy.",
+		},
+		{
+			ID:           "vehicle_positions_debug",
+			Label:        "Vehicle Positions debug",
+			WhatItMeans:  "Vehicle Positions are useful only when authenticated telemetry and conservative assignment state stay fresh enough.",
+			ReviewSignal: fmt.Sprintf("%s; %s", firstNonEmpty(vehiclePositions.State, "unknown"), firstNonEmpty(vehiclePositions.StaleOrWithheld, "no stale summary")),
+			NextAction:   "Open telemetry freshness and feed health before treating Vehicle Positions output as ready for local review.",
+			DoesNotProve: vehiclePositions.DoesNotProve,
+		},
+		{
+			ID:           "trip_updates_withheld",
+			Label:        "Trip Updates withheld or fallback",
+			WhatItMeans:  "Trip Updates may be intentionally empty or withheld when the predictor lacks safe evidence.",
+			ReviewSignal: fmt.Sprintf("%s; adapter=%s; %s", firstNonEmpty(tripUpdates.State, "unknown"), firstNonEmpty(tripUpdates.Adapter, "not configured"), firstNonEmpty(tripUpdates.StaleOrWithheld, "no withheld summary")),
+			NextAction:   "Review withheld reasons, stale telemetry, prediction adapter status, and fallback state before relying on ETAs.",
+			DoesNotProve: "Trip Updates diagnostics do not prove production-grade ETA quality or real-world accuracy.",
+		},
+		{
+			ID:           "alerts_lifecycle",
+			Label:        "Alerts lifecycle",
+			WhatItMeans:  "Alerts need active/planned/archive review and feed validation separate from telemetry health.",
+			ReviewSignal: fmt.Sprintf("%s; %s", firstNonEmpty(alerts.State, "unknown"), firstNonEmpty(alerts.LatestSignal, "no alert signal")),
+			NextAction:   "Open the Alerts Console for safe edit links, then verify the Alerts feed health row.",
+			DoesNotProve: "An alert visible in the private console does not prove consumer display, public launch, agency approval, or compliance.",
+		},
+	}
+}
+
+func realtimeFeedNeedsReview(state string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(state))
+	if normalized == "" {
+		return true
+	}
+	switch normalized {
+	case checklistStatusOK, "available", "ready", "recorded", "potentially non-empty":
+		return false
+	default:
+		return true
+	}
 }
 
 func realtimeFleetSignal(row operationsRealtimeFleetRow) string {

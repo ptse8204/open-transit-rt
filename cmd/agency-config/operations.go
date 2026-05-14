@@ -3011,11 +3011,20 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Latest signal:</strong> {{.LatestSignal}}</p>
 <p><strong>Stale or withheld:</strong> {{.StaleOrWithheld}}</p>
 {{if .Adapter}}<p><strong>Adapter:</strong> {{.Adapter}}</p>{{end}}
+{{if .Details}}<p><strong>Details:</strong> {{range $index, $detail := .Details}}{{if $index}}; {{end}}{{$detail.Label}}={{$detail.Count}}{{end}}</p>{{end}}
 <p><strong>Next action:</strong> <a href="{{.AdminLink}}">{{.NextAction}}</a></p>
 <p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
 </section>
 {{end}}
 </div>
+<h3>Needs Operator Review</h3>
+<table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .Realtime.Issues}}<tr><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.Area}}</a>{{else}}{{.Area}}{{end}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Realtime Quality Guidance</h3>
+<table><thead><tr><th>Topic</th><th>What it means</th><th>Review signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .Realtime.Guidance}}<tr><td>{{.Label}}</td><td>{{.WhatItMeans}}</td><td>{{.ReviewSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 {{if .TelemetryError}}<p class="warning">{{.TelemetryError}}. Next action: confirm the telemetry service and database are running.</p>{{end}}
 {{if not .Realtime.Fleet}}<p class="warning">No fleet telemetry or device binding rows are visible. Next action: create or rotate a device credential, install it on a device or simulator, then send an authenticated sample telemetry event.</p>{{else}}
 <h3>Fleet Freshness And Assignment Overview</h3>
