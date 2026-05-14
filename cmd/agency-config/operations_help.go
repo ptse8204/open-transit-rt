@@ -14,6 +14,8 @@ type operationsHelpView struct {
 	Boundary       string                        `json:"boundary"`
 	RoleTours      []operationsHelpRoleTour      `json:"role_tours"`
 	FirstWeek      []operationsHelpFirstWeekItem `json:"first_week_checklist"`
+	Glossary       []operationsHelpGlossaryTerm  `json:"glossary"`
+	Recovery       []operationsHelpRecoveryRow   `json:"recovery_guidance"`
 	Topics         []operationsHelpTopic         `json:"topics"`
 	ContextualHelp operationsContextHelp         `json:"contextual_help"`
 	ClaimFlags     operationsHelpClaimFlags      `json:"claim_flags"`
@@ -42,6 +44,26 @@ type operationsHelpFirstWeekItem struct {
 	NextAction   string `json:"next_action"`
 	ConsoleLink  string `json:"console_link"`
 	DoesNotProve string `json:"does_not_prove"`
+}
+
+type operationsHelpGlossaryTerm struct {
+	ID               string   `json:"id"`
+	Term             string   `json:"term"`
+	PlainMeaning     string   `json:"plain_meaning"`
+	TechnicalMeaning string   `json:"technical_meaning"`
+	WhereToReview    string   `json:"where_to_review"`
+	DocsLinks        []string `json:"docs_links"`
+	DoesNotProve     string   `json:"does_not_prove"`
+}
+
+type operationsHelpRecoveryRow struct {
+	ID                string `json:"id"`
+	WhatOperatorSees  string `json:"what_operator_sees"`
+	LikelyCause       string `json:"likely_cause"`
+	SafeNextStep      string `json:"safe_next_step"`
+	EscalationTrigger string `json:"escalation_trigger"`
+	ConsoleLink       string `json:"console_link"`
+	DoesNotProve      string `json:"does_not_prove"`
 }
 
 type operationsHelpTopic struct {
@@ -135,6 +157,8 @@ func buildOperationsHelpView(generatedAt time.Time, agencyID string, section str
 		Boundary:       "Private authenticated Operations Console help only. Viewing it is read-only guidance: it creates no evidence, contacts no outside party, changes no consumer status, and records no approval or outside outcome.",
 		RoleTours:      operationsHelpRoleTours(),
 		FirstWeek:      operationsHelpFirstWeekChecklist(),
+		Glossary:       operationsHelpGlossary(),
+		Recovery:       operationsHelpRecoveryGuidance(),
 		Topics:         topics,
 		ContextualHelp: context,
 		ClaimFlags:     operationsHelpClaimFlags{},
@@ -218,6 +242,35 @@ func operationsHelpFirstWeekChecklist() []operationsHelpFirstWeekItem {
 	}
 }
 
+func operationsHelpGlossary() []operationsHelpGlossaryTerm {
+	return []operationsHelpGlossaryTerm{
+		helpGlossaryTerm("gtfs", "GTFS", "The schedule package: routes, stops, trips, calendars, and agency metadata.", "A static feed ZIP with files such as agency, stops, routes, trips, stop times, calendar, and shapes.", "GTFS Workbench, Import Schedule ZIP, Schedule Quality", []string{"docs/requirements-2a-2f.md", "docs/tutorials/real-agency-gtfs-onboarding.md"}, "A loaded schedule does not prove agency approval, source-of-truth listing, or validator-clean status."),
+		helpGlossaryTerm("gtfs_rt", "GTFS Realtime", "The live feed family that describes vehicles, predicted trip changes, and alerts.", "Protocol buffer feeds for Vehicle Positions, Trip Updates, and Alerts that reference the active GTFS schedule.", "Realtime Center, Feed Links & Health, Validation Center", []string{"docs/requirements-trip-updates.md", "docs/requirements-calitp-compliance.md"}, "A visible realtime feed does not prove consumer display, public launch, or realtime reliability."),
+		helpGlossaryTerm("vehicle_positions", "Vehicle Positions", "Where vehicles are observed right now or recently.", "GTFS-RT entities emitted from authenticated telemetry after conservative matching and freshness checks.", "Realtime Center, Telemetry, Devices", []string{"docs/requirements-2a-2f.md"}, "Fresh Vehicle Positions do not prove field reliability, equipment certification, or consumer use."),
+		helpGlossaryTerm("trip_updates", "Trip Updates", "Predicted schedule changes or arrivals when the system has enough confidence.", "GTFS-RT Trip Updates remain behind a prediction adapter and may be withheld when data is stale, ambiguous, or low confidence.", "Prediction & ETA Lab, Realtime Center", []string{"docs/requirements-trip-updates.md"}, "Trip Updates diagnostics do not prove production-grade ETA quality or real-world ETA accuracy."),
+		helpGlossaryTerm("alerts", "Alerts", "Service messages such as delays, detours, or disruptions.", "GTFS-RT Alerts are authored and published separately from telemetry ingest and prediction.", "Alerts Console, Realtime Center", []string{"docs/requirements-calitp-compliance.md"}, "Alerts availability does not prove agency approval, consumer display, or disruption-workflow completeness."),
+		helpGlossaryTerm("telemetry", "Telemetry", "Vehicle observations sent from a device, simulator, adapter, or integration.", "Authenticated events posted to the telemetry ingest API and used for freshness, matching, and Vehicle Positions output.", "Telemetry, Devices, Telemetry Simulator", []string{"docs/tutorials/device-avl-integration.md", "docs/tutorials/telemetry-simulator-and-device-trial.md"}, "Telemetry presence does not prove real-device reliability, vendor support, or field operations quality."),
+		helpGlossaryTerm("validators", "Validators", "Tools that check schedule and realtime feed format and quality.", "Server-owned allowlisted validator IDs and off-host guidance summarize static GTFS and GTFS-RT diagnostic results.", "Validation Health, Validation Center, Schedule Quality", []string{"docs/validator-tooling.md", "docs/tutorials/gtfs-validation-triage.md"}, "Validator rows are supporting signals only; they do not prove compliance or outside review."),
+		helpGlossaryTerm("readiness", "Readiness", "A private checklist of what looks missing, blocked, stale, or ready for local review.", "Aggregated private signals from metadata, feeds, validation, telemetry, reliability, maintenance, and prepared packet records.", "Readiness, Checklist, Validation Center", []string{"docs/tutorials/calitp-readiness-checklist.md", "docs/california-readiness-summary.md"}, "Readiness supports review workflows but does not prove compliance, final-root status, or public launch."),
+		helpGlossaryTerm("evidence", "Evidence", "Retained proof used only when a separately authorized claim needs it.", "Public-safe, redacted, claim-specific artifacts controlled by evidence gates and protected path rules.", "Evidence, Consumers, Feed Links & Health", []string{"docs/evidence/redaction-policy.md", "docs/evidence/evidence-track-router.md"}, "Help text and diagnostics are not evidence packets and do not move consumer status."),
+		helpGlossaryTerm("connectors", "Connectors", "Ways to connect telemetry, predictors, validators, monitoring, or external processes safely.", "Optional sidecars, manifests, examples, or adapters around stable Open Transit RT contracts, using synthetic/local checks first.", "Connector Hub, Connector Workbench, Connector Tests", []string{"docs/integration-adapter-kit.md", "docs/connectors/plugin-contract.md"}, "Connector checks do not prove named vendor compatibility or hardware certification."),
+		helpGlossaryTerm("support_bundle", "Support bundle", "A redacted package of diagnostic context for troubleshooting.", "A guided support artifact should avoid secrets, raw private output, credentials, database URLs, and unredacted operator data.", "Maintenance, Help", []string{"docs/tutorials/operator-smoke-and-support-bundle.md", "docs/support-boundaries.md"}, "A support bundle does not prove managed support, SLA, uptime, release readiness, or public launch."),
+	}
+}
+
+func operationsHelpRecoveryGuidance() []operationsHelpRecoveryRow {
+	return []operationsHelpRecoveryRow{
+		helpRecoveryRow("empty_start_here", "Start Here shows missing or blocked rows.", "The agency has not completed setup, import, telemetry, validation, or maintenance inputs yet.", "Open Agency Setup and follow the first missing private next action.", "A technical helper is needed if startup, environment, validator tooling, or deployment settings are missing.", "/admin/operations/setup-wizard", "Clearing a missing row does not prove outside readiness."),
+		helpRecoveryRow("gtfs_import_confusing", "A schedule import produced errors or the Workbench still looks incomplete.", "The source GTFS may be missing required files, has validator issues, or has not been published as the active feed.", "Open GTFS Workbench and Schedule Quality, then fix source data before relying on realtime feeds.", "Escalate when the source owner must change service data or a validator tool is unavailable.", "/admin/operations/gtfs-workbench", "Import review does not prove validator-clean status or source-of-truth listing."),
+		helpRecoveryRow("feed_url_missing", "A feed URL is missing, local-only, or not ready to copy.", "Publication metadata, active schedule, realtime feed output, or public root configuration is incomplete.", "Open Feed Links & Health and review metadata, local fetch context, and source-of-truth guidance.", "Use technical help for deployment root configuration or off-host validation.", "/admin/operations/feeds", "A configured URL does not prove final-root readiness or consumer action."),
+		helpRecoveryRow("validator_blocked", "Validation Health says missing, stale, blocked, or tool unavailable.", "The host may lack pinned validator tooling, an artifact may be missing, or the active feed changed after the latest run.", "Use Validation Center and Validation Health to identify the specific feed and validator row before rerunning allowed checks.", "Escalate if validator tooling must be installed or off-host validation is needed.", "/admin/operations/validation-center", "Validator success remains a supporting signal only."),
+		helpRecoveryRow("vehicles_stale", "Vehicles are stale, unmatched, degraded, or missing.", "Telemetry may have stopped, device binding may be inactive, GPS quality may be poor, or matching confidence may be intentionally unknown.", "Open Realtime Center, Devices, and Telemetry to find freshness, binding, and confidence signals.", "Escalate if devices, tokens, or external telemetry adapters need operational changes.", "/admin/operations/realtime", "Resolving staleness does not prove field reliability or target display."),
+		helpRecoveryRow("trip_updates_withheld", "Trip Updates are empty, fallback, or withheld.", "The deterministic predictor may be protecting riders from stale, ambiguous, low-confidence, or missing assignment data.", "Open Prediction & ETA Lab and read withheld reasons before changing prediction settings.", "Escalate before introducing external predictors or real-world ETA claims.", "/admin/operations/prediction-lab", "Withheld diagnostics do not prove production-grade ETA quality."),
+		helpRecoveryRow("connector_unclear", "A connector recipe is unclear or a dry-run does not match expectations.", "The input shape, adapter boundary, fixture, or monitoring expectation may not match the local synthetic contract.", "Open Connector Workbench and Connector Tests, then choose the recipe closest to the actual integration shape.", "Escalate before real credentials, real vendor payloads, or network sends are introduced.", "/admin/operations/connectors/workbench", "Synthetic conformance does not prove vendor compatibility or hardware certification."),
+		helpRecoveryRow("consumer_status_confusion", "A prepared consumer packet is visible and someone asks whether it can be submitted.", "Prepared packet records are local readiness references only and remain separate from external contact or target workflow status.", "Open Consumers and Feed Links & Health to review prepared-only boundaries and future authorization gates.", "Escalate only when a separate written authorization starts a consumer or evidence track.", "/admin/operations/consumers", "Prepared packet visibility does not prove submission, review, listing, display, ingestion, or acceptance."),
+	}
+}
+
 func helpRoleTour(id string, label string, who string, startHere string, reviewFirst string, firstActions string, escalate string, doesNotProve string, adminLinks []string, docsLinks []string) operationsHelpRoleTour {
 	return operationsHelpRoleTour{
 		ID:           id,
@@ -244,6 +297,30 @@ func helpFirstWeekItem(id string, day string, role string, task string, review s
 		NextAction:   "Open the linked private console page and record only local operator notes unless a separate evidence gate is authorized.",
 		ConsoleLink:  helpAdminLink(consoleLink),
 		DoesNotProve: doesNotProve,
+	}
+}
+
+func helpGlossaryTerm(id string, term string, plain string, technical string, where string, docsLinks []string, doesNotProve string) operationsHelpGlossaryTerm {
+	return operationsHelpGlossaryTerm{
+		ID:               id,
+		Term:             term,
+		PlainMeaning:     plain,
+		TechnicalMeaning: technical,
+		WhereToReview:    where,
+		DocsLinks:        safeDocsLinks(docsLinks),
+		DoesNotProve:     doesNotProve,
+	}
+}
+
+func helpRecoveryRow(id string, sees string, cause string, next string, escalation string, consoleLink string, doesNotProve string) operationsHelpRecoveryRow {
+	return operationsHelpRecoveryRow{
+		ID:                id,
+		WhatOperatorSees:  sees,
+		LikelyCause:       cause,
+		SafeNextStep:      next,
+		EscalationTrigger: escalation,
+		ConsoleLink:       helpAdminLink(consoleLink),
+		DoesNotProve:      doesNotProve,
 	}
 }
 

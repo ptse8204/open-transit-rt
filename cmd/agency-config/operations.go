@@ -2129,6 +2129,14 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>When</th><th>Role</th><th>Task</th><th>Review</th><th>Done when</th><th>Next action</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
 {{range .Help.FirstWeek}}<tr id="help-first-week-{{.ID}}"><td>{{.Day}}</td><td>{{.Role}}</td><td>{{.Task}}</td><td>{{.Review}}</td><td>{{.DoneWhen}}</td><td>{{.NextAction}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Plain-Language Glossary</h3>
+<table><thead><tr><th>Term</th><th>Plain meaning</th><th>Technical meaning</th><th>Where to review</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Help.Glossary}}<tr id="help-glossary-{{.ID}}"><td>{{.Term}}</td><td>{{.PlainMeaning}}</td><td>{{.TechnicalMeaning}}</td><td>{{.WhereToReview}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Common Mistake Recovery</h3>
+<table><thead><tr><th>What the operator sees</th><th>Likely cause</th><th>Safe next step</th><th>Escalate when</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Help.Recovery}}<tr id="help-recovery-{{.ID}}"><td>{{.WhatOperatorSees}}</td><td>{{.LikelyCause}}</td><td>{{.SafeNextStep}}</td><td>{{.EscalationTrigger}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <div class="card-grid" aria-label="Help topics">
 {{range .Help.Topics}}<section class="card" id="help-{{.ID}}">
 <h3>{{.Label}}</h3>

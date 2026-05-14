@@ -3138,6 +3138,8 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		`id="help-role-integrator"`,
 		"Role-Based Tours",
 		"First-Week Checklist",
+		"Plain-Language Glossary",
+		"Common Mistake Recovery",
 		"No-developer evaluator",
 		"Director or manager",
 		"Daily operator",
@@ -3145,6 +3147,13 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"Integrator",
 		`id="help-first-week-day_1_start"`,
 		`id="help-first-week-day_5_maintenance"`,
+		`id="help-glossary-gtfs"`,
+		`id="help-glossary-trip_updates"`,
+		`id="help-glossary-support_bundle"`,
+		`id="help-recovery-validator_blocked"`,
+		`id="help-recovery-consumer_status_confusion"`,
+		"Trip Updates are empty, fallback, or withheld",
+		"Prepared packet visibility does not prove submission",
 		safePluginDefinition,
 		`backend_command_execution_enabled`,
 		`consumer_statuses_changed`,
@@ -6736,7 +6745,7 @@ func assertFirstRunFlagsFalse(t *testing.T, flags operationsFirstRunClaimFlags) 
 
 func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 {
 		t.Fatalf("invalid help top-level shape: %+v", view)
 	}
 	wantRoles := []string{"no_developer_evaluator", "director_manager", "daily_operator", "technical_helper", "integrator"}
@@ -6769,6 +6778,24 @@ func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 		}
 		if !strings.HasPrefix(item.ConsoleLink, "/admin/") {
 			t.Fatalf("first-week item %s has unsafe console link %q", item.ID, item.ConsoleLink)
+		}
+	}
+	for _, term := range view.Glossary {
+		if term.ID == "" || term.Term == "" || term.PlainMeaning == "" || term.TechnicalMeaning == "" || term.WhereToReview == "" || term.DoesNotProve == "" || len(term.DocsLinks) == 0 {
+			t.Fatalf("invalid glossary term shape: %+v", term)
+		}
+		for _, link := range term.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("glossary term %s has unsafe docs link %q", term.ID, link)
+			}
+		}
+	}
+	for _, row := range view.Recovery {
+		if row.ID == "" || row.WhatOperatorSees == "" || row.LikelyCause == "" || row.SafeNextStep == "" || row.EscalationTrigger == "" || row.ConsoleLink == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid recovery row shape: %+v", row)
+		}
+		if !strings.HasPrefix(row.ConsoleLink, "/admin/") {
+			t.Fatalf("recovery row %s has unsafe console link %q", row.ID, row.ConsoleLink)
 		}
 	}
 	wantIDs := []string{"gtfs", "gtfs_rt", "connectors", "readiness", "validators", "telemetry", "claims_evidence"}
