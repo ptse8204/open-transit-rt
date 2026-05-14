@@ -27,15 +27,17 @@ still prepared, validation recorded, and claim-boundary review passed.
 
 ## Phase 92 — Clean Checkout Release-Candidate Gate
 
-Goal: Run the clean checkout product gate and record exact release blockers.
+Goal: Run a serious clean-checkout release-candidate gate and record exact blockers.
 
 Checkpoints:
 
 ```text
-Phase 92 -- Checkpoint 000001: add clean checkout release-candidate gate plan
-Phase 92 -- Checkpoint 000002: implement primary scoped work
-Phase 92 -- Checkpoint 000003: run validation and patch required gaps
-Phase 92 -- Checkpoint 000004: close clean checkout release-candidate gate review
+Phase 92 -- Checkpoint 000001: add clean checkout rc gate plan
+Phase 92 -- Checkpoint 000002: run clean checkout product validation
+Phase 92 -- Checkpoint 000003: run local app and five-feed diagnostics
+Phase 92 -- Checkpoint 000004: run connector backend and claim-boundary diagnostics
+Phase 92 -- Checkpoint 000005: record rc gate result and blockers
+Phase 92 -- Checkpoint 000006: close clean checkout rc gate
 ```
 
 Deliverables:
