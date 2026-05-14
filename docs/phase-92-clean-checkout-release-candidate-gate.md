@@ -212,3 +212,101 @@ validation.
 
 Next checkpoint:
 Phase 92 -- Checkpoint 000002: run clean checkout product validation.
+
+## Checkpoint 000002 Clean-Checkout Product Validation
+
+Clean checkout path:
+`.cache/phase-92-clean-checkout`
+
+Clean checkout source:
+Detached worktree from commit `1b9b55a` (`Phase 92 -- Checkpoint 000001: add
+clean checkout rc gate plan`).
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| `git status --short` | passed | Clean before and after product validation. |
+| `git diff --check` | passed | No whitespace errors. |
+| `make check` | passed | Lightweight no-network/no-Docker/no-validator-install checks passed. |
+| `make validate` initial run | blocked | Pinned static GTFS validator was missing from the clean checkout's local `.cache`; command reported to run `make validators-install`. |
+| `make validators-install` | passed | Installed pinned validator tooling into the clean checkout's ignored `.cache` path and pulled the pinned GTFS-RT validator image. |
+| `make validate` rerun | passed | Validator tooling check and validation smoke passed. |
+| `make test` | passed | `go test ./...` passed. |
+| Consumer tracker JSON parse | passed | `docs/evidence/consumer-submissions/status.json` parsed as JSON. |
+| Exact prepared-only consumer tracker | passed | All seven targets remain exactly `prepared`: Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, transit.land. |
+| Protected path status in clean checkout | passed | No status under `docs/evidence/consumer-submissions`, `docs/evidence/captured`, `db/migrations`, `go.mod`, or `go.sum`. |
+| Protected path status in main checkout | passed | Main checkout remained clean for the same protected paths. |
+
+The initial `make validate` failure was an environment/tooling precondition in
+the clean checkout. It was resolved by running the repository-supported pinned
+validator installer. The installer wrote only ignored local `.cache` tooling in
+the clean checkout and did not write evidence paths, consumer status records,
+source code, migrations, `go.mod`, or `go.sum`.
+
+## Checkpoint 000002 Report
+
+Checkpoint:
+Phase 92 -- Checkpoint 000002: run clean checkout product validation.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high reported clean-checkout
+commands, protected-path risks, and likely validator/tooling blockers. Real
+Release / Supply-Chain Sub-Agent -- GPT-5.5 high reported Phase 92-safe
+commands and deferred package commands. Real Claim-Boundary / Security
+Sub-Agent -- GPT-5.5 high reported guardrails and passed claim audits. Real
+Planning Sub-Agent -- GPT-5.5 x-high provided the checkpoint plan. Master
+Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/phase-92-clean-checkout-release-candidate-gate.md`.
+
+Validation run:
+From `.cache/phase-92-clean-checkout`: `git status --short` passed; `git diff
+--check` passed; `make check` passed; `make validate` initially failed because
+the clean checkout lacked pinned validator cache tooling; `make
+validators-install` passed; `make validate` rerun passed; `make test` passed;
+consumer tracker JSON parse passed; exact seven-target prepared-only tracker
+check passed; protected-path status check passed. From the main checkout,
+protected-path status check passed.
+
+Blocked checks:
+No CP000002 product validation check remains blocked after installing pinned
+local validator tooling. Local app/five-feed diagnostics, connector/backend
+diagnostics, and closeout validation remain scheduled for later Phase 92
+checkpoints.
+
+Protected path status:
+No protected evidence path was edited or generated. Clean checkout and main
+checkout protected-path status checks returned clean.
+
+Consumer tracker status:
+All seven targets remain exactly `prepared` in the required order. The tracker
+file was not edited.
+
+Claim-boundary status:
+The validation result is local diagnostic status only. It does not claim
+release readiness, compliance, adoption, consumer acceptance, production
+readiness, final-root readiness, hosted-service availability, vendor
+compatibility, hardware certification, SLA/uptime, or ETA quality.
+
+Security/auth status:
+No route, auth behavior, token handling, credential path, public exposure, or
+admin command behavior changed.
+
+Data/migration status:
+No persistence, migration, GTFS data model, or realtime data model change is
+included. `db/migrations`, `go.mod`, and `go.sum` status checks are clean.
+
+Master review:
+Approved. The clean-checkout product gate passed after resolving a local
+validator tooling precondition with the repo-supported installer, and no
+protected path, consumer tracker, release, or claim boundary was crossed.
+
+Required edits:
+None for CP000002.
+
+Decision:
+Proceed to CP000002 validation and commit, then CP000003 local app and
+five-feed diagnostics.
+
+Next checkpoint:
+Phase 92 -- Checkpoint 000003: run local app and five-feed diagnostics.
