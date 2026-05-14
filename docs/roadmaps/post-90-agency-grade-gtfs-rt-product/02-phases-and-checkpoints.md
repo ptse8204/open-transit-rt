@@ -58,14 +58,15 @@ Checkpoints:
 
 ```text
 Phase 93 -- Checkpoint 000001: add browser end-to-end agency task trials plan
-Phase 93 -- Checkpoint 000002: implement primary scoped work
-Phase 93 -- Checkpoint 000003: run validation and patch required gaps
-Phase 93 -- Checkpoint 000004: close browser end-to-end agency task trials review
+Phase 93 -- Checkpoint 000002: run evaluator and operations staff task trials
+Phase 93 -- Checkpoint 000003: run technical helper maintainer and connector trials
+Phase 93 -- Checkpoint 000004: patch task trial copy and IA gaps
+Phase 93 -- Checkpoint 000005: close browser task trials
 ```
 
 Deliverables:
 
-- `docs/phase-93-browser-end-to-end-agency-task-trials.md`
+- `docs/phase-93-browser-task-trials.md`
 - `docs/handoffs/phase-93.md`
 - source-of-truth docs updated only if status changes
 
