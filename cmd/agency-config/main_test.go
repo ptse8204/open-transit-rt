@@ -1374,7 +1374,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 	for _, want := range []string{
 		"Agency Operations Cockpit / Start Here",
 		"I am evaluating an agency",
-		"Check today&#39;s realtime state",
+		"Check today&apos;s realtime state",
 		"Choose connector recipe",
 		"Task status:",
 		"No-developer path",

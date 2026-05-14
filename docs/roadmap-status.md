@@ -8,13 +8,21 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 92 is complete for Clean Checkout Release-Candidate Gate in the
+Phase 93 is complete for Browser End-To-End Agency Task Trials in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
-[`docs/handoffs/phase-92.md`](handoffs/phase-92.md). Phase 92 local diagnostics
-passed where authorized, while package generation/audit, release actions,
-publication, retained evidence, consumer action, and remote reproduction remain
-not checked or blocked by scope; the conclusion is `needs_review`, not
-release-ready.
+[`docs/handoffs/phase-93.md`](handoffs/phase-93.md). Phase 93 local/private
+task trials covered new agency evaluator, operations staff, technical helper,
+maintainer release reviewer, and connector evaluator flows. In-app Browser
+automation was blocked locally by `net::ERR_BLOCKED_BY_CLIENT`, so
+terminal-authenticated route checks and server-rendered UI tests were used as
+the safe substitute.
+
+Phase 92 is complete for Clean Checkout Release-Candidate Gate. The closeout
+handoff is [`docs/handoffs/phase-92.md`](handoffs/phase-92.md). Phase 92 local
+diagnostics passed where authorized, while package generation/audit, release
+actions, publication, retained evidence, consumer action, and remote
+reproduction remain not checked or blocked by scope; the conclusion is
+`needs_review`, not release-ready.
 
 Phase 91 is complete for Maintainer Route/Product Audit And Stabilization. The
 closeout handoff is [`docs/handoffs/phase-91.md`](handoffs/phase-91.md).
@@ -32,11 +40,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 93 -- Browser
-End-To-End Agency Task Trials. Phase 93 may record local/private agency task
-trial diagnostics and safe copy/IA fixes, but it must not tag, publish, create
-a GitHub Release, move consumer statuses, collect retained evidence, or claim
-release readiness.
+The current authorized autonomous run continues next with Phase 94 --
+Operations Console Architecture Refactor. Phase 94 may refactor private
+Operations Console route metadata, templates, and view models, but it must not
+change behavior without tests, expose public admin routes, move consumer
+statuses, collect retained evidence, or claim release readiness.
 
 Recommended work remains separated into:
 
