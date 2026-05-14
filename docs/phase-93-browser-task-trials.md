@@ -286,3 +286,100 @@ maintainer, and connector-evaluator trials.
 
 Next checkpoint:
 Phase 93 -- Checkpoint 000003: run technical helper maintainer and connector trials.
+
+## Checkpoint 000003 Technical Helper, Maintainer, And Connector Trials
+
+Browser plugin status:
+Still `blocked` from CP000002 with `net::ERR_BLOCKED_BY_CLIENT` on local app
+URLs. This checkpoint used the same safe terminal-authenticated fallback.
+
+Diagnostic summary path:
+`.cache/phase-93/cp000003-technical-maintainer-connector.json`
+
+| Flow | Route | Result | Notes |
+| --- | --- | --- | --- |
+| Technical helper | `/admin/operations/gtfs-workbench` | passed | Authenticated route returned `200`; expected GTFS Workbench, active, draft, and rollback terms were present. |
+| Technical helper | `/admin/operations/gtfs-import` | passed | Authenticated route returned `200`; expected GTFS Import, ZIP, active, and review terms were present. |
+| Technical helper | `/admin/operations/gtfs-quality` | passed | Authenticated route returned `200`; expected GTFS Quality, validation, fix, and owner terms were present. |
+| Technical helper | `/admin/operations/validation-center` | passed | Authenticated route returned `200`; expected Validation Center, Vehicle Positions, prepared-only, and does-not-prove terms were present. |
+| Maintainer release reviewer | `/admin/operations/validation-center` | passed | Authenticated route returned `200`; expected validation, prepared-only, does-not-prove, and blocker terms were present. |
+| Maintainer release reviewer | `/admin/operations/maintenance` | passed | Authenticated route returned `200`; expected Maintenance, backup, upgrade, and validator terms were present. |
+| Maintainer release reviewer | `/admin/operations/consumers` | passed | Authenticated route returned `200`; expected prepared-only consumer/evidence boundary terms were present. |
+| Connector evaluator | `/admin/operations/connectors/workbench` | passed | Authenticated route returned `200`; expected Connector Workbench, synthetic, recipe, and vendor-boundary terms were present. |
+| Connector evaluator | `/admin/operations/connectors/tests` | passed | Authenticated route returned `200`; expected connector test, synthetic, and conformance terms were present. |
+| Connector evaluator | `/admin/operations/telemetry-simulator` | needs_review | Authenticated route returned `200`; expected Telemetry Simulator, device, and synthetic terms were present, but the exact `dry-run` cue was missing. |
+| Connector evaluator | `/admin/operations/prediction-lab` | passed | Authenticated route returned `200`; expected Prediction, Trip Updates, withheld, and external-predictor boundary terms were present. |
+
+### Usability Notes
+
+- Technical-helper schedule routes expose active/draft and rollback guidance,
+  but the workbench remains broad and should keep review-vs-mutate boundaries
+  prominent.
+- Maintainer release-review routes expose prepared-only and blocker language,
+  but there is still no single release gate posture panel in the Operations
+  Console; Phase 92 docs remain the current RC gate source.
+- Connector evaluator routes are coherent overall. The Telemetry Simulator page
+  should explicitly label copied commands as `dry-run` or local/synthetic
+  safety checks to avoid confusion with real AVL/vendor testing.
+
+## Checkpoint 000003 Report
+
+Checkpoint:
+Phase 93 -- Checkpoint 000003: run technical helper maintainer and connector trials.
+
+Sub-agents used or simulated, including intended model level:
+Real UI/UX Sub-Agent -- GPT-5.5 high reported connector-workbench density and
+synthetic/local wording risks. Real Context / Repo Truth Sub-Agent -- GPT-5.5
+x-high, Planning Sub-Agent -- GPT-5.5 x-high, and Claim-Boundary / Security
+Sub-Agent -- GPT-5.5 high informed this checkpoint. Master Agent -- GPT-5.5
+x-high, current thread.
+
+Changed files:
+`docs/phase-93-browser-task-trials.md`.
+
+Validation run:
+Terminal-authenticated fallback route checks passed for eleven technical
+helper, maintainer release reviewer, and connector evaluator routes. One
+expected wording cue, `dry-run`, was missing from `/admin/operations/telemetry-simulator`.
+
+Blocked checks:
+In-app Browser task execution remains blocked in this environment. Fallback
+route checks do not prove browser interaction success.
+
+Protected path status:
+No protected evidence path was edited or generated. Fallback diagnostics stayed
+under ignored `.cache`.
+
+Consumer tracker status:
+The tracker file was not edited. All seven targets must remain exactly
+`prepared`.
+
+Claim-boundary status:
+This checkpoint records local/private task-trial diagnostics only. It makes no
+release readiness, compliance, adoption, consumer acceptance, production
+readiness, final-root readiness, hosted-service availability, vendor
+compatibility, hardware certification, SLA/uptime, or ETA-quality claim.
+
+Security/auth status:
+Admin route checks used a local demo bearer token kept in process memory only.
+No browser mutation, external submission, evidence collection, or risky
+maintenance action was performed.
+
+Data/migration status:
+No persistence, migration, GTFS data model, or realtime data model change is
+included.
+
+Master review:
+Approved. The fallback route checks found one small connector-evaluator copy
+gap suitable for CP000004 and no unsafe continuation condition.
+
+Required edits:
+CP000004 should add explicit dry-run/local-synthetic wording to the Telemetry
+Simulator guidance and, if safe, add a compact role-based entry cue to Start
+Here.
+
+Decision:
+Proceed to CP000003 validation and commit, then CP000004 copy/IA patching.
+
+Next checkpoint:
+Phase 93 -- Checkpoint 000004: patch task trial copy and IA gaps.
