@@ -8,27 +8,23 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 85 is complete for the Operations And Maintenance Center V2 scope in
-the authorized Phase 75-90 Consumer-Grade Control Plane track. It changed the
-private `/admin/operations/maintenance` and
-`/admin/operations/maintenance.json` surfaces for bounded local diagnostic
-summaries, backup/restore review, upgrade/rollback review,
-support-bundle/redaction guidance, maintenance cadence rows, and
-deployment-doctor infrastructure category checks. Phase 72 still ended with
-`needs_review` release-candidate diagnostics, not a release-ready pass. Phase
-74 CP000008 remains the latest GitHub Pages publication at commit `a8b250e`.
+Phase 86 is complete for the Multi-Agency, Roles, Audit, And Accessibility
+scope in the authorized Phase 75-90 Consumer-Grade Control Plane track. It
+changed the private Operations Console for authenticated agency scope review,
+locked switcher guidance, role/permission explanations, bounded access-denied
+guidance, metadata-only scoped audit browsing, and shared accessibility shell
+hardening. Phase 72 still ended with `needs_review` release-candidate
+diagnostics, not a release-ready pass. Phase 74 CP000008 remains the latest
+GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. active Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility, planned
-   at
-   [Phase 86 Multi-Agency Roles Audit Accessibility](phase-86-multi-agency-roles-audit-accessibility.md)
-   and kept to private operator boundaries, accessibility hardening,
-   route/handler review, and audit visibility without production multi-tenancy
-   claims;
+1. active Phase 87 -- Public Feed Readiness And Docs Portal, kept to private
+   feed URL review, docs portal alignment, prepared-packet explanation, and
+   future evidence checklists that require separate written authorization;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded planning guide for Phase 86+;
+   as the bounded planning guide for Phase 87+;
 3. keep release-cut cleanup, release-candidate gate, postponed connector
    maturity, and optional evidence tracks separated by their phase gates and
    claim boundaries;
@@ -77,7 +73,7 @@ assessment.
 | Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed and published GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 CP000008 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
-| Browser-first operations | Phase 85 is complete for Maintenance Center V2 after the private Prediction And ETA Lab and Connector Workbench. The Maintenance Center now reviews safe local summaries, backup/restore, upgrade/rollback, support-bundle redaction, cadence, and infrastructure categories without browser-executed maintenance actions. | Continue Phase 86 for private role, audit, accessibility, and agency-boundary hardening without production multi-tenancy claims. |
+| Browser-first operations | Phase 86 is complete after Maintenance Center V2, Prediction And ETA Lab, and Connector Workbench. The private Operations Console now covers maintenance diagnostics, agency scope, role guidance, bounded access-denied guidance, metadata-only audit review, and shared accessibility shell hardening without browser-executed maintenance actions or production multi-tenancy claims. | Continue Phase 87 for private public-feed readiness review, docs portal alignment, prepared-packet explanation, and future evidence checklists that require separate written authorization. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
@@ -99,10 +95,10 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 85 Operations And Maintenance Center V2 closeout.
+1. Review the completed Phase 86 Multi-Agency, Roles, Audit, And Accessibility closeout.
 2. Use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded product-track guide for Phase 86+.
+   as the bounded product-track guide for Phase 87+.
 3. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
@@ -110,8 +106,7 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility from
-   `docs/phase-86-multi-agency-roles-audit-accessibility.md` while keeping
+6. Continue Phase 87 -- Public Feed Readiness And Docs Portal while keeping
    release-cut cleanup and optional evidence tracks separated by their phase
    gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean

@@ -160,9 +160,18 @@ category checks. It added no browser-executed maintenance commands, public
 admin route, migration, evidence write, consumer status change, release
 artifact, hosted-service claim, production-readiness claim, vendor claim,
 hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 86 --
-Multi-Agency, Roles, Audit, And Accessibility is active with a plan at
-`docs/phase-86-multi-agency-roles-audit-accessibility.md` in the authorized
-Phase 75-90 product track. Any future evidence intake is optional and requires
+Multi-Agency, Roles, Audit, And Accessibility is complete, with closeout at
+`docs/handoffs/phase-86.md`: the private Operations Console now exposes
+authenticated agency scope and locked switcher guidance, role/permission and
+access-denied review pages, a metadata-only scoped audit log browser, and
+shared accessibility shell hardening for landmarks, skip links, labeled
+navigation groups, keyboard focus, mobile layout, and high-contrast status
+semantics. Phase 86 added no public admin route, migration, evidence write,
+consumer status change, release artifact, hosted-service claim,
+production-readiness claim, production multi-tenancy claim, vendor claim,
+hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 87 -- Public
+Feed Readiness And Docs Portal is the next authorized private product phase in
+the Phase 75-90 track. Any future evidence intake is optional and requires
 explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1427,9 +1436,10 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue active Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility from
-`docs/phase-86-multi-agency-roles-audit-accessibility.md`. Keep the work
-private, bounded, and synthetic/local where possible, and do not claim
+Continue Phase 87 -- Public Feed Readiness And Docs Portal in the authorized
+Phase 75-90 product track. Keep the work private, bounded, and focused on feed
+URL readiness, docs portal alignment, prepared-packet explanation, and future
+evidence checklists that require separate written authorization. Do not claim
 production readiness, hosted service, SLA, uptime, release readiness,
 compliance, agency adoption, consumer acceptance, vendor compatibility,
 hardware certification, real vendor/device proof, or evidence.
