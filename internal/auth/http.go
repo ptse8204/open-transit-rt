@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	"os"
 	"strings"
@@ -173,12 +174,12 @@ func (m *Middleware) Require(roles ...Role) func(http.Handler) http.Handler {
 				return
 			}
 			if !principal.HasAny(roles...) {
-				http.Error(w, "forbidden", http.StatusForbidden)
+				writeAccessDenied(w, r, "role not allowed for this private route")
 				return
 			}
 			if principal.Method == MethodCookie && unsafeMethod(r.Method) {
 				if !m.validCSRF(r, principal) {
-					http.Error(w, "invalid csrf token", http.StatusForbidden)
+					writeAccessDenied(w, r, "form safety check failed")
 					return
 				}
 			}
@@ -260,7 +261,7 @@ func RequireRole(w http.ResponseWriter, r *http.Request, roles ...Role) (Princip
 		return Principal{}, false
 	}
 	if !principal.HasAny(roles...) {
-		http.Error(w, "forbidden", http.StatusForbidden)
+		writeAccessDenied(w, r, "role not allowed for this private route")
 		return Principal{}, false
 	}
 	return principal, true
@@ -269,7 +270,7 @@ func RequireRole(w http.ResponseWriter, r *http.Request, roles ...Role) (Princip
 func RequireAgencyQueryMatch(w http.ResponseWriter, r *http.Request, principal Principal) bool {
 	requestAgency := strings.TrimSpace(r.URL.Query().Get("agency_id"))
 	if requestAgency != "" && requestAgency != principal.AgencyID {
-		http.Error(w, "agency_id conflicts with authenticated agency", http.StatusForbidden)
+		writeAccessDenied(w, r, "requested agency scope does not match the signed-in agency")
 		return false
 	}
 	return true
@@ -277,10 +278,30 @@ func RequireAgencyQueryMatch(w http.ResponseWriter, r *http.Request, principal P
 
 func RejectAgencyConflict(w http.ResponseWriter, agencyID string, principal Principal) bool {
 	if strings.TrimSpace(agencyID) != "" && agencyID != principal.AgencyID {
-		http.Error(w, "agency_id conflicts with authenticated agency", http.StatusForbidden)
+		writeAccessDenied(w, nil, "requested agency scope does not match the signed-in agency")
 		return true
 	}
 	return false
+}
+
+func writeAccessDenied(w http.ResponseWriter, r *http.Request, reason string) {
+	w.Header().Set("Cache-Control", "no-store")
+	if r == nil || !wantsAccessDeniedHTML(r) {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusForbidden)
+	escaped := html.EscapeString(reason)
+	_, _ = fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Access denied</title></head><body><main><h1>Access denied</h1><p>Your signed-in session cannot use this private Operations Console action.</p><p>Reason: %s.</p><ul><li>Check that your assigned role is allowed for this action.</li><li>Check that the requested agency scope matches your signed-in agency.</li><li>For browser forms, reload the page and submit from the generated form.</li></ul><p>This response does not prove data exists for another agency and does not change consumer, evidence, release, or deployment status.</p><p><a href="/admin/operations/access">Open Access &amp; Roles</a></p></main></body></html>`, escaped)
+}
+
+func wantsAccessDeniedHTML(r *http.Request) bool {
+	accept := strings.ToLower(r.Header.Get("Accept"))
+	if strings.Contains(accept, "text/html") {
+		return true
+	}
+	return strings.HasPrefix(r.URL.Path, "/admin/operations")
 }
 
 type StaticRoleStore struct {
@@ -299,7 +320,7 @@ func (t TestAuthenticator) Require(roles ...Role) func(http.Handler) http.Handle
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !t.Principal.HasAny(roles...) {
-				http.Error(w, "forbidden", http.StatusForbidden)
+				writeAccessDenied(w, r, "role not allowed for this private route")
 				return
 			}
 			next.ServeHTTP(w, r.WithContext(ContextWithPrincipal(r.Context(), t.Principal)))

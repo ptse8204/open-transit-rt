@@ -68,6 +68,7 @@ type operationsPage struct {
 	Realtime               operationsRealtimeView
 	PredictionLab          predictionLabView
 	Maintenance            operationsMaintenanceView
+	Access                 operationsAccessView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
 	GTFSImportSource       gtfsImportSourceReview
@@ -481,6 +482,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderMaintenanceJSON(w, r)
+	case "access":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderAccess(w, r)
+	case "access.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderAccessJSON(w, r)
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
@@ -2019,6 +2034,27 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </aside>{{end}}
 {{end}}
 {{define "layoutEnd"}}</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>{{end}}
+
+{{define "access"}}
+{{template "layoutStart" .}}
+<h2>Access &amp; Roles</h2>
+<p class="warning">{{.Access.Boundary}}</p>
+<p><a href="/admin/operations/access.json">Export private access JSON</a> · <a href="/admin/operations">Back to Start Here</a></p>
+<table><tbody>
+<tr><th>Agency</th><td><code>{{.Access.AgencyID}}</code></td></tr>
+<tr><th>Current roles</th><td>{{join .Access.CurrentRoles ", "}}</td></tr>
+<tr><th>Generated at</th><td>{{formatTime .Access.GeneratedAt}}</td></tr>
+</tbody></table>
+<h3>Role Permissions</h3>
+<table><thead><tr><th>Role</th><th>Current session</th><th>Review access</th><th>Mutation access</th><th>Technical helper note</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Access.Roles}}<tr id="access-role-{{.ID}}"><td>{{.Label}}</td><td>{{.Current}}</td><td>{{.ReviewAccess}}</td><td>{{.MutationAccess}}</td><td>{{.TechnicalHelperNote}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Access-Denied Guidance</h3>
+<table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Access.Denied}}<tr id="access-denied-{{.ID}}"><td>{{.Scenario}}</td><td>{{.WhatHappened}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{template "layoutEnd" .}}
+{{end}}
 
 {{define "help"}}
 {{template "layoutStart" .}}

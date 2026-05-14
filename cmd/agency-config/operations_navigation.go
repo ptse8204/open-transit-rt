@@ -68,6 +68,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			Label: "Maintain",
 			Items: []operationsNavItem{
 				{Label: "Maintenance", Href: "/admin/operations/maintenance", Section: "maintenance"},
+				{Label: "Access & Roles", Href: "/admin/operations/access", Section: "access"},
 			},
 		},
 		{
@@ -128,6 +129,8 @@ func operationsPageTitle(section string) string {
 		return "Operations Reliability"
 	case "maintenance":
 		return "Maintenance Center"
+	case "access":
+		return "Access & Roles"
 	case "realtime":
 		return "Realtime Operations Center"
 	case "prediction-lab":

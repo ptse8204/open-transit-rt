@@ -476,6 +476,65 @@ func TestOperationsConsoleShowsServerOwnedAgencyScope(t *testing.T) {
 	}
 }
 
+func TestOperationsAccessRolesAndDeniedUX(t *testing.T) {
+	srv := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator, auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/access", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("access status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Access &amp; Roles", "Private role and agency-scope guidance", "Admin", "Editor", "Operator", "Read only", "Role is not allowed", "Agency scope conflict", "Form safety check failed", "operator, read_only"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("access body missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"agency approved", "consumer accepted", "production ready", "hosted SaaS", "vendor compatible", "certified hardware"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("access body overclaims %q: %s", forbidden, body)
+		}
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/access.json", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || !strings.HasPrefix(rr.Header().Get("Content-Type"), "application/json") {
+		t.Fatalf("access JSON response = %d %q %s", rr.Code, rr.Header().Get("Content-Type"), rr.Body.String())
+	}
+	var view operationsAccessView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode access JSON: %v", err)
+	}
+	if view.AgencyID != "demo-agency" || len(view.Roles) != 4 || len(view.Denied) != 3 || strings.Join(view.CurrentRoles, ",") != "operator,read_only" {
+		t.Fatalf("unexpected access view: %+v", view)
+	}
+
+	readOnly := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-import", strings.NewReader("action=import_gtfs"))
+	req.Header.Set("Accept", "text/html")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	readOnly.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("denied status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+	denied := rr.Body.String()
+	for _, want := range []string{"Access denied", "role not allowed", "Open Access &amp; Roles"} {
+		if !strings.Contains(denied, want) {
+			t.Fatalf("denied response missing %q: %s", want, denied)
+		}
+	}
+	for _, forbidden := range []string{"reader@example.com", "demo-agency", "raw_report", "Authorization", "Bearer ", "token", "database_url"} {
+		if strings.Contains(denied, forbidden) {
+			t.Fatalf("denied response leaked %q: %s", forbidden, denied)
+		}
+	}
+}
+
 func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
 	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
@@ -2733,6 +2792,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		"/admin/operations/validation-health",
 		"/admin/operations/reliability",
 		"/admin/operations/maintenance",
+		"/admin/operations/access",
 		"/admin/operations/telemetry",
 		"/admin/operations/telemetry-simulator",
 		"/admin/operations/devices",
@@ -2778,6 +2838,7 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
 		{path: "/admin/operations/devices", title: "Device Credentials"},
 		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
+		{path: "/admin/operations/access", title: "Access &amp; Roles"},
 		{path: "/admin/operations/help", title: "Operations Console Help"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
