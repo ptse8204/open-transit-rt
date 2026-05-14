@@ -2622,6 +2622,97 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 	}
 }
 
+func TestOperationsCoreRoutesUseSharedAppShellAndDesignTokens(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{
+		"/admin/operations",
+		"/admin/operations/setup-wizard",
+		"/admin/operations/gtfs-import",
+		"/admin/operations/feed-health",
+		"/admin/operations/readiness",
+		"/admin/operations/validation-health",
+		"/admin/operations/telemetry",
+		"/admin/operations/connectors",
+		"/admin/operations/maintenance",
+		"/admin/operations/help",
+	} {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			for _, want := range []string{
+				`<header class="operations-header">`,
+				`Private operations control plane`,
+				`class="app-breadcrumb"`,
+				`class="app-meta"`,
+				`<nav class="operations-nav" aria-label="Operations Console sections">`,
+				`<main id="operations-main" tabindex="-1">`,
+				`:root{`,
+				`--color-surface`,
+				`--space-4`,
+				`--radius-3`,
+				`--color-focus`,
+				`.status-ready-for-local-review`,
+				`@media (prefers-reduced-motion:reduce)`,
+			} {
+				if !strings.Contains(body, want) {
+					t.Fatalf("%s shared shell missing %q: %s", path, want, body)
+				}
+			}
+		})
+	}
+}
+
+func TestOperationsConsoleDesignSystemAvoidsFragileDecoration(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		`GTFS Studio <span class="nav-surface">admin surface</span>`,
+		`Alerts <span class="nav-surface">admin surface</span>`,
+		`Ready for local review`,
+		`Copy These Five Configured Feed URLs`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("design-system route marker missing %q: %s", want, body)
+		}
+	}
+	consumerReq := httptest.NewRequest(http.MethodGet, "/admin/operations/consumers", nil)
+	consumerRR := httptest.NewRecorder()
+	handler.ServeHTTP(consumerRR, consumerReq)
+	if consumerRR.Code != http.StatusOK {
+		t.Fatalf("consumer tracker status = %d, want 200: %s", consumerRR.Code, consumerRR.Body.String())
+	}
+	if !strings.Contains(consumerRR.Body.String(), "Prepared Consumer Packet Tracker") {
+		t.Fatalf("consumer page missing prepared packet heading: %s", consumerRR.Body.String())
+	}
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{
+		"border-left:",
+		"background-clip:text",
+		"letter-spacing:-",
+		"consumer submission evidence",
+		"copy these five feed urls",
+	} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("design system contains fragile or overclaiming marker %q: %s", forbidden, body)
+		}
+	}
+}
+
 func TestOperationsConsoleMobileCSSKeepsTablesFormsAndLongValuesUsable(t *testing.T) {
 	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
