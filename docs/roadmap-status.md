@@ -20,8 +20,9 @@ GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. active Phase 88 -- Nontechnical Training And In-App Guidance, kept to
-   private in-app help, glossary, scenario flows, quick tasks,
+1. active Phase 88 -- Nontechnical Training And In-App Guidance, planned at
+   [Phase 88 Nontechnical Training And In-App Guidance](phase-88-nontechnical-training-in-app-guidance.md)
+   and kept to private in-app help, glossary, scenario flows, quick tasks,
    troubleshooting decision trees, staff training material, and role-specific
    operator paths;
 2. use the Phase 75
@@ -108,10 +109,10 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue Phase 88 -- Nontechnical Training And In-App Guidance from the
-   Consumer-Grade Control Plane roadmap pack while keeping release-cut cleanup
-   and optional evidence tracks separated by their phase gates and claim
-   boundaries.
+6. Continue Phase 88 -- Nontechnical Training And In-App Guidance from
+   [`docs/phase-88-nontechnical-training-in-app-guidance.md`](phase-88-nontechnical-training-in-app-guidance.md)
+   while keeping release-cut cleanup and optional evidence tracks separated by
+   their phase gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
 8. Run the release-candidate readiness gate:

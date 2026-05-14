@@ -398,7 +398,8 @@ artifact, final-root readiness claim, consumer action claim, hosted-service
 claim, production-readiness claim, vendor claim, hardware claim, SLA/uptime
 claim, or ETA-quality claim. Phase 88 -- Nontechnical Training And In-App
 Guidance is the next authorized private product phase in the Phase 75-90
-product track.
+product track, with plan at
+`docs/phase-88-nontechnical-training-in-app-guidance.md`.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

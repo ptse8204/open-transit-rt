@@ -180,8 +180,9 @@ consumer status change, release artifact, final-root readiness claim, consumer
 action claim, hosted-service claim, production-readiness claim, vendor claim,
 hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 88 --
 Nontechnical Training And In-App Guidance is the next authorized private
-product phase in the Phase 75-90 track. Any future evidence intake is optional
-and requires explicit written authorization first.
+product phase in the Phase 75-90 track, with plan at
+`docs/phase-88-nontechnical-training-in-app-guidance.md`. Any future evidence
+intake is optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1446,10 +1447,11 @@ target-originated evidence supports a target-specific status transition.
 ## Exact Next-Step Recommendation
 
 Continue Phase 88 -- Nontechnical Training And In-App Guidance in the
-authorized Phase 75-90 product track. Keep the work private, bounded, and
-focused on in-app guidance, glossary, scenario flows, quick tasks,
-troubleshooting decision trees, printable/docs staff training, and
-role-specific paths. Do not claim
+authorized Phase 75-90 product track from
+`docs/phase-88-nontechnical-training-in-app-guidance.md`. Keep the work
+private, bounded, and focused on in-app guidance, glossary, scenario flows,
+quick tasks, troubleshooting decision trees, printable/docs staff training,
+and role-specific paths. Do not claim
 production readiness, hosted service, SLA, uptime, release readiness,
 compliance, agency adoption, consumer acceptance, vendor compatibility,
 hardware certification, real vendor/device proof, or evidence.
