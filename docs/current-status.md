@@ -379,7 +379,9 @@ notification, or support-bundle commands, and no public route, migration,
 evidence write, consumer status change, release artifact, hosted-service
 claim, production-readiness claim, vendor claim, hardware claim, SLA/uptime
 claim, or ETA-quality claim was added. Phase 86 -- Multi-Agency, Roles, Audit,
-And Accessibility is next in the authorized Phase 75-90 product track.
+And Accessibility is active with a plan at
+`docs/phase-86-multi-agency-roles-audit-accessibility.md` in the authorized
+Phase 75-90 product track.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

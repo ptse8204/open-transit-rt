@@ -160,7 +160,8 @@ category checks. It added no browser-executed maintenance commands, public
 admin route, migration, evidence write, consumer status change, release
 artifact, hosted-service claim, production-readiness claim, vendor claim,
 hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 86 --
-Multi-Agency, Roles, Audit, And Accessibility is next in the authorized
+Multi-Agency, Roles, Audit, And Accessibility is active with a plan at
+`docs/phase-86-multi-agency-roles-audit-accessibility.md` in the authorized
 Phase 75-90 product track. Any future evidence intake is optional and requires
 explicit written authorization first.
 
@@ -1426,8 +1427,9 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility. Keep the
-work private, bounded, and synthetic/local where possible, and do not claim
+Continue active Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility from
+`docs/phase-86-multi-agency-roles-audit-accessibility.md`. Keep the work
+private, bounded, and synthetic/local where possible, and do not claim
 production readiness, hosted service, SLA, uptime, release readiness,
 compliance, agency adoption, consumer acceptance, vendor compatibility,
 hardware certification, real vendor/device proof, or evidence.

@@ -20,9 +20,12 @@ deployment-doctor infrastructure category checks. Phase 72 still ended with
 
 Continue the authorized product track with:
 
-1. next Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility, kept to
-   private operator boundaries, accessibility hardening, route/handler review,
-   and audit visibility without production multi-tenancy claims;
+1. active Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility, planned
+   at
+   [Phase 86 Multi-Agency Roles Audit Accessibility](phase-86-multi-agency-roles-audit-accessibility.md)
+   and kept to private operator boundaries, accessibility hardening,
+   route/handler review, and audit visibility without production multi-tenancy
+   claims;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as the bounded planning guide for Phase 86+;
@@ -107,9 +110,10 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility while
-   keeping release-cut cleanup and optional evidence tracks separated by their
-   phase gates and claim boundaries.
+6. Continue Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility from
+   `docs/phase-86-multi-agency-roles-audit-accessibility.md` while keeping
+   release-cut cleanup and optional evidence tracks separated by their phase
+   gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
 8. Run the release-candidate readiness gate:
