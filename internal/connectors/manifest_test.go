@@ -114,6 +114,64 @@ func TestRejectsUnsafeURLs(t *testing.T) {
 	}
 }
 
+func TestRejectsUnsafeURLsAndEndpointTextInDisplayableFields(t *testing.T) {
+	tests := []struct {
+		name   string
+		update func(*Manifest)
+		want   string
+	}{
+		{
+			name: "display name",
+			update: func(m *Manifest) {
+				m.DisplayName = "Poll http://127.0.0.1:8080"
+			},
+			want: "display_name",
+		},
+		{
+			name: "description",
+			update: func(m *Manifest) {
+				m.Description = "Webhook at https://localhost/private"
+			},
+			want: "description",
+		},
+		{
+			name: "mode name",
+			update: func(m *Manifest) {
+				m.Mode.Name = "http://10.0.0.5/mode"
+			},
+			want: "mode.name",
+		},
+		{
+			name: "failure retry policy",
+			update: func(m *Manifest) {
+				m.FailureBehavior.RetryPolicy = "retry https://internal.local/hook"
+			},
+			want: "failure_behavior.retry_policy",
+		},
+		{
+			name: "not claimed",
+			update: func(m *Manifest) {
+				m.ClaimBoundary.NotClaimed = []string{"https://192.168.1.10/private"}
+			},
+			want: "claim_boundary.not_claimed[0]",
+		},
+		{
+			name: "conformance description",
+			update: func(m *Manifest) {
+				m.ConformanceCases[0].Description = "uses localhost webhook"
+			},
+			want: "conformance_cases[0].description",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			manifest := validManifest(t)
+			tc.update(&manifest)
+			assertViolation(t, manifest.Validate(), tc.want)
+		})
+	}
+}
+
 func TestRejectsUnsupportedPositiveClaims(t *testing.T) {
 	for _, claim := range []string{
 		"Caltrans compliant",

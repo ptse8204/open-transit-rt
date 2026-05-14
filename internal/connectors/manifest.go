@@ -151,6 +151,8 @@ func (m Manifest) Validate() []Violation {
 	if err := validateDocsLink(m.DocsLink, "docs_link"); err != nil {
 		violations = append(violations, *err)
 	}
+	violations = append(violations, validateSafeStrings("display_name", []string{m.DisplayName})...)
+	violations = append(violations, validateSafeStrings("description", []string{m.Description})...)
 
 	violations = append(violations, m.Mode.validate()...)
 	violations = append(violations, validateContracts("input_contracts", m.InputContracts)...)
@@ -178,6 +180,7 @@ func (m Manifest) Validate() []Violation {
 func (m Mode) validate() []Violation {
 	var violations []Violation
 	requiredString(&violations, "mode.name", m.Name)
+	violations = append(violations, validateSafeStrings("mode.name", []string{m.Name})...)
 	if m.SendsNotificationsByDefault {
 		violations = append(violations, Violation{"mode.sends_notifications_by_default", "notification sending must not be enabled by default"})
 	}
@@ -227,6 +230,8 @@ func (f FailureBehavior) validate() []Violation {
 	}
 	requiredString(&violations, "failure_behavior.retry_policy", f.RetryPolicy)
 	requiredString(&violations, "failure_behavior.degraded_state", f.DegradedState)
+	violations = append(violations, validateSafeStrings("failure_behavior.retry_policy", []string{f.RetryPolicy})...)
+	violations = append(violations, validateSafeStrings("failure_behavior.degraded_state", []string{f.DegradedState})...)
 	if !f.FailClosed {
 		violations = append(violations, Violation{"failure_behavior.fail_closed", "connectors must fail closed"})
 	}
@@ -245,6 +250,8 @@ func (r RedactionPolicy) validate() []Violation {
 	if r.LogsRawPayload {
 		violations = append(violations, Violation{"redaction_policy.logs_raw_payload", "raw payload logging is not allowed"})
 	}
+	violations = append(violations, validateSafeStrings("redaction_policy.secret_storage", []string{r.SecretStorage})...)
+	violations = append(violations, validateSafeStrings("redaction_policy.redact_fields", r.RedactFields)...)
 	return violations
 }
 
@@ -258,6 +265,7 @@ func (c ClaimBoundary) validate() []Violation {
 	}
 	for i, claim := range c.PositiveClaims {
 		normalized := strings.ToLower(strings.TrimSpace(claim))
+		violations = append(violations, validateSafeStrings(fmt.Sprintf("claim_boundary.positive_claims[%d]", i), []string{claim})...)
 		if !slices.Contains(supportedPositiveClaims, normalized) {
 			violations = append(violations, Violation{fmt.Sprintf("claim_boundary.positive_claims[%d]", i), "unsupported positive claim"})
 		}
@@ -266,6 +274,9 @@ func (c ClaimBoundary) validate() []Violation {
 				violations = append(violations, Violation{fmt.Sprintf("claim_boundary.positive_claims[%d]", i), "claim requires retained evidence outside connector manifests"})
 			}
 		}
+	}
+	for i, claim := range c.NotClaimed {
+		violations = append(violations, validateSafeStrings(fmt.Sprintf("claim_boundary.not_claimed[%d]", i), []string{claim})...)
 	}
 	return violations
 }
@@ -287,6 +298,9 @@ func validateConformanceCases(cases []ConformanceCase) []Violation {
 				violations = append(violations, Violation{prefix + ".fixture_path", "must be a clean relative path under testdata/connectors, testdata/adapter-conformance, or examples/connectors"})
 			}
 		}
+		violations = append(violations, validateSafeStrings(prefix+".id", []string{tc.ID})...)
+		violations = append(violations, validateSafeStrings(prefix+".description", []string{tc.Description})...)
+		violations = append(violations, validateSafeStrings(prefix+".expected_result", []string{tc.ExpectedResult})...)
 	}
 	return violations
 }
@@ -312,7 +326,7 @@ func validateSafeURL(value string, field string) *Violation {
 		return &Violation{field, "must not include userinfo"}
 	}
 	host := parsed.Hostname()
-	if ip := net.ParseIP(host); ip != nil && (ip.IsPrivate() || ip.IsLoopback()) {
+	if ip := net.ParseIP(host); ip != nil && (ip.IsPrivate() || ip.IsLoopback() || ip.IsUnspecified() || ip.IsLinkLocalUnicast()) {
 		return &Violation{field, "must not point to private or loopback hosts"}
 	}
 	if strings.EqualFold(host, "localhost") || strings.HasSuffix(strings.ToLower(host), ".local") {
@@ -348,6 +362,9 @@ func validateSafeStrings(field string, values []string) []Violation {
 			if err := validateSafeURL(value, field); err != nil {
 				violations = append(violations, *err)
 			}
+		}
+		if containsUnsafeEndpointText(value) {
+			violations = append(violations, Violation{field, "private endpoint strings are not allowed"})
 		}
 	}
 	return violations
@@ -391,6 +408,14 @@ func walkJSON(field string, value any, violations *[]Violation) {
 		if isPrivatePath(typed) {
 			*violations = append(*violations, Violation{field, "private filesystem paths are not allowed"})
 		}
+		if strings.Contains(typed, "://") {
+			if err := validateSafeURL(typed, field); err != nil {
+				*violations = append(*violations, *err)
+			}
+		}
+		if containsUnsafeEndpointText(typed) {
+			*violations = append(*violations, Violation{field, "private endpoint strings are not allowed"})
+		}
 	}
 }
 
@@ -421,10 +446,25 @@ func isPrivatePath(value string) bool {
 		strings.HasPrefix(trimmed, "/etc/")
 }
 
+func containsUnsafeEndpointText(value string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "" {
+		return false
+	}
+	if strings.Contains(normalized, "localhost") || strings.Contains(normalized, "[::1]") || strings.Contains(normalized, "::1") {
+		return true
+	}
+	if strings.Contains(normalized, ".local") {
+		return true
+	}
+	return privateEndpointPattern.MatchString(normalized)
+}
+
 var (
-	connectorIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]*$`)
-	secretKeyPattern   = regexp.MustCompile(`(?i)(secret|password|passwd|token|api[_-]?key|private[_-]?key|credential)`)
-	secretValuePattern = regexp.MustCompile(
+	connectorIDPattern     = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]*$`)
+	privateEndpointPattern = regexp.MustCompile(`(^|[^0-9a-z])((10|127|0)\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:[0-9]{1,5})?($|[^0-9a-z])`)
+	secretKeyPattern       = regexp.MustCompile(`(?i)(secret|password|passwd|token|api[_-]?key|private[_-]?key|credential)`)
+	secretValuePattern     = regexp.MustCompile(
 		`(?i)\b(bearer\s+[a-z0-9._~+/=-]{12,}|sk-[a-z0-9]{12,}|ghp_[a-z0-9_]{12,}|-----begin [a-z ]*private key-----)\b`,
 	)
 	bannedClaimFragments = []string{

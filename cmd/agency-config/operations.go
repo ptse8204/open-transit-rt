@@ -59,6 +59,7 @@ type operationsPage struct {
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
+	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
 	ContextHelp            operationsContextHelp
@@ -246,6 +247,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderConnectorHubJSON(w, r)
+	case "connectors/workbench":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderConnectorWorkbench(w, r)
+	case "connectors/workbench.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderConnectorWorkbenchJSON(w, r)
 	case "connectors/tests":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
@@ -1082,6 +1097,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
+	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
 	page.Cockpit = buildOperationsCockpit(page)
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
@@ -2342,6 +2358,83 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 <p><a href="/admin/operations/connectors/tests">Open connector test instructions</a> for fixed offline checks.</p>
 <p class="muted">Connector Hub is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "connector-workbench"}}
+{{template "layoutStart" .}}
+<h2>Connector Workbench</h2>
+<p class="warning">{{.ConnectorWorkbench.Boundary}}</p>
+<div class="card-grid" aria-label="Connector workbench boundary guidance">
+<section class="card empty-state">
+<h3>Start with a recipe</h3>
+<p><strong>What am I seeing?</strong> The Workbench turns common connector situations into local/synthetic review paths.</p>
+<p><strong>Is this bad?</strong> No. It is intentionally a planning and review surface, not a browser runner.</p>
+<p><strong>What should I do next?</strong> Choose the recipe closest to your source, read its first safe check, then use an operator shell for the fixed command.</p>
+<p><strong>Can I do it in the browser?</strong> You can review recipes and manifests here; the browser does not run checks, contact external systems, or send telemetry.</p>
+<p><strong>When do I need a technical helper?</strong> Use one when credentials, sidecars, deployment-owned webhook receivers, or off-host validators are involved.</p>
+<p><strong>What this does not prove:</strong> Workbench review does not prove real integration, compatibility, hardware certification, compliance, consumer acceptance, hosted service, SLA, production readiness, or ETA quality.</p>
+</section>
+</div>
+<table><tbody>
+<tr><th><code>backend_command_execution_enabled</code></th><td>{{.ConnectorWorkbench.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
+<tr><th><code>browser_network_send_enabled</code></th><td>{{.ConnectorWorkbench.ClaimFlags.BrowserNetworkSendEnabled}}</td></tr>
+<tr><th><code>manifest_command_execution_enabled</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ManifestCommandExecutionEnabled}}</td></tr>
+<tr><th><code>dynamic_backend_plugin_loading_enabled</code></th><td>{{.ConnectorWorkbench.ClaimFlags.DynamicBackendPluginLoadingEnabled}}</td></tr>
+<tr><th><code>external_network_contacted</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ExternalNetworkContacted}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>hardware_certification_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.HardwareCertificationClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+</tbody></table>
+<h3>Recipe Chooser</h3>
+<div class="card-grid" aria-label="Connector recipe chooser">
+{{range .ConnectorWorkbench.Recipes}}
+<section class="card">
+<h4>{{.Label}}</h4>
+<p class="status">Status: {{.Status}}</p>
+<p>{{.OperatorStory}}</p>
+<p><strong>What this is:</strong> {{.WhatThisIs}}</p>
+<p><strong>What you need:</strong> {{join .WhatYouNeed ", "}}</p>
+<p><strong>Runs where:</strong> {{.RunsWhere}}</p>
+<p><strong>First safe check:</strong> <code>{{.FirstSafeCheck}}</code></p>
+<p><strong>Good result:</strong> {{.GoodResult}}</p>
+<p><strong>If it fails:</strong> {{.IfItFails}}</p>
+<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+{{if .ManifestIDs}}<p><strong>Example manifests:</strong> {{range .ManifestIDs}}<code>{{.}}</code> {{end}}</p>{{end}}
+{{if .AdminLinks}}<p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>{{end}}
+{{if .DocsLinks}}<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>{{end}}
+</section>
+{{end}}
+</div>
+<h3>{{.ConnectorWorkbench.ManifestReview.Title}}</h3>
+<p>{{.ConnectorWorkbench.ManifestReview.Summary}}</p>
+<p><strong>Safe plugin definition:</strong> {{.ConnectorWorkbench.ManifestReview.PluginDefinition}}</p>
+{{if .ConnectorWorkbench.ManifestReview.Diagnostics}}
+<table><thead><tr><th>Level</th><th>Code</th><th>Path</th><th>Message</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.ManifestReview.Diagnostics}}<tr><td>{{.Level}}</td><td><code>{{.Code}}</code></td><td><code>{{.Path}}</code></td><td>{{.Message}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
+<table><thead><tr><th>Manifest</th><th>Type</th><th>Mode</th><th>Safety</th><th>Contracts</th><th>Conformance</th><th>Boundary</th><th>Docs</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.ManifestReview.Rows}}
+<tr>
+<td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorID}}</code><br><code>{{.SourcePath}}</code></td>
+<td>{{.ConnectorType}}</td>
+<td>{{.Mode}}<br>{{if .DisabledByDefault}}disabled by default{{else}}review before use{{end}}</td>
+<td>{{if .FailClosed}}fail closed{{else}}review failure behavior{{end}}<br>secret storage: {{.SecretStorage}}</td>
+<td>inputs: {{join .InputContracts ", "}}<br>outputs: {{join .OutputContracts ", "}}</td>
+<td>{{.ConformanceCaseCount}} synthetic cases<br><code>{{.FirstCheck}}</code></td>
+<td>{{.Boundary}}<br>{{.DoesNotProve}}</td>
+<td><code>{{.DocsLink}}</code></td>
+</tr>
+{{else}}
+<tr><td colspan="8">No committed connector manifests were loaded. Review diagnostics and run <code>make external-connection-check</code>.</td></tr>
+{{end}}
+</tbody></table>
+<p><a href="/admin/operations/connectors">Open Connector Hub</a> for category overview. <a href="/admin/operations/connectors/tests">Open Connector Tests</a> for fixed offline commands.</p>
+<p class="muted">Connector Workbench is GET-only generated guidance. It does not upload manifests, load backend plugins, execute commands, launch sidecars, contact external parties, write evidence, or change consumer status.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

@@ -2271,6 +2271,154 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 	assertConnectorHubSafeStrings(t, body)
 }
 
+func TestConnectorWorkbenchRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/connectors/workbench", "/admin/operations/connectors/workbench.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/connectors/workbench", "/admin/operations/connectors/workbench.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/connectors/workbench", "/admin/operations/connectors/workbench.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/workbench?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/workbench.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	for _, path := range []string{"/public/operations/connectors/workbench", "/public/operations/connectors/workbench.json"} {
+		req = httptest.NewRequest(http.MethodGet, path, nil)
+		rr = httptest.NewRecorder()
+		authenticated.ServeHTTP(rr, req)
+		if rr.Code != http.StatusNotFound {
+			t.Fatalf("public connector workbench route %s status = %d, want 404", path, rr.Code)
+		}
+	}
+}
+
+func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) {
+	srv := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/workbench.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var view connectorWorkbenchView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode connector workbench: %v", err)
+	}
+	assertConnectorWorkbenchShape(t, view)
+	assertConnectorWorkbenchFlagsFalse(t, view.ClaimFlags)
+	assertConnectorWorkbenchSafeStrings(t, rr.Body.String())
+	if view.AgencyID != "demo-agency" {
+		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
+	}
+	wantRecipes := []string{"csv_telemetry_sandbox", "api_polling_recipe", "webhook_transform_boundary", "synthetic_only", "predictor_sidecar", "monitoring_export", "public_feed_url_verification"}
+	var gotRecipes []string
+	for _, recipe := range view.Recipes {
+		gotRecipes = append(gotRecipes, recipe.ID)
+	}
+	if strings.Join(gotRecipes, ",") != strings.Join(wantRecipes, ",") {
+		t.Fatalf("recipe ids = %v, want %v", gotRecipes, wantRecipes)
+	}
+	var registryIDs []string
+	for _, row := range view.ManifestReview.Rows {
+		registryIDs = append(registryIDs, row.ConnectorID)
+		if row.SourcePath == "" || !strings.HasPrefix(row.SourcePath, "examples/connectors/") || row.FirstCheck != "make external-connection-check" {
+			t.Fatalf("manifest row has unsafe source/check: %+v", row)
+		}
+		if !row.DisabledByDefault || !row.FailClosed || len(row.InputContracts) == 0 || len(row.OutputContracts) == 0 || row.ConformanceCaseCount == 0 {
+			t.Fatalf("manifest row must remain disabled, fail-closed, and conformance-backed: %+v", row)
+		}
+	}
+	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.validator-allowlist"}
+	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
+		t.Fatalf("manifest ids = %v, want %v", registryIDs, wantRegistryIDs)
+	}
+}
+
+func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`,
+			License: compliance.License{Name: "Demo License", URL: "https://example.org/license"},
+		},
+		scorecardErr: errors.New("no scorecard"),
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/workbench", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "disabled by default", "fail closed", "does not upload manifests"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("html body missing %q: %s", want, body)
+		}
+	}
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("html did not escape script-like metadata: %s", body)
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/connectors", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "vendor compatible", "certified hardware", "marketplace", "test connection", "start sidecar"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("connector workbench html contains forbidden %q: %s", forbidden, body)
+		}
+	}
+	assertConnectorWorkbenchSafeStrings(t, body)
+}
+
 func TestConnectorTestsRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
 		t.Run(string(role), func(t *testing.T) {
@@ -2544,6 +2692,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		"/admin/operations/launchpad",
 		"/admin/operations/setup-wizard",
 		"/admin/operations/connectors",
+		"/admin/operations/connectors/workbench",
 		"/admin/operations/connectors/tests",
 		"/admin/operations/gtfs-workbench",
 		"/admin/operations/gtfs-import",
@@ -2597,6 +2746,7 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 		{path: "/admin/operations/gtfs-import", title: "Browser GTFS Import"},
 		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
 		{path: "/admin/operations/devices", title: "Device Credentials"},
+		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
 		{path: "/admin/operations/help", title: "Operations Console Help"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
@@ -2635,6 +2785,7 @@ func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *test
 		{path: "/admin/operations/feed-health", href: "/admin/operations/feed-health"},
 		{path: "/admin/operations/gtfs-quality", href: "/admin/operations/gtfs-quality"},
 		{path: "/admin/operations/telemetry", href: "/admin/operations/telemetry"},
+		{path: "/admin/operations/connectors/workbench", href: "/admin/operations/connectors/workbench"},
 		{path: "/admin/operations/connectors/tests", href: "/admin/operations/connectors/tests"},
 		{path: "/admin/operations/help", href: "/admin/operations/help"},
 		{path: "/admin/operations/consumers", href: "/admin/operations/consumers"},
@@ -6012,6 +6163,56 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 	}
 }
 
+func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
+	t.Helper()
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
+		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
+	}
+	seenRecipes := map[string]bool{}
+	for _, recipe := range view.Recipes {
+		if recipe.ID == "" || recipe.Label == "" || recipe.OperatorStory == "" || recipe.Status == "" || recipe.WhatThisIs == "" || len(recipe.WhatYouNeed) == 0 || recipe.RunsWhere == "" || recipe.FirstSafeCheck == "" || recipe.GoodResult == "" || recipe.IfItFails == "" || recipe.DoesNotProve == "" || len(recipe.AdminLinks) == 0 || len(recipe.DocsLinks) == 0 || len(recipe.ManifestIDs) == 0 {
+			t.Fatalf("invalid connector workbench recipe: %+v", recipe)
+		}
+		if seenRecipes[recipe.ID] {
+			t.Fatalf("duplicate connector workbench recipe id %q", recipe.ID)
+		}
+		seenRecipes[recipe.ID] = true
+		for _, link := range recipe.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("recipe %s has unsafe admin link %q", recipe.ID, link)
+			}
+		}
+		for _, link := range recipe.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") && !strings.HasPrefix(link, "examples/") {
+				t.Fatalf("recipe %s has unsafe docs link %q", recipe.ID, link)
+			}
+		}
+	}
+	seenRows := map[string]bool{}
+	for _, row := range view.ManifestReview.Rows {
+		if row.SourcePath == "" || row.ConnectorID == "" || row.DisplayName == "" || row.ConnectorType == "" || row.Mode == "" || row.SecretStorage == "" || len(row.InputContracts) == 0 || len(row.OutputContracts) == 0 || row.ConformanceCaseCount == 0 || row.DocsLink == "" || row.Boundary == "" || row.FirstCheck == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid connector workbench manifest row: %+v", row)
+		}
+		if seenRows[row.ConnectorID] {
+			t.Fatalf("duplicate connector workbench manifest id %q", row.ConnectorID)
+		}
+		seenRows[row.ConnectorID] = true
+		if !strings.HasPrefix(row.SourcePath, "examples/connectors/") || strings.Contains(row.SourcePath, "..") || strings.HasPrefix(row.SourcePath, "/") {
+			t.Fatalf("manifest row %s has unsafe source path %q", row.ConnectorID, row.SourcePath)
+		}
+		if !strings.HasPrefix(row.DocsLink, "examples/connectors/") && !strings.HasPrefix(row.DocsLink, "docs/") {
+			t.Fatalf("manifest row %s has unsafe docs link %q", row.ConnectorID, row.DocsLink)
+		}
+	}
+}
+
+func assertConnectorWorkbenchFlagsFalse(t *testing.T, flags connectorWorkbenchClaimFlags) {
+	t.Helper()
+	if flags.BackendCommandExecutionEnabled || flags.BrowserNetworkSendEnabled || flags.ManifestCommandExecutionEnabled || flags.DynamicBackendPluginLoadingEnabled || flags.ExternalNetworkContacted || flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ProductionReadinessClaimed || flags.HostedSaaSClaimed || flags.SLAClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("connector workbench flags must all be false: %+v", flags)
+	}
+}
+
 func assertOperationsCockpitShape(t *testing.T, view operationsCockpitView) {
 	t.Helper()
 	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.SetupProgress) != 8 || len(view.PrimaryCards) != 11 {
@@ -6338,6 +6539,21 @@ func assertConnectorHubSafeStrings(t *testing.T, body string) {
 	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "vendor_compatible", "hardware_certified", "dynamic_plugin_loading_enabled"} {
 		if strings.Contains(lower, forbidden) {
 			t.Fatalf("connector hub emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
+func assertConnectorWorkbenchSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_validator_command", "raw_command", "shell command", "http://localhost", "127.0.0.1", "192.168.", "10.0.0.", ".local"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("connector workbench leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "vendor_compatible", "hardware_certified", "dynamic_plugin_loading_enabled"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("connector workbench emits forbidden label %q: %s", forbidden, body)
 		}
 	}
 }

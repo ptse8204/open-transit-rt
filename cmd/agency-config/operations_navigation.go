@@ -50,6 +50,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			Label: "Connectors",
 			Items: []operationsNavItem{
 				{Label: "Connector Hub", Href: "/admin/operations/connectors", Section: "connectors"},
+				{Label: "Connector Workbench", Href: "/admin/operations/connectors/workbench", Section: "connector-workbench"},
 				{Label: "Connector Tests", Href: "/admin/operations/connectors/tests", Section: "connector-tests"},
 			},
 		},
@@ -136,6 +137,8 @@ func operationsPageTitle(section string) string {
 		return "Device Credentials"
 	case "connectors":
 		return "Connector Hub"
+	case "connector-workbench":
+		return "Connector Workbench"
 	case "connector-tests":
 		return "Connector Test Instructions"
 	case "consumers":
