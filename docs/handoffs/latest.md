@@ -127,15 +127,19 @@ private Operations Console now has `/admin/operations/realtime` and
 `/admin/operations/realtime.json` for fleet freshness, device not-seen state,
 conservative assignment confidence/reason rows, Vehicle Positions status,
 Trip Updates withheld or fallback diagnostics, Alerts lifecycle links, bounded
-operator-review rows, and realtime quality guidance. Phase 80 and Phase 81
-added no public admin route, migration, evidence write, consumer status
-change, release artifact, hosted service claim, production-readiness claim,
-vendor claim, SLA claim, or ETA-quality claim. The next autonomous phase in
-the authorized product track is Phase 82 -- Feed Health And Validation Center.
-Phase 82 Checkpoint 000001 starts from the scoped plan at
-`docs/phase-82-feed-health-and-validation-center.md`; implementation should
-start with Checkpoint 000002 after the plan commit. Any future evidence intake
-is optional and requires explicit written authorization first.
+operator-review rows, and realtime quality guidance. Phase 82 is complete for
+Feed Health And Validation Center, with closeout at
+`docs/handoffs/phase-82.md`: the private Operations Console now has
+`/admin/operations/validation-center` and
+`/admin/operations/validation-center.json` for five feed rows, validator
+health, GTFS quality summary, sanitized issue drilldowns, readiness timeline,
+current blockers, and prepared-only consumer tracker state. Phase 80 through
+Phase 82 added no public admin route, migration, evidence write, consumer
+status change, release artifact, hosted service claim, production-readiness
+claim, vendor claim, SLA claim, or ETA-quality claim. The next autonomous
+phase in the authorized product track is Phase 83 -- Connector Workbench. Any
+future evidence intake is optional and requires explicit written authorization
+first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1399,12 +1403,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized Phase 75-90 product track with Phase 82 -- Feed Health
-And Validation Center. Checkpoint 000001 starts the private plan for a
-read-only-by-default Validation Center that combines existing feed status,
-validator health, GTFS quality, readiness, reliability, consumer prepared
-tracker, and blocker signals without evidence writes, consumer status
-movement, release artifacts, public admin routes, or unsupported public claims.
+Continue the authorized Phase 75-90 product track with Phase 83 -- Connector
+Workbench. Start from the Phase 75 roadmap pack and the Phase 82 closeout, keep
+the work private and synthetic/local, and do not claim vendor compatibility,
+hardware certification, real vendor/device proof, evidence, compliance,
+consumer acceptance, hosted service, release readiness, SLA, uptime, or
+production-grade ETA quality.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

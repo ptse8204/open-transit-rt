@@ -328,8 +328,9 @@ Phase 75-90 product-track guide. Phase 76 is complete for private Operations
 Console design-system/app-shell work, Phase 77 is complete for the private
 Admin Control API And Command Model scope, Phase 78 is complete for private
 buildless frontend routing/state/data-loading work, Phase 79 is complete for
-Agency Setup V3, Phase 80 is complete for GTFS Workbench, and Phase 81 is
-complete for the Realtime Operations Center. The private
+Agency Setup V3, Phase 80 is complete for GTFS Workbench, Phase 81 is
+complete for the Realtime Operations Center, and Phase 82 is complete for the
+Feed Health And Validation Center. The private
 setup path now presents an Agency Setup overview with progress, review blocks,
 safe diagnostics, role visibility, technical-helper escalation cards, clearer
 GTFS source review, and admin-only setup forms aligned with the existing POST
@@ -343,11 +344,14 @@ Center now presents fleet freshness, device not-seen state, assignment
 confidence and reason codes, Vehicle Positions status, Trip Updates withheld
 or fallback diagnostics, Alerts lifecycle links, bounded operator-review rows,
 and realtime quality guidance without browser mutations or public admin
-routes. Phase 82 -- Feed Health And Validation Center has started as the next
-product-track phase; its plan keeps the work private, read-only by default,
-sanitized, and bounded to supporting validation/feed-health signals. Release-cut cleanup, postponed
-connector maturity, and optional evidence tracks remain separated by their
-phase gates and claim boundaries. The
+routes. The private Validation Center now combines five feed rows, validator
+health, GTFS quality summary, sanitized issue drilldowns, readiness timeline,
+current blockers, and prepared-only consumer tracker state without browser
+mutations, public admin routes, evidence writes, consumer status movement, or
+stronger claims. Phase 83 -- Connector Workbench is the next authorized
+product-track phase. Release-cut cleanup, postponed connector maturity, and
+optional evidence tracks remain separated by their phase gates and claim
+boundaries. The
 next step is not a full `v0.1.0` release, a real agency
 pilot, or evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
