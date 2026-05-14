@@ -208,13 +208,20 @@ pack, recorded private route/user-task drift, added the read-only
 `make audit-operations-route-inventory` helper and test target, patched
 README/wiki route maps for the newer center-style Operations Console routes,
 and made legacy generic private Operations pages send `Cache-Control:
-no-store`. Phase 91 added no public admin route, migration, evidence write,
-consumer status change, release artifact, release-ready claim, compliance
-claim, hosted-service claim, production-readiness claim, vendor claim,
-hardware claim, SLA/uptime claim, or ETA-quality claim. The exact next
-checkpoint in the authorized autonomous run is Phase 92 -- Checkpoint 000001:
-add clean checkout rc gate plan. Any future evidence intake is optional and
-requires explicit written authorization first.
+no-store`. Phase 92 -- Clean Checkout Release-Candidate Gate is complete, with
+closeout at `docs/handoffs/phase-92.md`: it ran a local clean-checkout product
+gate, local app/five-feed diagnostics, connector/backend diagnostics, and
+claim-boundary audits. Local diagnostics passed where authorized, while
+release package generation/audit, tag/release/publication, consumer action,
+retained evidence, and remote reproduction remain not checked or blocked by
+scope; the Phase 92 release-candidate conclusion is `needs_review`, not
+release-ready. Phase 91 and Phase 92 added no public admin route, migration,
+evidence write, consumer status change, release artifact, release-ready claim,
+compliance claim, hosted-service claim, production-readiness claim, vendor
+claim, hardware claim, SLA/uptime claim, or ETA-quality claim. The exact next
+checkpoint in the authorized autonomous run is Phase 93 -- Checkpoint 000001:
+add browser end-to-end agency task trials plan. Any future evidence intake is
+optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1478,8 +1485,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 92 -- Checkpoint
-000001: add clean checkout rc gate plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 93 -- Checkpoint
+000001: add browser end-to-end agency task trials plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

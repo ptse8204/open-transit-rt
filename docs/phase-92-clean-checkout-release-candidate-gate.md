@@ -596,3 +596,81 @@ Proceed to CP000005 validation and commit, then CP000006 phase closeout.
 
 Next checkpoint:
 Phase 92 -- Checkpoint 000006: close clean checkout rc gate.
+
+## Checkpoint 000006 Closeout
+
+Phase 92 closes with `needs_review` release-candidate status. Local
+clean-checkout diagnostics passed where authorized, but package generation,
+package audit, tag/release/publication, consumer action, retained evidence, and
+external acceptance remain not checked or blocked by scope.
+
+## Checkpoint 000006 Report
+
+Checkpoint:
+Phase 92 -- Checkpoint 000006: close clean checkout rc gate.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high, Real Planning Sub-Agent
+-- GPT-5.5 x-high, Real Release / Supply-Chain Sub-Agent -- GPT-5.5 high, and
+Real Claim-Boundary / Security Sub-Agent -- GPT-5.5 high. Implementation,
+QA, UI/UX, Documentation / IA, and Data/Migration roles were simulated by the
+Master Agent. Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/current-status.md`; `docs/handoffs/latest.md`;
+`docs/handoffs/phase-92.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-92-clean-checkout-release-candidate-gate.md`;
+`docs/roadmap-status.md`.
+
+Validation run:
+`git status --short`; `git diff --check`; `make check`; `make
+audit-product-acceptance`; `make audit-final-claim-review`; consumer tracker
+JSON parse; exact seven-target prepared-only tracker check; protected-path
+status check; `RUN_LOCAL_APP=true make release-candidate-check`; `make
+agency-app-down`; `make external-connection-check`; `make
+adapter-conformance`; `make test-connector-examples`; `docker compose -f
+deploy/docker-compose.yml config`.
+
+Blocked checks:
+`make release-package`, `make audit-release-package`, tag creation, GitHub
+Release creation, image/package publication, retained evidence collection,
+external contact, consumer submission, and consumer status movement remain
+blocked or not checked by Phase 92 scope.
+
+Protected path status:
+No protected evidence path was edited or generated. The protected-path status
+check returned clean.
+
+Consumer tracker status:
+All seven targets remain exactly `prepared` in the required order. The tracker
+file was not edited.
+
+Claim-boundary status:
+Phase 92 closes as `needs_review`, not release-ready. It makes no compliance,
+adoption, consumer acceptance, production readiness, final-root readiness,
+hosted-service availability, vendor compatibility, hardware certification,
+SLA/uptime, or ETA-quality claim.
+
+Security/auth status:
+No route, auth behavior, token handling, credential path, public exposure, or
+admin command behavior changed. Local app containers were stopped after
+diagnostics.
+
+Data/migration status:
+No persistence, migration, GTFS data model, or realtime data model change is
+included. `db/migrations`, `go.mod`, and `go.sum` status checks are clean.
+
+Master review:
+Approved. The Phase 92 closeout records the clean-checkout RC gate truthfully,
+keeps release actions and evidence work out of scope, and updates the source
+of truth so Phase 93 is the next authorized checkpoint.
+
+Required edits:
+None for CP000006.
+
+Decision:
+Phase 92 is complete.
+
+Next checkpoint:
+Phase 93 -- Checkpoint 000001: add browser end-to-end agency task trials plan.

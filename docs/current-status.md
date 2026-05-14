@@ -423,12 +423,20 @@ roadmap pack, recorded a private route/user-task audit, added
 `make test-operations-route-inventory`, patched README/wiki route maps for
 GTFS Workbench, Realtime Center, Validation Center, Connector Workbench,
 Prediction & ETA Lab, Access & Roles, and Audit Log, and made legacy generic
-private Operations pages send `Cache-Control: no-store`. Phase 91 added no
-public admin route, migration, evidence write, consumer status change, release
-artifact, hosted-service claim, production-readiness claim, release-ready
-claim, vendor claim, hardware claim, SLA/uptime claim, or ETA-quality claim.
-The authorized autonomous post-90 roadmap continues next with Phase 92 --
-Clean Checkout Release-Candidate Gate.
+private Operations pages send `Cache-Control: no-store`. Phase 92 -- Clean
+Checkout Release-Candidate Gate is complete, with closeout at
+`docs/handoffs/phase-92.md`: local clean-checkout product validation, local
+app/five-feed diagnostics, connector/backend diagnostics, and claim-boundary
+audits passed where authorized. Release package generation/audit,
+tag/release/publication, consumer action, retained evidence, and remote
+reproduction remain not checked or blocked by scope, so the Phase 92
+release-candidate conclusion is `needs_review`, not release-ready. Phase 91
+and Phase 92 added no public admin route, migration, evidence write, consumer
+status change, release artifact, hosted-service claim, production-readiness
+claim, release-ready claim, vendor claim, hardware claim, SLA/uptime claim, or
+ETA-quality claim.
+The authorized autonomous post-90 roadmap continues next with Phase 93 --
+Browser End-To-End Agency Task Trials.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

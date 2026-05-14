@@ -8,9 +8,16 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 91 is complete for Maintainer Route/Product Audit And Stabilization in
-the authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
-[`docs/handoffs/phase-91.md`](handoffs/phase-91.md).
+Phase 92 is complete for Clean Checkout Release-Candidate Gate in the
+authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-92.md`](handoffs/phase-92.md). Phase 92 local diagnostics
+passed where authorized, while package generation/audit, release actions,
+publication, retained evidence, consumer action, and remote reproduction remain
+not checked or blocked by scope; the conclusion is `needs_review`, not
+release-ready.
+
+Phase 91 is complete for Maintainer Route/Product Audit And Stabilization. The
+closeout handoff is [`docs/handoffs/phase-91.md`](handoffs/phase-91.md).
 
 Phase 90 remains complete for the Final Control Plane Closeout And Future
 Evidence Gate Stubs scope in the authorized Phase 75-90 Consumer-Grade Control
@@ -25,11 +32,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 92 -- Clean
-Checkout Release-Candidate Gate. Phase 92 may record local release-candidate
-diagnostics and blockers, but it must not tag, publish, create a GitHub
-Release, move consumer statuses, collect retained evidence, or claim release
-readiness.
+The current authorized autonomous run continues next with Phase 93 -- Browser
+End-To-End Agency Task Trials. Phase 93 may record local/private agency task
+trial diagnostics and safe copy/IA fixes, but it must not tag, publish, create
+a GitHub Release, move consumer statuses, collect retained evidence, or claim
+release readiness.
 
 Recommended work remains separated into:
 
@@ -79,8 +86,8 @@ assessment.
 
 | Area | Current risk | Product-quality next action |
 | --- | --- | --- |
-| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 89 completed the local `v0.1.0-rc.1` gate with product, route, connector, backend, and claim-boundary diagnostics recorded, but package creation/audit and release actions remain blocked/not checked without separate authorization. | Treat the Phase 89 `needs_review` conclusion as the current release-candidate status; do not tag, package, publish, or claim release readiness without a later authorized release-cut gate. |
-| Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
+| Release maturity | Phase 92 completed a local clean-checkout RC gate: product validation, app/five-feed diagnostics, connector/backend diagnostics, and claim audits passed where authorized. No public release, clean tagged source state, package audit, or release-ready gate exists yet. | Treat the Phase 92 `needs_review` conclusion as the current release-candidate status; do not tag, package, publish, or claim release readiness without a later authorized release-cut gate. |
+| Clean install confidence | Phase 92 raised confidence by running `make check`, `make validate`, `make test`, local app startup, and five public feed fetches from a clean local worktree. Remote reproduction still depends on maintainer publication of local commits. | Keep the Phase 92 local gate as the current signal; rerun it before any later release-cut action. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
 | Browser-first operations | Phase 91 reconciled private route maps, added a local route inventory audit helper, and patched private no-store cache handling for legacy Operations pages. | Use `make audit-operations-route-inventory` before route-map or Operations Console IA changes. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
