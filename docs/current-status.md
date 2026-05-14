@@ -397,9 +397,15 @@ public admin route, migration, evidence write, consumer status change, release
 artifact, final-root readiness claim, consumer action claim, hosted-service
 claim, production-readiness claim, vendor claim, hardware claim, SLA/uptime
 claim, or ETA-quality claim. Phase 88 -- Nontechnical Training And In-App
-Guidance is the next authorized private product phase in the Phase 75-90
-product track, with plan at
-`docs/phase-88-nontechnical-training-in-app-guidance.md`.
+Guidance is complete. It changed the private Help route and JSON export to
+include role-based tours, first-week checklist, plain-language glossary,
+common mistake recovery, quick tasks, staff handoff checklist, and a docs-based
+operator training guide. Phase 88 added no public admin route, migration,
+evidence write, consumer status change, release artifact, final-root readiness
+claim, consumer action claim, hosted-service claim, production-readiness claim,
+vendor claim, hardware claim, SLA/uptime claim, or ETA-quality claim. Phase
+89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate is the next authorized review
+phase in the Phase 75-90 product track.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

@@ -60,9 +60,12 @@ The first instruction in this workstream was to make the Codex instructions expa
   URL review, source-of-truth/off-host validation guidance, docs portal
   alignment guidance, prepared-only consumer packet explanation, and future
   authorization gates. The closeout lives at `docs/handoffs/phase-87.md`.
-- Phase 88 -- Nontechnical Training And In-App Guidance is the next authorized
-  private product phase in the Phase 75-90 track. Its plan lives at
-  `docs/phase-88-nontechnical-training-in-app-guidance.md`.
+- Phase 88 is complete for Nontechnical Training And In-App Guidance private
+  role tours, first-week checklist, glossary, recovery guidance, quick tasks,
+  staff handoff checklist, and operator training guide. The closeout lives at
+  `docs/handoffs/phase-88.md`.
+- Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate is the next authorized
+  review phase in the Phase 75-90 track.
 - The previous Phase 74 connector-maturity slot is postponed to a later separately authorized phase.
 - Evidence/adoption/compliance tracks remain optional and authorization-gated.
 
@@ -600,7 +603,7 @@ Start by reading:
 - docs/evidence/consumer-submissions/status.json
 
 Current truth:
-Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoints 000001 through 000006 are complete for agency UI acceptance. Phase 74 Checkpoints 000001 through 000008 are complete for GitHub Pages and agency UI product polish; CP000008 reconciled and published the actual `gh-pages` branch with the Phase 74 closeout. Phase 75 is complete for the Consumer-Grade Control Plane roadmap pack. Phase 76 is complete for Design System And App Shell. Phase 77 is complete for the private Admin Control API And Command Model scope. Phase 78 is complete for Frontend Routing, State, And Data Loading. Phase 79 is complete for Agency Setup V3. Phase 80 is complete for GTFS Workbench. Phase 81 is complete for Realtime Operations Center. Phase 82 is complete for Feed Health And Validation Center. Phase 83 is complete for Connector Workbench. Phase 84 is complete for Prediction And ETA Lab. Phase 85 is complete for Operations And Maintenance Center V2. Phase 86 is complete for Multi-Agency, Roles, Audit, And Accessibility. Phase 87 is complete for Public Feed Readiness And Docs Portal. Release-cut cleanup, postponed connector maturity claims, and optional evidence tracks remain separated by their phase gates. The active work is Phase 88 -- Nontechnical Training And In-App Guidance from `docs/phase-88-nontechnical-training-in-app-guidance.md`, not evidence intake.
+Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoints 000001 through 000006 are complete for agency UI acceptance. Phase 74 Checkpoints 000001 through 000008 are complete for GitHub Pages and agency UI product polish; CP000008 reconciled and published the actual `gh-pages` branch with the Phase 74 closeout. Phase 75 is complete for the Consumer-Grade Control Plane roadmap pack. Phase 76 is complete for Design System And App Shell. Phase 77 is complete for the private Admin Control API And Command Model scope. Phase 78 is complete for Frontend Routing, State, And Data Loading. Phase 79 is complete for Agency Setup V3. Phase 80 is complete for GTFS Workbench. Phase 81 is complete for Realtime Operations Center. Phase 82 is complete for Feed Health And Validation Center. Phase 83 is complete for Connector Workbench. Phase 84 is complete for Prediction And ETA Lab. Phase 85 is complete for Operations And Maintenance Center V2. Phase 86 is complete for Multi-Agency, Roles, Audit, And Accessibility. Phase 87 is complete for Public Feed Readiness And Docs Portal. Phase 88 is complete for Nontechnical Training And In-App Guidance. Release-cut cleanup, postponed connector maturity claims, and optional evidence tracks remain separated by their phase gates. The active work is Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate, not evidence intake or release publication.
 
 Model assignment:
 Use these model levels for the master/sub-agent workflow:
@@ -622,7 +625,7 @@ If Codex cannot spawn real sub-agents, simulate the roles in clearly labeled sec
 
 The Master Agent must approve the plan before implementation starts and must approve every checkpoint after reviewing all sub-agent reports. The Master Agent may move forward only when no required edits remain.
 
-Phase 71 -- Checkpoint 000005 is complete. Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded review with `needs_review` diagnostics. Phase 73 -- Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 -- Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 -- Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 -- Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 -- Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 -- Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Phase 74 -- Checkpoint 000001 through Checkpoint 000008 are complete for GitHub Pages and agency UI product polish. Phase 75 through Phase 87 are complete for the authorized Consumer-Grade Control Plane product track through Public Feed Readiness And Docs Portal. Continue active Phase 88 -- Nontechnical Training And In-App Guidance from `docs/phase-88-nontechnical-training-in-app-guidance.md` while keeping release-cut cleanup/release-candidate gating, connector maturity claims, and optional evidence tracks separated by their phase gates.
+Phase 71 -- Checkpoint 000005 is complete. Phase 72 -- v0.1.0-rc.1 Release Candidate Hardening is complete for bounded review with `needs_review` diagnostics. Phase 73 -- Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 -- Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 -- Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 -- Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 -- Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 -- Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Phase 74 -- Checkpoint 000001 through Checkpoint 000008 are complete for GitHub Pages and agency UI product polish. Phase 75 through Phase 88 are complete for the authorized Consumer-Grade Control Plane product track through Nontechnical Training And In-App Guidance. Continue active Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate while keeping release actions, connector maturity claims, and optional evidence tracks separated by their phase gates.
 
 Use the master/sub-agent workflow gate:
 - Context / Repo Truth sub-agent
@@ -709,8 +712,7 @@ connector maturity claims remain separate future authorization.
 The next master-agent action is:
 
 ```text
-Continue active Phase 88 -- Nontechnical Training And In-App Guidance from
-`docs/phase-88-nontechnical-training-in-app-guidance.md`. Keep release-cut
-cleanup, connector maturity claims, and optional evidence tracks separated by
-their phase gates.
+Continue active Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate. Keep
+release actions, connector maturity claims, and optional evidence tracks
+separated by their phase gates.
 ```
