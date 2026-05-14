@@ -188,8 +188,9 @@ evidence write, consumer status change, release artifact, final-root readiness
 claim, consumer action claim, hosted-service claim, production-readiness claim,
 vendor claim, hardware claim, SLA/uptime claim, or ETA-quality claim. Phase
 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate is the next authorized review
-phase in the Phase 75-90 track. Any future evidence intake is optional and
-requires explicit written authorization first.
+phase in the Phase 75-90 track, with plan at
+`docs/phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md`. Any future evidence
+intake is optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1454,12 +1455,14 @@ target-originated evidence supports a target-specific status transition.
 ## Exact Next-Step Recommendation
 
 Continue Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate in the authorized
-Phase 75-90 product track. Keep the work local, bounded, and focused on
-release-candidate diagnostics, route checks, connector/backend checks, draft
-notes, and blockers. Do not tag, publish, distribute packages, collect
-evidence, or claim production readiness, hosted service, SLA, uptime, release
-readiness, compliance, agency adoption, consumer acceptance, vendor
-compatibility, hardware certification, real vendor/device proof, or evidence.
+Phase 75-90 product track from
+`docs/phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md`. Keep the work local,
+bounded, and focused on release-candidate diagnostics, route checks,
+connector/backend checks, draft notes, and blockers. Do not tag, publish,
+distribute packages, collect evidence, or claim production readiness, hosted
+service, SLA, uptime, release readiness, compliance, agency adoption, consumer
+acceptance, vendor compatibility, hardware certification, real vendor/device
+proof, or evidence.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

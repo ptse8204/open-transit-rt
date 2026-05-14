@@ -19,10 +19,12 @@ GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. active Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate, kept to local
-   release-candidate diagnostics, route checks, connector/backend checks,
-   draft release notes, and blockers matrix without tagging, publishing,
-   package distribution, evidence collection, or release-ready claims;
+1. active Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate, planned at
+   [Phase 89 Release-Cut Cleanup / v0.1.0-rc.1 Gate](phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md)
+   and kept to local release-candidate diagnostics, route checks,
+   connector/backend checks, draft release notes, and blockers matrix without
+   tagging, publishing, package distribution, evidence collection, or
+   release-ready claims;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as the bounded planning guide for Phase 87+;
@@ -107,9 +109,10 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate while keeping
-   release actions and optional evidence tracks separated by their phase gates
-   and claim boundaries.
+6. Continue Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate from
+   [`docs/phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md`](phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md)
+   while keeping release actions and optional evidence tracks separated by
+   their phase gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
 8. Run the release-candidate readiness gate:
