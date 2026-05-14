@@ -3700,6 +3700,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
 {{range .Maintenance.UpgradeRollback.Rows}}<tr id="maintenance-upgrade-rollback-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Support Bundle And Redaction Review</h3>
+<p class="warning">{{.Maintenance.SupportReview.Boundary}}</p>
+<p><strong>Status:</strong> {{.Maintenance.SupportReview.Status}} · <strong>Next action:</strong> {{.Maintenance.SupportReview.NextAction}}</p>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Maintenance.SupportReview.Rows}}<tr id="maintenance-support-review-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Maintenance Cadence Plan</h3>
+<p class="warning">{{.Maintenance.CadencePlan.Boundary}}</p>
+<p><strong>Status:</strong> {{.Maintenance.CadencePlan.Status}} · <strong>Next action:</strong> {{.Maintenance.CadencePlan.NextAction}}</p>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Maintenance.CadencePlan.Rows}}<tr id="maintenance-cadence-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h3>Next Maintenance Tasks</h3>
 <table><thead><tr><th>ID</th><th>Cadence</th><th>Task</th><th>Status</th><th>Owner</th><th>Next step</th></tr></thead><tbody>
 {{range .Maintenance.Tasks}}<tr id="maintenance-task-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Cadence}}</td><td>{{.Task}}</td><td>{{.Status}}</td><td>{{.Owner}}</td><td>{{.NextStep}}</td></tr>{{end}}

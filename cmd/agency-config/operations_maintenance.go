@@ -16,6 +16,8 @@ type operationsMaintenanceView struct {
 	Diagnostics     operationsMaintenanceDiagnostics `json:"diagnostics"`
 	BackupRestore   operationsMaintenancePanel       `json:"backup_restore"`
 	UpgradeRollback operationsMaintenancePanel       `json:"upgrade_rollback"`
+	SupportReview   operationsMaintenancePanel       `json:"support_review"`
+	CadencePlan     operationsMaintenancePanel       `json:"cadence_plan"`
 	Tasks           []operationsMaintenanceTask      `json:"tasks"`
 	SupportSummary  operationsMaintenanceSupport     `json:"support_summary"`
 	ClaimFlags      operationsMaintenanceClaimFlags  `json:"claim_flags"`
@@ -125,6 +127,8 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 		Diagnostics:     buildOperationsMaintenanceDiagnostics(),
 		BackupRestore:   buildOperationsMaintenanceBackupRestore(),
 		UpgradeRollback: buildOperationsMaintenanceUpgradeRollback(),
+		SupportReview:   buildOperationsMaintenanceSupportReview(),
+		CadencePlan:     buildOperationsMaintenanceCadencePlan(),
 		Tasks:           tasks,
 		SupportSummary: operationsMaintenanceSupport{
 			Status:     operationsStatusDiagnosticOnly,
@@ -242,6 +246,100 @@ func buildOperationsMaintenanceUpgradeRollback() operationsMaintenancePanel {
 		Status:     maintenancePanelOverall(rows),
 		Boundary:   "Upgrade and rollback review is checklist-only. The browser does not tag, package, publish, run migrations, roll back services, or restore databases.",
 		NextAction: "Use the checklist to decide whether a technical helper must run shell-based upgrade, rollback, migration-status, or restore-readiness checks.",
+		Rows:       rows,
+	}
+}
+
+func buildOperationsMaintenanceSupportReview() operationsMaintenancePanel {
+	rows := []operationsMaintenancePanelRow{
+		maintenancePanelRow(
+			"support_bundle_output_scope",
+			"Support bundle output scope",
+			operationsStatusDiagnosticOnly,
+			"support bundles are private local diagnostics under .cache/support-bundles/<timestamp>",
+			"Use support bundles only when a technical helper needs a bounded private diagnostic snapshot.",
+			"Run `make support-bundle` from an operator shell; the browser does not generate, upload, or inspect raw bundle files.",
+			"Support bundle creation does not prove evidence, compliance, production readiness, or external acceptance.",
+		),
+		maintenancePanelRow(
+			"redaction_review",
+			"Redaction review",
+			operationsStatusNeedsReview,
+			"review manifest, excluded categories, generated file list, and private-value warnings before sharing",
+			"Treat every generated support bundle as private until a human has reviewed it.",
+			"Use the redaction policy and rerun the bundle if a private value appears in a shareable summary.",
+			"A helper review does not prove the output is safe for public release.",
+		),
+		maintenancePanelRow(
+			"evidence_boundary",
+			"Evidence boundary",
+			operationsStatusReady,
+			"support bundles stay outside docs/evidence unless a separate retained-evidence phase is authorized",
+			"Do not rename support bundles as evidence or attach them to consumer packet records by default.",
+			"Follow the evidence redaction policy only after separate written maintainer approval for retained evidence.",
+			"Support diagnostics do not prove final-root readiness, deployment proof, compliance, or consumer acceptance.",
+		),
+		maintenancePanelRow(
+			"private_output_warning",
+			"Private output warning",
+			operationsStatusNeedsReview,
+			"do not expose raw logs, database URLs, access tokens, cookies, private payloads, backup dumps, or unredacted files",
+			"Share only bounded facts required for the support question.",
+			"Remove private values and convert raw output into public-safe summaries before moving anything outside the operator environment.",
+			"A warning row does not prove local files contain no private data.",
+		),
+	}
+	return operationsMaintenancePanel{
+		Status:     maintenancePanelOverall(rows),
+		Boundary:   "Support-bundle guidance is private and review-only. The browser does not generate bundles, inspect raw bundle files, upload diagnostics, or create retained evidence.",
+		NextAction: "Run support bundles from an operator shell only when needed, then perform a human redaction review before sharing any output.",
+		Rows:       rows,
+	}
+}
+
+func buildOperationsMaintenanceCadencePlan() operationsMaintenancePanel {
+	rows := []operationsMaintenancePanelRow{
+		maintenancePanelRow(
+			"daily_operating_check",
+			"Daily operating check",
+			operationsStatusDiagnosticOnly,
+			"review feed health, telemetry freshness, alerts, and local diagnostic summary status on service days",
+			"Use the private Operations Console to decide whether an issue needs same-day attention.",
+			"Escalate stale telemetry, blocked feed checks, or alert lifecycle gaps to the technical helper.",
+			"Daily checks do not prove uptime, SLA coverage, or public consumer display.",
+		),
+		maintenancePanelRow(
+			"weekly_maintenance_check",
+			"Weekly maintenance check",
+			operationsStatusDiagnosticOnly,
+			"review validators, five-feed checks, backup and restore configuration, notification drafts, and reliability summaries",
+			"Confirm that routine health rows have a named owner before service changes pile up.",
+			"Run validator-health, deployment-doctor, operations-notify, and operations-reliability helpers from an operator shell when a fresh private summary is needed.",
+			"Weekly review does not prove validator-clean feeds, compliance, or release readiness.",
+		),
+		maintenancePanelRow(
+			"monthly_recovery_check",
+			"Monthly recovery check",
+			operationsStatusNeedsReview,
+			"review GTFS update cadence, backup target, restore-drill target, rollback owner, and upgrade notes",
+			"Keep recovery readiness marked review-required until a deployment owner confirms the non-live restore target.",
+			"Run restore drills only against explicit non-live targets and keep secret connection values out of browser and docs.",
+			"Recovery planning does not prove restore success or disaster recovery coverage.",
+		),
+		maintenancePanelRow(
+			"as_needed_support_check",
+			"As-needed support check",
+			operationsStatusDiagnosticOnly,
+			"generate support bundles only for a specific support question or blocker",
+			"Capture the support question first so the bundle can be reviewed and summarized narrowly.",
+			"Run `make support-bundle`, review redaction, then share only bounded facts needed for the question.",
+			"As-needed support diagnostics do not prove compliance, external acceptance, or public launch readiness.",
+		),
+	}
+	return operationsMaintenancePanel{
+		Status:     maintenancePanelOverall(rows),
+		Boundary:   "Maintenance cadence rows are planning guidance only. They do not schedule jobs, send notifications, run validators, execute backups, or create proof.",
+		NextAction: "Use cadence rows to assign owners and decide when a technical helper should run private shell diagnostics.",
 		Rows:       rows,
 	}
 }
