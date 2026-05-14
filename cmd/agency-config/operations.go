@@ -2476,6 +2476,42 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 </tbody></table>
 <p><strong>Docs:</strong> {{range .ConnectorWorkbench.WebhookBoundary.DocsLinks}}<code>{{.}}</code> {{end}}</p>
+<h3>{{.ConnectorWorkbench.PredictionGuide.Title}}</h3>
+<p class="warning">{{.ConnectorWorkbench.PredictionGuide.Boundary}}</p>
+<table><thead><tr><th>Mode</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.PredictionGuide.Rows}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.WhatThisIs}}</td>
+<td>{{range .Inputs}}{{.}}<br>{{end}}</td>
+<td>{{range .Outputs}}{{.}}<br>{{end}}</td>
+<td>{{.FailureBehavior}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .ReviewLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<p><strong>Docs:</strong> {{range .ConnectorWorkbench.PredictionGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
+<h3>{{.ConnectorWorkbench.MonitoringGuide.Title}}</h3>
+<p class="warning">{{.ConnectorWorkbench.MonitoringGuide.Boundary}}</p>
+<table><thead><tr><th>Recipe</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.MonitoringGuide.Rows}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.WhatThisIs}}</td>
+<td>{{range .Inputs}}{{.}}<br>{{end}}</td>
+<td>{{range .Outputs}}{{.}}<br>{{end}}</td>
+<td>{{.FailureBehavior}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .ReviewLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<p><strong>Docs:</strong> {{range .ConnectorWorkbench.MonitoringGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
 <h3>{{.ConnectorWorkbench.ManifestReview.Title}}</h3>
 <p>{{.ConnectorWorkbench.ManifestReview.Summary}}</p>
 <p><strong>Safe plugin definition:</strong> {{.ConnectorWorkbench.ManifestReview.PluginDefinition}}</p>

@@ -2403,7 +2403,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -6165,7 +6165,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenRecipes := map[string]bool{}
@@ -6250,6 +6250,35 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 		for _, link := range row.ReviewLinks {
 			if !strings.HasPrefix(link, "/admin/") {
 				t.Fatalf("webhook row %s has unsafe review link %q", row.ID, link)
+			}
+		}
+	}
+	assertConnectorWorkbenchGuideShape(t, "prediction", view.PredictionGuide)
+	assertConnectorWorkbenchGuideShape(t, "monitoring", view.MonitoringGuide)
+}
+
+func assertConnectorWorkbenchGuideShape(t *testing.T, label string, guide connectorWorkbenchGuide) {
+	t.Helper()
+	seen := map[string]bool{}
+	if guide.Title == "" || guide.Boundary == "" || len(guide.Rows) == 0 || len(guide.DocsLinks) == 0 {
+		t.Fatalf("invalid %s guide: %+v", label, guide)
+	}
+	for _, row := range guide.Rows {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.WhatThisIs == "" || len(row.Inputs) == 0 || len(row.Outputs) == 0 || row.FailureBehavior == "" || row.FirstSafeCheck == "" || row.DoesNotProve == "" || len(row.ReviewLinks) == 0 || len(row.DocsLinks) == 0 {
+			t.Fatalf("invalid %s guide row: %+v", label, row)
+		}
+		if seen[row.ID] {
+			t.Fatalf("duplicate %s guide row id %q", label, row.ID)
+		}
+		seen[row.ID] = true
+		for _, link := range row.ReviewLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("%s guide row %s has unsafe review link %q", label, row.ID, link)
+			}
+		}
+		for _, link := range row.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") && !strings.HasPrefix(link, "examples/") {
+				t.Fatalf("%s guide row %s has unsafe docs link %q", label, row.ID, link)
 			}
 		}
 	}

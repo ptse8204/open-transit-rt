@@ -29,6 +29,8 @@ type connectorWorkbenchView struct {
 	DryRunCommands   []connectorWorkbenchDryRun         `json:"dry_run_commands"`
 	TelemetryPreview connectorWorkbenchTelemetryPreview `json:"telemetry_preview"`
 	WebhookBoundary  connectorWorkbenchWebhookBoundary  `json:"webhook_boundary"`
+	PredictionGuide  connectorWorkbenchGuide            `json:"prediction_guide"`
+	MonitoringGuide  connectorWorkbenchGuide            `json:"monitoring_guide"`
 	ManifestReview   connectorWorkbenchManifestReview   `json:"manifest_review"`
 	ClaimFlags       connectorWorkbenchClaimFlags       `json:"claim_flags"`
 }
@@ -128,6 +130,27 @@ type connectorWorkbenchWebhookRow struct {
 	RedactionRule  string   `json:"redaction_rule"`
 	DoesNotProve   string   `json:"does_not_prove"`
 	ReviewLinks    []string `json:"review_links"`
+}
+
+type connectorWorkbenchGuide struct {
+	Title     string                       `json:"title"`
+	Boundary  string                       `json:"boundary"`
+	Rows      []connectorWorkbenchGuideRow `json:"rows"`
+	DocsLinks []string                     `json:"docs_links"`
+}
+
+type connectorWorkbenchGuideRow struct {
+	ID              string   `json:"id"`
+	Label           string   `json:"label"`
+	Status          string   `json:"status"`
+	WhatThisIs      string   `json:"what_this_is"`
+	Inputs          []string `json:"inputs"`
+	Outputs         []string `json:"outputs"`
+	FailureBehavior string   `json:"failure_behavior"`
+	FirstSafeCheck  string   `json:"first_safe_check"`
+	DoesNotProve    string   `json:"does_not_prove"`
+	ReviewLinks     []string `json:"review_links"`
+	DocsLinks       []string `json:"docs_links"`
 }
 
 type connectorWorkbenchManifestRow struct {
@@ -308,6 +331,8 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 		DryRunCommands:   connectorWorkbenchDryRunCommands(),
 		TelemetryPreview: buildConnectorWorkbenchTelemetryPreview(),
 		WebhookBoundary:  connectorWorkbenchWebhookBoundaryView(),
+		PredictionGuide:  connectorWorkbenchPredictionGuideView(),
+		MonitoringGuide:  connectorWorkbenchMonitoringGuideView(),
 		ManifestReview: connectorWorkbenchManifestReview{
 			Title:            "Example Manifest Registry Review",
 			Summary:          "Committed synthetic connector manifests only. This registry review does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.",
@@ -452,6 +477,120 @@ func connectorWorkbenchWebhookRowView(id string, label string, means string, all
 		RedactionRule:  firstNonEmpty(redaction, "Keep diagnostics redacted."),
 		DoesNotProve:   firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
 		ReviewLinks:    safeAdminLinks(reviewLinks),
+	}
+}
+
+func connectorWorkbenchPredictionGuideView() connectorWorkbenchGuide {
+	return connectorWorkbenchGuide{
+		Title:    "Prediction Sidecar Guide",
+		Boundary: "Prediction connector review only. Vehicle Positions stay independent, Trip Updates can be withheld, and shadow/fail-closed modes do not prove ETA quality or real-world accuracy.",
+		Rows: []connectorWorkbenchGuideRow{
+			connectorWorkbenchGuideRowView(
+				"deterministic_fallback",
+				"Deterministic fallback",
+				"available",
+				"Keep the internal deterministic path as the safe baseline when an external predictor is absent or disabled.",
+				[]string{"active GTFS feed version", "current telemetry", "current vehicle assignments"},
+				[]string{"bounded Trip Updates diagnostics", "valid empty or withheld Trip Updates when confidence is insufficient"},
+				"Prefer unknown/withheld output over false certainty and keep Vehicle Positions publishing independent.",
+				"go test ./internal/prediction",
+				"Production-grade ETA quality, real-world accuracy, consumer acceptance, production readiness, or external predictor support.",
+				[]string{"/admin/operations/realtime", "/admin/operations/feed-health"},
+				[]string{"docs/requirements-trip-updates.md", "docs/integration-adapter-kit.md"},
+			),
+			connectorWorkbenchGuideRowView(
+				"external_http_shadow",
+				"External HTTP shadow review",
+				"review_only",
+				"Run a sidecar-shaped adapter against synthetic input while public Trip Updates remain unchanged.",
+				[]string{"sanitized prediction request", "Vehicle Positions reference", "synthetic assignments"},
+				[]string{"sidecar diagnostics", "withheld public mutation flag", "comparison notes"},
+				"Ignore sidecar output for public feeds until sanitized request/response and validator checks are reviewed.",
+				"go run ./examples/connectors/predictor-sidecar-stub",
+				"Named predictor compatibility, live service behavior, production readiness, consumer acceptance, or ETA quality.",
+				[]string{"/admin/operations/connectors/workbench", "/admin/operations/realtime"},
+				[]string{"examples/connectors/predictor-sidecar-stub/README.md", "docs/tutorials/external-adapter-conformance.md"},
+			),
+			connectorWorkbenchGuideRowView(
+				"external_http_fail_closed",
+				"External HTTP fail-closed adapter",
+				"disabled_by_default",
+				"Use fail-closed conformance cases before any deployment-owned external predictor is enabled.",
+				[]string{"timeout fixture", "malformed fixture", "stale fixture", "wrong-agency fixture", "low-confidence fixture"},
+				[]string{"withheld output", "bounded diagnostics", "no Vehicle Positions dependency"},
+				"Timeout, malformed, stale, wrong-agency, and low-confidence responses must withhold output or fall back safely.",
+				"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
+				"Production-grade ETA quality, real-world ETA accuracy, named predictor support, or release readiness.",
+				[]string{"/admin/operations/realtime", "/admin/operations/connectors/tests"},
+				[]string{"docs/requirements-trip-updates.md", "docs/tutorials/external-adapter-conformance.md"},
+			),
+		},
+		DocsLinks: safeDocsLinks([]string{"docs/requirements-trip-updates.md", "docs/tutorials/external-adapter-conformance.md", "docs/integration-adapter-kit.md"}),
+	}
+}
+
+func connectorWorkbenchMonitoringGuideView() connectorWorkbenchGuide {
+	return connectorWorkbenchGuide{
+		Title:    "Monitoring Export Guide",
+		Boundary: "Monitoring connector review only. Examples are redacted and no-send by default; delivery requires deployment-owned configuration outside this page.",
+		Rows: []connectorWorkbenchGuideRow{
+			connectorWorkbenchGuideRowView(
+				"no_send_export_batch",
+				"No-send export batch",
+				"covered",
+				"Review a redacted dry-run monitoring batch without notification delivery or network send.",
+				[]string{"synthetic metric counts", "synthetic incident summary", "redaction policy"},
+				[]string{"redacted dry-run export", "send_enabled=false", "network_send=false"},
+				"Do not send notifications or write evidence from example monitoring code.",
+				"go run ./examples/connectors/monitoring-export",
+				"SLA coverage, uptime guarantee, hosted service availability, production readiness, retained evidence, or consumer acceptance.",
+				[]string{"/admin/operations/maintenance", "/admin/operations/reliability"},
+				[]string{"examples/connectors/monitoring-export/README.md", "docs/tutorials/self-hosted-operations-notifications.md"},
+			),
+			connectorWorkbenchGuideRowView(
+				"redaction_review",
+				"Redaction review",
+				"covered",
+				"Check that monitoring/export fixtures keep private contacts, source bodies, and credential material out of operator-visible output.",
+				[]string{"synthetic monitoring fixture", "redaction rules", "no-send defaults"},
+				[]string{"redacted summary rows", "bounded diagnostic fields", "no status mutation"},
+				"Block outputs that expose secrets, private paths, source bodies, notification destinations, or status mutation.",
+				"go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+				"Retained evidence, production monitoring maturity, SLA/uptime proof, hosted service availability, or compliance.",
+				[]string{"/admin/operations/maintenance", "/admin/operations/connectors/tests"},
+				[]string{"docs/evidence/redaction-policy.md", "docs/tutorials/external-adapter-conformance.md"},
+			),
+			connectorWorkbenchGuideRowView(
+				"deployment_delivery",
+				"Deployment-owned delivery",
+				"needs_review",
+				"Delivery to a monitoring system is a deployment decision outside this browser page.",
+				[]string{"deployment-owned destination config", "operator authorization", "redaction plan", "rollback plan"},
+				[]string{"private monitoring setup notes", "local support bundle pointers", "delivery disabled by default"},
+				"Keep delivery disabled until the destination, auth, redaction, and rollback are reviewed by the operator.",
+				"make external-connection-check",
+				"Hosted service availability, paid support, SLA coverage, uptime guarantee, production readiness, or agency approval.",
+				[]string{"/admin/operations/maintenance", "/admin/operations/validation-center"},
+				[]string{"docs/tutorials/self-hosted-operations-notifications.md", "docs/runbooks/small-agency-pilot-operations.md"},
+			),
+		},
+		DocsLinks: safeDocsLinks([]string{"docs/tutorials/self-hosted-operations-notifications.md", "docs/evidence/redaction-policy.md", "docs/integration-adapter-kit.md"}),
+	}
+}
+
+func connectorWorkbenchGuideRowView(id string, label string, status string, what string, inputs []string, outputs []string, failure string, check string, doesNotProve string, reviewLinks []string, docsLinks []string) connectorWorkbenchGuideRow {
+	return connectorWorkbenchGuideRow{
+		ID:              firstNonEmpty(id, "connector-guide-row"),
+		Label:           firstNonEmpty(label, "Connector guide row"),
+		Status:          firstNonEmpty(status, checklistStatusNeedsReview),
+		WhatThisIs:      firstNonEmpty(what, "Private connector guidance."),
+		Inputs:          cleanLaunchpadList(inputs),
+		Outputs:         cleanLaunchpadList(outputs),
+		FailureBehavior: firstNonEmpty(failure, "Fail closed and keep diagnostics bounded."),
+		FirstSafeCheck:  firstNonEmpty(check, "make adapter-conformance"),
+		DoesNotProve:    firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
+		ReviewLinks:     safeAdminLinks(reviewLinks),
+		DocsLinks:       safeDocsLinks(docsLinks),
 	}
 }
 
