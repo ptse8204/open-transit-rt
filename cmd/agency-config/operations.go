@@ -2512,6 +2512,50 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 </tbody></table>
 <p><strong>Docs:</strong> {{range .ConnectorWorkbench.MonitoringGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
+<h3>Synthetic Conformance Viewer</h3>
+<p class="warning">{{.ConnectorWorkbench.Conformance.Boundary}}</p>
+<table><tbody>
+<tr><th>Suite</th><td><code>{{.ConnectorWorkbench.Conformance.SuitePath}}</code></td></tr>
+<tr><th>Status</th><td>{{.ConnectorWorkbench.Conformance.Status}}</td></tr>
+<tr><th>Synthetic only</th><td>{{.ConnectorWorkbench.Conformance.SyntheticOnly}}</td></tr>
+<tr><th>Manifest count</th><td>{{.ConnectorWorkbench.Conformance.ManifestCount}}</td></tr>
+<tr><th>Case count</th><td>{{.ConnectorWorkbench.Conformance.CaseCount}}</td></tr>
+</tbody></table>
+<h4>Runner Guidance</h4>
+<table><thead><tr><th>Command</th><th>Instruction</th><th>Inputs</th><th>Expected result</th><th>If it fails</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.Conformance.RunnerCommands}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td><code>{{.CommandLine}}</code></td>
+<td>{{.Inputs}}</td>
+<td>{{.ExpectedResult}}</td>
+<td>{{.FailureNextAction}}</td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+{{range .ConnectorWorkbench.Conformance.Groups}}
+<h4>{{.Label}}</h4>
+<p>Status: {{.Status}} · cases: {{.CaseCount}}</p>
+{{$group := .}}
+<table><thead><tr><th>Group</th><th>Required scenarios</th><th>Command</th><th>Case</th><th>Scenario</th><th>Fixture</th><th>Expected</th><th>Assertions</th><th>Status</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Cases}}
+<tr>
+<td><code>{{$group.ID}}</code></td>
+<td>{{join $group.RequiredScenarios ", "}}</td>
+<td><code>{{$group.CommandLine}}</code></td>
+<td><code>{{.ID}}</code></td>
+<td>{{.Scenario}}</td>
+<td><code>{{.FixturePath}}</code><br>synthetic only: {{.SyntheticOnly}}</td>
+<td>{{.ExpectedOutcome}}</td>
+<td>{{join .Assertions ", "}}</td>
+<td>{{.Status}}</td>
+<td>{{$group.DoesNotProve}}</td>
+</tr>
+{{end}}
+</tbody></table>
+{{end}}
 <h3>{{.ConnectorWorkbench.ManifestReview.Title}}</h3>
 <p>{{.ConnectorWorkbench.ManifestReview.Summary}}</p>
 <p><strong>Safe plugin definition:</strong> {{.ConnectorWorkbench.ManifestReview.PluginDefinition}}</p>

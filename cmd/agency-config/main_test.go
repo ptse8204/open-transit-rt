@@ -2403,7 +2403,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "prediction-timeout", "validator-allowlist", "monitoring-no-send", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -6165,7 +6165,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 9 || view.Conformance.CaseCount != 16 || len(view.Conformance.Groups) != 4 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenRecipes := map[string]bool{}
@@ -6255,6 +6255,7 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	}
 	assertConnectorWorkbenchGuideShape(t, "prediction", view.PredictionGuide)
 	assertConnectorWorkbenchGuideShape(t, "monitoring", view.MonitoringGuide)
+	assertConnectorWorkbenchConformanceShape(t, view.Conformance)
 }
 
 func assertConnectorWorkbenchGuideShape(t *testing.T, label string, guide connectorWorkbenchGuide) {
@@ -6279,6 +6280,37 @@ func assertConnectorWorkbenchGuideShape(t *testing.T, label string, guide connec
 		for _, link := range row.DocsLinks {
 			if !strings.HasPrefix(link, "docs/") && !strings.HasPrefix(link, "examples/") {
 				t.Fatalf("%s guide row %s has unsafe docs link %q", label, row.ID, link)
+			}
+		}
+	}
+}
+
+func assertConnectorWorkbenchConformanceShape(t *testing.T, view connectorWorkbenchConformanceView) {
+	t.Helper()
+	wantCases := map[string]int{"telemetry": 8, "prediction": 5, "validator": 1, "monitoring": 2}
+	seen := map[string]bool{}
+	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 9 || view.CaseCount != 16 || len(view.Groups) != 4 || len(view.RunnerCommands) != 4 {
+		t.Fatalf("invalid connector workbench conformance view: %+v", view)
+	}
+	for _, command := range view.RunnerCommands {
+		if command.ID == "" || command.Label == "" || command.CommandLine == "" || command.Inputs == "" || command.ExpectedResult == "" || command.FailureNextAction == "" || command.DoesNotProve == "" || len(command.DocsLinks) == 0 {
+			t.Fatalf("invalid connector conformance runner command: %+v", command)
+		}
+	}
+	for _, group := range view.Groups {
+		if group.ID == "" || group.Label == "" || group.Status != "covered" || group.CaseCount != wantCases[group.ID] || len(group.RequiredScenarios) == 0 || group.CommandLine == "" || group.DoesNotProve == "" || len(group.Cases) != wantCases[group.ID] {
+			t.Fatalf("invalid connector conformance group: %+v", group)
+		}
+		if seen[group.ID] {
+			t.Fatalf("duplicate connector conformance group %q", group.ID)
+		}
+		seen[group.ID] = true
+		for _, tc := range group.Cases {
+			if tc.ID == "" || tc.Scenario == "" || tc.FixturePath == "" || tc.ExpectedOutcome == "" || len(tc.Assertions) == 0 || tc.Status != "covered" || !tc.SyntheticOnly {
+				t.Fatalf("invalid connector conformance case: %+v", tc)
+			}
+			if !strings.HasPrefix(tc.FixturePath, "testdata/adapter-conformance/fixtures/") || strings.Contains(tc.FixturePath, "..") || strings.HasPrefix(tc.FixturePath, "/") {
+				t.Fatalf("unsafe connector conformance fixture path: %+v", tc)
 			}
 		}
 	}
@@ -6624,7 +6656,7 @@ func assertConnectorHubSafeStrings(t *testing.T, body string) {
 func assertConnectorWorkbenchSafeStrings(t *testing.T, body string) {
 	t.Helper()
 	lower := strings.ToLower(body)
-	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_validator_command", "raw_command", "shell command", "http://localhost", "127.0.0.1", "192.168.", "10.0.0.", ".local"} {
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", ".cache", "database_url", "restore_database_url", "payload_json", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_validator_command", "raw_command", "client-supplied shell", "http://localhost", "127.0.0.1", "192.168.", "10.0.0.", ".local"} {
 		if strings.Contains(lower, forbidden) {
 			t.Fatalf("connector workbench leaks forbidden private string %q: %s", forbidden, body)
 		}

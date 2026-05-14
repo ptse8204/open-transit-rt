@@ -19,6 +19,7 @@ import (
 const (
 	connectorWorkbenchCSVFixture  = "examples/connectors/telemetry-csv-replay/fixtures/replay.csv"
 	connectorWorkbenchHTTPFixture = "examples/connectors/telemetry-http-poller/fixtures/observations.json"
+	connectorWorkbenchSuitePath   = "testdata/adapter-conformance/suite.json"
 )
 
 type connectorWorkbenchView struct {
@@ -31,6 +32,7 @@ type connectorWorkbenchView struct {
 	WebhookBoundary  connectorWorkbenchWebhookBoundary  `json:"webhook_boundary"`
 	PredictionGuide  connectorWorkbenchGuide            `json:"prediction_guide"`
 	MonitoringGuide  connectorWorkbenchGuide            `json:"monitoring_guide"`
+	Conformance      connectorWorkbenchConformanceView  `json:"conformance"`
 	ManifestReview   connectorWorkbenchManifestReview   `json:"manifest_review"`
 	ClaimFlags       connectorWorkbenchClaimFlags       `json:"claim_flags"`
 }
@@ -151,6 +153,38 @@ type connectorWorkbenchGuideRow struct {
 	DoesNotProve    string   `json:"does_not_prove"`
 	ReviewLinks     []string `json:"review_links"`
 	DocsLinks       []string `json:"docs_links"`
+}
+
+type connectorWorkbenchConformanceView struct {
+	Boundary       string                        `json:"boundary"`
+	SuitePath      string                        `json:"suite_path"`
+	Status         string                        `json:"status"`
+	SyntheticOnly  bool                          `json:"synthetic_only"`
+	ManifestCount  int                           `json:"manifest_count"`
+	CaseCount      int                           `json:"case_count"`
+	Groups         []connectorWorkbenchCaseGroup `json:"groups"`
+	RunnerCommands []connectorWorkbenchDryRun    `json:"runner_commands"`
+}
+
+type connectorWorkbenchCaseGroup struct {
+	ID                string                          `json:"id"`
+	Label             string                          `json:"label"`
+	Status            string                          `json:"status"`
+	CaseCount         int                             `json:"case_count"`
+	RequiredScenarios []string                        `json:"required_scenarios"`
+	CommandLine       string                          `json:"command_line"`
+	DoesNotProve      string                          `json:"does_not_prove"`
+	Cases             []connectorWorkbenchCaseSummary `json:"cases"`
+}
+
+type connectorWorkbenchCaseSummary struct {
+	ID              string   `json:"id"`
+	Scenario        string   `json:"scenario"`
+	FixturePath     string   `json:"fixture_path"`
+	ExpectedOutcome string   `json:"expected_outcome"`
+	Assertions      []string `json:"assertions"`
+	Status          string   `json:"status"`
+	SyntheticOnly   bool     `json:"synthetic_only"`
 }
 
 type connectorWorkbenchManifestRow struct {
@@ -333,6 +367,7 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 		WebhookBoundary:  connectorWorkbenchWebhookBoundaryView(),
 		PredictionGuide:  connectorWorkbenchPredictionGuideView(),
 		MonitoringGuide:  connectorWorkbenchMonitoringGuideView(),
+		Conformance:      buildConnectorWorkbenchConformanceView(),
 		ManifestReview: connectorWorkbenchManifestReview{
 			Title:            "Example Manifest Registry Review",
 			Summary:          "Committed synthetic connector manifests only. This registry review does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.",
@@ -592,6 +627,213 @@ func connectorWorkbenchGuideRowView(id string, label string, status string, what
 		ReviewLinks:     safeAdminLinks(reviewLinks),
 		DocsLinks:       safeDocsLinks(docsLinks),
 	}
+}
+
+type connectorWorkbenchSuite struct {
+	SchemaVersion      string                        `json:"schema_version"`
+	SyntheticOnly      bool                          `json:"synthetic_only"`
+	ConnectorManifests []string                      `json:"connector_manifests"`
+	Cases              []connectorWorkbenchSuiteCase `json:"cases"`
+}
+
+type connectorWorkbenchSuiteCase struct {
+	ID              string   `json:"id"`
+	Type            string   `json:"type"`
+	Scenario        string   `json:"scenario"`
+	Fixture         string   `json:"fixture"`
+	ExpectedOutcome string   `json:"expected_outcome"`
+	Assertions      []string `json:"assertions"`
+	SyntheticOnly   bool     `json:"synthetic_only"`
+}
+
+func buildConnectorWorkbenchConformanceView() connectorWorkbenchConformanceView {
+	view := connectorWorkbenchConformanceView{
+		Boundary:       "Synthetic conformance viewer only. These rows describe committed offline cases and fixed operator-shell commands; the browser does not execute the suite, contact external systems, write evidence, or change statuses.",
+		SuitePath:      connectorWorkbenchSuitePath,
+		Status:         "covered",
+		RunnerCommands: connectorWorkbenchConformanceCommands(),
+	}
+	suite, err := readConnectorWorkbenchSuite()
+	if err != nil {
+		view.Status = checklistStatusBlocked
+		return view
+	}
+	view.SyntheticOnly = suite.SyntheticOnly
+	view.ManifestCount = len(suite.ConnectorManifests)
+	view.CaseCount = len(suite.Cases)
+	view.Groups = connectorWorkbenchCaseGroups(suite.Cases)
+	return view
+}
+
+func connectorWorkbenchConformanceCommands() []connectorWorkbenchDryRun {
+	return []connectorWorkbenchDryRun{
+		connectorWorkbenchDryRunView(
+			"adapter-conformance-full",
+			"Full synthetic conformance suite",
+			"make adapter-conformance",
+			"Operator shell outside the browser.",
+			"testdata/adapter-conformance/suite.json and committed fixtures",
+			"Telemetry, prediction, validator, and monitoring cases are present, synthetic, offline, and fail closed where required.",
+			"Open the named case in the committed suite and fix the fixture or adapter boundary expectation.",
+			"External network behavior, real validator execution, vendor compatibility, production readiness, compliance, consumer acceptance, or ETA quality.",
+			[]string{"docs/tutorials/external-adapter-conformance.md", "docs/connectors/plugin-contract.md"},
+		),
+		connectorWorkbenchDryRunView(
+			"adapter-conformance-telemetry",
+			"Telemetry cases",
+			"go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
+			"Operator shell outside the browser.",
+			"telemetry cases under testdata/adapter-conformance/fixtures",
+			"Malformed, stale, future, wrong-agency, unknown-device, low-quality, duplicate, and out-of-order inputs reject offline.",
+			"Review the failing synthetic telemetry case and keep any fix fail-closed.",
+			"Production AVL reliability, real device proof, vendor compatibility, hardware certification, compliance, or consumer acceptance.",
+			[]string{"docs/tutorials/external-adapter-conformance.md", "docs/tutorials/device-avl-integration.md"},
+		),
+		connectorWorkbenchDryRunView(
+			"adapter-conformance-prediction",
+			"Prediction cases",
+			"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
+			"Operator shell outside the browser.",
+			"prediction cases under testdata/adapter-conformance/fixtures",
+			"Timeout, malformed, stale, wrong-agency, and low-confidence outputs withhold or fail closed.",
+			"Review sanitized prediction input/output handling while keeping Vehicle Positions independent.",
+			"Production-grade ETA quality, real-world accuracy, named predictor support, production readiness, or release readiness.",
+			[]string{"docs/requirements-trip-updates.md", "docs/tutorials/external-adapter-conformance.md"},
+		),
+		connectorWorkbenchDryRunView(
+			"adapter-conformance-validator-monitoring",
+			"Validator and monitoring cases",
+			"go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance && go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+			"Operator shell outside the browser.",
+			"validator and monitoring cases under testdata/adapter-conformance/fixtures",
+			"Validator IDs stay allowlisted and monitoring/export stays redacted and no-send.",
+			"Fix server-owned validator IDs, redaction expectations, or no-send defaults in committed synthetic fixtures.",
+			"Validator-clean feeds, compliance, SLA/uptime proof, hosted service availability, production readiness, or retained evidence.",
+			[]string{"docs/tutorials/gtfs-validation-triage.md", "docs/tutorials/self-hosted-operations-notifications.md"},
+		),
+	}
+}
+
+func readConnectorWorkbenchSuite() (connectorWorkbenchSuite, error) {
+	raw, err := os.ReadFile(connectorWorkbenchFixtureAbs(connectorWorkbenchSuitePath))
+	if err != nil {
+		return connectorWorkbenchSuite{}, err
+	}
+	var suite connectorWorkbenchSuite
+	decoder := json.NewDecoder(strings.NewReader(string(raw)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&suite); err != nil {
+		return connectorWorkbenchSuite{}, err
+	}
+	if suite.SchemaVersion != "open-transit-rt.adapter_conformance.v1" || !suite.SyntheticOnly || len(suite.Cases) == 0 {
+		return connectorWorkbenchSuite{}, errors.New("invalid synthetic conformance suite")
+	}
+	return suite, nil
+}
+
+func connectorWorkbenchCaseGroups(cases []connectorWorkbenchSuiteCase) []connectorWorkbenchCaseGroup {
+	order := []struct {
+		id       string
+		label    string
+		required []string
+		command  string
+		boundary string
+	}{
+		{
+			id:       "telemetry",
+			label:    "Telemetry connector cases",
+			required: []string{"malformed", "stale", "future", "wrong-agency", "unknown-device", "low-quality", "duplicate", "out-of-order"},
+			command:  "go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
+			boundary: "Real device proof, production AVL reliability, vendor compatibility, hardware certification, compliance, or consumer acceptance.",
+		},
+		{
+			id:       "prediction",
+			label:    "Prediction connector cases",
+			required: []string{"timeout", "malformed", "stale", "wrong-agency", "low-confidence"},
+			command:  "go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
+			boundary: "Production-grade ETA quality, real-world accuracy, named predictor support, production readiness, or consumer acceptance.",
+		},
+		{
+			id:       "validator",
+			label:    "Validator connector cases",
+			required: []string{"allowlist"},
+			command:  "go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance",
+			boundary: "Validator-clean feeds, CAL-ITP/Caltrans compliance, consumer acceptance, public launch, or production readiness.",
+		},
+		{
+			id:       "monitoring",
+			label:    "Monitoring/export connector cases",
+			required: []string{"redaction", "no-send"},
+			command:  "go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+			boundary: "SLA coverage, uptime guarantee, hosted service availability, production readiness, or retained evidence.",
+		},
+	}
+	byType := map[string][]connectorWorkbenchSuiteCase{}
+	for _, tc := range cases {
+		byType[tc.Type] = append(byType[tc.Type], tc)
+	}
+	groups := make([]connectorWorkbenchCaseGroup, 0, len(order))
+	for _, item := range order {
+		groupCases := byType[item.id]
+		group := connectorWorkbenchCaseGroup{
+			ID:                item.id,
+			Label:             item.label,
+			Status:            conformanceGroupStatus(groupCases, item.required),
+			CaseCount:         len(groupCases),
+			RequiredScenarios: cleanLaunchpadList(item.required),
+			CommandLine:       item.command,
+			DoesNotProve:      item.boundary,
+		}
+		for _, tc := range groupCases {
+			group.Cases = append(group.Cases, connectorWorkbenchCaseSummary{
+				ID:              firstNonEmpty(tc.ID, item.id+"-case"),
+				Scenario:        firstNonEmpty(tc.Scenario, "scenario"),
+				FixturePath:     safeConformanceFixturePath(tc.Fixture),
+				ExpectedOutcome: firstNonEmpty(tc.ExpectedOutcome, "review"),
+				Assertions:      cleanLaunchpadList(tc.Assertions),
+				Status:          conformanceCaseStatus(tc),
+				SyntheticOnly:   tc.SyntheticOnly,
+			})
+		}
+		groups = append(groups, group)
+	}
+	return groups
+}
+
+func conformanceGroupStatus(cases []connectorWorkbenchSuiteCase, required []string) string {
+	if len(cases) == 0 {
+		return checklistStatusMissing
+	}
+	seen := map[string]bool{}
+	for _, tc := range cases {
+		if tc.SyntheticOnly {
+			seen[tc.Scenario] = true
+		}
+	}
+	for _, scenario := range required {
+		if !seen[scenario] {
+			return checklistStatusNeedsReview
+		}
+	}
+	return "covered"
+}
+
+func conformanceCaseStatus(tc connectorWorkbenchSuiteCase) string {
+	if tc.SyntheticOnly && tc.ID != "" && tc.Fixture != "" && tc.ExpectedOutcome != "" && len(tc.Assertions) > 0 {
+		return "covered"
+	}
+	return checklistStatusNeedsReview
+}
+
+func safeConformanceFixturePath(fixture string) string {
+	clean := filepath.ToSlash(filepath.Clean(fixture))
+	if clean != fixture || strings.HasPrefix(clean, "../") || strings.HasPrefix(clean, "/") {
+		return "invalid-fixture-path"
+	}
+	if !strings.HasPrefix(clean, "fixtures/") {
+		return "invalid-fixture-path"
+	}
+	return "testdata/adapter-conformance/" + clean
 }
 
 func connectorWorkbenchRecipeView(id string, label string, story string, status string, what string, need []string, runsWhere string, firstCheck string, good string, fail string, doesNotProve string, adminLinks []string, docsLinks []string, manifestIDs []string) connectorWorkbenchRecipe {
