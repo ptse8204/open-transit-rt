@@ -135,7 +135,7 @@ Phase 85 -- Checkpoint 000001: add operations maintenance center v2 plan
 Phase 85 -- Checkpoint 000002: add maintenance summary readers
 Phase 85 -- Checkpoint 000003: add backup restore and upgrade review panels
 Phase 85 -- Checkpoint 000004: add support bundle redaction and cadence guidance
-Phase 85 -- Checkpoint 000005: harden maintenance docs and tests
+Phase 85 -- Checkpoint 000005: add maintenance infrastructure check summaries
 Phase 85 -- Checkpoint 000006: close operations maintenance center v2 review
 ```
 

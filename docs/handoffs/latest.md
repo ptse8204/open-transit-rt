@@ -152,9 +152,17 @@ review, local aggregate backtest summary browsing, conservative handling
 guidance, and future proof-gate boundaries. Phase 84 stayed private, bounded,
 fail-closed, and explicit that it does not prove production-grade ETA quality
 or real-world ETA accuracy. Phase 85 -- Operations And Maintenance Center V2 is
-active with a plan at
-`docs/phase-85-operations-and-maintenance-center-v2.md`. Any future evidence
-intake is optional and requires explicit written authorization first.
+complete, with closeout at `docs/handoffs/phase-85.md`: the private
+Maintenance Center now has bounded local diagnostic summary browsing,
+backup/restore review, upgrade/rollback review, support-bundle and redaction
+guidance, maintenance cadence rows, and deployment-doctor infrastructure
+category checks. It added no browser-executed maintenance commands, public
+admin route, migration, evidence write, consumer status change, release
+artifact, hosted-service claim, production-readiness claim, vendor claim,
+hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 86 --
+Multi-Agency, Roles, Audit, And Accessibility is next in the authorized
+Phase 75-90 product track. Any future evidence intake is optional and requires
+explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1418,12 +1426,11 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue Phase 85 -- Operations And Maintenance Center V2 from
-`docs/phase-85-operations-and-maintenance-center-v2.md`. Keep the work private,
-bounded, and synthetic/local where possible, and do not claim production
-readiness, hosted service, SLA, uptime, release readiness, compliance, agency
-adoption, consumer acceptance, vendor compatibility, hardware certification,
-real vendor/device proof, or evidence.
+Continue Phase 86 -- Multi-Agency, Roles, Audit, And Accessibility. Keep the
+work private, bounded, and synthetic/local where possible, and do not claim
+production readiness, hosted service, SLA, uptime, release readiness,
+compliance, agency adoption, consumer acceptance, vendor compatibility,
+hardware certification, real vendor/device proof, or evidence.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit
