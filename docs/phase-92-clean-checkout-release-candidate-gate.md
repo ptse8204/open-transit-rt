@@ -498,3 +498,101 @@ recording.
 
 Next checkpoint:
 Phase 92 -- Checkpoint 000005: record rc gate result and blockers.
+
+## Checkpoint 000005 RC Gate Result And Blockers
+
+### Gate Status
+
+| Area | Status | Notes |
+| --- | --- | --- |
+| Clean checkout product validation | passed | Clean worktree, `git diff --check`, `make check`, `make validate`, `make test`, JSON parse, exact prepared-only tracker check, and protected-path status check passed after installing pinned local validators into the clean checkout `.cache`. |
+| Local app and five-feed diagnostics | passed | `RUN_LOCAL_APP=true make release-candidate-check` exited `0`; local app startup and all five public feed fetches passed. |
+| Connector/backend diagnostics | passed | `make external-connection-check`, `make adapter-conformance`, `make test-connector-examples`, and compose config passed. |
+| Claim-boundary diagnostics | passed | `make audit-product-acceptance` and `make audit-final-claim-review` passed. |
+| Release package creation | not_checked | `make release-package` was not run in Phase 92; Phase 95 is the authorized local package generation/audit phase. |
+| Release package audit | not_checked | `make audit-release-package` was not run because no Phase 92 package was created. |
+| Tag, GitHub Release, package/image publication | not_checked | Not authorized in Phase 92 and not performed. |
+| Remote reproducibility | needs_review | Local `main` contains Phase 91 and Phase 92 commits not pushed to the remote in this run, so a remote clean checkout cannot reproduce the current local gate until maintainers publish the branch. |
+| Diagnostic helper Java row | needs_review | `release-candidate-check` marked the Java tool row `passed` while its detail contained the macOS system-stub "Unable to locate a Java Runtime" message; the independent repo-supported pinned validator check passed in CP000002 and CP000003. |
+| Overall Phase 92 RC gate conclusion | needs_review | Authorized local diagnostics passed where run, but package generation/audit, tag, release, publication, and remote reproducibility remain not checked or blocked by authorization/scope. |
+
+### Current Blockers And Not-Checked Items
+
+| Item | Status | Impact |
+| --- | --- | --- |
+| Release package generation | not_checked | No local RC package exists from Phase 92. Phase 95 is authorized for local `.cache` package generation/audit if tooling supports it. |
+| Release package audit | not_checked | No package audit can run until a local package exists. |
+| Tag creation | blocked | `git tag` is not authorized by Phase 92. |
+| GitHub Release creation | blocked | GitHub Release creation is not authorized. |
+| Image/package publication | blocked | Public image or package publication is not authorized. |
+| Consumer submission or status movement | blocked | All consumer/aggregator targets must remain `prepared`; no submission, review, acceptance, ingestion, listing, or display claim is authorized. |
+| Retained evidence collection | blocked | Protected evidence paths remain off limits and no retained evidence was collected. |
+| Remote clean-checkout reproducibility | needs_review | The local branch is ahead of the remote; remote reproduction requires maintainer publication of the local commits, without changing the Phase 92 diagnostic claim boundary. |
+| Release-candidate helper Java reporting | needs_review | Future bug-bash work should consider making the helper treat the macOS Java stub as missing unless an executable Java runtime actually runs. |
+
+### Allowed Conclusion
+
+Phase 92 may conclude that the local clean-checkout product, app/five-feed,
+connector/backend, and claim-boundary diagnostics passed where authorized. It
+must also conclude that the release-candidate state remains `needs_review`
+because package generation/audit, tagging, release creation, publication, and
+external acceptance remain not checked or unauthorized.
+
+## Checkpoint 000005 Report
+
+Checkpoint:
+Phase 92 -- Checkpoint 000005: record rc gate result and blockers.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high, Real Release /
+Supply-Chain Sub-Agent -- GPT-5.5 high, Real Claim-Boundary / Security
+Sub-Agent -- GPT-5.5 high, and Real Planning Sub-Agent -- GPT-5.5 x-high
+informed this checkpoint. Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/phase-92-clean-checkout-release-candidate-gate.md`.
+
+Validation run:
+`git diff --check` passed. Main checkout protected-path status check passed.
+This checkpoint records prior CP000002 through CP000004 results and did not run
+new product code or script checks.
+
+Blocked checks:
+Release package generation, release package audit, tag creation, GitHub Release
+creation, image/package publication, retained evidence collection, and consumer
+submission/status movement remain blocked or not checked by Phase 92 scope.
+
+Protected path status:
+No protected evidence path was edited or generated.
+
+Consumer tracker status:
+All seven targets remain required to stay exactly `prepared`; the tracker file
+was not edited.
+
+Claim-boundary status:
+The recorded result is `needs_review`, not release-ready. It makes no
+compliance, adoption, consumer acceptance, production readiness, final-root
+readiness, hosted-service availability, vendor compatibility, hardware
+certification, SLA/uptime, or ETA-quality claim.
+
+Security/auth status:
+No route, auth behavior, token handling, credential path, public exposure, or
+admin command behavior changed.
+
+Data/migration status:
+No persistence, migration, GTFS data model, or realtime data model change is
+included. `db/migrations`, `go.mod`, and `go.sum` status checks are clean.
+
+Master review:
+Approved. The result table truthfully separates passed local diagnostics from
+not-checked or unauthorized release/evidence/publication work and preserves the
+overall `needs_review` release-candidate status.
+
+Required edits:
+None for CP000005.
+
+Decision:
+Proceed to CP000005 validation and commit, then CP000006 phase closeout.
+
+Next checkpoint:
+Phase 92 -- Checkpoint 000006: close clean checkout rc gate.
