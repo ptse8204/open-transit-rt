@@ -1,6 +1,7 @@
 package main
 
 type operationsNavGroup struct {
+	ID    string
 	Label string
 	Items []operationsNavItem
 }
@@ -16,6 +17,7 @@ type operationsNavItem struct {
 func operationsNavGroups(currentSection string) []operationsNavGroup {
 	groups := []operationsNavGroup{
 		{
+			ID:    "start",
 			Label: "Start Here",
 			Items: []operationsNavItem{
 				{Label: "Start Here", Href: "/admin/operations", Section: "dashboard"},
@@ -25,6 +27,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
+			ID:    "schedule",
 			Label: "Schedule",
 			Items: []operationsNavItem{
 				{Label: "GTFS Workbench", Href: "/admin/operations/gtfs-workbench", Section: "gtfs-workbench"},
@@ -37,6 +40,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
+			ID:    "realtime",
 			Label: "Realtime",
 			Items: []operationsNavItem{
 				{Label: "Realtime Center", Href: "/admin/operations/realtime", Section: "realtime"},
@@ -48,6 +52,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
+			ID:    "connectors",
 			Label: "Connectors",
 			Items: []operationsNavItem{
 				{Label: "Connector Hub", Href: "/admin/operations/connectors", Section: "connectors"},
@@ -56,6 +61,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
+			ID:    "health",
 			Label: "Health",
 			Items: []operationsNavItem{
 				{Label: "Validation Center", Href: "/admin/operations/validation-center", Section: "validation-center"},
@@ -65,6 +71,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
+			ID:    "maintain",
 			Label: "Maintain",
 			Items: []operationsNavItem{
 				{Label: "Maintenance", Href: "/admin/operations/maintenance", Section: "maintenance"},
@@ -73,6 +80,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
+			ID:    "learn",
 			Label: "Learn",
 			Items: []operationsNavItem{
 				{Label: "Help", Href: "/admin/operations/help", Section: "help"},

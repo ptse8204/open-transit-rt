@@ -2012,10 +2012,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title>
 <style>{{operationsCSS}}</style></head><body>
 <a class="skip-link" href="#operations-main">Skip to main content</a>
-<header class="operations-header">
+<a class="skip-link" href="#operations-nav">Skip to section navigation</a>
+<header class="operations-header" role="banner">
 <p class="app-kicker">Private operations control plane</p>
 <p class="app-breadcrumb"><a href="/admin/operations">Operations Console</a> / {{.Title}}</p>
-<h1>{{.Title}}</h1>
+<h1 id="operations-page-title">{{.Title}}</h1>
 <p class="app-meta"><span>Agency: <strong>{{.AgencyID}}</strong></span><span>environment: <span class="pill">{{.EnvironmentLabel}}</span></span><span>generated: {{formatTime .GeneratedAt}}</span></p>
 <section class="scope-banner" aria-labelledby="agency-scope-heading">
 <h2 id="agency-scope-heading">Agency scope</h2>
@@ -2031,14 +2032,14 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted"><strong>Does not prove:</strong> {{.AgencyScope.DoesNotProve}}</p>
 </section>
 </header>
-<nav class="operations-nav" aria-label="Operations Console sections">
-{{range .NavGroups}}<section class="nav-group" aria-label="{{.Label}}">
-<p class="nav-group-label">{{.Label}}</p>
+<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">
+{{range .NavGroups}}<section class="nav-group" aria-labelledby="nav-group-{{.ID}}">
+<p id="nav-group-{{.ID}}" class="nav-group-label">{{.Label}}</p>
 <div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .ExternalAdminSurface}} <span class="nav-surface">admin surface</span>{{end}}</a>{{end}}</div>
 </section>{{end}}
 </nav>
 {{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
-<main id="operations-main" tabindex="-1">
+<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">
 {{end}}
 
 {{define "contextHelpPanel"}}

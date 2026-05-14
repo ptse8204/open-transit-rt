@@ -442,7 +442,7 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", "<h1>Agency Operations Cockpit / Start Here</h1>", "No-developer path", "Technical-helper path", "Copy These Five Configured Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", `<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`, "No-developer path", "Technical-helper path", "Copy These Five Configured Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -2908,13 +2908,13 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 				t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 			}
 			body := rr.Body.String()
-			for _, want := range []string{"<title>" + tc.title + "</title>", "<h1>" + tc.title + "</h1>"} {
+			for _, want := range []string{"<title>" + tc.title + "</title>", `<h1 id="operations-page-title">` + tc.title + "</h1>"} {
 				if !strings.Contains(body, want) {
 					t.Fatalf("%s missing page-specific title %q: %s", tc.path, want, body)
 				}
 			}
 			if tc.path == "/admin/operations" {
-				firstClick := strings.Index(body, "<h1>Agency Operations Cockpit / Start Here</h1>")
+				firstClick := strings.Index(body, `<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`)
 				helpPanel := strings.Index(body, `class="context-help"`)
 				if firstClick < 0 || helpPanel < 0 || firstClick > helpPanel {
 					t.Fatalf("Start Here label should appear before contextual help: firstClick=%d helpPanel=%d body=%s", firstClick, helpPanel, body)
@@ -3186,12 +3186,19 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`<html lang="en">`,
 		`<meta name="viewport" content="width=device-width, initial-scale=1">`,
 		`class="skip-link" href="#operations-main"`,
-		`<header class="operations-header">`,
-		`<nav class="operations-nav" aria-label="Operations Console sections">`,
-		`<main id="operations-main" tabindex="-1">`,
+		`class="skip-link" href="#operations-nav"`,
+		`<header class="operations-header" role="banner">`,
+		`<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`,
+		`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
+		`<section class="nav-group" aria-labelledby="nav-group-maintain">`,
+		`<p id="nav-group-maintain" class="nav-group-label">Maintain</p>`,
+		`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 		`<script src="/admin/operations/assets/operations.js" defer></script>`,
 		`</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>`,
 		`:focus-visible`,
+		`summary:focus-visible`,
+		`@media (prefers-contrast:more)`,
+		`tbody tr:focus-within`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("shared layout missing %q: %s", want, body)
@@ -3345,12 +3352,12 @@ func TestOperationsCoreRoutesUseSharedAppShellAndDesignTokens(t *testing.T) {
 			}
 			body := rr.Body.String()
 			for _, want := range []string{
-				`<header class="operations-header">`,
+				`<header class="operations-header" role="banner">`,
 				`Private operations control plane`,
 				`class="app-breadcrumb"`,
 				`class="app-meta"`,
-				`<nav class="operations-nav" aria-label="Operations Console sections">`,
-				`<main id="operations-main" tabindex="-1">`,
+				`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
+				`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 				`:root{`,
 				`--color-surface`,
 				`--space-4`,
@@ -3358,6 +3365,7 @@ func TestOperationsCoreRoutesUseSharedAppShellAndDesignTokens(t *testing.T) {
 				`--color-focus`,
 				`.status-ready-for-local-review`,
 				`@media (prefers-reduced-motion:reduce)`,
+				`@media (prefers-contrast:more)`,
 			} {
 				if !strings.Contains(body, want) {
 					t.Fatalf("%s shared shell missing %q: %s", path, want, body)
@@ -3429,7 +3437,7 @@ func TestOperationsConsoleMobileCSSKeepsTablesFormsAndLongValuesUsable(t *testin
 		`table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}`,
 		`input,select,textarea{min-width:0;width:100%}`,
 		`.nav-link,button{width:100%}`,
-		`a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,main:focus-visible`,
+		`a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,main:focus-visible`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("mobile/focus CSS missing %q: %s", want, body)
