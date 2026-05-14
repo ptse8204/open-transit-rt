@@ -201,10 +201,20 @@ claim, or ETA-quality claim. Phase 90 -- Final Control Plane Closeout And
 Future Evidence Gate Stubs is complete, with closeout at
 `docs/handoffs/phase-90.md` and final status at
 `docs/phase-90-control-plane-final-status.md`. Phases 75-90 are complete for
-the authorized Consumer-Grade Control Plane product track. No phase starts
-automatically.
-Any future evidence intake is optional and requires explicit written
-authorization first.
+the authorized Consumer-Grade Control Plane product track. Phase 91 --
+Maintainer Route/Product Audit And Stabilization is complete, with closeout at
+`docs/handoffs/phase-91.md`: it reconciled the autonomous Phase 91-110 roadmap
+pack, recorded private route/user-task drift, added the read-only
+`make audit-operations-route-inventory` helper and test target, patched
+README/wiki route maps for the newer center-style Operations Console routes,
+and made legacy generic private Operations pages send `Cache-Control:
+no-store`. Phase 91 added no public admin route, migration, evidence write,
+consumer status change, release artifact, release-ready claim, compliance
+claim, hosted-service claim, production-readiness claim, vendor claim,
+hardware claim, SLA/uptime claim, or ETA-quality claim. The exact next
+checkpoint in the authorized autonomous run is Phase 92 -- Checkpoint 000001:
+add clean checkout rc gate plan. Any future evidence intake is optional and
+requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1468,15 +1478,14 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-No phase starts automatically. The recommended next work is maintainer review
-of `docs/handoffs/phase-90.md` and
-`docs/phase-90-control-plane-final-status.md`, then one separately authorized
-track if desired: release-cut cleanup, connector maturity, optional evidence,
-or future private UI/product refinement. Do not tag, publish, distribute
-packages, collect evidence, or claim production readiness, hosted service,
-SLA, uptime, release readiness, compliance, agency adoption, consumer
-acceptance, vendor compatibility, hardware certification, real vendor/device
-proof, or evidence without separate authorization and supporting artifacts.
+Continue the authorized autonomous post-90 roadmap with Phase 92 -- Checkpoint
+000001: add clean checkout rc gate plan. Do not tag, publish, distribute
+packages publicly, create a GitHub Release, collect retained evidence, move
+consumer statuses, contact external parties, or claim production readiness,
+hosted service, SLA, uptime, release readiness, compliance, agency adoption,
+consumer acceptance, vendor compatibility, hardware certification, real
+vendor/device proof, or evidence without separate authorization and supporting
+artifacts.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

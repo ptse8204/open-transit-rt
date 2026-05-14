@@ -492,3 +492,83 @@ Proceed to CP000005 closeout.
 
 Next checkpoint:
 Phase 91 -- Checkpoint 000005: close route product audit.
+
+## Checkpoint 000005 Closeout
+
+Checkpoint:
+Phase 91 -- Checkpoint 000005: close route product audit.
+
+Sub-agents used or simulated, including intended model level:
+Context / Repo Truth Sub-Agent -- GPT-5.5 x-high, real; Planning Sub-Agent --
+GPT-5.5 x-high, real; Claim-Boundary/Security Sub-Agent -- GPT-5.5 high,
+real; Implementation Sub-Agent -- GPT-5.5 high, simulated by Master; QA
+Sub-Agent -- GPT-5.5 high, simulated by Master; UI/UX Sub-Agent -- GPT-5.5
+high, simulated by Master; Documentation / IA Sub-Agent -- GPT-5.5 high,
+simulated by Master; Data/Migration Sub-Agent -- GPT-5.5 high, simulated by
+Master; Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`Makefile`; `README.md`; `cmd/agency-config/main_test.go`;
+`cmd/agency-config/operations.go`; `docs/current-status.md`;
+`docs/handoffs/latest.md`; `docs/handoffs/phase-91.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-91-maintainer-route-product-audit.md`;
+`docs/roadmap-status.md`;
+`docs/roadmaps/post-90-agency-grade-gtfs-rt-product/**`;
+`docs/tutorials/no-cli-agency-first-run.md`;
+`scripts/audit-operations-route-inventory.sh`;
+`scripts/test-operations-route-inventory.sh`; `wiki/README.md`;
+`wiki/browser-first-setup.md`; `wiki/operations-console-tour.md`;
+`wiki/small-agency-quick-start.md`.
+
+Validation run:
+`git status --short` passed before closeout docs updates. `git diff --check`
+passed. `make check` passed. `scripts/audit-operations-route-inventory.sh`
+passed. `OPERATIONS_ROUTE_AUDIT_STRICT_DOCS=true
+scripts/audit-operations-route-inventory.sh` passed.
+`scripts/test-operations-route-inventory.sh` passed.
+`make test-operations-route-inventory` passed.
+`go test ./cmd/agency-config -run
+'OperationsLegacyPrivatePagesUseNoStore|OperationsConsoleNavigation|OperationsRouteTitles|OperationsConsoleNavigationActiveState'`
+passed. `make audit-product-acceptance` passed.
+`make audit-final-claim-review` passed. `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null` passed. The exact
+seven-target prepared-only consumer tracker check passed. `git status --short
+-- docs/evidence/consumer-submissions docs/evidence/captured db/migrations
+go.mod go.sum` returned clean. `make validate` passed. `make test` passed.
+`docker compose -f deploy/docker-compose.yml config` passed.
+
+Blocked checks:
+None for Phase 91 closeout.
+
+Protected path status:
+No protected evidence path was modified.
+
+Consumer tracker status:
+All seven targets remain exactly `prepared`: Google Maps, Apple Maps, Transit
+App, Bing Maps, Moovit, Mobility Database, and transit.land.
+
+Claim-boundary status:
+Phase 91 made no compliance, adoption, consumer action, final-root readiness,
+hosted-service availability, production-readiness, release-ready, vendor,
+hardware, SLA/uptime, public-launch, or ETA-quality claim.
+
+Security/auth status:
+No public admin route, auth role expansion, browser command route, credential
+path, external call, raw private output exposure, or evidence path was added.
+Legacy private generic pages now set no-store cache headers.
+
+Data/migration status:
+No persistence or migration change.
+
+Master review:
+Approved. Phase 91 is complete and safe to close.
+
+Required edits:
+None.
+
+Decision:
+Phase 91 is complete.
+
+Next checkpoint:
+Phase 92 -- Checkpoint 000001: add clean checkout rc gate plan.

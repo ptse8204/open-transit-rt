@@ -415,8 +415,20 @@ release-ready claim. Phase 90 -- Final Control Plane Closeout And Future
 Evidence Gate Stubs is complete, with closeout at
 `docs/handoffs/phase-90.md` and final status at
 `docs/phase-90-control-plane-final-status.md`. Phases 75-90 are complete for
-the authorized Consumer-Grade Control Plane product track. No phase starts
-automatically.
+the authorized Consumer-Grade Control Plane product track. Phase 91 --
+Maintainer Route/Product Audit And Stabilization is complete, with closeout at
+`docs/handoffs/phase-91.md`: it reconciled the autonomous Phase 91-110
+roadmap pack, recorded a private route/user-task audit, added
+`make audit-operations-route-inventory` and
+`make test-operations-route-inventory`, patched README/wiki route maps for
+GTFS Workbench, Realtime Center, Validation Center, Connector Workbench,
+Prediction & ETA Lab, Access & Roles, and Audit Log, and made legacy generic
+private Operations pages send `Cache-Control: no-store`. Phase 91 added no
+public admin route, migration, evidence write, consumer status change, release
+artifact, hosted-service claim, production-readiness claim, release-ready
+claim, vendor claim, hardware claim, SLA/uptime claim, or ETA-quality claim.
+The authorized autonomous post-90 roadmap continues next with Phase 92 --
+Clean Checkout Release-Candidate Gate.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

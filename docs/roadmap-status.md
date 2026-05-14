@@ -8,9 +8,13 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 90 is complete for the Final Control Plane Closeout And Future Evidence
-Gate Stubs scope in the authorized Phase 75-90 Consumer-Grade Control Plane
-track. The final status artifact is
+Phase 91 is complete for Maintainer Route/Product Audit And Stabilization in
+the authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-91.md`](handoffs/phase-91.md).
+
+Phase 90 remains complete for the Final Control Plane Closeout And Future
+Evidence Gate Stubs scope in the authorized Phase 75-90 Consumer-Grade Control
+Plane track. The final status artifact is
 [`docs/phase-90-control-plane-final-status.md`](phase-90-control-plane-final-status.md)
 and the closeout handoff is
 [`docs/handoffs/phase-90.md`](handoffs/phase-90.md).
@@ -21,7 +25,13 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-No phase starts automatically. Recommended next work is separated into:
+The current authorized autonomous run continues next with Phase 92 -- Clean
+Checkout Release-Candidate Gate. Phase 92 may record local release-candidate
+diagnostics and blockers, but it must not tag, publish, create a GitHub
+Release, move consumer statuses, collect retained evidence, or claim release
+readiness.
+
+Recommended work remains separated into:
 
 1. release-cut cleanup: a separately authorized release-candidate package/tag
    gate if a maintainer wants to pursue `v0.1.0-rc.1` release action;
@@ -72,7 +82,7 @@ assessment.
 | Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 89 completed the local `v0.1.0-rc.1` gate with product, route, connector, backend, and claim-boundary diagnostics recorded, but package creation/audit and release actions remain blocked/not checked without separate authorization. | Treat the Phase 89 `needs_review` conclusion as the current release-candidate status; do not tag, package, publish, or claim release readiness without a later authorized release-cut gate. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
-| Browser-first operations | Phase 90 completed the final route inventory, feature inventory, validation matrix, blocker matrix, protected-path review, consumer-tracker review, claim-boundary review, and future authorization-gated evidence stubs. | Use `docs/phase-90-control-plane-final-status.md` as the current private control-plane summary before planning any future product phase. |
+| Browser-first operations | Phase 91 reconciled private route maps, added a local route inventory audit helper, and patched private no-store cache handling for legacy Operations pages. | Use `make audit-operations-route-inventory` before route-map or Operations Console IA changes. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
