@@ -52,6 +52,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .app-breadcrumb{font-size:var(--font-small);margin:0 0 var(--space-3);color:var(--color-muted)}
 .app-meta{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0;color:var(--color-muted)}
 .app-meta span{display:inline-flex;align-items:center;gap:var(--space-1)}
+.scope-banner{border:1px solid var(--color-border);border-radius:var(--radius-2);background:var(--color-surface-muted);padding:var(--space-3);margin:var(--space-4) 0 0}
+.scope-banner h2{font-size:1rem;margin:0 0 var(--space-2);letter-spacing:0}
+.scope-banner p{margin:.35rem 0}
+.scope-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:var(--space-3);margin:0}
+.scope-grid div{border:1px solid var(--color-border);border-radius:var(--radius-1);background:var(--color-surface);padding:var(--space-2)}
+.scope-grid dt{font-size:var(--font-small);font-weight:750;color:var(--color-muted);margin:0 0 var(--space-1)}
+.scope-grid dd{margin:0}
 .operations-nav{max-width:82rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:var(--space-3);margin:0 auto var(--space-4)}
 .nav-group{border:1px solid var(--color-border);border-radius:var(--radius-3);padding:var(--space-3);background:var(--color-surface);box-shadow:var(--shadow-1)}
 .nav-group-label{font-weight:750;margin:0 0 var(--space-2);font-size:var(--font-small);color:var(--color-muted);letter-spacing:0}

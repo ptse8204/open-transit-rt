@@ -83,6 +83,7 @@ type operationsPage struct {
 	ValidationHealthError  string
 	Reliability            compliance.ReliabilitySummary
 	ReliabilityError       string
+	AgencyScope            operationsAgencyScopeView
 	IsAdmin                bool
 	PrincipalRoles         []string
 	ConsumerError          string
@@ -1027,6 +1028,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		Section:          section,
 		NavGroups:        operationsNavGroups(section),
 		StaleThreshold:   staleThreshold(),
+		AgencyScope:      buildOperationsAgencyScope(principal),
 		IsAdmin:          principal.HasAny(auth.RoleAdmin),
 		PrincipalRoles:   safePrincipalRoles(principal.Roles),
 		Links: []evidenceLink{
@@ -1985,6 +1987,19 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="app-breadcrumb"><a href="/admin/operations">Operations Console</a> / {{.Title}}</p>
 <h1>{{.Title}}</h1>
 <p class="app-meta"><span>Agency: <strong>{{.AgencyID}}</strong></span><span>environment: <span class="pill">{{.EnvironmentLabel}}</span></span><span>generated: {{formatTime .GeneratedAt}}</span></p>
+<section class="scope-banner" aria-labelledby="agency-scope-heading">
+<h2 id="agency-scope-heading">Agency scope</h2>
+<dl class="scope-grid">
+<div><dt>Current agency</dt><dd><code>{{.AgencyScope.AgencyID}}</code></dd></div>
+<div><dt>Status</dt><dd><span class="status-chip status-{{statusClass .AgencyScope.Status}}">{{.AgencyScope.Status}}</span></dd></div>
+<div><dt>Source</dt><dd>{{.AgencyScope.Source}}</dd></div>
+<div><dt>Roles</dt><dd>{{join .AgencyScope.Roles ", "}}</dd></div>
+<div><dt>Switcher</dt><dd>{{.AgencyScope.SwitcherStatus}}</dd></div>
+<div><dt>Query rule</dt><dd>{{.AgencyScope.QueryRule}}</dd></div>
+</dl>
+<p><strong>Next:</strong> {{.AgencyScope.NextAction}}</p>
+<p class="muted"><strong>Does not prove:</strong> {{.AgencyScope.DoesNotProve}}</p>
+</section>
 </header>
 <nav class="operations-nav" aria-label="Operations Console sections">
 {{range .NavGroups}}<section class="nav-group" aria-label="{{.Label}}">

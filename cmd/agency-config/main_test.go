@@ -449,6 +449,33 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 	}
 }
 
+func TestOperationsConsoleShowsServerOwnedAgencyScope(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "agency-a", Roles: []auth.Role{auth.RoleOperator, auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations?agency_id=agency-a", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("same agency status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Agency scope", "<code>agency-a</code>", "authenticated principal agency", "locked to authenticated agency", "agency_id query values must match this agency", "operator, read_only", "URL edits"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("agency scope body missing %q: %s", want, body)
+		}
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations?agency_id=agency-b", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("conflicting agency status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+	if strings.Contains(rr.Body.String(), "agency-b") {
+		t.Fatalf("forbidden response leaked conflicting agency: %s", rr.Body.String())
+	}
+}
+
 func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
 	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
