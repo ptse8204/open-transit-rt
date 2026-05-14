@@ -69,6 +69,7 @@ type operationsPage struct {
 	PredictionLab          predictionLabView
 	Maintenance            operationsMaintenanceView
 	Access                 operationsAccessView
+	Audit                  operationsAuditView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
 	GTFSImportSource       gtfsImportSourceReview
@@ -496,6 +497,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderAccessJSON(w, r)
+	case "audit":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderAudit(w, r)
+	case "audit.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderAuditJSON(w, r)
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup":
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
@@ -2053,6 +2068,25 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
 {{range .Access.Denied}}<tr id="access-denied-{{.ID}}"><td>{{.Scenario}}</td><td>{{.WhatHappened}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "audit"}}
+{{template "layoutStart" .}}
+<h2>Audit Log</h2>
+<p class="warning">{{.Audit.Boundary}}</p>
+<p><a href="/admin/operations/audit.json">Export private audit JSON</a> · <a href="/admin/operations/access">Open Access &amp; Roles</a></p>
+<table><tbody>
+<tr><th>Agency</th><td><code>{{.Audit.AgencyID}}</code></td></tr>
+<tr><th>Status</th><td>{{.Audit.Status}}</td></tr>
+<tr><th>Generated at</th><td>{{formatTime .Audit.GeneratedAt}}</td></tr>
+<tr><th>Next action</th><td>{{.Audit.NextAction}}</td></tr>
+</tbody></table>
+{{if .Audit.Rows}}
+<table><caption>Recent scoped audit metadata</caption><thead><tr><th>ID</th><th>Created</th><th>Action</th><th>Entity</th><th>Actor recorded</th><th>Reason recorded</th><th>Old value</th><th>New value</th><th>Does not show</th></tr></thead><tbody>
+{{range .Audit.Rows}}<tr id="audit-row-{{.ID}}"><td>{{.ID}}</td><td>{{.CreatedAt}}</td><td>{{.Action}}</td><td>{{.EntityType}} / {{.EntityRef}}</td><td>{{.ActorRecorded}}</td><td>{{.ReasonRecorded}}</td><td>{{.OldValueRecorded}}</td><td>{{.NewValueRecorded}}</td><td>{{.DoesNotShow}}</td></tr>{{end}}
+</tbody></table>
+{{else}}<p class="muted">{{.Audit.EmptyState}}</p>{{end}}
 {{template "layoutEnd" .}}
 {{end}}
 

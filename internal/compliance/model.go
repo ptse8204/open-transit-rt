@@ -108,6 +108,18 @@ type ConsumerRecord struct {
 	Packet       map[string]any `json:"packet"`
 }
 
+type AuditLogRecord struct {
+	ID               int64     `json:"id"`
+	CreatedAt        time.Time `json:"created_at"`
+	Action           string    `json:"action"`
+	EntityType       string    `json:"entity_type"`
+	EntityID         string    `json:"entity_id"`
+	ActorRecorded    bool      `json:"actor_recorded"`
+	ReasonRecorded   bool      `json:"reason_recorded"`
+	OldValueRecorded bool      `json:"old_value_recorded"`
+	NewValueRecorded bool      `json:"new_value_recorded"`
+}
+
 type Scorecard struct {
 	AgencyID                string         `json:"agency_id"`
 	SnapshotAt              time.Time      `json:"snapshot_at"`

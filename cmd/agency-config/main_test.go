@@ -535,6 +535,63 @@ func TestOperationsAccessRolesAndDeniedUX(t *testing.T) {
 	}
 }
 
+func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
+	now := time.Date(2026, 5, 14, 10, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		auditRows: []compliance.AuditLogRecord{
+			{ID: 10, CreatedAt: now, Action: "device.rebind", EntityType: "device_binding", EntityID: "device-1", ActorRecorded: true, ReasonRecorded: true, OldValueRecorded: true, NewValueRecorded: true},
+			{ID: 9, CreatedAt: now.Add(-time.Minute), Action: "prediction_override.create", EntityType: "manual_override", EntityID: "bus-1", ActorRecorded: true, ReasonRecorded: false, OldValueRecorded: false, NewValueRecorded: true},
+		},
+	}
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator, auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/audit", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("audit status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Audit Log", "Recent scoped audit metadata", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("audit body missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"operator@example.com", "because dispatch requested it", "old_value_json", "new_value_json", "payload_json", "Authorization", "Bearer ", "postgres://", "/Users/", "secret"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("audit body leaked %q: %s", forbidden, body)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/audit.json", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK || !strings.HasPrefix(rr.Header().Get("Content-Type"), "application/json") {
+		t.Fatalf("audit JSON response = %d %q %s", rr.Code, rr.Header().Get("Content-Type"), rr.Body.String())
+	}
+	var view operationsAuditView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode audit JSON: %v", err)
+	}
+	if store.auditAgencyID != "demo-agency" || view.AgencyID != "demo-agency" || len(view.Rows) != 2 {
+		t.Fatalf("unexpected audit view agency=%q storeAgency=%q rows=%d view=%+v", view.AgencyID, store.auditAgencyID, len(view.Rows), view)
+	}
+	if view.Rows[0].Action != "device.rebind" || view.Rows[0].ReasonRecorded != true || view.Rows[0].OldValueRecorded != true || view.Rows[0].NewValueRecorded != true {
+		t.Fatalf("unexpected first audit row: %+v", view.Rows[0])
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/audit?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("conflicting agency audit status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+	if strings.Contains(rr.Body.String(), "other-agency") {
+		t.Fatalf("forbidden audit response leaked conflicting agency: %s", rr.Body.String())
+	}
+}
+
 func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
 	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
@@ -2793,6 +2850,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		"/admin/operations/reliability",
 		"/admin/operations/maintenance",
 		"/admin/operations/access",
+		"/admin/operations/audit",
 		"/admin/operations/telemetry",
 		"/admin/operations/telemetry-simulator",
 		"/admin/operations/devices",
@@ -2839,6 +2897,7 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 		{path: "/admin/operations/devices", title: "Device Credentials"},
 		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
 		{path: "/admin/operations/access", title: "Access &amp; Roles"},
+		{path: "/admin/operations/audit", title: "Audit Log"},
 		{path: "/admin/operations/help", title: "Operations Console Help"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
@@ -7956,6 +8015,9 @@ type fakePublicationStore struct {
 	listConsumersAgencyID   string
 	tripDiagnostics         compliance.TripUpdatesDiagnosticsSummary
 	tripDiagnosticsErr      error
+	auditRows               []compliance.AuditLogRecord
+	auditErr                error
+	auditAgencyID           string
 	gtfsImports             []compliance.GTFSImportRecord
 	gtfsImportsErr          error
 	gtfsPreview             compliance.GTFSSchedulePreview
@@ -8035,6 +8097,19 @@ func (f *fakePublicationStore) LatestTripUpdatesDiagnostics(context.Context, str
 		return compliance.TripUpdatesDiagnosticsSummary{}, f.tripDiagnosticsErr
 	}
 	return f.tripDiagnostics, nil
+}
+
+func (f *fakePublicationStore) ListAuditLog(_ context.Context, agencyID string, limit int) ([]compliance.AuditLogRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.auditAgencyID = agencyID
+	if f.auditErr != nil {
+		return nil, f.auditErr
+	}
+	if limit <= 0 || limit > len(f.auditRows) {
+		limit = len(f.auditRows)
+	}
+	return append([]compliance.AuditLogRecord(nil), f.auditRows[:limit]...), nil
 }
 
 func (f *fakePublicationStore) BuildAndStoreScorecard(_ context.Context, agencyID string, _ time.Time) (compliance.Scorecard, error) {

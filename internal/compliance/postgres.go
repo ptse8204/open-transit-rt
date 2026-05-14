@@ -24,6 +24,47 @@ func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 	return &PostgresRepository{pool: pool}
 }
 
+func (r *PostgresRepository) ListAuditLog(ctx context.Context, agencyID string, limit int) ([]AuditLogRecord, error) {
+	if agencyID == "" {
+		return nil, fmt.Errorf("agency_id is required")
+	}
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT
+		  id,
+		  created_at,
+		  action,
+		  entity_type,
+		  COALESCE(entity_id, ''),
+		  actor_id <> '',
+		  NULLIF(BTRIM(COALESCE(reason, '')), '') IS NOT NULL,
+		  old_value_json IS NOT NULL,
+		  new_value_json IS NOT NULL
+		FROM audit_log
+		WHERE agency_id = $1
+		ORDER BY created_at DESC, id DESC
+		LIMIT $2
+	`, agencyID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query audit log: %w", err)
+	}
+	defer rows.Close()
+	var records []AuditLogRecord
+	for rows.Next() {
+		var record AuditLogRecord
+		if err := rows.Scan(&record.ID, &record.CreatedAt, &record.Action, &record.EntityType, &record.EntityID, &record.ActorRecorded, &record.ReasonRecorded, &record.OldValueRecorded, &record.NewValueRecorded); err != nil {
+			return nil, fmt.Errorf("scan audit log: %w", err)
+		}
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate audit log: %w", err)
+	}
+	return records, nil
+}
+
 func (r *PostgresRepository) BootstrapPublication(ctx context.Context, input BootstrapInput) error {
 	if input.AgencyID == "" {
 		return fmt.Errorf("agency_id is required")
