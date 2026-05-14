@@ -86,6 +86,14 @@ tbody tr:nth-child(even){background:#fbfdfe}
 .path-developer{border-color:#aaa0c6}
 .status{font-weight:650}
 .copy-value{display:block;border:1px solid var(--color-border);background:var(--color-surface-muted);border-radius:var(--radius-1);padding:var(--space-2);white-space:pre-wrap;overflow-wrap:anywhere}
+.review-tools{border:1px solid var(--color-border);background:var(--color-surface-raised);border-radius:var(--radius-3);padding:var(--space-4);margin:var(--space-4) 0}
+.review-tools h3{margin-top:0}
+.review-controls{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:end}
+.review-controls label{margin:0}
+.review-controls input,.review-controls select{min-width:12rem}
+.review-status{display:block;margin:.35rem 0;color:var(--color-muted);font-size:var(--font-small)}
+.copy-action{margin:.35rem 0;background:var(--color-surface-muted);color:var(--color-action-strong);border-color:var(--color-border-strong)}
+[hidden]{display:none!important}
 .section-note,.boundary-notice{border:1px solid var(--color-border);background:var(--color-surface-raised);padding:var(--space-3);border-radius:var(--radius-2);margin:var(--space-3) 0}
 .context-help{max-width:82rem;border:1px solid #adc7d4;background:#f4f9fb;border-radius:var(--radius-3);padding:var(--space-4);margin:0 auto var(--space-4);box-shadow:var(--shadow-1)}
 .context-help h2{font-size:1.05rem;margin:0 0 var(--space-3);letter-spacing:0}
@@ -108,7 +116,7 @@ button:hover{background:var(--color-action-strong)}
 details{border:1px solid var(--color-border);border-radius:var(--radius-2);padding:var(--space-3);margin:var(--space-3) 0;background:var(--color-surface-raised)}
 summary{font-weight:750;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-@media (max-width:700px){body{margin:0;padding:1rem}.operations-header,main,.context-help{margin-left:0;margin-right:0;padding:1rem}.operations-nav,.card-grid,.feed-copy-grid,.context-help-grid{grid-template-columns:1fr}.nav-links{display:grid;grid-template-columns:1fr}.nav-link,button{width:100%}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}input,select,textarea{min-width:0;width:100%}.app-meta{display:grid;grid-template-columns:1fr}}
+@media (max-width:700px){body{margin:0;padding:1rem}.operations-header,main,.context-help{margin-left:0;margin-right:0;padding:1rem}.operations-nav,.card-grid,.feed-copy-grid,.context-help-grid{grid-template-columns:1fr}.nav-links,.review-controls{display:grid;grid-template-columns:1fr}.nav-link,button{width:100%}table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}input,select,textarea{min-width:0;width:100%}.review-controls input,.review-controls select{min-width:0;width:100%}.app-meta{display:grid;grid-template-columns:1fr}}
 `
 
 func operationsCSS() template.CSS {

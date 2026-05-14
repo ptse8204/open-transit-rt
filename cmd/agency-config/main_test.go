@@ -2683,6 +2683,68 @@ func TestOperationsProgressiveAssetPrivateAllowlistedAndNoBuild(t *testing.T) {
 	}
 }
 
+func TestOperationsProgressiveReviewToolsRenderWithNoJSFallback(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, tc := range []struct {
+		path string
+		want []string
+	}{
+		{
+			path: "/admin/operations",
+			want: []string{
+				`data-copy-card`,
+				`class="copy-value" data-copy-value=`,
+				`Copy These Five Configured Feed URLs`,
+			},
+		},
+		{
+			path: "/admin/operations/feed-health",
+			want: []string{
+				`class="review-tools" data-review-tools data-review-target="feed-health-review-rows"`,
+				`data-review-filter`,
+				`data-review-search`,
+				`data-review-sort`,
+				`data-review-remember`,
+				`data-review-reset`,
+				`id="feed-health-review-rows"`,
+				`data-review-row`,
+				`Filters only change this browser view`,
+			},
+		},
+		{
+			path: "/admin/operations/validation-health",
+			want: []string{
+				`data-admin-refresh="/admin/operations/validation-health/refresh.json"`,
+				`id="validation-refresh-status" class="review-status" aria-live="polite"`,
+				`Reloads existing private records only`,
+				`does not run validators, change feeds, create evidence, contact consumers, or prove readiness`,
+			},
+		},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("%s status = %d, want 200: %s", tc.path, rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			for _, want := range tc.want {
+				if !strings.Contains(body, want) {
+					t.Fatalf("%s body missing %q: %s", tc.path, want, body)
+				}
+			}
+			for _, forbidden := range []string{"Copy approved", "Copy production", "Copy compliant", "consumer-ready", "certified"} {
+				if strings.Contains(body, forbidden) {
+					t.Fatalf("%s body contains unsupported enhancement copy %q: %s", tc.path, forbidden, body)
+				}
+			}
+		})
+	}
+}
+
 func TestOperationsCoreRoutesUseSharedAppShellAndDesignTokens(t *testing.T) {
 	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,

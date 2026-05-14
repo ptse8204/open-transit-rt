@@ -78,3 +78,21 @@ test("command result text stays diagnostic", () => {
   assert.match(text, /Private diagnostic refresh returned needs_review/);
   assert.doesNotMatch(text.toLowerCase(), /compliant|accepted|production ready|certified/);
 });
+
+test("review row filtering keeps local diagnostic language", () => {
+  assert.equal(operations.rowMatchesFilterText("Vehicle Positions stale next action", "stale", "needs_action", ""), true);
+  assert.equal(operations.rowMatchesFilterText("Schedule configured current", "ok", "needs_action", ""), false);
+  assert.equal(operations.rowMatchesFilterText("Alerts missing artifact", "missing", "missing", "alerts"), true);
+  assert.equal(operations.rowMatchesFilterText("Alerts missing artifact", "missing", "missing", "vehicle"), false);
+});
+
+test("review row sorting puts needs-action rows first", () => {
+  const rows = operations.sortRowModels([
+    { name: "Schedule", status: "ok", text: "configured current" },
+    { name: "Alerts", status: "missing", text: "missing artifact" },
+    { name: "Vehicle Positions", status: "stale", text: "stale diagnostic" }
+  ], "needs_action");
+  assert.deepEqual(rows.map((row) => row.name), ["Alerts", "Vehicle Positions", "Schedule"]);
+  const byName = operations.sortRowModels(rows, "name");
+  assert.deepEqual(byName.map((row) => row.name), ["Alerts", "Schedule", "Vehicle Positions"]);
+});

@@ -1961,10 +1961,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Copy These Five Configured Feed URLs</h3>
 <p class="section-note">Use these configured local/reference paths for private review. Missing stays missing until publication metadata or feed records exist.</p>
 <div class="feed-copy-grid" aria-label="Copyable configured feed URLs">
-{{range .FeedURLs}}<section class="feed-url-card" id="first-run-feed-{{.ID}}">
+{{range .FeedURLs}}<section class="feed-url-card" id="first-run-feed-{{.ID}}" data-copy-card>
 <h3>{{.Label}}</h3>
 <p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span> <code>{{.ID}}</code></p>
-<code class="copy-value">{{.CopyValue}}</code>
+<code class="copy-value" data-copy-value="{{.CopyValue}}">{{.CopyValue}}</code>
 <p><strong>Current link:</strong> {{if .URL}}<a href="{{.URL}}">{{.URL}}</a>{{else}}missing{{end}}</p>
 <p><strong>Next:</strong> {{.NextAction}}</p>
 <p class="muted"><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
@@ -2376,6 +2376,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 </div>
 <p><a href="/admin/operations/feed-health.json">Export private feed health JSON</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/reliability">Open reliability diagnostics</a></p>
+<section class="review-tools" data-review-tools data-review-target="feed-health-review-rows" aria-label="Review tools">
+<h3>Review tools</h3>
+<div class="review-controls">
+<label for="feed-health-review-filter">Show <select id="feed-health-review-filter" data-review-filter><option value="all">All</option><option value="needs_action">Needs action</option><option value="blocked">Blocked</option><option value="missing">Missing</option><option value="stale">Stale</option><option value="unknown">Unknown</option><option value="fresh">Fresh</option></select></label>
+<label for="feed-health-review-search">Find <input id="feed-health-review-search" data-review-search placeholder="Feed, status, or next action"></label>
+<label for="feed-health-review-sort">Sort by <select id="feed-health-review-sort" data-review-sort><option value="needs_action">Needs action first</option><option value="name">Name A-Z</option><option value="status">Status A-Z</option></select></label>
+<label><input type="checkbox" data-review-remember> Remember these review settings on this device</label>
+<button type="button" data-review-reset>Reset review settings</button>
+</div>
+<p id="feed-health-review-status" class="review-status" aria-live="polite" data-review-status>Showing all private diagnostic rows.</p>
+<p class="muted">Filters only change this browser view. They do not run validators, change feeds, create evidence, contact consumers, or prove readiness.</p>
+</section>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.FeedHealth.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>consumer_statuses_changed</code></th><td>{{.FeedHealth.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
@@ -2386,9 +2398,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>consumer_acceptance_claimed</code></th><td>{{.FeedHealth.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
 <tr><th><code>public_launch_claimed</code></th><td>{{.FeedHealth.ClaimFlags.PublicLaunchClaimed}}</td></tr>
 </tbody></table>
-<div class="card-grid" aria-label="Plain-language feed health rows">
+<div class="card-grid" id="feed-health-review-rows" aria-label="Plain-language feed health rows">
 {{range .FeedHealth.Rows}}
-<section class="card">
+<section class="card" data-review-row data-review-status="{{.Status}}" data-review-name="{{.Label}}" data-review-updated="{{.LastChecked}}">
 <h3>{{.Label}}</h3>
 {{if .PublicPath}}<p><strong>Public path:</strong> <code>{{.PublicPath}}</code></p>{{end}}
 <p><strong>Configured URL:</strong> <code>{{.ConfiguredURL}}</code></p>
@@ -2540,6 +2552,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>compliance_claimed</code></th><td>{{.ValidationHealth.ComplianceClaimed}}</td></tr>
 <tr><th><code>production_readiness_claimed</code></th><td>{{.ValidationHealth.ProductionReadinessClaimed}}</td></tr>
 </tbody></table>
+<section class="review-tools" aria-label="Review tools">
+<h3>Review tools</h3>
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<button type="button" data-admin-refresh="/admin/operations/validation-health/refresh.json" aria-describedby="validation-refresh-status">Refresh validator summary</button>
+<p id="validation-refresh-status" class="review-status" aria-live="polite">Reloads existing private records only. It does not run validators, change feeds, create evidence, contact consumers, or prove readiness.</p>
+</section>
 {{if .IsAdmin}}
 <h3>Run All Validators</h3>
 <form method="post" action="/admin/operations/validation-health">
