@@ -66,6 +66,7 @@ type operationsPage struct {
 	FeedHealth             operationsFeedHealthView
 	ValidationCenter       operationsValidationCenterView
 	Realtime               operationsRealtimeView
+	PredictionLab          predictionLabView
 	Maintenance            operationsMaintenanceView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
@@ -373,6 +374,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderRealtimeJSON(w, r)
+	case "prediction-lab":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderPredictionLab(w, r)
+	case "prediction-lab.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderPredictionLabJSON(w, r)
 	case "gtfs-import":
 		w.Header().Set("Cache-Control", "no-store")
 		switch r.Method {
@@ -1086,6 +1101,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedHealth = buildOperationsFeedHealth(page)
 	page.Realtime = buildOperationsRealtime(page)
+	page.PredictionLab = buildPredictionLab(page)
 	page.Maintenance = buildOperationsMaintenance(page)
 	page.SetupSteps = setupSteps(page)
 	page.ReadinessItems = readinessItems(page)
@@ -3332,6 +3348,71 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 {{end}}
 <p class="muted">This summary is based only on recorded Trip Updates diagnostics. It omits raw telemetry payloads, full score details, token fields, and private debug blobs.</p>
+{{end}}
+
+{{define "prediction-lab"}}
+{{template "layoutStart" .}}
+<h2>Prediction &amp; ETA Lab</h2>
+<p class="warning">{{.PredictionLab.Boundary}}</p>
+<p><a href="/admin/operations/prediction-lab.json">Export private prediction lab JSON</a> · <a href="/admin/operations/realtime">Open Realtime Center</a> · <a href="/admin/operations/feed-health">Open Feed Health</a></p>
+<div class="card-grid" aria-label="Prediction lab summary">
+<section class="card">
+<h3>Trip Updates Decision</h3>
+<p class="status"><span class="status-chip status-{{statusClass .PredictionLab.Summary.Status}}">{{.PredictionLab.Summary.Status}}</span></p>
+<p><strong>Current signal:</strong> {{.PredictionLab.Summary.CurrentSignal}}</p>
+<p><strong>Adapter:</strong> {{.PredictionLab.Summary.AdapterName}}</p>
+<p><strong>Diagnostics:</strong> {{.PredictionLab.Summary.DiagnosticsStatus}} / {{.PredictionLab.Summary.DiagnosticsReason}}</p>
+<p><strong>Counts:</strong> {{.PredictionLab.Summary.TripUpdatesEmitted}} emitted; {{.PredictionLab.Summary.EligiblePredictionCandidates}} eligible; {{.PredictionLab.Summary.WithheldCount}} withheld.</p>
+<p><strong>Next action:</strong> {{.PredictionLab.Summary.NextAction}}</p>
+<p><strong>Does not prove:</strong> {{.PredictionLab.Summary.DoesNotProve}}</p>
+</section>
+<section class="card">
+<h3>Safe Fallback</h3>
+<p>{{.PredictionLab.Deterministic.Boundary}}</p>
+<p><strong>Status:</strong> {{.PredictionLab.Deterministic.Status}}</p>
+<p><strong>Review signal:</strong> {{.PredictionLab.Deterministic.ReviewSignal}}</p>
+<p><strong>Next action:</strong> {{.PredictionLab.Deterministic.NextAction}}</p>
+<p><strong>Does not prove:</strong> {{.PredictionLab.Deterministic.DoesNotProve}}</p>
+</section>
+</div>
+<h3>Deterministic Predictor Diagnostics</h3>
+<table><thead><tr><th>Diagnostic</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.Deterministic.Rows}}
+<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>
+{{end}}
+</tbody></table>
+<h3>Why ETAs Are Missing</h3>
+<table><thead><tr><th>Reason</th><th>Count</th><th>What it means</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.WithheldReasons}}
+<tr><td><strong>{{.Label}}</strong><br><code>{{.Reason}}</code></td><td>{{.Count}}</td><td>{{.WhatItMeans}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>
+{{else}}
+<tr><td colspan="5">No withheld reason rows are available yet. Send fresh telemetry, confirm an active schedule, then review Realtime Center and Feed Health.</td></tr>
+{{end}}
+</tbody></table>
+<h3>Needs Operator Review</h3>
+<table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.ReviewRows}}
+<tr><td>{{.Severity}}</td><td>{{.Area}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>
+{{end}}
+</tbody></table>
+<h3>Fixed Local Checks</h3>
+<p>These commands are operator-shell guidance only. The browser does not run them, capture output, contact sidecars, or create evidence.</p>
+<table><thead><tr><th>Check</th><th>Instruction</th><th>Expected result</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.Commands}}
+<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><code>{{.CommandLine}}</code></td><td>{{.ExpectedResult}}</td><td>{{.DoesNotProve}}</td></tr>
+{{end}}
+</tbody></table>
+<h3>Claim Flags</h3>
+<table><tbody>
+<tr><th><code>browser_predictor_run_enabled</code></th><td>{{.PredictionLab.ClaimFlags.BrowserPredictorRunEnabled}}</td></tr>
+<tr><th><code>external_network_contacted</code></th><td>{{.PredictionLab.ClaimFlags.ExternalNetworkContacted}}</td></tr>
+<tr><th><code>backend_command_execution_enabled</code></th><td>{{.PredictionLab.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.PredictionLab.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.PredictionLab.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.PredictionLab.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+<tr><th><code>real_world_eta_accuracy_claimed</code></th><td>{{.PredictionLab.ClaimFlags.RealWorldETAAccuracyClaimed}}</td></tr>
+</tbody></table>
+{{template "layoutEnd" .}}
 {{end}}
 
 {{define "realtime"}}

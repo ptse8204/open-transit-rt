@@ -2677,6 +2677,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		`href="/admin/operations/telemetry-simulator">Telemetry Simulator</a>`,
 		"Schedule",
 		"Realtime",
+		`href="/admin/operations/prediction-lab">Prediction &amp; ETA Lab</a>`,
 		"Connectors",
 		"Health",
 		"Maintain",
@@ -2697,6 +2698,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		"/admin/operations/gtfs-workbench",
 		"/admin/operations/gtfs-import",
 		"/admin/operations/feed-health",
+		"/admin/operations/prediction-lab",
 		"/admin/operations/readiness",
 		"/admin/operations/feeds",
 		"/admin/operations/gtfs-quality",
@@ -2744,6 +2746,7 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 		{path: "/admin/operations", title: "Agency Operations Cockpit / Start Here"},
 		{path: "/admin/operations/gtfs-workbench", title: "GTFS Workbench"},
 		{path: "/admin/operations/gtfs-import", title: "Browser GTFS Import"},
+		{path: "/admin/operations/prediction-lab", title: "Prediction &amp; ETA Lab"},
 		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
 		{path: "/admin/operations/devices", title: "Device Credentials"},
 		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
@@ -2784,6 +2787,7 @@ func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *test
 		{path: "/admin/operations/gtfs-workbench", href: "/admin/operations/gtfs-workbench"},
 		{path: "/admin/operations/feed-health", href: "/admin/operations/feed-health"},
 		{path: "/admin/operations/gtfs-quality", href: "/admin/operations/gtfs-quality"},
+		{path: "/admin/operations/prediction-lab", href: "/admin/operations/prediction-lab"},
 		{path: "/admin/operations/telemetry", href: "/admin/operations/telemetry"},
 		{path: "/admin/operations/connectors/workbench", href: "/admin/operations/connectors/workbench"},
 		{path: "/admin/operations/connectors/tests", href: "/admin/operations/connectors/tests"},
@@ -5312,6 +5316,187 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	}
 }
 
+func TestPredictionLabRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		t.Run(string(role), func(t *testing.T) {
+			handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+				Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+			}})
+			for _, path := range []string{"/admin/operations/prediction-lab", "/admin/operations/prediction-lab.json"} {
+				req := httptest.NewRequest(http.MethodGet, path, nil)
+				rr := httptest.NewRecorder()
+				handler.ServeHTTP(rr, req)
+				if rr.Code != http.StatusOK {
+					t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+				}
+				if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+					t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+				}
+			}
+		})
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/prediction-lab", "/admin/operations/prediction-lab.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+	}
+
+	authenticated := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		for _, path := range []string{"/admin/operations/prediction-lab", "/admin/operations/prediction-lab.json"} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			authenticated.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/prediction-lab?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict html status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/prediction-lab.json?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	authenticated.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict json status = %d, want 403", rr.Code)
+	}
+	for _, path := range []string{"/public/operations/prediction-lab", "/public/operations/prediction-lab.json"} {
+		req = httptest.NewRequest(http.MethodGet, path, nil)
+		rr = httptest.NewRecorder()
+		authenticated.ServeHTTP(rr, req)
+		if rr.Code != http.StatusNotFound {
+			t.Fatalf("public prediction lab route %s status = %d, want 404", path, rr.Code)
+		}
+	}
+}
+
+func TestPredictionLabJSONShapeFlagsAndDeterministicDiagnostics(t *testing.T) {
+	now := time.Date(2026, 5, 14, 12, 0, 0, 0, time.UTC)
+	coverage := 50.0
+	store := &fakePublicationStore{
+		tripDiagnostics: compliance.TripUpdatesDiagnosticsSummary{
+			Recorded:                      true,
+			SnapshotAt:                    now,
+			AdapterName:                   "deterministic",
+			DiagnosticsStatus:             prediction.StatusOK,
+			DiagnosticsReason:             prediction.ReasonPartialPredictions,
+			ActiveFeedVersionID:           "feed-demo",
+			DiagnosticsPersistenceOutcome: "stored",
+			Metrics: prediction.Metrics{
+				TelemetryRowsConsidered:      2,
+				AssignmentsConsidered:        2,
+				EligiblePredictionCandidates: 2,
+				TripUpdatesEmitted:           1,
+				UnknownAssignments:           1,
+				AmbiguousAssignments:         1,
+				StaleTelemetryRows:           1,
+				ManualOverrideAssignments:    1,
+				WithheldByReason: map[string]int{
+					prediction.ReasonDegradedAssignment:       2,
+					prediction.ReasonBelowConfidenceThreshold: 1,
+				},
+				UnknownAssignmentRate:   prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "current unknown assignments / current assignments considered"},
+				AmbiguousAssignmentRate: prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "current ambiguous assignments / current assignments considered"},
+				StaleTelemetryRate:      prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "stale latest telemetry rows / telemetry rows considered"},
+				TripUpdatesCoverageRate: prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "emitted non-canceled Trip Updates / eligible in-service ETA candidates"},
+				FutureStopCoverageRate:  prediction.RateMetric{Numerator: 1, Denominator: 2, Percent: &coverage, Status: "measured", DenominatorDefinition: "non-canceled Trip Updates with at least one future stop update / eligible in-service ETA candidates"},
+			},
+		},
+	}
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/prediction-lab.json?agency_id=demo-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json prefix", got)
+	}
+	var view predictionLabView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode prediction lab: %v", err)
+	}
+	assertPredictionLabShape(t, view)
+	assertPredictionLabFlagsFalse(t, view.ClaimFlags)
+	assertPredictionLabSafeStrings(t, rr.Body.String())
+	if view.AgencyID != "demo-agency" || view.Summary.AdapterName != "deterministic" || view.Summary.WithheldCount != 3 || view.Summary.TripUpdatesEmitted != 1 || len(view.WithheldReasons) != 2 || len(view.ReviewRows) == 0 {
+		t.Fatalf("unexpected prediction lab summary: %+v reasons=%+v reviews=%+v", view.Summary, view.WithheldReasons, view.ReviewRows)
+	}
+	if view.Deterministic.Status != checklistStatusOK || len(view.Deterministic.Rows) != 4 {
+		t.Fatalf("unexpected deterministic diagnostics: %+v", view.Deterministic)
+	}
+	seen := map[string]bool{}
+	for _, reason := range view.WithheldReasons {
+		seen[reason.Reason] = true
+		if reason.WhatItMeans == "" || reason.NextAction == "" || reason.DoesNotProve == "" {
+			t.Fatalf("withheld reason lacks guidance: %+v", reason)
+		}
+	}
+	for _, want := range []string{prediction.ReasonDegradedAssignment, prediction.ReasonBelowConfidenceThreshold} {
+		if !seen[want] {
+			t.Fatalf("missing withheld reason %q in %+v", want, view.WithheldReasons)
+		}
+	}
+}
+
+func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
+	now := time.Date(2026, 5, 14, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`, GeneratedAt: now},
+		tripDiagnostics: compliance.TripUpdatesDiagnosticsSummary{
+			Recorded:            true,
+			SnapshotAt:          now,
+			AdapterName:         "deterministic",
+			DiagnosticsStatus:   prediction.StatusOK,
+			DiagnosticsReason:   prediction.ReasonPartialPredictions,
+			ActiveFeedVersionID: "feed-demo",
+			Metrics: prediction.Metrics{
+				EligiblePredictionCandidates: 1,
+				WithheldByReason:             map[string]int{prediction.ReasonStaleTelemetry: 1},
+			},
+		},
+	}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/prediction-lab", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("prediction lab html missing %q: %s", want, body)
+		}
+	}
+	if strings.Contains(body, `<script>alert("x")</script>`) {
+		t.Fatalf("html did not escape script-like metadata: %s", body)
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, "/public/operations/prediction-lab", "test predictor", "test connection", "start sidecar", "validated ETA performance", "consumer-ready", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved", "vendor compatible", "certified hardware"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("prediction lab html contains forbidden %q: %s", forbidden, body)
+		}
+	}
+	assertPredictionLabSafeStrings(t, body)
+}
+
 func TestOperationsConsoleViewsAreAgencyScoped(t *testing.T) {
 	now := time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC)
 	handler := newOperationsTestHandler(&handler{
@@ -6439,6 +6624,58 @@ func assertRealtimeFlagsFalse(t *testing.T, flags operationsRealtimeClaimFlags) 
 	t.Helper()
 	if flags.BrowserTelemetrySendEnabled || flags.BackendCommandExecutionEnabled || flags.DeviceTokenCollectedByBrowser || flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ProductionAVLReliabilityClaimed || flags.ProductionGradeETAClaimed || flags.RealWorldETAAccuracyClaimed || flags.SLAClaimed || flags.PublicLaunchClaimed || flags.ConsumerAcceptanceClaimed {
 		t.Fatalf("realtime flags must all be false: %+v", flags)
+	}
+}
+
+func assertPredictionLabShape(t *testing.T, view predictionLabView) {
+	t.Helper()
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.Summary.CurrentSignal == "" || view.Summary.NextAction == "" || view.Summary.DoesNotProve == "" || view.Deterministic.Boundary == "" || view.Deterministic.Status == "" || view.Deterministic.ReviewSignal == "" || len(view.Deterministic.Rows) != 4 || len(view.WithheldReasons) == 0 || len(view.ReviewRows) == 0 || len(view.Commands) != 2 {
+		t.Fatalf("invalid prediction lab shape: %+v", view)
+	}
+	for _, row := range view.Deterministic.Rows {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab diagnostic row: %+v", row)
+		}
+	}
+	for _, row := range view.WithheldReasons {
+		if row.Reason == "" || row.Label == "" || row.WhatItMeans == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab reason row: %+v", row)
+		}
+	}
+	for _, row := range view.ReviewRows {
+		if row.Severity == "" || row.Area == "" || row.Signal == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab review row: %+v", row)
+		}
+	}
+	for _, command := range view.Commands {
+		if command.ID == "" || command.Label == "" || command.CommandLine == "" || command.ExpectedResult == "" || command.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab command: %+v", command)
+		}
+		if strings.Contains(command.CommandLine, "curl ") || strings.Contains(command.CommandLine, "http://") || strings.Contains(command.CommandLine, "https://") {
+			t.Fatalf("prediction lab command must remain local/offline guidance: %+v", command)
+		}
+	}
+}
+
+func assertPredictionLabFlagsFalse(t *testing.T, flags predictionLabClaimFlags) {
+	t.Helper()
+	if flags.BrowserPredictorRunEnabled || flags.ExternalNetworkContacted || flags.BackendCommandExecutionEnabled || flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.ProductionGradeETAClaimed || flags.RealWorldETAAccuracyClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.SLAClaimed || flags.HostedSaaSClaimed || flags.PublicLaunchClaimed || flags.ConsumerAcceptanceClaimed || flags.RawObservedRowsPersisted {
+		t.Fatalf("prediction lab flags must all be false: %+v", flags)
+	}
+}
+
+func assertPredictionLabSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", "database_url", "restore_database_url", "payload_json", "raw telemetry payload", "raw observed", "raw prediction", "raw gtfs-rt", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_report", "stdout", "stderr", "argv", "private_debug", "score_details", "bearer "} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("prediction lab leaks forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "compliance_achieved", "sla_covered", "uptime_guaranteed", "eta_accuracy_proven", "production_grade_eta_proven"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("prediction lab emits forbidden label %q: %s", forbidden, body)
+		}
 	}
 }
 
