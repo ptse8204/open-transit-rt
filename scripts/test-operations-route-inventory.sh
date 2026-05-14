@@ -33,6 +33,7 @@ def copy_required_files(dst):
         "cmd/agency-config/main.go",
         "cmd/agency-config/operations.go",
         "cmd/agency-config/operations_navigation.go",
+        "cmd/agency-config/operations_route_registry.go",
         "cmd/agency-config/operations_admin.js",
         "docs/phase-90-control-plane-final-status.md",
         "README.md",
@@ -73,9 +74,9 @@ with tempfile.TemporaryDirectory(prefix="open-transit-route-audit-") as tmp:
     }
     run([str(AUDIT)], env=env)
 
-    nav = fixture / "cmd" / "agency-config" / "operations_navigation.go"
-    nav.write_text(nav.read_text(encoding="utf-8").replace(
-        '{Label: "GTFS Workbench", Href: "/admin/operations/gtfs-workbench", Section: "gtfs-workbench"},\n',
+    registry = fixture / "cmd" / "agency-config" / "operations_route_registry.go"
+    registry.write_text(registry.read_text(encoding="utf-8").replace(
+        '{Section: "gtfs-workbench", Path: "/admin/operations/gtfs-workbench", JSONPath: "/admin/operations/gtfs-workbench.json", NavLabel: "GTFS Workbench", PageTitle: "GTFS Workbench", GroupID: "schedule", Methods: []string{"GET"}, NoStore: true},\n',
         "",
     ), encoding="utf-8")
     run([str(AUDIT)], env=env, ok=False)

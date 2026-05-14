@@ -2945,6 +2945,104 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	}
 }
 
+func TestOperationsRouteRegistryCentralizesCanonicalInventory(t *testing.T) {
+	groups := make(map[string]bool)
+	for _, group := range operationsRouteGroups() {
+		if group.ID == "" || group.Label == "" {
+			t.Fatalf("route group has empty field: %+v", group)
+		}
+		if groups[group.ID] {
+			t.Fatalf("duplicate route group: %s", group.ID)
+		}
+		groups[group.ID] = true
+	}
+
+	sections := make(map[string]bool)
+	paths := make(map[string]bool)
+	for _, route := range operationsRoutes() {
+		if route.Section == "" || route.Path == "" || route.NavLabel == "" || route.GroupID == "" {
+			t.Fatalf("route registry row has empty required field: %+v", route)
+		}
+		if sections[route.Section] {
+			t.Fatalf("duplicate route section: %s", route.Section)
+		}
+		if paths[route.Path] {
+			t.Fatalf("duplicate route path: %s", route.Path)
+		}
+		if !groups[route.GroupID] {
+			t.Fatalf("route %s references unknown group %q", route.Path, route.GroupID)
+		}
+		if strings.HasPrefix(route.Path, "/public/") {
+			t.Fatalf("route registry must not include public admin route: %+v", route)
+		}
+		if len(route.Methods) == 0 {
+			t.Fatalf("route %s has no method posture", route.Path)
+		}
+		if route.ExternalAdminSurface {
+			if route.JSONPath != "" {
+				t.Fatalf("external admin surface should not define Operations JSON pair: %+v", route)
+			}
+		} else {
+			if !strings.HasPrefix(route.Path, "/admin/operations") {
+				t.Fatalf("canonical Operations route has unexpected path: %+v", route)
+			}
+			if route.PageTitle == "" {
+				t.Fatalf("canonical Operations route missing page title: %+v", route)
+			}
+			if !route.NoStore {
+				t.Fatalf("canonical Operations route must be no-store: %+v", route)
+			}
+			if operationsPageTitle(route.Section) != route.PageTitle {
+				t.Fatalf("route %s page title mismatch: got %q want %q", route.Section, operationsPageTitle(route.Section), route.PageTitle)
+			}
+		}
+		if _, ok := operationsRouteBySection(route.Section); !ok {
+			t.Fatalf("route section lookup failed for %s", route.Section)
+		}
+		if _, ok := operationsRouteByPath(route.Path); !ok {
+			t.Fatalf("route path lookup failed for %s", route.Path)
+		}
+		if route.JSONPath != "" {
+			if !strings.HasSuffix(route.JSONPath, ".json") {
+				t.Fatalf("JSON route lacks .json suffix: %+v", route)
+			}
+			if _, ok := operationsRouteByPath(route.JSONPath); !ok {
+				t.Fatalf("JSON route lookup failed for %s", route.JSONPath)
+			}
+		}
+		sections[route.Section] = true
+		paths[route.Path] = true
+	}
+
+	if got := len(operationsCanonicalHTMLRoutes()); got != 28 {
+		t.Fatalf("canonical HTML route count = %d, want 28", got)
+	}
+	jsonRoutes := operationsCanonicalJSONRoutes()
+	if got := len(jsonRoutes); got != 20 {
+		t.Fatalf("canonical JSON route count = %d, want 20: %v", got, jsonRoutes)
+	}
+	if !containsString(jsonRoutes, "/admin/operations/checklist.json") {
+		t.Fatalf("registry must include checklist JSON route: %v", jsonRoutes)
+	}
+	commands := operationsCommandRoutes()
+	if len(commands) != 1 || commands[0].Path != "/admin/operations/validation-health/refresh.json" || commands[0].Method != http.MethodPost || !commands[0].NoStore {
+		t.Fatalf("command route registry mismatch: %+v", commands)
+	}
+	externals := operationsExternalAdminSurfaceRoutes()
+	externalPaths := make([]string, 0, len(externals))
+	for _, route := range externals {
+		externalPaths = append(externalPaths, route.Path)
+	}
+	for _, want := range []string{"/admin/gtfs-studio", "/admin/alerts/console"} {
+		if !containsString(externalPaths, want) {
+			t.Fatalf("external admin surface missing %q: %+v", want, externals)
+		}
+	}
+	if title := operationsPageTitle("not-a-real-section"); title != "Operations Console" {
+		t.Fatalf("unknown section title = %q, want Operations Console", title)
+	}
+}
+
 func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,

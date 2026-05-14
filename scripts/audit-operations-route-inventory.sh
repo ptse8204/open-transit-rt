@@ -43,68 +43,6 @@ import sys
 ROOT = pathlib.Path(sys.argv[1]).resolve()
 STRICT_DOCS = sys.argv[2].lower() in {"1", "true", "yes"}
 
-HTML_ROUTES = {
-    "/admin/operations": "Start Here",
-    "/admin/operations/launchpad": "Start Here",
-    "/admin/operations/setup-wizard": "Start Here",
-    "/admin/operations/setup": "Start Here",
-    "/admin/operations/gtfs-workbench": "Schedule",
-    "/admin/operations/gtfs-import": "Schedule",
-    "/admin/operations/feeds": "Schedule",
-    "/admin/operations/feed-health": "Schedule",
-    "/admin/operations/gtfs-quality": "Schedule",
-    "/admin/operations/validation-health": "Schedule",
-    "/admin/operations/realtime": "Realtime",
-    "/admin/operations/prediction-lab": "Realtime",
-    "/admin/operations/telemetry": "Realtime",
-    "/admin/operations/devices": "Realtime",
-    "/admin/operations/telemetry-simulator": "Realtime",
-    "/admin/operations/connectors": "Connectors",
-    "/admin/operations/connectors/workbench": "Connectors",
-    "/admin/operations/connectors/tests": "Connectors",
-    "/admin/operations/validation-center": "Health",
-    "/admin/operations/readiness": "Health",
-    "/admin/operations/checklist": "Health",
-    "/admin/operations/reliability": "Health",
-    "/admin/operations/maintenance": "Maintain",
-    "/admin/operations/access": "Maintain",
-    "/admin/operations/audit": "Maintain",
-    "/admin/operations/help": "Learn",
-    "/admin/operations/consumers": "Learn",
-    "/admin/operations/evidence": "Learn",
-}
-
-JSON_ROUTES = {
-    "/admin/operations.json",
-    "/admin/operations/launchpad.json",
-    "/admin/operations/setup-wizard.json",
-    "/admin/operations/feed-health.json",
-    "/admin/operations/validation-center.json",
-    "/admin/operations/readiness.json",
-    "/admin/operations/telemetry-simulator.json",
-    "/admin/operations/realtime.json",
-    "/admin/operations/prediction-lab.json",
-    "/admin/operations/connectors.json",
-    "/admin/operations/connectors/workbench.json",
-    "/admin/operations/connectors/tests.json",
-    "/admin/operations/gtfs-workbench.json",
-    "/admin/operations/validation-health.json",
-    "/admin/operations/reliability.json",
-    "/admin/operations/maintenance.json",
-    "/admin/operations/access.json",
-    "/admin/operations/audit.json",
-    "/admin/operations/help.json",
-}
-
-COMMAND_ROUTES = {
-    "/admin/operations/validation-health/refresh.json": "POST",
-}
-
-EXTERNAL_ADMIN_SURFACES = {
-    "/admin/gtfs-studio": "Schedule",
-    "/admin/alerts/console": "Realtime",
-}
-
 DOC_ROUTE_MAP_FILES = [
     "README.md",
     "wiki/README.md",
@@ -136,23 +74,92 @@ def read(path):
 
 main_go = read("cmd/agency-config/main.go")
 operations_go = read("cmd/agency-config/operations.go")
-navigation_go = read("cmd/agency-config/operations_navigation.go")
+registry_go = read("cmd/agency-config/operations_route_registry.go")
 operations_js = read("cmd/agency-config/operations_admin.js")
 phase90 = read("docs/phase-90-control-plane-final-status.md")
 
 mux_routes = set(re.findall(r'mux\.Handle(?:Func)?\("([^"]+)"', main_go))
+
+
+def registry_block(name):
+    match = re.search(rf"var {name} = \[\][A-Za-z0-9_]+\{{\n(.*?)\n\}}", registry_go, re.S)
+    if not match:
+        failures.append(f"missing route registry block: {name}")
+        return ""
+    return match.group(1)
+
+
+def registry_rows(block, prefix):
+    return [
+        line.strip().rstrip(",")
+        for line in block.splitlines()
+        if line.strip().startswith(prefix)
+    ]
+
+
+def field(row, name):
+    match = re.search(rf'{name}: "([^"]*)"', row)
+    return match.group(1) if match else ""
+
+
+group_labels = {}
+for row in registry_rows(registry_block("operationsRouteGroupRegistry"), "{ID:"):
+    group_id = field(row, "ID")
+    label = field(row, "Label")
+    if group_id and label:
+        group_labels[group_id] = label
+
 nav_items = []
-for match in re.finditer(
-    r'\{Label: "([^"]+)", Href: "([^"]+)", Section: "([^"]+)"([^}]*)\}',
-    navigation_go,
-):
-    label, href, section, rest = match.groups()
-    nav_items.append({
-        "label": label,
-        "href": href,
-        "section": section,
-        "external": "ExternalAdminSurface: true" in rest,
-    })
+HTML_ROUTES = {}
+JSON_ROUTES = set()
+EXTERNAL_ADMIN_SURFACES = {}
+for row in registry_rows(registry_block("operationsRouteRegistry"), "{Section:"):
+    section = field(row, "Section")
+    path = field(row, "Path")
+    json_path = field(row, "JSONPath")
+    nav_label = field(row, "NavLabel")
+    group_id = field(row, "GroupID")
+    external = "ExternalAdminSurface: true" in row
+    if not path:
+        failures.append(f"registry row missing path for section: {section}")
+        continue
+    if nav_label:
+        nav_items.append({
+            "label": nav_label,
+            "href": path,
+            "section": section,
+            "external": external,
+        })
+    if json_path:
+        JSON_ROUTES.add(json_path)
+    group_label = group_labels.get(group_id, group_id)
+    if external:
+        EXTERNAL_ADMIN_SURFACES[path] = group_label
+    else:
+        HTML_ROUTES[path] = group_label
+
+COMMAND_ROUTES = {}
+for row in registry_rows(registry_block("operationsCommandRouteRegistry"), "{Section:"):
+    path = field(row, "Path")
+    method = field(row, "Method")
+    if path and method:
+        COMMAND_ROUTES[path] = method
+
+EXPECTED_COUNTS = {
+    "html": 28,
+    "json": 20,
+    "command": 1,
+    "external": 2,
+}
+if len(HTML_ROUTES) != EXPECTED_COUNTS["html"]:
+    failures.append(f"canonical HTML route count = {len(HTML_ROUTES)}, want {EXPECTED_COUNTS['html']}")
+if len(JSON_ROUTES) != EXPECTED_COUNTS["json"]:
+    failures.append(f"canonical JSON route count = {len(JSON_ROUTES)}, want {EXPECTED_COUNTS['json']}")
+if len(COMMAND_ROUTES) != EXPECTED_COUNTS["command"]:
+    failures.append(f"command route count = {len(COMMAND_ROUTES)}, want {EXPECTED_COUNTS['command']}")
+if len(EXTERNAL_ADMIN_SURFACES) != EXPECTED_COUNTS["external"]:
+    failures.append(f"external admin surface count = {len(EXTERNAL_ADMIN_SURFACES)}, want {EXPECTED_COUNTS['external']}")
+
 nav_routes = {item["href"] for item in nav_items}
 
 switch_cases = set()

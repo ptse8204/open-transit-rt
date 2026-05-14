@@ -209,3 +209,114 @@ Commit CP000001, then implement the primary scoped refactor.
 
 Next checkpoint:
 Phase 94 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint 000002 Primary Scoped Refactor
+
+Implementation result:
+
+- Added a central private Operations Console route registry in
+  `cmd/agency-config/operations_route_registry.go`.
+- Refactored navigation grouping and page-title lookup to read from the route
+  registry instead of independent hardcoded lists.
+- Added registry helpers for canonical private HTML routes, canonical private
+  JSON routes, command routes, external admin surfaces, section lookup, and
+  path lookup.
+- Added focused Go coverage for registry completeness, JSON/HTML route pairing,
+  command-route isolation, external admin surfaces, no-store posture, unknown
+  section fallback, and nav/title stability.
+- Reworked `scripts/audit-operations-route-inventory.sh` to parse the Go route
+  registry rather than carrying a second route table.
+- Fixed an existing route-inventory audit gap by including
+  `/admin/operations/checklist.json`, which raises the canonical private JSON
+  route count from 19 to 20.
+
+Behavior preserved:
+
+- Handler dispatch remains explicit in `operationsRoot`.
+- Production `mux.Handle` registrations remain unchanged.
+- No public admin route, route method, CSRF rule, role rule, body-size cap,
+  template behavior, JavaScript fetch rule, or feed behavior changed.
+
+Changed files:
+
+- `cmd/agency-config/operations_route_registry.go`
+- `cmd/agency-config/operations_navigation.go`
+- `cmd/agency-config/main_test.go`
+- `scripts/audit-operations-route-inventory.sh`
+- `scripts/test-operations-route-inventory.sh`
+- `docs/phase-94-operations-console-architecture-refactor.md`
+
+## Checkpoint 000002 Report
+
+Checkpoint:
+Phase 94 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high identified the audit
+omission for `/admin/operations/checklist.json` and safe registry seams. Real
+Planning Sub-Agent -- GPT-5.5 x-high confirmed the registry-first plan. Real
+UI/UX / Documentation IA Sub-Agent -- GPT-5.5 high confirmed no copy/claim
+changes were needed for this checkpoint. Real Claim-Boundary / Security
+Sub-Agent -- GPT-5.5 high confirmed route/auth/CSRF constraints. Implementation
+and QA roles were simulated by the Master Agent. Master Agent -- GPT-5.5
+x-high, current thread.
+
+Changed files:
+`cmd/agency-config/operations_route_registry.go`;
+`cmd/agency-config/operations_navigation.go`;
+`cmd/agency-config/main_test.go`;
+`scripts/audit-operations-route-inventory.sh`;
+`scripts/test-operations-route-inventory.sh`;
+`docs/phase-94-operations-console-architecture-refactor.md`.
+
+Validation run:
+`gofmt`; `git diff --check`; `go test ./cmd/agency-config -run
+'TestOperationsConsoleNavigationIsGroupedAndRouteStable|TestOperationsRouteTitlesAndFirstClickLabelOrder|TestOperationsRouteRegistryCentralizesCanonicalInventory|TestOperationsConsoleNavigationActiveStateForRepresentativeSections'`;
+`make audit-operations-route-inventory`; `make test-operations-route-inventory`;
+`make check`; `make audit-product-acceptance`; `make audit-final-claim-review`;
+consumer tracker JSON parse; exact prepared-only consumer tracker assertion;
+protected-path status check.
+
+Blocked checks:
+None for CP000002. Broader `make validate`, full `make test`, and Docker
+Compose config validation are scheduled for CP000003.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched by
+tracked changes.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets remain required to stay `prepared`.
+
+Claim-boundary status:
+The checkpoint is a private architecture refactor and local audit improvement
+only. It makes no release readiness, compliance, adoption, consumer
+acceptance, production readiness, final-root readiness, hosted-service
+availability, vendor compatibility, hardware certification, SLA/uptime, or
+ETA-quality claim.
+
+Security/auth status:
+Production route registrations, authenticated middleware wrapping, handler
+dispatch, CSRF checks, body-size caps, and no-store route behavior were
+preserved. The registry is metadata used by nav/title/audit paths first; it
+does not broaden route exposure.
+
+Data/migration status:
+No persistence, migration, GTFS data model, tenant model, or realtime data
+model change is included.
+
+Master review:
+Approved. The checkpoint closes the Phase 91 route-truth duplication finding
+with a narrow registry seam, improves audit coverage for an existing JSON
+route, and keeps behavior-changing route work out of scope.
+
+Required edits:
+None for CP000002.
+
+Decision:
+Commit CP000002, then run broader validation and patch any required gaps in
+CP000003.
+
+Next checkpoint:
+Phase 94 -- Checkpoint 000003: run validation and patch required gaps.
