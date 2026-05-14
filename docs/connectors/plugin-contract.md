@@ -57,6 +57,12 @@ Required fields are connector ID/type, display name, description, mode,
 input/output contracts, failure behavior, redaction policy, claim boundary,
 docs link, and conformance cases.
 
+The private Connector Workbench at
+`/admin/operations/connectors/workbench` reviews committed example manifests
+and local/synthetic recipe guidance in the browser. It is not a dynamic plugin
+loader, connector installer, sidecar runner, vendor portal client, evidence
+collector, or consumer submission tool.
+
 ## Connector Types
 
 `telemetry_source`: Transforms external observations into the authenticated
@@ -87,6 +93,9 @@ Manifest validation rejects:
   credential values;
 - private local paths, `file://` URLs, or unsafe non-HTTPS URLs outside
   loopback/example documentation hosts;
+- unsafe URL/private-endpoint strings across displayable manifest fields,
+  including descriptions, mode names, failure behavior, redaction policy,
+  claim-boundary text, and conformance descriptions;
 - unsupported positive claims about CAL-ITP/Caltrans compliance, agency
   approval/adoption, consumer acceptance, hosted SaaS, paid support/SLA,
   production readiness, vendor compatibility, hardware certification, public

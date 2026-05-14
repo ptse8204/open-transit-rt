@@ -237,3 +237,25 @@ in place and local app startup is safe. If an environment limitation blocks a
 check, record the exact blocker in the Phase 83 handoff without converting it
 into a release, compliance, consumer, production, vendor, hardware, SLA, or
 ETA-quality claim.
+
+## Closeout Status
+
+Phase 83 is complete. The private Operations Console now includes:
+
+- `GET /admin/operations/connectors/workbench`
+- `GET /admin/operations/connectors/workbench.json`
+
+The Workbench covers the seven planned operator stories with local/synthetic
+recipe review, committed example manifest review, fixed dry-run command
+guidance, synthetic telemetry normalization preview, webhook/AVL transform
+boundary guidance, predictor and monitoring recipe guidance, and offline
+synthetic adapter-conformance coverage.
+
+The browser route is read-only and runs no connector command, sidecar, vendor
+call, portal action, telemetry send, validator execution, evidence write, or
+consumer tracker mutation. Manifest validation was hardened so displayable
+manifest text rejects unsafe URL/private-endpoint strings before Workbench
+rendering.
+
+Closeout lives at `docs/handoffs/phase-83.md`. The next authorized product
+phase is Phase 84 -- Prediction And ETA Lab.

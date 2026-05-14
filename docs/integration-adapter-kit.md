@@ -32,6 +32,7 @@ Use the existing boundary that matches the system being integrated:
 | Send device, GPS, or AVL observations | Transform to `POST /v1/telemetry` | [Device And AVL Integration](tutorials/device-avl-integration.md) |
 | Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
 | Validate an external connector manifest | Sidecar/manifest contract and local checks | [Connector Plugin Contract](connectors/plugin-contract.md), [External Connection Readiness](external-connection-readiness.md) |
+| Choose a local/synthetic connector recipe in the private browser UI | `/admin/operations/connectors/workbench` | [Connector Plugin Contract](connectors/plugin-contract.md), [External Adapter Conformance](tutorials/external-adapter-conformance.md) |
 | Run synthetic adapter conformance | Offline synthetic conformance suite | [External Adapter Conformance](tutorials/external-adapter-conformance.md) |
 | Swap or evaluate Trip Updates prediction | `internal/prediction.Adapter` | [Dependencies](dependencies.md), [Trip Updates requirements](requirements-trip-updates.md) |
 | Validate GTFS or GTFS-Realtime artifacts | Server-side allowlisted validator IDs | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md), [Dependencies](dependencies.md) |
@@ -59,6 +60,10 @@ Use the existing boundary that matches the system being integrated:
 10. Review the Operations Console and public Vehicle Positions output.
 11. Use `/admin/operations/readiness` to review CAL-ITP-style readiness gaps
    without converting workflow status into a compliance or acceptance claim.
+12. Use `/admin/operations/connectors/workbench` when a nontechnical operator
+   needs to choose among CSV replay, GPS/API polling, webhook transforms,
+   synthetic telemetry, prediction sidecar, monitoring/export, or off-host
+   validation recipes before a technical helper runs the fixed local commands.
 
 For release-candidate review, add `make external-connection-check`,
 `make adapter-conformance`, validator-health review, telemetry simulator
@@ -140,6 +145,16 @@ instructions at `/admin/operations/connectors/tests`. That page is guidance
 only: it does not execute commands from the browser, run validators, start
 sidecars, contact external systems, write evidence, or change consumer
 statuses.
+
+The private Connector Workbench at
+`/admin/operations/connectors/workbench` is the browser-first companion for
+recipe choice, committed example manifest review, fixed operator-shell dry-run
+guidance, synthetic telemetry normalization preview, webhook/AVL transform
+boundaries, predictor and monitoring recipe guidance, and synthetic
+conformance coverage. It executes nothing from the browser and does not prove
+real vendor/device integration, hardware certification, compliance,
+production readiness, SLA/uptime, consumer acceptance, or production-grade ETA
+quality.
 
 The CLI covers telemetry malformed/stale/future/wrong-agency/unknown-device/
 low-quality/duplicate/out-of-order cases, prediction timeout/malformed/stale/

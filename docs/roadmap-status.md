@@ -8,24 +8,25 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 82 is complete for the Feed Health And Validation Center scope in the
-authorized Phase 75-90 Consumer-Grade Control Plane track. Phase 83 --
-Connector Workbench is active with a plan at
-[`docs/phase-83-connector-workbench.md`](phase-83-connector-workbench.md).
-The planned work is private, read-only by default, local/synthetic, no-send,
-no-execution connector review for recipes, manifests, dry-run guidance,
-telemetry previews, prediction sidecars, monitoring/export, off-host
-validation, and synthetic conformance. Phase 72 still ended with
+Phase 83 is complete for the Connector Workbench scope in the authorized
+Phase 75-90 Consumer-Grade Control Plane track. It added private
+`/admin/operations/connectors/workbench` and
+`/admin/operations/connectors/workbench.json` surfaces for local/synthetic
+connector recipes, committed example manifest review, fixed operator-shell
+dry-run guidance, synthetic telemetry normalization preview, webhook/AVL
+transform boundaries, predictor and monitoring recipe guidance, and offline
+synthetic adapter-conformance coverage. Phase 72 still ended with
 `needs_review` release-candidate diagnostics, not a release-ready pass. Phase
 74 CP000008 remains the latest GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. Phase 83 -- Connector Workbench, kept to local/synthetic connector recipes,
-   manifests, conformance results, and safe operator guidance;
+1. Phase 84 -- Prediction And ETA Lab, kept to private diagnostics,
+   deterministic fallback explanation, bounded shadow/backtest review, and
+   explicit non-production ETA claim boundaries;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded planning guide for Phase 83+;
+   as the bounded planning guide for Phase 84+;
 3. keep release-cut cleanup, release-candidate gate, postponed connector
    maturity, and optional evidence tracks separated by their phase gates and
    claim boundaries;
@@ -74,7 +75,7 @@ assessment.
 | Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed and published GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 CP000008 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
-| Browser-first operations | Phase 82 completed a private Feed Health And Validation Center that combines feed status, validator health, GTFS quality triage, sanitized issue drilldowns, readiness timeline, and current blockers while preserving Go server-rendered no-JS fallback. | Continue the authorized product track with Phase 83 Connector Workbench, keeping connector maturity local/synthetic and claim-bounded. |
+| Browser-first operations | Phase 83 completed a private Connector Workbench that combines local/synthetic connector recipes, committed manifest review, fixed dry-run guidance, synthetic normalization preview, webhook/AVL boundaries, predictor/monitoring guidance, and synthetic conformance coverage while preserving Go server-rendered no-JS fallback. | Continue the authorized product track with Phase 84 Prediction And ETA Lab, keeping ETA diagnostics private, bounded, and claim-limited. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
@@ -96,10 +97,10 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 82 Feed Health And Validation Center closeout.
+1. Review the completed Phase 83 Connector Workbench closeout.
 2. Use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded product-track guide for Phase 83+.
+   as the bounded product-track guide for Phase 84+.
 3. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
@@ -107,7 +108,7 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue with Phase 83 -- Connector Workbench while keeping release-cut
+6. Continue with Phase 84 -- Prediction And ETA Lab while keeping release-cut
    cleanup and optional evidence tracks separated by their phase gates and
    claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
@@ -156,6 +157,7 @@ assessment.
    /admin/operations/telemetry
    /admin/operations/telemetry-simulator
    /admin/operations/connectors
+   /admin/operations/connectors/workbench
    /admin/operations/connectors/tests
    /admin/operations/maintenance
    /admin/operations/help

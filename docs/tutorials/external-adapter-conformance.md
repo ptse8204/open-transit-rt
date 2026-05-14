@@ -14,13 +14,17 @@ make adapter-conformance
 Private UI guidance:
 
 ```text
+/admin/operations/connectors/workbench
 /admin/operations/connectors/tests
 ```
 
-The Operations Console page lists the fixed offline checks as generated
-instructions only. It does not execute commands, read commands from connector
-manifests, capture output, run validators, start sidecars, write evidence,
-contact external parties, or change consumer statuses.
+The Connector Workbench helps operators choose a local/synthetic recipe,
+review committed example manifests, read fixed dry-run guidance, inspect
+synthetic telemetry normalization preview rows, and understand offline
+conformance coverage. The Connector Tests page lists the fixed offline checks
+as generated instructions only. Neither page executes commands, reads commands
+from connector manifests, captures output, runs validators, starts sidecars,
+writes evidence, contacts external parties, or changes consumer statuses.
 
 Run one section:
 

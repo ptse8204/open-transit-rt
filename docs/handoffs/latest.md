@@ -133,15 +133,22 @@ Feed Health And Validation Center, with closeout at
 `/admin/operations/validation-center` and
 `/admin/operations/validation-center.json` for five feed rows, validator
 health, GTFS quality summary, sanitized issue drilldowns, readiness timeline,
-current blockers, and prepared-only consumer tracker state. Phase 80 through
-Phase 82 added no public admin route, migration, evidence write, consumer
-status change, release artifact, hosted service claim, production-readiness
-claim, vendor claim, SLA claim, or ETA-quality claim. Phase 83 -- Connector
-Workbench is active. Checkpoint 000001 adds the plan at
-`docs/phase-83-connector-workbench.md`; implementation should keep the work
-private, read-only by default, local/synthetic, no-send, no-execution, and
-claim-bounded. Any future evidence intake is optional and requires explicit
-written authorization first.
+current blockers, and prepared-only consumer tracker state. Phase 83 is
+complete for Connector Workbench, with closeout at
+`docs/handoffs/phase-83.md`: the private Operations Console now has
+`/admin/operations/connectors/workbench` and
+`/admin/operations/connectors/workbench.json` for local/synthetic connector
+recipe review, committed example manifest review, fixed operator-shell dry-run
+guidance, synthetic telemetry normalization preview, webhook/AVL transform
+boundaries, predictor and monitoring recipe guidance, and offline synthetic
+adapter-conformance coverage. Phase 80 through Phase 83 added no public admin
+route, migration, evidence write, consumer status change, release artifact,
+hosted service claim, production-readiness claim, vendor claim, hardware
+claim, SLA claim, or ETA-quality claim. Phase 84 -- Prediction And ETA Lab is
+next and should keep prediction diagnostics private, bounded, fail-closed, and
+explicit that they do not prove production-grade ETA quality or real-world ETA
+accuracy. Any future evidence intake is optional and requires explicit written
+authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1405,12 +1412,14 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue Phase 83 -- Connector Workbench from
-`docs/phase-83-connector-workbench.md`. Start from the Phase 75 roadmap pack
-and the Phase 82 closeout, keep the work private and synthetic/local, and do
-not claim vendor compatibility, hardware certification, real vendor/device
-proof, evidence, compliance, consumer acceptance, hosted service, release
-readiness, SLA, uptime, or production-grade ETA quality.
+Continue Phase 84 -- Prediction And ETA Lab from
+`docs/roadmaps/consumer-grade-control-plane/phase-prompts/phase-84-prediction-eta-lab.md`.
+Start from the Phase 75 roadmap pack and the Phase 83 closeout, keep the work
+private, bounded, fail-closed, and synthetic/local where possible, and do not
+claim production-grade ETA quality, real-world ETA accuracy, vendor
+compatibility, hardware certification, real vendor/device proof, evidence,
+compliance, consumer acceptance, hosted service, release readiness, SLA, or
+uptime.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

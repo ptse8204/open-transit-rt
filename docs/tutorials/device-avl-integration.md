@@ -11,6 +11,14 @@ adapters, validators, monitoring, and consumer workflows, start with the
 [Integration Adapter Kit](../integration-adapter-kit.md). This file remains the
 detailed operator tutorial for `/v1/telemetry` and AVL/device troubleshooting.
 
+The private Connector Workbench at
+`/admin/operations/connectors/workbench` can help an operator choose between
+CSV replay, GPS/API polling, webhook-transform, or synthetic-only telemetry
+recipes before a technical helper runs local commands. It is planning and
+review guidance only: it does not send telemetry, start sidecars, contact
+vendors, collect evidence, certify hardware, or prove real-world AVL
+reliability.
+
 ## Telemetry Endpoint
 
 Send one vehicle observation at a time:
