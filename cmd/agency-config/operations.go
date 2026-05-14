@@ -2290,6 +2290,14 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>What this does not prove:</strong> A successful import does not prove validator-clean status, schedule correctness, agency approval, consumer acceptance, compliance, final-root readiness, hosted operation, or production readiness.</p>
 </section>
 </div>
+<h3>Source Review Before Import</h3>
+<table><tbody>
+<tr><th>Accepted source</th><td>Use a GTFS ZIP upload from the operator workstation or a safe HTTP(S) URL. The browser form does not accept local/private URLs unless the runtime explicitly enables local testing overrides.</td></tr>
+<tr><th>What changes</th><td>A successful published import updates the active schedule feed version through the existing importer. This is not a preview-only action.</td></tr>
+<tr><th>Review before submit</th><td>Confirm the source file, expected agency identity, service period, route/stops/trips coverage, license/contact metadata, and rollback plan before an admin starts the import.</td></tr>
+<tr><th>Safety controls</th><td>Import requires an admin role, CSRF protection, form size limits, temporary runtime storage, server-owned import paths, and bounded result rendering.</td></tr>
+<tr><th>Technical helper needed</th><td>Use a technical helper for large files, scripted imports, staged diffing, rollback execution, source-permission uncertainty, or validator tooling failures.</td></tr>
+</tbody></table>
 <h3>Current Active Schedule</h3>
 <table><tbody>
 <tr><th>Active feed version</th><td>{{if .ActiveFeedVersion}}<code>{{.ActiveFeedVersion}}</code>{{else}}missing active schedule{{end}}</td></tr>

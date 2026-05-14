@@ -1392,6 +1392,11 @@ func TestGTFSImportRouteAuthMatrixAndBoundaries(t *testing.T) {
 				t.Fatalf("Cache-Control = %q, want no-store", got)
 			}
 			body := rr.Body.String()
+			for _, want := range []string{"Source Review Before Import", "not a preview-only action", "admin role", "CSRF protection", "private URLs", "Technical helper needed"} {
+				if !strings.Contains(body, want) {
+					t.Fatalf("GET body missing source review copy %q: %s", want, body)
+				}
+			}
 			if role == auth.RoleAdmin && !strings.Contains(body, `method="post"`) {
 				t.Fatalf("admin GTFS import page does not include import forms: %s", body)
 			}
