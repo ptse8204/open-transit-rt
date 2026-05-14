@@ -56,6 +56,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 		{
 			Label: "Health",
 			Items: []operationsNavItem{
+				{Label: "Validation Center", Href: "/admin/operations/validation-center", Section: "validation-center"},
 				{Label: "Readiness", Href: "/admin/operations/readiness", Section: "readiness"},
 				{Label: "Checklist", Href: "/admin/operations/checklist", Section: "checklist"},
 				{Label: "Reliability", Href: "/admin/operations/reliability", Section: "reliability"},
@@ -115,6 +116,8 @@ func operationsPageTitle(section string) string {
 		return "Feed Health Dashboard"
 	case "validation-health":
 		return "Validator Health"
+	case "validation-center":
+		return "Feed Health And Validation Center"
 	case "readiness":
 		return "Readiness Checklist V2"
 	case "checklist":

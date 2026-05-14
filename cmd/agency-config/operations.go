@@ -63,6 +63,7 @@ type operationsPage struct {
 	Help                   operationsHelpView
 	ContextHelp            operationsContextHelp
 	FeedHealth             operationsFeedHealthView
+	ValidationCenter       operationsValidationCenterView
 	Realtime               operationsRealtimeView
 	Maintenance            operationsMaintenanceView
 	TelemetrySimulator     operationsTelemetrySimulatorView
@@ -301,6 +302,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderFeedHealthJSON(w, r)
+	case "validation-center":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderValidationCenter(w, r)
+	case "validation-center.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderValidationCenterJSON(w, r)
 	case "readiness":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
@@ -1055,6 +1070,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.GTFSWorkbench = h.buildGTFSWorkbenchView(r, page)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedHealth = buildOperationsFeedHealth(page)
+	page.ValidationCenter = buildOperationsValidationCenter(page)
 	page.Realtime = buildOperationsRealtime(page)
 	page.Maintenance = buildOperationsMaintenance(page)
 	page.SetupSteps = setupSteps(page)
@@ -2664,6 +2680,78 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 </div>
 <p class="muted">No external evidence is created by viewing this page, and this workflow does not contact consumers, validators, agency systems, or external portals.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "validation-center"}}
+{{template "layoutStart" .}}
+<h2>Feed Health And Validation Center</h2>
+<p class="warning">{{.ValidationCenter.Boundary}}</p>
+<p><a href="/admin/operations/validation-center.json">Export private center JSON</a> · <a href="/admin/operations/feed-health">Open feed health</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/gtfs-quality">Open GTFS quality</a> · <a href="/admin/operations/readiness">Open readiness checklist</a></p>
+<div class="card-grid" aria-label="Validation center summary">
+<section class="card">
+<h3>Feed Rows</h3>
+<p class="status"><span class="status-chip status-unknown">{{.ValidationCenter.Counts.FeedRows}}</span></p>
+<p>Five private feed rows are expected: feed discovery, static schedule, Vehicle Positions, Trip Updates, and Alerts.</p>
+</section>
+<section class="card">
+<h3>Validator Rows</h3>
+<p class="status"><span class="status-chip status-unknown">{{.ValidationCenter.Counts.ValidationRows}}</span></p>
+<p>Static and realtime validator rows stay separate from internal importer quality signals.</p>
+</section>
+<section class="card">
+<h3>Prepared Tracker</h3>
+<p class="status"><span class="status-chip status-unknown">{{.ValidationCenter.Counts.ConsumerRows}}</span></p>
+<p>Prepared packet records remain prepared only. This page does not submit, review, or contact any target.</p>
+</section>
+</div>
+<div class="card-grid" aria-label="Feed health and validation explanation">
+<section class="card empty-state">
+<h3>Feed Health vs Validation</h3>
+<p><strong>Feed health</strong> is the private route and freshness signal available from configured feed records, reliability snapshots, and public path metadata.</p>
+<p><strong>Validation</strong> is the server-owned validator tooling and latest result signal for static GTFS or GTFS-Realtime artifacts.</p>
+<p><strong>GTFS quality</strong> summarizes static validator and importer notices into operator guidance without editing schedule data.</p>
+<p><strong>What this does not prove:</strong> These diagnostics do not prove compliance, consumer acceptance, final-root readiness, hosted availability, SLA coverage, uptime, public launch, production readiness, vendor compatibility, hardware certification, or production-grade ETA quality.</p>
+</section>
+</div>
+<h3>Five Feed URL Panel</h3>
+<table><thead><tr><th>Feed</th><th>Public path</th><th>Configured URL</th><th>Status</th><th>HTTP</th><th>Content type</th><th>Freshness</th><th>Validator</th><th>Health</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.FeedRows}}<tr><td>{{.Label}}</td><td><code>{{.PublicPath}}</code></td><td><code>{{.ConfiguredURL}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.HTTPStatus}}</td><td>{{.ContentType}}</td><td>{{.Freshness}}</td><td>{{.ValidatorState}}</td><td>{{.HealthState}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Validation History</h3>
+<table><thead><tr><th>Feed</th><th>Validator</th><th>Status</th><th>Tooling</th><th>Artifact</th><th>Latest result</th><th>Latest at</th><th>Active feed</th><th>Result feed</th><th>Stale</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.ValidationHistory}}<tr><td>{{.Label}}</td><td>{{.ValidatorID}}<br><span class="muted">{{.ValidatorName}}</span></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.ToolingStatus}}</td><td>{{.ArtifactStatus}}</td><td>{{.LatestResultStatus}}</td><td>{{.LatestResultAt}}</td><td>{{.ActiveFeedVersionID}}</td><td>{{.LatestResultFeedVersionID}}</td><td>{{.StaleStatus}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Validator Health</h3>
+<table><thead><tr><th>Feed</th><th>Health status</th><th>Current signal</th><th>What this means</th></tr></thead><tbody>
+{{range .ValidationCenter.ValidatorHealth}}<tr><td>{{.Label}}</td><td>{{.HealthStatus}}</td><td>{{.CurrentSignal}}</td><td>{{.WhatThisMeans}}</td></tr>{{end}}
+</tbody></table>
+<h3>GTFS Quality Summary</h3>
+<table><thead><tr><th>Source</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.GTFSQuality}}<tr><td><a href="{{.DetailsURL}}">{{.Label}}</a></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Prepared Consumer Tracker</h3>
+<table><thead><tr><th>Target</th><th>Status</th><th>Source</th><th>Updated</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.ConsumerTracker}}<tr><td>{{.Target}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.UpdatedAt}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Claim Flags</h3>
+<table><tbody>
+<tr><th><code>external_evidence_created</code></th><td>{{.ValidationCenter.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.ValidationCenter.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.ValidationCenter.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>agency_approval_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.AgencyApprovalClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>sla_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.SLAClaimed}}</td></tr>
+<tr><th><code>uptime_guarantee_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.UptimeGuaranteeClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>hardware_certification_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.HardwareCertificationClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.ValidationCenter.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+</tbody></table>
+<p class="muted">Validation Center is read-only. It reuses existing private summaries and does not run validators, execute commands, mutate feeds, move consumer statuses, write evidence, create releases, or contact external services.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

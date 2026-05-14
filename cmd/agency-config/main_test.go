@@ -4166,6 +4166,152 @@ func TestValidationHealthRefreshCommandJSONStrictnessCSRFAndBodyCap(t *testing.T
 	}
 }
 
+func TestValidationCenterRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
+	store := feedHealthTestStore(t)
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+			Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{role}, Method: auth.MethodBearer,
+		}})
+		for _, path := range []string{"/admin/operations/validation-center", "/admin/operations/validation-center.json"} {
+			req := httptest.NewRequest(http.MethodGet, path+"?agency_id=demo-agency", nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("%s role %s status = %d, want 200: %s", path, role, rr.Code, rr.Body.String())
+			}
+			if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+				t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+			}
+			if strings.HasSuffix(path, ".json") && !strings.HasPrefix(rr.Header().Get("Content-Type"), "application/json") {
+				t.Fatalf("%s Content-Type = %q, want application/json", path, rr.Header().Get("Content-Type"))
+			}
+		}
+	}
+
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "user@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations/validation-center", "/admin/operations/validation-center.json"} {
+		for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+			req := httptest.NewRequest(method, path, nil)
+			rr := httptest.NewRecorder()
+			srv.ServeHTTP(rr, req)
+			if rr.Code != http.StatusMethodNotAllowed {
+				t.Fatalf("%s %s status = %d, want 405", method, path, rr.Code)
+			}
+		}
+		req := httptest.NewRequest(http.MethodGet, path+"?agency_id=other-agency", nil)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("agency conflict %s status = %d, want 403", path, rr.Code)
+		}
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, authRejectAll{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-center.json", nil)
+	rr := httptest.NewRecorder()
+	unauth.ServeHTTP(rr, req)
+	if rr.Code == http.StatusOK {
+		t.Fatalf("unauthenticated validation center JSON returned 200")
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/validation-center.json", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public validation center route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestValidationCenterJSONShapeFeedRowsFlagsAndNoLeakage(t *testing.T) {
+	now := time.Date(2026, 5, 14, 12, 0, 0, 0, time.UTC)
+	store := feedHealthTestStore(t)
+	private := validationHealthRecord(99, "schedule", "feed-v1", "failed", now)
+	private.Result.Report = map[string]any{
+		"raw_report": map[string]any{"notices": []any{map[string]any{"code": "private_path", "severity": "ERROR", "message": "/Users/private TOKEN=SECRET", "path": "/Users/private/gtfs.zip"}}},
+		"stdout":     "TOKEN=SECRET",
+		"stderr":     "PASSWORD=SECRET",
+		"argv":       []any{"/Users/private/validator"},
+	}
+	store.validationRecords = append(store.validationRecords, private)
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-center.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var center operationsValidationCenterView
+	if err := json.Unmarshal(rr.Body.Bytes(), &center); err != nil {
+		t.Fatalf("decode validation center JSON: %v", err)
+	}
+	assertValidationCenterShape(t, center)
+	assertValidationCenterFlagsFalse(t, center.ClaimFlags)
+	assertValidationCenterJSONAllowlist(t, rr.Body.Bytes())
+	assertValidationCenterSafeStrings(t, rr.Body.String())
+
+	wantPaths := []string{
+		"/public/feeds.json",
+		"/public/gtfs/schedule.zip",
+		"/public/gtfsrt/vehicle_positions.pb",
+		"/public/gtfsrt/trip_updates.pb",
+		"/public/gtfsrt/alerts.pb",
+	}
+	var gotPaths []string
+	for _, row := range center.FeedRows {
+		gotPaths = append(gotPaths, row.PublicPath)
+	}
+	if strings.Join(gotPaths, ",") != strings.Join(wantPaths, ",") {
+		t.Fatalf("feed paths = %v, want %v", gotPaths, wantPaths)
+	}
+	gotConsumers := make([]string, 0, len(center.ConsumerTracker))
+	for _, row := range center.ConsumerTracker {
+		gotConsumers = append(gotConsumers, row.Target+":"+row.Status)
+	}
+	wantConsumers := []string{"Google Maps:prepared", "Apple Maps:prepared", "Transit App:prepared", "Bing Maps:prepared", "Moovit:prepared", "Mobility Database:prepared", "transit.land:prepared"}
+	if strings.Join(gotConsumers, ",") != strings.Join(wantConsumers, ",") {
+		t.Fatalf("consumer rows = %v, want %v", gotConsumers, wantConsumers)
+	}
+}
+
+func TestValidationCenterHTMLPlainLanguageReadOnlyAndNoLeakage(t *testing.T) {
+	store := feedHealthTestStore(t)
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-center", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Feed Health And Validation Center",
+		"Feed Health vs Validation",
+		"Five Feed URL Panel",
+		"Validation History",
+		"Validator Health",
+		"GTFS Quality Summary",
+		"Prepared Consumer Tracker",
+		"Claim Flags",
+		"read-only",
+		"does not run validators",
+		"prepared only",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("validation center HTML missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"<form", "method=\"post\"", "/admin/validation/run", "raw_report", "stdout", "stderr", "argv", "/Users/private", "TOKEN=SECRET", "PASSWORD=SECRET", "postgres://", "production_ready", "compliance_achieved", "consumer_ready"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("validation center HTML leaked or overclaimed %q: %s", forbidden, body)
+		}
+	}
+}
+
 func TestOperationsReliabilityRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
 	endpoint := true
@@ -5848,6 +5994,95 @@ func assertFeedHealthSafeStrings(t *testing.T, body string) {
 	}
 }
 
+func assertValidationCenterShape(t *testing.T, center operationsValidationCenterView) {
+	t.Helper()
+	if center.GeneratedAt.IsZero() || center.AgencyID == "" || center.Boundary == "" || len(center.FeedRows) != 5 || len(center.ValidationHistory) != 4 || len(center.ValidatorHealth) != 4 || len(center.GTFSQuality) != 2 || len(center.ConsumerTracker) != 7 {
+		t.Fatalf("invalid validation center shape: %+v", center)
+	}
+	if center.Counts.FeedRows != len(center.FeedRows) || center.Counts.ValidationRows != len(center.ValidationHistory) || center.Counts.ConsumerRows != len(center.ConsumerTracker) || len(center.Counts.Statuses) == 0 {
+		t.Fatalf("invalid validation center counts: %+v", center.Counts)
+	}
+	for _, row := range center.FeedRows {
+		if row.ID == "" || row.Label == "" || row.PublicPath == "" || row.ConfiguredURL == "" || row.Status == "" || row.LastChecked == "" || row.HTTPStatus == "" || row.ContentType == "" || row.Freshness == "" || row.ValidatorState == "" || row.HealthState == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid validation center feed row: %+v", row)
+		}
+	}
+	for _, row := range center.ValidationHistory {
+		if row.ID == "" || row.FeedType == "" || row.Label == "" || row.ValidatorID == "" || row.ValidatorName == "" || row.Status == "" || row.ToolingStatus == "" || row.ArtifactStatus == "" || row.LatestResultStatus == "" || row.StaleStatus == "" || row.HealthStatus == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid validation center validator row: %+v", row)
+		}
+	}
+	for _, row := range center.GTFSQuality {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.NextAction == "" || row.DoesNotProve == "" || row.DetailsURL != "/admin/operations/gtfs-quality" {
+			t.Fatalf("invalid validation center GTFS quality row: %+v", row)
+		}
+	}
+	for _, row := range center.ConsumerTracker {
+		if row.Target == "" || row.Status != "prepared" || row.Source == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid validation center consumer row: %+v", row)
+		}
+	}
+}
+
+func assertValidationCenterFlagsFalse(t *testing.T, flags operationsValidationCenterClaimFlags) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.FinalRootEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("validation center claim flags must all be false: %+v", flags)
+	}
+}
+
+func assertValidationCenterJSONAllowlist(t *testing.T, payload []byte) {
+	t.Helper()
+	var decoded map[string]any
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "feed_rows": true, "validation_history": true, "validator_health": true, "gtfs_quality": true, "readiness_timeline": true, "blockers": true, "consumer_tracker": true, "counts": true, "claim_flags": true}
+	for key := range decoded {
+		if !wantTop[key] {
+			t.Fatalf("unexpected validation center top-level field %q in %s", key, payload)
+		}
+	}
+	wantFeed := map[string]bool{"id": true, "label": true, "public_path": true, "configured_url": true, "status": true, "last_checked": true, "http_status": true, "content_type": true, "freshness": true, "validator_state": true, "health_state": true, "current_signal": true, "what_this_means": true, "next_action": true, "does_not_prove": true}
+	for _, item := range decoded["feed_rows"].([]any) {
+		for key := range item.(map[string]any) {
+			if !wantFeed[key] {
+				t.Fatalf("unexpected validation center feed row field %q in %s", key, payload)
+			}
+		}
+	}
+	wantValidation := map[string]bool{"id": true, "feed_type": true, "label": true, "validator_id": true, "validator_name": true, "status": true, "tooling_status": true, "artifact_status": true, "latest_result_status": true, "latest_result_at": true, "active_feed_version_id": true, "latest_result_feed_version_id": true, "stale_status": true, "health_status": true, "current_signal": true, "what_this_means": true, "next_action": true, "does_not_prove": true}
+	for _, item := range decoded["validation_history"].([]any) {
+		for key := range item.(map[string]any) {
+			if !wantValidation[key] {
+				t.Fatalf("unexpected validation center validation row field %q in %s", key, payload)
+			}
+		}
+	}
+	wantFlags := map[string]bool{"external_evidence_created": true, "final_root_evidence_created": true, "consumer_statuses_changed": true, "compliance_claimed": true, "production_readiness_claimed": true, "agency_approval_claimed": true, "consumer_acceptance_claimed": true, "public_launch_claimed": true, "hosted_saas_claimed": true, "sla_claimed": true, "uptime_guarantee_claimed": true, "vendor_compatibility_claimed": true, "hardware_certification_claimed": true, "production_grade_eta_claimed": true}
+	flags := decoded["claim_flags"].(map[string]any)
+	for key := range flags {
+		if !wantFlags[key] {
+			t.Fatalf("unexpected validation center claim flag %q in %s", key, payload)
+		}
+	}
+}
+
+func assertValidationCenterSafeStrings(t *testing.T, body string) {
+	t.Helper()
+	lower := strings.ToLower(body)
+	for _, forbidden := range []string{"raw_report", "stdout", "stderr", "argv", "/users/private", "/tmp/private", "token=secret", "password=secret", "postgres://", "authorization:", "bearer ", "cookie", "admin_session", "database_url"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("validation center leaked forbidden private string %q: %s", forbidden, body)
+		}
+	}
+	for _, forbidden := range []string{"agency_approved", "final_root_approved", "consumer_ready", "production_ready", "public_launch_complete", "compliance_achieved", "sla_covered", "uptime_guaranteed", "vendor_certified", "hardware_certified"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("validation center emits forbidden label %q: %s", forbidden, body)
+		}
+	}
+}
+
 func assertReadinessV2Shape(t *testing.T, readiness operationsReadinessV2View) {
 	t.Helper()
 	if readiness.GeneratedAt.IsZero() || readiness.AgencyID == "" || readiness.Boundary == "" || len(readiness.Rows) != 11 || readiness.Counts.Rows != 11 {
@@ -6970,6 +7205,14 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	}))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/validation-center", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/validation-center.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/gtfs-workbench", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
