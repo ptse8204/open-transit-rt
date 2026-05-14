@@ -178,6 +178,8 @@ func buildOperationsValidationCenter(page operationsPage) operationsValidationCe
 	validationRows := validationCenterValidationRows(page.ValidationHealth.Feeds)
 	qualityRows := validationCenterQualityRows(page)
 	issueRows := validationCenterIssueRows(page)
+	timelineRows := validationCenterTimelineRows(page.ReadinessV2.Rows)
+	blockerRows := validationCenterBlockerRows(timelineRows, feedRows, validationRows, issueRows)
 	consumerRows := validationCenterConsumerRows(page.Consumers)
 	return operationsValidationCenterView{
 		GeneratedAt:       page.GeneratedAt,
@@ -188,8 +190,8 @@ func buildOperationsValidationCenter(page operationsPage) operationsValidationCe
 		ValidatorHealth:   validationRows,
 		GTFSQuality:       qualityRows,
 		IssueDrilldowns:   issueRows,
-		ReadinessTimeline: []operationsValidationCenterTimeline{},
-		Blockers:          []operationsValidationCenterBlocker{},
+		ReadinessTimeline: timelineRows,
+		Blockers:          blockerRows,
 		ConsumerTracker:   consumerRows,
 		Counts:            validationCenterCounts(feedRows, validationRows, issueRows, consumerRows),
 		ClaimFlags:        operationsValidationCenterClaimFlags{},
@@ -372,6 +374,139 @@ func validationCenterSafeCode(code string) string {
 
 func validationCenterIssueBoundary() string {
 	return "Issue drilldowns are sanitized operator guidance only. They do not edit GTFS, change drafts, publish schedules, prove compliance, prove consumer acceptance, prove agency approval, or prove production readiness."
+}
+
+func validationCenterTimelineRows(rows []operationsReadinessV2Row) []operationsValidationCenterTimeline {
+	out := make([]operationsValidationCenterTimeline, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, operationsValidationCenterTimeline{
+			ID:            row.ID,
+			Label:         row.ReadinessItem,
+			Status:        readinessV2NormalizeStatus(row.Status),
+			CurrentSignal: row.CurrentSignal,
+			WhatThisMeans: row.WhatThisMeans,
+			NextAction:    row.WhatToDoNext,
+			DoesNotProve:  row.WhatItDoesNotProve,
+		})
+	}
+	return out
+}
+
+func validationCenterBlockerRows(timelineRows []operationsValidationCenterTimeline, feedRows []operationsValidationCenterFeedRow, validationRows []operationsValidationCenterValidation, issueRows []operationsValidationCenterIssue) []operationsValidationCenterBlocker {
+	rows := []operationsValidationCenterBlocker{}
+	for _, row := range timelineRows {
+		if !validationCenterNeedsAction(row.Status) {
+			continue
+		}
+		rows = append(rows, operationsValidationCenterBlocker{
+			ID:           "readiness_" + row.ID,
+			Severity:     readinessV2NormalizeStatus(row.Status),
+			Area:         row.Label,
+			Signal:       row.CurrentSignal,
+			NextAction:   row.NextAction,
+			DoesNotProve: row.DoesNotProve,
+			ReviewURL:    validationCenterReviewURL(row.ID),
+		})
+	}
+	for _, row := range feedRows {
+		if !validationCenterNeedsAction(row.Status) {
+			continue
+		}
+		rows = append(rows, operationsValidationCenterBlocker{
+			ID:           "feed_" + row.ID,
+			Severity:     readinessV2NormalizeStatus(row.Status),
+			Area:         row.Label,
+			Signal:       row.CurrentSignal,
+			NextAction:   row.NextAction,
+			DoesNotProve: row.DoesNotProve,
+			ReviewURL:    validationCenterFeedReviewURL(row.ID),
+		})
+	}
+	for _, row := range validationRows {
+		if !validationCenterNeedsAction(row.Status) {
+			continue
+		}
+		rows = append(rows, operationsValidationCenterBlocker{
+			ID:           "validator_" + row.FeedType,
+			Severity:     readinessV2NormalizeStatus(row.Status),
+			Area:         row.Label + " validation",
+			Signal:       row.CurrentSignal,
+			NextAction:   row.NextAction,
+			DoesNotProve: row.DoesNotProve,
+			ReviewURL:    "/admin/operations/validation-health",
+		})
+	}
+	for _, row := range issueRows {
+		if !validationCenterNeedsAction(row.Status) {
+			continue
+		}
+		rows = append(rows, operationsValidationCenterBlocker{
+			ID:           "issue_" + row.ID,
+			Severity:     readinessV2NormalizeStatus(row.Status),
+			Area:         row.SourceLabel + " / " + row.Family,
+			Signal:       row.OperatorSummary,
+			NextAction:   row.RecommendedAction,
+			DoesNotProve: row.DoesNotProve,
+			ReviewURL:    row.DetailsURL,
+		})
+	}
+	if len(rows) > 30 {
+		overflow := len(rows) - 30
+		rows = rows[:30]
+		rows = append(rows, operationsValidationCenterBlocker{
+			ID:           "blocker_overflow",
+			Severity:     checklistStatusNeedsReview,
+			Area:         "Additional private blocker rows",
+			Signal:       fmt.Sprintf("%d additional rows are hidden by the Center cap", overflow),
+			NextAction:   "Open Feed Health, Validator Health, GTFS Quality, and Readiness to review the complete private row set.",
+			DoesNotProve: "Hidden row count does not prove release readiness or absence of other issues.",
+			ReviewURL:    "/admin/operations/readiness",
+		})
+	}
+	return rows
+}
+
+func validationCenterNeedsAction(status string) bool {
+	switch readinessV2NormalizeStatus(status) {
+	case checklistStatusBlocked, checklistStatusMissing, checklistStatusNeedsReview:
+		return true
+	default:
+		return false
+	}
+}
+
+func validationCenterReviewURL(id string) string {
+	switch id {
+	case "discovery_metadata":
+		return "/admin/operations/setup"
+	case "feed_health", "vehicle_positions", "trip_updates", "alerts":
+		return "/admin/operations/feed-health"
+	case "static_gtfs_quality":
+		return "/admin/operations/gtfs-quality"
+	case "validation_health":
+		return "/admin/operations/validation-health"
+	case "operations_reliability":
+		return "/admin/operations/reliability"
+	case "telemetry_devices":
+		return "/admin/operations/telemetry"
+	case "operations_scorecard", "consumer_prepared_tracker":
+		return "/admin/operations/readiness"
+	default:
+		return "/admin/operations/readiness"
+	}
+}
+
+func validationCenterFeedReviewURL(id string) string {
+	switch id {
+	case "feeds_json":
+		return "/admin/operations/feeds"
+	case "schedule":
+		return "/admin/operations/gtfs-quality"
+	case "vehicle_positions", "trip_updates", "alerts":
+		return "/admin/operations/realtime"
+	default:
+		return "/admin/operations/feed-health"
+	}
 }
 
 func validationCenterConsumerRows(rows []consumerStatusView) []operationsValidationCenterConsumer {

@@ -1070,12 +1070,12 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.GTFSWorkbench = h.buildGTFSWorkbenchView(r, page)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedHealth = buildOperationsFeedHealth(page)
-	page.ValidationCenter = buildOperationsValidationCenter(page)
 	page.Realtime = buildOperationsRealtime(page)
 	page.Maintenance = buildOperationsMaintenance(page)
 	page.SetupSteps = setupSteps(page)
 	page.ReadinessItems = readinessItems(page)
 	page.ReadinessV2 = buildOperationsReadinessV2(page)
+	page.ValidationCenter = buildOperationsValidationCenter(page)
 	page.Checklist = buildOperatorChecklist(page)
 	page.FirstRun = buildOperationsFirstRun(page)
 	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page)
@@ -2742,6 +2742,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 {{else}}
 <p class="muted">No grouped GTFS quality issue drilldowns are available. Open GTFS Quality when a source-specific validator or importer result needs review.</p>
+{{end}}
+<h3>Readiness Timeline</h3>
+<table><thead><tr><th>Step</th><th>Status</th><th>Current signal</th><th>What this means</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.ReadinessTimeline}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.WhatThisMeans}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Current Blockers</h3>
+{{if .ValidationCenter.Blockers}}
+<table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Review</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.Blockers}}<tr><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{.Area}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{if .ReviewURL}}<a href="{{.ReviewURL}}">Review</a>{{else}}not linked{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{else}}
+<p class="muted">No current blocker rows are present in the private Center summary. This is not a release-readiness, compliance, consumer acceptance, SLA, uptime, or public-launch claim.</p>
 {{end}}
 <h3>Prepared Consumer Tracker</h3>
 <table><thead><tr><th>Target</th><th>Status</th><th>Source</th><th>Updated</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>

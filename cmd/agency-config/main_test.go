@@ -4406,6 +4406,64 @@ func TestValidationCenterIssueDrilldownsFixOwnersAndNoRawSamples(t *testing.T) {
 	}
 }
 
+func TestValidationCenterReadinessTimelineAndBlockerQueue(t *testing.T) {
+	now := time.Date(2026, 5, 14, 14, 0, 0, 0, time.UTC)
+	discovery := validationHealthTestDiscovery(now)
+	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: false, LicenseComplete: false, ContactComplete: false, HTTPSURLs: true}
+	discovery.Feeds = discovery.Feeds[:1]
+	discovery.Feeds[0].CanonicalPublicURL = ""
+	store := &fakePublicationStore{discovery: discovery, validationRecords: []compliance.ValidationReportRecord{
+		validationHealthRecord(1, "schedule", "feed-v1", "failed", now),
+	}}
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-center.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("json status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var center operationsValidationCenterView
+	if err := json.Unmarshal(rr.Body.Bytes(), &center); err != nil {
+		t.Fatalf("decode validation center JSON: %v", err)
+	}
+	if len(center.ReadinessTimeline) != 11 {
+		t.Fatalf("readiness timeline rows = %d, want 11: %+v", len(center.ReadinessTimeline), center.ReadinessTimeline)
+	}
+	if len(center.Blockers) == 0 {
+		t.Fatalf("expected blocker rows for incomplete discovery")
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Feed discovery and metadata", "Validator health", "Static GTFS Schedule", "blocked", "missing"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("validation center timeline/blockers missing %q: %s", want, body)
+		}
+	}
+	for _, blocker := range center.Blockers {
+		if blocker.ID == "" || blocker.Severity == "" || blocker.Area == "" || blocker.Signal == "" || blocker.NextAction == "" || blocker.DoesNotProve == "" || blocker.ReviewURL == "" {
+			t.Fatalf("invalid blocker row: %+v", blocker)
+		}
+		if !strings.HasPrefix(blocker.ReviewURL, "/admin/") {
+			t.Fatalf("unsafe blocker review URL: %+v", blocker)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/validation-center", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	html := rr.Body.String()
+	for _, want := range []string{"Readiness Timeline", "Current Blockers", "Review"} {
+		if !strings.Contains(html, want) {
+			t.Fatalf("validation center timeline HTML missing %q: %s", want, html)
+		}
+	}
+	assertValidationCenterSafeStrings(t, html)
+}
+
 func TestOperationsReliabilityRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
 	endpoint := true
@@ -6090,7 +6148,7 @@ func assertFeedHealthSafeStrings(t *testing.T, body string) {
 
 func assertValidationCenterShape(t *testing.T, center operationsValidationCenterView) {
 	t.Helper()
-	if center.GeneratedAt.IsZero() || center.AgencyID == "" || center.Boundary == "" || len(center.FeedRows) != 5 || len(center.ValidationHistory) != 4 || len(center.ValidatorHealth) != 4 || len(center.GTFSQuality) != 2 || len(center.ConsumerTracker) != 7 {
+	if center.GeneratedAt.IsZero() || center.AgencyID == "" || center.Boundary == "" || len(center.FeedRows) != 5 || len(center.ValidationHistory) != 4 || len(center.ValidatorHealth) != 4 || len(center.GTFSQuality) != 2 || len(center.ReadinessTimeline) != 11 || len(center.ConsumerTracker) != 7 {
 		t.Fatalf("invalid validation center shape: %+v", center)
 	}
 	if center.Counts.FeedRows != len(center.FeedRows) || center.Counts.ValidationRows != len(center.ValidationHistory) || center.Counts.IssueRows != len(center.IssueDrilldowns) || center.Counts.ConsumerRows != len(center.ConsumerTracker) || len(center.Counts.Statuses) == 0 {
@@ -6114,6 +6172,19 @@ func assertValidationCenterShape(t *testing.T, center operationsValidationCenter
 	for _, row := range center.IssueDrilldowns {
 		if row.ID == "" || row.Source == "" || row.SourceLabel == "" || row.Status == "" || row.Severity == "" || row.Family == "" || len(row.Codes) == 0 || row.LikelyOwner == "" || row.AffectedFiles == "" || row.OperatorSummary == "" || row.WhyItMatters == "" || row.RecommendedAction == "" || row.SafeFixPath == "" || row.VerifyWith == "" || row.EscalateIf == "" || row.DetailsURL != "/admin/operations/gtfs-quality" || row.DoesNotProve == "" {
 			t.Fatalf("invalid validation center issue row: %+v", row)
+		}
+	}
+	for _, row := range center.ReadinessTimeline {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid validation center timeline row: %+v", row)
+		}
+	}
+	for _, row := range center.Blockers {
+		if row.ID == "" || row.Severity == "" || row.Area == "" || row.Signal == "" || row.NextAction == "" || row.DoesNotProve == "" || row.ReviewURL == "" {
+			t.Fatalf("invalid validation center blocker row: %+v", row)
+		}
+		if !strings.HasPrefix(row.ReviewURL, "/admin/") {
+			t.Fatalf("unsafe validation center blocker URL: %+v", row)
 		}
 	}
 	for _, row := range center.ConsumerTracker {
@@ -6163,6 +6234,22 @@ func assertValidationCenterJSONAllowlist(t *testing.T, payload []byte) {
 		for key := range item.(map[string]any) {
 			if !wantIssue[key] {
 				t.Fatalf("unexpected validation center issue field %q in %s", key, payload)
+			}
+		}
+	}
+	wantTimeline := map[string]bool{"id": true, "label": true, "status": true, "current_signal": true, "what_this_means": true, "next_action": true, "does_not_prove": true}
+	for _, item := range decoded["readiness_timeline"].([]any) {
+		for key := range item.(map[string]any) {
+			if !wantTimeline[key] {
+				t.Fatalf("unexpected validation center timeline field %q in %s", key, payload)
+			}
+		}
+	}
+	wantBlocker := map[string]bool{"id": true, "severity": true, "area": true, "signal": true, "next_action": true, "does_not_prove": true, "review_url": true}
+	for _, item := range decoded["blockers"].([]any) {
+		for key := range item.(map[string]any) {
+			if !wantBlocker[key] {
+				t.Fatalf("unexpected validation center blocker field %q in %s", key, payload)
 			}
 		}
 	}
