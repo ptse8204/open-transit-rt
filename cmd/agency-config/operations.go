@@ -2415,6 +2415,27 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .GTFSWorkbench.Import.History}}<tr><td>{{.ID}}</td><td>{{.Status}}</td><td>{{if .FeedVersionID}}<code>{{.FeedVersionID}}</code>{{else}}not linked{{end}}</td><td><code>{{.SourceName}}</code></td><td><code>{{.SourceSHA256Short}}</code></td><td>{{.SourceByteText}}</td><td>{{.ErrorCount}} errors, {{.WarningCount}} warnings, {{.InfoCount}} info</td><td>{{formatTime .StartedAt}}</td><td>{{formatTimePtr .CompletedAt}}</td></tr>{{end}}
 </tbody></table>
 {{else}}<p class="muted">Recent import history is not available from this runtime.</p>{{end}}
+<h3>Draft Publish Review</h3>
+<p class="warning">{{.GTFSWorkbench.DraftReview.ClaimBoundary}}</p>
+<table><tbody>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .GTFSWorkbench.DraftReview.Status}}">{{.GTFSWorkbench.DraftReview.Status}}</span></td></tr>
+<tr><th>History</th><td>{{.GTFSWorkbench.DraftReview.HistoryStatus}}</td></tr>
+<tr><th>Current signal</th><td>{{.GTFSWorkbench.DraftReview.CurrentSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.GTFSWorkbench.DraftReview.NextAction}}</td></tr>
+</tbody></table>
+<h4>Draft Publish Checklist</h4>
+<table><thead><tr><th>Review item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.DraftReview.Checklist}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{if .GTFSWorkbench.DraftReview.Drafts}}<h4>Recent Drafts</h4>
+<table><thead><tr><th>Draft</th><th>Status</th><th>Base feed</th><th>Published feed</th><th>Last publish attempt</th><th>Updated</th></tr></thead><tbody>
+{{range .GTFSWorkbench.DraftReview.Drafts}}<tr><td><code>{{.ID}}</code><br>{{.Name}}</td><td>{{.Status}}</td><td>{{if .BaseFeedVersionID}}<code>{{.BaseFeedVersionID}}</code>{{else}}not set{{end}}</td><td>{{if .LastPublishedFeedVersionID}}<code>{{.LastPublishedFeedVersionID}}</code>{{else}}not published{{end}}</td><td>{{.LastPublishAttemptID}}</td><td>{{formatTime .UpdatedAt}}</td></tr>{{end}}
+</tbody></table>{{else}}<p class="muted">No recent GTFS Studio draft records are available.</p>{{end}}
+{{if .GTFSWorkbench.DraftReview.PublishAttempts}}<h4>Recent Draft Publish Attempts</h4>
+<table><thead><tr><th>ID</th><th>Draft</th><th>Status</th><th>Feed version</th><th>Counts</th><th>Started</th><th>Completed</th></tr></thead><tbody>
+{{range .GTFSWorkbench.DraftReview.PublishAttempts}}<tr><td>{{.ID}}</td><td><code>{{.DraftID}}</code></td><td>{{.Status}}</td><td>{{if .FeedVersionID}}<code>{{.FeedVersionID}}</code>{{else}}not linked{{end}}</td><td>{{.ErrorCount}} errors, {{.WarningCount}} warnings, {{.InfoCount}} info</td><td>{{formatTime .StartedAt}}</td><td>{{formatTimePtr .CompletedAt}}</td></tr>{{end}}
+</tbody></table>{{else}}<p class="muted">No recent GTFS Studio publish attempts are available.</p>{{end}}
+<p class="muted">The Workbench has no draft publish POST route. Publishing stays in GTFS Studio and requires the existing admin confirmation path.</p>
 <h3>Preview Tables</h3>
 <table><tbody>
 <tr><th>Status</th><td>{{.GTFSWorkbench.Preview.Status}}</td></tr>

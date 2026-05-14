@@ -866,6 +866,75 @@ func (r *PostgresRepository) previewFrequencies(ctx context.Context, agencyID st
 	return frequencies, nil
 }
 
+func (r *PostgresRepository) RecentGTFSDrafts(ctx context.Context, agencyID string, limit int) ([]GTFSDraftRecord, error) {
+	if limit <= 0 || limit > 25 {
+		limit = 10
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, agency_id, name, status, COALESCE(base_feed_version_id, ''),
+		       COALESCE(last_published_feed_version_id, ''), COALESCE(last_publish_attempt_id, 0),
+		       created_at, updated_at
+		FROM gtfs_draft
+		WHERE agency_id = $1
+		ORDER BY updated_at DESC, created_at DESC, id
+		LIMIT $2
+	`, agencyID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query recent GTFS drafts: %w", err)
+	}
+	defer rows.Close()
+	records := make([]GTFSDraftRecord, 0, limit)
+	for rows.Next() {
+		var record GTFSDraftRecord
+		if err := rows.Scan(&record.ID, &record.AgencyID, &record.Name, &record.Status, &record.BaseFeedVersionID, &record.LastPublishedFeedVersionID, &record.LastPublishAttemptID, &record.CreatedAt, &record.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("scan recent GTFS draft: %w", err)
+		}
+		record.CreatedAt = record.CreatedAt.UTC()
+		record.UpdatedAt = record.UpdatedAt.UTC()
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate recent GTFS drafts: %w", err)
+	}
+	return records, nil
+}
+
+func (r *PostgresRepository) RecentGTFSDraftPublishes(ctx context.Context, agencyID string, limit int) ([]GTFSDraftPublishRecord, error) {
+	if limit <= 0 || limit > 25 {
+		limit = 10
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, draft_id, COALESCE(feed_version_id, ''), status, error_count,
+		       warning_count, info_count, COALESCE(actor_id, ''), started_at, completed_at
+		FROM gtfs_draft_publish
+		WHERE agency_id = $1
+		ORDER BY started_at DESC, id DESC
+		LIMIT $2
+	`, agencyID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query recent GTFS draft publishes: %w", err)
+	}
+	defer rows.Close()
+	records := make([]GTFSDraftPublishRecord, 0, limit)
+	for rows.Next() {
+		var record GTFSDraftPublishRecord
+		var completed sql.NullTime
+		if err := rows.Scan(&record.ID, &record.DraftID, &record.FeedVersionID, &record.Status, &record.ErrorCount, &record.WarningCount, &record.InfoCount, &record.ActorID, &record.StartedAt, &completed); err != nil {
+			return nil, fmt.Errorf("scan recent GTFS draft publish: %w", err)
+		}
+		record.StartedAt = record.StartedAt.UTC()
+		if completed.Valid {
+			t := completed.Time.UTC()
+			record.CompletedAt = &t
+		}
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate recent GTFS draft publishes: %w", err)
+	}
+	return records, nil
+}
+
 type feedConfig struct {
 	PublicBaseURL          string
 	FeedBaseURL            string

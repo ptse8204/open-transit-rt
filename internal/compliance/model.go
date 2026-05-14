@@ -236,6 +236,31 @@ type GTFSScheduleFrequencyPreview struct {
 	ExactTimes  int    `json:"exact_times"`
 }
 
+type GTFSDraftRecord struct {
+	ID                         string    `json:"id"`
+	AgencyID                   string    `json:"agency_id"`
+	Name                       string    `json:"name"`
+	Status                     string    `json:"status"`
+	BaseFeedVersionID          string    `json:"base_feed_version_id"`
+	LastPublishedFeedVersionID string    `json:"last_published_feed_version_id"`
+	LastPublishAttemptID       int64     `json:"last_publish_attempt_id"`
+	CreatedAt                  time.Time `json:"created_at"`
+	UpdatedAt                  time.Time `json:"updated_at"`
+}
+
+type GTFSDraftPublishRecord struct {
+	ID            int64      `json:"id"`
+	DraftID       string     `json:"draft_id"`
+	FeedVersionID string     `json:"feed_version_id"`
+	Status        string     `json:"status"`
+	ErrorCount    int        `json:"error_count"`
+	WarningCount  int        `json:"warning_count"`
+	InfoCount     int        `json:"info_count"`
+	ActorID       string     `json:"actor_id"`
+	StartedAt     time.Time  `json:"started_at"`
+	CompletedAt   *time.Time `json:"completed_at"`
+}
+
 type TripUpdatesDiagnosticsSummary struct {
 	Recorded                      bool               `json:"recorded"`
 	SnapshotAt                    time.Time          `json:"snapshot_at,omitempty"`

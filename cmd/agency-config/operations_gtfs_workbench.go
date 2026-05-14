@@ -23,6 +23,11 @@ type gtfsSchedulePreviewReader interface {
 	GTFSSchedulePreview(ctx context.Context, agencyID string, feedVersionID string, limit int) (compliance.GTFSSchedulePreview, error)
 }
 
+type gtfsDraftReviewReader interface {
+	RecentGTFSDrafts(ctx context.Context, agencyID string, limit int) ([]compliance.GTFSDraftRecord, error)
+	RecentGTFSDraftPublishes(ctx context.Context, agencyID string, limit int) ([]compliance.GTFSDraftPublishRecord, error)
+}
+
 type operationsGTFSWorkbenchView struct {
 	GeneratedAt       time.Time                         `json:"generated_at"`
 	AgencyID          string                            `json:"agency_id"`
@@ -32,6 +37,7 @@ type operationsGTFSWorkbenchView struct {
 	Quality           operationsGTFSQualitySummary      `json:"quality"`
 	ValidationHealth  operationsGTFSValidationSummary   `json:"validation_health"`
 	Preview           operationsGTFSPreviewSummary      `json:"preview"`
+	DraftReview       operationsGTFSDraftReviewSummary  `json:"draft_review"`
 	FeedOutput        operationsGTFSFeedOutputSummary   `json:"feed_output"`
 	Actions           []operationsGTFSWorkbenchAction   `json:"actions"`
 	ClaimFlags        operationsGTFSWorkbenchClaimFlags `json:"claim_flags"`
@@ -164,6 +170,41 @@ type operationsGTFSFeedOutputSummary struct {
 	ClaimBoundary string `json:"claim_boundary"`
 }
 
+type operationsGTFSDraftReviewSummary struct {
+	Status          string                          `json:"status"`
+	HistoryStatus   string                          `json:"history_status"`
+	CurrentSignal   string                          `json:"current_signal"`
+	NextAction      string                          `json:"next_action"`
+	ClaimBoundary   string                          `json:"claim_boundary"`
+	Drafts          []operationsGTFSDraftRow        `json:"drafts"`
+	PublishAttempts []operationsGTFSDraftPublishRow `json:"publish_attempts"`
+	Checklist       []operationsGTFSChangeRow       `json:"checklist"`
+}
+
+type operationsGTFSDraftRow struct {
+	ID                         string    `json:"id"`
+	Name                       string    `json:"name"`
+	Status                     string    `json:"status"`
+	BaseFeedVersionID          string    `json:"base_feed_version_id"`
+	LastPublishedFeedVersionID string    `json:"last_published_feed_version_id"`
+	LastPublishAttemptID       int64     `json:"last_publish_attempt_id"`
+	CreatedAt                  time.Time `json:"created_at"`
+	UpdatedAt                  time.Time `json:"updated_at"`
+}
+
+type operationsGTFSDraftPublishRow struct {
+	ID            int64      `json:"id"`
+	DraftID       string     `json:"draft_id"`
+	FeedVersionID string     `json:"feed_version_id"`
+	Status        string     `json:"status"`
+	ErrorCount    int        `json:"error_count"`
+	WarningCount  int        `json:"warning_count"`
+	InfoCount     int        `json:"info_count"`
+	StartedAt     time.Time  `json:"started_at"`
+	CompletedAt   *time.Time `json:"completed_at"`
+	Signal        string     `json:"signal"`
+}
+
 type operationsGTFSWorkbenchAction struct {
 	ID            string `json:"id"`
 	Label         string `json:"label"`
@@ -203,6 +244,7 @@ func (h *handler) buildGTFSWorkbenchView(r *http.Request, page operationsPage) o
 	view.Quality = buildGTFSWorkbenchQualitySummary(page.GTFSQuality)
 	view.ValidationHealth = buildGTFSWorkbenchValidationSummary(page.ValidationHealth)
 	view.Preview = h.buildGTFSPreviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
+	view.DraftReview = h.buildGTFSDraftReviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.FeedOutput = buildGTFSWorkbenchFeedOutput(page.Discovery)
 	view.Actions = buildGTFSWorkbenchActions(view, page)
 	return view
@@ -358,6 +400,155 @@ func lenIf(ok bool) int {
 		return 1
 	}
 	return 0
+}
+
+func (h *handler) buildGTFSDraftReviewSummary(ctx context.Context, agencyID string, activeFeedVersionID string) operationsGTFSDraftReviewSummary {
+	boundary := "Draft review summarizes GTFS Studio state only. It does not publish from the Workbench, auto-fix GTFS, approve service changes, create evidence, or prove compliance, consumer acceptance, agency approval, or production readiness."
+	summary := operationsGTFSDraftReviewSummary{
+		Status:        "unknown",
+		HistoryStatus: "unavailable",
+		CurrentSignal: "GTFS Studio draft state is not available in this runtime.",
+		NextAction:    "Use GTFS Studio for draft authoring and return here after publish attempts are recorded.",
+		ClaimBoundary: boundary,
+		Checklist: []operationsGTFSChangeRow{
+			gtfsWorkbenchChangeRow("Workbench publish action", "ok", "No publish action exists on the GTFS Workbench.", "Use GTFS Studio admin publish after reviewing draft data and validation feedback.", boundary),
+		},
+	}
+	reader, ok := h.store.(gtfsDraftReviewReader)
+	if !ok {
+		return summary
+	}
+	drafts, draftErr := reader.RecentGTFSDrafts(ctx, agencyID, gtfsWorkbenchImportHistoryLimit)
+	publishes, publishErr := reader.RecentGTFSDraftPublishes(ctx, agencyID, gtfsWorkbenchImportHistoryLimit)
+	if draftErr != nil && publishErr != nil {
+		return summary
+	}
+	summary.HistoryStatus = "recorded"
+	for _, draft := range drafts {
+		summary.Drafts = append(summary.Drafts, gtfsDraftRowView(draft))
+	}
+	for _, publish := range publishes {
+		summary.PublishAttempts = append(summary.PublishAttempts, gtfsDraftPublishRowView(publish))
+	}
+	summary.Status = gtfsDraftReviewStatus(summary.Drafts, summary.PublishAttempts, activeFeedVersionID)
+	summary.CurrentSignal = gtfsDraftReviewSignal(summary)
+	summary.NextAction = gtfsDraftReviewNextAction(summary.Status)
+	summary.Checklist = append(summary.Checklist,
+		gtfsWorkbenchChangeRow("Draft and active schedule separation", "ok", "Draft records and active published feed versions remain separate.", "Compare draft base and last published feed version before an admin publish.", boundary),
+		gtfsWorkbenchChangeRow("Publish confirmation path", "needs_review", "Publishing remains in GTFS Studio and requires admin confirmation.", "Open GTFS Studio, review draft rows, then publish only after source owner review.", boundary),
+		gtfsWorkbenchChangeRow("Post-publish validation", gtfsDraftPublishValidationStatus(summary.PublishAttempts), gtfsDraftPublishValidationSignal(summary.PublishAttempts), "After publish, review GTFS quality, validation health, feed health, and preview tables.", boundary),
+	)
+	return summary
+}
+
+func gtfsDraftRowView(record compliance.GTFSDraftRecord) operationsGTFSDraftRow {
+	return operationsGTFSDraftRow{
+		ID:                         record.ID,
+		Name:                       boundedDisplayText(record.Name, 120),
+		Status:                     firstNonEmpty(record.Status, "unknown"),
+		BaseFeedVersionID:          record.BaseFeedVersionID,
+		LastPublishedFeedVersionID: record.LastPublishedFeedVersionID,
+		LastPublishAttemptID:       record.LastPublishAttemptID,
+		CreatedAt:                  record.CreatedAt.UTC(),
+		UpdatedAt:                  record.UpdatedAt.UTC(),
+	}
+}
+
+func gtfsDraftPublishRowView(record compliance.GTFSDraftPublishRecord) operationsGTFSDraftPublishRow {
+	row := operationsGTFSDraftPublishRow{
+		ID:            record.ID,
+		DraftID:       record.DraftID,
+		FeedVersionID: record.FeedVersionID,
+		Status:        firstNonEmpty(record.Status, "unknown"),
+		ErrorCount:    record.ErrorCount,
+		WarningCount:  record.WarningCount,
+		InfoCount:     record.InfoCount,
+		StartedAt:     record.StartedAt.UTC(),
+		CompletedAt:   record.CompletedAt,
+	}
+	row.Signal = fmt.Sprintf("%s publish attempt with %d errors, %d warnings, and %d info notices.", row.Status, row.ErrorCount, row.WarningCount, row.InfoCount)
+	return row
+}
+
+func boundedDisplayText(value string, max int) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return "not recorded"
+	}
+	if max <= 0 || len(trimmed) <= max {
+		return trimmed
+	}
+	if max <= 3 {
+		return trimmed[:max]
+	}
+	return trimmed[:max-3] + "..."
+}
+
+func gtfsDraftReviewStatus(drafts []operationsGTFSDraftRow, publishes []operationsGTFSDraftPublishRow, activeFeedVersionID string) string {
+	if len(drafts) == 0 && len(publishes) == 0 {
+		return "missing"
+	}
+	if len(publishes) > 0 {
+		latest := publishes[0]
+		if latest.Status == "failed" || latest.ErrorCount > 0 {
+			return "blocked"
+		}
+		if latest.WarningCount > 0 {
+			return "needs_review"
+		}
+		if latest.FeedVersionID != "" && activeFeedVersionID != "" && latest.FeedVersionID != activeFeedVersionID {
+			return "needs_review"
+		}
+	}
+	for _, draft := range drafts {
+		if draft.Status == "draft" {
+			return "needs_review"
+		}
+	}
+	return "ok"
+}
+
+func gtfsDraftReviewSignal(summary operationsGTFSDraftReviewSummary) string {
+	if len(summary.Drafts) == 0 && len(summary.PublishAttempts) == 0 {
+		return "No GTFS Studio drafts or publish attempts are recorded."
+	}
+	return fmt.Sprintf("%d recent drafts and %d recent publish attempts are recorded.", len(summary.Drafts), len(summary.PublishAttempts))
+}
+
+func gtfsDraftReviewNextAction(status string) string {
+	switch status {
+	case "blocked":
+		return "Fix draft validation or publish errors in GTFS Studio before relying on the active schedule."
+	case "needs_review":
+		return "Review draft rows, latest publish feedback, and source-owner approval before any admin publish."
+	case "ok":
+		return "Continue local operator review with quality, validation, feed health, and preview rows."
+	case "missing":
+		return "Use GTFS Studio only if typed draft authoring is needed; otherwise continue with ZIP import review."
+	default:
+		return "Review GTFS Studio state with a technical helper if draft authoring is part of this workflow."
+	}
+}
+
+func gtfsDraftPublishValidationStatus(publishes []operationsGTFSDraftPublishRow) string {
+	if len(publishes) == 0 {
+		return "missing"
+	}
+	latest := publishes[0]
+	if latest.Status == "failed" || latest.ErrorCount > 0 {
+		return "blocked"
+	}
+	if latest.WarningCount > 0 {
+		return "needs_review"
+	}
+	return "ok"
+}
+
+func gtfsDraftPublishValidationSignal(publishes []operationsGTFSDraftPublishRow) string {
+	if len(publishes) == 0 {
+		return "No draft publish attempt is recorded."
+	}
+	return publishes[0].Signal
 }
 
 func (h *handler) buildGTFSImportSummary(ctx context.Context, agencyID string, activeFeedVersionID string) operationsGTFSImportSummary {
@@ -665,6 +856,15 @@ func buildGTFSWorkbenchActions(view operationsGTFSWorkbenchView, page operations
 			NextAction:    view.Import.NextAction,
 			AdminLink:     "/admin/operations/gtfs-import",
 			ClaimBoundary: view.Import.ClaimBoundary,
+		},
+		{
+			ID:            "draft_publish_review",
+			Label:         "Draft publish review",
+			Status:        view.DraftReview.Status,
+			CurrentSignal: view.DraftReview.CurrentSignal,
+			NextAction:    view.DraftReview.NextAction,
+			AdminLink:     "/admin/gtfs-studio",
+			ClaimBoundary: view.DraftReview.ClaimBoundary,
 		},
 		{
 			ID:            "quality_triage",

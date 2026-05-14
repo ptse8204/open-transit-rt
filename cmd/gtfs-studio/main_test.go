@@ -84,10 +84,66 @@ func TestDraftSummaryShowsVersionVisibility(t *testing.T) {
 		t.Fatalf("status = %d, want 200", resp.Code)
 	}
 	body := resp.Body.String()
-	for _, want := range []string{"published", "gtfs-import-1", "7", "gtfs-studio-7"} {
+	for _, want := range []string{"published", "gtfs-import-1", "7", "gtfs-studio-7", "Publish Review", "Publish after review"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("summary missing %q: %s", want, body)
 		}
+	}
+}
+
+func TestDraftSummaryPublishReviewHidesMutationsForReadOnly(t *testing.T) {
+	store := &fakeDraftStore{draft: gtfs.Draft{ID: "draft-1", AgencyID: "demo-agency", Name: "Draft 1", Status: gtfs.DraftStatusDraft}}
+	handler := newHandlerWithAuth(store, fakePinger{}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}}, "test-csrf")
+	resp := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/admin/gtfs-studio/drafts/draft-1", nil)
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", resp.Code, resp.Body.String())
+	}
+	body := resp.Body.String()
+	for _, want := range []string{"Publish Review", "Publishing is available only to admin roles", "Draft discard is available only to editor and admin roles"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("read-only summary missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"Publish after review", "Discard draft", "<form method=\"post\" action=\"draft-1/publish\"", "agency approved", "consumer accepted", "production ready"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("read-only summary contains forbidden %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestGTFSStudioCookieMutationsRequireCSRF(t *testing.T) {
+	principal := auth.Principal{Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodCookie}
+	store := &fakeDraftStore{
+		draft:         gtfs.Draft{ID: "draft-1", AgencyID: "demo-agency", Name: "Draft 1", Status: gtfs.DraftStatusDraft},
+		publishResult: gtfs.PublishDraftResult{PublishID: 8, DraftID: "draft-1", AgencyID: "demo-agency", FeedVersionID: "gtfs-studio-8", Status: "published", ReportStored: true},
+	}
+	handler := newHandlerWithAuth(store, fakePinger{}, auth.TestAuthenticator{Principal: principal}, "test-csrf")
+
+	req := httptest.NewRequest(http.MethodPost, "/admin/gtfs-studio/drafts/draft-1/publish", strings.NewReader("notes=missing"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusForbidden {
+		t.Fatalf("missing csrf status = %d, want 403: %s", resp.Code, resp.Body.String())
+	}
+	if store.publishCalls != 0 {
+		t.Fatalf("publish calls = %d, want 0 without csrf", store.publishCalls)
+	}
+
+	token := auth.CSRFToken("test-csrf", principal)
+	req = httptest.NewRequest(http.MethodPost, "/admin/gtfs-studio/drafts/draft-1/publish", strings.NewReader("notes=reviewed&csrf_token="+token))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp = httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	if resp.Code != http.StatusOK {
+		t.Fatalf("valid csrf status = %d, want 200: %s", resp.Code, resp.Body.String())
+	}
+	if store.publishCalls != 1 || store.publishOptions.ActorID != "admin@example.com" || store.publishOptions.Notes != "reviewed" {
+		t.Fatalf("publish state = calls %d options %+v", store.publishCalls, store.publishOptions)
 	}
 }
 
@@ -216,6 +272,9 @@ type fakeDraftStore struct {
 	createdDraft     gtfs.Draft
 	createOptions    gtfs.CreateDraftOptions
 	upsertAgency     gtfs.DraftAgency
+	publishResult    gtfs.PublishDraftResult
+	publishOptions   gtfs.PublishDraftOptions
+	publishCalls     int
 }
 
 func (f *fakeDraftStore) CreateDraft(_ context.Context, options gtfs.CreateDraftOptions) (gtfs.Draft, error) {
@@ -242,8 +301,10 @@ func (f *fakeDraftStore) GetDraft(context.Context, string) (gtfs.Draft, error) {
 func (f *fakeDraftStore) DiscardDraft(context.Context, gtfs.DiscardDraftOptions) error {
 	return nil
 }
-func (f *fakeDraftStore) PublishDraft(context.Context, gtfs.PublishDraftOptions) (gtfs.PublishDraftResult, error) {
-	return gtfs.PublishDraftResult{}, nil
+func (f *fakeDraftStore) PublishDraft(_ context.Context, options gtfs.PublishDraftOptions) (gtfs.PublishDraftResult, error) {
+	f.publishCalls++
+	f.publishOptions = options
+	return f.publishResult, nil
 }
 func (f *fakeDraftStore) UpsertAgency(_ context.Context, agency gtfs.DraftAgency) error {
 	f.upsertAgency = agency

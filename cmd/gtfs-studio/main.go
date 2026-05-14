@@ -140,7 +140,7 @@ func (h *studioHandler) listDrafts(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "list drafts", http.StatusInternalServerError)
 		return
 	}
-	render(w, "drafts", draftsPage{AgencyID: principal.AgencyID, IncludeDiscarded: includeDiscarded, Drafts: drafts, CSRFToken: h.csrfToken(r)})
+	render(w, "drafts", draftsPage{AgencyID: principal.AgencyID, IncludeDiscarded: includeDiscarded, Drafts: drafts, CSRFToken: h.csrfToken(r), CanCreate: principal.HasAny(auth.RoleEditor, auth.RoleAdmin)})
 }
 
 func (h *studioHandler) createDraft(w http.ResponseWriter, r *http.Request) {
@@ -154,6 +154,9 @@ func (h *studioHandler) createDraft(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+	if !h.requireCSRF(w, r, principal) {
 		return
 	}
 	if auth.RejectAgencyConflict(w, r.FormValue("agency_id"), principal) {
@@ -209,7 +212,7 @@ func (h *studioHandler) draftSummary(w http.ResponseWriter, r *http.Request, dra
 	if !ok || !h.requireDraftAgency(w, draft, principal) {
 		return
 	}
-	render(w, "summary", summaryPage{Draft: draft, CSRFToken: h.csrfToken(r)})
+	render(w, "summary", summaryPage{Draft: draft, CSRFToken: h.csrfToken(r), CanEdit: principal.HasAny(auth.RoleEditor, auth.RoleAdmin), CanPublish: principal.HasAny(auth.RoleAdmin)})
 }
 
 func (h *studioHandler) discardDraft(w http.ResponseWriter, r *http.Request, draftID string) {
@@ -223,6 +226,9 @@ func (h *studioHandler) discardDraft(w http.ResponseWriter, r *http.Request, dra
 	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+	if !h.requireCSRF(w, r, principal) {
 		return
 	}
 	if err := h.drafts.DiscardDraft(r.Context(), gtfs.DiscardDraftOptions{DraftID: draftID, ActorID: principal.Subject, Reason: r.FormValue("reason")}); err != nil {
@@ -243,6 +249,9 @@ func (h *studioHandler) publishDraft(w http.ResponseWriter, r *http.Request, dra
 	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+	if !h.requireCSRF(w, r, principal) {
 		return
 	}
 	result, err := h.drafts.PublishDraft(r.Context(), gtfs.PublishDraftOptions{DraftID: draftID, ActorID: principal.Subject, Notes: r.FormValue("notes")})
@@ -318,6 +327,9 @@ func (h *studioHandler) upsertEntity(w http.ResponseWriter, r *http.Request, dra
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
+	if !h.requireCSRF(w, r, principal) {
+		return
+	}
 	if auth.RejectAgencyConflict(w, r.FormValue("agency_id"), principal) {
 		return
 	}
@@ -336,6 +348,9 @@ func (h *studioHandler) removeEntity(w http.ResponseWriter, r *http.Request, dra
 	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+	if !h.requireCSRF(w, r, principal) {
 		return
 	}
 	var err error
@@ -402,11 +417,14 @@ type draftsPage struct {
 	IncludeDiscarded bool
 	Drafts           []gtfs.DraftSummary
 	CSRFToken        string
+	CanCreate        bool
 }
 
 type summaryPage struct {
 	gtfs.Draft
-	CSRFToken string
+	CSRFToken  string
+	CanEdit    bool
+	CanPublish bool
 }
 
 type entityPage struct {
@@ -422,6 +440,8 @@ var pages = template.Must(template.New("pages").Parse(`
 <!doctype html><title>GTFS Studio</title><h1>GTFS Studio</h1>
 <nav><a href="/admin/operations">Operations Console</a></nav>
 <p>Agency: {{.AgencyID}}</p>
+<p>GTFS Studio edits draft schedule rows separately from the active published feed. Creating or publishing a draft does not prove agency approval, compliance, consumer acceptance, production readiness, or public launch.</p>
+{{if .CanCreate}}
 <form method="post" action="/admin/gtfs-studio/drafts">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input name="agency_id" value="{{.AgencyID}}">
@@ -429,6 +449,7 @@ var pages = template.Must(template.New("pages").Parse(`
 <select name="mode"><option value="clone">Clone active feed</option><option value="blank">Blank draft</option></select>
 <button>Create draft</button>
 </form>
+{{else}}<p>Draft creation is available only to editor and admin roles.</p>{{end}}
 <table><thead><tr><th>Name</th><th>Status</th><th>Base feed</th><th>Published feed</th><th>Latest publish</th></tr></thead><tbody>
 {{range .Drafts}}<tr><td><a href="/admin/gtfs-studio/drafts/{{.ID}}">{{.Name}}</a></td><td>{{.Status}}</td><td>{{.BaseFeedVersionID}}</td><td>{{.LastPublishedFeedVersionID}}</td><td>{{.LatestPublishStatus}} {{.LatestPublishID}}</td></tr>{{end}}
 </tbody></table>
@@ -444,6 +465,11 @@ var pages = template.Must(template.New("pages").Parse(`
 <dt>Latest publish attempt</dt><dd>{{.LastPublishAttemptID}}</dd>
 <dt>Published feed version</dt><dd>{{.LastPublishedFeedVersionID}}</dd>
 </dl>
+<section aria-label="Publish review">
+<h2>Publish Review</h2>
+<p>Publishing this draft runs the existing GTFS Studio publish path and may activate a new local feed version only after admin confirmation. Review agency metadata, routes, stops, trips, stop_times, calendars, calendar_dates, shapes, frequencies, and recent validation feedback before publishing.</p>
+<p>This review does not prove agency approval, CAL-ITP/Caltrans compliance, consumer acceptance, final-root readiness, hosted service availability, SLA coverage, production readiness, vendor compatibility, hardware certification, public launch, or production-grade ETA quality.</p>
+</section>
 <nav>
 <a href="{{.ID}}/agency">agency metadata</a>
 <a href="{{.ID}}/routes">routes</a>
@@ -455,8 +481,8 @@ var pages = template.Must(template.New("pages").Parse(`
 <a href="{{.ID}}/shape_points">shape points</a>
 <a href="{{.ID}}/frequencies">frequencies</a>
 </nav>
-<form method="post" action="{{.ID}}/publish"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="notes" placeholder="notes"><button>Publish</button></form>
-<form method="post" action="{{.ID}}/discard"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="reason" placeholder="reason"><button>Discard</button></form>
+{{if .CanPublish}}<form method="post" action="{{.ID}}/publish"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="notes" placeholder="operator review notes"><button>Publish after review</button></form>{{else}}<p>Publishing is available only to admin roles.</p>{{end}}
+{{if .CanEdit}}<form method="post" action="{{.ID}}/discard"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="reason" placeholder="discard reason"><button>Discard draft</button></form>{{else}}<p>Draft discard is available only to editor and admin roles.</p>{{end}}
 {{end}}
 
 {{define "entity"}}
@@ -496,6 +522,17 @@ func (h *studioHandler) csrfToken(r *http.Request) string {
 		return ""
 	}
 	return auth.CSRFToken(h.csrfSecret, principal)
+}
+
+func (h *studioHandler) requireCSRF(w http.ResponseWriter, r *http.Request, principal auth.Principal) bool {
+	if principal.Method != auth.MethodCookie || strings.TrimSpace(h.csrfSecret) == "" {
+		return true
+	}
+	if strings.TrimSpace(r.FormValue("csrf_token")) == auth.CSRFToken(h.csrfSecret, principal) {
+		return true
+	}
+	http.Error(w, "invalid csrf token", http.StatusForbidden)
+	return false
 }
 
 func (h *studioHandler) requireDraftIDAgency(w http.ResponseWriter, r *http.Request, draftID string, principal auth.Principal) bool {
