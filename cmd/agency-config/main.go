@@ -143,6 +143,7 @@ func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, st
 	mux.HandleFunc("/public/feeds.json", h.publicFeedsJSON)
 	mux.HandleFunc("/public/agencies/", h.publicAgencyRoute)
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/admin/operations/assets/operations.js", adminRead(http.HandlerFunc(h.operationsAsset)))
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")

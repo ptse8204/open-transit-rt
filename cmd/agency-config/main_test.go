@@ -2614,12 +2614,72 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`<header class="operations-header">`,
 		`<nav class="operations-nav" aria-label="Operations Console sections">`,
 		`<main id="operations-main" tabindex="-1">`,
-		`</main></body></html>`,
+		`<script src="/admin/operations/assets/operations.js" defer></script>`,
+		`</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>`,
 		`:focus-visible`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("shared layout missing %q: %s", want, body)
 		}
+	}
+}
+
+func TestOperationsProgressiveAssetPrivateAllowlistedAndNoBuild(t *testing.T) {
+	srv := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/assets/operations.js", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("asset status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
+	if got := rr.Header().Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Fatalf("X-Content-Type-Options = %q, want nosniff", got)
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/javascript") {
+		t.Fatalf("Content-Type = %q, want application/javascript", got)
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"OpenTransitOperations",
+		"safeAdminPath",
+		"/admin/operations/validation-health/refresh.json",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("asset missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{
+		"http://", "https://", "cdn.", "unpkg", "maps.googleapis", "/public/gtfsrt", "/v1/events",
+		"csrf_token.", "bearer_token", "device_token", "Authorization", "Cookie", "postgres://", "raw_report", "stdout", "stderr", "/Users/", "docs/evidence/captured",
+	} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("asset contains forbidden private or external pattern %q: %s", forbidden, body)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/assets/operations.js", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public asset status = %d, want 404", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/assets/operations.js", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("POST asset status = %d, want 405", rr.Code)
+	}
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/assets/operations.js", nil)
+	rr = httptest.NewRecorder()
+	unauth.ServeHTTP(rr, req)
+	if rr.Code == http.StatusOK {
+		t.Fatalf("unauthenticated asset returned 200")
 	}
 }
 
@@ -6264,6 +6324,7 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	}
 	mux := http.NewServeMux()
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/admin/operations/assets/operations.js", adminRead(http.HandlerFunc(h.operationsAsset)))
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")

@@ -1883,7 +1883,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted"><a href="{{.ContextHelp.AllTopicsURL}}">Open all help topics</a> · <a href="{{.ContextHelp.JSONURL}}">Export private help JSON</a></p>
 </aside>{{end}}
 {{end}}
-{{define "layoutEnd"}}</main></body></html>{{end}}
+{{define "layoutEnd"}}</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>{{end}}
 
 {{define "help"}}
 {{template "layoutStart" .}}
