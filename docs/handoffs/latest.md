@@ -170,10 +170,18 @@ semantics. Phase 86 added no public admin route, migration, evidence write,
 consumer status change, release artifact, hosted-service claim,
 production-readiness claim, production multi-tenancy claim, vendor claim,
 hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 87 -- Public
-Feed Readiness And Docs Portal is the next authorized private product phase in
-the Phase 75-90 track, with plan at
-`docs/phase-87-public-feed-readiness-and-docs-portal.md`. Any future evidence
-intake is optional and requires explicit written authorization first.
+Feed Readiness And Docs Portal is complete, with closeout at
+`docs/handoffs/phase-87.md`: the private Operations Console now has
+configured feed URL review, source-of-truth metadata and listing guidance,
+off-host validation guidance, docs portal alignment guidance, prepared-only
+consumer packet explanation, future authorization gates, and all-false claim
+flags. Phase 87 added no public admin route, migration, evidence write,
+consumer status change, release artifact, final-root readiness claim, consumer
+action claim, hosted-service claim, production-readiness claim, vendor claim,
+hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 88 --
+Nontechnical Training And In-App Guidance is the next authorized private
+product phase in the Phase 75-90 track. Any future evidence intake is optional
+and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1437,11 +1445,11 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue Phase 87 -- Public Feed Readiness And Docs Portal from
-`docs/phase-87-public-feed-readiness-and-docs-portal.md` in the authorized
-Phase 75-90 product track. Keep the work private, bounded, and focused on feed
-URL readiness, docs portal alignment, prepared-packet explanation, and future
-evidence checklists that require separate written authorization. Do not claim
+Continue Phase 88 -- Nontechnical Training And In-App Guidance in the
+authorized Phase 75-90 product track. Keep the work private, bounded, and
+focused on in-app guidance, glossary, scenario flows, quick tasks,
+troubleshooting decision trees, printable/docs staff training, and
+role-specific paths. Do not claim
 production readiness, hosted service, SLA, uptime, release readiness,
 compliance, agency adoption, consumer acceptance, vendor compatibility,
 hardware certification, real vendor/device proof, or evidence.

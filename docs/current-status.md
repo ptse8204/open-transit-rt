@@ -388,9 +388,17 @@ semantics. Phase 86 added no public admin route, migration, evidence write,
 consumer status change, release artifact, hosted-service claim,
 production-readiness claim, production multi-tenancy claim, vendor claim,
 hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 87 -- Public
-Feed Readiness And Docs Portal is the next authorized private product phase in
-the Phase 75-90 product track, with plan at
-`docs/phase-87-public-feed-readiness-and-docs-portal.md`.
+Feed Readiness And Docs Portal is complete. It changed the private
+Operations Console feed and consumer pages to show configured feed URL review,
+source-of-truth metadata and listing guidance, off-host validation guidance,
+docs portal alignment guidance, prepared-only consumer packet explanation,
+future authorization gates, and all-false claim flags. Phase 87 added no
+public admin route, migration, evidence write, consumer status change, release
+artifact, final-root readiness claim, consumer action claim, hosted-service
+claim, production-readiness claim, vendor claim, hardware claim, SLA/uptime
+claim, or ETA-quality claim. Phase 88 -- Nontechnical Training And In-App
+Guidance is the next authorized private product phase in the Phase 75-90
+product track.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
