@@ -9,6 +9,9 @@ type operationsFeedReadinessView struct {
 	Boundary        string                              `json:"boundary"`
 	Rows            []operationsFeedReadinessRow        `json:"rows"`
 	Metadata        []operationsFeedReadinessMetadata   `json:"metadata"`
+	SourceOfTruth   []operationsFeedReadinessGuide      `json:"source_of_truth"`
+	OffHost         []operationsFeedReadinessGuide      `json:"off_host_validation"`
+	DocsPortal      []operationsFeedReadinessGuide      `json:"docs_portal"`
 	FutureChecklist []operationsFeedReadinessFutureGate `json:"future_checklist"`
 	ClaimFlags      operationsFeedReadinessClaimFlags   `json:"claim_flags"`
 }
@@ -48,6 +51,17 @@ type operationsFeedReadinessFutureGate struct {
 	Boundary      string `json:"boundary"`
 }
 
+type operationsFeedReadinessGuide struct {
+	ID                  string `json:"id"`
+	Label               string `json:"label"`
+	Status              string `json:"status"`
+	CurrentSignal       string `json:"current_signal"`
+	OperatorStep        string `json:"operator_step"`
+	TechnicalHelperStep string `json:"technical_helper_step"`
+	DocsLink            string `json:"docs_link"`
+	DoesNotProve        string `json:"does_not_prove"`
+}
+
 type operationsFeedReadinessClaimFlags struct {
 	ExternalEvidenceCreated       bool `json:"external_evidence_created"`
 	FinalRootEvidenceCreated      bool `json:"final_root_evidence_created"`
@@ -73,6 +87,9 @@ func buildOperationsFeedReadiness(page operationsPage) operationsFeedReadinessVi
 		Boundary:        "Private public-feed readiness review only. This page reads configured metadata and local diagnostic summaries; it does not fetch final roots, contact consumers, write evidence, change consumer statuses, or prove final-root, compliance, public launch, hosted service, production, vendor, hardware, SLA, uptime, or ETA-quality outcomes.",
 		Rows:            feedReadinessRows(page),
 		Metadata:        feedReadinessMetadata(page),
+		SourceOfTruth:   feedReadinessSourceOfTruthGuidance(page),
+		OffHost:         feedReadinessOffHostGuidance(page),
+		DocsPortal:      feedReadinessDocsPortalGuidance(page),
 		FutureChecklist: feedReadinessFutureGates(),
 		ClaimFlags:      operationsFeedReadinessClaimFlags{},
 	}
@@ -220,6 +237,162 @@ func feedReadinessMetadataRow(id string, label string, ok bool, signal string, n
 		NextAction:    next,
 		DoesNotProve:  doesNotProve,
 	}
+}
+
+func feedReadinessSourceOfTruthGuidance(page operationsPage) []operationsFeedReadinessGuide {
+	publicBase := firstNonEmpty(strings.TrimSpace(page.Discovery.PublicBaseURL), "missing")
+	metadataSignal := "publication metadata is configured"
+	if page.DiscoveryError != "" {
+		metadataSignal = page.DiscoveryError
+	}
+	return []operationsFeedReadinessGuide{
+		feedReadinessGuide(
+			"provider_page_listing",
+			"Provider or regional source-of-truth listing",
+			feedReadinessGuideStatus(strings.TrimSpace(page.Discovery.PublicBaseURL) != "" && page.DiscoveryError == ""),
+			"configured public base URL: "+publicBase,
+			"Privately compare the five configured feed URLs with the intended provider or regional source-of-truth page.",
+			"Do not collect retained final-root proof unless a separate written authorization starts that evidence gate.",
+			"docs/requirements-calitp-compliance.md",
+			"Does not prove the page is final-root, agency-owned, agency-approved, listed publicly, or reviewed by any target.",
+		),
+		feedReadinessGuide(
+			"metadata_identity",
+			"Agency identity, license, and contact metadata",
+			feedReadinessGuideStatus(page.Discovery.Readiness.LicenseComplete && page.Discovery.Readiness.ContactComplete && page.DiscoveryError == ""),
+			metadataSignal,
+			"Confirm agency name, license URL, and monitored technical contact are understandable before any future external sharing.",
+			"Update publication metadata through existing server-owned configuration paths; do not paste credentials or private contacts into evidence packets.",
+			"docs/publication-configuration.md",
+			"Does not prove legal approval, managed support, compliance, consumer review, or target listing.",
+		),
+		feedReadinessGuide(
+			"screenshot_and_diagram_policy",
+			"Screenshot and diagram policy",
+			operationsStatusBlocked,
+			"retained screenshot capture is outside Phase 87",
+			"Use diagrams or annotated text cards for operator docs when screenshots are stale or unavailable.",
+			"Capture portal screenshots, DNS screenshots, or private tickets only in a separately authorized evidence phase with redaction review.",
+			"docs/phase-74-github-pages-and-agency-ui-product-polish.md",
+			"Does not create retained evidence, final-root proof, consumer proof, or public launch proof.",
+		),
+	}
+}
+
+func feedReadinessOffHostGuidance(page operationsPage) []operationsFeedReadinessGuide {
+	scheduleStatus := feedReadinessValidationStatus(page, "schedule")
+	vpStatus := feedReadinessValidationStatus(page, "vehicle_positions")
+	tuStatus := feedReadinessValidationStatus(page, "trip_updates")
+	alertsStatus := feedReadinessValidationStatus(page, "alerts")
+	return []operationsFeedReadinessGuide{
+		feedReadinessGuide(
+			"static_schedule_validator",
+			"Static schedule validator",
+			scheduleStatus,
+			feedReadinessValidationContext(page, "schedule"),
+			"Use the private validation center first. If the host lacks tooling, ask a technical helper to run the allowlisted static validator off-host.",
+			"Keep off-host outputs local or in ignored .cache paths unless an authorized evidence gate specifies retention.",
+			"docs/validator-tooling.md",
+			"Does not prove a validator-clean public feed, compliance, consumer review, or source-of-truth listing.",
+		),
+		feedReadinessGuide(
+			"realtime_validators",
+			"Realtime validators",
+			rollupStatuses([]string{vpStatus, tuStatus, alertsStatus}),
+			fmt.Sprintf("Vehicle Positions: %s; Trip Updates: %s; Alerts: %s", vpStatus, tuStatus, alertsStatus),
+			"Review Vehicle Positions, Trip Updates, and Alerts validator rows separately before sharing realtime URLs.",
+			"Run GTFS-Realtime validation through existing allowlisted validator IDs or documented off-host commands; never accept browser-supplied validator paths.",
+			"docs/requirements-trip-updates.md",
+			"Does not prove consumer display, real-world ETA quality, realtime reliability, or target ingestion.",
+		),
+		feedReadinessGuide(
+			"small_host_offload",
+			"Small-host validation offload",
+			operationsStatusNeedsReview,
+			"off-host validation remains guidance only",
+			"Treat missing local validator tooling as a reason to use documented off-host validation, not as a pass.",
+			"Use a workstation or CI environment with pinned validators; keep stdout, stderr, private paths, and raw reports out of HTML.",
+			"docs/validation-guidance.md",
+			"Does not prove hosted service availability, SLA, uptime, release readiness, or public launch.",
+		),
+	}
+}
+
+func feedReadinessDocsPortalGuidance(page operationsPage) []operationsFeedReadinessGuide {
+	return []operationsFeedReadinessGuide{
+		feedReadinessGuide(
+			"browser_first_docs_path",
+			"Browser-first docs path",
+			operationsStatusReady,
+			"Operations Console links point operators to private setup, feeds, validation, telemetry, and support workflows",
+			"Keep public docs focused on self-hosted browser-first operation and clear claim boundaries.",
+			"When docs mention screenshots or feed URLs, label them as local/demo documentation aids unless retained evidence is separately authorized.",
+			"docs/index.md",
+			"Does not prove hosted-service availability, public service launch, agency approval, or release readiness.",
+		),
+		feedReadinessGuide(
+			"feed_url_share_copy",
+			"Feed URL share/copy guidance",
+			feedReadinessGuideStatus(len(feedReadinessRows(page)) == expectedFeedReadinessRows(page)),
+			fmt.Sprintf("%d of %d expected feed URL rows are rendered", len(feedReadinessRows(page)), expectedFeedReadinessRows(page)),
+			"Copy URLs only from the private configured feed URL review after metadata and validation context are reviewed.",
+			"Do not automate portal uploads or external network sends from this browser page.",
+			"docs/wiki/Small-Agency-Quick-Start.md",
+			"Does not prove a target received, reviewed, listed, displayed, or ingested a feed.",
+		),
+		feedReadinessGuide(
+			"future_operator_checklist",
+			"Future operator checklist",
+			operationsStatusNeedsReview,
+			"optional evidence gates remain separate",
+			"Use this page as a private preflight before deciding whether a separately authorized evidence phase is worth starting.",
+			"Future final-root, consumer submission, agency pilot, vendor/device AVL, ETA quality, and compliance gates require separate written authorization.",
+			"docs/open-transit-rt-master-planner-remaining-work.md",
+			"Does not create evidence, move consumer status, approve a release, or complete public launch.",
+		),
+	}
+}
+
+func feedReadinessGuide(id string, label string, status string, signal string, operatorStep string, technicalHelperStep string, docsLink string, doesNotProve string) operationsFeedReadinessGuide {
+	return operationsFeedReadinessGuide{
+		ID:                  strings.TrimSpace(id),
+		Label:               firstNonEmpty(label, id),
+		Status:              firstNonEmpty(status, operationsStatusUnknown),
+		CurrentSignal:       firstNonEmpty(signal, "not available"),
+		OperatorStep:        firstNonEmpty(operatorStep, "Review this item inside the private Operations Console."),
+		TechnicalHelperStep: firstNonEmpty(technicalHelperStep, "Keep any technical output private unless a separate evidence gate is authorized."),
+		DocsLink:            docsLink,
+		DoesNotProve:        firstNonEmpty(doesNotProve, privateBoundary()),
+	}
+}
+
+func feedReadinessGuideStatus(ok bool) string {
+	if ok {
+		return operationsStatusReady
+	}
+	return operationsStatusNeedsReview
+}
+
+func feedReadinessValidationStatus(page operationsPage, id string) string {
+	row := feedHealthValidationRow(page, id)
+	if row == nil {
+		return operationsStatusMissing
+	}
+	status := strings.ToLower(strings.TrimSpace(row.HealthStatus))
+	if status == "recorded" || status == "ok" || status == "configured" {
+		return operationsStatusReady
+	}
+	if status == "" || status == "missing" || status == "not_available" {
+		return operationsStatusMissing
+	}
+	if status == "blocked" || status == "failed" {
+		return operationsStatusBlocked
+	}
+	return operationsStatusNeedsReview
+}
+
+func expectedFeedReadinessRows(page operationsPage) int {
+	return len(firstRunFeedURLs(page))
 }
 
 func feedReadinessFutureGates() []operationsFeedReadinessFutureGate {

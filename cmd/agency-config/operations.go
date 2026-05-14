@@ -3233,6 +3233,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
 {{range .FeedReadiness.Metadata}}<tr id="feed-readiness-metadata-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Source-of-truth listing guidance</h3>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
+{{range .FeedReadiness.SourceOfTruth}}<tr id="feed-readiness-source-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Off-host validation guidance</h3>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
+{{range .FeedReadiness.OffHost}}<tr id="feed-readiness-off-host-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Public docs portal alignment</h3>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
+{{range .FeedReadiness.DocsPortal}}<tr id="feed-readiness-docs-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h3>Future final-root/evidence checklist</h3>
 <table><thead><tr><th>Gate</th><th>Current status</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .FeedReadiness.FutureChecklist}}<tr id="feed-readiness-future-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .CurrentStatus}}">{{.CurrentStatus}}</span></td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
