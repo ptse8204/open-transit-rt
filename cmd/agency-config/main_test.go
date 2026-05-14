@@ -2403,7 +2403,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -6165,7 +6165,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenRecipes := map[string]bool{}
@@ -6236,6 +6236,21 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 		}
 		if row.Outcome == "drop" && row.Reason == "" {
 			t.Fatalf("drop row missing reason: %+v", row)
+		}
+	}
+	seenWebhookRows := map[string]bool{}
+	for _, row := range view.WebhookBoundary.Rows {
+		if row.ID == "" || row.Label == "" || row.WhatThisMeans == "" || len(row.AllowedInputs) == 0 || len(row.BlockedInputs) == 0 || row.FirstSafeCheck == "" || row.FailClosedRule == "" || row.RedactionRule == "" || row.DoesNotProve == "" || len(row.ReviewLinks) == 0 {
+			t.Fatalf("invalid connector workbench webhook row: %+v", row)
+		}
+		if seenWebhookRows[row.ID] {
+			t.Fatalf("duplicate connector workbench webhook row %q", row.ID)
+		}
+		seenWebhookRows[row.ID] = true
+		for _, link := range row.ReviewLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("webhook row %s has unsafe review link %q", row.ID, link)
+			}
 		}
 	}
 }

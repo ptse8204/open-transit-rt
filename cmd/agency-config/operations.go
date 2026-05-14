@@ -2458,6 +2458,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 </tbody></table>
 <p class="muted">Preview counts: {{.ConnectorWorkbench.TelemetryPreview.Counts.Events}} events, {{.ConnectorWorkbench.TelemetryPreview.Counts.Drops}} drops, network send enabled: {{.ConnectorWorkbench.TelemetryPreview.Counts.NetworkSendEnabled}}.</p>
+<h3>{{.ConnectorWorkbench.WebhookBoundary.Title}}</h3>
+<p class="warning">{{.ConnectorWorkbench.WebhookBoundary.Boundary}}</p>
+<table><thead><tr><th>Boundary</th><th>What it means</th><th>Allowed inputs</th><th>Blocked inputs</th><th>First safe check</th><th>Fail-closed rule</th><th>Redaction rule</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.WebhookBoundary.Rows}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.WhatThisMeans}}</td>
+<td>{{range .AllowedInputs}}{{.}}<br>{{end}}</td>
+<td>{{range .BlockedInputs}}{{.}}<br>{{end}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.FailClosedRule}}</td>
+<td>{{.RedactionRule}}</td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .ReviewLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<p><strong>Docs:</strong> {{range .ConnectorWorkbench.WebhookBoundary.DocsLinks}}<code>{{.}}</code> {{end}}</p>
 <h3>{{.ConnectorWorkbench.ManifestReview.Title}}</h3>
 <p>{{.ConnectorWorkbench.ManifestReview.Summary}}</p>
 <p><strong>Safe plugin definition:</strong> {{.ConnectorWorkbench.ManifestReview.PluginDefinition}}</p>

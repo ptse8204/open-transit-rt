@@ -28,6 +28,7 @@ type connectorWorkbenchView struct {
 	Recipes          []connectorWorkbenchRecipe         `json:"recipes"`
 	DryRunCommands   []connectorWorkbenchDryRun         `json:"dry_run_commands"`
 	TelemetryPreview connectorWorkbenchTelemetryPreview `json:"telemetry_preview"`
+	WebhookBoundary  connectorWorkbenchWebhookBoundary  `json:"webhook_boundary"`
 	ManifestReview   connectorWorkbenchManifestReview   `json:"manifest_review"`
 	ClaimFlags       connectorWorkbenchClaimFlags       `json:"claim_flags"`
 }
@@ -107,6 +108,26 @@ type connectorWorkbenchPreviewCounts struct {
 	Events             int  `json:"events"`
 	Drops              int  `json:"drops"`
 	NetworkSendEnabled bool `json:"network_send_enabled"`
+}
+
+type connectorWorkbenchWebhookBoundary struct {
+	Title     string                         `json:"title"`
+	Boundary  string                         `json:"boundary"`
+	Rows      []connectorWorkbenchWebhookRow `json:"rows"`
+	DocsLinks []string                       `json:"docs_links"`
+}
+
+type connectorWorkbenchWebhookRow struct {
+	ID             string   `json:"id"`
+	Label          string   `json:"label"`
+	WhatThisMeans  string   `json:"what_this_means"`
+	AllowedInputs  []string `json:"allowed_inputs"`
+	BlockedInputs  []string `json:"blocked_inputs"`
+	FirstSafeCheck string   `json:"first_safe_check"`
+	FailClosedRule string   `json:"fail_closed_rule"`
+	RedactionRule  string   `json:"redaction_rule"`
+	DoesNotProve   string   `json:"does_not_prove"`
+	ReviewLinks    []string `json:"review_links"`
 }
 
 type connectorWorkbenchManifestRow struct {
@@ -286,6 +307,7 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 		},
 		DryRunCommands:   connectorWorkbenchDryRunCommands(),
 		TelemetryPreview: buildConnectorWorkbenchTelemetryPreview(),
+		WebhookBoundary:  connectorWorkbenchWebhookBoundaryView(),
 		ManifestReview: connectorWorkbenchManifestReview{
 			Title:            "Example Manifest Registry Review",
 			Summary:          "Committed synthetic connector manifests only. This registry review does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.",
@@ -357,6 +379,79 @@ func connectorWorkbenchDryRunView(id string, label string, commandLine string, r
 		FailureNextAction: firstNonEmpty(failure, "Review the synthetic fixture or adapter boundary."),
 		DoesNotProve:      firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
 		DocsLinks:         safeDocsLinks(docsLinks),
+	}
+}
+
+func connectorWorkbenchWebhookBoundaryView() connectorWorkbenchWebhookBoundary {
+	return connectorWorkbenchWebhookBoundary{
+		Title:    "Webhook And AVL Transform Boundaries",
+		Boundary: "Boundary guidance only. The Workbench is not a webhook receiver, does not accept vendor payloads, does not hold credentials, does not forward observations, and does not call telemetry ingest.",
+		Rows: []connectorWorkbenchWebhookRow{
+			connectorWorkbenchWebhookRowView(
+				"receiver_owner",
+				"Receiver is deployment-owned",
+				"Any external POST receiver belongs in deployment-owned infrastructure outside the Operations Console.",
+				[]string{"committed synthetic fixtures", "server-issued device credential reference", "deployment-owned endpoint documented outside this page"},
+				[]string{"credentials in manifests", "payload samples from live systems", "browser-supplied receiver URLs", "portal or vendor contact from this page"},
+				"go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
+				"Reject before ingest when authentication, agency mapping, device identity, timestamp, coordinate, or quality checks are unsafe.",
+				"Store only redacted local diagnostics; do not print private payloads, tokens, headers, private URLs, or filesystem paths.",
+				"Named vendor support, vendor compatibility, hardware certification, production AVL reliability, compliance, consumer acceptance, or public launch.",
+				[]string{"/admin/operations/devices", "/admin/operations/telemetry"},
+			),
+			connectorWorkbenchWebhookRowView(
+				"transform_mapping",
+				"Transform before telemetry ingest",
+				"Adapters should convert source-specific observations into the narrow telemetry event shape before any intentional send.",
+				[]string{"agency ID", "device ID", "vehicle ID", "observed timestamp", "latitude/longitude", "quality signal"},
+				[]string{"unbounded vendor fields", "operator-provided argv", "client-supplied file paths", "direct browser telemetry sends"},
+				"make test-connector-examples",
+				"Drop or withhold observations with missing identity, invalid timestamps, stale/future timestamps, low quality, or invalid coordinates.",
+				"Log reason codes and counts, not source payload bodies or credential material.",
+				"Accepted telemetry, Vehicle Positions output, Trip Updates quality, production readiness, or evidence.",
+				[]string{"/admin/operations/connectors/workbench", "/admin/operations/realtime"},
+			),
+			connectorWorkbenchWebhookRowView(
+				"credential_boundary",
+				"Credentials stay server-owned",
+				"Device and adapter credentials must be provisioned through existing private admin paths or deployment configuration, not through manifests or this page.",
+				[]string{"environment references", "device token issuance through private Device Credentials", "redacted credential presence indicators"},
+				[]string{"API keys in JSON", "bearer values in HTML", "credential upload fields", "token hashes in operator-visible tables"},
+				"make external-connection-check",
+				"Block connector manifests or examples that contain secret-like values, private endpoints, raw commands, or status mutation.",
+				"Show only credential ownership and next action; never render secret values.",
+				"Credential validity, live external connectivity, vendor approval, production readiness, or SLA.",
+				[]string{"/admin/operations/devices", "/admin/operations/maintenance"},
+			),
+			connectorWorkbenchWebhookRowView(
+				"review_before_send",
+				"Review before any intentional send",
+				"After local synthetic checks pass, a technical helper should review the adapter boundary before any deployment-owned send path is enabled.",
+				[]string{"passing synthetic conformance results", "redaction plan", "rollback plan", "operator-owned go/no-go notes outside protected evidence paths"},
+				[]string{"retained evidence without authorization", "consumer status movement", "automatic submissions", "public claims based on local checks"},
+				"make adapter-conformance",
+				"Keep the adapter disabled or shadow-only until authentication, redaction, fail-closed behavior, and rollback are reviewed.",
+				"Keep support bundles redacted and avoid retaining real external payloads without separate written authorization.",
+				"Agency approval, external proof, compliance, consumer acceptance, public launch, or production readiness.",
+				[]string{"/admin/operations/maintenance", "/admin/operations/validation-center"},
+			),
+		},
+		DocsLinks: safeDocsLinks([]string{"docs/tutorials/device-avl-integration.md", "docs/evidence/redaction-policy.md", "docs/integration-adapter-kit.md"}),
+	}
+}
+
+func connectorWorkbenchWebhookRowView(id string, label string, means string, allowed []string, blocked []string, check string, failClosed string, redaction string, doesNotProve string, reviewLinks []string) connectorWorkbenchWebhookRow {
+	return connectorWorkbenchWebhookRow{
+		ID:             firstNonEmpty(id, "webhook-boundary"),
+		Label:          firstNonEmpty(label, "Webhook boundary"),
+		WhatThisMeans:  firstNonEmpty(means, "Review this boundary before any deployment-owned integration work."),
+		AllowedInputs:  cleanLaunchpadList(allowed),
+		BlockedInputs:  cleanLaunchpadList(blocked),
+		FirstSafeCheck: firstNonEmpty(check, "make adapter-conformance"),
+		FailClosedRule: firstNonEmpty(failClosed, "Fail closed before ingest when the input is unsafe."),
+		RedactionRule:  firstNonEmpty(redaction, "Keep diagnostics redacted."),
+		DoesNotProve:   firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
+		ReviewLinks:    safeAdminLinks(reviewLinks),
 	}
 }
 
