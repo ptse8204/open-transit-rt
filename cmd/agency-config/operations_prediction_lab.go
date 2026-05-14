@@ -17,6 +17,7 @@ type predictionLabView struct {
 	Summary         predictionLabSummary       `json:"summary"`
 	Deterministic   predictionLabDeterministic `json:"deterministic"`
 	WithheldReasons []predictionLabReason      `json:"withheld_reasons"`
+	ShadowReview    predictionLabShadowReview  `json:"shadow_review"`
 	ReviewRows      []predictionLabReviewRow   `json:"review_rows"`
 	Commands        []predictionLabCommand     `json:"commands"`
 	ClaimFlags      predictionLabClaimFlags    `json:"claim_flags"`
@@ -61,6 +62,26 @@ type predictionLabReason struct {
 	WhatItMeans  string `json:"what_it_means"`
 	NextAction   string `json:"next_action"`
 	DoesNotProve string `json:"does_not_prove"`
+}
+
+type predictionLabShadowReview struct {
+	Status       string                   `json:"status"`
+	Boundary     string                   `json:"boundary"`
+	NextAction   string                   `json:"next_action"`
+	DoesNotProve string                   `json:"does_not_prove"`
+	Rows         []predictionLabShadowRow `json:"rows"`
+}
+
+type predictionLabShadowRow struct {
+	ID              string `json:"id"`
+	Label           string `json:"label"`
+	Status          string `json:"status"`
+	Reason          string `json:"reason"`
+	Latency         string `json:"latency"`
+	CountComparison string `json:"count_comparison"`
+	FailureBehavior string `json:"failure_behavior"`
+	FirstSafeCheck  string `json:"first_safe_check"`
+	DoesNotProve    string `json:"does_not_prove"`
 }
 
 type predictionLabReviewRow struct {
@@ -145,6 +166,7 @@ func buildPredictionLab(page operationsPage) predictionLabView {
 	view.Summary = buildPredictionLabSummary(page.TripUpdatesQuality)
 	view.Deterministic = buildPredictionLabDeterministic(page.TripUpdatesQuality)
 	view.WithheldReasons = buildPredictionLabWithheldReasons(page.TripUpdatesQuality)
+	view.ShadowReview = buildPredictionLabShadowReview(page.TripUpdatesQuality)
 	view.ReviewRows = buildPredictionLabReviewRows(view.Summary, view.WithheldReasons)
 	return view
 }
@@ -274,6 +296,121 @@ func buildPredictionLabWithheldReasons(quality tripUpdatesQualityView) []predict
 		})
 	}
 	return reasons
+}
+
+func buildPredictionLabShadowReview(quality tripUpdatesQualityView) predictionLabShadowReview {
+	review := predictionLabShadowReview{
+		Status:       checklistStatusOK,
+		Boundary:     "External predictor review is shadow/fail-closed diagnostics only. The browser does not contact sidecars, start predictors, test URLs, store credentials, or change public Trip Updates output.",
+		NextAction:   "Keep external predictors disabled or shadow-only until bounded diagnostics, fail-closed behavior, and rollback are reviewed.",
+		DoesNotProve: "Shadow diagnostics do not prove named predictor compatibility, real-world ETA accuracy, production readiness, SLA coverage, consumer acceptance, or compliance.",
+	}
+	shadow, ok := predictionLabShadowDetails(quality.AdapterDetails)
+	if !ok {
+		review.Status = checklistStatusUnknown
+		review.Rows = []predictionLabShadowRow{{
+			ID:              "external-http-shadow-not-recorded",
+			Label:           "External HTTP shadow not recorded",
+			Status:          "not recorded",
+			Reason:          "no bounded external_http_shadow diagnostics are present in the latest Trip Updates record",
+			Latency:         "not recorded",
+			CountComparison: "deterministic output remains the only reviewed signal",
+			FailureBehavior: "Default-safe: keep deterministic fallback and Vehicle Positions independent.",
+			FirstSafeCheck:  "go test ./internal/prediction -run ExternalHTTP",
+			DoesNotProve:    review.DoesNotProve,
+		}}
+		return review
+	}
+	review.Status = statusFromShadowStatus(shadow.Status)
+	review.Rows = []predictionLabShadowRow{{
+		ID:              "external-http-shadow",
+		Label:           "External HTTP shadow",
+		Status:          firstNonEmpty(shadow.Status, "unknown"),
+		Reason:          firstNonEmpty(shadow.Reason, "not recorded"),
+		Latency:         latencyText(shadow.LatencyMS),
+		CountComparison: fmt.Sprintf("deterministic=%d; external=%d; delta=%+d", shadow.DeterministicCount, shadow.ExternalCount, shadow.CountDelta),
+		FailureBehavior: "Shadow mode keeps deterministic Trip Updates as public output and records bounded diagnostic deltas only.",
+		FirstSafeCheck:  "go test ./internal/prediction -run ExternalHTTP",
+		DoesNotProve:    review.DoesNotProve,
+	}}
+	return review
+}
+
+type predictionLabShadowDetailsView struct {
+	Status             string
+	Reason             string
+	LatencyMS          int
+	DeterministicCount int
+	ExternalCount      int
+	CountDelta         int
+}
+
+func predictionLabShadowDetails(details map[string]any) (predictionLabShadowDetailsView, bool) {
+	if len(details) == 0 {
+		return predictionLabShadowDetailsView{}, false
+	}
+	raw, ok := details["external_http_shadow"]
+	if !ok {
+		return predictionLabShadowDetailsView{}, false
+	}
+	shadowMap, ok := raw.(map[string]any)
+	if !ok {
+		return predictionLabShadowDetailsView{}, false
+	}
+	return predictionLabShadowDetailsView{
+		Status:             safeDiagnosticToken(shadowMap["status"]),
+		Reason:             safeDiagnosticToken(shadowMap["reason"]),
+		LatencyMS:          intFromAny(shadowMap["latency_ms"]),
+		DeterministicCount: intFromAny(shadowMap["deterministic_trip_updates_count"]),
+		ExternalCount:      intFromAny(shadowMap["external_trip_updates_count"]),
+		CountDelta:         intFromAny(shadowMap["count_delta"]),
+	}, true
+}
+
+func statusFromShadowStatus(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case prediction.StatusOK:
+		return checklistStatusOK
+	case prediction.StatusError:
+		return checklistStatusNeedsReview
+	default:
+		return checklistStatusUnknown
+	}
+}
+
+func latencyText(ms int) string {
+	if ms <= 0 {
+		return "not recorded"
+	}
+	return fmt.Sprintf("%d ms", ms)
+}
+
+func safeDiagnosticToken(value any) string {
+	switch typed := value.(type) {
+	case string:
+		cleaned := strings.TrimSpace(typed)
+		if cleaned == "" || strings.ContainsAny(cleaned, "/:\\") || strings.Contains(strings.ToLower(cleaned), "token") || strings.Contains(strings.ToLower(cleaned), "secret") || strings.Contains(strings.ToLower(cleaned), "host") {
+			return ""
+		}
+		return cleaned
+	default:
+		return ""
+	}
+}
+
+func intFromAny(value any) int {
+	switch typed := value.(type) {
+	case int:
+		return typed
+	case int64:
+		return int(typed)
+	case float64:
+		return int(typed)
+	case float32:
+		return int(typed)
+	default:
+		return 0
+	}
 }
 
 func predictionLabReasonFor(reason string, count int) predictionLabReason {

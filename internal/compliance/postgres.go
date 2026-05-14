@@ -362,6 +362,7 @@ func (r *PostgresRepository) LatestTripUpdatesDiagnostics(ctx context.Context, a
 		PredictionMetrics             prediction.Metrics `json:"prediction_metrics"`
 		VehiclePositionsURL           string             `json:"vehicle_positions_url"`
 		DiagnosticsPersistenceOutcome string             `json:"diagnostics_persistence_outcome"`
+		AdapterDetails                map[string]any     `json:"adapter_details"`
 	}
 	if err := json.Unmarshal(detailsBytes, &details); err != nil {
 		return TripUpdatesDiagnosticsSummary{}, fmt.Errorf("decode latest trip updates diagnostics: %w", err)
@@ -375,6 +376,7 @@ func (r *PostgresRepository) LatestTripUpdatesDiagnostics(ctx context.Context, a
 		ActiveFeedVersionID:           details.ActiveFeedVersionID,
 		VehiclePositionsURL:           details.VehiclePositionsURL,
 		DiagnosticsPersistenceOutcome: details.DiagnosticsPersistenceOutcome,
+		AdapterDetails:                details.AdapterDetails,
 		Metrics:                       details.PredictionMetrics,
 	}, nil
 }

@@ -5099,6 +5099,15 @@ func TestOperationsConsoleRendersSafeTripUpdatesQualitySummary(t *testing.T) {
 			DiagnosticsReason:             prediction.ReasonPartialPredictions,
 			ActiveFeedVersionID:           "feed-demo",
 			DiagnosticsPersistenceOutcome: "stored",
+			AdapterDetails: map[string]any{"external_http_shadow": map[string]any{
+				"status":                           prediction.StatusError,
+				"reason":                           prediction.ReasonAdapterError,
+				"latency_ms":                       42.0,
+				"deterministic_trip_updates_count": 1.0,
+				"external_trip_updates_count":      0.0,
+				"count_delta":                      -1.0,
+				"raw_response":                     "token=secret host=predictor.example",
+			}},
 			Metrics: prediction.Metrics{
 				TelemetryRowsConsidered:      2,
 				AssignmentsConsidered:        2,
@@ -5394,6 +5403,15 @@ func TestPredictionLabJSONShapeFlagsAndDeterministicDiagnostics(t *testing.T) {
 			DiagnosticsReason:             prediction.ReasonPartialPredictions,
 			ActiveFeedVersionID:           "feed-demo",
 			DiagnosticsPersistenceOutcome: "stored",
+			AdapterDetails: map[string]any{"external_http_shadow": map[string]any{
+				"status":                           prediction.StatusError,
+				"reason":                           prediction.ReasonAdapterError,
+				"latency_ms":                       42.0,
+				"deterministic_trip_updates_count": 1.0,
+				"external_trip_updates_count":      0.0,
+				"count_delta":                      -1.0,
+				"raw_response":                     "token=secret host=predictor.example",
+			}},
 			Metrics: prediction.Metrics{
 				TelemetryRowsConsidered:      2,
 				AssignmentsConsidered:        2,
@@ -5440,6 +5458,9 @@ func TestPredictionLabJSONShapeFlagsAndDeterministicDiagnostics(t *testing.T) {
 	if view.Deterministic.Status != checklistStatusOK || len(view.Deterministic.Rows) != 4 {
 		t.Fatalf("unexpected deterministic diagnostics: %+v", view.Deterministic)
 	}
+	if view.ShadowReview.Status != checklistStatusNeedsReview || len(view.ShadowReview.Rows) != 1 || view.ShadowReview.Rows[0].Status != prediction.StatusError || !strings.Contains(view.ShadowReview.Rows[0].CountComparison, "delta=-1") {
+		t.Fatalf("unexpected shadow review: %+v", view.ShadowReview)
+	}
 	seen := map[string]bool{}
 	for _, reason := range view.WithheldReasons {
 		seen[reason.Reason] = true
@@ -5465,6 +5486,15 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 			DiagnosticsStatus:   prediction.StatusOK,
 			DiagnosticsReason:   prediction.ReasonPartialPredictions,
 			ActiveFeedVersionID: "feed-demo",
+			AdapterDetails: map[string]any{"external_http_shadow": map[string]any{
+				"status":                           prediction.StatusOK,
+				"reason":                           prediction.ReasonPredictionsAvailable,
+				"latency_ms":                       17.0,
+				"deterministic_trip_updates_count": 1.0,
+				"external_trip_updates_count":      1.0,
+				"count_delta":                      0.0,
+				"raw_response":                     "token=secret host=predictor.example",
+			}},
 			Metrics: prediction.Metrics{
 				EligiblePredictionCandidates: 1,
 				WithheldByReason:             map[string]int{prediction.ReasonStaleTelemetry: 1},
@@ -5481,7 +5511,7 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality"} {
+	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("prediction lab html missing %q: %s", want, body)
 		}
@@ -6629,7 +6659,7 @@ func assertRealtimeFlagsFalse(t *testing.T, flags operationsRealtimeClaimFlags) 
 
 func assertPredictionLabShape(t *testing.T, view predictionLabView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.Summary.CurrentSignal == "" || view.Summary.NextAction == "" || view.Summary.DoesNotProve == "" || view.Deterministic.Boundary == "" || view.Deterministic.Status == "" || view.Deterministic.ReviewSignal == "" || len(view.Deterministic.Rows) != 4 || len(view.WithheldReasons) == 0 || len(view.ReviewRows) == 0 || len(view.Commands) != 2 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.Summary.CurrentSignal == "" || view.Summary.NextAction == "" || view.Summary.DoesNotProve == "" || view.Deterministic.Boundary == "" || view.Deterministic.Status == "" || view.Deterministic.ReviewSignal == "" || len(view.Deterministic.Rows) != 4 || len(view.WithheldReasons) == 0 || view.ShadowReview.Boundary == "" || view.ShadowReview.Status == "" || view.ShadowReview.NextAction == "" || view.ShadowReview.DoesNotProve == "" || len(view.ShadowReview.Rows) == 0 || len(view.ReviewRows) == 0 || len(view.Commands) != 2 {
 		t.Fatalf("invalid prediction lab shape: %+v", view)
 	}
 	for _, row := range view.Deterministic.Rows {
@@ -6640,6 +6670,11 @@ func assertPredictionLabShape(t *testing.T, view predictionLabView) {
 	for _, row := range view.WithheldReasons {
 		if row.Reason == "" || row.Label == "" || row.WhatItMeans == "" || row.NextAction == "" || row.DoesNotProve == "" {
 			t.Fatalf("invalid prediction lab reason row: %+v", row)
+		}
+	}
+	for _, row := range view.ShadowReview.Rows {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.Reason == "" || row.Latency == "" || row.CountComparison == "" || row.FailureBehavior == "" || row.FirstSafeCheck == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab shadow row: %+v", row)
 		}
 	}
 	for _, row := range view.ReviewRows {
@@ -6667,7 +6702,7 @@ func assertPredictionLabFlagsFalse(t *testing.T, flags predictionLabClaimFlags) 
 func assertPredictionLabSafeStrings(t *testing.T, body string) {
 	t.Helper()
 	lower := strings.ToLower(body)
-	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", "database_url", "restore_database_url", "payload_json", "raw telemetry payload", "raw observed", "raw prediction", "raw gtfs-rt", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_report", "stdout", "stderr", "argv", "private_debug", "score_details", "bearer "} {
+	for _, forbidden := range []string{"raw-token-value", "authorization:", "set-cookie", "database_url", "restore_database_url", "payload_json", "raw telemetry payload", "raw observed", "raw prediction", "raw gtfs-rt", "token_hash", "file://", "/users/", "/opt/open-transit-rt", "/var/lib", "/etc/", "postgres://", "raw_report", "stdout", "stderr", "argv", "private_debug", "score_details", "bearer ", "predictor.example", "raw_response", "token=secret"} {
 		if strings.Contains(lower, forbidden) {
 			t.Fatalf("prediction lab leaks forbidden private string %q: %s", forbidden, body)
 		}

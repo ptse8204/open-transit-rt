@@ -283,5 +283,6 @@ type TripUpdatesDiagnosticsSummary struct {
 	ActiveFeedVersionID           string             `json:"active_feed_version_id,omitempty"`
 	VehiclePositionsURL           string             `json:"vehicle_positions_url,omitempty"`
 	DiagnosticsPersistenceOutcome string             `json:"diagnostics_persistence_outcome,omitempty"`
+	AdapterDetails                map[string]any     `json:"adapter_details,omitempty"`
 	Metrics                       prediction.Metrics `json:"prediction_metrics"`
 }

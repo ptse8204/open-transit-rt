@@ -155,6 +155,7 @@ type tripUpdatesQualityView struct {
 	DiagnosticsReason             string
 	ActiveFeedVersionID           string
 	DiagnosticsPersistenceOutcome string
+	AdapterDetails                map[string]any
 	UnknownAssignmentRate         string
 	AmbiguousAssignmentRate       string
 	StaleTelemetryRate            string
@@ -1274,6 +1275,7 @@ func (h *handler) tripUpdatesQualityView(r *http.Request, agencyID string) tripU
 		DiagnosticsReason:             summary.DiagnosticsReason,
 		ActiveFeedVersionID:           summary.ActiveFeedVersionID,
 		DiagnosticsPersistenceOutcome: summary.DiagnosticsPersistenceOutcome,
+		AdapterDetails:                summary.AdapterDetails,
 		UnknownAssignmentRate:         rateText(metrics.UnknownAssignmentRate),
 		AmbiguousAssignmentRate:       rateText(metrics.AmbiguousAssignmentRate),
 		StaleTelemetryRate:            rateText(metrics.StaleTelemetryRate),
@@ -3387,6 +3389,14 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td><strong>{{.Label}}</strong><br><code>{{.Reason}}</code></td><td>{{.Count}}</td><td>{{.WhatItMeans}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>
 {{else}}
 <tr><td colspan="5">No withheld reason rows are available yet. Send fresh telemetry, confirm an active schedule, then review Realtime Center and Feed Health.</td></tr>
+{{end}}
+</tbody></table>
+<h3>External Predictor Shadow Review</h3>
+<p class="warning">{{.PredictionLab.ShadowReview.Boundary}}</p>
+<p><strong>Status:</strong> {{.PredictionLab.ShadowReview.Status}} · <strong>Next action:</strong> {{.PredictionLab.ShadowReview.NextAction}}</p>
+<table><thead><tr><th>Mode</th><th>Status</th><th>Reason</th><th>Latency</th><th>Count comparison</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.ShadowReview.Rows}}
+<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Reason}}</td><td>{{.Latency}}</td><td>{{.CountComparison}}</td><td>{{.FailureBehavior}}</td><td><code>{{.FirstSafeCheck}}</code></td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
 </tbody></table>
 <h3>Needs Operator Review</h3>
