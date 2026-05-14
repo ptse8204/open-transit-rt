@@ -3131,6 +3131,20 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		`id="help-validators"`,
 		`id="help-telemetry"`,
 		`id="help-claims_evidence"`,
+		`id="help-role-no_developer_evaluator"`,
+		`id="help-role-director_manager"`,
+		`id="help-role-daily_operator"`,
+		`id="help-role-technical_helper"`,
+		`id="help-role-integrator"`,
+		"Role-Based Tours",
+		"First-Week Checklist",
+		"No-developer evaluator",
+		"Director or manager",
+		"Daily operator",
+		"Technical helper",
+		"Integrator",
+		`id="help-first-week-day_1_start"`,
+		`id="help-first-week-day_5_maintenance"`,
 		safePluginDefinition,
 		`backend_command_execution_enabled`,
 		`consumer_statuses_changed`,
@@ -6722,8 +6736,40 @@ func assertFirstRunFlagsFalse(t *testing.T, flags operationsFirstRunClaimFlags) 
 
 func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Topics) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 {
 		t.Fatalf("invalid help top-level shape: %+v", view)
+	}
+	wantRoles := []string{"no_developer_evaluator", "director_manager", "daily_operator", "technical_helper", "integrator"}
+	var gotRoles []string
+	for _, tour := range view.RoleTours {
+		gotRoles = append(gotRoles, tour.ID)
+		if tour.ID == "" || tour.Label == "" || tour.Who == "" || tour.StartHere == "" || tour.ReviewFirst == "" || tour.FirstActions == "" || tour.EscalateWhen == "" || tour.DoesNotProve == "" || len(tour.AdminLinks) == 0 || len(tour.DocsLinks) == 0 {
+			t.Fatalf("invalid role tour shape: %+v", tour)
+		}
+		if !strings.HasPrefix(tour.StartHere, "/admin/") {
+			t.Fatalf("role tour %s has unsafe start link %q", tour.ID, tour.StartHere)
+		}
+		for _, link := range tour.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("role tour %s has unsafe admin link %q", tour.ID, link)
+			}
+		}
+		for _, link := range tour.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("role tour %s has unsafe docs link %q", tour.ID, link)
+			}
+		}
+	}
+	if strings.Join(gotRoles, ",") != strings.Join(wantRoles, ",") {
+		t.Fatalf("role ids = %v, want %v", gotRoles, wantRoles)
+	}
+	for _, item := range view.FirstWeek {
+		if item.ID == "" || item.Day == "" || item.Role == "" || item.Task == "" || item.Review == "" || item.DoneWhen == "" || item.NextAction == "" || item.ConsoleLink == "" || item.DoesNotProve == "" {
+			t.Fatalf("invalid first-week item shape: %+v", item)
+		}
+		if !strings.HasPrefix(item.ConsoleLink, "/admin/") {
+			t.Fatalf("first-week item %s has unsafe console link %q", item.ID, item.ConsoleLink)
+		}
 	}
 	wantIDs := []string{"gtfs", "gtfs_rt", "connectors", "readiness", "validators", "telemetry", "claims_evidence"}
 	var gotIDs []string

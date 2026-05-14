@@ -2111,6 +2111,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 </div>
 <p><a href="/admin/operations/help.json">Export private help JSON</a> · <a href="/admin/operations">Back to Operations Console</a></p>
+<h3>Role-Based Tours</h3>
+<div class="card-grid" aria-label="Role-based tours">
+{{range .Help.RoleTours}}<section class="card" id="help-role-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p>{{.Who}}</p>
+<p><strong>Start here:</strong> <a href="{{.StartHere}}">{{.StartHere}}</a></p>
+<p><strong>Review first:</strong> {{.ReviewFirst}}</p>
+<p><strong>First actions:</strong> {{.FirstActions}}</p>
+<p><strong>Ask for help when:</strong> {{.EscalateWhen}}</p>
+<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>
+<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>
+</section>{{end}}
+</div>
+<h3>First-Week Checklist</h3>
+<table><thead><tr><th>When</th><th>Role</th><th>Task</th><th>Review</th><th>Done when</th><th>Next action</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Help.FirstWeek}}<tr id="help-first-week-{{.ID}}"><td>{{.Day}}</td><td>{{.Role}}</td><td>{{.Task}}</td><td>{{.Review}}</td><td>{{.DoneWhen}}</td><td>{{.NextAction}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <div class="card-grid" aria-label="Help topics">
 {{range .Help.Topics}}<section class="card" id="help-{{.ID}}">
 <h3>{{.Label}}</h3>

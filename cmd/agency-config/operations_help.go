@@ -9,12 +9,39 @@ import (
 )
 
 type operationsHelpView struct {
-	GeneratedAt    time.Time                `json:"generated_at"`
-	AgencyID       string                   `json:"agency_id"`
-	Boundary       string                   `json:"boundary"`
-	Topics         []operationsHelpTopic    `json:"topics"`
-	ContextualHelp operationsContextHelp    `json:"contextual_help"`
-	ClaimFlags     operationsHelpClaimFlags `json:"claim_flags"`
+	GeneratedAt    time.Time                     `json:"generated_at"`
+	AgencyID       string                        `json:"agency_id"`
+	Boundary       string                        `json:"boundary"`
+	RoleTours      []operationsHelpRoleTour      `json:"role_tours"`
+	FirstWeek      []operationsHelpFirstWeekItem `json:"first_week_checklist"`
+	Topics         []operationsHelpTopic         `json:"topics"`
+	ContextualHelp operationsContextHelp         `json:"contextual_help"`
+	ClaimFlags     operationsHelpClaimFlags      `json:"claim_flags"`
+}
+
+type operationsHelpRoleTour struct {
+	ID           string   `json:"id"`
+	Label        string   `json:"label"`
+	Who          string   `json:"who"`
+	StartHere    string   `json:"start_here"`
+	ReviewFirst  string   `json:"review_first"`
+	FirstActions string   `json:"first_actions"`
+	EscalateWhen string   `json:"escalate_when"`
+	DoesNotProve string   `json:"does_not_prove"`
+	AdminLinks   []string `json:"admin_links"`
+	DocsLinks    []string `json:"docs_links"`
+}
+
+type operationsHelpFirstWeekItem struct {
+	ID           string `json:"id"`
+	Day          string `json:"day"`
+	Role         string `json:"role"`
+	Task         string `json:"task"`
+	Review       string `json:"review"`
+	DoneWhen     string `json:"done_when"`
+	NextAction   string `json:"next_action"`
+	ConsoleLink  string `json:"console_link"`
+	DoesNotProve string `json:"does_not_prove"`
 }
 
 type operationsHelpTopic struct {
@@ -106,10 +133,126 @@ func buildOperationsHelpView(generatedAt time.Time, agencyID string, section str
 		GeneratedAt:    generatedAt,
 		AgencyID:       agencyID,
 		Boundary:       "Private authenticated Operations Console help only. Viewing it is read-only guidance: it creates no evidence, contacts no outside party, changes no consumer status, and records no approval or outside outcome.",
+		RoleTours:      operationsHelpRoleTours(),
+		FirstWeek:      operationsHelpFirstWeekChecklist(),
 		Topics:         topics,
 		ContextualHelp: context,
 		ClaimFlags:     operationsHelpClaimFlags{},
 	}
+}
+
+func operationsHelpRoleTours() []operationsHelpRoleTour {
+	return []operationsHelpRoleTour{
+		helpRoleTour(
+			"no_developer_evaluator",
+			"No-developer evaluator",
+			"Someone deciding whether the private browser workflow is understandable before asking for technical help.",
+			"/admin/operations",
+			"Start Here, Agency Setup, Feed Links & Health, Validation Center, Help",
+			"Follow status chips and next actions only; do not try shell commands or deployment changes.",
+			"Ask a technical helper when startup, validator tooling, public root configuration, or support bundle creation is needed.",
+			"Does not prove agency approval, outside review, public launch, or release readiness.",
+			[]string{"/admin/operations", "/admin/operations/setup-wizard", "/admin/operations/validation-center", "/admin/operations/help"},
+			[]string{"docs/wiki/Small-Agency-Quick-Start.md", "docs/tutorials/browser-first-setup.md"},
+		),
+		helpRoleTour(
+			"director_manager",
+			"Director or manager",
+			"Someone checking whether the agency has a clear operational path and knows which work needs staff or technical support.",
+			"/admin/operations/launchpad",
+			"Private Launchpad, Readiness, Consumers, Maintenance, Evidence",
+			"Confirm the team knows the next private task, current blockers, and which outside claims remain unavailable.",
+			"Ask for technical help when a blocker needs data import, feed validation tooling, deployment checks, or redaction review.",
+			"Does not prove adoption, approval, compliance, public launch, managed service, or support coverage.",
+			[]string{"/admin/operations/launchpad", "/admin/operations/readiness", "/admin/operations/consumers", "/admin/operations/maintenance"},
+			[]string{"docs/agency-training-outline.md", "docs/support-boundaries.md"},
+		),
+		helpRoleTour(
+			"daily_operator",
+			"Daily operator",
+			"Someone responsible for checking schedule, realtime, alerts, feed health, and routine maintenance state.",
+			"/admin/operations/realtime",
+			"Realtime Center, Feed Links & Health, Validation Center, Alerts, Maintenance",
+			"Review stale, missing, blocked, and needs-review rows; prefer unknown over false certainty.",
+			"Ask a technical helper when telemetry stops, validators are missing, backups need setup, or feed paths are not configured.",
+			"Does not prove field reliability, target display, ETA quality, uptime, or service-level guarantees.",
+			[]string{"/admin/operations/realtime", "/admin/operations/feeds", "/admin/operations/validation-center", "/admin/operations/maintenance"},
+			[]string{"docs/tutorials/operator-smoke-and-support-bundle.md", "docs/runbooks/small-agency-pilot-operations.md"},
+		),
+		helpRoleTour(
+			"technical_helper",
+			"Technical helper",
+			"Someone who can run local setup, validators, support bundle review, device setup, connector dry-runs, and deployment diagnostics.",
+			"/admin/operations/setup",
+			"Advanced Setup Details, GTFS Workbench, Validation Health, Devices, Connectors, Maintenance",
+			"Use existing private admin routes and documented commands only; keep secrets and raw outputs out of browser guidance.",
+			"Escalate to a maintainer before evidence retention, release packaging, portal work, public-root proof, or schema-changing work.",
+			"Does not prove production readiness, vendor fit, hardware certification, release readiness, or external acceptance.",
+			[]string{"/admin/operations/setup", "/admin/operations/gtfs-workbench", "/admin/operations/validation-health", "/admin/operations/connectors/workbench"},
+			[]string{"docs/dependencies.md", "docs/validator-tooling.md", "docs/integration-adapter-kit.md"},
+		),
+		helpRoleTour(
+			"integrator",
+			"Integrator",
+			"Someone evaluating telemetry, connector, monitoring, validator, or prediction sidecar boundaries using synthetic or local inputs.",
+			"/admin/operations/connectors/workbench",
+			"Connector Workbench, Connector Tests, Telemetry Simulator, Prediction & ETA Lab, Realtime Center",
+			"Use synthetic fixtures and fail-closed adapter patterns before any real external integration is authorized.",
+			"Ask for separate written authorization before real vendor/device payloads, credentials, or network sends are introduced.",
+			"Does not prove named vendor compatibility, equipment certification, realtime reliability, or ETA accuracy.",
+			[]string{"/admin/operations/connectors/workbench", "/admin/operations/connectors/tests", "/admin/operations/telemetry-simulator", "/admin/operations/prediction-lab"},
+			[]string{"docs/integration-adapter-kit.md", "docs/tutorials/external-adapter-conformance.md"},
+		),
+	}
+}
+
+func operationsHelpFirstWeekChecklist() []operationsHelpFirstWeekItem {
+	return []operationsHelpFirstWeekItem{
+		helpFirstWeekItem("day_1_start", "Day 1", "No-developer evaluator", "Open Start Here and identify the first blocked or missing setup item.", "Agency scope, setup progress, first-run tasks, help panel", "The next private task is clear to a nontechnical reviewer.", "/admin/operations", "Does not prove the deployment is ready outside local review."),
+		helpFirstWeekItem("day_1_setup", "Day 1", "Director or manager", "Review Agency Setup and assign owners for profile, feed metadata, schedule, telemetry, validation, and maintenance.", "Setup Wizard stages and role visibility", "Each setup area has a named staff owner or technical-helper owner.", "/admin/operations/setup-wizard", "Does not prove agency approval or outside readiness."),
+		helpFirstWeekItem("day_2_gtfs", "Day 2", "Technical helper", "Import or review GTFS using the existing private schedule workflow.", "GTFS import result, Workbench, quality triage, required file checklist", "Schedule state is visible with clear next actions for missing or invalid records.", "/admin/operations/gtfs-workbench", "Does not prove validator-clean status or public source-of-truth listing."),
+		helpFirstWeekItem("day_3_feeds", "Day 3", "Daily operator", "Check feed URLs, validation center, and plain-language feed health.", "Configured five feed URLs, validator context, local fetch context, blockers", "Missing or stale feed rows have an owner and next action.", "/admin/operations/feeds", "Does not prove final-root readiness, consumer review, or public launch."),
+		helpFirstWeekItem("day_4_realtime", "Day 4", "Daily operator", "Review telemetry, devices, Vehicle Positions, Trip Updates, and Alerts together.", "Realtime Center, devices, telemetry freshness, Alerts lifecycle", "Unknown, stale, unmatched, and degraded states are understood before sharing realtime status.", "/admin/operations/realtime", "Does not prove production-grade ETA quality, field reliability, or target display."),
+		helpFirstWeekItem("day_5_connectors", "Day 5", "Integrator", "Review connector recipes, conformance guidance, simulator paths, and prediction lab boundaries.", "Connector Workbench, Connector Tests, Telemetry Simulator, Prediction Lab", "Synthetic/local connector next steps are clear and no real credentials are needed.", "/admin/operations/connectors/workbench", "Does not prove vendor compatibility, hardware certification, or real device proof."),
+		helpFirstWeekItem("day_5_maintenance", "Day 5", "Technical helper", "Review Maintenance Center, support bundle guidance, redaction warnings, and handoff needs.", "Backup/restore review, upgrade/rollback review, support bundle guidance, cadence rows", "A support and maintenance checklist exists without running destructive browser actions.", "/admin/operations/maintenance", "Does not prove hosted-service availability, SLA, uptime, release readiness, or support coverage."),
+	}
+}
+
+func helpRoleTour(id string, label string, who string, startHere string, reviewFirst string, firstActions string, escalate string, doesNotProve string, adminLinks []string, docsLinks []string) operationsHelpRoleTour {
+	return operationsHelpRoleTour{
+		ID:           id,
+		Label:        label,
+		Who:          who,
+		StartHere:    helpAdminLink(startHere),
+		ReviewFirst:  reviewFirst,
+		FirstActions: firstActions,
+		EscalateWhen: escalate,
+		DoesNotProve: doesNotProve,
+		AdminLinks:   safeAdminLinks(adminLinks),
+		DocsLinks:    safeDocsLinks(docsLinks),
+	}
+}
+
+func helpFirstWeekItem(id string, day string, role string, task string, review string, doneWhen string, consoleLink string, doesNotProve string) operationsHelpFirstWeekItem {
+	return operationsHelpFirstWeekItem{
+		ID:           id,
+		Day:          day,
+		Role:         role,
+		Task:         task,
+		Review:       review,
+		DoneWhen:     doneWhen,
+		NextAction:   "Open the linked private console page and record only local operator notes unless a separate evidence gate is authorized.",
+		ConsoleLink:  helpAdminLink(consoleLink),
+		DoesNotProve: doesNotProve,
+	}
+}
+
+func helpAdminLink(value string) string {
+	links := safeAdminLinks([]string{value})
+	if len(links) == 0 {
+		return "/admin/operations"
+	}
+	return links[0]
 }
 
 func operationsHelpTopics() []operationsHelpTopic {
