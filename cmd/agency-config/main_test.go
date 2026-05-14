@@ -25,6 +25,7 @@ import (
 	"open-transit-rt/internal/feed/schedule"
 	"open-transit-rt/internal/gtfs"
 	"open-transit-rt/internal/prediction"
+	"open-transit-rt/internal/realtimequality"
 	"open-transit-rt/internal/state"
 	"open-transit-rt/internal/telemetry"
 )
@@ -5394,6 +5395,9 @@ func TestPredictionLabRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 func TestPredictionLabJSONShapeFlagsAndDeterministicDiagnostics(t *testing.T) {
 	now := time.Date(2026, 5, 14, 12, 0, 0, 0, time.UTC)
 	coverage := 50.0
+	backtestRoot := filepath.Join(t.TempDir(), ".cache", "realtime-quality-backtest")
+	writePredictionLabBacktestFixture(t, backtestRoot)
+	withPredictionLabBacktestRoot(t, backtestRoot)
 	store := &fakePublicationStore{
 		tripDiagnostics: compliance.TripUpdatesDiagnosticsSummary{
 			Recorded:                      true,
@@ -5461,6 +5465,9 @@ func TestPredictionLabJSONShapeFlagsAndDeterministicDiagnostics(t *testing.T) {
 	if view.ShadowReview.Status != checklistStatusNeedsReview || len(view.ShadowReview.Rows) != 1 || view.ShadowReview.Rows[0].Status != prediction.StatusError || !strings.Contains(view.ShadowReview.Rows[0].CountComparison, "delta=-1") {
 		t.Fatalf("unexpected shadow review: %+v", view.ShadowReview)
 	}
+	if view.Backtests.Status != "needs_review" || len(view.Backtests.Rows) != 1 || view.Backtests.Rows[0].MaturityGate != "diagnostic_watch" || view.Backtests.Rows[0].PredictionCoverage != "62.5% (5/8)" {
+		t.Fatalf("unexpected backtest browser: %+v", view.Backtests)
+	}
 	seen := map[string]bool{}
 	for _, reason := range view.WithheldReasons {
 		seen[reason.Reason] = true
@@ -5477,6 +5484,9 @@ func TestPredictionLabJSONShapeFlagsAndDeterministicDiagnostics(t *testing.T) {
 
 func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 	now := time.Date(2026, 5, 14, 12, 0, 0, 0, time.UTC)
+	backtestRoot := filepath.Join(t.TempDir(), ".cache", "realtime-quality-backtest")
+	writePredictionLabBacktestFixture(t, backtestRoot)
+	withPredictionLabBacktestRoot(t, backtestRoot)
 	store := &fakePublicationStore{
 		discovery: compliance.FeedDiscovery{AgencyID: "demo-agency", AgencyName: `<script>alert("x")</script>`, GeneratedAt: now},
 		tripDiagnostics: compliance.TripUpdatesDiagnosticsSummary{
@@ -5511,7 +5521,7 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality"} {
+	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality", "make realtime-quality-backtest"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("prediction lab html missing %q: %s", want, body)
 		}
@@ -5525,6 +5535,100 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		}
 	}
 	assertPredictionLabSafeStrings(t, body)
+}
+
+func withPredictionLabBacktestRoot(t *testing.T, root string) {
+	t.Helper()
+	previous := predictionLabBacktestRoot
+	predictionLabBacktestRoot = root
+	t.Cleanup(func() {
+		predictionLabBacktestRoot = previous
+	})
+}
+
+func writePredictionLabBacktestFixture(t *testing.T, root string) {
+	t.Helper()
+	dir := filepath.Join(root, "20260514T120000Z")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatalf("create prediction lab backtest fixture: %v", err)
+	}
+	generatedAt := time.Date(2026, 5, 14, 12, 0, 0, 0, time.UTC).Format(time.RFC3339)
+	coverage := 62.5
+	futureCoverage := 50.0
+	mae := 29.0
+	p90 := 40.0
+	overall := realtimequality.MetricGroup{
+		GroupType:                   "overall",
+		CoverageDenominator:         8,
+		CoverageNumerator:           5,
+		FutureStopCoverageNumerator: 4,
+		MatchedPredictionCount:      5,
+		MissingPredictionCount:      1,
+		MissingObservationCount:     1,
+		StalePredictionCount:        1,
+		WithheldByReason:            map[string]int{"manual_override_review": 1},
+		MAEAbsoluteErrorSeconds:     &mae,
+		P90AbsoluteErrorSeconds:     &p90,
+		PredictionCoverage:          realtimequality.Rate{Numerator: 5, Denominator: 8, Status: "measured", Percent: &coverage},
+		FutureStopCoverage:          realtimequality.Rate{Numerator: 4, Denominator: 8, Status: "measured", Percent: &futureCoverage},
+		MaturityGate:                "diagnostic_watch",
+	}
+	summary := realtimequality.SummaryDocument{
+		SchemaVersion:     realtimequality.BacktestSchemaVersion,
+		GeneratedAt:       generatedAt,
+		InputRecordCounts: realtimequality.RecordCounts{ObservedRecords: 8, PredictionRecords: 7},
+		Overall:           overall,
+		GroupCount:        1,
+	}
+	metrics := realtimequality.MetricsDocument{
+		SchemaVersion: realtimequality.BacktestSchemaVersion,
+		GeneratedAt:   generatedAt,
+		Groups:        []realtimequality.MetricGroup{overall},
+	}
+	manifest := realtimequality.ManifestDocument{
+		SchemaVersion: realtimequality.BacktestSchemaVersion,
+		GeneratedAt:   generatedAt,
+		OutputKind:    "private_local_realtime_quality_backtest",
+		OutputFiles:   realtimequality.ExpectedBacktestOutputFiles(),
+		SafetyChecks: map[string]bool{
+			"docs_evidence_output_rejected": true,
+			"evidence_like_output_rejected": true,
+			"symlink_ancestors_rejected":    true,
+			"raw_inputs_not_copied":         true,
+			"private_paths_omitted":         true,
+			"raw_rows_omitted":              true,
+		},
+		Boundaries: map[string]bool{
+			"db_persistence":                   false,
+			"migration_added":                  false,
+			"operations_console_change":        false,
+			"public_api_added":                 false,
+			"consumer_tracker_changed":         false,
+			"external_predictor_runtime_added": false,
+		},
+		AggregateOnly:    true,
+		RawRowsPersisted: false,
+	}
+	writePredictionLabBacktestJSON(t, filepath.Join(dir, "summary.json"), summary)
+	writePredictionLabBacktestJSON(t, filepath.Join(dir, "metrics.json"), metrics)
+	writePredictionLabBacktestJSON(t, filepath.Join(dir, "manifest.json"), manifest)
+	for _, name := range []string{"summary.md", "metrics.md"} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("private aggregate diagnostic summary\n"), 0o644); err != nil {
+			t.Fatalf("write prediction lab backtest %s: %v", name, err)
+		}
+	}
+}
+
+func writePredictionLabBacktestJSON(t *testing.T, path string, value any) {
+	t.Helper()
+	raw, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal prediction lab backtest fixture: %v", err)
+	}
+	raw = append(raw, '\n')
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatalf("write prediction lab backtest json: %v", err)
+	}
 }
 
 func TestOperationsConsoleViewsAreAgencyScoped(t *testing.T) {
@@ -6659,7 +6763,7 @@ func assertRealtimeFlagsFalse(t *testing.T, flags operationsRealtimeClaimFlags) 
 
 func assertPredictionLabShape(t *testing.T, view predictionLabView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.Summary.CurrentSignal == "" || view.Summary.NextAction == "" || view.Summary.DoesNotProve == "" || view.Deterministic.Boundary == "" || view.Deterministic.Status == "" || view.Deterministic.ReviewSignal == "" || len(view.Deterministic.Rows) != 4 || len(view.WithheldReasons) == 0 || view.ShadowReview.Boundary == "" || view.ShadowReview.Status == "" || view.ShadowReview.NextAction == "" || view.ShadowReview.DoesNotProve == "" || len(view.ShadowReview.Rows) == 0 || len(view.ReviewRows) == 0 || len(view.Commands) != 2 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.Summary.CurrentSignal == "" || view.Summary.NextAction == "" || view.Summary.DoesNotProve == "" || view.Deterministic.Boundary == "" || view.Deterministic.Status == "" || view.Deterministic.ReviewSignal == "" || len(view.Deterministic.Rows) != 4 || len(view.WithheldReasons) == 0 || view.ShadowReview.Boundary == "" || view.ShadowReview.Status == "" || view.ShadowReview.NextAction == "" || view.ShadowReview.DoesNotProve == "" || len(view.ShadowReview.Rows) == 0 || view.Backtests.Boundary == "" || view.Backtests.Status == "" || view.Backtests.RootRef == "" || view.Backtests.Message == "" || len(view.ReviewRows) == 0 || len(view.Commands) != 3 {
 		t.Fatalf("invalid prediction lab shape: %+v", view)
 	}
 	for _, row := range view.Deterministic.Rows {
@@ -6675,6 +6779,11 @@ func assertPredictionLabShape(t *testing.T, view predictionLabView) {
 	for _, row := range view.ShadowReview.Rows {
 		if row.ID == "" || row.Label == "" || row.Status == "" || row.Reason == "" || row.Latency == "" || row.CountComparison == "" || row.FailureBehavior == "" || row.FirstSafeCheck == "" || row.DoesNotProve == "" {
 			t.Fatalf("invalid prediction lab shadow row: %+v", row)
+		}
+	}
+	for _, row := range view.Backtests.Rows {
+		if row.OutputRef == "" || row.Status == "" || row.GeneratedAt == "" || row.MaturityGate == "" || row.PredictionCoverage == "" || row.FutureStopCoverage == "" || row.MAEAbsoluteErrorSeconds == "" || row.P90AbsoluteErrorSeconds == "" || row.WithheldByReason == "" || row.DiagnosticSignal == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid prediction lab backtest row: %+v", row)
 		}
 	}
 	for _, row := range view.ReviewRows {

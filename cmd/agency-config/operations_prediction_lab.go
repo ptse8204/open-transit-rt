@@ -8,19 +8,23 @@ import (
 
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/prediction"
+	"open-transit-rt/internal/realtimequality"
 )
 
+var predictionLabBacktestRoot = realtimequality.DefaultBacktestBrowserRoot
+
 type predictionLabView struct {
-	GeneratedAt     time.Time                  `json:"generated_at"`
-	AgencyID        string                     `json:"agency_id"`
-	Boundary        string                     `json:"boundary"`
-	Summary         predictionLabSummary       `json:"summary"`
-	Deterministic   predictionLabDeterministic `json:"deterministic"`
-	WithheldReasons []predictionLabReason      `json:"withheld_reasons"`
-	ShadowReview    predictionLabShadowReview  `json:"shadow_review"`
-	ReviewRows      []predictionLabReviewRow   `json:"review_rows"`
-	Commands        []predictionLabCommand     `json:"commands"`
-	ClaimFlags      predictionLabClaimFlags    `json:"claim_flags"`
+	GeneratedAt     time.Time                       `json:"generated_at"`
+	AgencyID        string                          `json:"agency_id"`
+	Boundary        string                          `json:"boundary"`
+	Summary         predictionLabSummary            `json:"summary"`
+	Deterministic   predictionLabDeterministic      `json:"deterministic"`
+	WithheldReasons []predictionLabReason           `json:"withheld_reasons"`
+	ShadowReview    predictionLabShadowReview       `json:"shadow_review"`
+	Backtests       realtimequality.BacktestBrowser `json:"backtests"`
+	ReviewRows      []predictionLabReviewRow        `json:"review_rows"`
+	Commands        []predictionLabCommand          `json:"commands"`
+	ClaimFlags      predictionLabClaimFlags         `json:"claim_flags"`
 }
 
 type predictionLabSummary struct {
@@ -160,6 +164,13 @@ func buildPredictionLab(page operationsPage) predictionLabView {
 				ExpectedResult: "Synthetic replay fixtures keep unknown, stale, ambiguous, low-confidence, and withheld states visible.",
 				DoesNotProve:   "Production-grade ETA quality, vendor compatibility, hardware certification, SLA coverage, or compliance.",
 			},
+			{
+				ID:             "aggregate-backtest",
+				Label:          "Aggregate realtime quality backtest",
+				CommandLine:    "make realtime-quality-backtest",
+				ExpectedResult: "Synthetic/local aggregate backtest summaries can be reviewed from the private cache after the command completes.",
+				DoesNotProve:   "Real-world ETA accuracy, production-grade ETA quality, external evidence, consumer display, vendor compatibility, or release readiness.",
+			},
 		},
 		ClaimFlags: predictionLabClaimFlags{},
 	}
@@ -167,8 +178,22 @@ func buildPredictionLab(page operationsPage) predictionLabView {
 	view.Deterministic = buildPredictionLabDeterministic(page.TripUpdatesQuality)
 	view.WithheldReasons = buildPredictionLabWithheldReasons(page.TripUpdatesQuality)
 	view.ShadowReview = buildPredictionLabShadowReview(page.TripUpdatesQuality)
+	view.Backtests = buildPredictionLabBacktests()
 	view.ReviewRows = buildPredictionLabReviewRows(view.Summary, view.WithheldReasons)
 	return view
+}
+
+func buildPredictionLabBacktests() realtimequality.BacktestBrowser {
+	browser, err := realtimequality.LoadBacktestBrowser(predictionLabBacktestRoot, 5)
+	if err == nil {
+		return browser
+	}
+	return realtimequality.BacktestBrowser{
+		Status:   checklistStatusBlocked,
+		Boundary: "Private local aggregate backtest summaries only. The configured backtest cache root failed safety checks, so no summaries are displayed.",
+		RootRef:  realtimequality.DefaultBacktestBrowserRoot,
+		Message:  "Backtest summaries are unavailable until the cache root is reset to the private aggregate output location.",
+	}
 }
 
 func buildPredictionLabSummary(quality tripUpdatesQualityView) predictionLabSummary {

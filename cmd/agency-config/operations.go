@@ -3399,6 +3399,16 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Reason}}</td><td>{{.Latency}}</td><td>{{.CountComparison}}</td><td>{{.FailureBehavior}}</td><td><code>{{.FirstSafeCheck}}</code></td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
 </tbody></table>
+<h3>Backtest Summary</h3>
+<p class="warning">{{.PredictionLab.Backtests.Boundary}}</p>
+<p><strong>Status:</strong> {{.PredictionLab.Backtests.Status}} · <strong>Cache root:</strong> <code>{{.PredictionLab.Backtests.RootRef}}</code> · {{.PredictionLab.Backtests.Message}}</p>
+<table><thead><tr><th>Output</th><th>Status</th><th>Generated</th><th>Inputs</th><th>Coverage</th><th>Error</th><th>Withheld</th><th>Signal</th><th>Does not prove</th></tr></thead><tbody>
+{{range .PredictionLab.Backtests.Rows}}
+<tr><td><code>{{.OutputRef}}</code></td><td>{{.Status}}<br><code>{{.MaturityGate}}</code></td><td>{{.GeneratedAt}}</td><td>{{.ObservedRecords}} observed<br>{{.PredictionRecords}} predictions<br>{{.GroupCount}} groups</td><td>prediction: {{.PredictionCoverage}}<br>future stop: {{.FutureStopCoverage}}</td><td>MAE: {{.MAEAbsoluteErrorSeconds}}<br>P90: {{.P90AbsoluteErrorSeconds}}</td><td>{{.WithheldByReason}}</td><td>{{.DiagnosticSignal}}</td><td>{{.DoesNotProve}}</td></tr>
+{{else}}
+<tr><td colspan="9">No aggregate backtest summaries are available yet. Run the fixed local command from an operator shell when synthetic/local backtest review is needed.</td></tr>
+{{end}}
+</tbody></table>
 <h3>Needs Operator Review</h3>
 <table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
 {{range .PredictionLab.ReviewRows}}
