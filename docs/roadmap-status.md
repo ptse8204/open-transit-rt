@@ -8,24 +8,24 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 74 CP000008 is complete for GitHub Pages and agency UI product-polish
-closeout. CP000008 reconciled and published the actual `gh-pages` branch at
-commit `a8b250e`, following the completed GitHub Pages product-story refresh,
-quickstart/UI tour refresh, private Operations Console hierarchy polish,
-first-run empty-state patching, README/docs/wiki/site navigation alignment,
-Phase 73 agency UI acceptance closeout, and bounded Phase 72 hardening review.
-Phase 72 ended with `needs_review` release-candidate diagnostics, not a
-release-ready pass.
+Phase 76 is complete for the Design System And App Shell scope in the
+authorized Phase 75-90 Consumer-Grade Control Plane track. The private
+Operations Console remains Go server-rendered and route-stable, with shared
+design tokens, roadmap-aligned navigation groups, external-admin-surface
+markers, responsive/accessibility guardrails, and claim-bounded UI wording.
+Phase 72 still ended with `needs_review` release-candidate diagnostics, not a
+release-ready pass. Phase 74 CP000008 remains the latest GitHub Pages
+publication at commit `a8b250e`.
 
-Continue the post-Phase-74 sequence with:
+Continue the authorized product track with:
 
-1. maintainer review of the Phase 74 CP000008 closeout;
+1. Phase 77 -- Admin Control API And Command Model;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as planning guidance only;
-3. separately authorized future Phase 76+ implementation, release-cut cleanup /
-   release-candidate gate, postponed connector maturity, or another product
-   phase;
+   as the bounded planning guide for Phase 77+;
+3. keep release-cut cleanup, release-candidate gate, postponed connector
+   maturity, and optional evidence tracks separated by their phase gates and
+   claim boundaries;
 4. private OCI/reference diagnostics and off-host public feed validation as
    product-support checks, not evidence;
 5. future local release-candidate review for `v0.1.0-rc.1`, not a full
@@ -93,12 +93,10 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 74 CP000008 GitHub Pages and agency UI
-   product-polish closeout.
-2. Review the Phase 75
+1. Review the completed Phase 76 Design System And App Shell closeout.
+2. Use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as planning material only. It does not make Phase 76+ active,
-   implemented, release-ready, or evidence-backed.
+   as the bounded product-track guide for Phase 77+.
 3. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
@@ -106,8 +104,9 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Separately authorize future Phase 76+ implementation, release-cut cleanup,
-   postponed connector maturity, or another product phase.
+6. Continue with Phase 77 -- Admin Control API And Command Model while keeping
+   release-cut cleanup, postponed connector maturity, and optional evidence
+   tracks separated by their phase gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
 8. Run the release-candidate readiness gate:

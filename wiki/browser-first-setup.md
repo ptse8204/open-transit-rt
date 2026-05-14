@@ -32,13 +32,18 @@ Treat it as the single first-run cockpit. It groups the path into:
 2. Open **Agency Operations Cockpit / Start Here**.
 3. Review setup.
 4. Import or review GTFS.
-5. Check the five public feed URLs.
+5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
 7. Understand what remains before deployment or stronger claims.
 
 Each row shows status, current signal, what it means, next action, UI link,
 docs link, and what the row does not prove.
+
+The current app shell groups private routes as Start Here, Schedule, Realtime,
+Connectors, Health, Maintain, and Learn. GTFS Studio and Alerts Console are
+shown as separate private admin surfaces when linked from the Operations
+Console.
 
 ## No Developer Today
 
@@ -105,7 +110,7 @@ Admins can upload a GTFS ZIP or import from a safe URL. After an import, review:
 If browser upload is not appropriate, use the CLI import tutorials as the
 fallback.
 
-## Check The Five Feed Paths
+## Check The Five Configured Feed Paths
 
 Use the Agency Operations Cockpit / Start Here copy section and the Feed
 Health command center:

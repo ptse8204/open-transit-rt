@@ -102,3 +102,28 @@ RUN_LOCAL_APP=true make release-candidate-check
 
 If an environment limitation blocks a check, record the exact blocker in the
 Phase 76 handoff.
+
+## Closeout Notes
+
+Phase 76 closes as private Operations Console design-system and app-shell work
+only. It:
+
+- kept Go server-rendered templates and existing private route URLs;
+- added static shared design tokens for color, spacing, typography, focus,
+  status chips, cards, tables, forms, responsive layout, and reduced motion;
+- added shared shell markers for the private control plane header, breadcrumb,
+  metadata row, navigation, and main landmark;
+- aligned route groups to Start Here, Schedule, Realtime, Connectors, Health,
+  Maintain, and Learn;
+- marked GTFS Studio and Alerts Console links as separate private admin
+  surfaces;
+- changed generic `Ready` UI status to `Ready for local review`;
+- changed consumer and feed wording to prepared-packet and configured
+  local/reference language where needed;
+- added focused tests for shared shell coverage, design tokens, responsive
+  behavior, accessibility landmarks, external admin surface markers, and
+  overclaim-prone wording.
+
+Phase 76 did not add public admin routes, migrations, API behavior, evidence
+writes, consumer tracker changes, release artifacts, hosted SaaS claims,
+production-readiness claims, vendor claims, SLA claims, or ETA-quality claims.

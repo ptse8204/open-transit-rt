@@ -80,11 +80,18 @@ is `docs/phase-73-agency-ui-acceptance-and-documentation-freeze.md`, the Phase
 the Phase 74 handoff is `docs/handoffs/phase-74.md`. Phase 75 is complete for
 the Consumer-Grade Control Plane roadmap pack, with closeout at
 `docs/handoffs/phase-75.md`. The pack lives at
-`docs/roadmaps/consumer-grade-control-plane/README.md` and is planning
-material only; it does not activate Phase 76+, implement UI/API work, create
-evidence, move consumer statuses, or support compliance/adoption/consumer/
-final-root/SaaS/production/vendor/SLA/ETA claims. Any future evidence intake
-is optional and requires explicit written authorization first.
+`docs/roadmaps/consumer-grade-control-plane/README.md` and remains the
+authorized Phase 75-90 product-track guide, not evidence or release proof.
+Phase 76 is complete for Design System And App Shell, with closeout at
+`docs/handoffs/phase-76.md`: the private Go server-rendered Operations Console
+now has shared design tokens, route-stable shell markers, roadmap-aligned nav
+groups, external-admin-surface markers for GTFS Studio and Alerts Console, and
+claim-bounded UI vocabulary. Phase 76 added no public admin route, migration,
+evidence write, consumer status change, release artifact, hosted service claim,
+production-readiness claim, vendor claim, SLA claim, or ETA-quality claim. The
+next autonomous phase in the authorized product track is Phase 77 -- Admin
+Control API And Command Model. Any future evidence intake is optional and
+requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

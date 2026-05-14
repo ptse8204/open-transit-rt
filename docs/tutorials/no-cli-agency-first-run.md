@@ -5,8 +5,9 @@ from the browser first.
 
 Open Transit RT is self-hosted open-source software for GTFS and GTFS-Realtime
 publication workflows. It helps an operator import or review a GTFS schedule,
-check the five public feed paths, understand validator and data-quality state,
-review telemetry/device readiness, and decide the next maintenance action.
+check the five configured feed paths, understand validator and data-quality
+state, review telemetry/device readiness, and decide the next maintenance
+action.
 
 This guide does not prove agency adoption, CAL-ITP/Caltrans compliance,
 consumer acceptance, final-root ownership, hosted service availability,
@@ -34,7 +35,7 @@ Use this order before interpreting readiness or asking for stronger claims:
 2. Open **Agency Operations Cockpit / Start Here**.
 3. Review setup.
 4. Import or review GTFS.
-5. Check the five public feed URLs.
+5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
 7. Understand what remains before deployment or stronger claims.
@@ -52,7 +53,7 @@ Review:
 - agency metadata;
 - GTFS imported state;
 - active feed version;
-- five public feed paths;
+- five configured feed paths;
 - validators;
 - telemetry;
 - readiness;
@@ -209,6 +210,10 @@ Open:
 Operations Console Help explains Start Here, Device Credentials, Telemetry
 Freshness, Telemetry Simulator, Connector Tests, Maintenance Center, GTFS,
 GTFS Realtime, validators, readiness, and evidence boundaries.
+
+The app shell groups routes as Start Here, Schedule, Realtime, Connectors,
+Health, Maintain, and Learn. GTFS Studio and Alerts Console remain separate
+private admin surfaces when linked from the Operations Console.
 
 ## What Still Needs A Technical Helper
 

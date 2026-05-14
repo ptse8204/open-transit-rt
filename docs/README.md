@@ -15,7 +15,7 @@ Use the same order in the README, wiki, docs, GitHub Pages, and private UI:
 2. Open **Agency Operations Cockpit / Start Here**.
 3. Review setup.
 4. Import or review GTFS.
-5. Check the five public feed URLs.
+5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
 7. Understand what remains before deployment or stronger claims.

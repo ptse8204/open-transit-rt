@@ -19,7 +19,7 @@ site:
 2. Open **Agency Operations Cockpit / Start Here**.
 3. Review setup.
 4. Import or review GTFS.
-5. Check the five public feed URLs.
+5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
 7. Understand what remains before deployment or stronger claims.
@@ -31,13 +31,17 @@ as the first-run acceptance cockpit. It shows:
 
 - no-developer and technical-helper paths;
 - ordered first-run tasks;
-- five copyable public feed URLs;
+- five copyable configured feed URLs;
 - links into browser GTFS import, feed health, telemetry, readiness, and
   Connector Hub;
 - local demo / deployment / evidence boundary;
 - all-false claim flags.
 
-## Launchpad
+The shared app shell groups private routes as Start Here, Schedule, Realtime,
+Connectors, Health, Maintain, and Learn. Links to GTFS Studio and Alerts
+Console are marked as separate private admin surfaces.
+
+## Private Launchpad
 
 Open:
 
@@ -45,9 +49,9 @@ Open:
 /admin/operations/launchpad
 ```
 
-Launchpad keeps a broader private operator workflow with setup, GTFS, metadata,
-five feeds, telemetry, validators, readiness, connector conformance, support
-bundle, and decision-gate sections.
+Private Launchpad keeps a broader private operator workflow with setup, GTFS,
+metadata, five expected feeds, telemetry, validators, readiness, connector
+conformance, support bundle, and decision-gate sections.
 
 ## Setup Wizard
 
@@ -70,8 +74,8 @@ Open:
 
 Admins can upload a GTFS ZIP or import from a safe URL. The import path uses the
 existing importer and validation records, then points operators to GTFS quality,
-validator health, and the five public feed paths. It does not create retained
-evidence or agency approval.
+validator health, and the five configured feed paths. It does not create
+retained evidence or agency approval.
 
 ## Feed Health
 

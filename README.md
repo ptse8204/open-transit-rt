@@ -28,8 +28,8 @@ http://localhost:8080/admin/operations
 ```
 
 Click **Agency Operations Cockpit / Start Here** first. It shows setup
-progress, primary action cards, ordered first-run tasks, the five public feed
-URLs, maintenance tasks, and what each page does not prove.
+progress, primary action cards, ordered first-run tasks, the five configured
+feed URLs, maintenance tasks, and what each page does not prove.
 
 ## Browser-First Product Path
 
@@ -39,7 +39,7 @@ Use this order across the README, wiki, docs, GitHub Pages, and private UI:
 2. Open **Agency Operations Cockpit / Start Here**.
 3. Review setup.
 4. Import or review GTFS.
-5. Check the five public feed URLs.
+5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
 7. Understand what remains before deployment or stronger claims.
@@ -112,6 +112,23 @@ These private browser routes are the acceptance-critical navigation surface:
 /admin/operations/maintenance
 /admin/operations/help
 ```
+
+Additional private diagnostic and compatibility routes remain available for
+operators who need the broader workflow:
+
+```text
+/admin/operations/launchpad
+/admin/operations/setup
+/admin/operations/feeds
+/admin/operations/checklist
+/admin/operations/reliability
+/admin/operations/consumers
+/admin/operations/evidence
+```
+
+The app shell groups these routes as Start Here, Schedule, Realtime, Connectors,
+Health, Maintain, and Learn. GTFS Studio and Alerts Console are marked as
+separate private admin surfaces when linked from the Operations Console.
 
 ## 30-Minute Local Demo
 

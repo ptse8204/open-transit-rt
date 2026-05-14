@@ -54,7 +54,7 @@ Use this same order everywhere:
 2. Open **Agency Operations Cockpit / Start Here**.
 3. Review setup.
 4. Import or review GTFS.
-5. Check the five public feed URLs.
+5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
 7. Understand what remains before deployment or stronger claims.
@@ -80,6 +80,22 @@ Keep these private routes findable during browser-first review:
 /admin/operations/help
 ```
 
+Additional private diagnostic and compatibility routes:
+
+```text
+/admin/operations/launchpad
+/admin/operations/setup
+/admin/operations/feeds
+/admin/operations/checklist
+/admin/operations/reliability
+/admin/operations/consumers
+/admin/operations/evidence
+```
+
+The current shell groups routes as Start Here, Schedule, Realtime, Connectors,
+Health, Maintain, and Learn. Links to GTFS Studio and Alerts Console are marked
+as separate private admin surfaces.
+
 ## Choose Your Task
 
 | If you want to... | Read this |
@@ -103,7 +119,7 @@ Keep these private routes findable during browser-first review:
 - Follow the Agency Operations Cockpit / Start Here first-run path.
 - Review setup and publication metadata.
 - Import GTFS through the browser if you have an admin role.
-- Check the five public feed paths.
+- Check the five configured feed paths.
 - Review feed health, GTFS quality, validation health, readiness, connectors,
   telemetry simulator guidance, Maintenance Center, and Help.
 

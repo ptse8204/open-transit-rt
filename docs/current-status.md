@@ -146,8 +146,18 @@ added no public admin routes, and made no compliance/adoption/consumer/final-roo
 connector-maturity slot is postponed to a later separately authorized phase.
 Phase 75 is complete for the Consumer-Grade Control Plane roadmap pack. The
 pack lives at `docs/roadmaps/consumer-grade-control-plane/README.md` and is
-planning material only; it does not make Phase 76+ active, implemented,
-release-ready, or evidence-backed.
+planning material only; it did not implement UI/API work, collect evidence,
+move consumer statuses, or make stronger public claims.
+Phase 76 is complete for the Design System And App Shell scope. It kept the
+private Go server-rendered Operations Console architecture, added shared design
+tokens and shell markers, aligned navigation groups to Start Here, Schedule,
+Realtime, Connectors, Health, Maintain, and Learn, marked GTFS Studio and
+Alerts Console as separate private admin surfaces, and renamed risky UI
+language such as generic Ready, consumer submission evidence, and five public
+feed wording into local/reference or prepared-packet terms. It added no public
+admin routes, migration, evidence write, consumer tracker change, release
+artifact, hosted service claim, production-readiness claim, vendor claim, SLA
+claim, or ETA-quality claim.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -285,14 +295,13 @@ Private Operations Console first-run hierarchy is improved. Docs/site/UI now
 point to the same browser-first product path. No retained evidence was
 created, no external party was contacted, no consumer status changed, and no
 compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
-was added. The exact next recommendation is maintainer review of the Phase 74
-CP000008 closeout, then separately authorize future release-cut cleanup/
-release-candidate gating, postponed connector maturity, Phase 76+
-implementation from the Phase 75
-`docs/roadmaps/consumer-grade-control-plane/README.md` roadmap pack, or another
-product phase. The consumer-grade roadmap is planning guidance only, not
-implemented future work. The
-next step is not broad UI redesign, a full `v0.1.0` release, a real agency
+was added. The Phase 75 consumer-grade roadmap pack is now the authorized
+Phase 75-90 product-track guide, and Phase 76 is complete for private
+Operations Console design-system/app-shell work. The next product-track phase
+is Phase 77 -- Admin Control API And Command Model. Release-cut cleanup,
+postponed connector maturity, and optional evidence tracks remain separated by
+their phase gates and claim boundaries. The
+next step is not a full `v0.1.0` release, a real agency
 pilot, or evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 section for the current scorecard, risks, and next-step sequence.
