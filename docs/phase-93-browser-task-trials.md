@@ -383,3 +383,90 @@ Proceed to CP000003 validation and commit, then CP000004 copy/IA patching.
 
 Next checkpoint:
 Phase 93 -- Checkpoint 000004: patch task trial copy and IA gaps.
+
+## Checkpoint 000004 Copy And IA Patches
+
+Patches made:
+
+- Added role-based entry cards near the top of Start Here for:
+  - agency evaluator
+  - daily operations staff
+  - technical helper
+  - release reviewer
+  - connector evaluator
+- Added explicit Telemetry Simulator wording for the first local/synthetic
+  `dry-run` safety check and clarified that it does not test a live vendor,
+  live AVL API, real device, or public feed consumer.
+- Added focused Operations Console tests for the new Start Here role entries
+  and Telemetry Simulator dry-run wording.
+
+Changed files:
+
+- `cmd/agency-config/operations.go`
+- `cmd/agency-config/main_test.go`
+- `docs/phase-93-browser-task-trials.md`
+
+## Checkpoint 000004 Report
+
+Checkpoint:
+Phase 93 -- Checkpoint 000004: patch task trial copy and IA gaps.
+
+Sub-agents used or simulated, including intended model level:
+Real UI/UX Sub-Agent -- GPT-5.5 high identified Start Here density and
+connector dry-run wording as safe usability gaps. Real Context / Repo Truth
+Sub-Agent -- GPT-5.5 x-high, Planning Sub-Agent -- GPT-5.5 x-high, and
+Claim-Boundary / Security Sub-Agent -- GPT-5.5 high informed scope and
+guardrails. Implementation and QA roles were simulated by the Master Agent.
+Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`cmd/agency-config/operations.go`; `cmd/agency-config/main_test.go`;
+`docs/phase-93-browser-task-trials.md`.
+
+Validation run:
+`go test ./cmd/agency-config -run
+'TestOperationsConsoleRendersEmptyState|TestOperationsConsoleNavigation|TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely|TestOperationsRouteTitles'`
+passed. Broader checkpoint validation is run before commit.
+
+Blocked checks:
+In-app Browser task execution remains blocked in this environment. The code
+patch is validated with focused server-rendered UI tests rather than a fresh
+Browser plugin pass.
+
+Protected path status:
+No protected evidence path was edited or generated.
+
+Consumer tracker status:
+The tracker file was not edited. All seven targets must remain exactly
+`prepared`.
+
+Claim-boundary status:
+Copy changes strengthen local/private, dry-run, and no-live-vendor wording.
+They do not claim release readiness, compliance, adoption, consumer
+acceptance, production readiness, final-root readiness, hosted-service
+availability, vendor compatibility, hardware certification, SLA/uptime, or ETA
+quality.
+
+Security/auth status:
+No route, auth behavior, token handling, credential path, public exposure, or
+admin command behavior changed. The Telemetry Simulator remains a read-only
+guide; the browser still executes no simulator command and collects no device
+token.
+
+Data/migration status:
+No persistence, migration, GTFS data model, or realtime data model change is
+included.
+
+Master review:
+Approved. The patch addresses the Phase 93 task-trial findings with small
+server-rendered copy/IA changes and focused tests, without expanding route
+surface or mutation behavior.
+
+Required edits:
+None for CP000004.
+
+Decision:
+Proceed to CP000004 validation and commit, then CP000005 phase closeout.
+
+Next checkpoint:
+Phase 93 -- Checkpoint 000005: close browser task trials.

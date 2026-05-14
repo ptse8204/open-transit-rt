@@ -2267,6 +2267,13 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>{{.Cockpit.Boundary}}</p>
 <p><a href="/admin/operations.json">Export private cockpit JSON</a> · <a href="/admin/operations/maintenance">Open maintenance center</a></p>
 </div>
+<section class="card-grid" aria-label="Role-based task entry points">
+<section class="card" id="role-entry-agency-evaluator"><h3>I am evaluating an agency</h3><p><strong>First step:</strong> <a href="/admin/operations/setup-wizard">Review setup progress</a>.</p><p><strong>Done when:</strong> local/private next actions and missing evidence gates are clear.</p><p><strong>Boundary:</strong> local review does not prove agency approval, compliance, or public launch.</p></section>
+<section class="card" id="role-entry-operations-staff"><h3>I run daily operations</h3><p><strong>First step:</strong> <a href="/admin/operations/realtime">Check today&apos;s realtime state</a>.</p><p><strong>Done when:</strong> stale devices, Vehicle Positions, Trip Updates, Alerts, and feed freshness have next actions.</p><p><strong>Boundary:</strong> local health does not prove SLA, uptime, or production readiness.</p></section>
+<section class="card" id="role-entry-technical-helper"><h3>I am helping technically</h3><p><strong>First step:</strong> <a href="/admin/operations/gtfs-workbench">Review current schedule</a>.</p><p><strong>Done when:</strong> active-vs-draft schedule state, validation meaning, import review, and rollback limits are understood.</p><p><strong>Boundary:</strong> browser review does not silently edit GTFS or prove schedule correctness.</p></section>
+<section class="card" id="role-entry-release-reviewer"><h3>I am reviewing release state</h3><p><strong>First step:</strong> <a href="/admin/operations/validation-center">Review validation blockers</a>.</p><p><strong>Done when:</strong> <code>needs_review</code>, package/tag blockers, and prepared-only consumer state are visible.</p><p><strong>Boundary:</strong> diagnostics do not create a release-ready claim.</p></section>
+<section class="card" id="role-entry-connector-evaluator"><h3>I am evaluating connectors</h3><p><strong>First step:</strong> <a href="/admin/operations/connectors/workbench">Choose connector recipe</a>.</p><p><strong>Done when:</strong> the first local/synthetic safety check and redaction boundary are clear.</p><p><strong>Boundary:</strong> synthetic checks do not prove live vendor or device compatibility.</p></section>
+</section>
 {{template "firstRunPanel" .FirstRun}}
 {{template "contextHelpPanel" .}}
 <h2>Setup Progress</h2>
@@ -3769,6 +3776,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <section class="card"><h3>Credential handling</h3>{{range .TelemetrySimulator.CredentialHandling}}<p>{{.}}</p>{{end}}</section>
 <section class="card"><h3>Diagnostics policy</h3><p>{{.TelemetrySimulator.DiagnosticsPolicy}}</p></section>
 </div>
+<p><strong>First local/synthetic dry-run safety check:</strong> start with a command containing <code>DRY_RUN=true</code>. This previews committed synthetic payload shape only and does not test a live vendor, live AVL API, real device, or public feed consumer.</p>
 {{if .TelemetrySimulator.LoadError}}<p class="bad">{{.TelemetrySimulator.LoadError}}. Next action: confirm the committed scenario fixtures are present before running simulator commands.</p>{{end}}
 <h3>Operator Commands</h3>
 <table><thead><tr><th>Command</th><th>What it does</th><th>Operator prep</th><th>Failure next action</th><th>Does not prove</th></tr></thead><tbody>

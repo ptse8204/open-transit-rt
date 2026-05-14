@@ -447,6 +447,11 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
 	}
+	for _, want := range []string{"I am evaluating an agency", "I run daily operations", "I am helping technically", "I am reviewing release state", "I am evaluating connectors"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("role entry body does not contain %q: %s", want, body)
+		}
+	}
 }
 
 func TestOperationsConsoleShowsServerOwnedAgencyScope(t *testing.T) {
@@ -1368,6 +1373,9 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 	}
 	for _, want := range []string{
 		"Agency Operations Cockpit / Start Here",
+		"I am evaluating an agency",
+		"Check today&#39;s realtime state",
+		"Choose connector recipe",
 		"Task status:",
 		"No-developer path",
 		"Technical-helper path",
@@ -6316,6 +6324,8 @@ func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testi
 		"after-midnight",
 		"block-transition",
 		"SCENARIO=on-route DRY_RUN=true make telemetry-simulator",
+		"First local/synthetic dry-run safety check",
+		"does not test a live vendor",
 		"SCENARIO=on-route make telemetry-simulator",
 		"SCENARIO=on-route RUN_MATCHER=true make telemetry-simulator",
 		"backend_command_execution_enabled",
