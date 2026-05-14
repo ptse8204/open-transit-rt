@@ -198,8 +198,11 @@ consumer status change, external contact, release-ready claim, compliance
 claim, adoption claim, consumer action claim, final-root claim, hosted-service
 claim, production-readiness claim, vendor claim, hardware claim, SLA/uptime
 claim, or ETA-quality claim. Phase 90 -- Final Control Plane Closeout And
-Future Evidence Gate Stubs is the next authorized phase, with plan at
-`docs/phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md`.
+Future Evidence Gate Stubs is complete, with closeout at
+`docs/handoffs/phase-90.md` and final status at
+`docs/phase-90-control-plane-final-status.md`. Phases 75-90 are complete for
+the authorized Consumer-Grade Control Plane product track. No phase starts
+automatically.
 Any future evidence intake is optional and requires explicit written
 authorization first.
 
@@ -1465,17 +1468,15 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
-Stubs in the authorized Phase 75-90 product track from
-`docs/phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md`.
-Close the full consumer-grade control-plane track with final status/handoff
-updates, route and feature inventories, validation and blocker matrices,
-protected-path and consumer-tracker review, claim-boundary review, and future
-optional evidence gate stubs that each require separate written authorization.
-Do not tag, publish, distribute packages, collect evidence, or claim
-production readiness, hosted service, SLA, uptime, release readiness,
-compliance, agency adoption, consumer acceptance, vendor compatibility,
-hardware certification, real vendor/device proof, or evidence.
+No phase starts automatically. The recommended next work is maintainer review
+of `docs/handoffs/phase-90.md` and
+`docs/phase-90-control-plane-final-status.md`, then one separately authorized
+track if desired: release-cut cleanup, connector maturity, optional evidence,
+or future private UI/product refinement. Do not tag, publish, distribute
+packages, collect evidence, or claim production readiness, hosted service,
+SLA, uptime, release readiness, compliance, agency adoption, consumer
+acceptance, vendor compatibility, hardware certification, real vendor/device
+proof, or evidence without separate authorization and supporting artifacts.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

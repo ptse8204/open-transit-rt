@@ -8,38 +8,31 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 89 is complete for the Release-Cut Cleanup / v0.1.0-rc.1 Gate scope in
-the authorized Phase 75-90 Consumer-Grade Control Plane track. It recorded
-clean local product checks, local route and five-feed diagnostics, focused
-private Operations Console route tests, synthetic/local connector and backend
-diagnostics, draft `v0.1.0-rc.1` release notes, package/audit blockers, and a
-`needs_review` conclusion. It did not tag, package, publish an image, create
-retained evidence, contact external parties, change consumer status, or make a
-release-ready claim. Phase 72 still ended with `needs_review`
-release-candidate diagnostics, not a release-ready pass. Phase 74 CP000008
-remains the latest GitHub Pages publication at commit `a8b250e`.
+Phase 90 is complete for the Final Control Plane Closeout And Future Evidence
+Gate Stubs scope in the authorized Phase 75-90 Consumer-Grade Control Plane
+track. The final status artifact is
+[`docs/phase-90-control-plane-final-status.md`](phase-90-control-plane-final-status.md)
+and the closeout handoff is
+[`docs/handoffs/phase-90.md`](handoffs/phase-90.md).
 
-Continue the authorized product track with:
+Phases 75-90 are complete for maintainer review. Phase 72 still ended with
+`needs_review` release-candidate diagnostics, not a release-ready pass. Phase
+89 remains the current local `v0.1.0-rc.1` gate result and also closes as
+`needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
+at commit `a8b250e`.
 
-1. active Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
-   Stubs, planned at
-   [Phase 90 Final Control Plane Closeout And Future Evidence Gate Stubs](phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md)
-   and kept to final status/handoff updates, route and feature inventories,
-   validation and blocker matrices, protected-path and consumer-tracker
-   review, claim-boundary review, and future optional evidence gate stubs that
-   each require separate written authorization;
-2. use the Phase 75
-   [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded planning guide for Phase 87+;
-3. keep release-cut cleanup, release-candidate gate, postponed connector
-   maturity, and optional evidence tracks separated by their phase gates and
-   claim boundaries;
-4. private OCI/reference diagnostics and off-host public feed validation as
-   product-support checks, not evidence;
-5. future authorized release-candidate review for `v0.1.0-rc.1`, not a full
-   `v0.1.0` release;
-6. release-candidate package diagnostics only when explicitly approved;
-7. tag, package, publish, or retain evidence only if separately authorized.
+No phase starts automatically. Recommended next work is separated into:
+
+1. release-cut cleanup: a separately authorized release-candidate package/tag
+   gate if a maintainer wants to pursue `v0.1.0-rc.1` release action;
+2. connector maturity: continued synthetic/local hardening by default, with
+   real vendor/device proof only when separately authorized;
+3. optional evidence tracks: final-root proof, consumer submission, real
+   agency pilot, real vendor/device AVL, real-world ETA-quality, or
+   compliance packet work only with explicit written scope, retention,
+   redaction, and stop rules;
+4. future UI/product phases: private Operations Console refinements that do
+   not require evidence collection or release publication.
 
 The Phase 72 plan lives at
 [`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`](phase-72-v0.1.0-rc.1-release-candidate-hardening.md).
@@ -79,7 +72,7 @@ assessment.
 | Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 89 completed the local `v0.1.0-rc.1` gate with product, route, connector, backend, and claim-boundary diagnostics recorded, but package creation/audit and release actions remain blocked/not checked without separate authorization. | Treat the Phase 89 `needs_review` conclusion as the current release-candidate status; do not tag, package, publish, or claim release readiness without a later authorized release-cut gate. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
-| Browser-first operations | Phase 88 is complete after Public Feed Readiness, Maintenance Center V2, Prediction And ETA Lab, Connector Workbench, and Multi-Agency/Roles/Audit/Accessibility. Phase 89 route diagnostics reviewed the private Operations Console route set and five local public feed paths. | Continue Phase 90 final closeout with route inventory, feature inventory, validation matrix, blocker matrix, and future authorization-gated evidence stubs. |
+| Browser-first operations | Phase 90 completed the final route inventory, feature inventory, validation matrix, blocker matrix, protected-path review, consumer-tracker review, claim-boundary review, and future authorization-gated evidence stubs. | Use `docs/phase-90-control-plane-final-status.md` as the current private control-plane summary before planning any future product phase. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
@@ -101,10 +94,10 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 89 Release-Cut Cleanup / v0.1.0-rc.1 Gate closeout.
+1. Review the completed Phase 90 closeout and final status artifact.
 2. Use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded product-track guide for Phase 87+.
+   as the archived bounded guide for the completed Phase 75-90 track.
 3. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
@@ -112,11 +105,8 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
-   Stubs from
-   [`docs/phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md`](phase-90-final-control-plane-closeout-and-future-evidence-gate-stubs.md)
-   while keeping release actions and optional evidence tracks separated by
-   their phase gates and claim boundaries.
+6. Keep release actions and optional evidence tracks separated by their phase
+   gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a later
    authorized release-cut gate passes the repo's release-candidate diagnostics.
 8. For later authorized release-cut review, rerun the release-candidate
