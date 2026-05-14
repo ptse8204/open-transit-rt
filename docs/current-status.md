@@ -369,8 +369,10 @@ low-confidence guidance, and future proof-gate boundaries without production
 ETA, real-world accuracy, compliance, consumer, vendor, hardware, SLA,
 hosted-service, release-readiness, or evidence claims. Release-cut cleanup,
 postponed connector maturity claims, and optional evidence tracks remain
-separated by their phase gates and claim boundaries. The next step is Phase 85
--- Operations And Maintenance Center V2, not a full `v0.1.0` release, a real
+separated by their phase gates and claim boundaries. Phase 85 -- Operations
+And Maintenance Center V2 is active with a plan at
+`docs/phase-85-operations-and-maintenance-center-v2.md`. The next step is
+private maintenance-center implementation, not a full `v0.1.0` release, a real
 agency pilot, or evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 section for the current scorecard, risks, and next-step sequence.
