@@ -13,10 +13,10 @@ proof, hardware proof, or ETA-quality proof.
 | Clean local product gate | passed | Checkpoint 000002 ran from a clean worktree before this file was written. |
 | Frontend/control-plane route gate | passed | Checkpoint 000003 passed local app startup, five public feed fetches, and focused private Operations Console route tests. |
 | Connector/backend diagnostics gate | passed | Checkpoint 000004 passed synthetic/local connector, adapter, example, and compose-config diagnostics. |
-| Release notes draft | not checked | Planned for Checkpoint 000005. |
+| Release notes draft | passed | Checkpoint 000005 refreshed the local draft with current diagnostics, blockers, and claim boundaries. |
 | Release package creation | blocked | Package creation requires separate explicit maintainer authorization and was not run. |
 | Release package audit | blocked | Package audit requires a package artifact and separate explicit maintainer authorization; it was not run. |
-| Overall release-candidate conclusion | needs_review | Phase 89 has not completed notes/blockers gates; no release action is authorized. |
+| Overall release-candidate conclusion | needs_review | Product diagnostics passed, but release package creation/audit are unauthorized and no release action is authorized. |
 
 ## Checkpoint 000002 -- Clean Local Product Gate
 
@@ -70,14 +70,33 @@ compatibility, real device behavior, hardware certification, production AVL
 reliability, public launch, hosted-service availability, SLA/uptime,
 production readiness, or release readiness.
 
+## Checkpoint 000005 -- RC1 Notes, Package Status, And Blockers Matrix
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Draft release notes refresh | passed | `docs/release-notes-v0.1.0-rc.1-draft.md` now reflects the Phase 89 local product, route, connector/backend, package, blocker, and claim-boundary status. |
+| Release package creation status | blocked | `make release-package` was not run because package creation requires separate explicit maintainer authorization. |
+| Release package audit status | blocked | `make audit-release-package` was not run because no package artifact exists and package auditing requires separate explicit maintainer authorization. |
+| Package artifact inventory | not_checked | No package, checksum, SBOM/provenance file, published image, GitHub release, or tag exists for this draft. |
+
+The draft release notes are review documentation only. They do not create a
+release, tag, package, image, hosted deployment, retained evidence packet,
+release-readiness claim, compliance claim, public launch claim, consumer action
+claim, agency approval/adoption claim, final-root claim, vendor/device claim,
+hardware claim, SLA/uptime claim, production-readiness claim, or
+production-grade ETA claim.
+
 ## Current Blockers
 
 | Blocker | Status | Impact |
 | --- | --- | --- |
 | Release action authorization | blocked | No tag, package, published image, package distribution, or release-ready claim is authorized. |
-| Phase 89 incomplete | needs_review | Release-notes and blockers-matrix checkpoints are still pending. |
+| Release package creation | blocked | `make release-package` was intentionally not run because it requires separate explicit maintainer authorization. |
+| Release package audit | blocked | `make audit-release-package` was intentionally not run because no package exists and package auditing requires separate explicit maintainer authorization. |
+| Package artifacts | not_checked | No package, checksum, SBOM/provenance file, published image, GitHub release, or tag exists. |
 | Phase 72 precedent | needs_review | Phase 72 remains a bounded diagnostic review, not a release-ready pass. |
 | Evidence tracks | blocked | Final-root, consumer, agency pilot, vendor/device, ETA-quality, and compliance evidence gates require separate written authorization. |
+| Phase 89 conclusion | needs_review | Local product diagnostics passed, but release actions and package checks remain blocked/not checked. |
 
 ## Claim Boundary
 
