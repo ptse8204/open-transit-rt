@@ -407,3 +407,94 @@ claim-boundary diagnostics.
 
 Next checkpoint:
 Phase 92 -- Checkpoint 000004: run connector backend and claim-boundary diagnostics.
+
+## Checkpoint 000004 Connector Backend And Claim-Boundary Diagnostics
+
+Clean checkout path:
+`.cache/phase-92-clean-checkout`
+
+Clean checkout source:
+Detached worktree advanced to commit `9a6ab44` (`Phase 92 -- Checkpoint
+000003: run local app and five-feed diagnostics`).
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| `make external-connection-check` | passed | Connector manifests and examples remain sidecar/manifest/conformance bounded. |
+| `make adapter-conformance` | passed | Adapter conformance suite passed against `testdata/adapter-conformance`. |
+| `make test-connector-examples` | passed | Synthetic connector example packages passed. |
+| `docker compose -f deploy/docker-compose.yml config` | passed | Compose config rendered locally; output was not committed. |
+| `make audit-product-acceptance` | passed | Product acceptance audit passed, including prepared-only tracker and protected evidence path checks. |
+| `make audit-final-claim-review` | passed | Final claim review audit passed. |
+| Consumer tracker JSON parse | passed | `docs/evidence/consumer-submissions/status.json` parsed as JSON. |
+| Exact prepared-only consumer tracker | passed | All seven targets remain exactly `prepared`: Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, transit.land. |
+| Protected path status in clean checkout | passed | No status under `docs/evidence/consumer-submissions`, `docs/evidence/captured`, `db/migrations`, `go.mod`, or `go.sum`. |
+| Protected path status in main checkout | passed | Main checkout remained clean for the same protected paths. |
+
+The connector/backend checks are synthetic and local. They do not prove real
+vendor compatibility, real device behavior, hardware certification, external
+consumer ingestion, production AVL reliability, hosted-service availability,
+SLA/uptime, production readiness, or release readiness.
+
+## Checkpoint 000004 Report
+
+Checkpoint:
+Phase 92 -- Checkpoint 000004: run connector backend and claim-boundary diagnostics.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high, Real Release /
+Supply-Chain Sub-Agent -- GPT-5.5 high, Real Claim-Boundary / Security
+Sub-Agent -- GPT-5.5 high, and Real Planning Sub-Agent -- GPT-5.5 x-high
+informed this checkpoint. Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/phase-92-clean-checkout-release-candidate-gate.md`.
+
+Validation run:
+From `.cache/phase-92-clean-checkout`: `make external-connection-check`
+passed; `make adapter-conformance` passed; `make test-connector-examples`
+passed; `docker compose -f deploy/docker-compose.yml config` passed; `make
+audit-product-acceptance` passed; `make audit-final-claim-review` passed;
+consumer tracker JSON parse passed; exact seven-target prepared-only tracker
+check passed; protected-path status check passed. From the main checkout,
+protected-path status check passed.
+
+Blocked checks:
+No CP000004 connector/backend or claim-boundary diagnostic remains blocked.
+Release package generation and audit remain intentionally not run in Phase 92.
+
+Protected path status:
+No protected evidence path was edited or generated.
+
+Consumer tracker status:
+All seven targets remain exactly `prepared` in the required order. The tracker
+file was not edited.
+
+Claim-boundary status:
+Claim audits passed. Connector/backend diagnostics are local synthetic checks
+only and do not claim release readiness, compliance, adoption, consumer
+acceptance, production readiness, final-root readiness, hosted-service
+availability, vendor compatibility, hardware certification, SLA/uptime, or ETA
+quality.
+
+Security/auth status:
+No route, auth behavior, token handling, credential path, public exposure, or
+admin command behavior changed.
+
+Data/migration status:
+No persistence, migration, GTFS data model, or realtime data model change is
+included. `db/migrations`, `go.mod`, and `go.sum` status checks are clean.
+
+Master review:
+Approved. The connector/backend and claim-boundary diagnostics passed without
+crossing evidence, consumer-status, release, publication, external-contact, or
+claim boundaries.
+
+Required edits:
+None for CP000004.
+
+Decision:
+Proceed to CP000004 validation and commit, then CP000005 result/blocker
+recording.
+
+Next checkpoint:
+Phase 92 -- Checkpoint 000005: record rc gate result and blockers.
