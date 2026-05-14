@@ -535,6 +535,50 @@ func TestOperationsAccessRolesAndDeniedUX(t *testing.T) {
 	}
 }
 
+func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
+	srv := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/feeds", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("feeds status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Feed URLs And Validation",
+		"Private public-feed readiness review only",
+		"Configured feed URL review",
+		"Source-of-truth metadata checklist",
+		"Future final-root/evidence checklist",
+		"Copy guidance:",
+		`id="feed-readiness-feeds_json"`,
+		`data-copy-value="https://feeds.example.org/public/feeds.json"`,
+		"https://feeds.example.org/public/gtfs/schedule.zip",
+		"https://feeds.example.org/public/gtfsrt/vehicle_positions.pb",
+		"https://feeds.example.org/public/gtfsrt/trip_updates.pb",
+		"https://feeds.example.org/public/gtfsrt/alerts.pb",
+		"feeds.json is metadata, not a GTFS validator artifact",
+		"endpoint_available=true",
+		"public_base_url=true; license=true; contact=true; all_required_listed=true; https=true; discoverable=true",
+		"Requires separate written authorization",
+		"external_evidence_created",
+		"final_root_evidence_created",
+		"consumer_statuses_changed",
+		"consumer_submission_claimed",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("feeds body missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"consumer accepted", "submission complete", "ingestion confirmed", "final-root ready", "production ready", "hosted SaaS", "vendor compatible", "certified hardware", "database_url", "Bearer "} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("feeds body overclaims or leaks %q: %s", forbidden, body)
+		}
+	}
+}
+
 func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 	now := time.Date(2026, 5, 14, 10, 0, 0, 0, time.UTC)
 	store := &fakePublicationStore{

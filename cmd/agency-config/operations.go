@@ -63,6 +63,7 @@ type operationsPage struct {
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
 	ContextHelp            operationsContextHelp
+	FeedReadiness          operationsFeedReadinessView
 	FeedHealth             operationsFeedHealthView
 	ValidationCenter       operationsValidationCenterView
 	Realtime               operationsRealtimeView
@@ -1132,6 +1133,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
 	page.GTFSWorkbench = h.buildGTFSWorkbenchView(r, page)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
+	page.FeedReadiness = buildOperationsFeedReadiness(page)
 	page.FeedHealth = buildOperationsFeedHealth(page)
 	page.Realtime = buildOperationsRealtime(page)
 	page.PredictionLab = buildPredictionLab(page)
@@ -3203,7 +3205,57 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{define "feeds"}}
 {{template "layoutStart" .}}
 <h2>Feed URLs And Validation</h2>
+<p class="warning">{{.FeedReadiness.Boundary}}</p>
 {{if .DiscoveryError}}<p class="warning">No feed metadata is available. Next action: publish or import a GTFS feed, then bootstrap publication metadata.</p>{{else}}
+<h3>Configured feed URL review</h3>
+<div class="feed-copy-grid" aria-label="Configured feed URL review">
+{{range .FeedReadiness.Rows}}<section class="feed-url-card" id="feed-readiness-{{.ID}}" data-copy-card>
+<h3>{{.Label}}</h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p><strong>Public path:</strong> <code>{{.PublicPath}}</code></p>
+<p><strong>Configured URL:</strong></p>
+<code class="copy-value" data-copy-value="{{.CopyValue}}">{{.ConfiguredURL}}</code>
+<p><strong>Metadata source:</strong> {{.MetadataSource}}</p>
+<p><strong>Metadata status:</strong> {{.MetadataStatus}}</p>
+<p><strong>Validation context:</strong> {{.ValidationContext}}</p>
+<p><strong>Local public fetch context:</strong> {{.PublicFetchContext}}</p>
+<p><strong>Meaning:</strong> {{.Meaning}}</p>
+<p><strong>Copy guidance:</strong> {{.CopyGuidance}}</p>
+<p><strong>Review before sharing:</strong></p>
+<ul>{{range .ReviewChecklist}}<li>{{.}}</li>{{end}}</ul>
+<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+{{if .DocsLink}}<p><strong>Docs:</strong> <code>{{.DocsLink}}</code></p>{{end}}
+</section>{{end}}
+</div>
+<h3>Source-of-truth metadata checklist</h3>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .FeedReadiness.Metadata}}<tr id="feed-readiness-metadata-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Future final-root/evidence checklist</h3>
+<table><thead><tr><th>Gate</th><th>Current status</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .FeedReadiness.FutureChecklist}}<tr id="feed-readiness-future-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .CurrentStatus}}">{{.CurrentStatus}}</span></td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
+</tbody></table>
+<details><summary>Claim flags for this feed readiness review</summary>
+<table><tbody>
+<tr><th><code>external_evidence_created</code></th><td>{{.FeedReadiness.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.FeedReadiness.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.FeedReadiness.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>consumer_submission_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.ConsumerSubmissionClaimed}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>hardware_certification_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.HardwareCertificationClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+<tr><th><code>real_world_eta_accuracy_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.RealWorldETAAccuracyClaimed}}</td></tr>
+<tr><th><code>sla_coverage_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.SLACoverageClaimed}}</td></tr>
+<tr><th><code>uptime_guarantee_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.UptimeGuaranteeClaimed}}</td></tr>
+<tr><th><code>final_root_readiness_claimed</code></th><td>{{.FeedReadiness.ClaimFlags.FinalRootReadinessClaimed}}</td></tr>
+<tr><th><code>external_browser_fetch_performed</code></th><td>{{.FeedReadiness.ClaimFlags.ExternalBrowserFetchPerformed}}</td></tr>
+</tbody></table>
+</details>
 {{template "feedTable" .}}
 {{template "tripUpdatesQuality" .}}
 <h3>Feed discovery document</h3>
@@ -3211,7 +3263,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>feeds.json</td><td>{{.Discovery.PublicBaseURL}}/public/feeds.json</td><td>not a validator result</td><td>{{formatTime .Discovery.GeneratedAt}}</td></tr>
 </tbody></table>
 {{end}}
-<p class="muted">This view shows repo/deployment evidence only. Third-party consumer acceptance requires retained confirmation from the named consumer.</p>
+<p class="muted">This view shows private configured metadata and local diagnostic summaries only. Any future retained evidence, final-root review, or consumer-status movement requires separate written authorization.</p>
 <p><a href="/admin/operations/feed-health">Open plain-language feed health</a> · <a href="/admin/operations/gtfs-quality">Review GTFS quality triage actions</a> · <a href="/admin/operations/validation-health">Review private validator health diagnostics</a></p>
 {{template "layoutEnd" .}}
 {{end}}
