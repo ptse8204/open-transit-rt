@@ -348,9 +348,15 @@ routes. The private Validation Center now combines five feed rows, validator
 health, GTFS quality summary, sanitized issue drilldowns, readiness timeline,
 current blockers, and prepared-only consumer tracker state without browser
 mutations, public admin routes, evidence writes, consumer status movement, or
-stronger claims. Phase 83 -- Connector Workbench is the next authorized
-product-track phase. Release-cut cleanup, postponed connector maturity, and
-optional evidence tracks remain separated by their phase gates and claim
+stronger claims. Phase 83 -- Connector Workbench is active as the next
+authorized product-track phase. Checkpoint 000001 adds the plan at
+`docs/phase-83-connector-workbench.md` before implementation. The scope is
+private, read-only, local/synthetic connector planning and review: recipe
+chooser, committed example manifest review, dry-run operator-shell guidance,
+synthetic telemetry preview, webhook-transform boundaries, prediction sidecar
+review, monitoring/export review, off-host validation guidance, and synthetic
+conformance guidance. Release-cut cleanup, postponed connector maturity claims,
+and optional evidence tracks remain separated by their phase gates and claim
 boundaries. The
 next step is not a full `v0.1.0` release, a real agency
 pilot, or evidence collection. Use the canonical

@@ -136,10 +136,12 @@ health, GTFS quality summary, sanitized issue drilldowns, readiness timeline,
 current blockers, and prepared-only consumer tracker state. Phase 80 through
 Phase 82 added no public admin route, migration, evidence write, consumer
 status change, release artifact, hosted service claim, production-readiness
-claim, vendor claim, SLA claim, or ETA-quality claim. The next autonomous
-phase in the authorized product track is Phase 83 -- Connector Workbench. Any
-future evidence intake is optional and requires explicit written authorization
-first.
+claim, vendor claim, SLA claim, or ETA-quality claim. Phase 83 -- Connector
+Workbench is active. Checkpoint 000001 adds the plan at
+`docs/phase-83-connector-workbench.md`; implementation should keep the work
+private, read-only by default, local/synthetic, no-send, no-execution, and
+claim-bounded. Any future evidence intake is optional and requires explicit
+written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1403,12 +1405,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized Phase 75-90 product track with Phase 83 -- Connector
-Workbench. Start from the Phase 75 roadmap pack and the Phase 82 closeout, keep
-the work private and synthetic/local, and do not claim vendor compatibility,
-hardware certification, real vendor/device proof, evidence, compliance,
-consumer acceptance, hosted service, release readiness, SLA, uptime, or
-production-grade ETA quality.
+Continue Phase 83 -- Connector Workbench from
+`docs/phase-83-connector-workbench.md`. Start from the Phase 75 roadmap pack
+and the Phase 82 closeout, keep the work private and synthetic/local, and do
+not claim vendor compatibility, hardware certification, real vendor/device
+proof, evidence, compliance, consumer acceptance, hosted service, release
+readiness, SLA, uptime, or production-grade ETA quality.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

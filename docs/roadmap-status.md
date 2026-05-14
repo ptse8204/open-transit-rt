@@ -9,13 +9,15 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 ## What To Do Next
 
 Phase 82 is complete for the Feed Health And Validation Center scope in the
-authorized Phase 75-90 Consumer-Grade Control Plane track. The private
-Operations Console now has a Validation Center with five feed rows, validator
-health, GTFS quality summary, sanitized issue drilldowns, readiness timeline,
-current blockers, and prepared-only consumer tracker state. It is private,
-read-only, and claim-bounded. Phase 72 still ended with `needs_review`
-release-candidate diagnostics, not a release-ready pass. Phase 74 CP000008
-remains the latest GitHub Pages publication at commit `a8b250e`.
+authorized Phase 75-90 Consumer-Grade Control Plane track. Phase 83 --
+Connector Workbench is active with a plan at
+[`docs/phase-83-connector-workbench.md`](phase-83-connector-workbench.md).
+The planned work is private, read-only by default, local/synthetic, no-send,
+no-execution connector review for recipes, manifests, dry-run guidance,
+telemetry previews, prediction sidecars, monitoring/export, off-host
+validation, and synthetic conformance. Phase 72 still ended with
+`needs_review` release-candidate diagnostics, not a release-ready pass. Phase
+74 CP000008 remains the latest GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
