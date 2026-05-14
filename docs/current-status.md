@@ -326,9 +326,13 @@ compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
 was added. The Phase 75 consumer-grade roadmap pack is now the authorized
 Phase 75-90 product-track guide. Phase 76 is complete for private Operations
 Console design-system/app-shell work, Phase 77 is complete for the private
-Admin Control API And Command Model scope, and Phase 78 is complete for
-private buildless frontend routing/state/data-loading work. The next
-product-track phase is Phase 79 -- Agency Setup V3. Release-cut cleanup,
+Admin Control API And Command Model scope, Phase 78 is complete for private
+buildless frontend routing/state/data-loading work, and Phase 79 is complete
+for Agency Setup V3. The private setup path now presents an Agency Setup
+overview with progress, review blocks, safe diagnostics, role visibility,
+technical-helper escalation cards, clearer GTFS source review, and admin-only
+setup forms aligned with the existing POST authorization boundaries. The next
+product-track phase is Phase 80 -- GTFS Workbench. Release-cut cleanup,
 postponed connector maturity, and optional evidence tracks remain separated by
 their phase gates and claim boundaries. The
 next step is not a full `v0.1.0` release, a real agency

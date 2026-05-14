@@ -53,7 +53,7 @@ Private Launchpad keeps a broader private operator workflow with setup, GTFS,
 metadata, five expected feeds, telemetry, validators, readiness, connector
 conformance, support bundle, and decision-gate sections.
 
-## Setup Wizard
+## Agency Setup
 
 Open:
 
@@ -61,8 +61,12 @@ Open:
 /admin/operations/setup-wizard
 ```
 
-The wizard explains the staged setup path. It is read-only and points to the
-existing pages that perform admin-only work.
+Agency Setup explains the staged setup path with progress, review blocks, safe
+diagnostics, role visibility, and technical-helper escalation cards. It is
+read-only and points to the existing pages that perform admin-only work. The
+advanced setup details page at `/admin/operations/setup` shows the same safe
+diagnostics for review roles and only renders metadata/validation forms for
+admin roles.
 
 ## GTFS Import
 

@@ -32,7 +32,12 @@ The first instruction in this workstream was to make the Codex instructions expa
 - GitHub Pages product story is refreshed.
 - Private Operations Console first-run hierarchy is improved.
 - Docs/site/UI now point to the same browser-first product path.
-- The exact next recommendation is maintainer review of the Phase 74 CP000008 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase.
+- Phase 75 is complete for the authorized Consumer-Grade Control Plane roadmap pack.
+- Phase 76 is complete for Design System And App Shell.
+- Phase 77 is complete for the private Admin Control API And Command Model scope.
+- Phase 78 is complete for Frontend Routing, State, And Data Loading.
+- Phase 79 is complete for Agency Setup V3.
+- The next authorized product-track phase is Phase 80 -- GTFS Workbench.
 - The previous Phase 74 connector-maturity slot is postponed to a later separately authorized phase.
 - Evidence/adoption/compliance tracks remain optional and authorization-gated.
 
@@ -570,7 +575,7 @@ Start by reading:
 - docs/evidence/consumer-submissions/status.json
 
 Current truth:
-Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoint 000001 is complete for documentation-only agency UI acceptance planning. Phase 73 Checkpoint 000002 is complete for local no-developer browser walkthrough review. Phase 73 Checkpoint 000003 is complete for local technical-helper walkthrough review. Phase 73 Checkpoint 000004 is complete for narrow UI copy, route-label, Devices/Telemetry boundary-copy, and browser-first tutorial patching. Phase 73 Checkpoint 000005 is complete for small-agency docs and wiki navigation freeze. Phase 73 Checkpoint 000006 is complete for bounded agency UI acceptance closeout. Phase 74 Checkpoints 000001 through 000008 are complete for GitHub Pages and agency UI product polish. CP000008 reconciled and published the actual `gh-pages` branch with the Phase 74 closeout. GitHub Pages product story is refreshed. Private Operations Console first-run hierarchy is improved. Docs/site/UI now point to the same browser-first product path. Exact next recommendation: maintainer review of the Phase 74 CP000008 closeout, then separately authorize future release-cut cleanup/release-candidate gating, postponed connector maturity, or another product phase. The default next work is not evidence intake.
+Phases 0-60 are closed. Phase 61+ roadmap naming is approved. Phases 61-67 are complete. Phase 68+ is closed blocker-only / authorization-gated. Phase 69, Phase 70, Phase 71, and Phase 72 are complete. Phase 72 closed bounded v0.1.0-rc.1 hardening review with `needs_review` diagnostics, not release readiness. Phase 73 Checkpoints 000001 through 000006 are complete for agency UI acceptance. Phase 74 Checkpoints 000001 through 000008 are complete for GitHub Pages and agency UI product polish; CP000008 reconciled and published the actual `gh-pages` branch with the Phase 74 closeout. Phase 75 is complete for the Consumer-Grade Control Plane roadmap pack. Phase 76 is complete for Design System And App Shell. Phase 77 is complete for the private Admin Control API And Command Model scope. Phase 78 is complete for Frontend Routing, State, And Data Loading. Phase 79 is complete for Agency Setup V3. The next authorized product-track phase is Phase 80 -- GTFS Workbench. Release-cut cleanup, postponed connector maturity, and optional evidence tracks remain separated by their phase gates. The default next work is not evidence intake.
 
 Model assignment:
 Use these model levels for the master/sub-agent workflow:
@@ -666,10 +671,10 @@ The product direction is correct:
 - completed release-candidate diagnostics with `needs_review` blockers;
 - claim discipline.
 
-The remaining risk is not lack of roadmap. Phase 74 records that CP000008
-reconciled and published the actual `gh-pages` branch, GitHub Pages product
-story is refreshed, the private Operations Console first-run hierarchy is
-improved, docs/site/UI now point to the same browser-first product path, no
+The remaining risk is not lack of roadmap. Phase 79 records that the private
+Agency Setup path now has progress, review blocks, safe diagnostics, role
+visibility, technical-helper escalation cards, clearer GTFS source review, and
+admin-only setup forms aligned with existing POST authorization boundaries. No
 retained evidence was created, no external party was contacted, no consumer
 status changed, and no compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim was added. Clean-checkout release-cut proof
 and connector maturity remain separate future authorization.
@@ -677,7 +682,7 @@ and connector maturity remain separate future authorization.
 The next master-agent action is:
 
 ```text
-Review the completed Phase 74 -- Checkpoint 000008 closeout, then separately
-authorize future release-cut cleanup/release-candidate gating, postponed
-connector maturity, or another product phase.
+Continue the authorized Phase 75-90 product track with Phase 80 -- GTFS
+Workbench. Keep release-cut cleanup, connector maturity, and optional evidence
+tracks separated by their phase gates.
 ```

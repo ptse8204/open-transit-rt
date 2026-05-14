@@ -79,7 +79,7 @@ make agency-app-down
 ## What You Can Do In The UI
 
 - Review agency and publication metadata.
-- Follow the setup wizard.
+- Follow Agency Setup progress, review blocks, diagnostics, and role guidance.
 - Import GTFS through browser upload or safe URL import.
 - Inspect `/public/feeds.json`, schedule, Vehicle Positions, Trip Updates, and
   Alerts paths.

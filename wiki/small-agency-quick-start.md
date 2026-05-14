@@ -109,7 +109,7 @@ Use these private routes during browser-first review:
 /admin/operations/help
 ```
 
-## Follow The Setup Wizard
+## Follow Agency Setup
 
 Open:
 
@@ -117,8 +117,10 @@ Open:
 /admin/operations/setup-wizard
 ```
 
-Review agency profile, publication metadata, GTFS, feeds, telemetry, validators,
-connectors, and readiness. The wizard is private and read-only. Admin-only
+Review agency profile, public feed information, schedule data, feed links,
+vehicle telemetry, validation, optional connectors, and readiness. Agency Setup
+is private and read-only; it also shows progress, review blocks, safe
+diagnostics, role visibility, and technical-helper escalation cards. Admin-only
 actions still live on their existing admin pages.
 
 ## Import GTFS In The Browser

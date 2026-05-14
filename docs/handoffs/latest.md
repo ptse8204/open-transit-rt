@@ -105,9 +105,19 @@ sorting, and a read-only Validation Health refresh control using the Phase 77
 command route. It added no SPA, frontend dependency, public admin route,
 evidence write, consumer status change, release artifact, hosted service
 claim, production-readiness claim, vendor claim, SLA claim, or ETA-quality
-claim. The next autonomous phase in the authorized product track is Phase 79
--- Agency Setup V3. Any future evidence intake is optional and requires
-explicit written authorization first.
+claim. Phase 79 is complete for Agency Setup V3, with closeout at
+`docs/handoffs/phase-79.md`: `/admin/operations/setup-wizard` now presents an
+Agency Setup overview with progress, review blocks, safe diagnostics, role
+visibility, and technical-helper escalation cards; `/admin/operations/setup`
+shows advanced setup diagnostics and hides mutation forms from non-admin roles;
+and `/admin/operations/gtfs-import` now makes clear that a successful
+published import updates the active schedule through the existing importer
+rather than acting as a preview-only page. Phase 79 added no public admin
+route, migration, evidence write, consumer status change, release artifact,
+hosted service claim, production-readiness claim, vendor claim, SLA claim, or
+ETA-quality claim. The next autonomous phase in the authorized product track
+is Phase 80 -- GTFS Workbench. Any future evidence intake is optional and
+requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
