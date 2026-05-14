@@ -145,12 +145,14 @@ adapter-conformance coverage. Phase 80 through Phase 83 added no public admin
 route, migration, evidence write, consumer status change, release artifact,
 hosted service claim, production-readiness claim, vendor claim, hardware
 claim, SLA claim, or ETA-quality claim. Phase 84 -- Prediction And ETA Lab is
-active with a plan at `docs/phase-84-prediction-and-eta-lab.md`. The approved
-scope is private deterministic prediction diagnostics, withheld Trip Updates
-explanations, external predictor shadow/fail-closed review, and local aggregate
-backtest summary browsing. It must stay private, bounded, fail-closed, and
-explicit that it does not prove production-grade ETA quality or real-world ETA
-accuracy. Any future evidence intake is optional and requires explicit written
+complete. It added private read-only `/admin/operations/prediction-lab` and
+`/admin/operations/prediction-lab.json` for deterministic fallback review,
+withheld Trip Updates explanations, external predictor shadow/fail-closed
+review, local aggregate backtest summary browsing, conservative handling
+guidance, and future proof-gate boundaries. Phase 84 stayed private, bounded,
+fail-closed, and explicit that it does not prove production-grade ETA quality
+or real-world ETA accuracy. Phase 85 -- Operations And Maintenance Center V2 is
+next. Any future evidence intake is optional and requires explicit written
 authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1415,14 +1417,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue Phase 84 -- Prediction And ETA Lab from
-`docs/phase-84-prediction-and-eta-lab.md`. Next checkpoint:
-`Phase 84 -- Checkpoint 000002: add deterministic predictor diagnostics view`.
-Keep the work private, bounded, fail-closed, and synthetic/local where
-possible, and do not claim production-grade ETA quality, real-world ETA
-accuracy, vendor compatibility, hardware certification, real vendor/device
-proof, evidence, compliance, consumer acceptance, hosted service, release
-readiness, SLA, or uptime.
+Start Phase 85 -- Operations And Maintenance Center V2 from the Consumer-Grade
+Control Plane roadmap. Keep the work private, bounded, and synthetic/local
+where possible, and do not claim production readiness, hosted service, SLA,
+uptime, release readiness, compliance, agency adoption, consumer acceptance,
+vendor compatibility, hardware certification, real vendor/device proof, or
+evidence.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

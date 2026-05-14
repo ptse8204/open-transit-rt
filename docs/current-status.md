@@ -360,17 +360,18 @@ URL/private-endpoint text across displayable manifest fields before those
 fields are rendered in the Workbench. Phase 83 added no public admin route,
 migration, evidence write, consumer status change, release artifact, hosted
 service claim, production-readiness claim, vendor claim, hardware claim, SLA
-claim, or ETA-quality claim. Release-cut cleanup, postponed connector maturity
-claims, and optional evidence tracks remain separated by their phase gates and
-claim boundaries. Phase 84 -- Prediction And ETA Lab is active with a plan at
-`docs/phase-84-prediction-and-eta-lab.md`. The scope is private prediction
-diagnostics for deterministic fallback review, withheld Trip Updates
-explanations, external predictor shadow/fail-closed review, and local aggregate
-backtest summaries without production-grade ETA, real-world accuracy,
-compliance, consumer, vendor, hardware, SLA, hosted-service, release-readiness,
-or evidence claims. The
-next step is Phase 84 implementation, not a full `v0.1.0` release, a real agency
-pilot, or evidence collection. Use the canonical
+claim, or ETA-quality claim. Phase 84 -- Prediction And ETA Lab is complete.
+It added private read-only `/admin/operations/prediction-lab` and
+`/admin/operations/prediction-lab.json` for deterministic fallback review,
+withheld Trip Updates explanations, external predictor shadow/fail-closed
+review, local aggregate backtest summaries, conservative stale/ambiguous/
+low-confidence guidance, and future proof-gate boundaries without production
+ETA, real-world accuracy, compliance, consumer, vendor, hardware, SLA,
+hosted-service, release-readiness, or evidence claims. Release-cut cleanup,
+postponed connector maturity claims, and optional evidence tracks remain
+separated by their phase gates and claim boundaries. The next step is Phase 85
+-- Operations And Maintenance Center V2, not a full `v0.1.0` release, a real
+agency pilot, or evidence collection. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
 section for the current scorecard, risks, and next-step sequence.
 
