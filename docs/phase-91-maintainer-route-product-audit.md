@@ -279,3 +279,115 @@ Proceed to CP000003 after CP000002 validation and commit.
 
 Next checkpoint:
 Phase 91 -- Checkpoint 000003: add route inventory audit helper.
+
+## Checkpoint 000003 Route Inventory Audit Helper
+
+Phase 91 added a local, read-only route inventory audit helper:
+
+```bash
+make audit-operations-route-inventory
+make test-operations-route-inventory
+```
+
+The helper parses committed source and docs only. It does not start the app,
+fetch routes, call external URLs, run validators, contact consumers, write
+`.cache` outputs, write evidence, or mutate data.
+
+The helper currently checks:
+
+- canonical private Operations Console HTML routes have navigation and handler
+  coverage;
+- canonical private JSON routes have handler coverage;
+- the read-only command JSON route is explicitly registered and allowlisted;
+- GTFS Studio and Alerts Console are marked as external admin surfaces in nav;
+- no public admin route registration is present;
+- Phase 90 route inventory still contains the canonical private routes;
+- README/wiki route maps contain newer center-style routes when
+  `OPERATIONS_ROUTE_AUDIT_STRICT_DOCS=true`.
+
+Current helper result:
+
+```text
+PASS: 28 canonical private HTML routes have nav and handler coverage
+PASS: 19 canonical private JSON routes have handler coverage
+PASS: 1 private command route is explicit and allowlisted
+PASS: 2 external admin surfaces are marked in nav
+PASS: no public admin route registration detected
+WARN: route map docs omit newer Operations route: /admin/operations/access
+WARN: route map docs omit newer Operations route: /admin/operations/audit
+WARN: route map docs omit newer Operations route: /admin/operations/connectors/workbench
+WARN: route map docs omit newer Operations route: /admin/operations/gtfs-workbench
+WARN: route map docs omit newer Operations route: /admin/operations/prediction-lab
+WARN: route map docs omit newer Operations route: /admin/operations/realtime
+WARN: route map docs omit newer Operations route: /admin/operations/validation-center
+```
+
+The warnings are the CP000004 work queue. They remain warnings rather than
+failures in default mode so the helper can be introduced before the route-map
+copy patch.
+
+### CP000003 Report
+
+Checkpoint:
+Phase 91 -- Checkpoint 000003: add route inventory audit helper.
+
+Sub-agents used or simulated, including intended model level:
+Planning Sub-Agent -- GPT-5.5 x-high, real; Claim-Boundary/Security Sub-Agent
+-- GPT-5.5 high, real; Context / Repo Truth Sub-Agent -- GPT-5.5 x-high,
+real; Implementation Sub-Agent -- GPT-5.5 high, simulated by Master; QA
+Sub-Agent -- GPT-5.5 high, simulated by Master; Master Agent -- GPT-5.5
+x-high, current thread.
+
+Changed files:
+`Makefile`; `scripts/audit-operations-route-inventory.sh`;
+`scripts/test-operations-route-inventory.sh`;
+`docs/phase-91-maintainer-route-product-audit.md`.
+
+Validation run:
+`scripts/audit-operations-route-inventory.sh` passed with expected route-map
+warnings. `scripts/test-operations-route-inventory.sh` passed.
+`make test-operations-route-inventory` passed. `git diff --check` passed.
+`make check` passed. `git status --short --
+docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod
+go.sum` returned clean.
+
+Blocked checks:
+Full closeout validation, `make validate`, `make test`, and Docker Compose
+config are deferred to Phase 91 closeout because this checkpoint added scripts
+and Make targets but did not change Go route behavior.
+
+Protected path status:
+No protected evidence path was modified.
+
+Consumer tracker status:
+No consumer tracker edit was made. All seven targets are required to remain
+exactly `prepared`.
+
+Claim-boundary status:
+The helper reports local private route inventory only. It does not claim
+compliance, adoption, consumer action, final-root readiness, hosted-service
+availability, production readiness, release readiness, vendor compatibility,
+hardware certification, SLA/uptime, public launch, or ETA quality.
+
+Security/auth status:
+The helper is local-only and read-only. It does not start the app, fetch
+private pages, dump JSON bodies, execute validators, call external services, or
+inspect credentials.
+
+Data/migration status:
+No persistence or migration change.
+
+Master review:
+Approved. The helper makes the CP000002 drift repeatable and is safe to run as
+part of `make check`.
+
+Required edits:
+CP000004 must patch stale route maps and reconcile generic roadmap checkpoint
+language. It should also decide whether to make the current route-map warnings
+clean in default audit mode.
+
+Decision:
+Proceed to CP000004 after CP000003 validation and commit.
+
+Next checkpoint:
+Phase 91 -- Checkpoint 000004: patch highest priority IA copy and route gaps.
