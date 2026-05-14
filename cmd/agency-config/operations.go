@@ -79,6 +79,7 @@ type operationsPage struct {
 	Reliability            compliance.ReliabilitySummary
 	ReliabilityError       string
 	IsAdmin                bool
+	PrincipalRoles         []string
 	ConsumerError          string
 	Telemetry              []telemetryView
 	TelemetryError         string
@@ -933,6 +934,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		NavGroups:        operationsNavGroups(section),
 		StaleThreshold:   staleThreshold(),
 		IsAdmin:          principal.HasAny(auth.RoleAdmin),
+		PrincipalRoles:   safePrincipalRoles(principal.Roles),
 		Links: []evidenceLink{
 			{Label: "OCI hosted evidence packet", Path: "docs/evidence/captured/oci-pilot/2026-04-24/README.md", UpdatedAt: "2026-04-24"},
 			{Label: "Phase 23 agency-owned domain blocker", Path: "docs/agency-owned-domain-readiness.md", UpdatedAt: "Phase 23"},
@@ -1546,6 +1548,24 @@ func countStatus(count int, label string) string {
 	return fmt.Sprintf("%d %s", count, label)
 }
 
+func safePrincipalRoles(roles []auth.Role) []string {
+	if len(roles) == 0 {
+		return []string{"none"}
+	}
+	out := make([]string, 0, len(roles))
+	for _, role := range roles {
+		value := strings.TrimSpace(string(role))
+		if value != "" {
+			out = append(out, value)
+		}
+	}
+	if len(out) == 0 {
+		return []string{"none"}
+	}
+	sort.Strings(out)
+	return out
+}
+
 func licenseContactEvidence(page operationsPage) string {
 	if page.DiscoveryError != "" {
 		return page.DiscoveryError
@@ -2128,6 +2148,31 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>Use the advanced setup page to edit safe publication metadata as an admin, then return here to review the setup sequence.</p>
 <p><a href="/admin/operations/setup#publication-metadata">Review publication metadata</a></p>
 </section>
+</div>
+{{if .SetupWizard.Blockers}}
+<h3>Review Blocks And Next Actions</h3>
+<table><thead><tr><th>Stage</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Console</th></tr></thead><tbody>
+{{range .SetupWizard.Blockers}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.ActionLabel}}</a>{{end}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
+<h3>Setup Diagnostics</h3>
+<table><thead><tr><th>Diagnostic</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .SetupWizard.Diagnostics}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+<h3>Role Visibility</h3>
+<table><thead><tr><th>Capability</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .SetupWizard.RoleVisibility}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+<h3>Technical Helper Cards</h3>
+<div class="card-grid" aria-label="Technical helper escalation cards">
+{{range .SetupWizard.TechnicalHelp}}<section class="card">
+<h4>{{.Label}}</h4>
+<p><strong>When needed:</strong> {{.WhenNeeded}}</p>
+<p><strong>Next action:</strong> {{.NextAction}}</p>
+{{if .AdminLink}}<p><a href="{{.AdminLink}}">Open console area</a></p>{{end}}
+{{if .DocsLink}}<p><code>{{.DocsLink}}</code></p>{{end}}
+<p class="muted">{{.ClaimBoundary}}</p>
+</section>{{end}}
 </div>
 <div class="card-grid" aria-label="Agency setup stages">
 {{range .SetupWizard.Stages}}<section class="card">
@@ -2922,6 +2967,17 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{if .SetupError}}<p class="bad">{{.SetupError}}</p>{{end}}
 <p><a href="/admin/operations/setup-wizard">Return to Agency Setup</a> · <a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p class="muted">Each status is tied to a named source. Missing records stay missing until publication metadata, feed discovery, validation records, device bindings, telemetry, docs tracker records, or evidence links support a stronger statement.</p>
+<h3>Setup Diagnostics</h3>
+<table><thead><tr><th>Diagnostic</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .SetupWizard.Diagnostics}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Role Visibility</h3>
+<table><thead><tr><th>Capability</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .SetupWizard.RoleVisibility}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<div class="card-grid" aria-label="Technical helper escalation cards">
+{{range .SetupWizard.TechnicalHelp}}<section class="card"><h3>{{.Label}}</h3><p><strong>When needed:</strong> {{.WhenNeeded}}</p><p><strong>Next action:</strong> {{.NextAction}}</p>{{if .AdminLink}}<p><a href="{{.AdminLink}}">Open console area</a></p>{{end}}</section>{{end}}
+</div>
 <table><thead><tr><th>Step</th><th>Status</th><th>Status source</th><th>Evidence signal</th><th>Next action</th></tr></thead><tbody>
 {{range .SetupSteps}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.Evidence}}</td><td>{{if .ActionURL}}<a href="{{.ActionURL}}">{{.NextAction}}</a>{{else}}{{.NextAction}}{{end}}</td></tr>{{end}}
 </tbody></table>
@@ -2939,6 +2995,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Technical contact</th><td>{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else if .Discovery.TechnicalContactEmail}}{{.Discovery.TechnicalContactEmail}}{{else}}missing{{end}}</td></tr>
 <tr><th>Publication environment</th><td>{{if .PublicationConfig.PublicationEnvironment}}{{.PublicationConfig.PublicationEnvironment}}{{else if .Discovery.PublicationEnvironment}}{{.Discovery.PublicationEnvironment}}{{else}}missing{{end}}</td></tr>
 </tbody></table>
+{{if .IsAdmin}}
 <form method="post" action="/admin/operations/setup">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="publication_bootstrap">
@@ -2950,6 +3007,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <label for="setup_publication_environment">Publication environment</label><input id="setup_publication_environment" name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}">
 <button type="submit">Store publication metadata</button>
 </form>
+{{else}}
+<p class="warning">Publication metadata changes require an admin role. This account can review setup status but cannot submit setup forms.</p>
+{{end}}
 
 <h2>GTFS Import And Authoring</h2>
 <p>Source: feed discovery and the existing GTFS importer. Browser import is admin-only, size-limited, temporary-file based, and uses the same validation and publish pipeline as the CLI import path.</p>
@@ -2967,6 +3027,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted">Source: validation records. The browser chooses only feed type; the server maps it to an allowlisted validator. Validation is supporting evidence only, not consumer acceptance or compliance.</p>
 <p><a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
 {{if .ValidationResult}}<p class="ok">Last run from this page: {{.ValidationResult.FeedType}} validation {{.ValidationResult.Status}} with {{.ValidationResult.ErrorCount}} errors and {{.ValidationResult.WarningCount}} warnings.</p>{{end}}
+{{if .IsAdmin}}
 <form method="post" action="/admin/operations/setup">
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <input type="hidden" name="action" value="run_validation">
@@ -2978,6 +3039,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </select>
 <button type="submit">Run allowlisted validation</button>
 </form>
+{{else}}
+<p class="warning">Validation runs from this setup page require an admin role. Review-only users can open Validator Health but cannot start allowlisted validators from the browser.</p>
+{{end}}
 {{if .DiscoveryError}}<p class="warning">No validation records are available because publication metadata is missing.</p>{{else}}{{template "feedTable" .}}{{end}}
 
 <h2>Device And Telemetry Setup</h2>

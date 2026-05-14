@@ -555,6 +555,11 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 	for _, want := range []string{
 		"Advanced Setup Details",
 		"Return to Agency Setup",
+		"Setup Diagnostics",
+		"Role Visibility",
+		"Technical helper escalation cards",
+		"Publication metadata changes require an admin role",
+		"Validation runs from this setup page require an admin role",
 		"publication metadata",
 		"validation records",
 		"device bindings",
@@ -567,6 +572,11 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{`<form`, `method="post"`, `name="csrf_token"`, "database_url", "restore_database_url"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("read-only setup page contains forbidden %q: %s", forbidden, body)
 		}
 	}
 	for _, forbidden := range []string{"accepted by", "CAL-ITP/Caltrans compliant", "consumer ingestion confirmed"} {
@@ -1360,7 +1370,7 @@ func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Public feed information", "Schedule data", "Feed links", "Vehicle telemetry", "Validation", "Optional connectors", "Readiness review"} {
+	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Technical Helper Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Public feed information", "Schedule data", "Feed links", "Vehicle telemetry", "Validation", "Optional connectors", "Readiness review"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -5056,7 +5066,7 @@ func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
 
 func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 	t.Helper()
-	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Stages) != 8 || wizard.Counts.Stages != len(wizard.Stages) {
+	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Blockers) == 0 || len(wizard.Diagnostics) != 8 || len(wizard.RoleVisibility) != 3 || len(wizard.TechnicalHelp) != 4 || len(wizard.Stages) != 8 || wizard.Counts.Stages != len(wizard.Stages) {
 		t.Fatalf("invalid setup wizard top-level shape: %+v", wizard)
 	}
 	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
@@ -5079,6 +5089,41 @@ func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 			if !strings.HasPrefix(link, "docs/") {
 				t.Fatalf("stage %s has unsafe docs link %q", stage.ID, link)
 			}
+		}
+	}
+	for _, blocker := range wizard.Blockers {
+		if blocker.StageID == "" || blocker.Label == "" || blocker.Status == "" || blocker.CurrentSignal == "" || blocker.NextAction == "" || blocker.ActionLabel == "" || blocker.AdminLink == "" {
+			t.Fatalf("invalid setup wizard blocker shape: %+v", blocker)
+		}
+		if !strings.HasPrefix(blocker.AdminLink, "/admin/") {
+			t.Fatalf("blocker %s has unsafe admin link %q", blocker.StageID, blocker.AdminLink)
+		}
+	}
+	for _, diagnostic := range wizard.Diagnostics {
+		if diagnostic.ID == "" || diagnostic.Label == "" || diagnostic.Status == "" || diagnostic.CurrentSignal == "" || diagnostic.NextAction == "" || diagnostic.ClaimBoundary == "" {
+			t.Fatalf("invalid setup wizard diagnostic shape: %+v", diagnostic)
+		}
+		if !allowedStatuses[diagnostic.Status] {
+			t.Fatalf("diagnostic %q status = %q, want neutral status", diagnostic.ID, diagnostic.Status)
+		}
+	}
+	for _, role := range wizard.RoleVisibility {
+		if role.ID == "" || role.Label == "" || role.Status == "" || role.CurrentSignal == "" || role.NextAction == "" || role.ClaimBoundary == "" {
+			t.Fatalf("invalid setup wizard role shape: %+v", role)
+		}
+		if !allowedStatuses[role.Status] {
+			t.Fatalf("role visibility %q status = %q, want neutral status", role.ID, role.Status)
+		}
+	}
+	for _, help := range wizard.TechnicalHelp {
+		if help.ID == "" || help.Label == "" || help.WhenNeeded == "" || help.NextAction == "" || help.AdminLink == "" || help.DocsLink == "" || help.ClaimBoundary == "" {
+			t.Fatalf("invalid setup wizard technical helper shape: %+v", help)
+		}
+		if !strings.HasPrefix(help.AdminLink, "/admin/") {
+			t.Fatalf("technical helper %s has unsafe admin link %q", help.ID, help.AdminLink)
+		}
+		if !strings.HasPrefix(help.DocsLink, "docs/") {
+			t.Fatalf("technical helper %s has unsafe docs link %q", help.ID, help.DocsLink)
 		}
 	}
 }

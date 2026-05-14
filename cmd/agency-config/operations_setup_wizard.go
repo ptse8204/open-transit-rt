@@ -2,19 +2,24 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"open-transit-rt/internal/auth"
 )
 
 type operationsSetupWizardView struct {
-	GeneratedAt time.Time                    `json:"generated_at"`
-	AgencyID    string                       `json:"agency_id"`
-	Boundary    string                       `json:"boundary"`
-	Summary     operationsSetupWizardSummary `json:"summary"`
-	Stages      []operationsSetupWizardStage `json:"stages"`
-	Counts      operationsSetupWizardCounts  `json:"counts"`
-	ClaimFlags  setupWizardClaimFlags        `json:"claim_flags"`
+	GeneratedAt    time.Time                             `json:"generated_at"`
+	AgencyID       string                                `json:"agency_id"`
+	Boundary       string                                `json:"boundary"`
+	Summary        operationsSetupWizardSummary          `json:"summary"`
+	Blockers       []operationsSetupWizardBlocker        `json:"blockers"`
+	Diagnostics    []operationsSetupWizardDiagnostic     `json:"diagnostics"`
+	RoleVisibility []operationsSetupWizardRoleVisibility `json:"role_visibility"`
+	TechnicalHelp  []operationsSetupWizardTechnicalHelp  `json:"technical_help"`
+	Stages         []operationsSetupWizardStage          `json:"stages"`
+	Counts         operationsSetupWizardCounts           `json:"counts"`
+	ClaimFlags     setupWizardClaimFlags                 `json:"claim_flags"`
 }
 
 type operationsSetupWizardSummary struct {
@@ -41,6 +46,44 @@ type operationsSetupWizardStage struct {
 	AdminLink     string   `json:"admin_link"`
 	DocsLinks     []string `json:"docs_links"`
 	ClaimBoundary string   `json:"claim_boundary"`
+}
+
+type operationsSetupWizardBlocker struct {
+	StageID       string `json:"stage_id"`
+	Label         string `json:"label"`
+	Status        string `json:"status"`
+	CurrentSignal string `json:"current_signal"`
+	NextAction    string `json:"next_action"`
+	ActionLabel   string `json:"action_label"`
+	AdminLink     string `json:"admin_link"`
+}
+
+type operationsSetupWizardDiagnostic struct {
+	ID            string `json:"id"`
+	Label         string `json:"label"`
+	Status        string `json:"status"`
+	CurrentSignal string `json:"current_signal"`
+	NextAction    string `json:"next_action"`
+	ClaimBoundary string `json:"claim_boundary"`
+}
+
+type operationsSetupWizardRoleVisibility struct {
+	ID            string `json:"id"`
+	Label         string `json:"label"`
+	Status        string `json:"status"`
+	CurrentSignal string `json:"current_signal"`
+	NextAction    string `json:"next_action"`
+	ClaimBoundary string `json:"claim_boundary"`
+}
+
+type operationsSetupWizardTechnicalHelp struct {
+	ID            string `json:"id"`
+	Label         string `json:"label"`
+	WhenNeeded    string `json:"when_needed"`
+	NextAction    string `json:"next_action"`
+	AdminLink     string `json:"admin_link"`
+	DocsLink      string `json:"docs_link"`
+	ClaimBoundary string `json:"claim_boundary"`
 }
 
 type operationsSetupWizardCounts struct {
@@ -166,13 +209,17 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 	}
 	return operationsSetupWizardView{
-		GeneratedAt: page.GeneratedAt,
-		AgencyID:    page.AgencyID,
-		Boundary:    "Private authenticated setup wizard only; viewing it creates no evidence, changes no state, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, or production-readiness outcome.",
-		Summary:     setupWizardSummary(stages),
-		Stages:      stages,
-		Counts:      setupWizardCounts(stages),
-		ClaimFlags:  setupWizardClaimFlags{},
+		GeneratedAt:    page.GeneratedAt,
+		AgencyID:       page.AgencyID,
+		Boundary:       "Private authenticated setup wizard only; viewing it creates no evidence, changes no state, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, or production-readiness outcome.",
+		Summary:        setupWizardSummary(stages),
+		Blockers:       setupWizardBlockers(stages),
+		Diagnostics:    setupWizardDiagnostics(page),
+		RoleVisibility: setupWizardRoleVisibility(page),
+		TechnicalHelp:  setupWizardTechnicalHelp(),
+		Stages:         stages,
+		Counts:         setupWizardCounts(stages),
+		ClaimFlags:     setupWizardClaimFlags{},
 	}
 }
 
@@ -265,4 +312,325 @@ func setupWizardActionLabel(id string) string {
 	default:
 		return "Open section"
 	}
+}
+
+func setupWizardBlockers(stages []operationsSetupWizardStage) []operationsSetupWizardBlocker {
+	blockers := make([]operationsSetupWizardBlocker, 0)
+	for _, stage := range stages {
+		if stage.Status == checklistStatusOK {
+			continue
+		}
+		blockers = append(blockers, operationsSetupWizardBlocker{
+			StageID:       stage.ID,
+			Label:         stage.Label,
+			Status:        stage.Status,
+			CurrentSignal: stage.CurrentSignal,
+			NextAction:    stage.PrimaryAction,
+			ActionLabel:   stage.ActionLabel,
+			AdminLink:     stage.AdminLink,
+		})
+	}
+	return blockers
+}
+
+func setupWizardDiagnostics(page operationsPage) []operationsSetupWizardDiagnostic {
+	return []operationsSetupWizardDiagnostic{
+		setupWizardDiagnostic(
+			"public_base_url",
+			"Public base URL",
+			presenceStatus(firstNonEmpty(page.PublicationConfig.PublicBaseURL, page.Discovery.PublicBaseURL)),
+			presenceSignal(firstNonEmpty(page.PublicationConfig.PublicBaseURL, page.Discovery.PublicBaseURL), "public base URL"),
+			"Store a public base URL only after the operator confirms the deployment-owned value.",
+			"Configured URL metadata is a setup signal, not final-root proof.",
+		),
+		setupWizardDiagnostic(
+			"feed_base_url",
+			"Feed base URL",
+			presenceStatus(page.PublicationConfig.FeedBaseURL),
+			presenceSignal(page.PublicationConfig.FeedBaseURL, "feed base URL"),
+			"Store the feed base URL on the advanced setup page before reviewing public feed links.",
+			"Feed URL configuration does not prove public launch, consumer acceptance, or production readiness.",
+		),
+		setupWizardDiagnostic(
+			"license_contact",
+			"License and contact",
+			presenceStatus(firstNonEmpty(page.PublicationConfig.LicenseName, page.Discovery.License.Name), firstNonEmpty(page.PublicationConfig.TechnicalContactEmail, page.Discovery.TechnicalContactEmail)),
+			licenseContactDiagnosticSignal(page),
+			"Store operator-provided open license and monitored technical contact values, or keep the row marked missing.",
+			"Metadata completeness is not retained approval evidence.",
+		),
+		setupWizardDiagnostic(
+			"publication_environment",
+			"Publication environment",
+			knownPresenceStatus(firstNonEmpty(page.PublicationConfig.PublicationEnvironment, page.Discovery.PublicationEnvironment, page.EnvironmentLabel)),
+			knownPresenceSignal(firstNonEmpty(page.PublicationConfig.PublicationEnvironment, page.Discovery.PublicationEnvironment, page.EnvironmentLabel), "publication environment"),
+			"Keep local/reference environments distinct from any future release or final-root review.",
+			"Environment labels do not prove hosted operation or release readiness.",
+		),
+		setupWizardDiagnostic(
+			"active_schedule",
+			"Active schedule",
+			presenceStatus(page.ActiveFeedVersion),
+			presenceSignal(page.ActiveFeedVersion, "active schedule feed version"),
+			"Import a GTFS ZIP, import a safe URL, or publish a GTFS Studio draft before realtime review.",
+			"An active schedule does not prove validator-clean data or agency approval.",
+		),
+		setupWizardDiagnostic(
+			"validator_tooling",
+			"Validator tooling",
+			setupWizardValidationToolingStatus(page.ValidationHealth.ToolingStatus),
+			firstNonEmpty(page.ValidationHealth.ToolingStatus, "validator tooling status is unknown"),
+			"Review Validator Health and run only allowlisted server-side validation actions.",
+			"Validator tooling availability does not prove compliance or consumer acceptance.",
+		),
+		setupWizardDiagnostic(
+			"device_bindings",
+			"Device bindings",
+			presenceStatusFromCount(len(page.Devices)),
+			deviceBindingDiagnosticSignal(page),
+			"Bind devices only through the private token lifecycle; store one-time secrets outside the repo.",
+			"Device binding visibility does not prove hardware certification or vendor compatibility.",
+		),
+		setupWizardDiagnostic(
+			"telemetry_freshness",
+			"Telemetry freshness",
+			telemetryStatusForSetup(page),
+			telemetryFreshnessDiagnosticSignal(page),
+			"Use the telemetry simulator or authenticated device ingest, then review stale and unmatched states.",
+			"Telemetry visibility does not prove fleet reliability.",
+		),
+	}
+}
+
+func setupWizardRoleVisibility(page operationsPage) []operationsSetupWizardRoleVisibility {
+	mutationStatus := checklistStatusBlocked
+	mutationSignal := "current role can review setup but cannot submit setup forms"
+	mutationNext := "Ask an admin to store publication metadata, run validation, or import GTFS from the browser."
+	if page.IsAdmin {
+		mutationStatus = checklistStatusOK
+		mutationSignal = "current role can review and submit admin-only setup forms"
+		mutationNext = "Use the admin-only forms only after confirming values and claim boundaries."
+	}
+	return []operationsSetupWizardRoleVisibility{
+		setupWizardRoleRow(
+			"current_roles",
+			"Current role visibility",
+			checklistStatusOK,
+			"roles: "+strings.Join(page.PrincipalRoles, ", "),
+			"Review private setup pages for the authenticated agency only.",
+			"Role display is not an audit log, support entitlement, or production multi-tenant proof.",
+		),
+		setupWizardRoleRow(
+			"setup_mutations",
+			"Setup mutations",
+			mutationStatus,
+			mutationSignal,
+			mutationNext,
+			"Browser setup mutations remain private, admin-only, CSRF-protected, and agency-scoped.",
+		),
+		setupWizardRoleRow(
+			"gtfs_import_mutation",
+			"GTFS import mutation",
+			mutationStatus,
+			mutationSignal,
+			"Use GTFS Import only when an admin has reviewed source, validation, and rollback implications.",
+			"Import permission does not prove schedule correctness, public launch, or consumer acceptance.",
+		),
+	}
+}
+
+func setupWizardTechnicalHelp() []operationsSetupWizardTechnicalHelp {
+	return []operationsSetupWizardTechnicalHelp{
+		setupWizardHelpRow(
+			"local_app_startup",
+			"Local app startup",
+			"The browser cannot reach the private console, validators are missing, or local runtime services are unavailable.",
+			"Run the documented local bootstrap and validation commands from an operator terminal.",
+			"/admin/operations/maintenance",
+			"docs/tutorials/agency-first-run.md",
+			"Startup checks are local diagnostics, not hosted SaaS availability.",
+		),
+		setupWizardHelpRow(
+			"gtfs_source_review",
+			"GTFS source review",
+			"The source ZIP is large, the service period is unclear, rollback is needed, or staged comparison is required.",
+			"Use the real-agency GTFS onboarding guide before importing or publishing.",
+			"/admin/operations/gtfs-import",
+			"docs/tutorials/real-agency-gtfs-onboarding.md",
+			"Source review does not create retained evidence or agency approval.",
+		),
+		setupWizardHelpRow(
+			"feed_root_review",
+			"Feed root review",
+			"Public/feed base URLs, HTTPS behavior, redirects, or final-root ownership need operator confirmation.",
+			"Keep final-root evidence work separate until separately authorized.",
+			"/admin/operations/feed-health",
+			"docs/agency-owned-domain-readiness.md",
+			"Feed-root review does not collect final-root evidence.",
+		),
+		setupWizardHelpRow(
+			"support_bundle",
+			"Support bundle",
+			"An operator needs a redacted diagnostic bundle for maintainer review.",
+			"Use maintenance and support-bundle guidance; do not attach secrets, raw private data, or retained evidence without authorization.",
+			"/admin/operations/maintenance",
+			"docs/tutorials/operator-smoke-and-support-bundle.md",
+			"Support guidance does not create support entitlement, SLA, or uptime guarantees.",
+		),
+	}
+}
+
+func setupWizardDiagnostic(id string, label string, status string, signal string, nextAction string, boundary string) operationsSetupWizardDiagnostic {
+	return operationsSetupWizardDiagnostic{
+		ID:            id,
+		Label:         label,
+		Status:        normalizeChecklistStatus(status),
+		CurrentSignal: firstNonEmpty(signal, "unknown"),
+		NextAction:    firstNonEmpty(nextAction, "Review this diagnostic in the private Operations Console."),
+		ClaimBoundary: firstNonEmpty(boundary, privateBoundary()),
+	}
+}
+
+func setupWizardRoleRow(id string, label string, status string, signal string, nextAction string, boundary string) operationsSetupWizardRoleVisibility {
+	return operationsSetupWizardRoleVisibility{
+		ID:            id,
+		Label:         label,
+		Status:        normalizeChecklistStatus(status),
+		CurrentSignal: firstNonEmpty(signal, "unknown"),
+		NextAction:    firstNonEmpty(nextAction, "Review current role permissions."),
+		ClaimBoundary: firstNonEmpty(boundary, privateBoundary()),
+	}
+}
+
+func setupWizardHelpRow(id string, label string, whenNeeded string, nextAction string, adminLink string, docsLink string, boundary string) operationsSetupWizardTechnicalHelp {
+	return operationsSetupWizardTechnicalHelp{
+		ID:            id,
+		Label:         label,
+		WhenNeeded:    firstNonEmpty(whenNeeded, "technical help is needed"),
+		NextAction:    firstNonEmpty(nextAction, "Use the linked private console or repo docs."),
+		AdminLink:     firstSafeAdminLink(adminLink),
+		DocsLink:      firstSafeDocsLink(docsLink),
+		ClaimBoundary: firstNonEmpty(boundary, privateBoundary()),
+	}
+}
+
+func presenceStatus(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) == "" {
+			return checklistStatusMissing
+		}
+	}
+	return checklistStatusOK
+}
+
+func presenceStatusFromCount(count int) string {
+	if count == 0 {
+		return checklistStatusMissing
+	}
+	return checklistStatusOK
+}
+
+func presenceSignal(value string, label string) string {
+	if strings.TrimSpace(value) == "" {
+		return label + " is missing"
+	}
+	return label + " is configured"
+}
+
+func knownPresenceStatus(value string) string {
+	clean := strings.TrimSpace(value)
+	if clean == "" || strings.EqualFold(clean, "unknown") {
+		return checklistStatusMissing
+	}
+	return checklistStatusOK
+}
+
+func knownPresenceSignal(value string, label string) string {
+	clean := strings.TrimSpace(value)
+	if clean == "" || strings.EqualFold(clean, "unknown") {
+		return label + " is missing"
+	}
+	return label + " is configured"
+}
+
+func licenseContactDiagnosticSignal(page operationsPage) string {
+	licenseConfigured := strings.TrimSpace(firstNonEmpty(page.PublicationConfig.LicenseName, page.Discovery.License.Name)) != ""
+	contactConfigured := strings.TrimSpace(firstNonEmpty(page.PublicationConfig.TechnicalContactEmail, page.Discovery.TechnicalContactEmail)) != ""
+	switch {
+	case licenseConfigured && contactConfigured:
+		return "license and technical contact are configured"
+	case licenseConfigured:
+		return "license is configured; technical contact is missing"
+	case contactConfigured:
+		return "technical contact is configured; license is missing"
+	default:
+		return "license and technical contact are missing"
+	}
+}
+
+func setupWizardValidationToolingStatus(status string) string {
+	switch strings.TrimSpace(status) {
+	case "configured", "installed", "runnable", "recorded":
+		return checklistStatusOK
+	case "missing_tooling", "not_run":
+		return checklistStatusMissing
+	case "blocked", "failed", "misconfigured_tooling":
+		return checklistStatusBlocked
+	case "stub", "configured_for_tests", "artifact_unavailable", "stale", "needs_review", "skipped":
+		return checklistStatusNeedsReview
+	default:
+		return checklistStatusUnknown
+	}
+}
+
+func deviceBindingDiagnosticSignal(page operationsPage) string {
+	if page.DeviceError != "" {
+		return page.DeviceError
+	}
+	if len(page.Devices) == 0 {
+		return "device bindings are missing"
+	}
+	return "device bindings are configured"
+}
+
+func telemetryStatusForSetup(page operationsPage) string {
+	if page.TelemetryError != "" {
+		return checklistStatusUnknown
+	}
+	if page.TelemetryUpdatedAt == nil {
+		return checklistStatusMissing
+	}
+	if page.StaleCount > 0 {
+		return checklistStatusNeedsReview
+	}
+	return checklistStatusOK
+}
+
+func telemetryFreshnessDiagnosticSignal(page operationsPage) string {
+	if page.TelemetryError != "" {
+		return page.TelemetryError
+	}
+	if page.TelemetryUpdatedAt == nil {
+		return "telemetry has not been observed yet"
+	}
+	if page.StaleCount > 0 {
+		return "latest telemetry includes stale rows"
+	}
+	return "latest telemetry is available"
+}
+
+func firstSafeAdminLink(link string) string {
+	links := safeAdminLinks([]string{link})
+	if len(links) == 0 {
+		return ""
+	}
+	return links[0]
+}
+
+func firstSafeDocsLink(link string) string {
+	links := safeDocsLinks([]string{link})
+	if len(links) == 0 {
+		return ""
+	}
+	return links[0]
 }
