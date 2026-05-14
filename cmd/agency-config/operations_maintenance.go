@@ -18,6 +18,7 @@ type operationsMaintenanceView struct {
 	UpgradeRollback operationsMaintenancePanel       `json:"upgrade_rollback"`
 	SupportReview   operationsMaintenancePanel       `json:"support_review"`
 	CadencePlan     operationsMaintenancePanel       `json:"cadence_plan"`
+	Infrastructure  operationsMaintenancePanel       `json:"infrastructure"`
 	Tasks           []operationsMaintenanceTask      `json:"tasks"`
 	SupportSummary  operationsMaintenanceSupport     `json:"support_summary"`
 	ClaimFlags      operationsMaintenanceClaimFlags  `json:"claim_flags"`
@@ -129,6 +130,7 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 		UpgradeRollback: buildOperationsMaintenanceUpgradeRollback(),
 		SupportReview:   buildOperationsMaintenanceSupportReview(),
 		CadencePlan:     buildOperationsMaintenanceCadencePlan(),
+		Infrastructure:  buildOperationsMaintenanceInfrastructureChecks(),
 		Tasks:           tasks,
 		SupportSummary: operationsMaintenanceSupport{
 			Status:     operationsStatusDiagnosticOnly,

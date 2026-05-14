@@ -196,6 +196,116 @@ func loadMaintenanceDiagnostic(source maintenanceSummarySource) operationsMainte
 	return row
 }
 
+func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel {
+	rows := []operationsMaintenancePanelRow{
+		maintenancePanelRow(
+			"database_connectivity",
+			"Database connectivity",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Keep database status marked missing until a technical helper runs private deployment diagnostics.",
+			"Run `make deployment-doctor` from an operator shell; values and raw migrator output stay outside the browser.",
+			"Database diagnostics do not prove production readiness or data-loss safety.",
+		),
+		maintenancePanelRow(
+			"migration_status",
+			"Migration status",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Do not treat missing migration status as safe for upgrade or rollback.",
+			"Use the deployment doctor or migrator status command from an operator shell before schema work.",
+			"Migration diagnostics do not prove backward compatibility by themselves.",
+		),
+		maintenancePanelRow(
+			"postgis_extension",
+			"PostGIS extension",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Keep spatial database capability marked missing until the private diagnostic summary records it.",
+			"Run the deployment doctor against the intended private database target when configured.",
+			"PostGIS status does not prove all geospatial queries are production safe.",
+		),
+		maintenancePanelRow(
+			"validator_tooling",
+			"Validator tooling",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Treat missing validator tooling as a reason to use off-host validation guidance.",
+			"Run `make deployment-doctor` or `./scripts/check-validators.sh` from an operator shell when a fresh tooling check is needed.",
+			"Validator tooling presence does not prove feeds are validator clean or compliant.",
+		),
+		maintenancePanelRow(
+			"backup_storage_access",
+			"Backup storage access",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Keep backup storage status marked missing until a private backup target is configured and checked.",
+			"Run deployment diagnostics from an operator shell; do not expose backup paths, dumps, or raw filesystem output in the browser.",
+			"Backup storage access does not prove a backup exists or restore will succeed.",
+		),
+	}
+	rootRef, ok := maintenanceSummaryRootRef(maintenanceDeploymentDoctorRoot, "deployment-doctor")
+	if !ok {
+		return maintenanceInfrastructurePanel(rows, operationsStatusBlocked, "configured deployment-doctor root failed private cache boundary checks")
+	}
+	path, runName, ok, blocked := latestMaintenanceSummaryPath(maintenanceDeploymentDoctorRoot, "deployment-doctor", "summary.json")
+	if blocked {
+		return maintenanceInfrastructurePanel(rows, operationsStatusBlocked, "deployment-doctor summary root failed private path safety checks")
+	}
+	if !ok {
+		return maintenanceInfrastructurePanel(rows, "", "")
+	}
+	source := rootRef + "/" + runName + "/summary.json"
+	data, err := readMaintenanceSummaryJSON(path)
+	if err != nil {
+		return maintenanceInfrastructurePanel(rows, operationsStatusBlocked, "deployment-doctor summary failed bounded JSON safety checks")
+	}
+	if !maintenanceFalseFlags(data, "external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed") {
+		return maintenanceInfrastructurePanel(rows, operationsStatusBlocked, "deployment-doctor summary contains a claim flag that must remain false")
+	}
+	categories := maintenanceMap(data["categories"])
+	updates := []struct {
+		id       string
+		category string
+	}{
+		{id: "database_connectivity", category: "database"},
+		{id: "migration_status", category: "migrations"},
+		{id: "postgis_extension", category: "postgis"},
+		{id: "validator_tooling", category: "validators"},
+		{id: "backup_storage_access", category: "backup_readiness"},
+	}
+	for i := range rows {
+		for _, update := range updates {
+			if rows[i].ID != update.id {
+				continue
+			}
+			categoryStatus := maintenanceString(categories[update.category], "unknown")
+			rows[i].Status = maintenanceStatusFromDiagnostic(categoryStatus)
+			rows[i].CurrentSignal = maintenanceBoundedText(fmt.Sprintf("%s=%s; source=%s", update.category, categoryStatus, source), "deployment-doctor category loaded")
+		}
+	}
+	return maintenanceInfrastructurePanel(rows, "", "")
+}
+
+func maintenanceInfrastructurePanel(rows []operationsMaintenancePanelRow, forcedStatus, forcedSignal string) operationsMaintenancePanel {
+	if forcedStatus != "" || forcedSignal != "" {
+		for i := range rows {
+			if forcedStatus != "" {
+				rows[i].Status = forcedStatus
+			}
+			if forcedSignal != "" {
+				rows[i].CurrentSignal = forcedSignal
+			}
+		}
+	}
+	return operationsMaintenancePanel{
+		Status:     maintenancePanelOverall(rows),
+		Boundary:   "Infrastructure checks are read-only deployment-doctor category summaries. The browser does not connect to databases, inspect private paths, run validators, run migrations, or execute disk checks.",
+		NextAction: "Run deployment diagnostics from an operator shell when fresh database, migration, PostGIS, validator, or backup-storage status is needed.",
+		Rows:       rows,
+	}
+}
+
 func latestMaintenanceSummaryPath(root, kind, fileName string) (string, string, bool, bool) {
 	abs, err := filepath.Abs(root)
 	if err != nil || maintenanceEvidenceLikePath(abs) {
