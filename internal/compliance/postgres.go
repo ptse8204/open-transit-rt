@@ -595,6 +595,57 @@ func (r *PostgresRepository) LatestValidationReport(ctx context.Context, agencyI
 	return &record, nil
 }
 
+func (r *PostgresRepository) RecentGTFSImports(ctx context.Context, agencyID string, limit int) ([]GTFSImportRecord, error) {
+	if limit <= 0 || limit > 25 {
+		limit = 10
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, agency_id, COALESCE(feed_version_id, ''), source_filename,
+		       source_sha256, source_byte_size, status, error_count, warning_count,
+		       info_count, COALESCE(actor_id, ''), started_at, completed_at
+		FROM gtfs_import
+		WHERE agency_id = $1
+		ORDER BY started_at DESC, id DESC
+		LIMIT $2
+	`, agencyID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query recent GTFS imports: %w", err)
+	}
+	defer rows.Close()
+	records := make([]GTFSImportRecord, 0, limit)
+	for rows.Next() {
+		var record GTFSImportRecord
+		var completed sql.NullTime
+		if err := rows.Scan(
+			&record.ID,
+			&record.AgencyID,
+			&record.FeedVersionID,
+			&record.SourceFilename,
+			&record.SourceSHA256,
+			&record.SourceByteSize,
+			&record.Status,
+			&record.ErrorCount,
+			&record.WarningCount,
+			&record.InfoCount,
+			&record.ActorID,
+			&record.StartedAt,
+			&completed,
+		); err != nil {
+			return nil, fmt.Errorf("scan recent GTFS import: %w", err)
+		}
+		record.StartedAt = record.StartedAt.UTC()
+		if completed.Valid {
+			t := completed.Time.UTC()
+			record.CompletedAt = &t
+		}
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate recent GTFS imports: %w", err)
+	}
+	return records, nil
+}
+
 type feedConfig struct {
 	PublicBaseURL          string
 	FeedBaseURL            string

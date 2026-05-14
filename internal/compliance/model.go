@@ -152,6 +152,22 @@ type ValidationReportRecord struct {
 	CreatedAt time.Time        `json:"created_at"`
 }
 
+type GTFSImportRecord struct {
+	ID             int64      `json:"id"`
+	AgencyID       string     `json:"agency_id"`
+	FeedVersionID  string     `json:"feed_version_id"`
+	SourceFilename string     `json:"source_filename"`
+	SourceSHA256   string     `json:"source_sha256"`
+	SourceByteSize int64      `json:"source_byte_size"`
+	Status         string     `json:"status"`
+	ErrorCount     int        `json:"error_count"`
+	WarningCount   int        `json:"warning_count"`
+	InfoCount      int        `json:"info_count"`
+	ActorID        string     `json:"actor_id"`
+	StartedAt      time.Time  `json:"started_at"`
+	CompletedAt    *time.Time `json:"completed_at"`
+}
+
 type TripUpdatesDiagnosticsSummary struct {
 	Recorded                      bool               `json:"recorded"`
 	SnapshotAt                    time.Time          `json:"snapshot_at,omitempty"`

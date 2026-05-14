@@ -71,6 +71,7 @@ type operationsPage struct {
 	GTFSImportError        string
 	GTFSQuality            compliance.GTFSQualityTriage
 	GTFSQualityGuidance    operationsGTFSQualityGuidanceView
+	GTFSWorkbench          operationsGTFSWorkbenchView
 	GTFSQualityNotice      string
 	GTFSQualityError       string
 	ValidationHealth       compliance.ValidationHealthSummary
@@ -337,6 +338,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
+	case "gtfs-workbench":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderGTFSWorkbench(w, r)
+	case "gtfs-workbench.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderGTFSWorkbenchJSON(w, r)
 	case "checklist":
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -448,6 +463,24 @@ func (h *handler) renderGTFSQuality(w http.ResponseWriter, r *http.Request) {
 	}
 	page := h.buildOperationsPage(r, principal, "gtfs-quality")
 	renderOperationsTemplate(w, "gtfs-quality", page)
+}
+
+func (h *handler) renderGTFSWorkbench(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "gtfs-workbench")
+	renderOperationsTemplate(w, "gtfs-workbench", page)
+}
+
+func (h *handler) renderGTFSWorkbenchJSON(w http.ResponseWriter, r *http.Request) {
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "gtfs-workbench")
+	writeJSON(w, http.StatusOK, page.GTFSWorkbench)
 }
 
 func (h *handler) renderValidationHealth(w http.ResponseWriter, r *http.Request) {
@@ -1004,6 +1037,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
 	page.GTFSQualityGuidance = buildOperationsGTFSQualityGuidance(page)
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
+	page.GTFSWorkbench = h.buildGTFSWorkbenchView(r, page)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedHealth = buildOperationsFeedHealth(page)
 	page.Maintenance = buildOperationsMaintenance(page)
@@ -2067,6 +2101,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>Private agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
 <tr><td>Setup wizard</td><td>{{len .SetupWizard.Stages}} staged setup rows</td><td>{{formatTime .SetupWizard.GeneratedAt}}</td><td><a href="/admin/operations/setup-wizard">open wizard</a> · <a href="/admin/operations/setup-wizard.json">export JSON</a></td></tr>
 <tr><td>Connector Hub</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
+<tr><td>GTFS Workbench</td><td>{{.GTFSWorkbench.ActiveFeedVersion.Status}} active schedule; {{.GTFSWorkbench.Import.Status}} import history</td><td>{{formatTime .GTFSWorkbench.GeneratedAt}}</td><td><a href="/admin/operations/gtfs-workbench">review schedule workbench</a> · <a href="/admin/operations/gtfs-workbench.json">export JSON</a></td></tr>
 <tr><td>Browser GTFS import</td><td>admin-only ZIP upload or URL import</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/gtfs-import">import GTFS with validation feedback</a></td></tr>
 <tr><td>Feed health dashboard</td><td>{{len .FeedHealth.Rows}} plain-language rows</td><td>{{formatTime .FeedHealth.GeneratedAt}}</td><td><a href="/admin/operations/feed-health">open feed health</a> · <a href="/admin/operations/feed-health.json">export JSON</a></td></tr>
 <tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
@@ -2318,6 +2353,96 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutEnd" .}}
 {{end}}
 
+{{define "gtfs-workbench"}}
+{{template "layoutStart" .}}
+<h2>GTFS Workbench</h2>
+<p class="warning">{{.GTFSWorkbench.Boundary}}</p>
+<p><a href="/admin/operations/gtfs-workbench.json">Export private GTFS Workbench JSON</a> · <a href="/admin/operations/gtfs-import">Import Schedule ZIP</a> · <a href="/admin/gtfs-studio">Open Draft Schedule Editor</a> · <a href="/admin/operations/gtfs-quality">Open Schedule Quality</a> · <a href="/admin/operations/validation-health">Open Schedule Validation</a></p>
+<div class="card-grid" aria-label="GTFS Workbench summary cards">
+<section class="card">
+<h3>Current Schedule</h3>
+<p><span class="status-chip status-{{statusClass .GTFSWorkbench.ActiveFeedVersion.Status}}">{{.GTFSWorkbench.ActiveFeedVersion.Status}}</span></p>
+<p><strong>Active feed version:</strong> {{if .GTFSWorkbench.ActiveFeedVersion.FeedVersionID}}<code>{{.GTFSWorkbench.ActiveFeedVersion.FeedVersionID}}</code>{{else}}not recorded{{end}}</p>
+<p><strong>Revision time:</strong> {{formatTimePtr .GTFSWorkbench.ActiveFeedVersion.RevisionTimestamp}}</p>
+<p><strong>Public schedule URL:</strong> {{if .GTFSWorkbench.ActiveFeedVersion.CanonicalPublicURL}}<code>{{.GTFSWorkbench.ActiveFeedVersion.CanonicalPublicURL}}</code>{{else}}not configured{{end}}</p>
+<p><strong>Current signal:</strong> {{.GTFSWorkbench.ActiveFeedVersion.CurrentSignal}}</p>
+<p><strong>Next action:</strong> {{.GTFSWorkbench.ActiveFeedVersion.NextAction}}</p>
+<p class="muted">{{.GTFSWorkbench.ActiveFeedVersion.ClaimBoundary}}</p>
+</section>
+<section class="card">
+<h3>Latest Import</h3>
+<p><span class="status-chip status-{{statusClass .GTFSWorkbench.Import.Status}}">{{.GTFSWorkbench.Import.Status}}</span></p>
+{{with .GTFSWorkbench.Import.Latest}}
+<p><strong>Source file:</strong> <code>{{.SourceName}}</code></p>
+<p><strong>Source checksum:</strong> <code>{{.SourceSHA256}}</code></p>
+<p><strong>Source size:</strong> {{.SourceByteText}}</p>
+<p><strong>Feed version:</strong> {{if .FeedVersionID}}<code>{{.FeedVersionID}}</code>{{else}}not linked{{end}}</p>
+<p><strong>Import signal:</strong> {{.Signal}}</p>
+{{else}}
+<p>No GTFS import record is available.</p>
+{{end}}
+<p><strong>Next action:</strong> {{.GTFSWorkbench.Import.NextAction}}</p>
+<p class="muted">{{.GTFSWorkbench.Import.ClaimBoundary}}</p>
+</section>
+<section class="card">
+<h3>Quality And Validation</h3>
+<p><strong>Schedule Quality:</strong> <span class="status-chip status-{{statusClass .GTFSWorkbench.Quality.Status}}">{{.GTFSWorkbench.Quality.Status}}</span></p>
+<p>Canonical MobilityData static validator: {{.GTFSWorkbench.Quality.CanonicalStatus}}. Internal importer: {{.GTFSWorkbench.Quality.InternalImporterStatus}}.</p>
+<p><strong>Schedule Validation:</strong> <span class="status-chip status-{{statusClass .GTFSWorkbench.ValidationHealth.Status}}">{{.GTFSWorkbench.ValidationHealth.Status}}</span></p>
+<p>{{.GTFSWorkbench.ValidationHealth.NextAction}}</p>
+<p class="muted">Internal import checks and MobilityData static validator diagnostics remain separate signals.</p>
+</section>
+<section class="card">
+<h3>Feed Output</h3>
+<p><span class="status-chip status-{{statusClass .GTFSWorkbench.FeedOutput.Status}}">{{.GTFSWorkbench.FeedOutput.Status}}</span></p>
+<p><strong>Schedule ZIP URL:</strong> {{if .GTFSWorkbench.FeedOutput.ScheduleURL}}<code>{{.GTFSWorkbench.FeedOutput.ScheduleURL}}</code>{{else}}not configured{{end}}</p>
+<p><strong>feeds.json URL:</strong> {{if .GTFSWorkbench.FeedOutput.FeedsJSONURL}}<code>{{.GTFSWorkbench.FeedOutput.FeedsJSONURL}}</code>{{else}}not configured{{end}}</p>
+<p><strong>Next action:</strong> {{.GTFSWorkbench.FeedOutput.NextAction}}</p>
+<p class="muted">{{.GTFSWorkbench.FeedOutput.ClaimBoundary}}</p>
+</section>
+</div>
+<h3>Next Operator Actions</h3>
+<table><thead><tr><th>Step</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Console</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Actions}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.AdminLink}}</a>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+<h3>Import Change Signals</h3>
+<table><thead><tr><th>Review item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Import.Diff}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{if .GTFSWorkbench.Import.History}}
+<h3>Recent Import History</h3>
+<table><thead><tr><th>ID</th><th>Status</th><th>Feed version</th><th>Source</th><th>Checksum</th><th>Size</th><th>Counts</th><th>Started</th><th>Completed</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Import.History}}<tr><td>{{.ID}}</td><td>{{.Status}}</td><td>{{if .FeedVersionID}}<code>{{.FeedVersionID}}</code>{{else}}not linked{{end}}</td><td><code>{{.SourceName}}</code></td><td><code>{{.SourceSHA256Short}}</code></td><td>{{.SourceByteText}}</td><td>{{.ErrorCount}} errors, {{.WarningCount}} warnings, {{.InfoCount}} info</td><td>{{formatTime .StartedAt}}</td><td>{{formatTimePtr .CompletedAt}}</td></tr>{{end}}
+</tbody></table>
+{{else}}<p class="muted">Recent import history is not available from this runtime.</p>{{end}}
+<h3>Preview Tables</h3>
+<table><tbody>
+<tr><th>Status</th><td>{{.GTFSWorkbench.Preview.Status}}</td></tr>
+<tr><th>Current signal</th><td>{{.GTFSWorkbench.Preview.CurrentSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.GTFSWorkbench.Preview.NextAction}}</td></tr>
+<tr><th>Boundary</th><td>{{.GTFSWorkbench.Preview.ClaimBoundary}}</td></tr>
+</tbody></table>
+<h3>Claim Flags</h3>
+<table><tbody>
+<tr><th><code>automatic_gtfs_edit_enabled</code></th><td>{{.GTFSWorkbench.ClaimFlags.AutomaticGTFSEditEnabled}}</td></tr>
+<tr><th><code>schedule_published_from_workbench</code></th><td>{{.GTFSWorkbench.ClaimFlags.SchedulePublishedFromWorkbench}}</td></tr>
+<tr><th><code>validator_run_from_workbench</code></th><td>{{.GTFSWorkbench.ClaimFlags.ValidatorRunFromWorkbench}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.GTFSWorkbench.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.GTFSWorkbench.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>agency_approval_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.AgencyApprovalClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>final_root_readiness_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.FinalRootReadinessClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.GTFSWorkbench.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+</tbody></table>
+<p class="muted">No POST action exists for this Workbench page. It does not import, publish, run validators, edit drafts, create evidence, contact external systems, or change consumer statuses.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
 {{define "gtfs-import"}}
 {{template "layoutStart" .}}
 <h2>Browser GTFS Import</h2>
@@ -2337,7 +2462,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </div>
 <h3>Source Review Before Import</h3>
 <table><tbody>
-<tr><th>Accepted source</th><td>Use a GTFS ZIP upload from the operator workstation or a safe HTTP(S) URL. The browser form does not accept local/private URLs unless the runtime explicitly enables local testing overrides.</td></tr>
+<tr><th>Allowed source</th><td>Use a GTFS ZIP upload from the operator workstation or a safe HTTP(S) URL. The browser form does not allow local/private URLs unless the runtime explicitly enables local testing overrides.</td></tr>
 <tr><th>What changes</th><td>A successful published import updates the active schedule feed version through the existing importer. This is not a preview-only action.</td></tr>
 <tr><th>Review before submit</th><td>Confirm the source file, expected agency identity, service period, route/stops/trips coverage, license/contact metadata, and rollback plan before an admin starts the import.</td></tr>
 <tr><th>Safety controls</th><td>Import requires an admin role, CSRF protection, form size limits, temporary runtime storage, server-owned import paths, and bounded result rendering.</td></tr>
@@ -2415,7 +2540,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Typed edits</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> when an agency needs draft authoring instead of ZIP import.</td></tr>
 <tr><th>CLI fallback</th><td>Keep using the documented CLI import path for large files, scripted imports, or runtimes where browser import is unavailable.</td></tr>
 </tbody></table>
-<p class="muted">Browser import accepts a ZIP upload or a safe HTTP(S) URL, runs the existing importer, and stores only normal import and validation records. Private/local URLs are blocked unless the runtime explicitly enables local testing overrides. After import, review GTFS quality, validator health, and all five configured feed paths before treating the dataset as ready for wider operator review.</p>
+<p class="muted">Browser import accepts a ZIP upload or a safe HTTP(S) URL, runs the existing importer, and stores only normal import and validation records. Private/local URLs are blocked unless the runtime explicitly enables local testing overrides. After import, review GTFS quality, validator health, and all five configured feed paths before moving the dataset to wider operator review.</p>
 {{template "layoutEnd" .}}
 {{end}}
 

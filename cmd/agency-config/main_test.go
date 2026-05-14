@@ -1453,6 +1453,152 @@ func TestGTFSImportRouteAuthMatrixAndBoundaries(t *testing.T) {
 	}
 }
 
+func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
+	now := time.Date(2026, 5, 13, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{
+		discovery: compliance.FeedDiscovery{
+			AgencyID:      "demo-agency",
+			AgencyName:    "Demo Agency",
+			GeneratedAt:   now,
+			PublicBaseURL: "https://agency.example",
+			Feeds: []compliance.FeedMetadata{{
+				FeedType:             "schedule",
+				CanonicalPublicURL:   "https://agency.example/gtfs.zip",
+				ActivationStatus:     "active",
+				ActiveFeedVersionID:  "feed-v2",
+				RevisionTimestamp:    &now,
+				LastValidationStatus: "warning",
+				LastValidationAt:     &now,
+			}},
+		},
+		gtfsImports: []compliance.GTFSImportRecord{
+			{
+				ID:             2,
+				AgencyID:       "demo-agency",
+				FeedVersionID:  "feed-v2",
+				SourceFilename: "/Users/private/operator/current-feed.zip",
+				SourceSHA256:   "abcdef0123456789",
+				SourceByteSize: 2048,
+				Status:         "published",
+				WarningCount:   1,
+				StartedAt:      now,
+				CompletedAt:    &now,
+			},
+			{
+				ID:             1,
+				AgencyID:       "demo-agency",
+				FeedVersionID:  "feed-v1",
+				SourceFilename: "previous-feed.zip",
+				SourceSHA256:   "1111111111112222",
+				SourceByteSize: 1024,
+				Status:         "published",
+				StartedAt:      now.Add(-time.Hour),
+				CompletedAt:    &now,
+			},
+		},
+		validationRecords: []compliance.ValidationReportRecord{{
+			ID:        1,
+			CreatedAt: now,
+			Result: compliance.ValidationResult{
+				AgencyID:      "demo-agency",
+				FeedType:      "schedule",
+				FeedVersionID: "feed-v2",
+				ValidatorName: compliance.CanonicalStaticValidatorName,
+				Status:        "warning",
+				WarningCount:  1,
+				Report:        map[string]any{"notices": []any{map[string]any{"code": "stop_time_missing_time", "severity": "WARNING", "sample": "route review only"}}},
+			},
+		}},
+	}
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{"/admin/operations/gtfs-workbench", "/admin/operations/gtfs-workbench.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+			t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-workbench", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "No POST action exists"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("workbench HTML missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"/Users/private", "consumer accepted", "agency approved", "production ready", "validator-clean", "CAL-ITP/Caltrans compliant"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("workbench HTML leaks or overclaims %q: %s", forbidden, body)
+		}
+	}
+	if strings.Contains(body, "<form") {
+		t.Fatalf("read-only workbench rendered a mutation form: %s", body)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-workbench.json", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	var decoded map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &decoded); err != nil {
+		t.Fatalf("decode workbench JSON: %v\n%s", err, rr.Body.String())
+	}
+	for _, key := range []string{"generated_at", "agency_id", "boundary", "active_feed_version", "import", "quality", "validation_health", "preview", "feed_output", "actions", "claim_flags"} {
+		if _, ok := decoded[key]; !ok {
+			t.Fatalf("workbench JSON missing %q: %#v", key, decoded)
+		}
+	}
+	flags, ok := decoded["claim_flags"].(map[string]any)
+	if !ok {
+		t.Fatalf("claim_flags = %#v, want object", decoded["claim_flags"])
+	}
+	for key, value := range flags {
+		if value == true {
+			t.Fatalf("claim flag %s unexpectedly true in %#v", key, flags)
+		}
+	}
+	jsonBody := rr.Body.String()
+	for _, forbidden := range []string{"/Users/private", "consumer_statuses_changed\":true", "compliance_claimed\":true", "production_readiness_claimed\":true"} {
+		if strings.Contains(jsonBody, forbidden) {
+			t.Fatalf("workbench JSON leaks or overclaims %q: %s", forbidden, jsonBody)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/gtfs-workbench", strings.NewReader("action=publish&gtfs_path=/tmp/private.zip"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("POST status = %d, want 405: %s", rr.Code, rr.Body.String())
+	}
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-workbench?agency_id=other-agency", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict status = %d, want 403", rr.Code)
+	}
+	unauth := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, authRejectAll{})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/gtfs-workbench", nil)
+	rr = httptest.NewRecorder()
+	unauth.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("unauth status = %d, want 401", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/gtfs-workbench", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public route status = %d, want 404", rr.Code)
+	}
+}
+
 func TestGTFSImportUploadUsesTempFileAndImporter(t *testing.T) {
 	importer := &fakeGTFSImportRunner{result: gtfs.ImportResult{
 		ImportID:      42,
@@ -2292,6 +2438,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		"/admin/operations/setup-wizard",
 		"/admin/operations/connectors",
 		"/admin/operations/connectors/tests",
+		"/admin/operations/gtfs-workbench",
 		"/admin/operations/gtfs-import",
 		"/admin/operations/feed-health",
 		"/admin/operations/readiness",
@@ -2339,6 +2486,7 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 		title string
 	}{
 		{path: "/admin/operations", title: "Agency Operations Cockpit / Start Here"},
+		{path: "/admin/operations/gtfs-workbench", title: "GTFS Workbench"},
 		{path: "/admin/operations/gtfs-import", title: "Browser GTFS Import"},
 		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
 		{path: "/admin/operations/devices", title: "Device Credentials"},
@@ -2376,6 +2524,7 @@ func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *test
 		path string
 		href string
 	}{
+		{path: "/admin/operations/gtfs-workbench", href: "/admin/operations/gtfs-workbench"},
 		{path: "/admin/operations/feed-health", href: "/admin/operations/feed-health"},
 		{path: "/admin/operations/gtfs-quality", href: "/admin/operations/gtfs-quality"},
 		{path: "/admin/operations/telemetry", href: "/admin/operations/telemetry"},
@@ -6173,6 +6322,8 @@ type fakePublicationStore struct {
 	listConsumersAgencyID   string
 	tripDiagnostics         compliance.TripUpdatesDiagnosticsSummary
 	tripDiagnosticsErr      error
+	gtfsImports             []compliance.GTFSImportRecord
+	gtfsImportsErr          error
 	reliabilityHealth       []compliance.ReliabilityFeedHealthRecord
 	reliabilityIncidents    compliance.ReliabilityIncidentRollup
 	reliabilityHealthErr    error
@@ -6282,6 +6433,28 @@ func (f *fakePublicationStore) LatestValidationReport(_ context.Context, agencyI
 		return nil, errors.New("not found")
 	}
 	return latest, nil
+}
+
+func (f *fakePublicationStore) RecentGTFSImports(_ context.Context, agencyID string, limit int) ([]compliance.GTFSImportRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.gtfsImportsErr != nil {
+		return nil, f.gtfsImportsErr
+	}
+	if limit <= 0 || limit > len(f.gtfsImports) {
+		limit = len(f.gtfsImports)
+	}
+	out := make([]compliance.GTFSImportRecord, 0, limit)
+	for _, record := range f.gtfsImports {
+		if record.AgencyID != "" && record.AgencyID != agencyID {
+			continue
+		}
+		out = append(out, record)
+		if len(out) >= limit {
+			break
+		}
+	}
+	return out, nil
 }
 
 func (f *fakePublicationStore) LatestReliabilityFeedHealth(context.Context, string, int) ([]compliance.ReliabilityFeedHealthRecord, error) {
@@ -6453,6 +6626,14 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	}))
 	mux.Handle("/admin/operations/checklist", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/checklist.json", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/gtfs-workbench", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/gtfs-workbench.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
 	mux.Handle("/admin/operations/gtfs-import", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method == http.MethodPost {

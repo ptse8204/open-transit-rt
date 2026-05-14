@@ -70,7 +70,7 @@ Use the existing path that matches how the schedule is being prepared.
 | --- | --- | --- |
 | Import GTFS ZIP | Use `cmd/gtfs-import` for a prepared ZIP. GTFS Studio supports typed draft authoring and publishing, not ZIP upload replacement. | Confirm source, permission, metadata, and redaction review before import. |
 | Review validation | Read the import validation result and any stored validation report. Use the Operations Console and [GTFS Validation Triage](gtfs-validation-triage.md) for plain-language troubleshooting. | Resolve blocking errors before publication. Review warnings before deciding whether to proceed. |
-| Publish active feed | The GTFS ZIP import flow activates a valid imported feed. GTFS Studio publishes typed drafts through the existing Studio publish flow. | Confirm the correct feed version is active and old data was not partially activated after a failure. |
+| Publish active feed | The GTFS ZIP import flow activates an importer-accepted feed. GTFS Studio publishes typed drafts through the existing Studio publish flow. | Confirm the correct feed version is active and old data was not partially activated after a failure. |
 | Verify public feed | Fetch `/public/feeds.json` and `/public/gtfs/schedule.zip`; inspect headers and unzip the schedule ZIP. | Confirm URLs, license/contact fields, and active schedule contents match the approved feed. |
 | Review readiness | Use `/admin/operations` to review feed URLs, validation state, telemetry freshness, setup checklist, and evidence links. | Treat readiness as an operator review surface, not consumer acceptance or compliance proof. |
 
@@ -100,7 +100,7 @@ approved public agency setup.
 
 ## Publish Review Checklist
 
-Complete this before treating a real GTFS import as ready for public feed review.
+Complete this before using a real GTFS import for public feed review.
 
 | Check | Required result |
 | --- | --- |

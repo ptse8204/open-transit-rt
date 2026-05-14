@@ -27,12 +27,13 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 		{
 			Label: "Schedule",
 			Items: []operationsNavItem{
-				{Label: "GTFS Import", Href: "/admin/operations/gtfs-import", Section: "gtfs-import"},
-				{Label: "GTFS Studio", Href: "/admin/gtfs-studio", Section: "gtfs-studio", ExternalAdminSurface: true},
-				{Label: "Feeds", Href: "/admin/operations/feeds", Section: "feeds"},
-				{Label: "Feed Health", Href: "/admin/operations/feed-health", Section: "feed-health"},
-				{Label: "GTFS Quality", Href: "/admin/operations/gtfs-quality", Section: "gtfs-quality"},
-				{Label: "Validator Health", Href: "/admin/operations/validation-health", Section: "validation-health"},
+				{Label: "GTFS Workbench", Href: "/admin/operations/gtfs-workbench", Section: "gtfs-workbench"},
+				{Label: "Import Schedule ZIP", Href: "/admin/operations/gtfs-import", Section: "gtfs-import"},
+				{Label: "Draft Schedule Editor", Href: "/admin/gtfs-studio", Section: "gtfs-studio", ExternalAdminSurface: true},
+				{Label: "Feed Links & Health", Href: "/admin/operations/feeds", Section: "feeds"},
+				{Label: "Schedule Health", Href: "/admin/operations/feed-health", Section: "feed-health"},
+				{Label: "Schedule Quality", Href: "/admin/operations/gtfs-quality", Section: "gtfs-quality"},
+				{Label: "Schedule Validation", Href: "/admin/operations/validation-health", Section: "validation-health"},
 			},
 		},
 		{
@@ -103,6 +104,8 @@ func operationsPageTitle(section string) string {
 		return "Advanced Setup Details"
 	case "gtfs-import":
 		return "Browser GTFS Import"
+	case "gtfs-workbench":
+		return "GTFS Workbench"
 	case "gtfs-quality":
 		return "GTFS Quality Triage"
 	case "feeds":
