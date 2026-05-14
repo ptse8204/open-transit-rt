@@ -6442,13 +6442,37 @@ func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Google Maps", "not_started", "Mobility Database", "transit.land", "docs/evidence tracker"} {
+	for _, want := range []string{
+		"Prepared-Only Consumer Packet Explanation",
+		"Private prepared-only consumer packet review",
+		"7 of 7 docs tracker targets are visible as prepared-only records.",
+		"Target Boundary Review",
+		"Future Authorization Gates",
+		"Workflow Separation",
+		"Google Maps",
+		"Apple Maps",
+		"Transit App",
+		"Bing Maps",
+		"Moovit",
+		"Mobility Database",
+		"transit.land",
+		"not_started",
+		"docs/evidence tracker",
+		"Requires separate written authorization",
+		"consumer_statuses_changed",
+		"consumer_submission_claimed",
+		"external_contact_performed",
+		"every docs/evidence consumer target at prepared",
+		"Database workflow notes are shown separately",
+	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
 	}
-	if strings.Contains(strings.ToLower(body), "accepted by") {
-		t.Fatalf("body invents acceptance claim: %s", body)
+	for _, forbidden := range []string{"accepted by", "submission complete", "ingestion confirmed", "listed by consumer", "displayed by consumer", "production ready", "hosted SaaS", "vendor compatible", "certified hardware", "database_url", "Bearer "} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("body invents forbidden claim %q: %s", forbidden, body)
+		}
 	}
 }
 

@@ -51,6 +51,7 @@ type operationsPage struct {
 	ScorecardError         string
 	Consumers              []consumerStatusView
 	RuntimeConsumers       []consumerStatusView
+	ConsumerPreparation    operationsConsumerPreparationView
 	ReadinessItems         []readinessItemView
 	ReadinessV2            operationsReadinessV2View
 	Checklist              operatorChecklistView
@@ -1116,6 +1117,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		page.RuntimeConsumers = runtimeConsumerStatuses(consumers)
 		page.ConsumersUpdatedAt = latestConsumerTime(consumers)
 	}
+	page.ConsumerPreparation = buildOperationsConsumerPreparation(page)
 
 	page.Telemetry, page.TelemetryUpdatedAt, page.StaleCount, page.TelemetryError = h.telemetryViews(r, principal.AgencyID, now)
 	page.TripUpdatesQuality = h.tripUpdatesQualityView(r, principal.AgencyID)
@@ -3876,9 +3878,46 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h2>Prepared Consumer Packet Tracker</h2>
 <p class="muted">The Phase 20 docs/evidence tracker is the source for prepared packet state. These statuses are not submission, review, acceptance, or ingestion evidence.</p>
 {{if .ConsumerError}}<p class="warning">{{.ConsumerError}}. The docs/evidence tracker guidance remains visible below.</p>{{end}}
+<section class="panel warning-panel" aria-labelledby="consumer-prepared-only-heading">
+<h3 id="consumer-prepared-only-heading">Prepared-Only Consumer Packet Explanation</h3>
+<p>{{.ConsumerPreparation.Boundary}}</p>
+<p><strong>Status:</strong> {{.ConsumerPreparation.Status}} · <strong>Summary:</strong> {{.ConsumerPreparation.Summary}} · <strong>Runtime records:</strong> {{.ConsumerPreparation.RuntimeRecordCount}}</p>
+<p><strong>Operator rule:</strong> {{.ConsumerPreparation.OperatorRule}}</p>
+</section>
 <table><thead><tr><th>Target</th><th>Docs tracker status</th><th>Source</th><th>Current record</th><th>Packet path</th><th>Notes</th></tr></thead><tbody>
 {{range .Consumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Notes}}</td></tr>{{end}}
 </tbody></table>
+<h3>Target Boundary Review</h3>
+<table><thead><tr><th>Target</th><th>Status</th><th>Current record</th><th>Packet path</th><th>Meaning</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ConsumerPreparation.Targets}}<tr id="consumer-prepared-{{.ID}}"><td>{{.Name}}</td><td>{{.Status}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Future Authorization Gates</h3>
+<table><thead><tr><th>Gate</th><th>Status</th><th>Required before action</th><th>Blocked in this track</th><th>Does not prove now</th></tr></thead><tbody>
+{{range .ConsumerPreparation.FutureGates}}<tr id="consumer-gate-{{.ID}}"><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.RequiredAuthorization}}</td><td>{{.BlockedAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Workflow Separation</h3>
+<table><thead><tr><th>Workflow</th><th>Boundary</th><th>Operator handling</th></tr></thead><tbody>
+{{range .ConsumerPreparation.Separations}}<tr id="consumer-separation-{{.ID}}"><td>{{.Label}}</td><td>{{.Boundary}}</td><td>{{.OperatorHandling}}</td></tr>{{end}}
+</tbody></table>
+<details>
+<summary>Claim flags for this consumer packet review</summary>
+<table><tbody>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>consumer_submission_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerSubmissionClaimed}}</td></tr>
+<tr><th><code>consumer_review_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerReviewClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th><code>consumer_ingestion_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerIngestionClaimed}}</td></tr>
+<tr><th><code>consumer_listing_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerListingClaimed}}</td></tr>
+<tr><th><code>consumer_display_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerDisplayClaimed}}</td></tr>
+<tr><th><code>external_contact_performed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ExternalContactPerformed}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.ConsumerPreparation.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>final_root_evidence_created</code></th><td>{{.ConsumerPreparation.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>hosted_saas_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.HostedSaaSClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+</tbody></table>
+</details>
 <h3>Runtime Deployment Workflow Records</h3>
 {{if .RuntimeConsumers}}<table><thead><tr><th>Target</th><th>Runtime status</th><th>Source</th><th>Updated</th><th>Notes</th></tr></thead><tbody>
 {{range .RuntimeConsumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{formatTimePtr .UpdatedAt}}</td><td>{{.Notes}}</td></tr>{{end}}
