@@ -1496,6 +1496,48 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 				CompletedAt:    &now,
 			},
 		},
+		gtfsPreview: compliance.GTFSSchedulePreview{
+			AgencyID:      "demo-agency",
+			FeedVersionID: "feed-v2",
+			RowLimit:      10,
+			Counts: compliance.GTFSSchedulePreviewCounts{
+				Routes:        12,
+				Stops:         2,
+				Trips:         1,
+				StopTimes:     4,
+				Calendar:      1,
+				CalendarDates: 1,
+				ShapePoints:   2,
+				Frequencies:   1,
+			},
+			Agency: compliance.GTFSScheduleAgencyPreview{AgencyID: "demo-agency", Name: "Demo Agency", Timezone: "America/Los_Angeles"},
+			Routes: []compliance.GTFSScheduleRoutePreview{
+				{ID: "route-01", ShortName: "1", LongName: "Main / <script>", RouteType: "3"},
+				{ID: "route-02", ShortName: "2", LongName: "Crosstown", RouteType: "3"},
+				{ID: "route-03", ShortName: "3", LongName: "Hill", RouteType: "3"},
+				{ID: "route-04", ShortName: "4", LongName: "Lake", RouteType: "3"},
+				{ID: "route-05", ShortName: "5", LongName: "Park", RouteType: "3"},
+				{ID: "route-06", ShortName: "6", LongName: "Airport", RouteType: "3"},
+				{ID: "route-07", ShortName: "7", LongName: "Depot", RouteType: "3"},
+				{ID: "route-08", ShortName: "8", LongName: "School", RouteType: "3"},
+				{ID: "route-09", ShortName: "9", LongName: "Clinic", RouteType: "3"},
+				{ID: "route-10", ShortName: "10", LongName: "Loop", RouteType: "3"},
+				{ID: "route-11", ShortName: "11", LongName: "Overflow", RouteType: "3"},
+			},
+			Stops: []compliance.GTFSScheduleStopPreview{
+				{ID: "stop-01", Name: "Main & 1st", Lat: 34.1, Lon: -118.1},
+				{ID: "stop-02", Name: "Main & 2nd", Lat: 34.2, Lon: -118.2},
+			},
+			Trips: []compliance.GTFSScheduleTripPreview{
+				{ID: "trip-01", RouteID: "route-01", ServiceID: "weekday", BlockID: "block-1", ShapeID: "shape-1", DirectionID: "0"},
+			},
+			Calendar: []compliance.GTFSScheduleCalendarPreview{
+				{ServiceID: "weekday", Days: "Mon, Tue, Wed, Thu, Fri", StartDate: "20260501", EndDate: "20261231"},
+			},
+			Frequencies: []compliance.GTFSScheduleFrequencyPreview{
+				{TripID: "trip-01", StartTime: "06:00:00", EndTime: "09:00:00", HeadwaySecs: 900, ExactTimes: 0},
+			},
+		},
 		validationRecords: []compliance.ValidationReportRecord{{
 			ID:        1,
 			CreatedAt: now,
@@ -1529,12 +1571,12 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "No POST action exists"} {
+	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
 	}
-	for _, forbidden := range []string{"/Users/private", "consumer accepted", "agency approved", "production ready", "validator-clean", "CAL-ITP/Caltrans compliant"} {
+	for _, forbidden := range []string{"/Users/private", "<script>", "route-11", "consumer accepted", "agency approved", "production ready", "validator-clean", "CAL-ITP/Caltrans compliant"} {
 		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
 			t.Fatalf("workbench HTML leaks or overclaims %q: %s", forbidden, body)
 		}
@@ -1564,8 +1606,20 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 			t.Fatalf("claim flag %s unexpectedly true in %#v", key, flags)
 		}
 	}
+	preview, ok := decoded["preview"].(map[string]any)
+	if !ok {
+		t.Fatalf("preview = %#v, want object", decoded["preview"])
+	}
+	counts, ok := preview["counts"].(map[string]any)
+	if !ok || counts["routes"] != float64(12) {
+		t.Fatalf("preview counts = %#v, want 12 routes", preview["counts"])
+	}
+	routes, ok := preview["routes"].([]any)
+	if !ok || len(routes) != 10 {
+		t.Fatalf("preview routes = %#v, want capped 10 rows", preview["routes"])
+	}
 	jsonBody := rr.Body.String()
-	for _, forbidden := range []string{"/Users/private", "consumer_statuses_changed\":true", "compliance_claimed\":true", "production_readiness_claimed\":true"} {
+	for _, forbidden := range []string{"/Users/private", "route-11", "consumer_statuses_changed\":true", "compliance_claimed\":true", "production_readiness_claimed\":true"} {
 		if strings.Contains(jsonBody, forbidden) {
 			t.Fatalf("workbench JSON leaks or overclaims %q: %s", forbidden, jsonBody)
 		}
@@ -6324,6 +6378,8 @@ type fakePublicationStore struct {
 	tripDiagnosticsErr      error
 	gtfsImports             []compliance.GTFSImportRecord
 	gtfsImportsErr          error
+	gtfsPreview             compliance.GTFSSchedulePreview
+	gtfsPreviewErr          error
 	reliabilityHealth       []compliance.ReliabilityFeedHealthRecord
 	reliabilityIncidents    compliance.ReliabilityIncidentRollup
 	reliabilityHealthErr    error
@@ -6455,6 +6511,40 @@ func (f *fakePublicationStore) RecentGTFSImports(_ context.Context, agencyID str
 		}
 	}
 	return out, nil
+}
+
+func (f *fakePublicationStore) GTFSSchedulePreview(_ context.Context, agencyID string, feedVersionID string, limit int) (compliance.GTFSSchedulePreview, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.gtfsPreviewErr != nil {
+		return compliance.GTFSSchedulePreview{}, f.gtfsPreviewErr
+	}
+	preview := f.gtfsPreview
+	if preview.AgencyID == "" {
+		preview.AgencyID = agencyID
+	}
+	if preview.FeedVersionID == "" {
+		preview.FeedVersionID = feedVersionID
+	}
+	if preview.RowLimit == 0 {
+		preview.RowLimit = limit
+	}
+	if len(preview.Routes) > limit {
+		preview.Routes = append([]compliance.GTFSScheduleRoutePreview(nil), preview.Routes[:limit]...)
+	}
+	if len(preview.Stops) > limit {
+		preview.Stops = append([]compliance.GTFSScheduleStopPreview(nil), preview.Stops[:limit]...)
+	}
+	if len(preview.Trips) > limit {
+		preview.Trips = append([]compliance.GTFSScheduleTripPreview(nil), preview.Trips[:limit]...)
+	}
+	if len(preview.Calendar) > limit {
+		preview.Calendar = append([]compliance.GTFSScheduleCalendarPreview(nil), preview.Calendar[:limit]...)
+	}
+	if len(preview.Frequencies) > limit {
+		preview.Frequencies = append([]compliance.GTFSScheduleFrequencyPreview(nil), preview.Frequencies[:limit]...)
+	}
+	return preview, nil
 }
 
 func (f *fakePublicationStore) LatestReliabilityFeedHealth(context.Context, string, int) ([]compliance.ReliabilityFeedHealthRecord, error) {

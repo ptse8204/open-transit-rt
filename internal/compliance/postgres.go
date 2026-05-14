@@ -646,6 +646,226 @@ func (r *PostgresRepository) RecentGTFSImports(ctx context.Context, agencyID str
 	return records, nil
 }
 
+func (r *PostgresRepository) GTFSSchedulePreview(ctx context.Context, agencyID string, feedVersionID string, limit int) (GTFSSchedulePreview, error) {
+	if limit <= 0 || limit > 25 {
+		limit = 10
+	}
+	preview := GTFSSchedulePreview{
+		AgencyID:      agencyID,
+		FeedVersionID: feedVersionID,
+		RowLimit:      limit,
+	}
+	var timezone sql.NullString
+	if err := r.pool.QueryRow(ctx, `
+		SELECT id, name, timezone
+		FROM agency
+		WHERE id = $1
+	`, agencyID).Scan(&preview.Agency.AgencyID, &preview.Agency.Name, &timezone); err != nil {
+		return GTFSSchedulePreview{}, fmt.Errorf("query GTFS preview agency: %w", err)
+	}
+	preview.Agency.Timezone = timezone.String
+
+	countQueries := []struct {
+		target *int
+		query  string
+	}{
+		{&preview.Counts.Routes, `SELECT COUNT(*)::int FROM gtfs_route WHERE agency_id = $1 AND feed_version_id = $2`},
+		{&preview.Counts.Stops, `SELECT COUNT(*)::int FROM gtfs_stop WHERE agency_id = $1 AND feed_version_id = $2`},
+		{&preview.Counts.Trips, `SELECT COUNT(*)::int FROM gtfs_trip WHERE agency_id = $1 AND feed_version_id = $2`},
+		{&preview.Counts.StopTimes, `SELECT COUNT(*)::int FROM gtfs_stop_time WHERE agency_id = $1 AND feed_version_id = $2`},
+		{&preview.Counts.Calendar, `SELECT COUNT(*)::int FROM gtfs_calendar WHERE agency_id = $1 AND feed_version_id = $2`},
+		{&preview.Counts.CalendarDates, `SELECT COUNT(*)::int FROM gtfs_calendar_date WHERE agency_id = $1 AND feed_version_id = $2`},
+		{&preview.Counts.ShapePoints, `SELECT COUNT(*)::int FROM gtfs_shape_point WHERE agency_id = $1 AND feed_version_id = $2`},
+		{&preview.Counts.Frequencies, `SELECT COUNT(*)::int FROM gtfs_frequency WHERE agency_id = $1 AND feed_version_id = $2`},
+	}
+	for _, item := range countQueries {
+		if err := r.pool.QueryRow(ctx, item.query, agencyID, feedVersionID).Scan(item.target); err != nil {
+			return GTFSSchedulePreview{}, fmt.Errorf("query GTFS preview counts: %w", err)
+		}
+	}
+
+	routes, err := r.previewRoutes(ctx, agencyID, feedVersionID, limit)
+	if err != nil {
+		return GTFSSchedulePreview{}, err
+	}
+	preview.Routes = routes
+	stops, err := r.previewStops(ctx, agencyID, feedVersionID, limit)
+	if err != nil {
+		return GTFSSchedulePreview{}, err
+	}
+	preview.Stops = stops
+	trips, err := r.previewTrips(ctx, agencyID, feedVersionID, limit)
+	if err != nil {
+		return GTFSSchedulePreview{}, err
+	}
+	preview.Trips = trips
+	calendar, err := r.previewCalendar(ctx, agencyID, feedVersionID, limit)
+	if err != nil {
+		return GTFSSchedulePreview{}, err
+	}
+	preview.Calendar = calendar
+	frequencies, err := r.previewFrequencies(ctx, agencyID, feedVersionID, limit)
+	if err != nil {
+		return GTFSSchedulePreview{}, err
+	}
+	preview.Frequencies = frequencies
+	return preview, nil
+}
+
+func (r *PostgresRepository) previewRoutes(ctx context.Context, agencyID string, feedVersionID string, limit int) ([]GTFSScheduleRoutePreview, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, COALESCE(short_name, ''), COALESCE(long_name, ''), route_type
+		FROM gtfs_route
+		WHERE agency_id = $1 AND feed_version_id = $2
+		ORDER BY id
+		LIMIT $3
+	`, agencyID, feedVersionID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query GTFS preview routes: %w", err)
+	}
+	defer rows.Close()
+	var routes []GTFSScheduleRoutePreview
+	for rows.Next() {
+		var route GTFSScheduleRoutePreview
+		var routeType sql.NullInt64
+		if err := rows.Scan(&route.ID, &route.ShortName, &route.LongName, &routeType); err != nil {
+			return nil, fmt.Errorf("scan GTFS preview route: %w", err)
+		}
+		if routeType.Valid {
+			route.RouteType = fmt.Sprintf("%d", routeType.Int64)
+		}
+		routes = append(routes, route)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate GTFS preview routes: %w", err)
+	}
+	return routes, nil
+}
+
+func (r *PostgresRepository) previewStops(ctx context.Context, agencyID string, feedVersionID string, limit int) ([]GTFSScheduleStopPreview, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, name, lat, lon
+		FROM gtfs_stop
+		WHERE agency_id = $1 AND feed_version_id = $2
+		ORDER BY id
+		LIMIT $3
+	`, agencyID, feedVersionID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query GTFS preview stops: %w", err)
+	}
+	defer rows.Close()
+	var stops []GTFSScheduleStopPreview
+	for rows.Next() {
+		var stop GTFSScheduleStopPreview
+		if err := rows.Scan(&stop.ID, &stop.Name, &stop.Lat, &stop.Lon); err != nil {
+			return nil, fmt.Errorf("scan GTFS preview stop: %w", err)
+		}
+		stops = append(stops, stop)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate GTFS preview stops: %w", err)
+	}
+	return stops, nil
+}
+
+func (r *PostgresRepository) previewTrips(ctx context.Context, agencyID string, feedVersionID string, limit int) ([]GTFSScheduleTripPreview, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, route_id, service_id, COALESCE(block_id, ''), COALESCE(shape_id, ''), direction_id
+		FROM gtfs_trip
+		WHERE agency_id = $1 AND feed_version_id = $2
+		ORDER BY route_id, id
+		LIMIT $3
+	`, agencyID, feedVersionID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query GTFS preview trips: %w", err)
+	}
+	defer rows.Close()
+	var trips []GTFSScheduleTripPreview
+	for rows.Next() {
+		var trip GTFSScheduleTripPreview
+		var direction sql.NullInt64
+		if err := rows.Scan(&trip.ID, &trip.RouteID, &trip.ServiceID, &trip.BlockID, &trip.ShapeID, &direction); err != nil {
+			return nil, fmt.Errorf("scan GTFS preview trip: %w", err)
+		}
+		if direction.Valid {
+			trip.DirectionID = fmt.Sprintf("%d", direction.Int64)
+		}
+		trips = append(trips, trip)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate GTFS preview trips: %w", err)
+	}
+	return trips, nil
+}
+
+func (r *PostgresRepository) previewCalendar(ctx context.Context, agencyID string, feedVersionID string, limit int) ([]GTFSScheduleCalendarPreview, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date
+		FROM gtfs_calendar
+		WHERE agency_id = $1 AND feed_version_id = $2
+		ORDER BY service_id
+		LIMIT $3
+	`, agencyID, feedVersionID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query GTFS preview calendar: %w", err)
+	}
+	defer rows.Close()
+	var calendar []GTFSScheduleCalendarPreview
+	for rows.Next() {
+		var row GTFSScheduleCalendarPreview
+		var days [7]bool
+		if err := rows.Scan(&row.ServiceID, &days[0], &days[1], &days[2], &days[3], &days[4], &days[5], &days[6], &row.StartDate, &row.EndDate); err != nil {
+			return nil, fmt.Errorf("scan GTFS preview calendar: %w", err)
+		}
+		row.Days = calendarDaysText(days)
+		calendar = append(calendar, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate GTFS preview calendar: %w", err)
+	}
+	return calendar, nil
+}
+
+func calendarDaysText(days [7]bool) string {
+	labels := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+	var out []string
+	for i, enabled := range days {
+		if enabled {
+			out = append(out, labels[i])
+		}
+	}
+	if len(out) == 0 {
+		return "no weekly days"
+	}
+	return strings.Join(out, ", ")
+}
+
+func (r *PostgresRepository) previewFrequencies(ctx context.Context, agencyID string, feedVersionID string, limit int) ([]GTFSScheduleFrequencyPreview, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT trip_id, start_time, end_time, headway_secs, exact_times
+		FROM gtfs_frequency
+		WHERE agency_id = $1 AND feed_version_id = $2
+		ORDER BY trip_id, start_time
+		LIMIT $3
+	`, agencyID, feedVersionID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query GTFS preview frequencies: %w", err)
+	}
+	defer rows.Close()
+	var frequencies []GTFSScheduleFrequencyPreview
+	for rows.Next() {
+		var frequency GTFSScheduleFrequencyPreview
+		if err := rows.Scan(&frequency.TripID, &frequency.StartTime, &frequency.EndTime, &frequency.HeadwaySecs, &frequency.ExactTimes); err != nil {
+			return nil, fmt.Errorf("scan GTFS preview frequency: %w", err)
+		}
+		frequencies = append(frequencies, frequency)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate GTFS preview frequencies: %w", err)
+	}
+	return frequencies, nil
+}
+
 type feedConfig struct {
 	PublicBaseURL          string
 	FeedBaseURL            string

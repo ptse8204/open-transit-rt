@@ -168,6 +168,74 @@ type GTFSImportRecord struct {
 	CompletedAt    *time.Time `json:"completed_at"`
 }
 
+type GTFSSchedulePreview struct {
+	AgencyID      string                         `json:"agency_id"`
+	FeedVersionID string                         `json:"feed_version_id"`
+	RowLimit      int                            `json:"row_limit"`
+	Counts        GTFSSchedulePreviewCounts      `json:"counts"`
+	Agency        GTFSScheduleAgencyPreview      `json:"agency"`
+	Routes        []GTFSScheduleRoutePreview     `json:"routes"`
+	Stops         []GTFSScheduleStopPreview      `json:"stops"`
+	Trips         []GTFSScheduleTripPreview      `json:"trips"`
+	Calendar      []GTFSScheduleCalendarPreview  `json:"calendar"`
+	Frequencies   []GTFSScheduleFrequencyPreview `json:"frequencies"`
+}
+
+type GTFSSchedulePreviewCounts struct {
+	Routes        int `json:"routes"`
+	Stops         int `json:"stops"`
+	Trips         int `json:"trips"`
+	StopTimes     int `json:"stop_times"`
+	Calendar      int `json:"calendar"`
+	CalendarDates int `json:"calendar_dates"`
+	ShapePoints   int `json:"shape_points"`
+	Frequencies   int `json:"frequencies"`
+}
+
+type GTFSScheduleAgencyPreview struct {
+	AgencyID string `json:"agency_id"`
+	Name     string `json:"name"`
+	Timezone string `json:"timezone"`
+}
+
+type GTFSScheduleRoutePreview struct {
+	ID        string `json:"id"`
+	ShortName string `json:"short_name"`
+	LongName  string `json:"long_name"`
+	RouteType string `json:"route_type"`
+}
+
+type GTFSScheduleStopPreview struct {
+	ID   string  `json:"id"`
+	Name string  `json:"name"`
+	Lat  float64 `json:"lat"`
+	Lon  float64 `json:"lon"`
+}
+
+type GTFSScheduleTripPreview struct {
+	ID          string `json:"id"`
+	RouteID     string `json:"route_id"`
+	ServiceID   string `json:"service_id"`
+	BlockID     string `json:"block_id"`
+	ShapeID     string `json:"shape_id"`
+	DirectionID string `json:"direction_id"`
+}
+
+type GTFSScheduleCalendarPreview struct {
+	ServiceID string `json:"service_id"`
+	Days      string `json:"days"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+}
+
+type GTFSScheduleFrequencyPreview struct {
+	TripID      string `json:"trip_id"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	HeadwaySecs int    `json:"headway_secs"`
+	ExactTimes  int    `json:"exact_times"`
+}
+
 type TripUpdatesDiagnosticsSummary struct {
 	Recorded                      bool               `json:"recorded"`
 	SnapshotAt                    time.Time          `json:"snapshot_at,omitempty"`

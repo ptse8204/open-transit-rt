@@ -10,10 +10,17 @@ import (
 	"open-transit-rt/internal/compliance"
 )
 
-const gtfsWorkbenchImportHistoryLimit = 8
+const (
+	gtfsWorkbenchImportHistoryLimit = 8
+	gtfsWorkbenchPreviewRowLimit    = 10
+)
 
 type gtfsImportHistoryReader interface {
 	RecentGTFSImports(ctx context.Context, agencyID string, limit int) ([]compliance.GTFSImportRecord, error)
+}
+
+type gtfsSchedulePreviewReader interface {
+	GTFSSchedulePreview(ctx context.Context, agencyID string, feedVersionID string, limit int) (compliance.GTFSSchedulePreview, error)
 }
 
 type operationsGTFSWorkbenchView struct {
@@ -107,11 +114,45 @@ type operationsGTFSValidationSummary struct {
 }
 
 type operationsGTFSPreviewSummary struct {
+	Status        string                                    `json:"status"`
+	RowLimit      int                                       `json:"row_limit"`
+	CurrentSignal string                                    `json:"current_signal"`
+	NextAction    string                                    `json:"next_action"`
+	ClaimBoundary string                                    `json:"claim_boundary"`
+	Counts        compliance.GTFSSchedulePreviewCounts      `json:"counts"`
+	RequiredFiles []operationsGTFSRequiredFileStatus        `json:"required_files"`
+	Sections      []operationsGTFSPreviewSection            `json:"sections"`
+	Agency        []operationsGTFSScheduleAgencyRow         `json:"agency"`
+	Routes        []compliance.GTFSScheduleRoutePreview     `json:"routes"`
+	Stops         []compliance.GTFSScheduleStopPreview      `json:"stops"`
+	Trips         []compliance.GTFSScheduleTripPreview      `json:"trips"`
+	Calendar      []compliance.GTFSScheduleCalendarPreview  `json:"calendar"`
+	Frequencies   []compliance.GTFSScheduleFrequencyPreview `json:"frequencies"`
+}
+
+type operationsGTFSRequiredFileStatus struct {
+	File          string `json:"file"`
 	Status        string `json:"status"`
-	RowLimit      int    `json:"row_limit"`
 	CurrentSignal string `json:"current_signal"`
 	NextAction    string `json:"next_action"`
 	ClaimBoundary string `json:"claim_boundary"`
+}
+
+type operationsGTFSPreviewSection struct {
+	ID            string `json:"id"`
+	Label         string `json:"label"`
+	Status        string `json:"status"`
+	RowsShown     int    `json:"rows_shown"`
+	TotalRows     int    `json:"total_rows"`
+	OverflowCount int    `json:"overflow_count"`
+	CurrentSignal string `json:"current_signal"`
+	ClaimBoundary string `json:"claim_boundary"`
+}
+
+type operationsGTFSScheduleAgencyRow struct {
+	AgencyID string `json:"agency_id"`
+	Name     string `json:"name"`
+	Timezone string `json:"timezone"`
 }
 
 type operationsGTFSFeedOutputSummary struct {
@@ -161,13 +202,7 @@ func (h *handler) buildGTFSWorkbenchView(r *http.Request, page operationsPage) o
 	view.Import = h.buildGTFSImportSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.Quality = buildGTFSWorkbenchQualitySummary(page.GTFSQuality)
 	view.ValidationHealth = buildGTFSWorkbenchValidationSummary(page.ValidationHealth)
-	view.Preview = operationsGTFSPreviewSummary{
-		Status:        "not_loaded",
-		RowLimit:      0,
-		CurrentSignal: "Bounded schedule preview tables are added in the preview checkpoint after this route is established.",
-		NextAction:    "Use the import, quality, validation, and feed rows first; then review bounded previews once available.",
-		ClaimBoundary: "A preview is a private operator aid only and does not change or approve GTFS.",
-	}
+	view.Preview = h.buildGTFSPreviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.FeedOutput = buildGTFSWorkbenchFeedOutput(page.Discovery)
 	view.Actions = buildGTFSWorkbenchActions(view, page)
 	return view
@@ -198,6 +233,131 @@ func buildGTFSActiveFeedVersion(discovery compliance.FeedDiscovery) operationsGT
 	row.CurrentSignal = "Active local schedule feed version is recorded."
 	row.NextAction = "Review latest import, GTFS quality, validator health, and feed output before relying on the schedule."
 	return row
+}
+
+func (h *handler) buildGTFSPreviewSummary(ctx context.Context, agencyID string, feedVersionID string) operationsGTFSPreviewSummary {
+	summary := operationsGTFSPreviewSummary{
+		Status:        "missing",
+		RowLimit:      gtfsWorkbenchPreviewRowLimit,
+		CurrentSignal: "No active schedule feed version is recorded, so preview tables cannot load.",
+		NextAction:    "Import a GTFS ZIP or publish a GTFS Studio draft before reviewing schedule previews.",
+		ClaimBoundary: "Preview tables are private operator aids only. They do not edit, publish, approve, validate, or certify GTFS.",
+	}
+	if strings.TrimSpace(feedVersionID) == "" {
+		return summary
+	}
+	reader, ok := h.store.(gtfsSchedulePreviewReader)
+	if !ok {
+		summary.Status = "unknown"
+		summary.CurrentSignal = "This runtime does not expose a GTFS schedule preview reader."
+		summary.NextAction = "Use import, quality, validation, and feed output rows; ask a technical helper if table-level review is required."
+		return summary
+	}
+	preview, err := reader.GTFSSchedulePreview(ctx, agencyID, feedVersionID, gtfsWorkbenchPreviewRowLimit)
+	if err != nil {
+		summary.Status = "unknown"
+		summary.CurrentSignal = "GTFS schedule preview rows could not be read from existing private schedule tables."
+		summary.NextAction = "Review importer and database state, then retry this private page."
+		return summary
+	}
+	summary.RowLimit = preview.RowLimit
+	summary.Counts = preview.Counts
+	summary.RequiredFiles = gtfsRequiredFileStatuses(preview)
+	summary.Sections = gtfsPreviewSections(preview)
+	if preview.Agency.AgencyID != "" || preview.Agency.Name != "" {
+		summary.Agency = []operationsGTFSScheduleAgencyRow{{
+			AgencyID: preview.Agency.AgencyID,
+			Name:     preview.Agency.Name,
+			Timezone: preview.Agency.Timezone,
+		}}
+	}
+	summary.Routes = preview.Routes
+	summary.Stops = preview.Stops
+	summary.Trips = preview.Trips
+	summary.Calendar = preview.Calendar
+	summary.Frequencies = preview.Frequencies
+	summary.Status = "ok"
+	for _, file := range summary.RequiredFiles {
+		if file.Status == "blocked" {
+			summary.Status = "blocked"
+			break
+		}
+	}
+	summary.CurrentSignal = fmt.Sprintf("Previewing up to %d rows per table for active schedule feed version %s.", summary.RowLimit, feedVersionID)
+	summary.NextAction = "Use these bounded previews to decide which source GTFS owner should review routes, stops, trips, service calendars, or frequency-based service."
+	return summary
+}
+
+func gtfsRequiredFileStatuses(preview compliance.GTFSSchedulePreview) []operationsGTFSRequiredFileStatus {
+	boundary := "File checklist rows summarize local GTFS tables only and do not prove external validator success or approval."
+	return []operationsGTFSRequiredFileStatus{
+		requiredFileStatus("agency.txt", gtfsPreviewBoolStatus(preview.Agency.Name != ""), fmt.Sprintf("Agency record: %s.", firstNonEmpty(preview.Agency.Name, "not available")), "Confirm agency name and timezone in source GTFS before relying on public metadata.", boundary),
+		requiredFileStatus("routes.txt", gtfsPreviewCountStatus(preview.Counts.Routes), fmt.Sprintf("%d route rows stored.", preview.Counts.Routes), "Review route names, modes, and source-system ownership.", boundary),
+		requiredFileStatus("stops.txt", gtfsPreviewCountStatus(preview.Counts.Stops), fmt.Sprintf("%d stop rows stored.", preview.Counts.Stops), "Review stop names and coordinates with the schedule/source-data owner.", boundary),
+		requiredFileStatus("trips.txt", gtfsPreviewCountStatus(preview.Counts.Trips), fmt.Sprintf("%d trip rows stored.", preview.Counts.Trips), "Review representative trips, route links, blocks, shapes, and direction IDs.", boundary),
+		requiredFileStatus("stop_times.txt", gtfsPreviewCountStatus(preview.Counts.StopTimes), fmt.Sprintf("%d stop time rows stored.", preview.Counts.StopTimes), "Review stop-time ordering, after-midnight service, and repeated trip patterns in source GTFS.", boundary),
+		requiredFileStatus("calendar.txt / calendar_dates.txt", gtfsPreviewCountStatus(preview.Counts.Calendar+preview.Counts.CalendarDates), fmt.Sprintf("%d calendar rows and %d exception rows stored.", preview.Counts.Calendar, preview.Counts.CalendarDates), "Review service dates, exceptions, and holiday service before relying on active trips.", boundary),
+		requiredFileStatus("frequencies.txt", gtfsPreviewOptionalCountStatus(preview.Counts.Frequencies), fmt.Sprintf("%d frequency rows stored.", preview.Counts.Frequencies), "If frequency-based service is expected, confirm headways and exact-times values.", boundary),
+		requiredFileStatus("shapes.txt", gtfsPreviewOptionalCountStatus(preview.Counts.ShapePoints), fmt.Sprintf("%d shape point rows stored.", preview.Counts.ShapePoints), "If route geometry is expected, confirm shape coverage and distance data with source GTFS.", boundary),
+	}
+}
+
+func requiredFileStatus(file string, status string, signal string, nextAction string, boundary string) operationsGTFSRequiredFileStatus {
+	return operationsGTFSRequiredFileStatus{File: file, Status: status, CurrentSignal: signal, NextAction: nextAction, ClaimBoundary: boundary}
+}
+
+func gtfsPreviewBoolStatus(ok bool) string {
+	if ok {
+		return "ok"
+	}
+	return "blocked"
+}
+
+func gtfsPreviewCountStatus(count int) string {
+	return gtfsPreviewBoolStatus(count > 0)
+}
+
+func gtfsPreviewOptionalCountStatus(count int) string {
+	if count > 0 {
+		return "ok"
+	}
+	return "optional"
+}
+
+func gtfsPreviewSections(preview compliance.GTFSSchedulePreview) []operationsGTFSPreviewSection {
+	boundary := "Rows are capped private previews and may omit additional records."
+	return []operationsGTFSPreviewSection{
+		previewSection("agency", "Agency", gtfsPreviewBoolStatus(preview.Agency.Name != ""), lenIf(preview.Agency.Name != ""), lenIf(preview.Agency.Name != ""), "Agency identity available from local agency metadata.", boundary),
+		previewSection("routes", "Routes", gtfsPreviewCountStatus(preview.Counts.Routes), len(preview.Routes), preview.Counts.Routes, "Route rows show route IDs, names, and route types.", boundary),
+		previewSection("stops", "Stops", gtfsPreviewCountStatus(preview.Counts.Stops), len(preview.Stops), preview.Counts.Stops, "Stop rows show stop IDs, names, and coordinates.", boundary),
+		previewSection("trips", "Trips", gtfsPreviewCountStatus(preview.Counts.Trips), len(preview.Trips), preview.Counts.Trips, "Trip rows show route, service, block, shape, and direction links.", boundary),
+		previewSection("calendar", "Calendar / Service", gtfsPreviewCountStatus(preview.Counts.Calendar+preview.Counts.CalendarDates), len(preview.Calendar), preview.Counts.Calendar, "Calendar rows show weekly service windows; exception count is summarized separately.", boundary),
+		previewSection("frequencies", "Frequencies", gtfsPreviewOptionalCountStatus(preview.Counts.Frequencies), len(preview.Frequencies), preview.Counts.Frequencies, "Frequency rows show headway-based service where present.", boundary),
+	}
+}
+
+func previewSection(id string, label string, status string, rowsShown int, totalRows int, signal string, boundary string) operationsGTFSPreviewSection {
+	overflow := totalRows - rowsShown
+	if overflow < 0 {
+		overflow = 0
+	}
+	return operationsGTFSPreviewSection{
+		ID:            id,
+		Label:         label,
+		Status:        status,
+		RowsShown:     rowsShown,
+		TotalRows:     totalRows,
+		OverflowCount: overflow,
+		CurrentSignal: signal,
+		ClaimBoundary: boundary,
+	}
+}
+
+func lenIf(ok bool) int {
+	if ok {
+		return 1
+	}
+	return 0
 }
 
 func (h *handler) buildGTFSImportSummary(ctx context.Context, agencyID string, activeFeedVersionID string) operationsGTFSImportSummary {

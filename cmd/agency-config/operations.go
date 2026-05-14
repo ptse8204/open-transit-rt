@@ -2418,10 +2418,52 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Preview Tables</h3>
 <table><tbody>
 <tr><th>Status</th><td>{{.GTFSWorkbench.Preview.Status}}</td></tr>
+<tr><th>Row cap</th><td>{{.GTFSWorkbench.Preview.RowLimit}} rows per table</td></tr>
 <tr><th>Current signal</th><td>{{.GTFSWorkbench.Preview.CurrentSignal}}</td></tr>
 <tr><th>Next action</th><td>{{.GTFSWorkbench.Preview.NextAction}}</td></tr>
 <tr><th>Boundary</th><td>{{.GTFSWorkbench.Preview.ClaimBoundary}}</td></tr>
 </tbody></table>
+<section class="review-tools" data-review-tools data-review-target="gtfs-preview-sections" aria-label="GTFS preview review tools">
+<h3>Preview filters</h3>
+<div class="review-controls">
+<label for="gtfs-preview-filter">Show <select id="gtfs-preview-filter" data-review-filter><option value="all">All</option><option value="needs_action">Needs action</option><option value="blocked">Blocked</option><option value="optional">Optional</option><option value="ok">OK</option></select></label>
+<label for="gtfs-preview-search">Find <input id="gtfs-preview-search" data-review-search placeholder="File, table, route, stop, service"></label>
+<label for="gtfs-preview-sort">Sort by <select id="gtfs-preview-sort" data-review-sort><option value="needs_action">Needs action first</option><option value="name">Name A-Z</option><option value="status">Status A-Z</option></select></label>
+<label><input type="checkbox" data-review-remember> Remember these review settings on this device</label>
+<button type="button" data-review-reset>Reset review settings</button>
+</div>
+<p id="gtfs-preview-status" class="review-status" aria-live="polite" data-review-status>Showing all private preview rows.</p>
+<p class="muted">Filters only change this browser view. They do not import, edit, publish, run validators, create evidence, contact external systems, or change consumer status.</p>
+</section>
+<h4>Required File Checklist</h4>
+<table id="gtfs-preview-sections"><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.RequiredFiles}}<tr data-review-row data-review-status="{{.Status}}" data-review-name="{{.File}}"><td><code>{{.File}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+{{range .GTFSWorkbench.Preview.Sections}}<tr data-review-row data-review-status="{{.Status}}" data-review-name="{{.Label}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}} Showing {{.RowsShown}} of {{.TotalRows}} rows; {{.OverflowCount}} omitted by cap.</td><td>Review the bounded rows below, then fix the source GTFS or draft data if the signal needs action.</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{if .GTFSWorkbench.Preview.Agency}}<h4>Agency Preview</h4>
+<table><thead><tr><th>Agency ID</th><th>Name</th><th>Timezone</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.Agency}}<tr><td><code>{{.AgencyID}}</code></td><td>{{.Name}}</td><td>{{.Timezone}}</td></tr>{{end}}
+</tbody></table>{{end}}
+{{if .GTFSWorkbench.Preview.Routes}}<h4>Routes Preview</h4>
+<table><thead><tr><th>Route ID</th><th>Short name</th><th>Long name</th><th>Type</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.Routes}}<tr><td><code>{{.ID}}</code></td><td>{{.ShortName}}</td><td>{{.LongName}}</td><td>{{.RouteType}}</td></tr>{{end}}
+</tbody></table>{{end}}
+{{if .GTFSWorkbench.Preview.Stops}}<h4>Stops Preview</h4>
+<table><thead><tr><th>Stop ID</th><th>Name</th><th>Lat</th><th>Lon</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.Stops}}<tr><td><code>{{.ID}}</code></td><td>{{.Name}}</td><td>{{.Lat}}</td><td>{{.Lon}}</td></tr>{{end}}
+</tbody></table>{{end}}
+{{if .GTFSWorkbench.Preview.Trips}}<h4>Trips Preview</h4>
+<table><thead><tr><th>Trip ID</th><th>Route</th><th>Service</th><th>Block</th><th>Shape</th><th>Direction</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.Trips}}<tr><td><code>{{.ID}}</code></td><td><code>{{.RouteID}}</code></td><td><code>{{.ServiceID}}</code></td><td>{{.BlockID}}</td><td>{{.ShapeID}}</td><td>{{.DirectionID}}</td></tr>{{end}}
+</tbody></table>{{end}}
+{{if .GTFSWorkbench.Preview.Calendar}}<h4>Calendar / Service Preview</h4>
+<table><thead><tr><th>Service ID</th><th>Days</th><th>Start</th><th>End</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.Calendar}}<tr><td><code>{{.ServiceID}}</code></td><td>{{.Days}}</td><td>{{.StartDate}}</td><td>{{.EndDate}}</td></tr>{{end}}
+</tbody></table>{{end}}
+{{if .GTFSWorkbench.Preview.Frequencies}}<h4>Frequencies Preview</h4>
+<table><thead><tr><th>Trip ID</th><th>Start</th><th>End</th><th>Headway seconds</th><th>Exact times</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.Frequencies}}<tr><td><code>{{.TripID}}</code></td><td>{{.StartTime}}</td><td>{{.EndTime}}</td><td>{{.HeadwaySecs}}</td><td>{{.ExactTimes}}</td></tr>{{end}}
+</tbody></table>{{end}}
 <h3>Claim Flags</h3>
 <table><tbody>
 <tr><th><code>automatic_gtfs_edit_enabled</code></th><td>{{.GTFSWorkbench.ClaimFlags.AutomaticGTFSEditEnabled}}</td></tr>
