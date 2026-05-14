@@ -65,31 +65,40 @@ Keep these private routes findable during browser-first review:
 
 ```text
 /admin/operations
+/admin/operations/launchpad
 /admin/operations/setup-wizard
+/admin/operations/setup
+/admin/operations/gtfs-workbench
 /admin/operations/gtfs-import
+/admin/operations/feeds
 /admin/operations/feed-health
-/admin/operations/readiness
 /admin/operations/gtfs-quality
 /admin/operations/validation-health
+/admin/operations/realtime
+/admin/operations/prediction-lab
 /admin/operations/devices
 /admin/operations/telemetry
 /admin/operations/telemetry-simulator
 /admin/operations/connectors
+/admin/operations/connectors/workbench
 /admin/operations/connectors/tests
+/admin/operations/validation-center
+/admin/operations/readiness
+/admin/operations/checklist
+/admin/operations/reliability
 /admin/operations/maintenance
+/admin/operations/access
+/admin/operations/audit
 /admin/operations/help
+/admin/operations/consumers
+/admin/operations/evidence
 ```
 
 Additional private diagnostic and compatibility routes:
 
 ```text
-/admin/operations/launchpad
-/admin/operations/setup
-/admin/operations/feeds
-/admin/operations/checklist
-/admin/operations/reliability
-/admin/operations/consumers
-/admin/operations/evidence
+/admin/gtfs-studio
+/admin/alerts/console
 ```
 
 The current shell groups routes as Start Here, Schedule, Realtime, Connectors,

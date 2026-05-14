@@ -514,6 +514,7 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 		}
 		h.renderAuditJSON(w, r)
 	case "feeds", "telemetry", "devices", "consumers", "evidence", "setup":
+		w.Header().Set("Cache-Control", "no-store")
 		if trimmed == "devices" && r.Method == http.MethodPost {
 			h.operationsDeviceRebind(w, r)
 			return

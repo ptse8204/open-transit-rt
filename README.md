@@ -98,32 +98,41 @@ These private browser routes are the acceptance-critical navigation surface:
 
 ```text
 /admin/operations
+/admin/operations/launchpad
 /admin/operations/setup-wizard
+/admin/operations/setup
+/admin/operations/gtfs-workbench
 /admin/operations/gtfs-import
+/admin/operations/feeds
 /admin/operations/feed-health
-/admin/operations/readiness
 /admin/operations/gtfs-quality
 /admin/operations/validation-health
+/admin/operations/realtime
+/admin/operations/prediction-lab
 /admin/operations/devices
 /admin/operations/telemetry
 /admin/operations/telemetry-simulator
 /admin/operations/connectors
+/admin/operations/connectors/workbench
 /admin/operations/connectors/tests
+/admin/operations/validation-center
+/admin/operations/readiness
+/admin/operations/checklist
+/admin/operations/reliability
 /admin/operations/maintenance
+/admin/operations/access
+/admin/operations/audit
 /admin/operations/help
+/admin/operations/consumers
+/admin/operations/evidence
 ```
 
 Additional private diagnostic and compatibility routes remain available for
 operators who need the broader workflow:
 
 ```text
-/admin/operations/launchpad
-/admin/operations/setup
-/admin/operations/feeds
-/admin/operations/checklist
-/admin/operations/reliability
-/admin/operations/consumers
-/admin/operations/evidence
+/admin/gtfs-studio
+/admin/alerts/console
 ```
 
 The app shell groups these routes as Start Here, Schedule, Realtime, Connectors,
@@ -156,10 +165,13 @@ Detailed guide: [Small Agency Quick Start](wiki/small-agency-quick-start.md).
 Use the browser path first when possible:
 
 ```text
+/admin/operations/gtfs-workbench
 /admin/operations/gtfs-import
 /admin/operations/feed-health
 /admin/operations/gtfs-quality
+/admin/operations/validation-center
 /admin/operations/validation-health
+/admin/operations/realtime
 /admin/operations/maintenance
 ```
 
@@ -179,10 +191,13 @@ make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip
 Then review the private UI:
 
 - `/admin/operations`
+- `/admin/operations/gtfs-workbench`
 - `/admin/operations/gtfs-import`
 - `/admin/operations/feed-health`
 - `/admin/operations/readiness`
+- `/admin/operations/realtime`
 - `/admin/operations/connectors`
+- `/admin/operations/connectors/workbench`
 
 Detailed guide: [Reusable Agency Onboarding](docs/tutorials/reusable-agency-onboarding.md).
 

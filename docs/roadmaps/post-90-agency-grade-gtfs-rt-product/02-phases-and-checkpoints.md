@@ -8,15 +8,16 @@ Goal: Verify the Phase 75-90 control plane as a coherent product; audit route/ta
 Checkpoints:
 
 ```text
-Phase 91 -- Checkpoint 000001: add maintainer route/product audit and stabilization plan
-Phase 91 -- Checkpoint 000002: implement primary scoped work
-Phase 91 -- Checkpoint 000003: run validation and patch required gaps
-Phase 91 -- Checkpoint 000004: close maintainer route/product audit and stabilization review
+Phase 91 -- Checkpoint 000001: add route product audit plan
+Phase 91 -- Checkpoint 000002: audit private routes user tasks and docs drift
+Phase 91 -- Checkpoint 000003: add route inventory audit helper
+Phase 91 -- Checkpoint 000004: patch highest priority IA copy and route gaps
+Phase 91 -- Checkpoint 000005: close route product audit
 ```
 
 Deliverables:
 
-- `docs/phase-91-maintainer-route-product-audit-and-stabilization.md`
+- `docs/phase-91-maintainer-route-product-audit.md`
 - `docs/handoffs/phase-91.md`
 - source-of-truth docs updated only if status changes
 

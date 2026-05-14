@@ -85,8 +85,10 @@ Then return to the browser and review:
 
 - `/admin/operations/devices`
 - `/admin/operations/telemetry`
+- `/admin/operations/realtime`
 - `/admin/operations/feed-health`
 - `/admin/operations/readiness`
+- `/admin/operations/connectors/workbench`
 - `/admin/operations/connectors/tests`
 
 The browser points to commands; it does not execute them.
@@ -96,6 +98,7 @@ The browser points to commands; it does not execute them.
 Open:
 
 ```text
+/admin/operations/gtfs-workbench
 /admin/operations/gtfs-import
 ```
 
@@ -103,6 +106,7 @@ Admins can upload a GTFS ZIP or import from a safe URL. After an import, review:
 
 ```text
 /admin/operations/gtfs-quality
+/admin/operations/validation-center
 /admin/operations/validation-health
 /admin/operations/feed-health
 ```
@@ -166,6 +170,7 @@ Open:
 
 ```text
 /admin/operations/connectors
+/admin/operations/connectors/workbench
 /admin/operations/connectors/tests
 /admin/operations/maintenance
 ```

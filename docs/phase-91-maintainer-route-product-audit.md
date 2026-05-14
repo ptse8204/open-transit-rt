@@ -391,3 +391,104 @@ Proceed to CP000004 after CP000003 validation and commit.
 
 Next checkpoint:
 Phase 91 -- Checkpoint 000004: patch highest priority IA copy and route gaps.
+
+## Checkpoint 000004 IA And Route-Gap Patches
+
+Phase 91 patched the highest-priority route/product drift found in CP000002 and
+made CP000003 route-map warnings clean:
+
+- README and wiki route maps now include GTFS Workbench, Realtime Center,
+  Validation Center, Connector Workbench, Prediction & ETA Lab, Access & Roles,
+  and Audit Log.
+- Browser-first setup and no-CLI tutorial guidance now points operators to the
+  center-style schedule, realtime, validation, and connector pages before
+  lower-level diagnostics.
+- The Operations Console tour now explains GTFS Workbench, Connector Workbench,
+  Validation Center, Realtime Center, Prediction & ETA Lab, Access & Roles, and
+  Audit Log in the same private/no-claim style as the existing pages.
+- The post-90 roadmap pack now uses the required five Phase 91 checkpoint names
+  and the actual Phase 91 plan path.
+- Legacy generic private Operations pages now set `Cache-Control: no-store`
+  before GET or POST handling.
+
+Strict route inventory audit now reports:
+
+```text
+PASS: 28 canonical private HTML routes have nav and handler coverage
+PASS: 19 canonical private JSON routes have handler coverage
+PASS: 1 private command route is explicit and allowlisted
+PASS: 2 external admin surfaces are marked in nav
+PASS: no public admin route registration detected
+PASS: README/wiki route maps include newer center-style routes
+```
+
+### CP000004 Report
+
+Checkpoint:
+Phase 91 -- Checkpoint 000004: patch highest priority IA copy and route gaps.
+
+Sub-agents used or simulated, including intended model level:
+Planning Sub-Agent -- GPT-5.5 x-high, real; Claim-Boundary/Security Sub-Agent
+-- GPT-5.5 high, real; Context / Repo Truth Sub-Agent -- GPT-5.5 x-high,
+real; Implementation Sub-Agent -- GPT-5.5 high, simulated by Master; QA
+Sub-Agent -- GPT-5.5 high, simulated by Master; UI/UX Sub-Agent -- GPT-5.5
+high, simulated by Master; Documentation / IA Sub-Agent -- GPT-5.5 high,
+simulated by Master; Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`README.md`; `wiki/README.md`; `wiki/small-agency-quick-start.md`;
+`wiki/browser-first-setup.md`; `wiki/operations-console-tour.md`;
+`docs/tutorials/no-cli-agency-first-run.md`;
+`docs/roadmaps/post-90-agency-grade-gtfs-rt-product/02-phases-and-checkpoints.md`;
+`docs/roadmaps/post-90-agency-grade-gtfs-rt-product/phase-prompts/phase-91-maintainer-route-product-audit-and-stabilization.md`;
+`cmd/agency-config/operations.go`; `cmd/agency-config/main_test.go`;
+`docs/phase-91-maintainer-route-product-audit.md`.
+
+Validation run:
+`scripts/audit-operations-route-inventory.sh` passed.
+`OPERATIONS_ROUTE_AUDIT_STRICT_DOCS=true scripts/audit-operations-route-inventory.sh`
+passed. `go test ./cmd/agency-config -run
+'OperationsLegacyPrivatePagesUseNoStore|OperationsConsoleNavigation|OperationsRouteTitles|OperationsConsoleNavigationActiveState'`
+passed. `git diff --check` passed. `make check` passed.
+`make audit-product-acceptance` passed. `make audit-final-claim-review`
+passed. `git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned clean.
+
+Blocked checks:
+Full closeout validation, `make validate`, `make test`, and Docker Compose
+config are deferred to Phase 91 closeout.
+
+Protected path status:
+No protected evidence path was modified.
+
+Consumer tracker status:
+No consumer tracker edit was made. All seven targets remain required to stay
+exactly `prepared`.
+
+Claim-boundary status:
+Copy changes preserve private/local diagnostic wording and explicitly avoid
+claiming compliance, adoption, consumer action, final-root readiness,
+hosted-service availability, production readiness, release readiness, vendor
+compatibility, hardware certification, SLA/uptime, public launch, or ETA
+quality.
+
+Security/auth status:
+No public route, admin auth expansion, credential path, external call, or
+browser command was added. Legacy private generic pages now set no-store cache
+headers consistently with newer private routes.
+
+Data/migration status:
+No persistence or migration change.
+
+Master review:
+Approved. The highest-priority IA drift and private cache-header gap are
+patched without expanding product claims or protected paths.
+
+Required edits:
+Run Phase 91 closeout validation and create the Phase 91 handoff.
+
+Decision:
+Proceed to CP000005 closeout.
+
+Next checkpoint:
+Phase 91 -- Checkpoint 000005: close route product audit.

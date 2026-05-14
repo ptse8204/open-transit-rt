@@ -126,12 +126,21 @@ If Vehicle Positions are empty, go to Devices and Telemetry Simulator. If Trip
 Updates are empty, review telemetry, active GTFS, assignment confidence, and
 Trip Updates diagnostics before assuming there is a problem.
 
+For the broader private realtime review, open:
+
+```text
+/admin/operations/realtime
+/admin/operations/prediction-lab
+```
+
 ## 5. Review GTFS Quality And Validators
 
 Open:
 
 ```text
+/admin/operations/gtfs-workbench
 /admin/operations/gtfs-quality
+/admin/operations/validation-center
 /admin/operations/validation-health
 ```
 

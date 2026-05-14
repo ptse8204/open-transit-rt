@@ -3016,6 +3016,32 @@ func TestOperationsConsoleNavigationActiveStateForRepresentativeSections(t *test
 	}
 }
 
+func TestOperationsLegacyPrivatePagesUseNoStore(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	for _, path := range []string{
+		"/admin/operations/feeds",
+		"/admin/operations/telemetry",
+		"/admin/operations/devices",
+		"/admin/operations/consumers",
+		"/admin/operations/evidence",
+		"/admin/operations/setup",
+	} {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+			}
+			if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+				t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+			}
+		})
+	}
+}
+
 func TestOperationsHelpRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
 		t.Run(string(role), func(t *testing.T) {

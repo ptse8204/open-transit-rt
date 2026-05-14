@@ -95,17 +95,24 @@ Use these private routes during browser-first review:
 ```text
 /admin/operations
 /admin/operations/setup-wizard
+/admin/operations/gtfs-workbench
 /admin/operations/gtfs-import
 /admin/operations/feed-health
-/admin/operations/readiness
 /admin/operations/gtfs-quality
+/admin/operations/validation-center
 /admin/operations/validation-health
+/admin/operations/realtime
+/admin/operations/prediction-lab
 /admin/operations/devices
 /admin/operations/telemetry
 /admin/operations/telemetry-simulator
 /admin/operations/connectors
+/admin/operations/connectors/workbench
 /admin/operations/connectors/tests
+/admin/operations/readiness
 /admin/operations/maintenance
+/admin/operations/access
+/admin/operations/audit
 /admin/operations/help
 ```
 

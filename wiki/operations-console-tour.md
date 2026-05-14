@@ -73,13 +73,15 @@ admin roles.
 Open:
 
 ```text
+/admin/operations/gtfs-workbench
 /admin/operations/gtfs-import
 ```
 
-Admins can upload a GTFS ZIP or import from a safe URL. The import path uses the
-existing importer and validation records, then points operators to GTFS quality,
-validator health, and the five configured feed paths. It does not create
-retained evidence or agency approval.
+GTFS Workbench is the schedule review front door: it shows active schedule
+state, import history, required-file checks, draft/publish review, quality
+context, and rollback guidance. Admins can upload a GTFS ZIP or import from a
+safe URL through Import Schedule ZIP. These pages do not create retained
+evidence or agency approval.
 
 ## Feed Health
 
@@ -117,6 +119,7 @@ Open:
 
 ```text
 /admin/operations/connectors
+/admin/operations/connectors/workbench
 ```
 
 Connector Hub explains optional sidecars, manifests, command adapters,
@@ -124,6 +127,9 @@ telemetry sources, prediction boundaries, validator adapters, monitoring/export,
 and consumer/discovery boundaries. Treat it as the starting point for manifest,
 redaction, fail-closed, and synthetic conformance review. It does not load
 arbitrary backend plugins or prove vendor compatibility.
+
+Connector Workbench helps choose a local/synthetic recipe and review committed
+example manifests before any real credential, payload, or network-send work.
 
 ## Device Credentials
 
@@ -193,12 +199,43 @@ admin action.
 Open:
 
 ```text
+/admin/operations/validation-center
 /admin/operations/validation-health
 ```
 
+Validation Center is the broader health review page for feed rows, validator
+state, GTFS quality summaries, sanitized issue drilldowns, and blockers.
 Validation Health shows validator tooling state and feed artifact availability.
 It runs only server-side allowlisted validator actions when an admin posts the
 existing form.
+
+## Realtime Center
+
+Open:
+
+```text
+/admin/operations/realtime
+/admin/operations/prediction-lab
+```
+
+Realtime Center reviews telemetry freshness, device-not-seen state,
+conservative assignment confidence, Vehicle Positions, Trip Updates, and Alerts
+together. Prediction & ETA Lab explains deterministic fallback, external
+predictor shadow/fail-closed review, local backtest summaries, and withheld
+Trip Updates reasons without claiming ETA quality.
+
+## Access And Audit
+
+Open:
+
+```text
+/admin/operations/access
+/admin/operations/audit
+```
+
+Access & Roles shows private agency scope, role boundaries, and access-denied
+guidance. Audit Log shows metadata-only scoped audit rows and does not expose
+raw payloads, tokens, credentials, or private logs.
 
 ## Reliability
 
