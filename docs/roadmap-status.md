@@ -19,9 +19,11 @@ GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. active Phase 87 -- Public Feed Readiness And Docs Portal, kept to private
-   feed URL review, docs portal alignment, prepared-packet explanation, and
-   future evidence checklists that require separate written authorization;
+1. active Phase 87 -- Public Feed Readiness And Docs Portal, planned at
+   [Phase 87 Public Feed Readiness And Docs Portal](phase-87-public-feed-readiness-and-docs-portal.md)
+   and kept to private feed URL review, docs portal alignment,
+   prepared-packet explanation, and future evidence checklists that require
+   separate written authorization;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as the bounded planning guide for Phase 87+;
@@ -106,9 +108,10 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue Phase 87 -- Public Feed Readiness And Docs Portal while keeping
-   release-cut cleanup and optional evidence tracks separated by their phase
-   gates and claim boundaries.
+6. Continue Phase 87 -- Public Feed Readiness And Docs Portal from
+   [`docs/phase-87-public-feed-readiness-and-docs-portal.md`](phase-87-public-feed-readiness-and-docs-portal.md)
+   while keeping release-cut cleanup and optional evidence tracks separated by
+   their phase gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
 8. Run the release-candidate readiness gate:

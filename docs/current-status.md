@@ -389,7 +389,8 @@ consumer status change, release artifact, hosted-service claim,
 production-readiness claim, production multi-tenancy claim, vendor claim,
 hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 87 -- Public
 Feed Readiness And Docs Portal is the next authorized private product phase in
-the Phase 75-90 product track.
+the Phase 75-90 product track, with plan at
+`docs/phase-87-public-feed-readiness-and-docs-portal.md`.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
