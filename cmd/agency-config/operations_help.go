@@ -16,6 +16,9 @@ type operationsHelpView struct {
 	FirstWeek      []operationsHelpFirstWeekItem `json:"first_week_checklist"`
 	Glossary       []operationsHelpGlossaryTerm  `json:"glossary"`
 	Recovery       []operationsHelpRecoveryRow   `json:"recovery_guidance"`
+	TrainingGuide  operationsHelpTrainingGuide   `json:"training_guide"`
+	QuickTasks     []operationsHelpQuickTask     `json:"quick_tasks"`
+	Handoff        []operationsHelpHandoffItem   `json:"handoff_checklist"`
 	Topics         []operationsHelpTopic         `json:"topics"`
 	ContextualHelp operationsContextHelp         `json:"contextual_help"`
 	ClaimFlags     operationsHelpClaimFlags      `json:"claim_flags"`
@@ -64,6 +67,35 @@ type operationsHelpRecoveryRow struct {
 	EscalationTrigger string `json:"escalation_trigger"`
 	ConsoleLink       string `json:"console_link"`
 	DoesNotProve      string `json:"does_not_prove"`
+}
+
+type operationsHelpTrainingGuide struct {
+	Label    string `json:"label"`
+	DocsPath string `json:"docs_path"`
+	Audience string `json:"audience"`
+	HowToUse string `json:"how_to_use"`
+	Boundary string `json:"boundary"`
+}
+
+type operationsHelpQuickTask struct {
+	ID           string `json:"id"`
+	Label        string `json:"label"`
+	PrimaryRole  string `json:"primary_role"`
+	ConsoleLink  string `json:"console_link"`
+	ReviewSteps  string `json:"review_steps"`
+	DoneWhen     string `json:"done_when"`
+	Escalation   string `json:"escalation"`
+	DoesNotProve string `json:"does_not_prove"`
+}
+
+type operationsHelpHandoffItem struct {
+	ID           string `json:"id"`
+	Area         string `json:"area"`
+	FromRole     string `json:"from_role"`
+	ToRole       string `json:"to_role"`
+	Confirm      string `json:"confirm"`
+	ConsoleLink  string `json:"console_link"`
+	DoesNotProve string `json:"does_not_prove"`
 }
 
 type operationsHelpTopic struct {
@@ -159,6 +191,9 @@ func buildOperationsHelpView(generatedAt time.Time, agencyID string, section str
 		FirstWeek:      operationsHelpFirstWeekChecklist(),
 		Glossary:       operationsHelpGlossary(),
 		Recovery:       operationsHelpRecoveryGuidance(),
+		TrainingGuide:  operationsHelpTrainingGuideLink(),
+		QuickTasks:     operationsHelpQuickTasks(),
+		Handoff:        operationsHelpHandoffChecklist(),
 		Topics:         topics,
 		ContextualHelp: context,
 		ClaimFlags:     operationsHelpClaimFlags{},
@@ -271,6 +306,39 @@ func operationsHelpRecoveryGuidance() []operationsHelpRecoveryRow {
 	}
 }
 
+func operationsHelpTrainingGuideLink() operationsHelpTrainingGuide {
+	return operationsHelpTrainingGuide{
+		Label:    "Printable Staff Training Guide",
+		DocsPath: "docs/operator-training-guide.md",
+		Audience: "Directors, daily operators, technical helpers, integrators, and no-developer evaluators.",
+		HowToUse: "Use the guide for staff onboarding, weekly review, troubleshooting practice, and handoff notes before opening stronger evidence or release gates.",
+		Boundary: "The guide is training material only. It does not create evidence, move consumer status, authorize external contact, or prove public outcomes.",
+	}
+}
+
+func operationsHelpQuickTasks() []operationsHelpQuickTask {
+	return []operationsHelpQuickTask{
+		helpQuickTask("import_gtfs", "Import or review GTFS", "Technical helper", "/admin/operations/gtfs-workbench", "Open GTFS Workbench, inspect active feed state, import history, required files, quality triage, and validation context.", "Schedule state and next action are visible to the operator.", "Escalate when source GTFS data must be corrected or validator tooling is unavailable.", "Does not prove validator-clean status, source-of-truth listing, agency approval, or compliance."),
+		helpQuickTask("check_feed_health", "Check feed health", "Daily operator", "/admin/operations/feeds", "Review five configured feed URLs, metadata, local fetch context, validator context, and off-host guidance.", "Every missing, stale, blocked, or needs-review feed row has an owner or next action.", "Escalate when public root configuration or off-host validation is needed.", "Does not prove final-root readiness, consumer action, public launch, SLA, or uptime."),
+		helpQuickTask("run_validation", "Review validation", "Technical helper", "/admin/operations/validation-center", "Use Validation Center and Validation Health to identify the feed, validator, artifact, latest status, and blocker.", "Validation status is understood and the next safe rerun path is clear.", "Escalate before changing validator tooling, server paths, or deployment configuration.", "Does not prove compliance, outside review, or consumer status."),
+		helpQuickTask("simulate_telemetry", "Add or simulate telemetry", "Daily operator", "/admin/operations/telemetry-simulator", "Review device binding, simulator scenario, credential boundary, telemetry freshness, and Realtime Center results.", "Synthetic or local telemetry review has a clear result without exposing credentials.", "Escalate if live devices, tokens, or adapter payloads need operational changes.", "Does not prove real-device reliability, vendor compatibility, or field operations quality."),
+		helpQuickTask("review_connectors", "Review connectors", "Integrator", "/admin/operations/connectors/workbench", "Choose a recipe, inspect synthetic normalization preview, dry-run guidance, conformance results, and fail-closed boundaries.", "The next connector experiment uses local or synthetic inputs only.", "Escalate before real credentials, real vendor payloads, or network sends are introduced.", "Does not prove named vendor compatibility or hardware certification."),
+		helpQuickTask("prepare_technical_helper", "Prepare for a technical helper", "Director or manager", "/admin/operations/help", "Collect the current private page, blocker, owner, and intended next action without copying secrets or raw private output.", "The helper knows which console section and docs page to inspect first.", "Escalate to maintainer review before evidence retention, release packaging, or schema-changing work.", "Does not prove managed support, release readiness, or outside approval."),
+		helpQuickTask("support_bundle", "Prepare support bundle guidance", "Technical helper", "/admin/operations/maintenance", "Open Maintenance, review support-bundle/redaction guidance, backup/restore review, cadence rows, and infrastructure category checks.", "Support context is ready for redacted local review without browser-executed destructive actions.", "Escalate before sharing private artifacts outside the operator-approved channel.", "Does not prove paid support, SLA, uptime, hosted-service availability, or release readiness."),
+	}
+}
+
+func operationsHelpHandoffChecklist() []operationsHelpHandoffItem {
+	return []operationsHelpHandoffItem{
+		helpHandoffItem("setup_owner", "Agency setup", "Director or manager", "Technical helper", "Agency profile, public feed metadata, contact, license, and role visibility have an owner.", "/admin/operations/setup-wizard", "Does not prove agency approval, legal approval, or public readiness."),
+		helpHandoffItem("schedule_owner", "Schedule data", "Technical helper", "Daily operator", "Active schedule state, import history, quality triage, and validation context are understandable.", "/admin/operations/gtfs-workbench", "Does not prove validator-clean status or source-of-truth listing."),
+		helpHandoffItem("realtime_owner", "Realtime operations", "Daily operator", "Technical helper", "Telemetry freshness, device binding, Vehicle Positions, Trip Updates, and Alerts states have known next actions.", "/admin/operations/realtime", "Does not prove field reliability, target display, or ETA quality."),
+		helpHandoffItem("connector_owner", "Connector experiments", "Integrator", "Technical helper", "Recipes, synthetic fixtures, conformance expectations, and no-send boundaries are documented for the next local experiment.", "/admin/operations/connectors/workbench", "Does not prove vendor compatibility, hardware certification, or live integration fitness."),
+		helpHandoffItem("maintenance_owner", "Maintenance", "Technical helper", "Director or manager", "Backup/restore review, upgrade/rollback review, support-bundle guidance, and cadence rows have owners.", "/admin/operations/maintenance", "Does not prove hosted-service availability, SLA, uptime, managed support, or release readiness."),
+		helpHandoffItem("claim_owner", "Claims and evidence", "Director or manager", "Maintainer or authorized evidence owner", "Prepared packet, final-root, consumer, agency pilot, vendor/device, ETA-quality, and compliance gates stay separate.", "/admin/operations/consumers", "Does not create evidence, authorize external contact, move consumer status, or prove public outcomes."),
+	}
+}
+
 func helpRoleTour(id string, label string, who string, startHere string, reviewFirst string, firstActions string, escalate string, doesNotProve string, adminLinks []string, docsLinks []string) operationsHelpRoleTour {
 	return operationsHelpRoleTour{
 		ID:           id,
@@ -321,6 +389,31 @@ func helpRecoveryRow(id string, sees string, cause string, next string, escalati
 		EscalationTrigger: escalation,
 		ConsoleLink:       helpAdminLink(consoleLink),
 		DoesNotProve:      doesNotProve,
+	}
+}
+
+func helpQuickTask(id string, label string, role string, consoleLink string, steps string, doneWhen string, escalation string, doesNotProve string) operationsHelpQuickTask {
+	return operationsHelpQuickTask{
+		ID:           id,
+		Label:        label,
+		PrimaryRole:  role,
+		ConsoleLink:  helpAdminLink(consoleLink),
+		ReviewSteps:  steps,
+		DoneWhen:     doneWhen,
+		Escalation:   escalation,
+		DoesNotProve: doesNotProve,
+	}
+}
+
+func helpHandoffItem(id string, area string, fromRole string, toRole string, confirm string, consoleLink string, doesNotProve string) operationsHelpHandoffItem {
+	return operationsHelpHandoffItem{
+		ID:           id,
+		Area:         area,
+		FromRole:     fromRole,
+		ToRole:       toRole,
+		Confirm:      confirm,
+		ConsoleLink:  helpAdminLink(consoleLink),
+		DoesNotProve: doesNotProve,
 	}
 }
 

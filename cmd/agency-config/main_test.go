@@ -3140,6 +3140,10 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"First-Week Checklist",
 		"Plain-Language Glossary",
 		"Common Mistake Recovery",
+		"Printable Staff Training Guide",
+		"Quick Tasks",
+		"Staff Handoff Checklist",
+		"docs/operator-training-guide.md",
 		"No-developer evaluator",
 		"Director or manager",
 		"Daily operator",
@@ -3152,6 +3156,10 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		`id="help-glossary-support_bundle"`,
 		`id="help-recovery-validator_blocked"`,
 		`id="help-recovery-consumer_status_confusion"`,
+		`id="help-quick-task-import_gtfs"`,
+		`id="help-quick-task-support_bundle"`,
+		`id="help-handoff-setup_owner"`,
+		`id="help-handoff-claim_owner"`,
 		"Trip Updates are empty, fallback, or withheld",
 		"Prepared packet visibility does not prove submission",
 		safePluginDefinition,
@@ -6745,8 +6753,11 @@ func assertFirstRunFlagsFalse(t *testing.T, flags operationsFirstRunClaimFlags) 
 
 func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.TrainingGuide.DocsPath == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 || len(view.QuickTasks) != 7 || len(view.Handoff) != 6 {
 		t.Fatalf("invalid help top-level shape: %+v", view)
+	}
+	if view.TrainingGuide.DocsPath != "docs/operator-training-guide.md" || view.TrainingGuide.Label == "" || view.TrainingGuide.Audience == "" || view.TrainingGuide.HowToUse == "" || view.TrainingGuide.Boundary == "" {
+		t.Fatalf("invalid training guide link: %+v", view.TrainingGuide)
 	}
 	wantRoles := []string{"no_developer_evaluator", "director_manager", "daily_operator", "technical_helper", "integrator"}
 	var gotRoles []string
@@ -6796,6 +6807,22 @@ func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 		}
 		if !strings.HasPrefix(row.ConsoleLink, "/admin/") {
 			t.Fatalf("recovery row %s has unsafe console link %q", row.ID, row.ConsoleLink)
+		}
+	}
+	for _, task := range view.QuickTasks {
+		if task.ID == "" || task.Label == "" || task.PrimaryRole == "" || task.ConsoleLink == "" || task.ReviewSteps == "" || task.DoneWhen == "" || task.Escalation == "" || task.DoesNotProve == "" {
+			t.Fatalf("invalid quick task shape: %+v", task)
+		}
+		if !strings.HasPrefix(task.ConsoleLink, "/admin/") {
+			t.Fatalf("quick task %s has unsafe console link %q", task.ID, task.ConsoleLink)
+		}
+	}
+	for _, item := range view.Handoff {
+		if item.ID == "" || item.Area == "" || item.FromRole == "" || item.ToRole == "" || item.Confirm == "" || item.ConsoleLink == "" || item.DoesNotProve == "" {
+			t.Fatalf("invalid handoff item shape: %+v", item)
+		}
+		if !strings.HasPrefix(item.ConsoleLink, "/admin/") {
+			t.Fatalf("handoff item %s has unsafe console link %q", item.ID, item.ConsoleLink)
 		}
 	}
 	wantIDs := []string{"gtfs", "gtfs_rt", "connectors", "readiness", "validators", "telemetry", "claims_evidence"}

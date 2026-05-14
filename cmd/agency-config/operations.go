@@ -2137,6 +2137,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>What the operator sees</th><th>Likely cause</th><th>Safe next step</th><th>Escalate when</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
 {{range .Help.Recovery}}<tr id="help-recovery-{{.ID}}"><td>{{.WhatOperatorSees}}</td><td>{{.LikelyCause}}</td><td>{{.SafeNextStep}}</td><td>{{.EscalationTrigger}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Printable Staff Training Guide</h3>
+<table><tbody>
+<tr><th>Guide</th><td>{{.Help.TrainingGuide.Label}}</td></tr>
+<tr><th>Repo path</th><td><code>{{.Help.TrainingGuide.DocsPath}}</code></td></tr>
+<tr><th>Audience</th><td>{{.Help.TrainingGuide.Audience}}</td></tr>
+<tr><th>How to use</th><td>{{.Help.TrainingGuide.HowToUse}}</td></tr>
+<tr><th>Boundary</th><td>{{.Help.TrainingGuide.Boundary}}</td></tr>
+</tbody></table>
+<h3>Quick Tasks</h3>
+<table><thead><tr><th>Task</th><th>Role</th><th>Review steps</th><th>Done when</th><th>Escalate when</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Help.QuickTasks}}<tr id="help-quick-task-{{.ID}}"><td>{{.Label}}</td><td>{{.PrimaryRole}}</td><td>{{.ReviewSteps}}</td><td>{{.DoneWhen}}</td><td>{{.Escalation}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Staff Handoff Checklist</h3>
+<table><thead><tr><th>Area</th><th>From</th><th>To</th><th>Confirm</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Help.Handoff}}<tr id="help-handoff-{{.ID}}"><td>{{.Area}}</td><td>{{.FromRole}}</td><td>{{.ToRole}}</td><td>{{.Confirm}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <div class="card-grid" aria-label="Help topics">
 {{range .Help.Topics}}<section class="card" id="help-{{.ID}}">
 <h3>{{.Label}}</h3>
