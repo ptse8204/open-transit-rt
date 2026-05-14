@@ -404,9 +404,16 @@ operator training guide. Phase 88 added no public admin route, migration,
 evidence write, consumer status change, release artifact, final-root readiness
 claim, consumer action claim, hosted-service claim, production-readiness claim,
 vendor claim, hardware claim, SLA/uptime claim, or ETA-quality claim. Phase
-89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate is the next authorized review
-phase in the Phase 75-90 product track, with plan at
-`docs/phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md`.
+89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate is complete for bounded local
+release-candidate diagnostics. It recorded clean local product checks, local
+route and five-feed diagnostics, focused private Operations Console route
+tests, synthetic/local connector and backend diagnostics, draft
+`v0.1.0-rc.1` release notes, package/audit blockers, and a `needs_review`
+conclusion. Phase 89 did not tag, package, publish an image, create retained
+evidence, contact external parties, change consumer status, or make a
+release-ready claim. Phase 90 -- Final Control Plane Closeout And Future
+Evidence Gate Stubs is the next authorized phase in the Phase 75-90 product
+track.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

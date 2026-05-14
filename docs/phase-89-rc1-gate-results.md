@@ -86,6 +86,14 @@ claim, agency approval/adoption claim, final-root claim, vendor/device claim,
 hardware claim, SLA/uptime claim, production-readiness claim, or
 production-grade ETA claim.
 
+## Checkpoint 000006 -- Closeout
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Phase 89 handoff | passed | `docs/handoffs/phase-89.md` records the local gate, blockers, validation, protected-path status, consumer tracker status, and claim-boundary review. |
+| Source-of-truth status docs | passed | Current status, latest handoff, roadmap status, and master planner docs now mark Phase 89 complete and Phase 90 next. |
+| Final Phase 89 decision | needs_review | Local diagnostics passed where authorized, but release packaging, package audit, tagging, image publication, and release action remain blocked/not checked. |
+
 ## Current Blockers
 
 | Blocker | Status | Impact |

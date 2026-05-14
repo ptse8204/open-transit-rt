@@ -8,23 +8,24 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 88 is complete for the Nontechnical Training And In-App Guidance scope
-in the authorized Phase 75-90 Consumer-Grade Control Plane track. It changed
-the private Help route and JSON export for role-based tours, first-week
-checklist, plain-language glossary, common mistake recovery, quick tasks,
-staff handoff checklist, and a docs-based operator training guide. Phase 72
-still ended with `needs_review` release-candidate
-diagnostics, not a release-ready pass. Phase 74 CP000008 remains the latest
-GitHub Pages publication at commit `a8b250e`.
+Phase 89 is complete for the Release-Cut Cleanup / v0.1.0-rc.1 Gate scope in
+the authorized Phase 75-90 Consumer-Grade Control Plane track. It recorded
+clean local product checks, local route and five-feed diagnostics, focused
+private Operations Console route tests, synthetic/local connector and backend
+diagnostics, draft `v0.1.0-rc.1` release notes, package/audit blockers, and a
+`needs_review` conclusion. It did not tag, package, publish an image, create
+retained evidence, contact external parties, change consumer status, or make a
+release-ready claim. Phase 72 still ended with `needs_review`
+release-candidate diagnostics, not a release-ready pass. Phase 74 CP000008
+remains the latest GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. active Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate, planned at
-   [Phase 89 Release-Cut Cleanup / v0.1.0-rc.1 Gate](phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md)
-   and kept to local release-candidate diagnostics, route checks,
-   connector/backend checks, draft release notes, and blockers matrix without
-   tagging, publishing, package distribution, evidence collection, or
-   release-ready claims;
+1. active Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
+   Stubs, kept to final status/handoff updates, route and feature
+   inventories, validation and blocker matrices, protected-path and
+   consumer-tracker review, claim-boundary review, and future optional
+   evidence gate stubs that each require separate written authorization;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as the bounded planning guide for Phase 87+;
@@ -33,7 +34,7 @@ Continue the authorized product track with:
    claim boundaries;
 4. private OCI/reference diagnostics and off-host public feed validation as
    product-support checks, not evidence;
-5. future local release-candidate review for `v0.1.0-rc.1`, not a full
+5. future authorized release-candidate review for `v0.1.0-rc.1`, not a full
    `v0.1.0` release;
 6. release-candidate package diagnostics only when explicitly approved;
 7. tag, package, publish, or retain evidence only if separately authorized.
@@ -73,10 +74,10 @@ assessment.
 
 | Area | Current risk | Product-quality next action |
 | --- | --- | --- |
-| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed and published GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 CP000008 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
+| Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 89 completed the local `v0.1.0-rc.1` gate with product, route, connector, backend, and claim-boundary diagnostics recorded, but package creation/audit and release actions remain blocked/not checked without separate authorization. | Treat the Phase 89 `needs_review` conclusion as the current release-candidate status; do not tag, package, publish, or claim release readiness without a later authorized release-cut gate. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
-| Browser-first operations | Phase 88 is complete after Public Feed Readiness, Maintenance Center V2, Prediction And ETA Lab, Connector Workbench, and Multi-Agency/Roles/Audit/Accessibility. The private Operations Console now covers feed URL readiness, prepared-only consumer packet explanation, training/help, role tours, glossary, quick tasks, handoff guidance, maintenance diagnostics, agency scope, role guidance, bounded access-denied guidance, metadata-only audit review, and shared accessibility shell hardening without browser-executed maintenance actions or evidence/submission actions. | Continue Phase 89 for local release-candidate diagnostics, route checks, connector/backend checks, draft notes, and blockers. |
+| Browser-first operations | Phase 88 is complete after Public Feed Readiness, Maintenance Center V2, Prediction And ETA Lab, Connector Workbench, and Multi-Agency/Roles/Audit/Accessibility. Phase 89 route diagnostics reviewed the private Operations Console route set and five local public feed paths. | Continue Phase 90 final closeout with route inventory, feature inventory, validation matrix, blocker matrix, and future authorization-gated evidence stubs. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
@@ -98,7 +99,7 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 88 Nontechnical Training And In-App Guidance closeout.
+1. Review the completed Phase 89 Release-Cut Cleanup / v0.1.0-rc.1 Gate closeout.
 2. Use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as the bounded product-track guide for Phase 87+.
@@ -109,13 +110,13 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate from
-   [`docs/phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md`](phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md)
-   while keeping release actions and optional evidence tracks separated by
-   their phase gates and claim boundaries.
-7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
-   checkout passes the repo's release-candidate diagnostics.
-8. Run the release-candidate readiness gate:
+6. Continue Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
+   Stubs while keeping release actions and optional evidence tracks separated
+   by their phase gates and claim boundaries.
+7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a later
+   authorized release-cut gate passes the repo's release-candidate diagnostics.
+8. For later authorized release-cut review, rerun the release-candidate
+   readiness gate:
 
    ```bash
    git status --short

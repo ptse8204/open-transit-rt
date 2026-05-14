@@ -187,9 +187,18 @@ operator training guide. Phase 88 added no public admin route, migration,
 evidence write, consumer status change, release artifact, final-root readiness
 claim, consumer action claim, hosted-service claim, production-readiness claim,
 vendor claim, hardware claim, SLA/uptime claim, or ETA-quality claim. Phase
-89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate is the next authorized review
-phase in the Phase 75-90 track, with plan at
-`docs/phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md`. Any future evidence
+89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate is complete for bounded local
+release-candidate diagnostics, with closeout at
+`docs/handoffs/phase-89.md`: clean local product checks, local route and
+five-feed diagnostics, focused private Operations Console route tests,
+synthetic/local connector and backend diagnostics, draft `v0.1.0-rc.1`
+release notes, package/audit blockers, and a `needs_review` conclusion are
+recorded. Phase 89 added no tag, package, published image, retained evidence,
+consumer status change, external contact, release-ready claim, compliance
+claim, adoption claim, consumer action claim, final-root claim, hosted-service
+claim, production-readiness claim, vendor claim, hardware claim, SLA/uptime
+claim, or ETA-quality claim. Phase 90 -- Final Control Plane Closeout And
+Future Evidence Gate Stubs is the next authorized phase. Any future evidence
 intake is optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1454,15 +1463,16 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue Phase 89 -- Release-Cut Cleanup / v0.1.0-rc.1 Gate in the authorized
-Phase 75-90 product track from
-`docs/phase-89-release-cut-cleanup-v0.1.0-rc1-gate.md`. Keep the work local,
-bounded, and focused on release-candidate diagnostics, route checks,
-connector/backend checks, draft notes, and blockers. Do not tag, publish,
-distribute packages, collect evidence, or claim production readiness, hosted
-service, SLA, uptime, release readiness, compliance, agency adoption, consumer
-acceptance, vendor compatibility, hardware certification, real vendor/device
-proof, or evidence.
+Continue Phase 90 -- Final Control Plane Closeout And Future Evidence Gate
+Stubs in the authorized Phase 75-90 product track. Close the full
+consumer-grade control-plane track with final status/handoff updates, route
+and feature inventories, validation and blocker matrices, protected-path and
+consumer-tracker review, claim-boundary review, and future optional evidence
+gate stubs that each require separate written authorization. Do not tag,
+publish, distribute packages, collect evidence, or claim production readiness,
+hosted service, SLA, uptime, release readiness, compliance, agency adoption,
+consumer acceptance, vendor compatibility, hardware certification, real
+vendor/device proof, or evidence.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit
