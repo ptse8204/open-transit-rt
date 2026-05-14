@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"open-transit-rt/internal/admincontrol"
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
 	"open-transit-rt/internal/devices"
@@ -3900,6 +3901,27 @@ func TestValidationHealthJSONContractOrderAndNoLeakage(t *testing.T) {
 	assertValidationHealthJSONAllowlist(t, rr.Body.Bytes())
 }
 
+func TestValidationHealthCommandDefinitionsBoundedForBrowserControl(t *testing.T) {
+	refresh := admincontrol.ValidationHealthRefreshDefinition()
+	if refresh.Action != "validation_health.refresh" || refresh.LadderLevel != admincontrol.LevelReadOnlyRefresh || refresh.RequiredRole != "read_only" {
+		t.Fatalf("unexpected refresh command definition: %+v", refresh)
+	}
+	for _, want := range []string{"No public feed output changes", "Writes nothing", "Does not prove compliance"} {
+		if !strings.Contains(refresh.PublicFeedImpact+refresh.PrivateImpact+refresh.DoesNotProve, want) {
+			t.Fatalf("refresh command definition missing %q: %+v", want, refresh)
+		}
+	}
+	runAll := admincontrol.ValidationHealthRunAllDefinition()
+	if runAll.Action != "validation_health.run_all" || runAll.LadderLevel != admincontrol.LevelReversiblePrivate || runAll.RequiredRole != "admin" {
+		t.Fatalf("unexpected run-all command definition: %+v", runAll)
+	}
+	for _, want := range []string{"No public feed output changes", "validation_report", "Does not prove compliance"} {
+		if !strings.Contains(runAll.PublicFeedImpact+runAll.PrivateImpact+runAll.DoesNotProve, want) {
+			t.Fatalf("run-all command definition missing %q: %+v", want, runAll)
+		}
+	}
+}
+
 func TestValidationHealthHTMLMatchesJSONRows(t *testing.T) {
 	now := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
 	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
@@ -3943,7 +3965,7 @@ func TestValidationHealthHTMLMatchesJSONRows(t *testing.T) {
 func TestValidationHealthPostStrictnessCSRFAndBodyCap(t *testing.T) {
 	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC())}
 	srv := newValidationHealthTestHandler(t, auth.RoleAdmin, store, fakeScheduleBuilder{})
-	for _, field := range []string{"feed_type", "validator_id", "validator_path", "validator_command", "output_path", "artifact_path", "report_path", "url", "argv", "args", "timeout_seconds"} {
+	for _, field := range []string{"feed_type", "validator_id", "validator_path", "validator_command", "output_path", "artifact_path", "report_path", "schedule_zip_path", "realtime_pb_path", "path", "url", "URL", "argv", "args", "timeout", "timeout_seconds", "raw_report", "stdout", "stderr"} {
 		req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader(validationHealthRunAllForm()+"&"+field+"=browser"))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rr := httptest.NewRecorder()
@@ -3977,6 +3999,20 @@ func TestValidationHealthPostStrictnessCSRFAndBodyCap(t *testing.T) {
 	srv.ServeHTTP(rr, req)
 	if rr.Code != http.StatusForbidden {
 		t.Fatalf("missing csrf status = %d, want 403", rr.Code)
+	}
+}
+
+func TestValidationHealthRunAllRequiresAdminRole(t *testing.T) {
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC())}
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor} {
+		srv := newValidationHealthTestHandler(t, role, store, fakeScheduleBuilder{})
+		req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health", strings.NewReader(validationHealthRunAllForm()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("role %s status = %d, want 403", role, rr.Code)
+		}
 	}
 }
 
