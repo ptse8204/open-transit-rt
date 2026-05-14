@@ -178,3 +178,111 @@ operations staff task trials.
 
 Next checkpoint:
 Phase 93 -- Checkpoint 000002: run evaluator and operations staff task trials.
+
+## Checkpoint 000002 Evaluator And Operations Staff Task Trials
+
+Browser plugin status:
+`blocked`.
+
+The in-app Browser plugin was connected successfully, but attempts to open both
+`http://localhost:8080/healthz` and
+`http://127.0.0.1:8080/admin/operations` failed before page load with
+`net::ERR_BLOCKED_BY_CLIENT`. No authenticated Operations Console page loaded
+in the browser.
+
+Fallback used:
+Terminal-authenticated local route checks against the running local app. A
+short-lived local demo admin token was generated and kept in process memory
+only; it was not written to repository files, docs, retained evidence, or
+diagnostic summaries.
+
+Diagnostic summary path:
+`.cache/phase-93/cp000002-evaluator-ops.json`
+
+| Flow | Route | Result | Notes |
+| --- | --- | --- | --- |
+| Unauthenticated admin boundary | `/admin/operations` | passed | Returned local `401` without an admin token. |
+| New agency evaluator | `/admin/operations` | passed | Authenticated route returned `200`; expected Start Here, setup, help, and readiness terms were present. |
+| New agency evaluator | `/admin/operations/setup-wizard` | passed | Authenticated route returned `200`; expected agency setup, first-step, technical-helper, and local-scope terms were present. |
+| New agency evaluator | `/admin/operations/help` | passed | Authenticated route returned `200`; expected help, first-week, glossary, and boundary terms were present. |
+| New agency evaluator | `/admin/operations/readiness` | passed | Authenticated route returned `200`; expected readiness, prepared-only, and does-not-prove terms were present. |
+| Operations staff | `/admin/operations/realtime` | passed | Authenticated route returned `200`; expected Realtime, Vehicle Positions, Trip Updates, Alerts, and stale-state terms were present. |
+| Operations staff | `/admin/operations/feed-health` | passed | Authenticated route returned `200`; expected Feed Health, Vehicle Positions, Trip Updates, Alerts, and freshness terms were present. |
+| Operations staff | `/admin/operations/maintenance` | passed | Authenticated route returned `200`; expected Maintenance, backup, upgrade, and validator terms were present. |
+
+### Usability Notes
+
+- Browser automation itself is a blocker in this environment, so the CP000002
+  result is a local authenticated route fallback rather than a successful
+  browser task trial.
+- The new agency evaluator path has enough route coverage and boundary copy to
+  proceed, but the Start Here page remains dense for first-time users.
+- The operations staff path exposes the required realtime, feed-health, and
+  maintenance concepts, but daily-state review remains spread across multiple
+  pages rather than summarized in one compact blocker view.
+
+## Checkpoint 000002 Report
+
+Checkpoint:
+Phase 93 -- Checkpoint 000002: run evaluator and operations staff task trials.
+
+Sub-agents used or simulated, including intended model level:
+Real UI/UX Sub-Agent -- GPT-5.5 high reported Start Here density and daily
+operations spread as likely blockers. Real Context / Repo Truth Sub-Agent --
+GPT-5.5 x-high, Planning Sub-Agent -- GPT-5.5 x-high, and Claim-Boundary /
+Security Sub-Agent -- GPT-5.5 high informed this checkpoint. Master Agent --
+GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/phase-93-browser-task-trials.md`.
+
+Validation run:
+`make agency-app-up` passed before the trial. Browser plugin setup succeeded,
+but local URL navigation failed with `net::ERR_BLOCKED_BY_CLIENT` for both
+localhost and loopback URLs. Terminal-authenticated fallback route checks
+passed for seven evaluator/operations routes. Unauthenticated
+`/admin/operations` returned `401`.
+
+Blocked checks:
+In-app Browser task execution is blocked in this environment. Fallback route
+checks do not prove browser interaction success.
+
+Protected path status:
+No protected evidence path was edited or generated. Fallback diagnostics stayed
+under ignored `.cache`.
+
+Consumer tracker status:
+The tracker file was not edited. All seven targets must remain exactly
+`prepared`.
+
+Claim-boundary status:
+This checkpoint records local/private task-trial diagnostics only. It makes no
+release readiness, compliance, adoption, consumer acceptance, production
+readiness, final-root readiness, hosted-service availability, vendor
+compatibility, hardware certification, SLA/uptime, or ETA-quality claim.
+
+Security/auth status:
+Admin routes remained non-public without a token. The local demo admin token
+was kept in process memory only and was not written to committed files or
+diagnostic summaries.
+
+Data/migration status:
+No persistence, migration, GTFS data model, or realtime data model change is
+included.
+
+Master review:
+Approved. Browser automation is truthfully recorded as blocked, the fallback
+kept admin credentials out of retained artifacts, and the evaluator/operations
+route coverage is sufficient to proceed.
+
+Required edits:
+CP000004 should add a compact role-based entry panel or equivalent IA cue if
+the existing Start Here density can be improved safely. No CP000002 edit is
+required before commit.
+
+Decision:
+Proceed to CP000002 validation and commit, then CP000003 technical-helper,
+maintainer, and connector-evaluator trials.
+
+Next checkpoint:
+Phase 93 -- Checkpoint 000003: run technical helper maintainer and connector trials.
