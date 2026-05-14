@@ -28,6 +28,10 @@ type gtfsDraftReviewReader interface {
 	RecentGTFSDraftPublishes(ctx context.Context, agencyID string, limit int) ([]compliance.GTFSDraftPublishRecord, error)
 }
 
+type gtfsScheduleHistoryReader interface {
+	RecentFeedVersions(ctx context.Context, agencyID string, limit int) ([]compliance.FeedVersionRecord, error)
+}
+
 type operationsGTFSWorkbenchView struct {
 	GeneratedAt       time.Time                         `json:"generated_at"`
 	AgencyID          string                            `json:"agency_id"`
@@ -38,6 +42,7 @@ type operationsGTFSWorkbenchView struct {
 	ValidationHealth  operationsGTFSValidationSummary   `json:"validation_health"`
 	Preview           operationsGTFSPreviewSummary      `json:"preview"`
 	DraftReview       operationsGTFSDraftReviewSummary  `json:"draft_review"`
+	ScheduleHistory   operationsGTFSScheduleHistory     `json:"schedule_history"`
 	FeedOutput        operationsGTFSFeedOutputSummary   `json:"feed_output"`
 	Actions           []operationsGTFSWorkbenchAction   `json:"actions"`
 	ClaimFlags        operationsGTFSWorkbenchClaimFlags `json:"claim_flags"`
@@ -205,6 +210,28 @@ type operationsGTFSDraftPublishRow struct {
 	Signal        string     `json:"signal"`
 }
 
+type operationsGTFSScheduleHistory struct {
+	Status           string                         `json:"status"`
+	HistoryStatus    string                         `json:"history_status"`
+	CurrentSignal    string                         `json:"current_signal"`
+	NextAction       string                         `json:"next_action"`
+	ClaimBoundary    string                         `json:"claim_boundary"`
+	FeedVersions     []operationsGTFSFeedVersionRow `json:"feed_versions"`
+	RollbackGuidance []operationsGTFSChangeRow      `json:"rollback_guidance"`
+}
+
+type operationsGTFSFeedVersionRow struct {
+	ID               string     `json:"id"`
+	SourceType       string     `json:"source_type"`
+	LifecycleState   string     `json:"lifecycle_state"`
+	IsActive         bool       `json:"is_active"`
+	ValidationStatus string     `json:"validation_status"`
+	PublishedAt      *time.Time `json:"published_at"`
+	ActivatedAt      *time.Time `json:"activated_at"`
+	RetiredAt        *time.Time `json:"retired_at"`
+	CreatedAt        time.Time  `json:"created_at"`
+}
+
 type operationsGTFSWorkbenchAction struct {
 	ID            string `json:"id"`
 	Label         string `json:"label"`
@@ -245,6 +272,7 @@ func (h *handler) buildGTFSWorkbenchView(r *http.Request, page operationsPage) o
 	view.ValidationHealth = buildGTFSWorkbenchValidationSummary(page.ValidationHealth)
 	view.Preview = h.buildGTFSPreviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.DraftReview = h.buildGTFSDraftReviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
+	view.ScheduleHistory = h.buildGTFSScheduleHistory(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.FeedOutput = buildGTFSWorkbenchFeedOutput(page.Discovery)
 	view.Actions = buildGTFSWorkbenchActions(view, page)
 	return view
@@ -549,6 +577,133 @@ func gtfsDraftPublishValidationSignal(publishes []operationsGTFSDraftPublishRow)
 		return "No draft publish attempt is recorded."
 	}
 	return publishes[0].Signal
+}
+
+func (h *handler) buildGTFSScheduleHistory(ctx context.Context, agencyID string, activeFeedVersionID string) operationsGTFSScheduleHistory {
+	boundary := "Schedule history is a private review of local feed_version records. It does not execute rollback, publish a release, create evidence, prove final-root readiness, or prove consumer ingestion."
+	summary := operationsGTFSScheduleHistory{
+		Status:        "unknown",
+		HistoryStatus: "unavailable",
+		CurrentSignal: "Schedule feed-version history is not available in this runtime.",
+		NextAction:    "Use import and draft publish records, then ask a technical helper to inspect feed_version state if rollback review is needed.",
+		ClaimBoundary: boundary,
+		RollbackGuidance: []operationsGTFSChangeRow{
+			gtfsWorkbenchChangeRow("Browser rollback execution", "ok", "No rollback POST route exists in the GTFS Workbench.", "Use documented operator procedures and technical-helper review before any rollback outside this page.", boundary),
+		},
+	}
+	reader, ok := h.store.(gtfsScheduleHistoryReader)
+	if !ok {
+		return summary
+	}
+	records, err := reader.RecentFeedVersions(ctx, agencyID, gtfsWorkbenchImportHistoryLimit)
+	if err != nil {
+		return summary
+	}
+	summary.HistoryStatus = "recorded"
+	for _, record := range records {
+		summary.FeedVersions = append(summary.FeedVersions, feedVersionRowView(record))
+	}
+	summary.Status = scheduleHistoryStatus(summary.FeedVersions, activeFeedVersionID)
+	summary.CurrentSignal = scheduleHistorySignal(summary.FeedVersions, activeFeedVersionID)
+	summary.NextAction = scheduleHistoryNextAction(summary.Status)
+	summary.RollbackGuidance = append(summary.RollbackGuidance,
+		gtfsWorkbenchChangeRow("Active feed visibility", scheduleHistoryActiveStatus(summary.FeedVersions, activeFeedVersionID), scheduleHistorySignal(summary.FeedVersions, activeFeedVersionID), "Confirm the active feed version before rollback or support-bundle decisions.", boundary),
+		gtfsWorkbenchChangeRow("Rollback candidate review", rollbackCandidateStatus(summary.FeedVersions), rollbackCandidateSignal(summary.FeedVersions), "If rollback is required, confirm candidate source type, validation state, feed-health impact, and operator approval outside this Workbench.", boundary),
+		gtfsWorkbenchChangeRow("After rollback review", "needs_review", "Any rollback would require follow-up GTFS quality, validation health, feed health, realtime assignment, and public URL review.", "Record the outcome as normal private operations state only; do not create evidence or consumer claims here.", boundary),
+	)
+	return summary
+}
+
+func feedVersionRowView(record compliance.FeedVersionRecord) operationsGTFSFeedVersionRow {
+	return operationsGTFSFeedVersionRow{
+		ID:               record.ID,
+		SourceType:       record.SourceType,
+		LifecycleState:   record.LifecycleState,
+		IsActive:         record.IsActive,
+		ValidationStatus: record.ValidationStatus,
+		PublishedAt:      record.PublishedAt,
+		ActivatedAt:      record.ActivatedAt,
+		RetiredAt:        record.RetiredAt,
+		CreatedAt:        record.CreatedAt.UTC(),
+	}
+}
+
+func scheduleHistoryStatus(rows []operationsGTFSFeedVersionRow, activeFeedVersionID string) string {
+	if len(rows) == 0 {
+		return "missing"
+	}
+	activeCount := 0
+	activeFound := false
+	for _, row := range rows {
+		if row.IsActive {
+			activeCount++
+			if activeFeedVersionID == "" || row.ID == activeFeedVersionID {
+				activeFound = true
+			}
+		}
+	}
+	if activeCount != 1 || !activeFound {
+		return "needs_review"
+	}
+	return "ok"
+}
+
+func scheduleHistorySignal(rows []operationsGTFSFeedVersionRow, activeFeedVersionID string) string {
+	if len(rows) == 0 {
+		return "No local feed_version rows are available for schedule history review."
+	}
+	active := "not found"
+	for _, row := range rows {
+		if row.IsActive {
+			active = row.ID
+			break
+		}
+	}
+	if activeFeedVersionID != "" && active != activeFeedVersionID {
+		return fmt.Sprintf("Local history active feed is %s; feed discovery active schedule is %s.", active, activeFeedVersionID)
+	}
+	return fmt.Sprintf("%d recent feed versions are available; active feed version is %s.", len(rows), active)
+}
+
+func scheduleHistoryNextAction(status string) string {
+	switch status {
+	case "ok":
+		return "Keep reviewing import, draft publish, preview, validation, and feed health rows before operational decisions."
+	case "needs_review":
+		return "Resolve active feed-version mismatch or duplicate-active records before rollback or publish decisions."
+	case "missing":
+		return "Import or publish a schedule before rollback review."
+	default:
+		return "Ask a technical helper to inspect schedule history if rollback review is required."
+	}
+}
+
+func scheduleHistoryActiveStatus(rows []operationsGTFSFeedVersionRow, activeFeedVersionID string) string {
+	return scheduleHistoryStatus(rows, activeFeedVersionID)
+}
+
+func rollbackCandidateStatus(rows []operationsGTFSFeedVersionRow) string {
+	if len(rows) <= 1 {
+		return "missing"
+	}
+	for _, row := range rows {
+		if !row.IsActive && row.LifecycleState == "retired" {
+			return "needs_review"
+		}
+	}
+	return "unknown"
+}
+
+func rollbackCandidateSignal(rows []operationsGTFSFeedVersionRow) string {
+	if len(rows) <= 1 {
+		return "No prior local feed version is visible as a rollback candidate in this bounded history."
+	}
+	for _, row := range rows {
+		if !row.IsActive && row.LifecycleState == "retired" {
+			return "At least one retired local feed version exists; review outside this Workbench before any rollback procedure."
+		}
+	}
+	return "Recent history has multiple feed versions, but no retired rollback candidate is visible in the bounded list."
 }
 
 func (h *handler) buildGTFSImportSummary(ctx context.Context, agencyID string, activeFeedVersionID string) operationsGTFSImportSummary {

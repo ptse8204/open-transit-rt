@@ -2436,6 +2436,23 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .GTFSWorkbench.DraftReview.PublishAttempts}}<tr><td>{{.ID}}</td><td><code>{{.DraftID}}</code></td><td>{{.Status}}</td><td>{{if .FeedVersionID}}<code>{{.FeedVersionID}}</code>{{else}}not linked{{end}}</td><td>{{.ErrorCount}} errors, {{.WarningCount}} warnings, {{.InfoCount}} info</td><td>{{formatTime .StartedAt}}</td><td>{{formatTimePtr .CompletedAt}}</td></tr>{{end}}
 </tbody></table>{{else}}<p class="muted">No recent GTFS Studio publish attempts are available.</p>{{end}}
 <p class="muted">The Workbench has no draft publish POST route. Publishing stays in GTFS Studio and requires the existing admin confirmation path.</p>
+<h3>Schedule History And Rollback Guidance</h3>
+<p class="warning">{{.GTFSWorkbench.ScheduleHistory.ClaimBoundary}}</p>
+<table><tbody>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .GTFSWorkbench.ScheduleHistory.Status}}">{{.GTFSWorkbench.ScheduleHistory.Status}}</span></td></tr>
+<tr><th>History</th><td>{{.GTFSWorkbench.ScheduleHistory.HistoryStatus}}</td></tr>
+<tr><th>Current signal</th><td>{{.GTFSWorkbench.ScheduleHistory.CurrentSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.GTFSWorkbench.ScheduleHistory.NextAction}}</td></tr>
+</tbody></table>
+<h4>Rollback Guidance</h4>
+<table><thead><tr><th>Review item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.ScheduleHistory.RollbackGuidance}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{if .GTFSWorkbench.ScheduleHistory.FeedVersions}}<h4>Recent Feed Versions</h4>
+<table><thead><tr><th>Feed version</th><th>Source</th><th>Lifecycle</th><th>Active</th><th>Validation</th><th>Published</th><th>Activated</th><th>Retired</th><th>Created</th></tr></thead><tbody>
+{{range .GTFSWorkbench.ScheduleHistory.FeedVersions}}<tr><td><code>{{.ID}}</code></td><td>{{.SourceType}}</td><td>{{.LifecycleState}}</td><td>{{.IsActive}}</td><td>{{.ValidationStatus}}</td><td>{{formatTimePtr .PublishedAt}}</td><td>{{formatTimePtr .ActivatedAt}}</td><td>{{formatTimePtr .RetiredAt}}</td><td>{{formatTime .CreatedAt}}</td></tr>{{end}}
+</tbody></table>{{else}}<p class="muted">No recent feed-version rows are available for rollback review.</p>{{end}}
+<p class="muted">This Workbench is read-only. It does not execute rollback, alter active feeds, or write rollback evidence.</p>
 <h3>Preview Tables</h3>
 <table><tbody>
 <tr><th>Status</th><td>{{.GTFSWorkbench.Preview.Status}}</td></tr>

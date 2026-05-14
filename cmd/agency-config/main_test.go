@@ -1558,6 +1558,31 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 			StartedAt:     now.Add(-time.Hour),
 			CompletedAt:   &now,
 		}},
+		feedVersions: []compliance.FeedVersionRecord{
+			{
+				ID:               "feed-v2",
+				AgencyID:         "demo-agency",
+				SourceType:       "gtfs_studio",
+				LifecycleState:   "active",
+				IsActive:         true,
+				ValidationStatus: "warning",
+				PublishedAt:      &now,
+				ActivatedAt:      &now,
+				CreatedAt:        now.Add(-time.Hour),
+			},
+			{
+				ID:               "feed-v1",
+				AgencyID:         "demo-agency",
+				SourceType:       "gtfs_import",
+				LifecycleState:   "retired",
+				IsActive:         false,
+				ValidationStatus: "passed",
+				PublishedAt:      &now,
+				ActivatedAt:      &now,
+				RetiredAt:        &now,
+				CreatedAt:        now.Add(-2 * time.Hour),
+			},
+		},
 		validationRecords: []compliance.ValidationReportRecord{{
 			ID:        1,
 			CreatedAt: now,
@@ -1591,7 +1616,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "Draft Publish Review", "Draft Publish Checklist", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
+	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
@@ -1612,7 +1637,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &decoded); err != nil {
 		t.Fatalf("decode workbench JSON: %v\n%s", err, rr.Body.String())
 	}
-	for _, key := range []string{"generated_at", "agency_id", "boundary", "active_feed_version", "import", "quality", "validation_health", "preview", "draft_review", "feed_output", "actions", "claim_flags"} {
+	for _, key := range []string{"generated_at", "agency_id", "boundary", "active_feed_version", "import", "quality", "validation_health", "preview", "draft_review", "schedule_history", "feed_output", "actions", "claim_flags"} {
 		if _, ok := decoded[key]; !ok {
 			t.Fatalf("workbench JSON missing %q: %#v", key, decoded)
 		}
@@ -1641,6 +1666,10 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	draftReview, ok := decoded["draft_review"].(map[string]any)
 	if !ok || draftReview["status"] != "needs_review" {
 		t.Fatalf("draft_review = %#v, want needs_review object", decoded["draft_review"])
+	}
+	scheduleHistory, ok := decoded["schedule_history"].(map[string]any)
+	if !ok || scheduleHistory["status"] != "ok" {
+		t.Fatalf("schedule_history = %#v, want ok object", decoded["schedule_history"])
 	}
 	jsonBody := rr.Body.String()
 	for _, forbidden := range []string{"/Users/private", "route-11", "consumer_statuses_changed\":true", "compliance_claimed\":true", "production_readiness_claimed\":true"} {
@@ -6408,6 +6437,8 @@ type fakePublicationStore struct {
 	gtfsDraftsErr           error
 	gtfsDraftPublishes      []compliance.GTFSDraftPublishRecord
 	gtfsDraftPublishesErr   error
+	feedVersions            []compliance.FeedVersionRecord
+	feedVersionsErr         error
 	reliabilityHealth       []compliance.ReliabilityFeedHealthRecord
 	reliabilityIncidents    compliance.ReliabilityIncidentRollup
 	reliabilityHealthErr    error
@@ -6609,6 +6640,28 @@ func (f *fakePublicationStore) RecentGTFSDraftPublishes(_ context.Context, agenc
 	out := make([]compliance.GTFSDraftPublishRecord, 0, limit)
 	for _, record := range f.gtfsDraftPublishes {
 		if record.ID == 0 && record.DraftID == "" {
+			continue
+		}
+		out = append(out, record)
+		if len(out) >= limit {
+			break
+		}
+	}
+	return out, nil
+}
+
+func (f *fakePublicationStore) RecentFeedVersions(_ context.Context, agencyID string, limit int) ([]compliance.FeedVersionRecord, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.feedVersionsErr != nil {
+		return nil, f.feedVersionsErr
+	}
+	if limit <= 0 || limit > len(f.feedVersions) {
+		limit = len(f.feedVersions)
+	}
+	out := make([]compliance.FeedVersionRecord, 0, limit)
+	for _, record := range f.feedVersions {
+		if record.AgencyID != "" && record.AgencyID != agencyID {
 			continue
 		}
 		out = append(out, record)

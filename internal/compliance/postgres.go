@@ -935,6 +935,50 @@ func (r *PostgresRepository) RecentGTFSDraftPublishes(ctx context.Context, agenc
 	return records, nil
 }
 
+func (r *PostgresRepository) RecentFeedVersions(ctx context.Context, agencyID string, limit int) ([]FeedVersionRecord, error) {
+	if limit <= 0 || limit > 25 {
+		limit = 10
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, agency_id, source_type, lifecycle_state, is_active, validation_status,
+		       published_at, activated_at, retired_at, created_at
+		FROM feed_version
+		WHERE agency_id = $1
+		ORDER BY is_active DESC, activated_at DESC NULLS LAST, created_at DESC, id
+		LIMIT $2
+	`, agencyID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query recent feed versions: %w", err)
+	}
+	defer rows.Close()
+	records := make([]FeedVersionRecord, 0, limit)
+	for rows.Next() {
+		var record FeedVersionRecord
+		var published, activated, retired sql.NullTime
+		if err := rows.Scan(&record.ID, &record.AgencyID, &record.SourceType, &record.LifecycleState, &record.IsActive, &record.ValidationStatus, &published, &activated, &retired, &record.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan recent feed version: %w", err)
+		}
+		record.CreatedAt = record.CreatedAt.UTC()
+		if published.Valid {
+			t := published.Time.UTC()
+			record.PublishedAt = &t
+		}
+		if activated.Valid {
+			t := activated.Time.UTC()
+			record.ActivatedAt = &t
+		}
+		if retired.Valid {
+			t := retired.Time.UTC()
+			record.RetiredAt = &t
+		}
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate recent feed versions: %w", err)
+	}
+	return records, nil
+}
+
 type feedConfig struct {
 	PublicBaseURL          string
 	FeedBaseURL            string

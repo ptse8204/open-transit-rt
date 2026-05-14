@@ -261,6 +261,19 @@ type GTFSDraftPublishRecord struct {
 	CompletedAt   *time.Time `json:"completed_at"`
 }
 
+type FeedVersionRecord struct {
+	ID               string     `json:"id"`
+	AgencyID         string     `json:"agency_id"`
+	SourceType       string     `json:"source_type"`
+	LifecycleState   string     `json:"lifecycle_state"`
+	IsActive         bool       `json:"is_active"`
+	ValidationStatus string     `json:"validation_status"`
+	PublishedAt      *time.Time `json:"published_at"`
+	ActivatedAt      *time.Time `json:"activated_at"`
+	RetiredAt        *time.Time `json:"retired_at"`
+	CreatedAt        time.Time  `json:"created_at"`
+}
+
 type TripUpdatesDiagnosticsSummary struct {
 	Recorded                      bool               `json:"recorded"`
 	SnapshotAt                    time.Time          `json:"snapshot_at,omitempty"`
