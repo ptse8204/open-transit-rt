@@ -1,20 +1,35 @@
 package main
 
 import (
+	"encoding/csv"
+	"encoding/json"
+	"errors"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strconv"
+	"strings"
 	"time"
 
 	"open-transit-rt/internal/auth"
 	connectorpkg "open-transit-rt/internal/connectors"
 )
 
+const (
+	connectorWorkbenchCSVFixture  = "examples/connectors/telemetry-csv-replay/fixtures/replay.csv"
+	connectorWorkbenchHTTPFixture = "examples/connectors/telemetry-http-poller/fixtures/observations.json"
+)
+
 type connectorWorkbenchView struct {
-	GeneratedAt    time.Time                        `json:"generated_at"`
-	AgencyID       string                           `json:"agency_id"`
-	Boundary       string                           `json:"boundary"`
-	Recipes        []connectorWorkbenchRecipe       `json:"recipes"`
-	ManifestReview connectorWorkbenchManifestReview `json:"manifest_review"`
-	ClaimFlags     connectorWorkbenchClaimFlags     `json:"claim_flags"`
+	GeneratedAt      time.Time                          `json:"generated_at"`
+	AgencyID         string                             `json:"agency_id"`
+	Boundary         string                             `json:"boundary"`
+	Recipes          []connectorWorkbenchRecipe         `json:"recipes"`
+	DryRunCommands   []connectorWorkbenchDryRun         `json:"dry_run_commands"`
+	TelemetryPreview connectorWorkbenchTelemetryPreview `json:"telemetry_preview"`
+	ManifestReview   connectorWorkbenchManifestReview   `json:"manifest_review"`
+	ClaimFlags       connectorWorkbenchClaimFlags       `json:"claim_flags"`
 }
 
 type connectorWorkbenchRecipe struct {
@@ -40,6 +55,58 @@ type connectorWorkbenchManifestReview struct {
 	PluginDefinition string                            `json:"plugin_definition"`
 	Rows             []connectorWorkbenchManifestRow   `json:"rows"`
 	Diagnostics      []connectorpkg.RegistryDiagnostic `json:"diagnostics"`
+}
+
+type connectorWorkbenchDryRun struct {
+	ID                string   `json:"id"`
+	Label             string   `json:"label"`
+	CommandLine       string   `json:"command_line"`
+	RunsWhere         string   `json:"runs_where"`
+	Inputs            string   `json:"inputs"`
+	ExpectedResult    string   `json:"expected_result"`
+	FailureNextAction string   `json:"failure_next_action"`
+	DoesNotProve      string   `json:"does_not_prove"`
+	DocsLinks         []string `json:"docs_links"`
+}
+
+type connectorWorkbenchTelemetryPreview struct {
+	Boundary string                            `json:"boundary"`
+	Sources  []connectorWorkbenchPreviewSource `json:"sources"`
+	Rows     []connectorWorkbenchPreviewRow    `json:"rows"`
+	Counts   connectorWorkbenchPreviewCounts   `json:"counts"`
+}
+
+type connectorWorkbenchPreviewSource struct {
+	ID             string `json:"id"`
+	Label          string `json:"label"`
+	FixturePath    string `json:"fixture_path"`
+	Status         string `json:"status"`
+	SyntheticOnly  bool   `json:"synthetic_only"`
+	ObservedRows   int    `json:"observed_rows"`
+	ExpectedEvents int    `json:"expected_events"`
+	ExpectedDrops  int    `json:"expected_drops"`
+	CommandLine    string `json:"command_line"`
+	DoesNotProve   string `json:"does_not_prove"`
+}
+
+type connectorWorkbenchPreviewRow struct {
+	SourceID    string `json:"source_id"`
+	DeviceID    string `json:"device_id"`
+	VehicleID   string `json:"vehicle_id"`
+	ObservedAt  string `json:"observed_at"`
+	Quality     string `json:"quality"`
+	Outcome     string `json:"outcome"`
+	Reason      string `json:"reason,omitempty"`
+	DryRun      bool   `json:"dry_run"`
+	NetworkSend bool   `json:"network_send"`
+}
+
+type connectorWorkbenchPreviewCounts struct {
+	Sources            int  `json:"sources"`
+	Rows               int  `json:"rows"`
+	Events             int  `json:"events"`
+	Drops              int  `json:"drops"`
+	NetworkSendEnabled bool `json:"network_send_enabled"`
 }
 
 type connectorWorkbenchManifestRow struct {
@@ -217,6 +284,8 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 				[]string{"example.validator-allowlist"},
 			),
 		},
+		DryRunCommands:   connectorWorkbenchDryRunCommands(),
+		TelemetryPreview: buildConnectorWorkbenchTelemetryPreview(),
 		ManifestReview: connectorWorkbenchManifestReview{
 			Title:            "Example Manifest Registry Review",
 			Summary:          "Committed synthetic connector manifests only. This registry review does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.",
@@ -225,6 +294,69 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 			Diagnostics:      registry.Diagnostics,
 		},
 		ClaimFlags: connectorWorkbenchClaimFlags{},
+	}
+}
+
+func connectorWorkbenchDryRunCommands() []connectorWorkbenchDryRun {
+	return []connectorWorkbenchDryRun{
+		connectorWorkbenchDryRunView(
+			"csv-replay-dry-run",
+			"CSV telemetry replay dry run",
+			"go run ./examples/connectors/telemetry-csv-replay",
+			"Operator shell outside the browser.",
+			connectorWorkbenchCSVFixture,
+			"Synthetic CSV rows normalize to dry-run telemetry events or bounded drops.",
+			"Fix CSV columns, timestamps, device identity, coordinates, or quality in the committed synthetic fixture.",
+			"Accepted telemetry, Vehicle Positions output, real device proof, vendor compatibility, production readiness, compliance, or consumer acceptance.",
+			[]string{"examples/connectors/telemetry-csv-replay/README.md", "docs/tutorials/device-avl-integration.md"},
+		),
+		connectorWorkbenchDryRunView(
+			"http-poller-dry-run",
+			"GPS API polling dry run",
+			"go run ./examples/connectors/telemetry-http-poller",
+			"Operator shell outside the browser.",
+			connectorWorkbenchHTTPFixture,
+			"Synthetic observation rows normalize to dry-run telemetry events or bounded drops.",
+			"Fix fixture shape, timestamp parsing, device identity, coordinates, or quality before any live endpoint is configured.",
+			"Live API behavior, named vendor support, vendor compatibility, production readiness, compliance, or consumer acceptance.",
+			[]string{"examples/connectors/telemetry-http-poller/README.md", "docs/integration-adapter-kit.md"},
+		),
+		connectorWorkbenchDryRunView(
+			"telemetry-conformance",
+			"Telemetry conformance cases",
+			"go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
+			"Operator shell outside the browser.",
+			"testdata/adapter-conformance/fixtures",
+			"Malformed, stale, future, wrong-agency, unknown-device, low-quality, duplicate, and out-of-order cases fail closed.",
+			"Review the named synthetic case and adapter boundary expectation.",
+			"Real fleet reliability, hardware certification, real vendor support, production AVL quality, compliance, or ETA quality.",
+			[]string{"docs/tutorials/external-adapter-conformance.md", "docs/tutorials/device-avl-integration.md"},
+		),
+		connectorWorkbenchDryRunView(
+			"example-tests",
+			"Synthetic connector example tests",
+			"make test-connector-examples",
+			"Operator shell outside the browser.",
+			"examples/connectors and committed fixtures",
+			"All committed synthetic connector examples compile and pass local dry-run tests.",
+			"Fix the example or fixture without adding network sends, private payloads, credentials, or stronger claims.",
+			"Real integration proof, production readiness, vendor compatibility, compliance, consumer acceptance, or retained evidence.",
+			[]string{"examples/README.md", "docs/integration-adapter-kit.md"},
+		),
+	}
+}
+
+func connectorWorkbenchDryRunView(id string, label string, commandLine string, runsWhere string, inputs string, expected string, failure string, doesNotProve string, docsLinks []string) connectorWorkbenchDryRun {
+	return connectorWorkbenchDryRun{
+		ID:                firstNonEmpty(id, "connector-dry-run"),
+		Label:             firstNonEmpty(label, "Connector dry run"),
+		CommandLine:       firstNonEmpty(commandLine, "make test-connector-examples"),
+		RunsWhere:         firstNonEmpty(runsWhere, "Operator shell outside the browser."),
+		Inputs:            firstNonEmpty(inputs, "Committed synthetic fixtures only."),
+		ExpectedResult:    firstNonEmpty(expected, "Synthetic/local rows pass or produce bounded diagnostics."),
+		FailureNextAction: firstNonEmpty(failure, "Review the synthetic fixture or adapter boundary."),
+		DoesNotProve:      firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
+		DocsLinks:         safeDocsLinks(docsLinks),
 	}
 }
 
@@ -277,4 +409,177 @@ func connectorRegistryContractNames(contracts []connectorpkg.RegistryContract) [
 		names = append(names, firstNonEmpty(contract.Name, "contract"))
 	}
 	return cleanLaunchpadList(names)
+}
+
+type connectorWorkbenchRawObservation struct {
+	AgencyID   string
+	DeviceID   string
+	VehicleID  string
+	ObservedAt time.Time
+	Latitude   float64
+	Longitude  float64
+	Quality    float64
+}
+
+type connectorWorkbenchHTTPFixtureData struct {
+	SyntheticOnly bool                                `json:"synthetic_only"`
+	Observations  []connectorWorkbenchHTTPObservation `json:"observations"`
+}
+
+type connectorWorkbenchHTTPObservation struct {
+	AgencyID  string  `json:"agency_id"`
+	DeviceID  string  `json:"device_id"`
+	VehicleID string  `json:"vehicle_id"`
+	Timestamp string  `json:"timestamp"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Quality   float64 `json:"quality"`
+}
+
+func buildConnectorWorkbenchTelemetryPreview() connectorWorkbenchTelemetryPreview {
+	preview := connectorWorkbenchTelemetryPreview{
+		Boundary: "Synthetic fixture preview only. Rows are normalized in-memory for review, not accepted by telemetry ingest, not emitted as Vehicle Positions, not sent over the network, not evidence, and not connector proof.",
+	}
+	preview.addSource("csv_replay", "CSV replay fixture", connectorWorkbenchCSVFixture, "go run ./examples/connectors/telemetry-csv-replay", time.Date(2026, 5, 10, 16, 1, 0, 0, time.UTC), readConnectorWorkbenchCSVObservations)
+	preview.addSource("http_poller", "GPS API fixture", connectorWorkbenchHTTPFixture, "go run ./examples/connectors/telemetry-http-poller", time.Date(2026, 5, 10, 15, 1, 0, 0, time.UTC), readConnectorWorkbenchHTTPObservations)
+	preview.Counts.Sources = len(preview.Sources)
+	preview.Counts.Rows = len(preview.Rows)
+	return preview
+}
+
+func (p *connectorWorkbenchTelemetryPreview) addSource(id string, label string, fixturePath string, commandLine string, now time.Time, read func(string) ([]connectorWorkbenchRawObservation, bool, error)) {
+	observations, syntheticOnly, err := read(fixturePath)
+	source := connectorWorkbenchPreviewSource{
+		ID:            id,
+		Label:         label,
+		FixturePath:   fixturePath,
+		Status:        "covered",
+		SyntheticOnly: syntheticOnly,
+		CommandLine:   commandLine,
+		DoesNotProve:  "Accepted telemetry, Vehicle Positions output, real device proof, vendor compatibility, production readiness, compliance, or consumer acceptance.",
+	}
+	if err != nil {
+		source.Status = checklistStatusBlocked
+		source.DoesNotProve = "A missing or unreadable committed fixture does not prove connector failure or success."
+		p.Sources = append(p.Sources, source)
+		return
+	}
+	source.ObservedRows = len(observations)
+	for _, observation := range observations {
+		row := normalizeConnectorWorkbenchPreviewRow(id, observation, now)
+		if row.Outcome == "event" {
+			source.ExpectedEvents++
+			p.Counts.Events++
+		} else {
+			source.ExpectedDrops++
+			p.Counts.Drops++
+		}
+		p.Rows = append(p.Rows, row)
+	}
+	p.Sources = append(p.Sources, source)
+}
+
+func readConnectorWorkbenchCSVObservations(fixturePath string) ([]connectorWorkbenchRawObservation, bool, error) {
+	raw, err := os.ReadFile(connectorWorkbenchFixtureAbs(fixturePath))
+	if err != nil {
+		return nil, false, err
+	}
+	reader := csv.NewReader(strings.NewReader(string(raw)))
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return nil, false, err
+	}
+	if len(rows) < 2 || len(rows[0]) != 8 {
+		return nil, false, errors.New("invalid synthetic csv fixture shape")
+	}
+	var observations []connectorWorkbenchRawObservation
+	for _, row := range rows[1:] {
+		if len(row) != 8 || row[0] != "true" {
+			return nil, false, errors.New("csv rows must be synthetic and eight columns")
+		}
+		observedAt, _ := time.Parse(time.RFC3339, row[4])
+		latitude, _ := strconv.ParseFloat(row[5], 64)
+		longitude, _ := strconv.ParseFloat(row[6], 64)
+		quality, _ := strconv.ParseFloat(row[7], 64)
+		observations = append(observations, connectorWorkbenchRawObservation{
+			AgencyID:   row[1],
+			DeviceID:   row[2],
+			VehicleID:  row[3],
+			ObservedAt: observedAt,
+			Latitude:   latitude,
+			Longitude:  longitude,
+			Quality:    quality,
+		})
+	}
+	return observations, true, nil
+}
+
+func readConnectorWorkbenchHTTPObservations(fixturePath string) ([]connectorWorkbenchRawObservation, bool, error) {
+	raw, err := os.ReadFile(connectorWorkbenchFixtureAbs(fixturePath))
+	if err != nil {
+		return nil, false, err
+	}
+	var fixture connectorWorkbenchHTTPFixtureData
+	if err := json.Unmarshal(raw, &fixture); err != nil {
+		return nil, false, err
+	}
+	if !fixture.SyntheticOnly || len(fixture.Observations) == 0 {
+		return nil, fixture.SyntheticOnly, errors.New("http fixture must be synthetic and non-empty")
+	}
+	observations := make([]connectorWorkbenchRawObservation, 0, len(fixture.Observations))
+	for _, observation := range fixture.Observations {
+		observedAt, _ := time.Parse(time.RFC3339, observation.Timestamp)
+		observations = append(observations, connectorWorkbenchRawObservation{
+			AgencyID:   observation.AgencyID,
+			DeviceID:   observation.DeviceID,
+			VehicleID:  observation.VehicleID,
+			ObservedAt: observedAt,
+			Latitude:   observation.Latitude,
+			Longitude:  observation.Longitude,
+			Quality:    observation.Quality,
+		})
+	}
+	return observations, true, nil
+}
+
+func normalizeConnectorWorkbenchPreviewRow(sourceID string, observation connectorWorkbenchRawObservation, now time.Time) connectorWorkbenchPreviewRow {
+	row := connectorWorkbenchPreviewRow{
+		SourceID:    sourceID,
+		DeviceID:    firstNonEmpty(observation.DeviceID, "missing-device"),
+		VehicleID:   firstNonEmpty(observation.VehicleID, "missing-vehicle"),
+		ObservedAt:  observation.ObservedAt.UTC().Format(time.RFC3339),
+		Quality:     strconv.FormatFloat(observation.Quality, 'f', 2, 64),
+		Outcome:     "event",
+		DryRun:      true,
+		NetworkSend: false,
+	}
+	switch {
+	case observation.AgencyID == "" || observation.DeviceID == "" || observation.VehicleID == "":
+		row.Outcome = "drop"
+		row.Reason = "missing identity"
+	case observation.ObservedAt.IsZero():
+		row.Outcome = "drop"
+		row.Reason = "invalid timestamp"
+	case observation.ObservedAt.After(now.Add(30 * time.Second)):
+		row.Outcome = "drop"
+		row.Reason = "future timestamp"
+	case now.Sub(observation.ObservedAt) > 2*time.Minute:
+		row.Outcome = "drop"
+		row.Reason = "stale observation"
+	case observation.Quality < 0.5:
+		row.Outcome = "drop"
+		row.Reason = "low quality"
+	case observation.Latitude < -90 || observation.Latitude > 90 || observation.Longitude < -180 || observation.Longitude > 180:
+		row.Outcome = "drop"
+		row.Reason = "invalid coordinates"
+	}
+	return row
+}
+
+func connectorWorkbenchFixtureAbs(rel string) string {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return rel
+	}
+	return filepath.Join(filepath.Dir(filename), "..", "..", filepath.FromSlash(rel))
 }

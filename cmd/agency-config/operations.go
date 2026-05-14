@@ -2409,6 +2409,55 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 {{end}}
 </div>
+<h3>Dry-Run Command Cards</h3>
+<p>These are fixed operator-shell instructions. The browser does not execute them, read command output, send telemetry, or contact external systems.</p>
+<table><thead><tr><th>Dry run</th><th>Instruction</th><th>Runs where</th><th>Inputs</th><th>Expected result</th><th>If it fails</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.DryRunCommands}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td><code>{{.CommandLine}}</code></td>
+<td>{{.RunsWhere}}</td>
+<td>{{.Inputs}}</td>
+<td>{{.ExpectedResult}}</td>
+<td>{{.FailureNextAction}}</td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<h3>Synthetic Telemetry Normalization Preview</h3>
+<p class="warning">{{.ConnectorWorkbench.TelemetryPreview.Boundary}}</p>
+<table><thead><tr><th>Source</th><th>Fixture</th><th>Status</th><th>Rows</th><th>Expected events</th><th>Expected drops</th><th>Instruction</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.TelemetryPreview.Sources}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td><code>{{.FixturePath}}</code><br>synthetic only: {{.SyntheticOnly}}</td>
+<td>{{.Status}}</td>
+<td>{{.ObservedRows}}</td>
+<td>{{.ExpectedEvents}}</td>
+<td>{{.ExpectedDrops}}</td>
+<td><code>{{.CommandLine}}</code></td>
+<td>{{.DoesNotProve}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<table><thead><tr><th>Source</th><th>Device / vehicle</th><th>Observed</th><th>Quality</th><th>Outcome</th><th>Reason</th><th>Dry run</th><th>Network send</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.TelemetryPreview.Rows}}
+<tr>
+<td><code>{{.SourceID}}</code></td>
+<td><code>{{.DeviceID}}</code><br><code>{{.VehicleID}}</code></td>
+<td>{{.ObservedAt}}</td>
+<td>{{.Quality}}</td>
+<td>{{.Outcome}}</td>
+<td>{{.Reason}}</td>
+<td>{{.DryRun}}</td>
+<td>{{.NetworkSend}}</td>
+</tr>
+{{else}}
+<tr><td colspan="8">No synthetic telemetry preview rows were loaded. Review fixture status and run the dry-run commands from an operator shell.</td></tr>
+{{end}}
+</tbody></table>
+<p class="muted">Preview counts: {{.ConnectorWorkbench.TelemetryPreview.Counts.Events}} events, {{.ConnectorWorkbench.TelemetryPreview.Counts.Drops}} drops, network send enabled: {{.ConnectorWorkbench.TelemetryPreview.Counts.NetworkSendEnabled}}.</p>
 <h3>{{.ConnectorWorkbench.ManifestReview.Title}}</h3>
 <p>{{.ConnectorWorkbench.ManifestReview.Summary}}</p>
 <p><strong>Safe plugin definition:</strong> {{.ConnectorWorkbench.ManifestReview.PluginDefinition}}</p>

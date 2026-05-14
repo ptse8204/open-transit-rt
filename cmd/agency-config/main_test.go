@@ -2403,7 +2403,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -6165,7 +6165,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenRecipes := map[string]bool{}
@@ -6202,6 +6202,40 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 		}
 		if !strings.HasPrefix(row.DocsLink, "examples/connectors/") && !strings.HasPrefix(row.DocsLink, "docs/") {
 			t.Fatalf("manifest row %s has unsafe docs link %q", row.ConnectorID, row.DocsLink)
+		}
+	}
+	if view.TelemetryPreview.Counts.Sources != 2 || view.TelemetryPreview.Counts.Rows != 6 || view.TelemetryPreview.Counts.Events != 4 || view.TelemetryPreview.Counts.Drops != 2 || view.TelemetryPreview.Counts.NetworkSendEnabled {
+		t.Fatalf("invalid connector workbench telemetry preview counts: %+v", view.TelemetryPreview.Counts)
+	}
+	seenDryRuns := map[string]bool{}
+	for _, command := range view.DryRunCommands {
+		if command.ID == "" || command.Label == "" || command.CommandLine == "" || command.RunsWhere == "" || command.Inputs == "" || command.ExpectedResult == "" || command.FailureNextAction == "" || command.DoesNotProve == "" || len(command.DocsLinks) == 0 {
+			t.Fatalf("invalid connector workbench dry-run command: %+v", command)
+		}
+		if seenDryRuns[command.ID] {
+			t.Fatalf("duplicate connector workbench dry-run id %q", command.ID)
+		}
+		seenDryRuns[command.ID] = true
+		for _, link := range command.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") && !strings.HasPrefix(link, "examples/") {
+				t.Fatalf("dry-run %s has unsafe docs link %q", command.ID, link)
+			}
+		}
+	}
+	for _, source := range view.TelemetryPreview.Sources {
+		if source.ID == "" || source.Label == "" || source.FixturePath == "" || source.Status == "" || !source.SyntheticOnly || source.ObservedRows != 3 || source.ExpectedEvents != 2 || source.ExpectedDrops != 1 || source.CommandLine == "" || source.DoesNotProve == "" {
+			t.Fatalf("invalid connector workbench telemetry source: %+v", source)
+		}
+		if !strings.HasPrefix(source.FixturePath, "examples/connectors/") || strings.Contains(source.FixturePath, "..") || strings.HasPrefix(source.FixturePath, "/") {
+			t.Fatalf("unsafe connector workbench fixture path: %+v", source)
+		}
+	}
+	for _, row := range view.TelemetryPreview.Rows {
+		if row.SourceID == "" || row.DeviceID == "" || row.VehicleID == "" || row.ObservedAt == "" || row.Quality == "" || row.Outcome == "" || !row.DryRun || row.NetworkSend {
+			t.Fatalf("invalid connector workbench telemetry row: %+v", row)
+		}
+		if row.Outcome == "drop" && row.Reason == "" {
+			t.Fatalf("drop row missing reason: %+v", row)
 		}
 	}
 }
