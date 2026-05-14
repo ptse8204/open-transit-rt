@@ -18,6 +18,7 @@ type operationsValidationCenterView struct {
 	ValidationHistory []operationsValidationCenterValidation `json:"validation_history"`
 	ValidatorHealth   []operationsValidationCenterValidation `json:"validator_health"`
 	GTFSQuality       []operationsValidationCenterQuality    `json:"gtfs_quality"`
+	IssueDrilldowns   []operationsValidationCenterIssue      `json:"issue_drilldowns"`
 	ReadinessTimeline []operationsValidationCenterTimeline   `json:"readiness_timeline"`
 	Blockers          []operationsValidationCenterBlocker    `json:"blockers"`
 	ConsumerTracker   []operationsValidationCenterConsumer   `json:"consumer_tracker"`
@@ -75,6 +76,29 @@ type operationsValidationCenterQuality struct {
 	DetailsURL    string `json:"details_url"`
 }
 
+type operationsValidationCenterIssue struct {
+	ID                string   `json:"id"`
+	Source            string   `json:"source"`
+	SourceLabel       string   `json:"source_label"`
+	Status            string   `json:"status"`
+	Severity          string   `json:"severity"`
+	Family            string   `json:"family"`
+	Codes             []string `json:"codes"`
+	Count             int      `json:"count"`
+	SampleCount       int      `json:"sample_count"`
+	OverflowCount     int      `json:"overflow_count"`
+	LikelyOwner       string   `json:"likely_owner"`
+	AffectedFiles     string   `json:"affected_files"`
+	OperatorSummary   string   `json:"operator_summary"`
+	WhyItMatters      string   `json:"why_it_matters"`
+	RecommendedAction string   `json:"recommended_action"`
+	SafeFixPath       string   `json:"safe_fix_path"`
+	VerifyWith        string   `json:"verify_with"`
+	EscalateIf        string   `json:"escalate_if"`
+	DetailsURL        string   `json:"details_url"`
+	DoesNotProve      string   `json:"does_not_prove"`
+}
+
 type operationsValidationCenterTimeline struct {
 	ID            string `json:"id"`
 	Label         string `json:"label"`
@@ -107,6 +131,7 @@ type operationsValidationCenterConsumer struct {
 type operationsValidationCenterCounts struct {
 	FeedRows       int            `json:"feed_rows"`
 	ValidationRows int            `json:"validation_rows"`
+	IssueRows      int            `json:"issue_rows"`
 	ConsumerRows   int            `json:"consumer_rows"`
 	Statuses       map[string]int `json:"statuses"`
 }
@@ -152,6 +177,7 @@ func buildOperationsValidationCenter(page operationsPage) operationsValidationCe
 	feedRows := validationCenterFeedRows(page.FeedHealth.Rows)
 	validationRows := validationCenterValidationRows(page.ValidationHealth.Feeds)
 	qualityRows := validationCenterQualityRows(page)
+	issueRows := validationCenterIssueRows(page)
 	consumerRows := validationCenterConsumerRows(page.Consumers)
 	return operationsValidationCenterView{
 		GeneratedAt:       page.GeneratedAt,
@@ -161,10 +187,11 @@ func buildOperationsValidationCenter(page operationsPage) operationsValidationCe
 		ValidationHistory: validationRows,
 		ValidatorHealth:   validationRows,
 		GTFSQuality:       qualityRows,
+		IssueDrilldowns:   issueRows,
 		ReadinessTimeline: []operationsValidationCenterTimeline{},
 		Blockers:          []operationsValidationCenterBlocker{},
 		ConsumerTracker:   consumerRows,
-		Counts:            validationCenterCounts(feedRows, validationRows, consumerRows),
+		Counts:            validationCenterCounts(feedRows, validationRows, issueRows, consumerRows),
 		ClaimFlags:        operationsValidationCenterClaimFlags{},
 	}
 }
@@ -247,6 +274,106 @@ func validationCenterQualityRow(id string, label string, section compliance.GTFS
 	}
 }
 
+func validationCenterIssueRows(page operationsPage) []operationsValidationCenterIssue {
+	rows := []operationsValidationCenterIssue{}
+	rows = append(rows, validationCenterIssuesFromSection("canonical_static", page.GTFSQuality.Canonical)...)
+	rows = append(rows, validationCenterIssuesFromSection("internal_importer", page.GTFSQuality.InternalImporter)...)
+	return rows
+}
+
+func validationCenterIssuesFromSection(prefix string, section compliance.GTFSQualitySection) []operationsValidationCenterIssue {
+	rows := make([]operationsValidationCenterIssue, 0, len(section.Groups))
+	for index, group := range section.Groups {
+		rows = append(rows, validationCenterIssueFromGroup(prefix, section, group, index))
+	}
+	if len(rows) == 0 && validationCenterSectionNeedsIssue(section.Status) {
+		rows = append(rows, operationsValidationCenterIssue{
+			ID:                prefix + "_section_status",
+			Source:            section.Source,
+			SourceLabel:       section.SourceLabel,
+			Status:            readinessV2NormalizeStatus(section.Status),
+			Severity:          readinessV2NormalizeStatus(section.Status),
+			Family:            "section_status",
+			Codes:             []string{"none recorded"},
+			Count:             0,
+			SampleCount:       0,
+			OverflowCount:     section.OverflowCount,
+			LikelyOwner:       "GTFS source owner with technical maintainer review",
+			AffectedFiles:     "not available from the current sanitized summary",
+			OperatorSummary:   firstNonEmpty(section.OperatorSummary, "No grouped issue rows are available for this source."),
+			WhyItMatters:      "A non-ok source summary without grouped issues still needs operator review before stronger feed-readiness language.",
+			RecommendedAction: firstNonEmpty(section.RecommendedAction, "Open GTFS Quality to review source-specific guidance."),
+			SafeFixPath:       "Review the source result in GTFS Quality, then fix source GTFS or rerun validation through the existing safe workflow.",
+			VerifyWith:        "Rerun or refresh the appropriate validator and return to the private Validation Center.",
+			EscalateIf:        "Escalate if this status blocks schedule or realtime review and grouped issue context is unavailable.",
+			DetailsURL:        "/admin/operations/gtfs-quality",
+			DoesNotProve:      validationCenterIssueBoundary(),
+		})
+	}
+	return rows
+}
+
+func validationCenterIssueFromGroup(prefix string, section compliance.GTFSQualitySection, group compliance.GTFSQualityGroup, index int) operationsValidationCenterIssue {
+	return operationsValidationCenterIssue{
+		ID:                fmt.Sprintf("%s_%03d_%s", prefix, index+1, strings.ReplaceAll(group.Family, "_", "-")),
+		Source:            firstNonEmpty(group.Source, section.Source),
+		SourceLabel:       section.SourceLabel,
+		Status:            readinessV2NormalizeStatus(group.Severity),
+		Severity:          group.Severity,
+		Family:            group.Family,
+		Codes:             validationCenterSafeCodes(group.Codes),
+		Count:             group.Count,
+		SampleCount:       len(group.Samples),
+		OverflowCount:     group.OverflowCount,
+		LikelyOwner:       gtfsQualityLikelyOwner(group),
+		AffectedFiles:     gtfsQualityAffectedFiles(group),
+		OperatorSummary:   group.OperatorSummary,
+		WhyItMatters:      group.WhyItMatters,
+		RecommendedAction: group.RecommendedAction,
+		SafeFixPath:       gtfsQualitySafeFixPath(section.Source, group),
+		VerifyWith:        gtfsQualityVerifyWith(section.Source, group),
+		EscalateIf:        gtfsQualityEscalation(group),
+		DetailsURL:        "/admin/operations/gtfs-quality",
+		DoesNotProve:      validationCenterIssueBoundary(),
+	}
+}
+
+func validationCenterSectionNeedsIssue(status string) bool {
+	switch readinessV2NormalizeStatus(status) {
+	case checklistStatusBlocked, checklistStatusNeedsReview, checklistStatusUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+func validationCenterSafeCodes(codes []string) []string {
+	out := make([]string, 0, len(codes))
+	for _, code := range codes {
+		out = append(out, validationCenterSafeCode(code))
+	}
+	if len(out) == 0 {
+		return []string{"unknown"}
+	}
+	return out
+}
+
+func validationCenterSafeCode(code string) string {
+	value := strings.TrimSpace(code)
+	if value == "" {
+		return "unknown"
+	}
+	lower := strings.ToLower(value)
+	if len(value) > 80 || strings.Contains(lower, "/") || strings.Contains(lower, "\\") || strings.Contains(lower, "token") || strings.Contains(lower, "secret") || strings.Contains(lower, "password") || strings.Contains(lower, "authorization") || strings.Contains(lower, "bearer") || strings.Contains(lower, "cookie") || strings.Contains(lower, "postgres") || strings.Contains(lower, "http://") || strings.Contains(lower, "https://") {
+		return "redacted"
+	}
+	return value
+}
+
+func validationCenterIssueBoundary() string {
+	return "Issue drilldowns are sanitized operator guidance only. They do not edit GTFS, change drafts, publish schedules, prove compliance, prove consumer acceptance, prove agency approval, or prove production readiness."
+}
+
 func validationCenterConsumerRows(rows []consumerStatusView) []operationsValidationCenterConsumer {
 	out := make([]operationsValidationCenterConsumer, 0, len(rows))
 	for _, row := range rows {
@@ -262,7 +389,7 @@ func validationCenterConsumerRows(rows []consumerStatusView) []operationsValidat
 	return out
 }
 
-func validationCenterCounts(feedRows []operationsValidationCenterFeedRow, validationRows []operationsValidationCenterValidation, consumerRows []operationsValidationCenterConsumer) operationsValidationCenterCounts {
+func validationCenterCounts(feedRows []operationsValidationCenterFeedRow, validationRows []operationsValidationCenterValidation, issueRows []operationsValidationCenterIssue, consumerRows []operationsValidationCenterConsumer) operationsValidationCenterCounts {
 	statuses := map[string]int{
 		checklistStatusOK:          0,
 		checklistStatusNeedsReview: 0,
@@ -276,9 +403,13 @@ func validationCenterCounts(feedRows []operationsValidationCenterFeedRow, valida
 	for _, row := range validationRows {
 		statuses[readinessV2NormalizeStatus(row.Status)]++
 	}
+	for _, row := range issueRows {
+		statuses[readinessV2NormalizeStatus(row.Status)]++
+	}
 	return operationsValidationCenterCounts{
 		FeedRows:       len(feedRows),
 		ValidationRows: len(validationRows),
+		IssueRows:      len(issueRows),
 		ConsumerRows:   len(consumerRows),
 		Statuses:       statuses,
 	}

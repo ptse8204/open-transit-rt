@@ -2700,6 +2700,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>Static and realtime validator rows stay separate from internal importer quality signals.</p>
 </section>
 <section class="card">
+<h3>Issue Drilldowns</h3>
+<p class="status"><span class="status-chip status-unknown">{{.ValidationCenter.Counts.IssueRows}}</span></p>
+<p>Grouped issues include likely owner, affected files, safe fix path, and verification guidance without raw validator samples.</p>
+</section>
+<section class="card">
 <h3>Prepared Tracker</h3>
 <p class="status"><span class="status-chip status-unknown">{{.ValidationCenter.Counts.ConsumerRows}}</span></p>
 <p>Prepared packet records remain prepared only. This page does not submit, review, or contact any target.</p>
@@ -2730,6 +2735,14 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Source</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .ValidationCenter.GTFSQuality}}<tr><td><a href="{{.DetailsURL}}">{{.Label}}</a></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Issue Drilldowns</h3>
+{{if .ValidationCenter.IssueDrilldowns}}
+<table><thead><tr><th>Source</th><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Sample count</th><th>Likely owner</th><th>Affected files</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Safe fix path</th><th>Verify with</th><th>Escalate if</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.IssueDrilldowns}}<tr><td><a href="{{.DetailsURL}}">{{.SourceLabel}}</a></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Severity}}</span></td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.SampleCount}}{{if .OverflowCount}}; {{.OverflowCount}} omitted{{end}}</td><td>{{.LikelyOwner}}</td><td>{{.AffectedFiles}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{.SafeFixPath}}</td><td>{{.VerifyWith}}</td><td>{{.EscalateIf}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{else}}
+<p class="muted">No grouped GTFS quality issue drilldowns are available. Open GTFS Quality when a source-specific validator or importer result needs review.</p>
+{{end}}
 <h3>Prepared Consumer Tracker</h3>
 <table><thead><tr><th>Target</th><th>Status</th><th>Source</th><th>Updated</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .ValidationCenter.ConsumerTracker}}<tr><td>{{.Target}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.UpdatedAt}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}

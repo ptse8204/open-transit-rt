@@ -4312,6 +4312,100 @@ func TestValidationCenterHTMLPlainLanguageReadOnlyAndNoLeakage(t *testing.T) {
 	}
 }
 
+func TestValidationCenterIssueDrilldownsFixOwnersAndNoRawSamples(t *testing.T) {
+	now := time.Date(2026, 5, 14, 13, 0, 0, 0, time.UTC)
+	store := feedHealthTestStore(t)
+	store.validationRecords = append(store.validationRecords,
+		compliance.ValidationReportRecord{
+			ID:        200,
+			CreatedAt: now,
+			Result: compliance.ValidationResult{
+				AgencyID:      "demo-agency",
+				FeedType:      "schedule",
+				FeedVersionID: "feed-v1",
+				ValidatorName: compliance.CanonicalStaticValidatorName,
+				Status:        "failed",
+				ErrorCount:    1,
+				WarningCount:  1,
+				Report: map[string]any{
+					"raw_report": map[string]any{"notices": []any{
+						map[string]any{"code": "expired_calendar", "severity": "ERROR", "message": "/Users/private TOKEN=SECRET", "path": "/Users/private/calendar.txt"},
+						map[string]any{"code": "frequency_headway_invalid", "severity": "WARNING", "message": "frequency needs review", "filename": "frequencies.txt"},
+					}},
+					"stdout": "TOKEN=SECRET",
+					"stderr": "PASSWORD=SECRET",
+					"argv":   []any{"/Users/private/validator"},
+				},
+			},
+		},
+		compliance.ValidationReportRecord{
+			ID:        201,
+			CreatedAt: now,
+			Result: compliance.ValidationResult{
+				AgencyID:      "demo-agency",
+				FeedType:      "schedule",
+				FeedVersionID: "feed-v1",
+				ValidatorName: compliance.InternalGTFSImportValidatorName,
+				Status:        "failed",
+				ErrorCount:    1,
+				Report: map[string]any{"errors": []any{
+					map[string]any{"code": "missing_trip_reference", "message": "missing trip reference", "path": "/Users/private/trips.txt"},
+				}},
+			},
+		},
+	)
+	handler := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-center.json", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("json status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var center operationsValidationCenterView
+	if err := json.Unmarshal(rr.Body.Bytes(), &center); err != nil {
+		t.Fatalf("decode validation center JSON: %v", err)
+	}
+	if len(center.IssueDrilldowns) < 3 {
+		t.Fatalf("issue drilldowns = %+v, want at least 3", center.IssueDrilldowns)
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Schedule planner or GTFS source owner", "calendar.txt / calendar_dates.txt", "frequencies.txt / trips.txt", "GTFS export owner or source-system admin", "reported referring file and referenced GTFS file"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("validation center issues missing %q: %s", want, body)
+		}
+	}
+	assertValidationCenterSafeStrings(t, body)
+	for _, issue := range center.IssueDrilldowns {
+		if issue.SampleCount > 0 && (strings.Contains(strings.Join(issue.Codes, ","), "/Users") || strings.Contains(strings.Join(issue.Codes, ","), "TOKEN")) {
+			t.Fatalf("issue codes leaked private text: %+v", issue)
+		}
+		if issue.LikelyOwner == "" || issue.AffectedFiles == "" || issue.SafeFixPath == "" || issue.VerifyWith == "" || issue.EscalateIf == "" || issue.DoesNotProve == "" {
+			t.Fatalf("issue missing guidance fields: %+v", issue)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/validation-center", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	html := rr.Body.String()
+	for _, want := range []string{"Issue Drilldowns", "Likely owner", "Affected files", "Safe fix path", "Verify with", "Sample count"} {
+		if !strings.Contains(html, want) {
+			t.Fatalf("validation center issue HTML missing %q: %s", want, html)
+		}
+	}
+	assertValidationCenterSafeStrings(t, html)
+	for _, forbidden := range []string{"/Users/private", "TOKEN=SECRET", "PASSWORD=SECRET", "raw_report", "stdout", "stderr", "argv"} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("validation center issue HTML leaked %q: %s", forbidden, html)
+		}
+	}
+}
+
 func TestOperationsReliabilityRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
 	endpoint := true
@@ -5999,7 +6093,7 @@ func assertValidationCenterShape(t *testing.T, center operationsValidationCenter
 	if center.GeneratedAt.IsZero() || center.AgencyID == "" || center.Boundary == "" || len(center.FeedRows) != 5 || len(center.ValidationHistory) != 4 || len(center.ValidatorHealth) != 4 || len(center.GTFSQuality) != 2 || len(center.ConsumerTracker) != 7 {
 		t.Fatalf("invalid validation center shape: %+v", center)
 	}
-	if center.Counts.FeedRows != len(center.FeedRows) || center.Counts.ValidationRows != len(center.ValidationHistory) || center.Counts.ConsumerRows != len(center.ConsumerTracker) || len(center.Counts.Statuses) == 0 {
+	if center.Counts.FeedRows != len(center.FeedRows) || center.Counts.ValidationRows != len(center.ValidationHistory) || center.Counts.IssueRows != len(center.IssueDrilldowns) || center.Counts.ConsumerRows != len(center.ConsumerTracker) || len(center.Counts.Statuses) == 0 {
 		t.Fatalf("invalid validation center counts: %+v", center.Counts)
 	}
 	for _, row := range center.FeedRows {
@@ -6015,6 +6109,11 @@ func assertValidationCenterShape(t *testing.T, center operationsValidationCenter
 	for _, row := range center.GTFSQuality {
 		if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.WhatThisMeans == "" || row.NextAction == "" || row.DoesNotProve == "" || row.DetailsURL != "/admin/operations/gtfs-quality" {
 			t.Fatalf("invalid validation center GTFS quality row: %+v", row)
+		}
+	}
+	for _, row := range center.IssueDrilldowns {
+		if row.ID == "" || row.Source == "" || row.SourceLabel == "" || row.Status == "" || row.Severity == "" || row.Family == "" || len(row.Codes) == 0 || row.LikelyOwner == "" || row.AffectedFiles == "" || row.OperatorSummary == "" || row.WhyItMatters == "" || row.RecommendedAction == "" || row.SafeFixPath == "" || row.VerifyWith == "" || row.EscalateIf == "" || row.DetailsURL != "/admin/operations/gtfs-quality" || row.DoesNotProve == "" {
+			t.Fatalf("invalid validation center issue row: %+v", row)
 		}
 	}
 	for _, row := range center.ConsumerTracker {
@@ -6037,7 +6136,7 @@ func assertValidationCenterJSONAllowlist(t *testing.T, payload []byte) {
 	if err := json.Unmarshal(payload, &decoded); err != nil {
 		t.Fatal(err)
 	}
-	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "feed_rows": true, "validation_history": true, "validator_health": true, "gtfs_quality": true, "readiness_timeline": true, "blockers": true, "consumer_tracker": true, "counts": true, "claim_flags": true}
+	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "feed_rows": true, "validation_history": true, "validator_health": true, "gtfs_quality": true, "issue_drilldowns": true, "readiness_timeline": true, "blockers": true, "consumer_tracker": true, "counts": true, "claim_flags": true}
 	for key := range decoded {
 		if !wantTop[key] {
 			t.Fatalf("unexpected validation center top-level field %q in %s", key, payload)
@@ -6056,6 +6155,14 @@ func assertValidationCenterJSONAllowlist(t *testing.T, payload []byte) {
 		for key := range item.(map[string]any) {
 			if !wantValidation[key] {
 				t.Fatalf("unexpected validation center validation row field %q in %s", key, payload)
+			}
+		}
+	}
+	wantIssue := map[string]bool{"id": true, "source": true, "source_label": true, "status": true, "severity": true, "family": true, "codes": true, "count": true, "sample_count": true, "overflow_count": true, "likely_owner": true, "affected_files": true, "operator_summary": true, "why_it_matters": true, "recommended_action": true, "safe_fix_path": true, "verify_with": true, "escalate_if": true, "details_url": true, "does_not_prove": true}
+	for _, item := range decoded["issue_drilldowns"].([]any) {
+		for key := range item.(map[string]any) {
+			if !wantIssue[key] {
+				t.Fatalf("unexpected validation center issue field %q in %s", key, payload)
 			}
 		}
 	}
