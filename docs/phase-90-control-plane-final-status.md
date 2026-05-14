@@ -78,24 +78,26 @@ Route boundary notes:
 
 ## Validation Matrix
 
-Checkpoint 000003 will replace the pending rows with final run results.
+Checkpoint 000003 ran the final validation matrix on 2026-05-14. Package
+creation and package audit remain blocked because they require separate
+explicit maintainer authorization.
 
 | Check | Status | Notes |
 | --- | --- | --- |
-| `git status --short` | pending | Run in CP000003. |
-| `git diff --check` | pending | Run in CP000003. |
-| `make check` | pending | Run in CP000003. |
-| `make validate` | pending | Run in CP000003. |
-| `make test` | pending | Run in CP000003. |
-| `RUN_LOCAL_APP=true make release-candidate-check` | pending | Run in CP000003; package audit remains blocked/not checked unless separately authorized. |
-| `make external-connection-check` | pending | Run in CP000003. |
-| `make adapter-conformance` | pending | Run in CP000003. |
-| `make test-connector-examples` | pending | Run in CP000003. |
-| `make audit-product-acceptance` | pending | Run in CP000003. |
-| `make audit-final-claim-review` | pending | Run in CP000003. |
-| Consumer tracker JSON parse | pending | Run in CP000003. |
-| Exact seven-target prepared-only tracker check | pending | Run in CP000003. |
-| Protected-path status check | pending | Run in CP000003. |
+| `git status --short` | passed | Clean before final validation and clean after final validation before this file update. |
+| `git diff --check` | passed | No whitespace errors. |
+| `make check` | passed | Lightweight no-network/no-Docker/no-validator-install checks passed. |
+| `make validate` | passed | Validation smoke passed with pinned validator tooling available. |
+| `make test` | passed | `go test ./...` passed. |
+| `RUN_LOCAL_APP=true make release-candidate-check` | passed | Local diagnostics wrote ignored output under `.cache/release-candidate-check/20260514T112136Z`; package audit remains blocked/not checked unless separately authorized. |
+| `make external-connection-check` | passed | Connector manifests and examples remain sidecar/manifest/conformance bounded. |
+| `make adapter-conformance` | passed | Adapter conformance suite passed against `testdata/adapter-conformance`. |
+| `make test-connector-examples` | passed | Connector example packages passed. |
+| `make audit-product-acceptance` | passed | Product acceptance guard passed. |
+| `make audit-final-claim-review` | passed | Final claim-boundary guard passed. |
+| Consumer tracker JSON parse | passed | `docs/evidence/consumer-submissions/status.json` parsed as JSON. |
+| Exact seven-target prepared-only tracker check | passed | All seven targets remain exactly `prepared`: Google Maps, Apple Maps, Transit App, Bing Maps, Moovit, Mobility Database, transit.land. |
+| Protected-path status check | passed | No status under `docs/evidence/consumer-submissions`, `docs/evidence/captured`, `db/migrations`, `go.mod`, or `go.sum`. |
 | `make release-package` | blocked | Requires separate explicit maintainer authorization; not run in Phase 90. |
 | `make audit-release-package` | blocked | Requires a package artifact and separate explicit maintainer authorization; not run in Phase 90. |
 
@@ -122,8 +124,9 @@ Phase 90 must not modify or generate files under:
 - `docs/evidence/consumer-submissions/artifacts/**`
 - `docs/evidence/consumer-submissions/packets/**`
 
-Current status is pending final CP000003 validation. No Phase 90 planned edit
-touches those paths.
+Final CP000003 status: passed. No protected evidence path was modified, and
+the protected-path status check for `docs/evidence/consumer-submissions`,
+`docs/evidence/captured`, `db/migrations`, `go.mod`, and `go.sum` was clean.
 
 ## Consumer Tracker Review
 
@@ -139,8 +142,9 @@ The required consumer tracker state is exactly:
 | Mobility Database | `prepared` |
 | transit.land | `prepared` |
 
-Current status is pending final CP000003 validation. Phase 90 must not change
-the tracker file or any consumer packet directories.
+Final CP000003 status: passed. The tracker JSON parsed successfully and all
+seven targets remain exactly `prepared`. Phase 90 did not change the tracker
+file or any consumer packet directories.
 
 ## Claim-Boundary Review
 
