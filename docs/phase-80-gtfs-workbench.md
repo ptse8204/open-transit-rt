@@ -196,3 +196,22 @@ make test
 Run `RUN_LOCAL_APP=true make release-candidate-check` when the route/UI changes
 are in place and local app startup is safe. If an environment limitation blocks
 a check, record the exact blocker in the Phase 80 handoff.
+
+## Closeout Summary
+
+Phase 80 closed the GTFS Workbench scope through Checkpoint 000006. The private
+Operations Console now includes `/admin/operations/gtfs-workbench` and
+`/admin/operations/gtfs-workbench.json` for active schedule state, import
+history and checksum comparison, required-file review, bounded preview tables,
+quality and validator summaries, draft publish review, schedule history,
+rollback guidance, and feed-output review.
+
+GTFS Studio browser mutations for cookie-auth requests now enforce CSRF when
+configured, and read-only draft summaries do not present publish/discard
+actions. Phase 80 added no public admin route, migration, evidence write,
+consumer status change, release artifact, hosted service claim,
+production-readiness claim, vendor claim, SLA claim, or ETA-quality claim.
+
+The next authorized product-track phase is Phase 81 -- Realtime Operations
+Center. Optional evidence intake remains separate and requires explicit written
+authorization.

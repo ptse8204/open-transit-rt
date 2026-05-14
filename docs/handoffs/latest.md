@@ -112,12 +112,21 @@ visibility, and technical-helper escalation cards; `/admin/operations/setup`
 shows advanced setup diagnostics and hides mutation forms from non-admin roles;
 and `/admin/operations/gtfs-import` now makes clear that a successful
 published import updates the active schedule through the existing importer
-rather than acting as a preview-only page. Phase 79 added no public admin
-route, migration, evidence write, consumer status change, release artifact,
-hosted service claim, production-readiness claim, vendor claim, SLA claim, or
-ETA-quality claim. The next autonomous phase in the authorized product track
-is Phase 80 -- GTFS Workbench. Any future evidence intake is optional and
-requires explicit written authorization first.
+rather than acting as a preview-only page. Phase 80 is complete for GTFS
+Workbench, with closeout at `docs/handoffs/phase-80.md`: the private
+Operations Console now has `/admin/operations/gtfs-workbench` and
+`/admin/operations/gtfs-workbench.json` for active schedule state, import
+history and checksum comparison, bounded GTFS preview tables with review
+filters, required-file checklist, GTFS quality and validator-health summaries,
+draft publish review, feed-version history, rollback guidance, and feed-output
+review. GTFS Studio publish/discard/create mutations enforce CSRF for
+cookie-auth requests when configured, and review-only users are not invited
+into publish/discard actions from the draft summary. Phase 80 added no public
+admin route, migration, evidence write, consumer status change, release
+artifact, hosted service claim, production-readiness claim, vendor claim, SLA
+claim, or ETA-quality claim. The next autonomous phase in the authorized
+product track is Phase 81 -- Realtime Operations Center. Any future evidence
+intake is optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1381,15 +1390,12 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Proceed with maintainer review of the Phase 74 CP000008 closeout. Phase 74
-CP000008 reconciled and published the actual `gh-pages` branch after the
-completed public GitHub Pages product-story refresh, quickstart/UI tour
-refresh, private Operations Console hierarchy polish, first-run empty-state
-patching, README/docs/wiki/site navigation alignment, completed bounded Phase
-73 agency UI acceptance closeout, and completed bounded Phase 72 hardening
-review. After maintainer review, separately authorize future release-cut
-cleanup/release-candidate gating, postponed connector maturity, or another
-product phase.
+Continue the authorized Phase 75-90 product track with Phase 81 -- Realtime
+Operations Center. Phase 80 closed the GTFS Workbench scope as private
+product work for schedule import review, bounded previews, validation triage,
+draft publish review, schedule history, rollback guidance, and feed-output
+review without evidence writes, consumer status movement, release artifacts,
+or unsupported public claims.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit

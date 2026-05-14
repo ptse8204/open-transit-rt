@@ -3076,7 +3076,7 @@ func TestOperationsConsoleDesignSystemAvoidsFragileDecoration(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		`GTFS Studio <span class="nav-surface">admin surface</span>`,
+		`Draft Schedule Editor <span class="nav-surface">admin surface</span>`,
 		`Alerts <span class="nav-surface">admin surface</span>`,
 		`Ready for local review`,
 		`Copy These Five Configured Feed URLs`,
