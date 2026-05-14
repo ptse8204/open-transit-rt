@@ -7,8 +7,15 @@ Console workflows. It does not expose a public API, shell commands, raw paths,
 raw validator output, evidence writes, consumer tracker changes, migrations,
 release artifacts, or broader production/compliance claims.
 
-The first migrated action is the existing private validator-health `run_all`
-workflow because it already has the right safety shape:
+The first migrated action is `validation_health.refresh`, a read-only private
+command that recomputes the validator-health summary from existing private
+records and server-owned artifact checks. It writes nothing and changes no
+public feed output.
+
+The existing private validator-health `run_all` workflow remains a good later
+command-model candidate, but it is not read-only because successful runs may
+store normal `validation_report` rows. Treat it as a private diagnostic write,
+not evidence and not compliance proof:
 
 - route: `/admin/operations/validation-health`;
 - role: admin-only POST;
@@ -20,6 +27,11 @@ workflow because it already has the right safety shape:
 - execution model: server-owned validator/tooling/artifact mappings only;
 - output model: derived validation health rows and normal validation records
   only, with no raw stdout/stderr/private path exposure.
+
+No command result may return raw `compliance.ValidationResult.Report` content.
+Validator reports can include raw report text, stdout, stderr, argv, and
+internal work-dir details. Phase 77 command results expose only bounded
+summaries, next actions, all-false claim flags, and sanitized errors.
 
 ## Command Ladder
 
@@ -40,7 +52,7 @@ edits or when required edits are incorporated. Implementation is limited to:
 
 - adding internal command/result structs and helper functions;
 - documenting command safety rules;
-- mapping the validator-health `run_all` POST into the command-result model;
+- mapping the validator-health read-only refresh into the command-result model;
 - rendering bounded command outcome text in the existing private page;
 - adding focused tests for auth, roles, CSRF, body caps, unsupported fields,
   safe result JSON shape, claim flags, and no raw command/path exposure.
