@@ -12,11 +12,11 @@ proof, hardware proof, or ETA-quality proof.
 | --- | --- | --- |
 | Clean local product gate | passed | Checkpoint 000002 ran from a clean worktree before this file was written. |
 | Frontend/control-plane route gate | passed | Checkpoint 000003 passed local app startup, five public feed fetches, and focused private Operations Console route tests. |
-| Connector/backend diagnostics gate | not checked | Planned for Checkpoint 000004. |
+| Connector/backend diagnostics gate | passed | Checkpoint 000004 passed synthetic/local connector, adapter, example, and compose-config diagnostics. |
 | Release notes draft | not checked | Planned for Checkpoint 000005. |
 | Release package creation | blocked | Package creation requires separate explicit maintainer authorization and was not run. |
 | Release package audit | blocked | Package audit requires a package artifact and separate explicit maintainer authorization; it was not run. |
-| Overall release-candidate conclusion | needs_review | Phase 89 has not completed connector/backend and notes/blockers gates; no release action is authorized. |
+| Overall release-candidate conclusion | needs_review | Phase 89 has not completed notes/blockers gates; no release action is authorized. |
 
 ## Checkpoint 000002 -- Clean Local Product Gate
 
@@ -56,12 +56,26 @@ Route inventory is local/private UI review only. It does not prove public
 launch, uptime, managed support, production readiness, consumer action,
 compliance, or release readiness.
 
+## Checkpoint 000004 -- Connector And Backend Diagnostics Gate
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| `make external-connection-check` | passed | Connector manifests and examples remain sidecar/manifest/conformance bounded. |
+| `make adapter-conformance` | passed | Adapter conformance suite passed against local test fixtures. |
+| `make test-connector-examples` | passed | Connector example packages passed. |
+| `docker compose -f deploy/docker-compose.yml config` | passed | Compose config rendered locally; output was not retained in the repo. |
+
+These are synthetic/local diagnostics only. They do not prove real vendor
+compatibility, real device behavior, hardware certification, production AVL
+reliability, public launch, hosted-service availability, SLA/uptime,
+production readiness, or release readiness.
+
 ## Current Blockers
 
 | Blocker | Status | Impact |
 | --- | --- | --- |
 | Release action authorization | blocked | No tag, package, published image, package distribution, or release-ready claim is authorized. |
-| Phase 89 incomplete | needs_review | Connector/backend, release-notes, and blockers-matrix checkpoints are still pending. |
+| Phase 89 incomplete | needs_review | Release-notes and blockers-matrix checkpoints are still pending. |
 | Phase 72 precedent | needs_review | Phase 72 remains a bounded diagnostic review, not a release-ready pass. |
 | Evidence tracks | blocked | Final-root, consumer, agency pilot, vendor/device, ETA-quality, and compliance evidence gates require separate written authorization. |
 
