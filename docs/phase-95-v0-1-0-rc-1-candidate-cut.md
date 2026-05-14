@@ -92,7 +92,7 @@ Deliverables:
 - Run:
 
   ```bash
-  RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_FORCE=true make release-package
+  RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true RELEASE_PACKAGE_FORCE=true make release-package
   RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package
   RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true RUN_LOCAL_APP=true make release-candidate-check
   ```
@@ -155,8 +155,10 @@ Draft GitHub Release boundary sentence:
 ```text
 This release candidate is for local evaluator review of the self-hosted Open
 Transit RT codebase. It is not a hosted service, compliance certification,
-consumer acceptance claim, agency endorsement, vendor compatibility claim,
-hardware certification, SLA/uptime claim, or production-grade ETA claim.
+consumer acceptance claim, agency endorsement, public launch claim, final-root
+readiness claim, production readiness claim, release-ready claim, vendor
+compatibility claim, hardware certification, SLA/uptime claim, or
+production-grade ETA claim.
 ```
 
 ## Hard Boundaries
@@ -241,3 +243,84 @@ Commit CP000001 and continue to candidate documentation refresh.
 
 Next checkpoint:
 Phase 95 -- Checkpoint 000002: refresh candidate docs.
+
+## Checkpoint 000002 Candidate Documentation Refresh
+
+Documentation refresh result:
+
+- Refreshed `docs/release-notes-v0.1.0-rc.1-draft.md` for the Phase 95
+  package-authorized checkpoint sequence.
+- Added draft-only tag command text and draft-only GitHub Release body text.
+- Recorded that Phase 95 package output remains local `.cache` diagnostics and
+  not publication.
+- Recorded a supply-chain publication blocker: the local source archive is
+  generated from `git archive HEAD` and therefore includes tracked repository
+  files; any public distribution requires a separate review for tracked
+  evidence-path material.
+- Tightened the package command to use `RELEASE_PACKAGE_ALLOW_DIRTY=false` and
+  `RELEASE_PACKAGE_STRICT=true` for the local candidate cut.
+
+## Checkpoint 000002 Report
+
+Checkpoint:
+Phase 95 -- Checkpoint 000002: refresh candidate docs.
+
+Sub-agents used or simulated, including intended model level:
+Real Release / Supply-Chain Sub-Agent -- GPT-5.5 high identified the stale
+local package and source archive publication hazard. Real Planning Sub-Agent
+-- GPT-5.5 x-high recommended clean strict package commands. Real Context /
+Repo Truth Sub-Agent -- GPT-5.5 x-high and Claim-Boundary / Security QA
+Sub-Agent -- GPT-5.5 high informed boundaries. Implementation and QA roles
+were simulated by the Master Agent. Master Agent -- GPT-5.5 x-high, current
+thread.
+
+Changed files:
+`docs/release-notes-v0.1.0-rc.1-draft.md`;
+`docs/phase-95-v0-1-0-rc-1-candidate-cut.md`.
+
+Validation run:
+`git diff --check`; `make audit-final-claim-review`; `make
+audit-product-acceptance`; consumer tracker JSON parse; exact prepared-only
+consumer tracker assertion; protected-path status check.
+
+Blocked checks:
+Package generation, package audit, package-enabled release-candidate
+diagnostics, and closeout validation are scheduled for later checkpoints.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched by
+tracked changes.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets remain required to stay `prepared`.
+
+Claim-boundary status:
+Draft tag and GitHub Release text are explicitly draft-only and blocked from
+execution in Phase 95. The docs make no release readiness, compliance,
+adoption, consumer acceptance, production readiness, final-root readiness,
+hosted-service availability, vendor compatibility, hardware certification,
+SLA/uptime, or ETA-quality claim.
+
+Security/auth status:
+No route, auth, credential, CSRF, token, or protected data behavior changed.
+Release package outputs remain local-only `.cache` diagnostics.
+
+Data/migration status:
+No persistence, migration, GTFS data model, tenant model, or realtime data
+model change is included.
+
+Master review:
+Approved. The release notes are current for the local package-authorized
+checkpoint, and they explicitly block tag, release, public package, image,
+evidence, and consumer-status actions.
+
+Required edits:
+None.
+
+Decision:
+Commit CP000002, then generate and audit the local candidate package from the
+clean committed checkpoint.
+
+Next checkpoint:
+Phase 95 -- Checkpoint 000003: generate and audit local candidate package.
