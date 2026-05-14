@@ -14,14 +14,16 @@ Operations Console now has a Realtime Center with fleet freshness, device
 not-seen state, conservative assignment confidence/reason rows, Vehicle
 Positions status, Trip Updates withheld or fallback diagnostics, Alerts
 lifecycle links, bounded operator-review rows, and realtime quality guidance.
-It is private, read-only, and claim-bounded. Phase 72 still ended with
-`needs_review`
+It is private, read-only, and claim-bounded. Phase 82 has started with a
+private Feed Health And Validation Center plan for supporting feed and
+validator diagnostics. Phase 72 still ended with `needs_review`
 release-candidate diagnostics, not a release-ready pass. Phase 74 CP000008
 remains the latest GitHub Pages publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. Phase 82 -- Feed Health And Validation Center;
+1. Phase 82 -- Checkpoint 000002, the private feed status and validator
+   history implementation slice;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
    as the bounded planning guide for Phase 82+;
@@ -73,7 +75,7 @@ assessment.
 | Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed and published GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 CP000008 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
-| Browser-first operations | Phase 81 adds a private Realtime Operations Center for fleet freshness, device not-seen state, conservative assignment confidence, Vehicle Positions status, Trip Updates withheld/fallback diagnostics, Alerts lifecycle links, bounded operator-review rows, and realtime quality guidance while preserving Go server-rendered no-JS fallback. | Continue with Phase 82 Feed Health And Validation Center while keeping validation and feed-health results as private supporting signals, not compliance or release proof. |
+| Browser-first operations | Phase 82 has started for a private Feed Health And Validation Center that will combine feed status, validator health, GTFS quality triage, readiness signals, and blocker history while preserving Go server-rendered no-JS fallback. | Implement the Center through private sanitized DTOs while keeping validation and feed-health results as supporting signals, not compliance or release proof. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
@@ -106,9 +108,9 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue with Phase 82 -- Feed Health And Validation Center while keeping
-   release-cut cleanup, postponed connector maturity, and optional evidence
-   tracks separated by their phase gates and claim boundaries.
+6. Continue with Phase 82 -- Checkpoint 000002 while keeping release-cut
+   cleanup, postponed connector maturity, and optional evidence tracks
+   separated by their phase gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean
    checkout passes the repo's release-candidate diagnostics.
 8. Run the release-candidate readiness gate:

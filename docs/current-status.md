@@ -343,8 +343,9 @@ Center now presents fleet freshness, device not-seen state, assignment
 confidence and reason codes, Vehicle Positions status, Trip Updates withheld
 or fallback diagnostics, Alerts lifecycle links, bounded operator-review rows,
 and realtime quality guidance without browser mutations or public admin
-routes. The next product-track phase is Phase 82 -- Feed Health And Validation
-Center. Release-cut cleanup, postponed
+routes. Phase 82 -- Feed Health And Validation Center has started as the next
+product-track phase; its plan keeps the work private, read-only by default,
+sanitized, and bounded to supporting validation/feed-health signals. Release-cut cleanup, postponed
 connector maturity, and optional evidence tracks remain separated by their
 phase gates and claim boundaries. The
 next step is not a full `v0.1.0` release, a real agency
