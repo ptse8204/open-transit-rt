@@ -8,8 +8,15 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 93 is complete for Browser End-To-End Agency Task Trials in the
+Phase 94 is complete for Operations Console Architecture Refactor in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-94.md`](handoffs/phase-94.md). Phase 94 added a central
+private Operations Console route registry, refactored nav/title generation to
+use it, made the route inventory audit registry-backed, and fixed audit
+coverage for `/admin/operations/checklist.json`.
+
+Phase 93 is complete for Browser End-To-End Agency Task Trials. The closeout
+handoff is
 [`docs/handoffs/phase-93.md`](handoffs/phase-93.md). Phase 93 local/private
 task trials covered new agency evaluator, operations staff, technical helper,
 maintainer release reviewer, and connector evaluator flows. In-app Browser
@@ -40,11 +47,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 94 --
-Operations Console Architecture Refactor. Phase 94 may refactor private
-Operations Console route metadata, templates, and view models, but it must not
-change behavior without tests, expose public admin routes, move consumer
-statuses, collect retained evidence, or claim release readiness.
+The current authorized autonomous run continues next with Phase 95 --
+v0.1.0-rc.1 Candidate Cut. Phase 95 may create and audit local `.cache`
+candidate artifacts where existing tooling supports them, but it must not tag,
+publish, create a GitHub Release, push an image, move consumer statuses,
+collect retained evidence, or claim release readiness.
 
 Recommended work remains separated into:
 

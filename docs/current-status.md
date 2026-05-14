@@ -445,8 +445,16 @@ Telemetry Simulator local/synthetic `dry-run` wording. Phase 93 added no public
 admin route, migration, evidence write, consumer status change, release
 artifact, hosted-service claim, production-readiness claim, release-ready
 claim, vendor claim, hardware claim, SLA/uptime claim, or ETA-quality claim.
-The authorized autonomous post-90 roadmap continues next with Phase 94 --
-Operations Console Architecture Refactor.
+Phase 94 -- Operations Console Architecture Refactor is complete, with closeout
+at `docs/handoffs/phase-94.md`: it added a central private Operations Console
+route registry, refactored nav/title generation to use the registry, made the
+route inventory audit registry-backed, and fixed audit coverage for
+`/admin/operations/checklist.json`. Phase 94 added no public admin route,
+migration, evidence write, consumer status change, release artifact,
+hosted-service claim, production-readiness claim, release-ready claim, vendor
+claim, hardware claim, SLA/uptime claim, or ETA-quality claim.
+The authorized autonomous post-90 roadmap continues next with Phase 95 --
+v0.1.0-rc.1 Candidate Cut.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

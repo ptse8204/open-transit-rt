@@ -229,9 +229,17 @@ role-based Start Here entries and Telemetry Simulator local/synthetic
 `dry-run` wording. Phase 93 added no public admin route, migration, evidence
 write, consumer status change, release artifact, release-ready claim,
 compliance claim, hosted-service claim, production-readiness claim, vendor
-claim, hardware claim, SLA/uptime claim, or ETA-quality claim. The exact next
-checkpoint in the authorized autonomous run is Phase 94 -- Checkpoint 000001:
-add operations console architecture refactor plan. Any future evidence intake is
+claim, hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 94 --
+Operations Console Architecture Refactor is complete, with closeout at
+`docs/handoffs/phase-94.md`: it added a central private Operations Console
+route registry, refactored nav/title generation to use the registry, made the
+route inventory audit registry-backed, and fixed audit coverage for
+`/admin/operations/checklist.json`. Phase 94 added no public admin route,
+migration, evidence write, consumer status change, release artifact,
+release-ready claim, compliance claim, hosted-service claim,
+production-readiness claim, vendor claim, hardware claim, SLA/uptime claim, or
+ETA-quality claim. The exact next checkpoint in the authorized autonomous run
+is Phase 95 -- Checkpoint 000001: add v0.1.0-rc.1 candidate cut plan. Any future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1496,8 +1504,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 94 -- Checkpoint
-000001: add operations console architecture refactor plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 95 -- Checkpoint
+000001: add v0.1.0-rc.1 candidate cut plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
