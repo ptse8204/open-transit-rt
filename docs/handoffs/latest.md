@@ -97,9 +97,17 @@ command result contract, documented the command ladder in
 `POST /admin/operations/validation-health/refresh.json`. The command writes
 nothing, changes no public feed output, creates no evidence, moves no consumer
 status, and returns only bounded command result fields with all-false claim
-flags. The next autonomous phase in the authorized product track is Phase 78
--- Frontend Routing, State, And Data Loading. Any future evidence intake is
-optional and requires explicit written authorization first.
+flags. Phase 78 is complete for Frontend Routing, State, And Data Loading,
+with closeout at `docs/handoffs/phase-78.md`: it added the private buildless
+Operations Console runtime at `/admin/operations/assets/operations.js`, safe
+copy hooks for visible configured feed URLs, Feed Health review filters and
+sorting, and a read-only Validation Health refresh control using the Phase 77
+command route. It added no SPA, frontend dependency, public admin route,
+evidence write, consumer status change, release artifact, hosted service
+claim, production-readiness claim, vendor claim, SLA claim, or ETA-quality
+claim. The next autonomous phase in the authorized product track is Phase 79
+-- Agency Setup V3. Any future evidence intake is optional and requires
+explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

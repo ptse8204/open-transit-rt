@@ -171,6 +171,21 @@ not expose raw validator reports, stdout/stderr, argv, private paths, tokens,
 or DB URLs. The existing validator run remains admin-only and is documented as
 a private diagnostic write because it may store normal `validation_report`
 rows; it is not evidence or compliance proof.
+Phase 78 is complete for the Frontend Routing, State, And Data Loading scope.
+It kept the private Go server-rendered Operations Console as the source of
+truth and added a buildless embedded JavaScript runtime served only from the
+authenticated allowlisted `/admin/operations/assets/operations.js` route. The
+runtime adds progressive no-JS-safe copy affordances for configured feed URLs,
+Feed Health review filters/search/sorting over rendered rows, and a read-only
+Validation Health refresh control that posts to
+`POST /admin/operations/validation-health/refresh.json` with form-encoded CSRF
+when present. It fetches only relative private `/admin/operations/*` routes,
+does not use `/public/*` or `/v1/events`, stores only UI preferences such as
+filter/sort state, and does not store secrets, raw JSON responses, URLs,
+commands, row contents, private paths, or credentials. It added no public admin
+route, SPA, frontend dependency, migration, evidence write, consumer tracker
+change, release artifact, hosted service claim, production-readiness claim,
+vendor claim, SLA claim, or ETA-quality claim.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -310,9 +325,10 @@ created, no external party was contacted, no consumer status changed, and no
 compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
 was added. The Phase 75 consumer-grade roadmap pack is now the authorized
 Phase 75-90 product-track guide. Phase 76 is complete for private Operations
-Console design-system/app-shell work, and Phase 77 is complete for the private
-Admin Control API And Command Model scope. The next product-track phase is
-Phase 78 -- Frontend Routing, State, And Data Loading. Release-cut cleanup,
+Console design-system/app-shell work, Phase 77 is complete for the private
+Admin Control API And Command Model scope, and Phase 78 is complete for
+private buildless frontend routing/state/data-loading work. The next
+product-track phase is Phase 79 -- Agency Setup V3. Release-cut cleanup,
 postponed connector maturity, and optional evidence tracks remain separated by
 their phase gates and claim boundaries. The
 next step is not a full `v0.1.0` release, a real agency

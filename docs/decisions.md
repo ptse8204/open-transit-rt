@@ -542,3 +542,32 @@ a public API, shell runner, plugin loader, evidence collector, release
 publisher, consumer submission system, compliance proof, production readiness
 proof, hosted SaaS claim, vendor compatibility claim, SLA guarantee, or
 production-grade ETA proof.
+
+## ADR-0044 -- Keep Operations Console frontend enhancements buildless and private
+
+Phase 78 adds a small progressive enhancement runtime for the private
+Operations Console. The source of truth remains Go server-rendered HTML. The
+browser runtime is a committed JavaScript source file embedded into the Go
+binary and served only from an allowlisted authenticated route:
+`/admin/operations/assets/operations.js`.
+
+The asset route sets `Cache-Control: no-store`, an explicit JavaScript content
+type, and `X-Content-Type-Options: nosniff`. It does not use `http.FileServer`,
+filesystem path routing, a generated bundle, a package-manager install, a CDN,
+or a public route.
+
+Browser fetches are limited to relative private `/admin/operations/*.json`
+reads and the approved read-only
+`POST /admin/operations/validation-health/refresh.json` command. The runtime
+does not fetch `/public/*`, `/v1/events`, external URLs, raw validator routes,
+or public-looking GTFS-RT debug JSON. Browser storage may hold only UI
+preferences such as filter or sort state; it must not store CSRF tokens, bearer
+tokens, cookies, device tokens, raw JSON responses, row contents, commands,
+URLs, private paths, hostnames, or credentials.
+
+The runtime is progressive enhancement only. With JavaScript disabled, the
+private console must still render useful tables, links, forms, visible
+configured values, and native details. The frontend layer is not a public API,
+evidence collector, consumer submission system, hosted SaaS surface,
+production-readiness proof, vendor compatibility proof, SLA proof, or
+production-grade ETA proof.
