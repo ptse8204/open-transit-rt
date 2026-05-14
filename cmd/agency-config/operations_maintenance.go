@@ -8,14 +8,15 @@ import (
 )
 
 type operationsMaintenanceView struct {
-	GeneratedAt    time.Time                       `json:"generated_at"`
-	AgencyID       string                          `json:"agency_id"`
-	Boundary       string                          `json:"boundary"`
-	OverallStatus  string                          `json:"overall_status"`
-	SummaryRows    []operationsMaintenanceRow      `json:"summary_rows"`
-	Tasks          []operationsMaintenanceTask     `json:"tasks"`
-	SupportSummary operationsMaintenanceSupport    `json:"support_summary"`
-	ClaimFlags     operationsMaintenanceClaimFlags `json:"claim_flags"`
+	GeneratedAt    time.Time                        `json:"generated_at"`
+	AgencyID       string                           `json:"agency_id"`
+	Boundary       string                           `json:"boundary"`
+	OverallStatus  string                           `json:"overall_status"`
+	SummaryRows    []operationsMaintenanceRow       `json:"summary_rows"`
+	Diagnostics    operationsMaintenanceDiagnostics `json:"diagnostics"`
+	Tasks          []operationsMaintenanceTask      `json:"tasks"`
+	SupportSummary operationsMaintenanceSupport     `json:"support_summary"`
+	ClaimFlags     operationsMaintenanceClaimFlags  `json:"claim_flags"`
 }
 
 type operationsMaintenanceRow struct {
@@ -34,6 +35,23 @@ type operationsMaintenanceTask struct {
 	Status   string `json:"status"`
 	Owner    string `json:"owner"`
 	NextStep string `json:"next_step"`
+}
+
+type operationsMaintenanceDiagnostics struct {
+	Status   string                            `json:"status"`
+	Boundary string                            `json:"boundary"`
+	Rows     []operationsMaintenanceDiagnostic `json:"rows"`
+}
+
+type operationsMaintenanceDiagnostic struct {
+	ID            string `json:"id"`
+	Label         string `json:"label"`
+	Status        string `json:"status"`
+	SourceRef     string `json:"source_ref"`
+	GeneratedAt   string `json:"generated_at"`
+	CurrentSignal string `json:"current_signal"`
+	NextAction    string `json:"next_action"`
+	DoesNotProve  string `json:"does_not_prove"`
 }
 
 type operationsMaintenanceSupport struct {
@@ -85,11 +103,12 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 		Boundary:      "Private maintenance diagnostics only. This page summarizes configured/nonconfigured signals and next tasks without creating evidence, changing consumer statuses, claiming compliance, claiming production readiness, claiming SLA or uptime coverage, or exposing secret values.",
 		OverallStatus: overall,
 		SummaryRows:   rows,
+		Diagnostics:   buildOperationsMaintenanceDiagnostics(),
 		Tasks:         tasks,
 		SupportSummary: operationsMaintenanceSupport{
 			Status:     operationsStatusDiagnosticOnly,
 			Command:    "make support-bundle",
-			OutputPath: ".cache/support-bundle/<timestamp>",
+			OutputPath: ".cache/support-bundles/<timestamp>",
 			Instructions: []string{
 				"Run only from an operator-controlled shell when a technical helper needs diagnostics.",
 				"Review and redact output before sharing outside the operator environment.",

@@ -4754,6 +4754,8 @@ func TestOperationsReliabilityJSONShapeOrderMissingFlagsAndNoLeakage(t *testing.
 func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testing.T) {
 	t.Setenv("VALIDATOR_TOOLING_MODE", "stub")
 	t.Setenv("BACKUP_DIR", "/private/withheld")
+	roots := writeMaintenanceSummaryFixtures(t)
+	withMaintenanceSummaryRoots(t, roots)
 	now := time.Date(2026, 5, 12, 12, 0, 0, 0, time.UTC)
 	store := feedHealthTestStore(t)
 	store.discovery.GeneratedAt = now
@@ -4788,11 +4790,14 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 	if strings.Join(gotRows, ",") != strings.Join(wantRows, ",") {
 		t.Fatalf("maintenance rows = %v, want %v", gotRows, wantRows)
 	}
-	if view.SupportSummary.OutputPath != ".cache/support-bundle/<timestamp>" {
+	if view.SupportSummary.OutputPath != ".cache/support-bundles/<timestamp>" {
 		t.Fatalf("support output path = %q, want timestamp placeholder", view.SupportSummary.OutputPath)
 	}
+	if view.Diagnostics.Status != operationsStatusBlocked || len(view.Diagnostics.Rows) != 4 {
+		t.Fatalf("unexpected diagnostics summary: %+v", view.Diagnostics)
+	}
 	body := rr.Body.String()
-	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundle/"} {
+	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("maintenance JSON missing %q: %s", want, body)
 		}
@@ -4822,6 +4827,127 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("public maintenance route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsMaintenanceSummaryReadersRejectUnsafeRootsAndClaimFlags(t *testing.T) {
+	previous := maintenanceDeploymentDoctorRoot
+	maintenanceDeploymentDoctorRoot = filepath.Join(t.TempDir(), "deployment-doctor")
+	t.Cleanup(func() { maintenanceDeploymentDoctorRoot = previous })
+	diagnostics := buildOperationsMaintenanceDiagnostics()
+	if diagnostics.Rows[0].Status != operationsStatusBlocked || !strings.Contains(diagnostics.Rows[0].CurrentSignal, "failed private cache") {
+		t.Fatalf("unsafe root was not blocked: %+v", diagnostics.Rows[0])
+	}
+
+	roots := writeMaintenanceSummaryFixtures(t)
+	writeMaintenanceJSON(t, filepath.Join(roots.deploymentDoctor, "20260512T010313Z", "summary.json"), map[string]any{
+		"generated_at_utc":             "20260512T010313Z",
+		"overall_status":               "passed",
+		"counts":                       map[string]any{"blocker": 0, "warning": 0},
+		"categories":                   map[string]any{"backup_readiness": "passed", "restore_readiness": "passed"},
+		"external_evidence_created":    false,
+		"final_root_evidence_created":  false,
+		"consumer_statuses_changed":    false,
+		"compliance_claimed":           false,
+		"production_readiness_claimed": true,
+	})
+	withMaintenanceSummaryRoots(t, roots)
+	diagnostics = buildOperationsMaintenanceDiagnostics()
+	if diagnostics.Rows[0].Status != operationsStatusBlocked || !strings.Contains(diagnostics.Rows[0].CurrentSignal, "claim flag") {
+		t.Fatalf("claim flag summary was not blocked: %+v", diagnostics.Rows[0])
+	}
+}
+
+type maintenanceSummaryTestRoots struct {
+	deploymentDoctor      string
+	operationsReliability string
+	operationsNotify      string
+	supportBundles        string
+}
+
+func withMaintenanceSummaryRoots(t *testing.T, roots maintenanceSummaryTestRoots) {
+	t.Helper()
+	previousDeployment := maintenanceDeploymentDoctorRoot
+	previousReliability := maintenanceOperationsReliabilityRoot
+	previousNotify := maintenanceOperationsNotifyRoot
+	previousSupport := maintenanceSupportBundleRoot
+	maintenanceDeploymentDoctorRoot = roots.deploymentDoctor
+	maintenanceOperationsReliabilityRoot = roots.operationsReliability
+	maintenanceOperationsNotifyRoot = roots.operationsNotify
+	maintenanceSupportBundleRoot = roots.supportBundles
+	t.Cleanup(func() {
+		maintenanceDeploymentDoctorRoot = previousDeployment
+		maintenanceOperationsReliabilityRoot = previousReliability
+		maintenanceOperationsNotifyRoot = previousNotify
+		maintenanceSupportBundleRoot = previousSupport
+	})
+}
+
+func writeMaintenanceSummaryFixtures(t *testing.T) maintenanceSummaryTestRoots {
+	t.Helper()
+	base := filepath.Join(t.TempDir(), ".cache")
+	roots := maintenanceSummaryTestRoots{
+		deploymentDoctor:      filepath.Join(base, "deployment-doctor"),
+		operationsReliability: filepath.Join(base, "operations-reliability"),
+		operationsNotify:      filepath.Join(base, "operations-notify"),
+		supportBundles:        filepath.Join(base, "support-bundles"),
+	}
+	writeMaintenanceJSON(t, filepath.Join(roots.deploymentDoctor, "20260512T010313Z", "summary.json"), map[string]any{
+		"generated_at_utc":             "20260512T010313Z",
+		"overall_status":               "blocker",
+		"counts":                       map[string]any{"blocker": 2, "warning": 1, "unavailable": 0},
+		"categories":                   map[string]any{"backup_readiness": "blocker", "restore_readiness": "blocker"},
+		"external_evidence_created":    false,
+		"final_root_evidence_created":  false,
+		"consumer_statuses_changed":    false,
+		"compliance_claimed":           false,
+		"production_readiness_claimed": false,
+	})
+	writeMaintenanceJSON(t, filepath.Join(roots.operationsReliability, "20260512T010400Z", "summary.json"), map[string]any{
+		"generated_at":          "20260512T010400Z",
+		"overall_status":        "missing",
+		"backup_restore":        map[string]any{"status": "missing"},
+		"alerting":              map[string]any{"status": "missing"},
+		"availability_sampling": map[string]any{"status": "unknown"},
+		"claim_flags":           map[string]any{"external_evidence_created": false, "final_root_evidence_created": false, "consumer_statuses_changed": false, "compliance_claimed": false, "production_readiness_claimed": false, "hosted_saas_claimed": false, "consumer_acceptance_claimed": false, "vendor_compatibility_claimed": false, "sla_claimed": false, "uptime_guarantee_claimed": false, "production_grade_eta_claimed": false},
+	})
+	writeMaintenanceJSON(t, filepath.Join(roots.operationsNotify, "20260512T010500Z", "summary.json"), map[string]any{
+		"generated_at":                 "20260512T010500Z",
+		"notification":                 map[string]any{"severity": "needs_review", "not_sent": true},
+		"counts":                       map[string]any{"next_actions": 2, "blocked_actions": 1},
+		"external_evidence_created":    false,
+		"consumer_statuses_changed":    false,
+		"compliance_claimed":           false,
+		"production_readiness_claimed": false,
+		"hosted_saas_claimed":          false,
+		"agency_adoption_claimed":      false,
+		"consumer_acceptance_claimed":  false,
+		"vendor_compatibility_claimed": false,
+		"production_grade_eta_claimed": false,
+		"notification_sent":            false,
+	})
+	writeMaintenanceJSON(t, filepath.Join(roots.supportBundles, "20260512T010600Z", "manifest.json"), map[string]any{
+		"created_at_utc":            "20260512T010600Z",
+		"external_evidence_created": false,
+		"consumer_statuses_changed": false,
+		"included":                  []string{"system versions", "git summary"},
+		"excluded":                  []string{"credential values", "private payloads"},
+	})
+	return roots
+}
+
+func writeMaintenanceJSON(t *testing.T, path string, value any) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("create maintenance fixture dir: %v", err)
+	}
+	raw, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal maintenance fixture: %v", err)
+	}
+	raw = append(raw, '\n')
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatalf("write maintenance fixture: %v", err)
 	}
 }
 
@@ -6688,7 +6814,7 @@ func assertOperationsCockpitFlagsFalse(t *testing.T, flags operationsCockpitClai
 
 func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || len(view.Tasks) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || len(view.Tasks) != 7 {
 		t.Fatalf("invalid maintenance shape: %+v", view)
 	}
 	seen := map[string]bool{}
@@ -6700,6 +6826,15 @@ func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 			t.Fatalf("duplicate maintenance row id %q", row.ID)
 		}
 		seen["row:"+row.ID] = true
+	}
+	for _, row := range view.Diagnostics.Rows {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.SourceRef == "" || row.GeneratedAt == "" || row.CurrentSignal == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid maintenance diagnostic row: %+v", row)
+		}
+		if seen["diagnostic:"+row.ID] {
+			t.Fatalf("duplicate maintenance diagnostic id %q", row.ID)
+		}
+		seen["diagnostic:"+row.ID] = true
 	}
 	for _, task := range view.Tasks {
 		if task.ID == "" || task.Cadence == "" || task.Task == "" || task.Status == "" || task.Owner == "" || task.NextStep == "" {
