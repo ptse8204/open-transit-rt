@@ -70,7 +70,7 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 		maintenanceRow("service_health", "Service health", operationsStatusUnknown, "not available from this single request unless an operator runs deployment diagnostics", "Run local/reference diagnostics or loopback health checks through the deployment helper when needed.", "Does not prove uptime, SLA, or hosted service availability."),
 	}
 	tasks := []operationsMaintenanceTask{
-		maintenanceTask("weekly_feed_health", "weekly", "Check five public feed paths and feed health next actions.", cockpitFeedHealthStatus(page), "agency operator", "Open Feed Health and review each row."),
+		maintenanceTask("weekly_feed_health", "weekly", "Check five configured feed paths and feed health next actions.", cockpitFeedHealthStatus(page), "agency operator", "Open Feed Health and review each row."),
 		maintenanceTask("weekly_validators", "weekly", "Review validator health and stale reports.", cockpitValidationStatus(page), "agency operator or technical helper", "Open Validator Health; use off-host validation when the server is too small."),
 		maintenanceTask("weekly_telemetry", "weekly", "Review telemetry freshness, stale rows, and assignment confidence.", cockpitTelemetryStatus(page), "agency operator", "Open Devices and Telemetry."),
 		maintenanceTask("weekly_alerts", "weekly", "Check whether active alerts need to be created, updated, or archived.", alertStatus(page), "agency operator", "Open the Alerts Console and Alerts feed row."),

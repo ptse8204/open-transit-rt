@@ -440,7 +440,7 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", "<h1>Agency Operations Cockpit / Start Here</h1>", "No-developer path", "Technical-helper path", "Copy These Five Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", "<h1>Agency Operations Cockpit / Start Here</h1>", "No-developer path", "Technical-helper path", "Copy These Five Configured Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -1097,7 +1097,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "VP/TU/Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "VP/TU/Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1164,14 +1164,14 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"First-Run Acceptance Tasks",
 		"Metadata",
 		"GTFS",
-		"Five feed URLs",
+		"Five configured feed URLs",
 		"Validation health",
 		"Telemetry",
 		"VP/TU/Alerts",
 		"Readiness",
 		"Connectors",
 		"Support/RC checks",
-		"Copy These Five Feed URLs",
+		"Copy These Five Configured Feed URLs",
 		"https://pilot.example.org/public/feeds.json",
 		"https://pilot.example.org/public/gtfs/schedule.zip",
 		"https://pilot.example.org/public/gtfsrt/vehicle_positions.pb",
@@ -1818,7 +1818,7 @@ func TestFeedHealthHTMLPlainLanguageBoundariesAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five public paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Does not prove"} {
+	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five configured public route paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Does not prove"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2253,15 +2253,16 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		`aria-label="Operations Console sections"`,
-		"Start",
+		"Start Here",
 		`href="/admin/operations" aria-current="page">Start Here</a>`,
 		`href="/admin/operations/devices">Device Credentials</a>`,
 		`href="/admin/operations/telemetry-simulator">Telemetry Simulator</a>`,
-		"GTFS and feeds",
-		"Realtime operations",
+		"Schedule",
+		"Realtime",
 		"Connectors",
-		"Readiness and diagnostics",
-		"Records and boundaries",
+		"Health",
+		"Maintain",
+		"Learn",
 		`href="/admin/operations" aria-current="page"`,
 	} {
 		if !strings.Contains(body, want) {

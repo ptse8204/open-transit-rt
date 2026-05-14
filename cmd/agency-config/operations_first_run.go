@@ -119,7 +119,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 		firstRunTask(
 			3,
 			"five_feed_urls",
-			"Five feed URLs",
+			"Five configured feed URLs",
 			fiveFeedsLaunchpadStatus(page),
 			firstRunFiveFeedSignal(feedURLs),
 			"The operator needs copyable locations for feeds.json, GTFS Schedule, Vehicle Positions, Trip Updates, and Alerts before checking publication posture.",
@@ -158,7 +158,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"VP/TU/Alerts",
 			firstRunRealtimeStatus(page),
 			firstRunRealtimeSignal(page),
-			"Vehicle Positions are the first production-grade realtime output, while Trip Updates stay behind the prediction adapter and Alerts remain a separate lifecycle feed.",
+			"Vehicle Positions are the first high-quality realtime output target, while Trip Updates stay behind the prediction adapter and Alerts remain a separate lifecycle feed.",
 			"Review feed health for Vehicle Positions, Trip Updates, and Alerts; fix missing URLs or validation gaps without coupling Trip Updates to ingest.",
 			"/admin/operations/feed-health",
 			"docs/requirements-calitp-compliance.md",

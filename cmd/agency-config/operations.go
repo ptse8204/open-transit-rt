@@ -1274,7 +1274,7 @@ func setupSteps(page operationsPage) []setupStepView {
 			Status:     readinessStatus(page.Discovery.Readiness.AllRequiredFeedsListed, page.DiscoveryError),
 			Source:     "feed discovery",
 			Evidence:   allFeedURLsEvidence(page),
-			NextAction: "Review public feed URLs and health records. Verification is supporting evidence only.",
+			NextAction: "Review configured feed URLs and health records. Verification is supporting evidence only.",
 			ActionURL:  "/admin/operations/feeds",
 		},
 		{
@@ -1315,11 +1315,11 @@ func readinessItems(page operationsPage) []readinessItemView {
 	}
 	return []readinessItemView{
 		{
-			Name:          "Stable public URLs",
+			Name:          "Configured public route URLs",
 			Status:        readinessStatus(page.Discovery.Readiness.AllRequiredFeedsListed && page.Discovery.Readiness.HTTPSURLs, page.DiscoveryError),
 			Source:        "feed discovery and published_feed records",
 			Evidence:      stableURLEvidence(page),
-			NextAction:    "Confirm every public URL is stable, HTTPS in deployment, and served through the intended public feed root.",
+			NextAction:    "Confirm every configured public route URL is stable, HTTPS in deployment, and served through the intended feed root.",
 			ClaimBoundary: "URL records are readiness signals, not agency-owned-domain or consumer acceptance evidence.",
 		},
 		{
@@ -1736,13 +1736,15 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <style>{{operationsCSS}}</style></head><body>
 <a class="skip-link" href="#operations-main">Skip to main content</a>
 <header class="operations-header">
+<p class="app-kicker">Private operations control plane</p>
+<p class="app-breadcrumb"><a href="/admin/operations">Operations Console</a> / {{.Title}}</p>
 <h1>{{.Title}}</h1>
-<p>Agency: <strong>{{.AgencyID}}</strong> · environment: <span class="pill">{{.EnvironmentLabel}}</span> · generated: {{formatTime .GeneratedAt}}</p>
+<p class="app-meta"><span>Agency: <strong>{{.AgencyID}}</strong></span><span>environment: <span class="pill">{{.EnvironmentLabel}}</span></span><span>generated: {{formatTime .GeneratedAt}}</span></p>
 </header>
 <nav class="operations-nav" aria-label="Operations Console sections">
 {{range .NavGroups}}<section class="nav-group" aria-label="{{.Label}}">
 <p class="nav-group-label">{{.Label}}</p>
-<div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</div>
+<div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .ExternalAdminSurface}} <span class="nav-surface">admin surface</span>{{end}}</a>{{end}}</div>
 </section>{{end}}
 </nav>
 {{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
@@ -1831,9 +1833,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
-<h3>Copy These Five Feed URLs</h3>
-<p class="section-note">Use these values for local review inside the private console. Missing stays missing until publication metadata or feed records exist.</p>
-<div class="feed-copy-grid" aria-label="Copyable public feed URLs">
+<h3>Copy These Five Configured Feed URLs</h3>
+<p class="section-note">Use these configured local/reference paths for private review. Missing stays missing until publication metadata or feed records exist.</p>
+<div class="feed-copy-grid" aria-label="Copyable configured feed URLs">
 {{range .FeedURLs}}<section class="feed-url-card" id="first-run-feed-{{.ID}}">
 <h3>{{.Label}}</h3>
 <p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span> <code>{{.ID}}</code></p>
@@ -1908,7 +1910,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{if .DiscoveryError}}<p class="warning">{{.DiscoveryError}}. Next action: bootstrap publication metadata after a feed is available.</p>{{else}}
 <p>Active GTFS feed version: {{if .ActiveFeedVersion}}<strong>{{.ActiveFeedVersion}}</strong>{{else}}not available{{end}}</p>
 <table><tbody>
-<tr><th>Public URLs</th><td>{{if .Discovery.Readiness.AllRequiredFeedsListed}}listed{{else}}missing or incomplete{{end}}</td></tr>
+<tr><th>Configured public route URLs</th><td>{{if .Discovery.Readiness.AllRequiredFeedsListed}}listed{{else}}missing or incomplete{{end}}</td></tr>
 <tr><th>License</th><td>{{if .Discovery.Readiness.LicenseComplete}}complete{{else}}missing{{end}}</td></tr>
 <tr><th>Contact</th><td>{{if .Discovery.Readiness.ContactComplete}}complete{{else}}missing{{end}}</td></tr>
 <tr><th>HTTPS URLs</th><td>{{if .Discovery.Readiness.HTTPSURLs}}yes{{else}}not all HTTPS; local/dev URLs may be HTTP{{end}}</td></tr>
@@ -1937,7 +1939,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>Evidence links</td><td>repo documentation links</td><td>{{.EvidenceUpdatedAt}}</td><td><a href="/admin/operations/evidence">open evidence index</a></td></tr>
 </tbody></table>
 
-<h2>Public Feed URLs</h2>
+<h2>Configured Feed URLs</h2>
 {{if .DiscoveryError}}<p>No public feed metadata is available yet.</p>{{else}}{{template "feedTable" .}}{{end}}
 {{template "tripUpdatesQuality" .}}
 <p class="muted">Validation and public fetch records are supporting evidence only. They are not consumer acceptance or CAL-ITP/Caltrans compliance by themselves.</p>
@@ -1967,12 +1969,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 <h3>Workflow Sections</h3>
 <table><thead><tr><th>ID</th><th>Section</th><th>Status</th><th>Current signal</th><th>Next actions</th><th>Commands</th><th>Links</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
-{{range .Launchpad.Sections}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td><ul>{{range .NextActions}}<li>{{.}}</li>{{end}}</ul></td><td>{{range .CommandSuggestions}}<code>{{.}}</code><br>{{end}}</td><td>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+{{range .Launchpad.Sections}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td><ul>{{range .NextActions}}<li>{{.}}</li>{{end}}</ul></td><td>{{range .CommandSuggestions}}<code>{{.}}</code><br>{{end}}</td><td>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
 
 <h3>Decision Gate</h3>
 <table><thead><tr><th>Option</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
-{{range .Launchpad.DecisionNotes}}<tr><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
+{{range .Launchpad.DecisionNotes}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">No POST action exists for this page. Missing data remains missing or unknown until the underlying private source records change.</p>
 {{template "layoutEnd" .}}
@@ -2201,7 +2203,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Typed edits</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> when an agency needs draft authoring instead of ZIP import.</td></tr>
 <tr><th>CLI fallback</th><td>Keep using the documented CLI import path for large files, scripted imports, or runtimes where browser import is unavailable.</td></tr>
 </tbody></table>
-<p class="muted">Browser import accepts a ZIP upload or a safe HTTP(S) URL, runs the existing importer, and stores only normal import and validation records. Private/local URLs are blocked unless the runtime explicitly enables local testing overrides. After import, review GTFS quality, validator health, and all five public feed paths before treating the dataset as ready for wider operator review.</p>
+<p class="muted">Browser import accepts a ZIP upload or a safe HTTP(S) URL, runs the existing importer, and stores only normal import and validation records. Private/local URLs are blocked unless the runtime explicitly enables local testing overrides. After import, review GTFS quality, validator health, and all five configured feed paths before treating the dataset as ready for wider operator review.</p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -2236,7 +2238,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <h2>Feed Health Dashboard</h2>
 <p class="warning">{{.FeedHealth.Boundary}}</p>
-<p>This command center tracks exactly five public paths: <code>/public/feeds.json</code>, <code>/public/gtfs/schedule.zip</code>, <code>/public/gtfsrt/vehicle_positions.pb</code>, <code>/public/gtfsrt/trip_updates.pb</code>, and <code>/public/gtfsrt/alerts.pb</code>.</p>
+<p>This command center tracks exactly five configured public route paths: <code>/public/feeds.json</code>, <code>/public/gtfs/schedule.zip</code>, <code>/public/gtfsrt/vehicle_positions.pb</code>, <code>/public/gtfsrt/trip_updates.pb</code>, and <code>/public/gtfsrt/alerts.pb</code>.</p>
 <div class="card-grid" aria-label="Feed health empty or blocked state guidance">
 <section class="card empty-state">
 <h3>If feed rows are missing or blocked</h3>
@@ -2690,7 +2692,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "consumers"}}
 {{template "layoutStart" .}}
-<h2>Consumer Submission Evidence</h2>
+<h2>Prepared Consumer Packet Tracker</h2>
 <p class="muted">The Phase 20 docs/evidence tracker is the source for prepared packet state. These statuses are not submission, review, acceptance, or ingestion evidence.</p>
 {{if .ConsumerError}}<p class="warning">{{.ConsumerError}}. The docs/evidence tracker guidance remains visible below.</p>{{end}}
 <table><thead><tr><th>Target</th><th>Docs tracker status</th><th>Source</th><th>Current record</th><th>Packet path</th><th>Notes</th></tr></thead><tbody>
@@ -2706,8 +2708,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "evidence"}}
 {{template "layoutStart" .}}
-<h2>Evidence And Runbook Links</h2>
-<p class="muted">These markdown files are repository file paths, not web routes served by this app.</p>
+<h2>Evidence Links And Runbooks</h2>
+<p class="muted">These markdown files are repository file paths, not web routes served by this app. Links are navigation aids and do not prove retained evidence exists.</p>
 <table><thead><tr><th>Record</th><th>Repo file path</th><th>Last updated</th></tr></thead><tbody>
 {{range .Links}}<tr><td>{{.Label}}</td><td><code>{{.Path}}</code></td><td>{{.UpdatedAt}}</td></tr>{{end}}
 </tbody></table>

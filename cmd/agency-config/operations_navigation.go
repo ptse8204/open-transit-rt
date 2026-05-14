@@ -16,16 +16,16 @@ type operationsNavItem struct {
 func operationsNavGroups(currentSection string) []operationsNavGroup {
 	groups := []operationsNavGroup{
 		{
-			Label: "Start",
+			Label: "Start Here",
 			Items: []operationsNavItem{
 				{Label: "Start Here", Href: "/admin/operations", Section: "dashboard"},
-				{Label: "Launchpad", Href: "/admin/operations/launchpad", Section: "launchpad"},
+				{Label: "Private Launchpad", Href: "/admin/operations/launchpad", Section: "launchpad"},
 				{Label: "Setup Wizard", Href: "/admin/operations/setup-wizard", Section: "setup-wizard"},
 				{Label: "Setup", Href: "/admin/operations/setup", Section: "setup"},
 			},
 		},
 		{
-			Label: "GTFS and feeds",
+			Label: "Schedule",
 			Items: []operationsNavItem{
 				{Label: "GTFS Import", Href: "/admin/operations/gtfs-import", Section: "gtfs-import"},
 				{Label: "GTFS Studio", Href: "/admin/gtfs-studio", Section: "gtfs-studio", ExternalAdminSurface: true},
@@ -36,7 +36,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
-			Label: "Realtime operations",
+			Label: "Realtime",
 			Items: []operationsNavItem{
 				{Label: "Telemetry", Href: "/admin/operations/telemetry", Section: "telemetry"},
 				{Label: "Device Credentials", Href: "/admin/operations/devices", Section: "devices"},
@@ -52,16 +52,21 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 			},
 		},
 		{
-			Label: "Readiness and diagnostics",
+			Label: "Health",
 			Items: []operationsNavItem{
 				{Label: "Readiness", Href: "/admin/operations/readiness", Section: "readiness"},
 				{Label: "Checklist", Href: "/admin/operations/checklist", Section: "checklist"},
 				{Label: "Reliability", Href: "/admin/operations/reliability", Section: "reliability"},
+			},
+		},
+		{
+			Label: "Maintain",
+			Items: []operationsNavItem{
 				{Label: "Maintenance", Href: "/admin/operations/maintenance", Section: "maintenance"},
 			},
 		},
 		{
-			Label: "Records and boundaries",
+			Label: "Learn",
 			Items: []operationsNavItem{
 				{Label: "Help", Href: "/admin/operations/help", Section: "help"},
 				{Label: "Consumers", Href: "/admin/operations/consumers", Section: "consumers"},
@@ -127,7 +132,7 @@ func operationsPageTitle(section string) string {
 	case "consumers":
 		return "Consumer Preparation Tracker"
 	case "evidence":
-		return "Evidence And Runbook Links"
+		return "Evidence Links And Runbooks"
 	case "help":
 		return "Operations Console Help"
 	default:
