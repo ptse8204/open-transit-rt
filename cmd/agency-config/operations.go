@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"open-transit-rt/internal/admincontrol"
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
 	"open-transit-rt/internal/devices"
@@ -466,6 +467,71 @@ func (h *handler) renderValidationHealthJSON(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, page.ValidationHealth)
 }
 
+func (h *handler) operationsValidationHealthRefreshCommandJSON(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	started := time.Now().UTC().Truncate(time.Second)
+	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		result := admincontrol.NewResult(
+			"validation_health.refresh",
+			admincontrol.StatusBlocked,
+			started,
+			"Validator health refresh was blocked because the form body is invalid or too large.",
+			[]string{"Retry with the private console refresh action and no client-supplied command fields."},
+			[]admincontrol.Error{{Code: "request_body_blocked", Message: "form body invalid or too large"}},
+		)
+		writeJSON(w, http.StatusRequestEntityTooLarge, result)
+		return
+	}
+	if principal.Method == auth.MethodCookie && strings.TrimSpace(h.csrfSecret) != "" && strings.TrimSpace(r.FormValue("csrf_token")) != csrfToken(h.csrfSecret, principal) {
+		result := admincontrol.NewResult(
+			"validation_health.refresh",
+			admincontrol.StatusBlocked,
+			started,
+			"Validator health refresh was blocked because the CSRF token is invalid.",
+			[]string{"Reload the private console and retry the refresh action."},
+			[]admincontrol.Error{{Code: "csrf_invalid", Message: "invalid CSRF token"}},
+		)
+		writeJSON(w, http.StatusForbidden, result)
+		return
+	}
+	if err := rejectValidationHealthUnexpectedFields(r); err != nil {
+		result := admincontrol.NewResult(
+			"validation_health.refresh",
+			admincontrol.StatusBlocked,
+			started,
+			err.Error(),
+			[]string{"Use the server-owned validation health refresh action without client-supplied execution fields."},
+			[]admincontrol.Error{{Code: "unsupported_field", Message: err.Error()}},
+		)
+		writeJSON(w, http.StatusBadRequest, result)
+		return
+	}
+	action := strings.TrimSpace(r.FormValue("action"))
+	if action != "" && action != "refresh" && action != "validation_health.refresh" {
+		result := admincontrol.NewResult(
+			"validation_health.refresh",
+			admincontrol.StatusBlocked,
+			started,
+			"Validator health refresh accepts only the validation_health.refresh action.",
+			[]string{"Use the private refresh control, or use the existing admin-only validator run action when an actual validator run is intended."},
+			[]admincontrol.Error{{Code: "unsupported_action", Message: "unsupported validation health refresh action"}},
+		)
+		writeJSON(w, http.StatusBadRequest, result)
+		return
+	}
+	page := h.buildOperationsPage(r, principal, "validation-health")
+	result := validationHealthRefreshCommandResult(started, page.ValidationHealth)
+	writeJSON(w, http.StatusOK, result)
+}
+
 func (h *handler) renderReliability(w http.ResponseWriter, r *http.Request) {
 	principal, ok := auth.RequireRole(w, r, auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	if !ok || !auth.RequireAgencyQueryMatch(w, r, principal) {
@@ -565,6 +631,65 @@ func rejectValidationHealthUnexpectedFields(r *http.Request) error {
 		return fmt.Errorf("validator health accepts only action=run_all and CSRF fields")
 	}
 	return nil
+}
+
+func validationHealthRefreshCommandResult(started time.Time, summary compliance.ValidationHealthSummary) admincontrol.Result {
+	status := validationHealthCommandStatus(summary.OverallStatus)
+	return admincontrol.NewResult(
+		"validation_health.refresh",
+		status,
+		started,
+		fmt.Sprintf("Validation health summary refreshed from existing private records. Overall status: %s; feed rows: %d.", firstNonEmpty(summary.OverallStatus, "unknown"), len(summary.Feeds)),
+		validationHealthCommandNextActions(summary),
+		nil,
+	)
+}
+
+func validationHealthCommandStatus(status string) admincontrol.Status {
+	switch status {
+	case compliance.ValidationHealthStatusBlocked,
+		compliance.ValidationHealthStatusMissingTooling,
+		compliance.ValidationHealthStatusMisconfiguredTooling,
+		compliance.ValidationHealthStatusArtifactUnavailable:
+		return admincontrol.StatusBlocked
+	case compliance.ValidationHealthStatusRecorded,
+		compliance.ValidationHealthStatusRunnable,
+		compliance.ValidationHealthStatusConfigured,
+		compliance.ValidationHealthStatusInstalled,
+		compliance.ValidationHealthStatusStub,
+		compliance.ValidationHealthStatusConfiguredForTests,
+		compliance.ValidationHealthStatusSkipped:
+		return admincontrol.StatusOK
+	case compliance.ValidationHealthStatusFailed,
+		compliance.ValidationHealthStatusStale,
+		compliance.ValidationHealthStatusNeedsReview,
+		compliance.ValidationHealthStatusNotRun,
+		compliance.ValidationHealthStatusUnknown:
+		return admincontrol.StatusNeedsReview
+	default:
+		return admincontrol.StatusNeedsReview
+	}
+}
+
+func validationHealthCommandNextActions(summary compliance.ValidationHealthSummary) []string {
+	seen := map[string]bool{}
+	var actions []string
+	for _, row := range summary.Feeds {
+		next := strings.TrimSpace(row.NextAction)
+		if next == "" || seen[next] {
+			continue
+		}
+		actions = append(actions, next)
+		seen[next] = true
+		if len(actions) >= 4 {
+			break
+		}
+	}
+	if len(actions) == 0 {
+		actions = append(actions, "Review validator health rows before stronger readiness language.")
+	}
+	actions = append(actions, "This refresh writes nothing, changes no public feed output, creates no evidence, and moves no consumer status.")
+	return actions
 }
 
 func (h *handler) operationsGTFSQualityPost(w http.ResponseWriter, r *http.Request) {
@@ -2392,6 +2517,19 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <section class="card"><h3>Internal import validation</h3><p>Open Transit RT importer checks required GTFS structure and blocks unsafe activation paths. It helps explain import failures, but it is not the canonical MobilityData validator.</p></section>
 <section class="card"><h3>Canonical static validation</h3><p>MobilityData static GTFS validation reviews the active schedule artifact when pinned tooling is installed and the schedule artifact is available.</p></section>
 <section class="card"><h3>GTFS-Realtime validation</h3><p>Realtime validation reviews server-owned Vehicle Positions, Trip Updates, and Alerts protobuf artifacts. Browser requests cannot supply commands, paths, argument lists, artifacts, validator binaries, URLs, or timeouts.</p></section>
+</div>
+<div class="card-grid" aria-label="Private command model">
+<section class="card">
+<h3>Read-only refresh command</h3>
+<p><code>validation_health.refresh</code> recomputes this private summary from existing records and server-owned artifact checks. It writes nothing, changes no public feed output, creates no evidence, and moves no consumer status.</p>
+<p><strong>Result statuses:</strong> <code>ok</code>, <code>needs_review</code>, <code>blocked</code>, or <code>failed</code>. These are private workflow outcomes only.</p>
+<p><strong>Private JSON route:</strong> <code>POST /admin/operations/validation-health/refresh.json</code></p>
+</section>
+<section class="card">
+<h3>Validator run command boundary</h3>
+<p><code>validation_health.run_all</code> remains admin-only. It can store normal <code>validation_report</code> rows where validators run, but it does not change public feeds, create retained evidence, move consumer statuses, or prove compliance.</p>
+<p>Browser requests still cannot supply validator IDs, commands, paths, URLs, argument arrays, artifacts, output paths, reports, or timeouts.</p>
+</section>
 </div>
 <table><tbody>
 <tr><th>Overall status</th><td>{{.ValidationHealth.OverallStatus}}</td></tr>

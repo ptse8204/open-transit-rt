@@ -3669,6 +3669,109 @@ func TestValidationHealthRouteAuthMatrixMethodsAndHeaders(t *testing.T) {
 	}
 }
 
+func TestValidationHealthRefreshCommandJSONPrivateScopedAndSafe(t *testing.T) {
+	now := time.Date(2026, 5, 14, 12, 0, 0, 0, time.UTC)
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(now), validationRecords: []compliance.ValidationReportRecord{
+		validationHealthRecord(1, "schedule", "feed-v1", "passed", now),
+		validationHealthRecord(2, "vehicle_positions", "feed-v1", "warning", now),
+	}}
+	for _, role := range []auth.Role{auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin} {
+		handler := newValidationHealthTestHandler(t, role, store, fakeScheduleBuilder{})
+		req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health/refresh.json", strings.NewReader("action=validation_health.refresh"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("role %s status = %d, want 200: %s", role, rr.Code, rr.Body.String())
+		}
+		if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+			t.Fatalf("role %s Cache-Control = %q, want no-store", role, got)
+		}
+		if !strings.HasPrefix(rr.Header().Get("Content-Type"), "application/json") {
+			t.Fatalf("role %s Content-Type = %q, want application/json", role, rr.Header().Get("Content-Type"))
+		}
+		var result admincontrol.Result
+		if err := json.Unmarshal(rr.Body.Bytes(), &result); err != nil {
+			t.Fatalf("decode command result: %v", err)
+		}
+		if result.Action != "validation_health.refresh" || result.Status == "" || result.Summary == "" || len(result.NextActions) == 0 {
+			t.Fatalf("invalid command result: %+v", result)
+		}
+		assertAdminCommandResultJSONAllowlist(t, rr.Body.Bytes())
+		assertAdminCommandFlagsFalse(t, result.ClaimFlags)
+		assertValidationHealthHTTPNoLeakage(t, rr.Body.String())
+	}
+
+	srv := newValidationHealthTestHandler(t, auth.RoleReadOnly, store, fakeScheduleBuilder{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/validation-health/refresh.json", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("GET refresh status = %d, want 405", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health/refresh.json?agency_id=other-agency", strings.NewReader("action=refresh"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("agency conflict refresh status = %d, want 403", rr.Code)
+	}
+	req = httptest.NewRequest(http.MethodPost, "/public/operations/validation-health/refresh.json", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public refresh status = %d, want 404", rr.Code)
+	}
+	unauth := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, authRejectAll{})
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health/refresh.json", strings.NewReader("action=refresh"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	unauth.ServeHTTP(rr, req)
+	if rr.Code == http.StatusOK {
+		t.Fatalf("unauthenticated refresh returned 200")
+	}
+}
+
+func TestValidationHealthRefreshCommandJSONStrictnessCSRFAndBodyCap(t *testing.T) {
+	store := &fakePublicationStore{discovery: validationHealthTestDiscovery(time.Now().UTC())}
+	srv := newValidationHealthTestHandler(t, auth.RoleReadOnly, store, fakeScheduleBuilder{})
+	for _, field := range []string{"feed_type", "validator_id", "validator_path", "validator_command", "output_path", "artifact_path", "report_path", "schedule_zip_path", "realtime_pb_path", "path", "url", "URL", "argv", "args", "timeout", "timeout_seconds", "raw_report", "stdout", "stderr"} {
+		req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health/refresh.json", strings.NewReader("action=refresh&"+field+"=browser"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusBadRequest {
+			t.Fatalf("field %s status = %d, want 400", field, rr.Code)
+		}
+		assertValidationHealthHTTPNoLeakage(t, rr.Body.String())
+	}
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health/refresh.json", strings.NewReader(strings.Repeat("x", validationHealthPostMaxBytes+1)))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("large refresh form status = %d, want 413", rr.Code)
+	}
+
+	cookieAuth := auth.TestAuthenticator{Principal: auth.Principal{Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodCookie}}
+	srv = newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}, csrfSecret: "test-csrf"}, cookieAuth)
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health/refresh.json", strings.NewReader("action=refresh"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("missing CSRF refresh status = %d, want 403", rr.Code)
+	}
+	principal := auth.Principal{Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodCookie}
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/validation-health/refresh.json", strings.NewReader("action=refresh&csrf_token="+url.QueryEscape(csrfToken("test-csrf", principal))))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("valid CSRF refresh status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+}
+
 func TestOperationsReliabilityRoutesPrivateScopedGETOnlyNoStore(t *testing.T) {
 	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
 	endpoint := true
@@ -5677,6 +5780,37 @@ func assertValidationHealthJSONAllowlist(t *testing.T, payload []byte) {
 	}
 }
 
+func assertAdminCommandResultJSONAllowlist(t *testing.T, payload []byte) {
+	t.Helper()
+	var decoded map[string]any
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	wantTop := map[string]bool{"action": true, "status": true, "started_at": true, "completed_at": true, "summary": true, "next_actions": true, "claim_flags": true, "errors": true}
+	for key := range decoded {
+		if !wantTop[key] {
+			t.Fatalf("unexpected command result field %q in %s", key, payload)
+		}
+	}
+	flags, ok := decoded["claim_flags"].(map[string]any)
+	if !ok {
+		t.Fatalf("claim_flags missing or not object in %s", payload)
+	}
+	wantFlags := map[string]bool{"external_evidence_created": true, "consumer_statuses_changed": true, "compliance_claimed": true, "production_readiness_claimed": true, "agency_approval_claimed": true, "consumer_acceptance_claimed": true, "public_launch_claimed": true, "hosted_saas_claimed": true, "vendor_compatibility_claimed": true, "hardware_certification_claimed": true, "sla_claimed": true, "uptime_guarantee_claimed": true, "production_grade_eta_claimed": true}
+	for key := range flags {
+		if !wantFlags[key] {
+			t.Fatalf("unexpected command claim flag %q in %s", key, payload)
+		}
+	}
+}
+
+func assertAdminCommandFlagsFalse(t *testing.T, flags admincontrol.ClaimFlags) {
+	t.Helper()
+	if flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.AgencyApprovalClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed || flags.HostedSaaSClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.ProductionGradeETAClaimed {
+		t.Fatalf("command claim flags must all be false: %+v", flags)
+	}
+}
+
 func assertValidationHealthHTTPNoLeakage(t testing.TB, body string) {
 	t.Helper()
 	for _, forbidden := range []string{"raw_report", "stdout", "stderr", "argv", "/tmp/private", "TOKEN=", "SECRET", "PASSWORD=", "postgres://", "Authorization", "Bearer", "Cookie", "admin_session", "DATABASE_URL"} {
@@ -6164,6 +6298,13 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 			r.Body = http.MaxBytesReader(w, r.Body, validationHealthPostMaxBytes)
 		}
 		adminRead(http.HandlerFunc(h.operationsRoot)).ServeHTTP(w, r)
+	}))
+	mux.Handle("/admin/operations/validation-health/refresh.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, validationHealthPostMaxBytes)
+		}
+		adminRead(http.HandlerFunc(h.operationsValidationHealthRefreshCommandJSON)).ServeHTTP(w, r)
 	}))
 	mux.Handle("/admin/operations/validation-health.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
