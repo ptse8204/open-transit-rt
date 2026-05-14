@@ -8,15 +8,17 @@ import (
 )
 
 type operationsMaintenanceView struct {
-	GeneratedAt    time.Time                        `json:"generated_at"`
-	AgencyID       string                           `json:"agency_id"`
-	Boundary       string                           `json:"boundary"`
-	OverallStatus  string                           `json:"overall_status"`
-	SummaryRows    []operationsMaintenanceRow       `json:"summary_rows"`
-	Diagnostics    operationsMaintenanceDiagnostics `json:"diagnostics"`
-	Tasks          []operationsMaintenanceTask      `json:"tasks"`
-	SupportSummary operationsMaintenanceSupport     `json:"support_summary"`
-	ClaimFlags     operationsMaintenanceClaimFlags  `json:"claim_flags"`
+	GeneratedAt     time.Time                        `json:"generated_at"`
+	AgencyID        string                           `json:"agency_id"`
+	Boundary        string                           `json:"boundary"`
+	OverallStatus   string                           `json:"overall_status"`
+	SummaryRows     []operationsMaintenanceRow       `json:"summary_rows"`
+	Diagnostics     operationsMaintenanceDiagnostics `json:"diagnostics"`
+	BackupRestore   operationsMaintenancePanel       `json:"backup_restore"`
+	UpgradeRollback operationsMaintenancePanel       `json:"upgrade_rollback"`
+	Tasks           []operationsMaintenanceTask      `json:"tasks"`
+	SupportSummary  operationsMaintenanceSupport     `json:"support_summary"`
+	ClaimFlags      operationsMaintenanceClaimFlags  `json:"claim_flags"`
 }
 
 type operationsMaintenanceRow struct {
@@ -52,6 +54,23 @@ type operationsMaintenanceDiagnostic struct {
 	CurrentSignal string `json:"current_signal"`
 	NextAction    string `json:"next_action"`
 	DoesNotProve  string `json:"does_not_prove"`
+}
+
+type operationsMaintenancePanel struct {
+	Status     string                          `json:"status"`
+	Boundary   string                          `json:"boundary"`
+	NextAction string                          `json:"next_action"`
+	Rows       []operationsMaintenancePanelRow `json:"rows"`
+}
+
+type operationsMaintenancePanelRow struct {
+	ID                  string `json:"id"`
+	Label               string `json:"label"`
+	Status              string `json:"status"`
+	CurrentSignal       string `json:"current_signal"`
+	OperatorStep        string `json:"operator_step"`
+	TechnicalHelperStep string `json:"technical_helper_step"`
+	DoesNotProve        string `json:"does_not_prove"`
 }
 
 type operationsMaintenanceSupport struct {
@@ -98,13 +117,15 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 	}
 	overall := maintenanceOverall(rows, tasks)
 	return operationsMaintenanceView{
-		GeneratedAt:   page.GeneratedAt,
-		AgencyID:      page.AgencyID,
-		Boundary:      "Private maintenance diagnostics only. This page summarizes configured/nonconfigured signals and next tasks without creating evidence, changing consumer statuses, claiming compliance, claiming production readiness, claiming SLA or uptime coverage, or exposing secret values.",
-		OverallStatus: overall,
-		SummaryRows:   rows,
-		Diagnostics:   buildOperationsMaintenanceDiagnostics(),
-		Tasks:         tasks,
+		GeneratedAt:     page.GeneratedAt,
+		AgencyID:        page.AgencyID,
+		Boundary:        "Private maintenance diagnostics only. This page summarizes configured/nonconfigured signals and next tasks without creating evidence, changing consumer statuses, claiming compliance, claiming production readiness, claiming SLA or uptime coverage, or exposing secret values.",
+		OverallStatus:   overall,
+		SummaryRows:     rows,
+		Diagnostics:     buildOperationsMaintenanceDiagnostics(),
+		BackupRestore:   buildOperationsMaintenanceBackupRestore(),
+		UpgradeRollback: buildOperationsMaintenanceUpgradeRollback(),
+		Tasks:           tasks,
 		SupportSummary: operationsMaintenanceSupport{
 			Status:     operationsStatusDiagnosticOnly,
 			Command:    "make support-bundle",
@@ -125,6 +146,112 @@ func maintenanceRow(id, label, status, signal, next, doesNotProve string) operat
 
 func maintenanceTask(id, cadence, task, status, owner, next string) operationsMaintenanceTask {
 	return operationsMaintenanceTask{ID: id, Cadence: cadence, Task: task, Status: status, Owner: owner, NextStep: next}
+}
+
+func maintenancePanelRow(id, label, status, signal, operatorStep, helperStep, doesNotProve string) operationsMaintenancePanelRow {
+	return operationsMaintenancePanelRow{ID: id, Label: label, Status: status, CurrentSignal: signal, OperatorStep: operatorStep, TechnicalHelperStep: helperStep, DoesNotProve: doesNotProve}
+}
+
+func buildOperationsMaintenanceBackupRestore() operationsMaintenancePanel {
+	rows := []operationsMaintenancePanelRow{
+		maintenancePanelRow(
+			"backup_configuration_presence",
+			"Backup configuration presence",
+			maintenanceEnvStatus("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"),
+			maintenanceEnvPresenceSignal("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"),
+			"Keep backup configuration marked missing until a deployment owner supplies a private backup target.",
+			"Configure backup output outside the browser and keep backup contents out of docs/evidence unless a separate evidence phase is authorized.",
+			"Configuration presence does not prove a successful backup exists.",
+		),
+		maintenancePanelRow(
+			"restore_drill_configuration_presence",
+			"Restore-drill configuration presence",
+			maintenanceEnvStatus("RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"),
+			maintenanceEnvPresenceSignal("RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"),
+			"Keep restore-drill readiness marked missing until a private restore target is configured.",
+			"Run restore drills only from an operator shell against an explicit non-live target; never paste restore URLs into the browser.",
+			"Configuration presence does not prove a restore succeeded or that disaster recovery coverage exists.",
+		),
+		maintenancePanelRow(
+			"deployment_doctor_backup_restore",
+			"Deployment doctor backup/restore summary",
+			operationsStatusDiagnosticOnly,
+			"deployment-doctor records backup_readiness and restore_readiness summary fields when a local helper has run",
+			"Use the Local Diagnostic Summaries table to see the latest safe deployment-doctor status.",
+			"Run `make deployment-doctor` from an operator shell when a fresh private summary is needed.",
+			"Deployment-doctor status does not execute backup or restore actions.",
+		),
+		maintenancePanelRow(
+			"browser_destructive_actions",
+			"Browser destructive actions",
+			operationsStatusReady,
+			"disabled: no backup, restore, rollback, migration, or package action is exposed by this page",
+			"Use the browser only for review and next-step guidance.",
+			"Use documented shell workflows with explicit operator confirmation for destructive work.",
+			"Disabled browser actions do not prove the shell workflows have been run.",
+		),
+	}
+	return operationsMaintenancePanel{
+		Status:     maintenancePanelOverall(rows),
+		Boundary:   "Backup and restore review is private guidance only. This page shows configuration presence and safe summary pointers; it does not create backups, restore databases, run migrations, read backup dumps, or create retained evidence.",
+		NextAction: "Resolve missing configuration first, then run private backup or restore-drill workflows from an operator shell when authorized.",
+		Rows:       rows,
+	}
+}
+
+func buildOperationsMaintenanceUpgradeRollback() operationsMaintenancePanel {
+	rows := []operationsMaintenancePanelRow{
+		maintenancePanelRow(
+			"upgrade_precheck",
+			"Upgrade precheck",
+			operationsStatusNeedsReview,
+			"review release notes, current commit, database migration status, active feed version, and backup configuration before upgrade",
+			"Use this checklist before a local/source upgrade; do not treat the browser as an upgrade executor.",
+			"Run `make check`, `make validate`, and deployment-specific prechecks from an operator shell before changing a deployment.",
+			"Precheck guidance does not prove release readiness or production readiness.",
+		),
+		maintenancePanelRow(
+			"rollback_precheck",
+			"Rollback precheck",
+			operationsStatusNeedsReview,
+			"confirm the rollback target, active feed version, migration direction, and restore owner before rollback",
+			"Keep rollback marked review-required until a deployment owner confirms the target and data implications.",
+			"Use documented rollback procedures outside the browser and avoid destructive database changes without a tested restore path.",
+			"A rollback checklist does not prove rollback success.",
+		),
+		maintenancePanelRow(
+			"migration_safety",
+			"Migration safety",
+			operationsStatusNeedsReview,
+			"migrations are not run from the browser and must remain backward-compatible or explicitly reviewed",
+			"Review migration status and backup/restore readiness before any schema change.",
+			"Run `go run ./cmd/migrate status` or the deployment doctor from an operator shell when needed.",
+			"Migration status does not prove data-loss safety by itself.",
+		),
+		maintenancePanelRow(
+			"release_artifact_boundary",
+			"Release artifact boundary",
+			operationsStatusReady,
+			"no tag, package, image, push, or release publish action is exposed by this page",
+			"Use this page only to understand maintenance readiness.",
+			"Keep release-cut cleanup separate until a maintainer explicitly authorizes release actions.",
+			"Absence of browser release actions does not prove a release candidate is ready.",
+		),
+	}
+	return operationsMaintenancePanel{
+		Status:     maintenancePanelOverall(rows),
+		Boundary:   "Upgrade and rollback review is checklist-only. The browser does not tag, package, publish, run migrations, roll back services, or restore databases.",
+		NextAction: "Use the checklist to decide whether a technical helper must run shell-based upgrade, rollback, migration-status, or restore-readiness checks.",
+		Rows:       rows,
+	}
+}
+
+func maintenancePanelOverall(rows []operationsMaintenancePanelRow) string {
+	status := operationsStatusReady
+	for _, row := range rows {
+		status = worseMaintenanceStatus(status, row.Status)
+	}
+	return status
 }
 
 func maintenanceOverall(rows []operationsMaintenanceRow, tasks []operationsMaintenanceTask) string {

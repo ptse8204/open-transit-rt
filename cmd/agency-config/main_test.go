@@ -4796,8 +4796,11 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 	if view.Diagnostics.Status != operationsStatusBlocked || len(view.Diagnostics.Rows) != 4 {
 		t.Fatalf("unexpected diagnostics summary: %+v", view.Diagnostics)
 	}
+	if view.BackupRestore.Status != operationsStatusMissing || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Status != operationsStatusNeedsReview || len(view.UpgradeRollback.Rows) != 4 {
+		t.Fatalf("unexpected maintenance panels: backup=%+v upgrade=%+v", view.BackupRestore, view.UpgradeRollback)
+	}
 	body := rr.Body.String()
-	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true"} {
+	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("maintenance JSON missing %q: %s", want, body)
 		}
@@ -6814,7 +6817,7 @@ func assertOperationsCockpitFlagsFalse(t *testing.T, flags operationsCockpitClai
 
 func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || len(view.Tasks) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || len(view.Tasks) != 7 {
 		t.Fatalf("invalid maintenance shape: %+v", view)
 	}
 	seen := map[string]bool{}
@@ -6835,6 +6838,23 @@ func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 			t.Fatalf("duplicate maintenance diagnostic id %q", row.ID)
 		}
 		seen["diagnostic:"+row.ID] = true
+	}
+	for _, panel := range []struct {
+		name string
+		rows []operationsMaintenancePanelRow
+	}{
+		{name: "backup", rows: view.BackupRestore.Rows},
+		{name: "upgrade", rows: view.UpgradeRollback.Rows},
+	} {
+		for _, row := range panel.rows {
+			if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.OperatorStep == "" || row.TechnicalHelperStep == "" || row.DoesNotProve == "" {
+				t.Fatalf("invalid maintenance panel row: %+v", row)
+			}
+			if seen[panel.name+":"+row.ID] {
+				t.Fatalf("duplicate maintenance panel row id %q", row.ID)
+			}
+			seen[panel.name+":"+row.ID] = true
+		}
 	}
 	for _, task := range view.Tasks {
 		if task.ID == "" || task.Cadence == "" || task.Task == "" || task.Status == "" || task.Owner == "" || task.NextStep == "" {
