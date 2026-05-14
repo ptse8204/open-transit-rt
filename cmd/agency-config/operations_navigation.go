@@ -39,6 +39,7 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 		{
 			Label: "Realtime",
 			Items: []operationsNavItem{
+				{Label: "Realtime Center", Href: "/admin/operations/realtime", Section: "realtime"},
 				{Label: "Telemetry", Href: "/admin/operations/telemetry", Section: "telemetry"},
 				{Label: "Device Credentials", Href: "/admin/operations/devices", Section: "devices"},
 				{Label: "Telemetry Simulator", Href: "/admin/operations/telemetry-simulator", Section: "telemetry-simulator"},
@@ -122,6 +123,8 @@ func operationsPageTitle(section string) string {
 		return "Operations Reliability"
 	case "maintenance":
 		return "Maintenance Center"
+	case "realtime":
+		return "Realtime Operations Center"
 	case "telemetry":
 		return "Telemetry Freshness"
 	case "telemetry-simulator":

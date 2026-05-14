@@ -63,6 +63,7 @@ type operationsPage struct {
 	Help                   operationsHelpView
 	ContextHelp            operationsContextHelp
 	FeedHealth             operationsFeedHealthView
+	Realtime               operationsRealtimeView
 	Maintenance            operationsMaintenanceView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
@@ -328,6 +329,20 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderTelemetrySimulatorJSON(w, r)
+	case "realtime":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderRealtime(w, r)
+	case "realtime.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderRealtimeJSON(w, r)
 	case "gtfs-import":
 		w.Header().Set("Cache-Control", "no-store")
 		switch r.Method {
@@ -1040,6 +1055,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.GTFSWorkbench = h.buildGTFSWorkbenchView(r, page)
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedHealth = buildOperationsFeedHealth(page)
+	page.Realtime = buildOperationsRealtime(page)
 	page.Maintenance = buildOperationsMaintenance(page)
 	page.SetupSteps = setupSteps(page)
 	page.ReadinessItems = readinessItems(page)
@@ -2963,6 +2979,70 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 {{end}}
 <p class="muted">This summary is based only on recorded Trip Updates diagnostics. It omits raw telemetry payloads, full score details, token fields, and private debug blobs.</p>
+{{end}}
+
+{{define "realtime"}}
+{{template "layoutStart" .}}
+<h2>Realtime Operations Center</h2>
+<p class="warning">{{.Realtime.Boundary}}</p>
+<p><a href="/admin/operations/realtime.json">Export private realtime JSON</a> · <a href="/admin/operations/telemetry">Open telemetry freshness</a> · <a href="/admin/operations/devices">Open device credentials</a> · <a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p>
+<div class="card-grid" aria-label="Realtime status summary">
+<section class="card">
+<h3>Fleet Freshness</h3>
+<p class="status"><span class="status-chip status-{{statusClass .Realtime.Summary.Status}}">{{.Realtime.Summary.Status}}</span></p>
+<p><strong>Current signal:</strong> {{.Realtime.Summary.CurrentSignal}}</p>
+<p><strong>Latest telemetry:</strong> {{.Realtime.Summary.LatestTelemetryRows}} rows; {{.Realtime.Summary.FreshTelemetryRows}} fresh; {{.Realtime.Summary.StaleTelemetryRows}} stale.</p>
+<p><strong>Devices:</strong> {{.Realtime.Summary.DeviceBindings}} bindings; {{.Realtime.Summary.DevicesReporting}} reporting; {{.Realtime.Summary.DevicesNotSeen}} not seen.</p>
+<p><strong>Next action:</strong> {{.Realtime.Summary.NextAction}}</p>
+</section>
+<section class="card">
+<h3>Assignments</h3>
+<p><strong>Matched:</strong> {{.Realtime.Summary.MatchedAssignments}}</p>
+<p><strong>Unknown or unavailable:</strong> {{.Realtime.Summary.UnknownAssignments}}</p>
+<p><strong>Low confidence:</strong> {{.Realtime.Summary.LowConfidenceRows}}</p>
+<p><strong>Manual overrides:</strong> {{.Realtime.Summary.ManualOverrides}}</p>
+<p class="muted">Unknown or withheld is a safe conservative state when the system does not have enough evidence.</p>
+</section>
+{{range .Realtime.Feeds}}
+<section class="card">
+<h3>{{.Label}}</h3>
+<p class="status"><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></p>
+<p><strong>Count:</strong> {{.Count}}</p>
+<p><strong>Latest signal:</strong> {{.LatestSignal}}</p>
+<p><strong>Stale or withheld:</strong> {{.StaleOrWithheld}}</p>
+{{if .Adapter}}<p><strong>Adapter:</strong> {{.Adapter}}</p>{{end}}
+<p><strong>Next action:</strong> <a href="{{.AdminLink}}">{{.NextAction}}</a></p>
+<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+</section>
+{{end}}
+</div>
+{{if .TelemetryError}}<p class="warning">{{.TelemetryError}}. Next action: confirm the telemetry service and database are running.</p>{{end}}
+{{if not .Realtime.Fleet}}<p class="warning">No fleet telemetry or device binding rows are visible. Next action: create or rotate a device credential, install it on a device or simulator, then send an authenticated sample telemetry event.</p>{{else}}
+<h3>Fleet Freshness And Assignment Overview</h3>
+<table><thead><tr><th>Vehicle</th><th>Device</th><th>Freshness</th><th>Observed</th><th>Age seconds</th><th>Assignment</th><th>Route</th><th>Trip</th><th>Confidence</th><th>Reasons</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .Realtime.Fleet}}<tr><td>{{.VehicleID}}</td><td>{{.DeviceID}}</td><td><span class="status-chip status-{{statusClass .Freshness}}">{{.Freshness}}</span></td><td>{{.ObservedAt}}</td><td>{{.AgeSeconds}}</td><td>{{if .AssignmentState}}{{.AssignmentState}}{{else}}not available{{end}}{{if .DegradedState}} / {{.DegradedState}}{{end}}{{if .AssignmentSource}}<br><span class="muted">source: {{.AssignmentSource}}</span>{{end}}</td><td>{{.RouteID}}</td><td>{{.TripID}}</td><td>{{.Confidence}}</td><td>{{join .ReasonCodes ", "}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
+<h3>Claim Flags</h3>
+<table><tbody>
+<tr><th><code>browser_telemetry_send_enabled</code></th><td>{{.Realtime.ClaimFlags.BrowserTelemetrySendEnabled}}</td></tr>
+<tr><th><code>backend_command_execution_enabled</code></th><td>{{.Realtime.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
+<tr><th><code>device_token_collected_by_browser</code></th><td>{{.Realtime.ClaimFlags.DeviceTokenCollectedByBrowser}}</td></tr>
+<tr><th><code>external_evidence_created</code></th><td>{{.Realtime.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th><code>consumer_statuses_changed</code></th><td>{{.Realtime.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th><code>compliance_claimed</code></th><td>{{.Realtime.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th><code>production_readiness_claimed</code></th><td>{{.Realtime.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th><code>vendor_compatibility_claimed</code></th><td>{{.Realtime.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
+<tr><th><code>hardware_certification_claimed</code></th><td>{{.Realtime.ClaimFlags.HardwareCertificationClaimed}}</td></tr>
+<tr><th><code>production_avl_reliability_claimed</code></th><td>{{.Realtime.ClaimFlags.ProductionAVLReliabilityClaimed}}</td></tr>
+<tr><th><code>production_grade_eta_claimed</code></th><td>{{.Realtime.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
+<tr><th><code>real_world_eta_accuracy_claimed</code></th><td>{{.Realtime.ClaimFlags.RealWorldETAAccuracyClaimed}}</td></tr>
+<tr><th><code>sla_claimed</code></th><td>{{.Realtime.ClaimFlags.SLAClaimed}}</td></tr>
+<tr><th><code>public_launch_claimed</code></th><td>{{.Realtime.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th><code>consumer_acceptance_claimed</code></th><td>{{.Realtime.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+</tbody></table>
+<p class="muted">Realtime Center is read-only. It does not change <code>/v1/telemetry</code>, public GTFS-Realtime feeds, device credentials, assignments, Alerts, evidence records, consumer tracker states, releases, or external services.</p>
+{{template "layoutEnd" .}}
 {{end}}
 
 {{define "telemetry"}}

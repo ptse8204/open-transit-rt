@@ -4741,6 +4741,125 @@ func TestOperationsConsoleRendersDemoStateWithSafeTelemetryDiagnostics(t *testin
 	}
 }
 
+func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
+	now := time.Now().UTC().Truncate(time.Second)
+	srv := newOperationsTestHandler(&handler{
+		store: feedHealthTestStore(t),
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{
+			{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
+			{AgencyID: "demo-agency", DeviceID: "device-2", VehicleID: "bus-2", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
+			{AgencyID: "demo-agency", DeviceID: "device-3", VehicleID: "bus-3", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
+		}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{
+			{
+				ID: 11,
+				Event: telemetry.Event{
+					AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now.Add(-30 * time.Second), Lat: 1, Lon: 2,
+				},
+				ReceivedAt: now.Add(-29 * time.Second), IngestStatus: telemetry.IngestStatusAccepted, PayloadJSON: []byte(`{"secret":"hidden"}`),
+			},
+			{
+				ID: 22,
+				Event: telemetry.Event{
+					AgencyID: "demo-agency", DeviceID: "device-2", VehicleID: "bus-2", Timestamp: now.Add(-5 * time.Minute), Lat: 3, Lon: 4,
+				},
+				ReceivedAt: now.Add(-5*time.Minute + time.Second), IngestStatus: telemetry.IngestStatusAccepted, PayloadJSON: []byte(`{"raw_payload":"hidden"}`),
+			},
+		}},
+		state: fakeStateRepository{assignments: map[string]state.Assignment{
+			"bus-1": {
+				VehicleID: "bus-1", State: state.StateInService, RouteID: "route-1", TripID: "trip-1", Confidence: 0.91,
+				ReasonCodes: []string{state.ReasonTripHintMatch}, DegradedState: state.DegradedNone, AssignmentSource: state.AssignmentSourceAutomatic,
+				ScoreDetails: map[string]any{"private_debug": true}, ActiveFrom: now.Add(-25 * time.Second),
+			},
+			"bus-2": {
+				VehicleID: "bus-2", State: state.StateUnknown, Confidence: 0.20,
+				ReasonCodes: []string{state.ReasonLowConfidence}, DegradedState: state.DegradedLowConfidence, AssignmentSource: state.AssignmentSourceAutomatic,
+				ScoreDetails: map[string]any{"private_debug": true}, ActiveFrom: now.Add(-4 * time.Minute),
+			},
+		}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+
+	for _, path := range []string{"/admin/operations/realtime", "/admin/operations/realtime.json"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+			t.Fatalf("%s Cache-Control = %q, want no-store", path, got)
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/realtime", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"<form", "payload_json", "raw_payload", "secret", "score_details", "private_debug", "token_hash", "Bearer", "production-grade ETA quality</strong>"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("realtime page leaks or overstates %q: %s", forbidden, body)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations/realtime.json", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	var view operationsRealtimeView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode realtime json: %v", err)
+	}
+	if view.AgencyID != "demo-agency" || view.Boundary == "" || len(view.Fleet) != 3 || len(view.Feeds) != 3 {
+		t.Fatalf("unexpected realtime JSON shape: %+v", view)
+	}
+	if view.Summary.LatestTelemetryRows != 2 || view.Summary.StaleTelemetryRows != 1 || view.Summary.DeviceBindings != 3 || view.Summary.DevicesNotSeen != 1 || view.Summary.MatchedAssignments != 1 || view.Summary.UnknownAssignments != 2 || view.Summary.LowConfidenceRows != 1 {
+		t.Fatalf("unexpected realtime summary: %+v", view.Summary)
+	}
+	assertRealtimeFlagsFalse(t, view.ClaimFlags)
+	realtimePayload := rr.Body.String()
+	for _, forbidden := range []string{"payload_json", "raw_payload", "secret", "score_details", "private_debug", "token_hash", "Bearer", `"lat":`, `"lon":`} {
+		if strings.Contains(realtimePayload, forbidden) {
+			t.Fatalf("realtime JSON leaks %q: %s", forbidden, realtimePayload)
+		}
+	}
+
+	unauth := newOperationsTestHandler(&handler{store: &fakePublicationStore{}, devices: fakeDeviceStore{}}, authRejectAll{})
+	for _, path := range []string{"/admin/operations/realtime", "/admin/operations/realtime.json"} {
+		req = httptest.NewRequest(http.MethodGet, path, nil)
+		rr = httptest.NewRecorder()
+		unauth.ServeHTTP(rr, req)
+		if rr.Code != http.StatusUnauthorized {
+			t.Fatalf("unauth %s status = %d, want 401", path, rr.Code)
+		}
+		req = httptest.NewRequest(http.MethodPost, path, nil)
+		rr = httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("POST %s status = %d, want 405", path, rr.Code)
+		}
+		req = httptest.NewRequest(http.MethodGet, path+"?agency_id=other-agency", nil)
+		rr = httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("agency conflict %s status = %d, want 403", path, rr.Code)
+		}
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/public/operations/realtime", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("public realtime route status = %d, want 404", rr.Code)
+	}
+}
+
 func TestOperationsConsoleViewsAreAgencyScoped(t *testing.T) {
 	now := time.Date(2026, 5, 2, 12, 0, 0, 0, time.UTC)
 	handler := newOperationsTestHandler(&handler{
@@ -5701,6 +5820,13 @@ func assertFeedHealthFlagsFalse(t *testing.T, flags operationsFeedHealthClaims) 
 	t.Helper()
 	if flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.SLAClaimed || flags.UptimeGuaranteeClaimed || flags.ConsumerAcceptanceClaimed || flags.PublicLaunchClaimed {
 		t.Fatalf("feed health flags must all be false: %+v", flags)
+	}
+}
+
+func assertRealtimeFlagsFalse(t *testing.T, flags operationsRealtimeClaimFlags) {
+	t.Helper()
+	if flags.BrowserTelemetrySendEnabled || flags.BackendCommandExecutionEnabled || flags.DeviceTokenCollectedByBrowser || flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ProductionAVLReliabilityClaimed || flags.ProductionGradeETAClaimed || flags.RealWorldETAAccuracyClaimed || flags.SLAClaimed || flags.PublicLaunchClaimed || flags.ConsumerAcceptanceClaimed {
+		t.Fatalf("realtime flags must all be false: %+v", flags)
 	}
 }
 
