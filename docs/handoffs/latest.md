@@ -89,9 +89,17 @@ groups, external-admin-surface markers for GTFS Studio and Alerts Console, and
 claim-bounded UI vocabulary. Phase 76 added no public admin route, migration,
 evidence write, consumer status change, release artifact, hosted service claim,
 production-readiness claim, vendor claim, SLA claim, or ETA-quality claim. The
-next autonomous phase in the authorized product track is Phase 77 -- Admin
-Control API And Command Model. Any future evidence intake is optional and
-requires explicit written authorization first.
+Phase 77 is complete for Admin Control API And Command Model, with closeout at
+`docs/handoffs/phase-77.md`: it added the bounded `internal/admincontrol`
+command result contract, documented the command ladder in
+`docs/admin-command-model.md`, and migrated the read-only private
+`validation_health.refresh` command at
+`POST /admin/operations/validation-health/refresh.json`. The command writes
+nothing, changes no public feed output, creates no evidence, moves no consumer
+status, and returns only bounded command result fields with all-false claim
+flags. The next autonomous phase in the authorized product track is Phase 78
+-- Frontend Routing, State, And Data Loading. Any future evidence intake is
+optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

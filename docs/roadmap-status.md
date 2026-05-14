@@ -8,21 +8,21 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 76 is complete for the Design System And App Shell scope in the
+Phase 77 is complete for the Admin Control API And Command Model scope in the
 authorized Phase 75-90 Consumer-Grade Control Plane track. The private
-Operations Console remains Go server-rendered and route-stable, with shared
-design tokens, roadmap-aligned navigation groups, external-admin-surface
-markers, responsive/accessibility guardrails, and claim-bounded UI wording.
-Phase 72 still ended with `needs_review` release-candidate diagnostics, not a
+Operations Console now has a bounded internal command result contract, a
+documented command ladder, and one migrated read-only validator-health refresh
+command at `POST /admin/operations/validation-health/refresh.json`. Phase 72
+still ended with `needs_review` release-candidate diagnostics, not a
 release-ready pass. Phase 74 CP000008 remains the latest GitHub Pages
 publication at commit `a8b250e`.
 
 Continue the authorized product track with:
 
-1. Phase 77 -- Admin Control API And Command Model;
+1. Phase 78 -- Frontend Routing, State, And Data Loading;
 2. use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded planning guide for Phase 77+;
+   as the bounded planning guide for Phase 78+;
 3. keep release-cut cleanup, release-candidate gate, postponed connector
    maturity, and optional evidence tracks separated by their phase gates and
    claim boundaries;
@@ -71,7 +71,7 @@ assessment.
 | Release maturity | Phase 72 release-candidate hardening is complete for bounded review, but no public release, clean tagged source state, or passed release-ready gate exists yet. Phase 73 completed agency UI acceptance closeout. Phase 74 refreshed and published GitHub Pages, improved private Operations Console first-run hierarchy, improved first-run empty states, and aligned docs/site/UI around the same browser-first product path. | Run maintainer review of the Phase 74 CP000008 closeout while keeping `v0.1.0-rc.1` release-cut cleanup separate and separately authorized. |
 | Clean install confidence | Setup has many useful paths, but the first public RC path still needs one repeatable gate. | Run `make check`, `make validate`, `make test`, local app startup, and the five public feed fetches from a clean checkout. |
 | Product explanation | The repo now has public-friendly docs and a refreshed `gh-pages` documentation site that starts from browser review and `Agency Operations Cockpit / Start Here`. | Keep GitHub Pages content static, documentation-only, screenshot-bounded, and linked to deeper docs. |
-| Browser-first operations | Phase 74 improves the private Operations Console first-run hierarchy, five-feed URL copy path, no-developer/technical-helper split, and empty-state next actions. | Use `/admin/operations` and `Agency Operations Cockpit / Start Here` as the first agency surface; keep shell commands as technical-helper paths. |
+| Browser-first operations | Phase 77 adds a private command model and a read-only validation-health refresh JSON route on top of the existing Go server-rendered Operations Console shell. | Continue with Phase 78 progressive state and data loading without turning the app into a heavy SPA or exposing public admin routes. |
 | Public GTFS trial repeatability | Public GTFS local/pilot handling exists, but it should be part of the RC review instead of a one-off proof story. | Run one public GTFS trial as a release-candidate diagnostic and record blockers without converting the run into compliance or adoption proof. |
 | Tiny-server validation | Validators can be blocked by Java/Docker/runtime limits on small hosts. | Use `make validate-public-feeds` from an operator machine and keep validator results as supporting signals only. |
 | Validator maturity | Validator health pages and scripts exist, but missing Java, Docker, pinned assets, or stale reports can still block review. | Use validator health and `make validate`; record exact blocker rows and keep validator output as a supporting signal only. |
@@ -93,10 +93,10 @@ assessment.
 
 ### Recommended Next Steps
 
-1. Review the completed Phase 76 Design System And App Shell closeout.
+1. Review the completed Phase 77 Admin Control API And Command Model closeout.
 2. Use the Phase 75
    [Consumer-Grade Control Plane roadmap pack](roadmaps/consumer-grade-control-plane/README.md)
-   as the bounded product-track guide for Phase 77+.
+   as the bounded product-track guide for Phase 78+.
 3. Treat Phase 72 CP000004 local app startup, private Operations Console route
    checks, and five local public feed fetches as complete local diagnostics
    only.
@@ -104,7 +104,7 @@ assessment.
    complete local synthetic diagnostics only.
 5. Treat Phase 72 CP000006 release notes and Phase 72 CP000007 closeout as
    local pre-tag review artifacts only.
-6. Continue with Phase 77 -- Admin Control API And Command Model while keeping
+6. Continue with Phase 78 -- Frontend Routing, State, And Data Loading while keeping
    release-cut cleanup, postponed connector maturity, and optional evidence
    tracks separated by their phase gates and claim boundaries.
 7. Cut a `v0.1.0-rc.1` review branch or tag candidate only after a clean

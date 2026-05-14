@@ -515,3 +515,30 @@ update policy, rollback policy, release-note language, and a no-secrets/no-
 evidence artifact audit. Until that exists, do not push images, publish
 registry tags, tell operators to pull a registry-published app image, or imply
 a hosted SaaS or published app image exists.
+
+## ADR-0043 -- Keep browser control behind a private command model
+
+Phase 77 introduces `internal/admincontrol` as the bounded private command
+result contract for Operations Console workflows. The model uses explicit
+workflow statuses, an action ladder, bounded summaries, bounded next actions,
+sanitized errors, and all-false claim flags by default.
+
+The first migrated workflow is `validation_health.refresh`, a private read-only
+refresh at `POST /admin/operations/validation-health/refresh.json`. It
+recomputes validation-health summaries from existing private records and
+server-owned artifact checks. It writes nothing, changes no public feed output,
+creates no evidence, and moves no consumer status.
+
+Browser commands must remain authenticated, role-checked, agency-scoped,
+CSRF-safe for cookie-auth POSTs, request-capped, allowlisted, auditable, and
+free of client-supplied shell commands, argument arrays, paths, validator
+binaries, URLs, timeouts, support-bundle destinations, or evidence
+destinations. Command responses must not include raw stdout, stderr, raw
+validator reports, raw external payloads, private filesystem paths, bearer
+tokens, cookies, database URLs, or private hostnames.
+
+The command model is a private operator control-plane boundary only. It is not
+a public API, shell runner, plugin loader, evidence collector, release
+publisher, consumer submission system, compliance proof, production readiness
+proof, hosted SaaS claim, vendor compatibility claim, SLA guarantee, or
+production-grade ETA proof.

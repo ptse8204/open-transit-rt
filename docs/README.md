@@ -120,6 +120,7 @@ the required scope, retention, redaction, and stop conditions.
 ## Architecture And Requirements
 
 - [Architecture](architecture.md)
+- [Admin Command Model](admin-command-model.md)
 - [Dependencies](dependencies.md)
 - [Decisions](decisions.md)
 - [Known Gaps](repo-gaps.md)

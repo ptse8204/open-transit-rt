@@ -158,6 +158,19 @@ feed wording into local/reference or prepared-packet terms. It added no public
 admin routes, migration, evidence write, consumer tracker change, release
 artifact, hosted service claim, production-readiness claim, vendor claim, SLA
 claim, or ETA-quality claim.
+Phase 77 is complete for the Admin Control API And Command Model scope. It
+added `internal/admincontrol` with bounded private command result contracts,
+documented the safe command ladder in `docs/admin-command-model.md`, and
+migrated a read-only validator-health refresh command at
+`POST /admin/operations/validation-health/refresh.json`. The command is private,
+role-checked, CSRF-checked for cookie auth, request-capped, agency-scoped,
+strict about unsupported execution fields, and returns only bounded command
+result fields with all-false claim flags. It writes nothing, changes no public
+feed output, creates no retained evidence, moves no consumer status, and does
+not expose raw validator reports, stdout/stderr, argv, private paths, tokens,
+or DB URLs. The existing validator run remains admin-only and is documented as
+a private diagnostic write because it may store normal `validation_report`
+rows; it is not evidence or compliance proof.
 Phase 33 is complete as Outcome C for
 local/pilot public static GTFS dataset handling using the LA Metro Bus public
 GTFS feed. Phase 34 is complete for status consistency and evidence-readiness
@@ -296,9 +309,10 @@ point to the same browser-first product path. No retained evidence was
 created, no external party was contacted, no consumer status changed, and no
 compliance/adoption/consumer/final-root/SaaS/production/vendor/SLA/ETA claim
 was added. The Phase 75 consumer-grade roadmap pack is now the authorized
-Phase 75-90 product-track guide, and Phase 76 is complete for private
-Operations Console design-system/app-shell work. The next product-track phase
-is Phase 77 -- Admin Control API And Command Model. Release-cut cleanup,
+Phase 75-90 product-track guide. Phase 76 is complete for private Operations
+Console design-system/app-shell work, and Phase 77 is complete for the private
+Admin Control API And Command Model scope. The next product-track phase is
+Phase 78 -- Frontend Routing, State, And Data Loading. Release-cut cleanup,
 postponed connector maturity, and optional evidence tracks remain separated by
 their phase gates and claim boundaries. The
 next step is not a full `v0.1.0` release, a real agency
