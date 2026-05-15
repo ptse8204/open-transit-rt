@@ -582,8 +582,19 @@ consumer status change, adoption claim, agency approval claim, consumer
 acceptance claim, compliance claim, release-readiness claim, final-root claim,
 hosted service claim, SLA/uptime claim, production-readiness claim, vendor
 claim, hardware claim, public-launch claim, or production-grade ETA claim.
-The authorized autonomous post-90 roadmap continues next with Phase 107 --
-Public Docs/Site Freeze And Contributor Onboarding.
+Phase 107 -- Public Docs/Site Freeze And Contributor Onboarding is complete,
+with closeout at `docs/handoffs/phase-107.md`: the architecture overview now
+matches the current modular product shape, public docs/site freeze guidance is
+documented, contributor first-issue guidance and connector-contribution
+guidance exist, and README/docs/wiki/contributor links are aligned. Phase 107
+added no site publication, public launch, release action, evidence write,
+consumer status change, external contact, adoption claim, agency approval
+claim, consumer acceptance claim, compliance claim, release-readiness claim,
+final-root claim, hosted service claim, SLA/uptime claim, production-readiness
+claim, vendor claim, hardware claim, public-launch claim, or production-grade
+ETA claim.
+The authorized autonomous post-90 roadmap continues next with Phase 108 --
+Post-RC Bug Bash And Stabilization.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

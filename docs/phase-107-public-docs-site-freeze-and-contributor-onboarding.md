@@ -307,3 +307,71 @@ Proceed to closeout checkpoint 000004.
 Next checkpoint:
 Phase 107 -- Checkpoint 000004: close public docs/site freeze and contributor
 onboarding review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 107 -- Checkpoint 000004: close public docs/site freeze and contributor
+onboarding review.
+
+Sub-agents used or simulated, including intended model level:
+Context / Repo Truth Sub-Agent -- GPT-5.5 x-high and Planning Sub-Agent --
+GPT-5.5 x-high were attempted, timed out, and were shut down without edits.
+Context / Repo Truth and Planning were simulated by the Master Agent using
+direct repository inspection. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain
+closeout roles were simulated by the Master Agent. Master Agent -- GPT-5.5
+x-high, current thread.
+
+Changed files:
+`docs/handoffs/phase-107.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-107-public-docs-site-freeze-and-contributor-onboarding.md`.
+
+Validation run:
+Closeout relies on the checkpoint 000003 full validation pass: docs checks,
+product acceptance audit, final claim audit, prepared-only tracker assertion,
+protected-path checks, `make check`, `make validate`, `make test`, and Docker
+Compose config all passed.
+
+Blocked checks:
+Site publication, release actions, package generation/audit, retained evidence,
+external contact, real credentials, consumer submission, public publication,
+and tag/release/package/image publication remain blocked by scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+protected-path status check returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets remain present in order and all remain `prepared`.
+
+Claim-boundary status:
+No public launch, adoption, agency approval, consumer acceptance, compliance,
+final-root readiness, hosted SaaS, SLA/uptime, production readiness, vendor
+compatibility, hardware certification, release-readiness, or production-grade
+ETA claim was added.
+
+Security/auth status:
+No runtime route, auth behavior, credential handling, raw private data,
+external contact, site publication, protected evidence write, public admin
+surface, or secret-handling behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or module change was added.
+
+Master review:
+Approved. Phase 107 is complete and safe to close.
+
+Required edits:
+None for Phase 107.
+
+Decision:
+Close Phase 107 and continue immediately to Phase 108 -- Post-RC Bug Bash And
+Stabilization.
+
+Next checkpoint:
+Phase 108 -- Checkpoint 000001: add post-rc bug bash and stabilization plan.

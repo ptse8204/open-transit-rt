@@ -8,6 +8,18 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 107 is complete for Public Docs/Site Freeze And Contributor Onboarding
+in the authorized autonomous Phase 91-110 product roadmap. The closeout
+handoff is [`docs/handoffs/phase-107.md`](handoffs/phase-107.md). Phase 107
+refreshed architecture overview, added public docs/site freeze guidance, added
+contributor first-issue guidance, added connector-contribution guidance, and
+aligned README/docs/wiki/contributor links. It did not publish a site, create a
+public launch, tag a release, create evidence, move consumer status, contact
+external parties, or claim adoption, compliance, consumer acceptance,
+final-root readiness, hosted service, SLA/uptime, production readiness, vendor
+compatibility, hardware certification, release readiness, or production-grade
+ETA quality.
+
 Phase 106 is complete for Staff Training, Demo Datasets, And Adoption Kit in
 the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
 is [`docs/handoffs/phase-106.md`](handoffs/phase-106.md). Phase 106 added a
@@ -187,12 +199,13 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 107 -- Public
-Docs/Site Freeze And Contributor Onboarding. Phase 107 may align README, docs,
-wiki/site guidance, contributor first-issue guidance, connector contribution
-guidance, and architecture overview language, but it must not claim public
-launch, adoption, consumer acceptance, hosted SaaS, SLA/uptime, compliance,
-production readiness, or release readiness.
+The current authorized autonomous run continues next with Phase 108 -- Post-RC
+Bug Bash And Stabilization. Phase 108 may run bug-bash checklists, route
+audits, validation reruns, flaky-test cleanup, copy/IA cleanup, and known
+blocker matrix updates, but it must not tag, publish, claim release readiness,
+create evidence, move consumer statuses, or make public-launch,
+consumer-acceptance, compliance, hosted-service, SLA/uptime, production, vendor,
+hardware, or ETA-quality claims.
 
 Recommended work remains separated into:
 

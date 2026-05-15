@@ -353,9 +353,19 @@ write, consumer status change, adoption claim, agency approval claim, consumer
 acceptance claim, compliance claim, release-readiness claim, final-root claim,
 hosted service claim, SLA/uptime claim, production-readiness claim, vendor
 claim, hardware claim, public-launch claim, or production-grade ETA claim.
-The exact next checkpoint is Phase 107 -- Checkpoint 000001: add public docs
-site freeze and contributor onboarding plan. Any future evidence intake is
-optional and requires explicit written authorization first.
+Phase 107 -- Public Docs/Site Freeze And Contributor Onboarding is complete,
+with closeout at `docs/handoffs/phase-107.md`: it refreshed architecture
+overview, docs/site freeze guidance, contributor first-issue guidance,
+connector contribution guidance, and README/docs/wiki/contributor links.
+Phase 107 added no site publication, public launch, release action, evidence
+write, consumer status change, external contact, adoption claim, agency
+approval claim, consumer acceptance claim, compliance claim, release-readiness
+claim, final-root claim, hosted service claim, SLA/uptime claim,
+production-readiness claim, vendor claim, hardware claim, public-launch claim,
+or production-grade ETA claim.
+The exact next checkpoint is Phase 108 -- Checkpoint 000001: add post-rc bug
+bash and stabilization plan. Any future evidence intake is optional and
+requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1619,8 +1629,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 107 -- Checkpoint
-000001: add public docs site freeze and contributor onboarding plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 108 -- Checkpoint
+000001: add post-rc bug bash and stabilization plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
