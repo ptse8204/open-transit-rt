@@ -190,6 +190,33 @@ readiness.
    for unchanged migration, security, dependency, operations, and evidence or
    claim sections. List blocked commands exactly.
 
+## Post-RC Stabilization Review
+
+After local package review, maintainers can run a post-RC bug bash before
+considering any later release action. This review should stay local and
+diagnostic:
+
+```sh
+make audit-operations-route-inventory
+OPERATIONS_ROUTE_AUDIT_STRICT_DOCS=true scripts/audit-operations-route-inventory.sh
+make check
+make validate
+make test
+make external-connection-check
+make adapter-conformance
+make test-connector-examples
+RUN_LOCAL_APP=true make release-candidate-check
+docker compose -f deploy/docker-compose.yml config
+make audit-product-acceptance
+make audit-final-claim-review
+```
+
+Record exact pass, blocked, `needs_review`, and `not_checked` rows in the
+phase or release-note blocker matrix. A post-RC bug bash does not tag a
+release, publish a package, push an image, create retained evidence, move
+consumer statuses, contact external parties, or approve stronger public
+claims.
+
 ## Validation Matrix
 
 | Check | Expected Local Output | Blocker Handling |

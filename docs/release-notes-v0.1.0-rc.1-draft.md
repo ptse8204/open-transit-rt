@@ -2,7 +2,7 @@
 
 Draft date: 2026-05-14
 
-This is a local pre-tag draft refreshed during Phase 95 Checkpoint 000002. It
+This is a local pre-tag draft refreshed during Phase 108 Checkpoint 000002. It
 is not a GitHub Release, tag, hosted deployment, retained evidence packet,
 public package publication, image publication, consumer action, or release
 readiness claim.
@@ -21,6 +21,7 @@ readiness claim.
   - `docs/phase-89-rc1-gate-results.md`
   - `docs/phase-92-clean-checkout-release-candidate-gate.md`
   - `docs/phase-95-v0-1-0-rc-1-candidate-cut.md`
+  - `docs/phase-108-post-rc-bug-bash-and-stabilization.md`
 - Artifact checksums: local checksum manifest at
   `.cache/release-package/v0.1.0-rc.1/checksums/SHA256SUMS.txt`.
 - Source archive checksum:
@@ -36,7 +37,12 @@ readiness claim.
 small-agency product path. Since the earlier Phase 89 draft, the autonomous
 post-90 roadmap has added route/product stabilization, a clean-checkout local
 release-candidate gate, local/private browser task trials, and an Operations
-Console route-registry refactor.
+Console route-registry refactor. Later post-90 phases added operator-facing
+GTFS versioning, quality planning, realtime usefulness review, prediction
+backtesting, alerts operations, connector recipes, device onboarding,
+monitoring exports, small-host guidance, multi-agency/role hardening, staff
+training material, public docs/contributor alignment, and this post-RC bug
+bash review.
 
 The candidate remains `needs_review`. Phase 95 authorizes only local `.cache`
 package generation and audit; it does not authorize tag creation, GitHub
@@ -60,6 +66,8 @@ evidence creation, consumer status movement, or a release-readiness claim.
 - The route inventory audit now covers 28 canonical private HTML routes, 20
   canonical private JSON routes, one command route, and two external admin
   surfaces.
+- Post-RC bug bash reran the route inventory audit and strict docs mode; both
+  passed locally before the full Phase 108 validation rerun.
 
 ## Install And Upgrade Notes
 
@@ -78,7 +86,7 @@ evidence creation, consumer status movement, or a release-readiness claim.
 
 ## Migrations
 
-- None in Phases 91-95 so far.
+- No migration file changed during Phase 108.
 
 Before any future upgrade, operators must back up the database and run:
 
@@ -97,6 +105,12 @@ make migrate-status
   and IA gaps.
 - Phase 94 centralized Operations Console route metadata without changing
   route behavior.
+- Phase 95 generated and audited a local `.cache` source package only.
+- Phase 96 through Phase 107 added operator workbench, QA, training,
+  contributor, and governance-facing documentation/UI improvements while
+  preserving release, evidence, and claim boundaries.
+- Phase 108 reran the route inventory audit and refreshed this blocker matrix
+  before the full stabilization validation checkpoint.
 
 ## Security Notes
 
@@ -115,7 +129,7 @@ make migrate-status
 
 ## Dependency Changes
 
-- None in Phase 95 documentation refresh.
+- None in Phase 108 documentation refresh.
 - Phase 95 package generation recorded local SBOM/provenance metadata. The
   local package helper reported clean source metadata, but this is not a
   release-readiness, publication, or public-distribution claim.
@@ -182,10 +196,12 @@ No GitHub Release creation is authorized by this draft.
 | Release action authorization | blocked | No authorization exists to tag, publish, distribute packages, publish images, create a GitHub Release, or claim release readiness. | Maintainer |
 | Local package generation | passed locally | `RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true make release-package` wrote local `.cache` output only. | Master Agent |
 | Local package audit | passed locally | `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package` passed metadata, checksum, claim-flag, and consumer-tracker checks. | Master Agent |
+| Post-RC route audit | passed locally | `make audit-operations-route-inventory` and strict docs mode passed during Phase 108 Checkpoint 000002. | Master Agent |
+| Full post-RC validation rerun | scheduled | Phase 108 Checkpoint 000003 must rerun baseline, validation, tests, connector checks, release-candidate diagnostic, compose config, prepared-only tracker assertion, protected-path status, and claim audits. | Master Agent |
 | Package publication | blocked | No public package distribution or GitHub Release asset upload is authorized. | Maintainer only |
 | Source archive review | needs_review | `git archive HEAD` includes tracked repository files; public publication requires a separate review for tracked evidence-path material. | Future release reviewer |
-| Git tag | blocked | No tag will be created in Phase 95. | Maintainer only |
-| Published image | blocked | No image will be built or published in Phase 95. | Future authorized release work |
+| Git tag | blocked | No tag is authorized in Phase 108. | Maintainer only |
+| Published image | blocked | No image build or publication is authorized in Phase 108. | Future authorized release work |
 | Evidence tracks | blocked | Final-root, consumer, real agency pilot, real vendor/device, ETA-quality, and compliance evidence gates require separate written authorization. | Authorization-gated only |
 | Final conclusion | needs_review | Local diagnostics may pass, but release action and publication remain blocked. | Maintainer review |
 
@@ -212,14 +228,24 @@ Recorded Phase 95 package checks:
 | `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true RUN_LOCAL_APP=true make release-candidate-check` | exited `0`; helper overall `not_checked` | Local app and five-feed diagnostics passed; package audit passed; bounded helper still records `make validate`, `make test`, and `make smoke` as follow-up rows. |
 | `make agency-app-down` | passed | Stopped local app containers after diagnostics. |
 
-Phase 95 closeout checks still to record:
+Phase 95 closeout checks are recorded in `docs/handoffs/phase-95.md`. Phase
+108 stabilization reruns are tracked in
+`docs/phase-108-post-rc-bug-bash-and-stabilization.md`; at Checkpoint 000002
+the route inventory reruns passed and the full validation rerun remains
+scheduled for Checkpoint 000003:
 
 ```bash
 git status --short
 git diff --check
+make audit-operations-route-inventory
+OPERATIONS_ROUTE_AUDIT_STRICT_DOCS=true scripts/audit-operations-route-inventory.sh
 make check
 make validate
 make test
+make external-connection-check
+make adapter-conformance
+make test-connector-examples
+RUN_LOCAL_APP=true make release-candidate-check
 docker compose -f deploy/docker-compose.yml config
 make audit-product-acceptance
 make audit-final-claim-review

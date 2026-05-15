@@ -79,6 +79,7 @@ evidence only when authorized.
 ## Release-Candidate Docs
 
 - [Release-Candidate Readiness](release-candidate-readiness.md)
+- [Phase 108 Post-RC Bug Bash And Stabilization](phase-108-post-rc-bug-bash-and-stabilization.md)
 - [Release Process](release-process.md)
 - [Release Checklist](release-checklist.md)
 - [Release Notes Template](release-notes-template.md)
