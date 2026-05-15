@@ -8,6 +8,18 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 101 is complete for Connector Maturity And Adapter Recipes V2 in the
+authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-101.md`](handoffs/phase-101.md). Phase 101 added a
+private Connector Workbench decision tree, redaction-first templates, manifest
+lint summary rows, and 22-case offline synthetic adapter conformance coverage.
+It did not add public admin routes, telemetry ingest contract changes, public
+feed contract changes, Trip Updates hard-coupling, durable connector runtime
+state, evidence writes, consumer-status movement, real vendor/device proof,
+vendor-compatibility claims, hardware-certification claims, compliance or
+release-readiness claims, production-readiness claims, hosted-service claims,
+SLA/uptime claims, public-launch claims, or production-grade ETA claims.
+
 Phase 100 is complete for Alerts Operations And Disruption Workflow in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
 [`docs/handoffs/phase-100.md`](handoffs/phase-100.md). Phase 100 added
@@ -102,11 +114,13 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 101 --
-Connector Maturity And Adapter Recipes V2. Phase 101 may improve
-synthetic/local connector recipes and conformance coverage, but it must not
-claim real vendor compatibility, certified hardware support, consumer
-acceptance, public launch, compliance, or real-world deployment readiness.
+The current authorized autonomous run continues next with Phase 102 -- Device /
+AVL Fleet Onboarding V2. Phase 102 may improve private fleet/device
+inventory, bulk import planning, token lifecycle guidance, freshness triage,
+device-to-vehicle binding review, and technical-helper handoff guidance, but
+it must not expose token values, use real credentials, claim hardware/vendor
+support, claim production readiness, or treat synthetic/local checks as real
+deployment proof.
 
 Recommended work remains separated into:
 

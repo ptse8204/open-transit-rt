@@ -510,8 +510,18 @@ coupling, evidence write, consumer status change, public-launch claim,
 consumer-acceptance claim, compliance claim, release-readiness claim,
 production-readiness claim, vendor claim, hardware claim, hosted-service claim,
 or SLA/uptime claim.
-The authorized autonomous post-90 roadmap continues next with Phase 101 --
-Connector Maturity And Adapter Recipes V2.
+Phase 101 -- Connector Maturity And Adapter Recipes V2 is complete, with
+closeout at `docs/handoffs/phase-101.md`: the private Connector Workbench now
+includes a connection decision tree, redaction-first templates, manifest lint
+summaries, and 22-case offline synthetic adapter conformance coverage. Phase
+101 added no public admin route, migration, telemetry ingest contract change,
+public feed contract change, Trip Updates hard-coupling, connector runtime
+state, evidence write, consumer status change, real vendor/device proof,
+vendor-compatibility claim, hardware-certification claim, compliance claim,
+release-readiness claim, production-readiness claim, hosted-service claim,
+SLA/uptime claim, public-launch claim, or production-grade ETA claim.
+The authorized autonomous post-90 roadmap continues next with Phase 102 --
+Device / AVL Fleet Onboarding V2.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

@@ -280,8 +280,18 @@ admin route, migration, public feed mutation, prediction adapter coupling,
 evidence write, consumer status change, public-launch claim, consumer
 acceptance claim, compliance claim, release-readiness claim,
 production-readiness claim, vendor claim, hardware claim, hosted-service
-claim, or SLA/uptime claim. The exact next checkpoint is Phase 101 --
-Checkpoint 000001: add connector maturity and adapter recipes v2 plan. Any
+claim, or SLA/uptime claim. Phase 101 -- Connector Maturity And Adapter
+Recipes V2 is complete, with closeout at `docs/handoffs/phase-101.md`: it
+added a private Connector Workbench decision tree, redaction-first templates,
+manifest lint summaries, 22-case offline synthetic adapter conformance
+coverage, and connector docs/test guidance updates. It added no public admin
+route, migration, telemetry ingest contract change, public feed contract
+change, Trip Updates hard-coupling, durable connector runtime state, evidence
+write, consumer status change, real vendor/device proof, vendor-compatibility
+claim, hardware-certification claim, compliance claim, release-readiness
+claim, production-readiness claim, hosted-service claim, SLA/uptime claim,
+public-launch claim, or production-grade ETA claim. The exact next checkpoint
+is Phase 102 -- Checkpoint 000001: add device / avl fleet onboarding v2 plan. Any
 future evidence intake is
 optional and requires explicit written authorization first.
 
@@ -1547,8 +1557,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 101 -- Checkpoint
-000001: add connector maturity and adapter recipes v2 plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 102 -- Checkpoint
+000001: add device / avl fleet onboarding v2 plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
