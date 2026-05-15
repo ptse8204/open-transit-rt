@@ -253,3 +253,77 @@ Proceed to validation/audit checkpoint 000003.
 
 Next checkpoint:
 Phase 106 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 106 -- Checkpoint 000003: run validation and patch required gaps.
+
+Sub-agents used or simulated, including intended model level:
+QA, Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, and
+Release/Supply-Chain roles are simulated by the Master Agent for validation.
+Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/phase-106-staff-training-demo-datasets-and-adoption-kit.md`.
+
+Validation run:
+Focused checks passed: `go test ./cmd/agency-config -run
+'OperationsHelp|OperationsSharedLayoutRendersContextualHelp|Training|Demo'`;
+`python3 -m json.tool testdata/training-demo/scenarios.json >/dev/null`; and
+`git diff --check`.
+
+Baseline/code-change checks passed: `git status --short`; `python3 -m
+json.tool docs/evidence/consumer-submissions/status.json >/dev/null`; the exact
+prepared-only consumer tracker assertion; `git status --short --
+docs/evidence/consumer-submissions docs/evidence/captured db/migrations
+go.mod go.sum`; `make check`; `make audit-product-acceptance`; `make
+audit-final-claim-review`; `make validate`; `make test`; `docker compose -f
+deploy/docker-compose.yml config`; final `git status --short`; final protected
+path status check; and final `git diff --check`.
+
+Blocked checks:
+None for this phase. Release-candidate checks, package generation/audit,
+retained evidence, real agency/vendor/device data, real credentials, external
+contact, consumer submission, public publication, and tag/release/package/image
+publication remain out of scope.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path was modified.
+
+Consumer tracker status:
+The JSON syntax check and exact prepared-only assertion passed. All seven
+targets remain in order and `prepared`.
+
+Claim-boundary status:
+`make audit-product-acceptance` and `make audit-final-claim-review` passed.
+No adoption, agency approval, consumer acceptance, compliance, final-root
+readiness, hosted SaaS, SLA/uptime, production readiness, vendor
+compatibility, hardware certification, public launch, or production-grade ETA
+claim was added.
+
+Security/auth status:
+Validation covered the private authenticated Help model and rendering. The new
+training sections are read-only, no-store, local/synthetic, and do not add
+forms, mutation routes, command execution, `.cache` reads, credential capture,
+public admin routes, or raw private data exposure.
+
+Data/migration status:
+No migration, persistent training state, user progress tracking, hosted
+analytics, notification send, public feed contract change, `go.mod`, or
+`go.sum` change occurred.
+
+Master review:
+Approved. No required validation gaps remain for the Phase 106 scope.
+
+Required edits:
+Prepare the Phase 106 handoff and closeout docs.
+
+Decision:
+Proceed to closeout checkpoint 000004.
+
+Next checkpoint:
+Phase 106 -- Checkpoint 000004: close staff training, demo datasets, and
+adoption kit review.
