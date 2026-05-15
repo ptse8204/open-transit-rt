@@ -593,8 +593,18 @@ claim, consumer acceptance claim, compliance claim, release-readiness claim,
 final-root claim, hosted service claim, SLA/uptime claim, production-readiness
 claim, vendor claim, hardware claim, public-launch claim, or production-grade
 ETA claim.
-The authorized autonomous post-90 roadmap continues next with Phase 108 --
-Post-RC Bug Bash And Stabilization.
+Phase 108 -- Post-RC Bug Bash And Stabilization is complete, with closeout at
+`docs/handoffs/phase-108.md`: local release-candidate readiness guidance and
+the `v0.1.0-rc.1` draft blocker matrix are refreshed, route inventory passed
+normal and strict-docs modes, validation/tests/connector checks/local app
+diagnostics passed where run, and the candidate remains `needs_review`. Phase
+108 added no tag, GitHub Release, package publication, image publication,
+retained evidence, consumer status change, external contact,
+release-readiness claim, compliance claim, hosted service claim,
+production-readiness claim, vendor claim, hardware claim, SLA/uptime claim,
+public-launch claim, or production-grade ETA claim.
+The authorized autonomous post-90 roadmap continues next with Phase 109 --
+Optional Evidence Intake Gate Pack.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

@@ -363,9 +363,19 @@ approval claim, consumer acceptance claim, compliance claim, release-readiness
 claim, final-root claim, hosted service claim, SLA/uptime claim,
 production-readiness claim, vendor claim, hardware claim, public-launch claim,
 or production-grade ETA claim.
-The exact next checkpoint is Phase 108 -- Checkpoint 000001: add post-rc bug
-bash and stabilization plan. Any future evidence intake is optional and
-requires explicit written authorization first.
+Phase 108 -- Post-RC Bug Bash And Stabilization is complete, with closeout at
+`docs/handoffs/phase-108.md`: it refreshed local release-candidate readiness
+guidance, updated the `v0.1.0-rc.1` draft blocker matrix, reran route
+inventory in normal and strict-docs mode, reran validation/tests/connector
+checks/local app diagnostics, and kept the candidate at `needs_review`.
+Phase 108 added no tag, GitHub Release, package publication, image
+publication, retained evidence, consumer status change, external contact,
+release-readiness claim, compliance claim, hosted service claim,
+production-readiness claim, vendor claim, hardware claim, SLA/uptime claim,
+public-launch claim, or production-grade ETA claim.
+The exact next checkpoint is Phase 109 -- Checkpoint 000001: add optional
+evidence intake gate pack plan. Phase 109 is stub/gate-only unless separate
+written evidence authorization exists.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1629,8 +1639,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 108 -- Checkpoint
-000001: add post-rc bug bash and stabilization plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 109 -- Checkpoint
+000001: add optional evidence intake gate pack plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

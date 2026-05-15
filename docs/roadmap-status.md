@@ -8,6 +8,19 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 108 is complete for Post-RC Bug Bash And Stabilization in the
+authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-108.md`](handoffs/phase-108.md). Phase 108 refreshed
+local release-candidate readiness guidance, updated the `v0.1.0-rc.1` draft
+blocker matrix, reran route inventory in normal and strict-docs mode, reran
+validation/tests/connector checks/local app diagnostics, and kept the
+candidate at `needs_review`. It did not tag a release, create a GitHub
+Release, publish a package, push an image, create evidence, move consumer
+status, contact external parties, or claim release readiness, adoption,
+compliance, consumer acceptance, final-root readiness, hosted service,
+SLA/uptime, production readiness, vendor compatibility, hardware
+certification, or production-grade ETA quality.
+
 Phase 107 is complete for Public Docs/Site Freeze And Contributor Onboarding
 in the authorized autonomous Phase 91-110 product roadmap. The closeout
 handoff is [`docs/handoffs/phase-107.md`](handoffs/phase-107.md). Phase 107
@@ -199,13 +212,12 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 108 -- Post-RC
-Bug Bash And Stabilization. Phase 108 may run bug-bash checklists, route
-audits, validation reruns, flaky-test cleanup, copy/IA cleanup, and known
-blocker matrix updates, but it must not tag, publish, claim release readiness,
-create evidence, move consumer statuses, or make public-launch,
-consumer-acceptance, compliance, hosted-service, SLA/uptime, production, vendor,
-hardware, or ETA-quality claims.
+The current authorized autonomous run continues next with Phase 109 --
+Optional Evidence Intake Gate Pack. Phase 109 is stub/gate-only unless
+separate written evidence authorization exists; it must not collect evidence,
+write protected paths, contact external parties, move consumer statuses, or
+make public-launch, consumer-acceptance, compliance, hosted-service,
+SLA/uptime, production, vendor, hardware, final-root, or ETA-quality claims.
 
 Recommended work remains separated into:
 
