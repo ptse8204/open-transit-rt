@@ -376,6 +376,15 @@ public-launch claim, or production-grade ETA claim.
 The exact next checkpoint is Phase 109 -- Checkpoint 000001: add optional
 evidence intake gate pack plan. Phase 109 is stub/gate-only unless separate
 written evidence authorization exists.
+Phase 109 -- Optional Evidence Intake Gate Pack is complete, with closeout at
+`docs/handoffs/phase-109.md`: it added a future evidence intake gate pack for
+final-root, consumer submission, real agency pilot, real vendor/device AVL,
+real-world ETA-quality study, and compliance packet gates. Phase 109 collected
+no evidence, contacted no external party, fetched no final root, wrote no
+protected path, moved no consumer status, used no real credentials or private
+data, and made no stronger public claim.
+The exact next checkpoint is Phase 110 -- Checkpoint 000001: add long-term
+extensibility and plugin governance plan.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1639,8 +1648,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 109 -- Checkpoint
-000001: add optional evidence intake gate pack plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 110 -- Checkpoint
+000001: add long-term extensibility and plugin governance plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

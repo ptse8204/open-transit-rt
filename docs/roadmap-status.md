@@ -21,6 +21,16 @@ compliance, consumer acceptance, final-root readiness, hosted service,
 SLA/uptime, production readiness, vendor compatibility, hardware
 certification, or production-grade ETA quality.
 
+Phase 109 is complete for Optional Evidence Intake Gate Pack in the authorized
+autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-109.md`](handoffs/phase-109.md). Phase 109 added a
+future evidence gate pack for final-root, consumer submission, real agency
+pilot, real vendor/device AVL, real-world ETA-quality study, and compliance
+packet gates. It did not collect evidence, contact external parties, fetch
+final roots, write protected paths, move consumer statuses, use real
+credentials or private data, publish release artifacts, or make stronger
+public claims.
+
 Phase 107 is complete for Public Docs/Site Freeze And Contributor Onboarding
 in the authorized autonomous Phase 91-110 product roadmap. The closeout
 handoff is [`docs/handoffs/phase-107.md`](handoffs/phase-107.md). Phase 107
@@ -212,11 +222,12 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 109 --
-Optional Evidence Intake Gate Pack. Phase 109 is stub/gate-only unless
-separate written evidence authorization exists; it must not collect evidence,
-write protected paths, contact external parties, move consumer statuses, or
-make public-launch, consumer-acceptance, compliance, hosted-service,
+The current authorized autonomous run continues next with Phase 110 --
+Long-Term Extensibility And Plugin Governance. Phase 110 may define plugin,
+sidecar, connector manifest, public API stability, deprecation, security
+review, release train, and post-110 roadmap governance, but it must not tag,
+publish, create release artifacts, collect evidence, move consumer statuses,
+or make public-launch, consumer-acceptance, compliance, hosted-service,
 SLA/uptime, production, vendor, hardware, final-root, or ETA-quality claims.
 
 Recommended work remains separated into:
