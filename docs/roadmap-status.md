@@ -8,6 +8,19 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 103 is complete for Monitoring, Notifications, And Export Surfaces in
+the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
+is [`docs/handoffs/phase-103.md`](handoffs/phase-103.md). Phase 103 added
+bounded private no-send health digest, channel guidance, monitoring export,
+and private ops summary fields to existing `.cache` operations helpers, plus
+a private Maintenance Center review panel. It did not add public admin routes,
+migrations, durable notification state, delivery-attempt tables, schedulers,
+queues, hosted monitoring backends, live webhook/email sends, destination
+value rendering, evidence writes, consumer-status movement, hosted monitoring
+claims, SLA/uptime claims, compliance or release-readiness claims,
+consumer-acceptance claims, production-readiness claims, vendor claims,
+hardware claims, public-launch claims, or production-grade ETA claims.
+
 Phase 102 is complete for Device / AVL Fleet Onboarding V2 in the authorized
 autonomous Phase 91-110 product roadmap. The closeout handoff is
 [`docs/handoffs/phase-102.md`](handoffs/phase-102.md). Phase 102 added a
@@ -129,13 +142,13 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 103 --
-Monitoring, Notifications, And Export Surfaces. Phase 103 may improve local
-notification drafts, monitoring export summaries, redacted webhook/email draft
-guidance, health digest templates, and private ops summary JSON, but it must
-remain no-send by default and must not contact live webhook/email endpoints,
-create retained evidence, move consumer statuses, or claim hosted-service,
-SLA, uptime, production readiness, compliance, or consumer acceptance.
+The current authorized autonomous run continues next with Phase 104 --
+Small-Host Deployment And Upgrade Hardening. Phase 104 may improve small-host
+resource checks, validator off-host workflow, backup/restore drill guidance,
+upgrade/rollback checklists, service dependency review, Caddy/proxy exposure
+review, and Postgres/PostGIS checks, but it must not claim production
+readiness, SLA/uptime, hosted service availability, compliance, or deployment
+success.
 
 Recommended work remains separated into:
 

@@ -303,8 +303,21 @@ contract change, evidence write, consumer status change, real vendor/device
 proof, vendor-compatibility claim, hardware-certification claim, compliance
 claim, release-readiness claim, production-readiness claim, hosted-service
 claim, SLA/uptime claim, public-launch claim, or production-grade ETA claim.
-The exact next checkpoint is Phase 103 -- Checkpoint 000001: add monitoring
-notifications and export surfaces plan. Any future evidence intake is
+Phase 103 -- Monitoring, Notifications, And Export Surfaces is complete, with
+closeout at `docs/handoffs/phase-103.md`: it added bounded private no-send
+`health_digest`, `channel_guidance`, `monitoring_export`, and
+`private_ops_summary` fields to existing `.cache` operations notification and
+reliability helpers, surfaced monitoring export and health digest review in
+the private Maintenance Center, and updated self-hosted operations notification
+guidance. It added no public admin route, migration, durable notification
+state, delivery-attempt table, scheduler, queue, hosted monitoring backend,
+live webhook/email send, destination-value rendering, evidence write, consumer
+status change, hosted monitoring claim, SLA/uptime claim, compliance claim,
+consumer acceptance claim, release-readiness claim, production-readiness
+claim, vendor claim, hardware claim, public-launch claim, or
+production-grade ETA claim. The exact next checkpoint is Phase 104 --
+Checkpoint 000001: add small-host deployment and upgrade hardening plan. Any
+future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1569,8 +1582,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 103 -- Checkpoint
-000001: add monitoring notifications and export surfaces plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 104 -- Checkpoint
+000001: add small-host deployment and upgrade hardening plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
