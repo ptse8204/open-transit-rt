@@ -60,6 +60,7 @@ helper, and what the local evaluation does not prove.
 
 - [Integration Adapter Kit](integration-adapter-kit.md)
 - [Connector Plugin Contract](connectors/plugin-contract.md)
+- [Contributing Connectors](connectors/contributing-connectors.md)
 - [Connector Cookbook](../wiki/connector-cookbook.md)
 - [Device And AVL Integration](tutorials/device-avl-integration.md)
 - [Device Token Lifecycle](tutorials/device-token-lifecycle.md)
@@ -90,11 +91,27 @@ publish, push images, create retained evidence, or prove production readiness.
 The next recommended release milestone is `v0.1.0-rc.1` before any full
 `v0.1.0` release.
 
+## Contributor Docs
+
+- [Contributing](../CONTRIBUTING.md)
+- [Contributor First Issues](contributor-first-issues.md)
+- [Contributing Connectors](connectors/contributing-connectors.md)
+- [Public Docs And Site Freeze Checklist](public-docs-site-freeze-checklist.md)
+- [Test Fixture Index](../testdata/README.md)
+- [Examples Index](../examples/README.md)
+
+Contributor onboarding should favor small docs fixes, synthetic fixtures,
+focused tests, connector examples, redaction cleanup, and task-based
+navigation. First issues should not touch migrations, public feed contracts,
+protected evidence paths, consumer tracker status, release publication, or
+unsupported public claims.
+
 ## Visual Documentation
 
 - [Product Screenshots](assets/product-screenshots/README.md)
 - [Product Diagrams](assets/product-diagrams/README.md)
 - [Documentation Assets](assets/README.md)
+- [Public Docs And Site Freeze Checklist](public-docs-site-freeze-checklist.md)
 
 Product screenshots and diagrams are local/demo documentation aids only. They
 must not be stored under `docs/evidence`, called evidence, or used as proof of

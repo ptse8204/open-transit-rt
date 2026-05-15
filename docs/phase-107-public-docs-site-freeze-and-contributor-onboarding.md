@@ -175,3 +175,67 @@ Proceed to implementation checkpoint 000002 after plan validation and commit.
 
 Next checkpoint:
 Phase 107 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 107 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Implementation, QA, UI/UX, Documentation / IA, Claim-Boundary, Security/Auth,
+and Data/Migration roles are simulated by the Master Agent using direct
+repository inspection because the attempted Context / Repo Truth and Planning
+sub-agents timed out without edits. Master Agent -- GPT-5.5 x-high, current
+thread.
+
+Changed files:
+`docs/architecture.md`; `docs/public-docs-site-freeze-checklist.md`;
+`docs/contributor-first-issues.md`;
+`docs/connectors/contributing-connectors.md`; `README.md`; `docs/README.md`;
+`wiki/README.md`; `CONTRIBUTING.md`; `docs/integration-adapter-kit.md`;
+`examples/README.md`; `testdata/README.md`;
+`docs/phase-107-public-docs-site-freeze-and-contributor-onboarding.md`.
+
+Validation run:
+`git diff --check` passed. `make audit-product-acceptance` passed. `make
+audit-final-claim-review` passed.
+
+Blocked checks:
+Full closeout baseline, `make check`, `make validate`, `make test`, Docker
+Compose config, and final protected-path checks are deferred to checkpoint
+000003/000004. Site publication, release actions, evidence collection,
+external contact, real credentials, and consumer actions are out of scope.
+
+Protected path status:
+No protected evidence path was modified or required.
+
+Consumer tracker status:
+The consumer tracker was not modified. The seven targets remain required to
+stay in order and `prepared`.
+
+Claim-boundary status:
+The implementation added docs/contributor guidance only and retained explicit
+no-public-launch, no-adoption, no-consumer, no-compliance, no-final-root,
+no-hosted-service, no-SLA, no-production-readiness, no-vendor, no-hardware, and
+no-ETA-quality boundaries.
+
+Security/auth status:
+No runtime route, auth behavior, credential handling, raw private data,
+external contact, site publication, or protected evidence path changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, or
+runtime behavior changed.
+
+Master review:
+Approved. Phase 107 implementation remains docs-only and claim-bounded.
+
+Required edits:
+Run full focused validation and baseline checks. Patch only failures caused by
+this phase.
+
+Decision:
+Proceed to validation/audit checkpoint 000003.
+
+Next checkpoint:
+Phase 107 -- Checkpoint 000003: run validation and patch required gaps.

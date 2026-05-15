@@ -59,6 +59,7 @@ details.
 
 - [Integration Adapter Kit](../docs/integration-adapter-kit.md)
 - [Connector Plugin Contract](../docs/connectors/plugin-contract.md)
+- [Contributing Connectors](../docs/connectors/contributing-connectors.md)
 - [Redaction-First Connector Recipes](../docs/connectors/redaction-first-recipes.md)
 - [External Adapter Conformance](../docs/tutorials/external-adapter-conformance.md)
 - [Connector Cookbook](../wiki/connector-cookbook.md)

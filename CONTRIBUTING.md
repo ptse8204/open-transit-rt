@@ -20,6 +20,10 @@ Good first contribution areas include:
 
 Beginner-safe issues should be small, self-contained, and avoid changing public feed contracts, database schema, authentication behavior, or evidence claims.
 
+For a step-by-step first-issue path, see
+[Contributor First Issues](docs/contributor-first-issues.md). Connector authors
+should also read [Contributing Connectors](docs/connectors/contributing-connectors.md).
+
 ## First PR Checklist
 
 Before opening your first PR:
@@ -114,6 +118,14 @@ Good first issues include:
 - adding a small test for a documented fixture behavior;
 - improving `examples/README.md`, `testdata/README.md`, or wiki navigation;
 - clarifying claim-boundary language without changing the underlying claim.
+
+Good connector first issues include:
+
+- adding one synthetic adapter-conformance fixture;
+- improving one connector manifest description;
+- adding one no-send monitoring redaction case;
+- documenting one fail-closed connector behavior;
+- improving a connector tutorial link or troubleshooting row.
 
 Avoid first PRs that change DB migrations, public feed URLs, telemetry auth,
 GTFS-RT protobuf semantics, consumer status records, or evidence retention

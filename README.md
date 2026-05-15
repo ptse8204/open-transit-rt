@@ -284,6 +284,9 @@ evaluation or open-source contribution.
 - [Documentation Home](docs/README.md)
 - [Architecture](docs/architecture.md)
 - [Dependencies](docs/dependencies.md)
+- [Public Docs And Site Freeze Checklist](docs/public-docs-site-freeze-checklist.md)
+- [Contributor First Issues](docs/contributor-first-issues.md)
+- [Contributing Connectors](docs/connectors/contributing-connectors.md)
 - [Current Status](docs/current-status.md)
 - [Latest Handoff](docs/handoffs/latest.md)
 - [Phase 61+ Product Roadmap](docs/roadmaps/agency-first-connector-platform/README.md)
@@ -297,4 +300,6 @@ public GTFS ZIP, improving docs, adding synthetic connector examples, and
 reporting exact blockers.
 
 See [How Agencies Can Help](wiki/how-agencies-can-help.md) and
-[CONTRIBUTING.md](CONTRIBUTING.md).
+[CONTRIBUTING.md](CONTRIBUTING.md). First-time contributors should start with
+[Contributor First Issues](docs/contributor-first-issues.md); connector authors
+should start with [Contributing Connectors](docs/connectors/contributing-connectors.md).

@@ -97,6 +97,9 @@ See [Connector Plugin Contract](connectors/plugin-contract.md) for the manifest
 shape and [External Connection Readiness](external-connection-readiness.md) for
 operator review questions.
 
+For contributor workflow, fixture boundaries, and PR expectations, see
+[Contributing Connectors](connectors/contributing-connectors.md).
+
 ## Generic Connector Examples
 
 Stage 5 adds generic connector examples under `examples/connectors/` for:

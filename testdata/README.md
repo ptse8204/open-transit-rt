@@ -19,6 +19,8 @@ raw vendor payloads, private vehicle identifiers, or retained evidence here.
 - `connectors/`: connector manifest fixtures for external connection checks.
 - `adapter-conformance/`: offline synthetic conformance cases for telemetry,
   prediction, validator, and monitoring/export boundaries.
+- `training-demo/`: staff-training scenario catalog that references existing
+  synthetic/local fixtures without adding real agency, vendor, or device data.
 - `replay/`: replay fixtures for deterministic realtime behavior tests.
 - `realtime-quality-backtest/`: observed/predicted sample data for private
   local realtime quality diagnostics.
@@ -34,3 +36,7 @@ raw vendor payloads, private vehicle identifiers, or retained evidence here.
 - Document fixture purpose in a local `README.md` when the directory is not
   self-explanatory.
 - Add or update tests when a fixture encodes a behavior that must not regress.
+
+For contributor-safe fixture ideas, see
+[Contributor First Issues](../docs/contributor-first-issues.md) and
+[Contributing Connectors](../docs/connectors/contributing-connectors.md).

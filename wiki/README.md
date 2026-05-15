@@ -122,6 +122,8 @@ as separate private admin surfaces.
 | Plan a self-hosted evaluator or reference deployment | [Deployment Guide](deployment-guide.md) |
 | Help improve the project | [How Agencies Can Help](how-agencies-can-help.md) |
 | Contribute code or docs | [Support And Contribute](support-and-contribute.md) |
+| Pick a first issue | [Contributor First Issues](../docs/contributor-first-issues.md) |
+| Contribute connector examples | [Contributing Connectors](../docs/connectors/contributing-connectors.md) |
 
 ## What You Can Do In The UI
 
@@ -148,6 +150,22 @@ ETA quality.
 Formal agency approval, final feed-root evidence, consumer acceptance, real
 agency pilots, and vendor proof are optional future evidence tracks when
 authorized. They are not required to use or improve the software.
+
+## Contributor Path
+
+Contributors should start with small, reviewable changes:
+
+- docs and tutorial corrections;
+- synthetic fixtures;
+- focused tests;
+- connector examples that use local or synthetic inputs;
+- redaction and claim-boundary cleanup.
+
+See [Contributor First Issues](../docs/contributor-first-issues.md),
+[Contributing Connectors](../docs/connectors/contributing-connectors.md), and
+[CONTRIBUTING.md](../CONTRIBUTING.md). Do not add real credentials, protected
+evidence, private portal records, consumer status changes, or public launch
+claims in contribution examples.
 
 ## Maintainers And Project History
 
