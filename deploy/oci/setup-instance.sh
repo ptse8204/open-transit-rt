@@ -220,10 +220,10 @@ chown open-transit:open-transit /opt/open-transit-rt
 chmod 750 /opt/open-transit-rt
 
 # ---------------------------------------------------------------------------
-# 9. Docker (optional — for GTFS-RT validator only)
+# 9. Validator workload boundary
 # ---------------------------------------------------------------------------
 
-echo "==> Docker is intentionally not installed on this 503MiB RAM instance."
+echo "==> Docker is intentionally not installed on this 503MiB RAM instance; run heavy validators off host."
 
 # ---------------------------------------------------------------------------
 # Done

@@ -25,10 +25,13 @@ Environment:
   ADMIN_BASE_URL                  Admin root; defaults to PUBLIC_BASE_URL only when loopback
   ADMIN_TOKEN                     Optional admin bearer token
   DATABASE_URL                    Optional database URL; value is never printed
+  DB_MAX_CONNS                    Optional app DB pool cap for small-host review
   MIGRATIONS_DIR                  Migrations directory, default db/migrations when DATABASE_URL is set
   BACKUP_DIR                      Optional backup destination path
   RESTORE_DATABASE_URL            Optional restore-drill target URL; value is never printed
+  RESTORE_DRILL_DATABASE_URL      Optional alias for RESTORE_DATABASE_URL
   RESTORE_BACKUP_FILE             Optional restore-drill backup file path
+  RESTORE_DRILL_BACKUP_FILE       Optional alias for RESTORE_BACKUP_FILE
   STRICT_DOCTOR                   true|false; fail on blockers only when true
   OUTPUT_DIR                      Default .cache/deployment-doctor/<timestamp>
   ALLOW_UNIGNORED_OUTPUT_DIR      true|false; allow OUTPUT_DIR outside repo .cache
@@ -156,7 +159,7 @@ env_value() {
 
 is_optional_env_key() {
   case "$1" in
-    ADMIN_JWT_OLD_SECRETS|ADMIN_TOKEN|NOTIFY_WEBHOOK_URL|NOTIFY_EMAIL_TO|BACKUP_RETENTION_DAYS|CAPTURE_DATE_UTC) return 0 ;;
+    ADMIN_JWT_OLD_SECRETS|ADMIN_TOKEN|NOTIFY_WEBHOOK_URL|NOTIFY_EMAIL_TO|BACKUP_RETENTION_DAYS|CAPTURE_DATE_UTC|RESTORE_DRILL_DATABASE_URL|RESTORE_DRILL_BACKUP_FILE) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -504,6 +507,8 @@ record_validation_health_summary() {
 import json
 import pathlib
 import sys
+import sys
+import sys
 
 body, out, status = sys.argv[1:4]
 summary = {"status": status}
@@ -701,6 +706,206 @@ record_service_health() {
   done
 }
 
+record_small_host_resources() {
+  log "Check small-host resource posture"
+  mkdir -p "$OUT_REAL/system"
+  checks="$TMP_DIR/small-host-resources.checks.tsv"
+  python3 - "$OUT_REAL/system/small-host-resources.summary.json" >"$checks" <<'PY'
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+out = sys.argv[1]
+
+def read_proc_meminfo():
+    values = {}
+    try:
+        with open("/proc/meminfo", encoding="utf-8") as handle:
+            for line in handle:
+                key, raw = line.split(":", 1)
+                parts = raw.strip().split()
+                if parts and parts[0].isdigit():
+                    values[key] = int(parts[0]) * 1024
+    except OSError:
+        return {}
+    return values
+
+def sysctl_int(name):
+    try:
+        raw = subprocess.check_output(["sysctl", "-n", name], text=True, stderr=subprocess.DEVNULL).strip()
+        return int(raw)
+    except Exception:
+        return None
+
+meminfo = read_proc_meminfo()
+memory_bytes = meminfo.get("MemTotal") or sysctl_int("hw.memsize")
+swap_bytes = meminfo.get("SwapTotal")
+if swap_bytes is None:
+    try:
+        raw = subprocess.check_output(["sysctl", "-n", "vm.swapusage"], text=True, stderr=subprocess.DEVNULL)
+        # macOS example: total = 2048.00M  used = ...
+        token = raw.split("total = ", 1)[1].split()[0]
+        swap_bytes = int(float(token.rstrip("M")) * 1024 * 1024)
+    except Exception:
+        swap_bytes = None
+
+disk = shutil.disk_usage(".")
+cpu_count = os.cpu_count() or 0
+try:
+    load_1m = os.getloadavg()[0]
+except OSError:
+    load_1m = None
+
+memory_mb = None if memory_bytes is None else int(memory_bytes / 1024 / 1024)
+swap_mb = None if swap_bytes is None else int(swap_bytes / 1024 / 1024)
+disk_available_mb = int(disk.free / 1024 / 1024)
+
+checks = []
+def add(name, status, detail):
+    checks.append(("small_host_resources", name, status, detail))
+
+if memory_mb is None:
+    add("memory", "unavailable", "total memory unavailable")
+elif memory_mb < 1024:
+    add("memory", "warning", f"memory={memory_mb}MB below 1024MB tiny-host floor")
+elif memory_mb < 2048:
+    add("memory", "warning", f"memory={memory_mb}MB; prefer off-host validators and low DB pools")
+else:
+    add("memory", "passed", f"memory={memory_mb}MB")
+
+if disk_available_mb < 1024:
+    add("disk_available", "blocker", f"available_disk={disk_available_mb}MB below 1024MB")
+elif disk_available_mb < 5120:
+    add("disk_available", "warning", f"available_disk={disk_available_mb}MB below 5120MB review threshold")
+else:
+    add("disk_available", "passed", f"available_disk={disk_available_mb}MB")
+
+if cpu_count <= 0:
+    add("cpu_count", "unavailable", "cpu count unavailable")
+elif cpu_count < 2:
+    add("cpu_count", "warning", "single CPU host; keep validators off host when possible")
+else:
+    add("cpu_count", "passed", f"cpu_count={cpu_count}")
+
+if load_1m is None or cpu_count <= 0:
+    add("load_average", "unavailable", "load average unavailable")
+elif load_1m > cpu_count * 2:
+    add("load_average", "warning", f"load_1m={load_1m:.2f} above 2x CPU count")
+else:
+    add("load_average", "passed", f"load_1m={load_1m:.2f}")
+
+if swap_mb is None:
+    add("swap", "unavailable", "swap total unavailable")
+elif swap_mb == 0 and (memory_mb or 0) < 2048:
+    add("swap", "warning", "no swap detected on small-memory host")
+else:
+    add("swap", "passed", f"swap={swap_mb}MB")
+
+off_host_recommended = (memory_mb is not None and memory_mb < 2048) or cpu_count < 2
+add(
+    "validator_off_host_recommendation",
+    "warning" if off_host_recommended else "passed",
+    "off-host validator workflow recommended for this resource profile" if off_host_recommended else "host resources do not require off-host validators by this heuristic",
+)
+
+summary = {
+    "memory_mb": memory_mb,
+    "swap_mb": swap_mb,
+    "disk_available_mb": disk_available_mb,
+    "cpu_count": cpu_count,
+    "load_1m": load_1m,
+    "validator_off_host_recommended": off_host_recommended,
+    "boundary": "Private local host resource diagnostic only. It does not prove capacity, uptime, SLA coverage, hosted availability, production readiness, or validator success.",
+    "does_not_prove": "Does not prove production capacity, uptime, SLA coverage, hosted service availability, compliance, or consumer acceptance.",
+}
+with open(out, "w", encoding="utf-8") as handle:
+    json.dump(summary, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+for row in checks:
+    print("\t".join(row))
+PY
+  while IFS="$(printf '\t')" read -r category name status detail
+  do
+    [ -n "$category" ] || continue
+    add_check "$category" "$name" "$status" "$detail"
+  done <"$checks"
+}
+
+record_service_dependency_review() {
+  log "Check service dependency and proxy exposure posture"
+  mkdir -p "$OUT_REAL/system"
+  checks="$TMP_DIR/service-dependency.checks.tsv"
+  python3 - "$OUT_REAL/system/service-dependency.summary.json" >"$checks" <<'PY'
+import json
+import pathlib
+import sys
+
+compose = pathlib.Path("deploy/docker-compose.yml")
+local_caddy = pathlib.Path("deploy/Caddyfile.local")
+oci_caddy = pathlib.Path("deploy/oci/Caddyfile")
+systemd_dir = pathlib.Path("deploy/systemd")
+
+checks = []
+def add(category, name, status, detail):
+    checks.append((category, name, status, detail))
+
+compose_text = compose.read_text(encoding="utf-8") if compose.exists() else ""
+local_text = local_caddy.read_text(encoding="utf-8") if local_caddy.exists() else ""
+oci_text = oci_caddy.read_text(encoding="utf-8") if oci_caddy.exists() else ""
+
+if compose.exists() and "depends_on:" in compose_text and "postgres:" in compose_text:
+    add("service_dependencies", "compose_dependencies", "passed", "compose dependency graph present")
+else:
+    add("service_dependencies", "compose_dependencies", "warning", "compose dependency graph needs review")
+
+if "respond \"not found\" 404" in local_text and "respond @local_root" in local_text:
+    add("proxy_exposure", "local_caddy_fallback", "passed", "local proxy has explicit root and 404 fallback")
+else:
+    add("proxy_exposure", "local_caddy_fallback", "blocker", "local proxy fallback is not explicit")
+
+unsafe_oci = any(token in oci_text for token in ("handle /admin", "handle /admin/", "handle /admin*", "handle /v1/events", "handle /admin/debug"))
+if oci_caddy.exists() and not unsafe_oci and "handle /public/gtfsrt/vehicle_positions.pb" in oci_text and "respond 404" in oci_text:
+    add("proxy_exposure", "oci_public_edge", "passed", "OCI public edge exposes feed paths and unmatched 404 only")
+else:
+    add("proxy_exposure", "oci_public_edge", "blocker", "OCI public edge may expose unsupported paths")
+
+expected_units = [
+    "open-transit-agency-config.service",
+    "open-transit-telemetry-ingest.service",
+    "open-transit-feed-vehicle-positions.service",
+    "open-transit-feed-trip-updates.service",
+    "open-transit-feed-alerts.service",
+]
+missing = [name for name in expected_units if not (systemd_dir / name).exists()]
+if missing:
+    add("service_dependencies", "systemd_units", "warning", f"missing_units={len(missing)}")
+else:
+    add("service_dependencies", "systemd_units", "passed", "expected systemd units present")
+
+summary = {
+    "compose_dependency_graph_present": "depends_on:" in compose_text,
+    "local_proxy_explicit_404": "respond \"not found\" 404" in local_text,
+    "oci_public_edge_admin_exposed": unsafe_oci,
+    "systemd_expected_units": len(expected_units),
+    "systemd_missing_units": len(missing),
+    "boundary": "Static dependency and proxy review only. It does not start services, change firewall rules, contact the public edge, or prove production readiness.",
+    "does_not_prove": "Does not prove deployment success, public availability, SLA, uptime, hosted service readiness, compliance, or consumer acceptance.",
+}
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    json.dump(summary, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+for row in checks:
+    print("\t".join(row))
+PY
+  while IFS="$(printf '\t')" read -r category name status detail
+  do
+    [ -n "$category" ] || continue
+    add_check "$category" "$name" "$status" "$detail"
+  done <"$checks"
+}
+
 sanitize_file() {
   src="$1"
   dst="$2"
@@ -714,6 +919,7 @@ patterns = [
     (re.compile(r"postgres(?:ql)?://[^:\s/]+:[^@\s]+@", re.I), "postgres://<redacted-user>:<redacted-password>@"),
     (re.compile(r"(?i)(DATABASE_URL\s*=\s*)[^\n\r]+"), r"\1<redacted>"),
     (re.compile(r"(?i)(RESTORE_DATABASE_URL\s*=\s*)[^\n\r]+"), r"\1<redacted>"),
+    (re.compile(r"(?i)(RESTORE_DRILL_DATABASE_URL\s*=\s*)[^\n\r]+"), r"\1<redacted>"),
 ]
 for pattern, repl in patterns:
     text = pattern.sub(repl, text)
@@ -809,6 +1015,101 @@ PY
   fi
 }
 
+record_postgres_capacity_review() {
+  log "Check Postgres small-host pool guidance"
+  mkdir -p "$OUT_REAL/database"
+  checks="$TMP_DIR/postgres-capacity.checks.tsv"
+  python3 - "$OUT_REAL/database/postgres-capacity.summary.json" "${DB_MAX_CONNS:-}" >"$checks" <<'PY'
+import json
+import sys
+
+out, raw_max = sys.argv[1:3]
+default_pool = 10
+service_count = 6
+small_host_max_connections = 25
+try:
+    pool = int(raw_max) if raw_max else default_pool
+except ValueError:
+    pool = default_pool
+configured = bool(raw_max and raw_max.isdigit())
+estimated = pool * service_count
+if not configured:
+    status = "warning"
+    detail = "DB_MAX_CONNS unset; default pool may exceed small-host Postgres max_connections=25"
+elif estimated >= small_host_max_connections:
+    status = "warning"
+    detail = f"estimated_pooled_connections={estimated} may exceed small-host max_connections=25"
+else:
+    status = "passed"
+    detail = f"estimated_pooled_connections={estimated} below small-host max_connections=25"
+summary = {
+    "db_max_conns_configured": configured,
+    "per_service_pool": pool,
+    "service_count_estimate": service_count,
+    "estimated_pooled_connections": estimated,
+    "small_host_postgres_max_connections": small_host_max_connections,
+    "recommended_db_max_conns": 3,
+    "boundary": "Static capacity guidance only. It does not inspect live connection counts, change database settings, or prove production capacity.",
+    "does_not_prove": "Does not prove Postgres capacity, uptime, SLA coverage, production readiness, or data safety.",
+}
+with open(out, "w", encoding="utf-8") as handle:
+    json.dump(summary, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+print("\t".join(("postgres_capacity", "db_pool_budget", status, detail)))
+PY
+  while IFS="$(printf '\t')" read -r category name status detail
+  do
+    [ -n "$category" ] || continue
+    add_check "$category" "$name" "$status" "$detail"
+  done <"$checks"
+}
+
+record_upgrade_rollback_review() {
+  log "Check upgrade and rollback checklist posture"
+  mkdir -p "$OUT_REAL/operations"
+  checks="$TMP_DIR/upgrade-rollback.checks.tsv"
+  python3 - "$OUT_REAL/operations/upgrade-rollback.summary.json" >"$checks" <<'PY'
+import json
+import pathlib
+import sys
+
+docs = {
+    "upgrade": pathlib.Path("docs/upgrade-and-rollback.md"),
+    "backup_restore": pathlib.Path("docs/runbooks/backup-and-restore.md"),
+    "off_host_validation": pathlib.Path("docs/deployment/off-host-validation.md"),
+}
+checks = []
+for name, path in docs.items():
+    if path.exists():
+        checks.append(("upgrade_rollback", name, "passed", f"{name} guidance present"))
+    else:
+        checks.append(("upgrade_rollback", name, "blocker", f"{name} guidance missing"))
+summary = {
+    "required_review_steps": [
+        "record current commit/version without secret values",
+        "confirm backup target and restore-drill target before upgrade",
+        "run migration status before and after upgrade",
+        "run off-host validators when the host is too small for validator tooling",
+        "check public feed fetches and private feed health after upgrade",
+        "treat rollback as a restore/redeploy decision, not an automatic browser action",
+    ],
+    "browser_executes_upgrade_or_rollback": False,
+    "boundary": "Checklist presence only. This does not execute backup, restore, migration, upgrade, rollback, or validation commands.",
+    "does_not_prove": "Does not prove upgrade safety, rollback success, production readiness, compliance, consumer acceptance, SLA coverage, or uptime.",
+}
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    json.dump(summary, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+for row in checks:
+    print("\t".join(row))
+PY
+  while IFS="$(printf '\t')" read -r category name status detail
+  do
+    [ -n "$category" ] || continue
+    add_check "$category" "$name" "$status" "$detail"
+  done <"$checks"
+}
+
 record_validator_tooling() {
   log "Check pinned validator tooling"
   mkdir -p "$OUT_REAL/validators"
@@ -829,6 +1130,11 @@ record_validator_tooling() {
 record_backup_restore_readiness() {
   log "Check backup and restore-drill readiness"
   mkdir -p "$OUT_REAL/operations"
+  restore_database_url="${RESTORE_DATABASE_URL:-${RESTORE_DRILL_DATABASE_URL:-}}"
+  restore_backup_file="${RESTORE_BACKUP_FILE:-${RESTORE_DRILL_BACKUP_FILE:-}}"
+  backup_status="blocker"
+  restore_url_status="blocker"
+  restore_file_status="blocker"
   if [ -z "${BACKUP_DIR:-}" ]; then
     add_check "backup_readiness" "BACKUP_DIR" "blocker" "BACKUP_DIR not supplied"
   elif [ ! -d "$BACKUP_DIR" ]; then
@@ -837,24 +1143,47 @@ record_backup_restore_readiness() {
     add_check "backup_readiness" "BACKUP_DIR" "blocker" "BACKUP_DIR is not readable"
   elif [ ! -w "$BACKUP_DIR" ]; then
     add_check "backup_readiness" "BACKUP_DIR" "warning" "BACKUP_DIR is not writable by current user"
+    backup_status="warning"
   else
     add_check "backup_readiness" "BACKUP_DIR" "passed" "BACKUP_DIR exists and is readable/writable"
+    backup_status="passed"
   fi
 
-  if [ -z "${RESTORE_DATABASE_URL:-}" ]; then
-    add_check "restore_readiness" "RESTORE_DATABASE_URL" "blocker" "RESTORE_DATABASE_URL not supplied"
+  if [ -z "$restore_database_url" ]; then
+    add_check "restore_readiness" "RESTORE_DATABASE_URL" "blocker" "RESTORE_DATABASE_URL or RESTORE_DRILL_DATABASE_URL not supplied"
   else
-    add_check "restore_readiness" "RESTORE_DATABASE_URL" "passed" "RESTORE_DATABASE_URL present"
+    add_check "restore_readiness" "RESTORE_DATABASE_URL" "passed" "restore database URL present"
+    restore_url_status="passed"
   fi
-  if [ -z "${RESTORE_BACKUP_FILE:-}" ]; then
-    add_check "restore_readiness" "RESTORE_BACKUP_FILE" "blocker" "RESTORE_BACKUP_FILE not supplied"
-  elif [ ! -f "$RESTORE_BACKUP_FILE" ]; then
+  if [ -z "$restore_backup_file" ]; then
+    add_check "restore_readiness" "RESTORE_BACKUP_FILE" "blocker" "RESTORE_BACKUP_FILE or RESTORE_DRILL_BACKUP_FILE not supplied"
+  elif [ ! -f "$restore_backup_file" ]; then
     add_check "restore_readiness" "RESTORE_BACKUP_FILE" "blocker" "RESTORE_BACKUP_FILE does not exist"
-  elif [ ! -r "$RESTORE_BACKUP_FILE" ]; then
+  elif [ ! -r "$restore_backup_file" ]; then
     add_check "restore_readiness" "RESTORE_BACKUP_FILE" "blocker" "RESTORE_BACKUP_FILE is not readable"
   else
     add_check "restore_readiness" "RESTORE_BACKUP_FILE" "passed" "RESTORE_BACKUP_FILE exists and is readable"
+    restore_file_status="passed"
   fi
+  python3 - "$OUT_REAL/operations/backup-restore-readiness.summary.json" "$backup_status" "$restore_url_status" "$restore_file_status" <<'PY'
+import json
+import sys
+
+out, backup_status, restore_url_status, restore_file_status = sys.argv[1:5]
+summary = {
+    "backup_dir_status": backup_status,
+    "restore_database_url_status": restore_url_status,
+    "restore_backup_file_status": restore_file_status,
+    "accepted_restore_url_env": ["RESTORE_DATABASE_URL", "RESTORE_DRILL_DATABASE_URL"],
+    "accepted_restore_file_env": ["RESTORE_BACKUP_FILE", "RESTORE_DRILL_BACKUP_FILE"],
+    "browser_executes_backup_or_restore": False,
+    "boundary": "Presence/readability guidance only. The deployment doctor does not create backups or restore databases.",
+    "does_not_prove": "Does not prove a backup exists, a restore drill succeeded, disaster recovery coverage, production readiness, SLA, uptime, compliance, or consumer acceptance.",
+}
+with open(out, "w", encoding="utf-8") as handle:
+    json.dump(summary, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+PY
 }
 
 record_release_identity() {
@@ -975,6 +1304,12 @@ flags = {
     "consumer_statuses_changed": False,
     "compliance_claimed": False,
     "production_readiness_claimed": False,
+    "hosted_saas_claimed": False,
+    "sla_claimed": False,
+    "uptime_guarantee_claimed": False,
+    "vendor_compatibility_claimed": False,
+    "hardware_certification_claimed": False,
+    "production_grade_eta_claimed": False,
 }
 summary = {
     "generated_at_utc": timestamp,
@@ -990,6 +1325,11 @@ summary = {
         "validators": category_status("validators"),
         "backup_readiness": category_status("backup_readiness"),
         "restore_readiness": category_status("restore_readiness"),
+        "small_host_resources": category_status("small_host_resources"),
+        "service_dependencies": category_status("service_dependencies"),
+        "proxy_exposure": category_status("proxy_exposure"),
+        "postgres_capacity": category_status("postgres_capacity"),
+        "upgrade_rollback": category_status("upgrade_rollback"),
     },
     **flags,
     "checks": checks,
@@ -1004,9 +1344,13 @@ manifest = {
         "public/private route boundary statuses",
         "optional authenticated admin readiness summary without token values",
         "service health status matrix",
+        "small-host memory, CPU, load, disk, swap, and off-host validator guidance",
+        "static service dependency and proxy exposure posture",
         "read-only migration and PostGIS summaries when available",
+        "static Postgres pool budget guidance",
         "validator tooling status",
         "backup and restore-drill readiness statuses",
+        "upgrade and rollback checklist posture",
         "git/release identity",
         "consumer tracker prepared-only guard",
     ],
@@ -1020,6 +1364,10 @@ manifest = {
         "raw public feed bodies",
         "database dumps",
         "backup file contents",
+        "live resource reservations",
+        "service start/stop actions",
+        "migration execution",
+        "backup or restore execution",
         "private keys",
         "consumer submissions",
         "evidence packets",
@@ -1099,9 +1447,9 @@ print(f"  output_dir={out}")
 print(f"  blocker_count={counts['blocker']}")
 print(f"  warning_count={counts['warning']}")
 print(f"  unavailable_count={counts['unavailable']}")
-for key in ("public_feed_edge", "admin_boundary", "database", "migrations", "postgis", "validators", "backup_readiness", "restore_readiness"):
+for key in ("public_feed_edge", "admin_boundary", "database", "migrations", "postgis", "validators", "backup_readiness", "restore_readiness", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback"):
     print(f"  {key}={cat[key]}")
-for key in ("external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed"):
+for key in ("external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "hosted_saas_claimed", "sla_claimed", "uptime_guarantee_claimed"):
     print(f"  {key}={str(data[key]).lower()}")
 PY
 }
@@ -1135,9 +1483,13 @@ main() {
   record_validation_health_summary
   record_https_posture
   record_service_health
+  record_small_host_resources
+  record_service_dependency_review
   record_database_checks
+  record_postgres_capacity_review
   record_validator_tooling
   record_backup_restore_readiness
+  record_upgrade_rollback_review
   record_release_identity
   record_recent_private_diagnostics
   record_consumer_tracker_guard

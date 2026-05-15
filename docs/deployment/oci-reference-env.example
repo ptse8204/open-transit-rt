@@ -70,6 +70,7 @@ JAVA_BINARY=/usr/bin/java
 ###############################################################################
 
 DATABASE_URL=replace-with-database-url-containing-generated-secret
+DB_MAX_CONNS=3
 MIGRATIONS_DIR=/opt/open-transit-rt/app/db/migrations
 RESTORE_DATABASE_URL=replace-with-restore-database-url-containing-generated-secret
 
@@ -89,6 +90,9 @@ ADMIN_TOKEN=replace-with-generated-secret
 BACKUP_DIR=/opt/open-transit-rt/backups
 BACKUP_RETENTION_DAYS=7
 RESTORE_BACKUP_FILE=/opt/open-transit-rt/backups/replace-with-backup-file.dump
+# Optional aliases for tools that name restore drills explicitly.
+RESTORE_DRILL_DATABASE_URL=
+RESTORE_DRILL_BACKUP_FILE=
 
 ###############################################################################
 # monitoring/notification placeholders

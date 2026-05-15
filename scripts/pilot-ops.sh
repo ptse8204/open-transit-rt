@@ -49,7 +49,8 @@ Safety:
   All subcommands support --dry-run.
   State-changing operations require explicit target env vars; no deployment
   defaults are assumed. restore-drill requires typed confirmation unless
-  --force is passed.
+  --force is passed. EVIDENCE_OUTPUT_DIR must not resolve under protected
+  repository evidence paths.
 USAGE
 }
 
@@ -66,6 +67,32 @@ require_env() {
   name="$1"
   value="$(eval "printf '%s' \"\${$name:-}\"")"
   [ -n "$value" ] || die "missing required environment variable: $name"
+}
+
+guard_evidence_output_dir() {
+  command -v python3 >/dev/null 2>&1 || die "missing required tool: python3"
+  python3 - "$ROOT_DIR" "$EVIDENCE_OUTPUT_DIR" <<'PY'
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1]).resolve()
+raw = pathlib.Path(sys.argv[2])
+target = raw if raw.is_absolute() else root / raw
+target = target.resolve(strict=False)
+protected = [
+    root / "docs" / "evidence" / "captured",
+    root / "docs" / "evidence" / "consumer-submissions" / "current",
+    root / "docs" / "evidence" / "consumer-submissions" / "artifacts",
+    root / "docs" / "evidence" / "consumer-submissions" / "packets",
+]
+for base in protected:
+    base = base.resolve(strict=False)
+    try:
+        target.relative_to(base)
+    except ValueError:
+        continue
+    raise SystemExit(f"EVIDENCE_OUTPUT_DIR must not be under protected repo path {base}")
+PY
 }
 
 sha256_file() {
@@ -94,6 +121,7 @@ require_common() {
   case "$ENVIRONMENT_NAME" in
     *[!A-Za-z0-9._-]*) die "ENVIRONMENT_NAME may contain only letters, digits, dot, underscore, and hyphen" ;;
   esac
+  guard_evidence_output_dir
 }
 
 print_target() {

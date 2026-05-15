@@ -163,3 +163,104 @@ Proceed to implementation checkpoint 000002 after plan validation and commit.
 
 Next checkpoint:
 Phase 104 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 104 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain roles
+were simulated by the Master Agent. Master Agent -- GPT-5.5 x-high, current
+thread.
+
+Changed files:
+`scripts/deployment-doctor.sh`;
+`scripts/oci-reference-check.sh`;
+`scripts/pilot-ops.sh`;
+`cmd/agency-config/operations_maintenance.go`;
+`cmd/agency-config/operations_maintenance_summaries.go`;
+`cmd/agency-config/main_test.go`;
+`deploy/oci/postgresql-tuning.conf`;
+`deploy/oci/setup-instance.sh`;
+`docs/deployment/README.md`;
+`docs/deployment/oci-reference-check.md`;
+`docs/deployment/oci-reference-deployment.md`;
+`docs/deployment/oci-reference-env.example`;
+`docs/deployment/off-host-validation.md`;
+`docs/deployment/reference-deployment-doctor.md`;
+`docs/runbooks/small-agency-pilot-operations.md`;
+`docs/tutorials/small-agency-maintenance-guide.md`;
+`docs/upgrade-and-rollback.md`;
+`docs/phase-104-small-host-deployment-and-upgrade-hardening.md`.
+
+Validation run:
+`sh -n scripts/deployment-doctor.sh scripts/oci-reference-check.sh
+scripts/validate-public-feeds.sh scripts/pilot-ops.sh` passed. `gofmt` ran on
+the touched Go files. `OUTPUT_DIR=.cache/phase-104/deployment-doctor
+FORCE=true scripts/deployment-doctor.sh` passed and generated valid JSON for
+`summary.json`, `manifest.json`, `system/small-host-resources.summary.json`,
+`system/service-dependency.summary.json`,
+`database/postgres-capacity.summary.json`, and
+`operations/upgrade-rollback.summary.json`. `PUBLIC_BASE_URL=https://feeds.example.org
+OUTPUT_DIR=.cache/phase-104/validate-public-feeds FORCE=true
+scripts/validate-public-feeds.sh --dry-run` passed. `PUBLIC_BASE_URL=https://feeds.example.org
+OUTPUT_DIR=.cache/phase-104/oci-reference-check FORCE=true
+scripts/oci-reference-check.sh --dry-run` passed. JSON validation for both
+dry-run summaries and manifests passed. Custom assertions verified the new
+deployment-doctor category keys, all-false claim flags, off-host validator
+recommendation field, `recommended_db_max_conns=3`, and OCI `/healthz`
+loopback probe. The protected-path negative guard for `scripts/pilot-ops.sh`
+passed by rejecting `EVIDENCE_OUTPUT_DIR=docs/evidence/captured/phase-104`
+before evaluating backup requirements. `go test ./cmd/agency-config -run
+'DeploymentDoctor|ReferenceCheck|Maintenance|OperationsNavigation|RouteTitles'`
+passed. `git diff --check` passed. The protected-path status check for
+`.cache`, `docs/evidence/consumer-submissions`, `docs/evidence/captured`,
+`db/migrations`, `go.mod`, and `go.sum` returned no output.
+
+Blocked checks:
+Full baseline, `make validate`, `make test`, docker compose config, product
+acceptance audit, and final claim audit are deferred to checkpoint 000003.
+Release-candidate checks, package generation/audit, retained evidence,
+publication, real deployment actions, live backup/restore, real validators
+against a public root, tag/release/package/image publication, and external
+consumer actions remain out of scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+The pilot-ops guard now rejects protected repo evidence output directories.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven targets must remain in order and all remain `prepared`.
+
+Claim-boundary status:
+The implementation keeps all deployment-doctor claim flags false and adds no
+production-readiness, hosted-service, SLA, uptime, compliance,
+consumer-acceptance, agency-adoption, vendor, hardware, final-root,
+release-readiness, public-launch, or production-grade ETA claim.
+
+Security/auth status:
+No credential collection, raw env rendering, raw backup rendering, live send,
+service-control action, migration execution, validator execution from the
+browser, public admin route, or external contact was added. The new diagnostics
+record status and booleans only.
+
+Data/migration status:
+No migration, schema change, durable deployment state, backup metadata table,
+restore table, service-control table, or dependency change was added.
+
+Master review:
+Approved. The implementation stays within Phase 104 by hardening private
+read-only diagnostics and small-host guidance over existing seams.
+
+Required edits:
+Run full validation and patch any failures caused by Phase 104.
+
+Decision:
+Proceed to validation checkpoint 000003.
+
+Next checkpoint:
+Phase 104 -- Checkpoint 000003: run validation and patch required gaps.

@@ -207,7 +207,7 @@ presence_row() {
 presence_row "deployment_target" "Deployment helper target" ENVIRONMENT_NAME OCI_HOST OCI_REMOTE_DIR DOMAIN PUBLIC_BASE_URL
 presence_row "ssh_access" "Optional SSH loopback access" OCI_HOST OCI_KEY
 presence_row "backup_configuration" "Backup configuration" BACKUP_DIR BACKUP_PATH OPEN_TRANSIT_BACKUP_DIR
-presence_row "restore_drill_configuration" "Restore-drill configuration" RESTORE_DRILL_DATABASE_URL RESTORE_DRILL_TARGET OPEN_TRANSIT_RESTORE_DRILL
+presence_row "restore_drill_configuration" "Restore-drill configuration" RESTORE_DATABASE_URL RESTORE_BACKUP_FILE RESTORE_DRILL_DATABASE_URL RESTORE_DRILL_BACKUP_FILE RESTORE_DRILL_TARGET OPEN_TRANSIT_RESTORE_DRILL
 presence_row "telemetry_credentials" "Telemetry simulator credential presence" DEVICE_TOKEN DEVICE_TOKEN_FILE ADMIN_TOKEN
 
 if [ "$SKIP_PUBLIC_FETCH" = "true" ]; then
@@ -272,7 +272,7 @@ loopback_check() {
     return
   fi
   code="000"
-  if code="$(ssh_run "curl -fsS -o /dev/null -w '%{http_code}' http://127.0.0.1:${port}/health" 2>"$OUT_REAL/ssh-$id-error.txt")"; then
+  if code="$(ssh_run "curl -fsS -o /dev/null -w '%{http_code}' http://127.0.0.1:${port}/healthz" 2>"$OUT_REAL/ssh-$id-error.txt")"; then
     if [ "$code" = "200" ]; then
       printf '%s\t%s\t%s\t%s\t%s\n' "$id" "$label" "healthy" "$code" "No action from this diagnostic row." >>"$SSH_TSV"
     else

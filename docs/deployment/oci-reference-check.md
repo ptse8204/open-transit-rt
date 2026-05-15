@@ -38,8 +38,10 @@ The default output path is:
 - Public headers, byte counts, checksums, and validator state where available.
 - Deployment helper environment presence, with values withheld.
 - Optional SSH loopback health checks for the five services when `OCI_HOST`
-  access is configured.
-- Backup and restore-drill configuration presence, with values withheld.
+  access is configured, using `/healthz` on each loopback service port.
+- Backup and restore-drill configuration presence, with values withheld. The
+  helper recognizes `RESTORE_DATABASE_URL` / `RESTORE_BACKUP_FILE` and the
+  optional `RESTORE_DRILL_DATABASE_URL` / `RESTORE_DRILL_BACKUP_FILE` aliases.
 - Telemetry simulator dry-run guidance.
 - All-false claim flags.
 

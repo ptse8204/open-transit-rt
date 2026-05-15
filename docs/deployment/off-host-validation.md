@@ -7,6 +7,11 @@ the pinned tools are installed.
 Use this path when a tiny server cannot run Java, Docker, or the validator
 workload comfortably.
 
+`make deployment-doctor` now records a private `small_host_resources` category
+and a `validator_off_host_recommended` signal. Treat that signal as a prompt to
+run validators from an operator workstation or CI-like helper machine, not as a
+pass/fail result and not as evidence.
+
 This helper is a diagnostic. Validator completion is a supporting signal only.
 It is not CAL-ITP/Caltrans compliance, consumer acceptance, agency adoption,
 final-root proof, hosted service availability, production readiness, vendor

@@ -129,6 +129,13 @@ Upgrade order:
 11. Review Trip Updates diagnostics and Alerts availability.
 12. Run install verification checks.
 
+On a small host, run `make deployment-doctor` before the upgrade and review the
+`small_host_resources`, `postgres_capacity`, `proxy_exposure`, and
+`upgrade_rollback` categories. If resource guidance recommends off-host
+validators, use `docs/deployment/off-host-validation.md` from an operator
+workstation instead of forcing Java or Docker onto the server. These diagnostics
+are private preflight signals only and do not approve the upgrade.
+
 For Makefile-based deployments:
 
 ```bash

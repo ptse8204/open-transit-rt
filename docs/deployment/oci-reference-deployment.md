@@ -60,9 +60,9 @@ Target one operator-owned Linux server with:
   database endpoint.
 - Caddy, nginx, or another TLS reverse proxy.
 - `curl`, `git`, `unzip`, `zip`, `ca-certificates`, `python3`, and `openssl`.
-- Java for static GTFS validation and Docker or an equivalent pinned runtime
-  path for the GTFS-Realtime validator wrapper when using repo validator
-  tooling.
+- Java and Docker only on a machine that intentionally runs validators. Tiny
+  reference servers should usually keep heavy validator workloads off host and
+  use `docs/deployment/off-host-validation.md` from an operator workstation.
 - Enough disk for database growth, backups, validator cache, and private
   operator evidence under `/opt/open-transit-rt`.
 
@@ -198,7 +198,8 @@ CREATE DATABASE open_transit_rt OWNER open_transit;
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
 
-Set `DATABASE_URL` and `MIGRATIONS_DIR` in `/opt/open-transit-rt/env`, then run:
+Set `DATABASE_URL`, conservative `DB_MAX_CONNS`, and `MIGRATIONS_DIR` in
+`/opt/open-transit-rt/env`, then run:
 
 ```sh
 sudo -u open-transit sh -lc '

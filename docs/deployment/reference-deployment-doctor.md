@@ -57,10 +57,13 @@ Common variables:
 - `ADMIN_BASE_URL`
 - `ADMIN_TOKEN`
 - `DATABASE_URL`
+- `DB_MAX_CONNS`
 - `MIGRATIONS_DIR`
 - `BACKUP_DIR`
 - `RESTORE_DATABASE_URL`
+- `RESTORE_DRILL_DATABASE_URL`
 - `RESTORE_BACKUP_FILE`
+- `RESTORE_DRILL_BACKUP_FILE`
 - `STRICT_DOCTOR`
 - `OUTPUT_DIR`
 - `ALLOW_UNIGNORED_OUTPUT_DIR`
@@ -96,12 +99,19 @@ The doctor checks:
 - HTTPS and HTTP-to-HTTPS redirect posture for non-loopback HTTPS public roots;
 - loopback service `/healthz` and `/readyz` status for ports `8081` through
   `8086`;
+- small-host resource posture, including memory, swap, disk, CPU count, load,
+  and whether validators should be run off host;
+- static service dependency and Caddy/proxy exposure posture without starting
+  services or changing routes;
 - read-only database reachability and migration status when `DATABASE_URL` is
   supplied;
 - PostGIS availability when it can be probed safely;
+- static Postgres pool budget guidance using `DB_MAX_CONNS`;
 - pinned validator tooling status;
 - backup directory readiness without creating a backup;
 - restore-drill readiness without running restore;
+- upgrade/rollback checklist presence without executing upgrades, rollbacks,
+  backups, restores, migrations, or validators;
 - git/release identity;
 - consumer tracker shape, requiring the seven expected targets to remain
   `prepared`.
@@ -145,6 +155,9 @@ final_root_evidence_created=false
 consumer_statuses_changed=false
 compliance_claimed=false
 production_readiness_claimed=false
+hosted_saas_claimed=false
+sla_claimed=false
+uptime_guarantee_claimed=false
 ```
 
 For Phase 56 multi-agency route/proxy boundary review, use

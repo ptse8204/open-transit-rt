@@ -3877,6 +3877,18 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	if strings.Contains(text, `validation-health"`) && strings.Contains(text, `-X POST`) {
 		t.Fatalf("deployment doctor must not POST validation-health")
 	}
+	for _, want := range []string{"record_small_host_resources", "record_service_dependency_review", "record_postgres_capacity_review", "record_upgrade_rollback_review", "RESTORE_DRILL_DATABASE_URL", "hosted_saas_claimed"} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("deployment doctor missing Phase 104 guard %q", want)
+		}
+	}
+	ociCheck, err := os.ReadFile(filepath.Join("..", "..", "scripts", "oci-reference-check.sh"))
+	if err != nil {
+		t.Fatalf("read oci reference check: %v", err)
+	}
+	if !strings.Contains(string(ociCheck), "/healthz") || strings.Contains(string(ociCheck), "127.0.0.1:${port}/health\"") {
+		t.Fatalf("oci reference check must probe /healthz loopback health")
+	}
 	caddy, err := os.ReadFile(filepath.Join("..", "..", "deploy", "Caddyfile.local"))
 	if err != nil {
 		t.Fatalf("read caddyfile: %v", err)
@@ -5330,11 +5342,11 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 	if view.MonitoringExport.Status != operationsStatusDiagnosticOnly || len(view.MonitoringExport.Rows) != 4 {
 		t.Fatalf("unexpected monitoring export panel: %+v", view.MonitoringExport)
 	}
-	if view.Infrastructure.Status != operationsStatusBlocked || len(view.Infrastructure.Rows) != 5 {
+	if view.Infrastructure.Status != operationsStatusBlocked || len(view.Infrastructure.Rows) != 10 {
 		t.Fatalf("unexpected infrastructure panel: %+v", view.Infrastructure)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access"} {
+	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback_checklist"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("maintenance JSON missing %q: %s", want, body)
 		}
@@ -5430,15 +5442,21 @@ func writeMaintenanceSummaryFixtures(t *testing.T) maintenanceSummaryTestRoots {
 		supportBundles:        filepath.Join(base, "support-bundles"),
 	}
 	writeMaintenanceJSON(t, filepath.Join(roots.deploymentDoctor, "20260512T010313Z", "summary.json"), map[string]any{
-		"generated_at_utc":             "20260512T010313Z",
-		"overall_status":               "blocker",
-		"counts":                       map[string]any{"blocker": 2, "warning": 1, "unavailable": 0},
-		"categories":                   map[string]any{"backup_readiness": "blocker", "database": "skipped", "migrations": "skipped", "postgis": "skipped", "restore_readiness": "blocker", "validators": "passed"},
-		"external_evidence_created":    false,
-		"final_root_evidence_created":  false,
-		"consumer_statuses_changed":    false,
-		"compliance_claimed":           false,
-		"production_readiness_claimed": false,
+		"generated_at_utc":               "20260512T010313Z",
+		"overall_status":                 "blocker",
+		"counts":                         map[string]any{"blocker": 2, "warning": 1, "unavailable": 0},
+		"categories":                     map[string]any{"backup_readiness": "blocker", "database": "skipped", "migrations": "skipped", "postgis": "skipped", "restore_readiness": "blocker", "validators": "passed", "small_host_resources": "warning", "service_dependencies": "passed", "proxy_exposure": "passed", "postgres_capacity": "warning", "upgrade_rollback": "passed"},
+		"external_evidence_created":      false,
+		"final_root_evidence_created":    false,
+		"consumer_statuses_changed":      false,
+		"compliance_claimed":             false,
+		"production_readiness_claimed":   false,
+		"hosted_saas_claimed":            false,
+		"sla_claimed":                    false,
+		"uptime_guarantee_claimed":       false,
+		"vendor_compatibility_claimed":   false,
+		"hardware_certification_claimed": false,
+		"production_grade_eta_claimed":   false,
 	})
 	writeMaintenanceJSON(t, filepath.Join(roots.operationsReliability, "20260512T010400Z", "summary.json"), map[string]any{
 		"generated_at":          "20260512T010400Z",
@@ -7589,7 +7607,7 @@ func assertOperationsCockpitFlagsFalse(t *testing.T, flags operationsCockpitClai
 
 func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 4 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 5 || len(view.Tasks) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 4 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 10 || len(view.Tasks) != 7 {
 		t.Fatalf("invalid maintenance shape: %+v", view)
 	}
 	seen := map[string]bool{}

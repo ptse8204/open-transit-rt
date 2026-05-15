@@ -56,7 +56,7 @@ func buildOperationsMaintenanceDiagnostics() operationsMaintenanceDiagnostics {
 				return maintenanceStatusFromDiagnostic(overall), signal, "Review blocker/warning counts and keep missing backup or restore values visible until a technical helper configures them."
 			},
 			ClaimFlagsValid: func(data map[string]any) bool {
-				return maintenanceFalseFlags(data, "external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed")
+				return maintenanceFalseFlags(data, "external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "hosted_saas_claimed", "sla_claimed", "uptime_guarantee_claimed", "vendor_compatibility_claimed", "hardware_certification_claimed", "production_grade_eta_claimed")
 			},
 		},
 		{
@@ -243,6 +243,51 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"Run deployment diagnostics from an operator shell; do not expose backup paths, dumps, or raw filesystem output in the browser.",
 			"Backup storage access does not prove a backup exists or restore will succeed.",
 		),
+		maintenancePanelRow(
+			"small_host_resources",
+			"Small-host resources",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Treat missing resource posture as a reason to keep validator and backup workloads conservative.",
+			"Run `make deployment-doctor` from an operator shell; it records bounded memory, CPU, load, disk, swap, and off-host validator guidance.",
+			"Resource diagnostics do not prove production capacity, hosted service availability, SLA coverage, uptime, or production readiness.",
+		),
+		maintenancePanelRow(
+			"service_dependencies",
+			"Service dependency graph",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Keep service dependency posture marked missing until static compose/systemd review has been recorded.",
+			"Run deployment diagnostics from an operator shell; do not start, stop, or reconfigure services from the browser.",
+			"Dependency review does not prove services are running or reachable.",
+		),
+		maintenancePanelRow(
+			"proxy_exposure",
+			"Caddy/proxy exposure",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Review public/private route exposure before sharing feed URLs beyond the operator team.",
+			"Run deployment diagnostics and inspect the reference Caddy/proxy config; the browser does not change proxy rules.",
+			"Proxy diagnostics do not prove final-root control, public availability, compliance, or consumer acceptance.",
+		),
+		maintenancePanelRow(
+			"postgres_capacity",
+			"Postgres pool budget",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Keep DB pool sizing under review on small hosts.",
+			"Set a conservative `DB_MAX_CONNS` in the private deployment environment and rerun deployment diagnostics.",
+			"Pool guidance does not prove live database capacity, data safety, or uptime.",
+		),
+		maintenancePanelRow(
+			"upgrade_rollback_checklist",
+			"Upgrade/rollback checklist",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Do not treat checklist presence as approval to upgrade.",
+			"Run private preflight, backup, migration-status, feed-fetch, and validator checks before upgrade or rollback decisions.",
+			"Checklist diagnostics do not execute or prove upgrade, rollback, backup, restore, or validation success.",
+		),
 	}
 	rootRef, ok := maintenanceSummaryRootRef(maintenanceDeploymentDoctorRoot, "deployment-doctor")
 	if !ok {
@@ -260,7 +305,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 	if err != nil {
 		return maintenanceInfrastructurePanel(rows, operationsStatusBlocked, "deployment-doctor summary failed bounded JSON safety checks")
 	}
-	if !maintenanceFalseFlags(data, "external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed") {
+	if !maintenanceFalseFlags(data, "external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "hosted_saas_claimed", "sla_claimed", "uptime_guarantee_claimed", "vendor_compatibility_claimed", "hardware_certification_claimed", "production_grade_eta_claimed") {
 		return maintenanceInfrastructurePanel(rows, operationsStatusBlocked, "deployment-doctor summary contains a claim flag that must remain false")
 	}
 	categories := maintenanceMap(data["categories"])
@@ -273,6 +318,11 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 		{id: "postgis_extension", category: "postgis"},
 		{id: "validator_tooling", category: "validators"},
 		{id: "backup_storage_access", category: "backup_readiness"},
+		{id: "small_host_resources", category: "small_host_resources"},
+		{id: "service_dependencies", category: "service_dependencies"},
+		{id: "proxy_exposure", category: "proxy_exposure"},
+		{id: "postgres_capacity", category: "postgres_capacity"},
+		{id: "upgrade_rollback_checklist", category: "upgrade_rollback"},
 	}
 	for i := range rows {
 		for _, update := range updates {
@@ -300,8 +350,8 @@ func maintenanceInfrastructurePanel(rows []operationsMaintenancePanelRow, forced
 	}
 	return operationsMaintenancePanel{
 		Status:     maintenancePanelOverall(rows),
-		Boundary:   "Infrastructure checks are read-only deployment-doctor category summaries. The browser does not connect to databases, inspect private paths, run validators, run migrations, or execute disk checks.",
-		NextAction: "Run deployment diagnostics from an operator shell when fresh database, migration, PostGIS, validator, or backup-storage status is needed.",
+		Boundary:   "Infrastructure checks are read-only deployment-doctor category summaries. The browser does not connect to databases, inspect private paths, run validators, run migrations, execute disk checks, change proxy rules, start services, or run backup/restore.",
+		NextAction: "Run deployment diagnostics from an operator shell when fresh database, migration, PostGIS, validator, backup-storage, resource, service dependency, proxy, pool, or upgrade/rollback status is needed.",
 		Rows:       rows,
 	}
 }

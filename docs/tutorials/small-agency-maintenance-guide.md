@@ -33,6 +33,7 @@ claim.
 | Review configured feed URLs | `/admin/operations/feed-health` | The five configured public route paths still match the expected root and return current artifacts. | DNS, TLS, reverse proxy, or off-host checks need repair. |
 | Review off-host validation | `docs/deployment/off-host-validation.md` | Latest private `.cache/validate-public-feeds/.../summary.json` if a helper ran it. | Validators are missing, blocked, or cannot run on the server. |
 | Check backup/restore status | `/admin/operations/maintenance` | Backup and restore-drill configuration presence only, not secret values. | Actual backup/restore commands or a restore drill need to run. |
+| Review small-host deployment posture | `/admin/operations/maintenance` | Latest deployment-doctor categories for resources, service dependencies, proxy exposure, Postgres pool budget, backup/restore, and upgrade/rollback checklist. | The resource row recommends off-host validators, DB pool guidance is warning/blocked, proxy exposure needs review, or no deployment-doctor summary exists. |
 | Generate support summary when needed | `/admin/operations/maintenance` | Support-bundle instructions and redaction boundaries. | A maintainer needs private diagnostics for a blocker. |
 
 ## How To Read Status Labels

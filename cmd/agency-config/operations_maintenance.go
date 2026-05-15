@@ -106,7 +106,7 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 		maintenanceRow("last_five_feed_check", "Last five-feed check", maintenanceLatestReliabilityStatus(page), maintenanceLatestReliabilitySignal(page), "Run local/reference feed checks or review reliability snapshots; missing data remains not configured.", "Does not prove public final-root readiness or consumer availability."),
 		maintenanceRow("validator_state", "Validator state", maintenanceValidatorStatus(page), fmt.Sprintf("overall=%s; tooling=%s", page.ValidationHealth.OverallStatus, page.ValidationHealth.ToolingStatus), "Install or review pinned/off-host validators and rerun private validator health.", "Does not prove compliance or consumer acceptance."),
 		maintenanceRow("backup_configuration", "Backup configuration", maintenanceEnvStatus("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"), maintenanceEnvPresenceSignal("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"), "Configure private backup output and document the restore owner before relying on backups.", "Does not prove a backup exists or a restore succeeded."),
-		maintenanceRow("restore_drill_configuration", "Restore-drill configuration", maintenanceEnvStatus("RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), maintenanceEnvPresenceSignal("RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), "Configure restore-drill settings without printing secret values, then run the private drill workflow.", "Does not prove restore readiness or disaster recovery coverage."),
+		maintenanceRow("restore_drill_configuration", "Restore-drill configuration", maintenanceEnvStatus("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), maintenanceEnvPresenceSignal("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), "Configure restore-drill settings without printing secret values, then run the private drill workflow.", "Does not prove restore readiness or disaster recovery coverage."),
 		maintenanceRow("telemetry_freshness", "Telemetry freshness", cockpitTelemetryStatus(page), telemetryEvidence(page), "Review devices and simulator guidance if Vehicle Positions are empty or stale.", "Does not prove real device reliability."),
 		maintenanceRow("service_health", "Service health", operationsStatusUnknown, "not available from this single request unless an operator runs deployment diagnostics", "Run local/reference diagnostics or loopback health checks through the deployment helper when needed.", "Does not prove uptime, SLA, or hosted service availability."),
 	}
@@ -221,8 +221,8 @@ func buildOperationsMaintenanceBackupRestore() operationsMaintenancePanel {
 		maintenancePanelRow(
 			"restore_drill_configuration_presence",
 			"Restore-drill configuration presence",
-			maintenanceEnvStatus("RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"),
-			maintenanceEnvPresenceSignal("RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"),
+			maintenanceEnvStatus("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"),
+			maintenanceEnvPresenceSignal("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"),
 			"Keep restore-drill readiness marked missing until a private restore target is configured.",
 			"Run restore drills only from an operator shell against an explicit non-live target; never paste restore URLs into the browser.",
 			"Configuration presence does not prove a restore succeeded or that disaster recovery coverage exists.",
@@ -514,7 +514,7 @@ func maintenanceValidatorStatus(page operationsPage) string {
 
 func maintenanceBackupTaskStatus() string {
 	if maintenanceEnvStatus("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR") == operationsStatusReady &&
-		maintenanceEnvStatus("RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL") == operationsStatusReady {
+		maintenanceEnvStatus("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL") == operationsStatusReady {
 		return operationsStatusReady
 	}
 	return operationsStatusMissing

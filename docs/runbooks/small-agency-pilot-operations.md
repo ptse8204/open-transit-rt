@@ -80,6 +80,11 @@ Default operator-owned locations:
 - Redacted public evidence packets: `docs/evidence/captured/<environment>/<UTC-date>/` (`safe-to-commit-after-review`).
 - Environment files, admin tokens, webhook URLs, private DB URLs, TLS private material, and raw access logs are `never-commit`.
 
+`pilot-ops.sh` rejects `EVIDENCE_OUTPUT_DIR` values that resolve under this
+repository's protected `docs/evidence/captured` or protected consumer
+submission paths. Use deployment-owned private storage first, then run a
+separate redaction and evidence-retention process only when authorized.
+
 Naming conventions:
 
 - `validator-cycle-YYYY-MM-DD.json`

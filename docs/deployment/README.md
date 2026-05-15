@@ -16,8 +16,9 @@ packet, and not final-root proof.
 - [Reference Smoke Checklist](oci-reference-smoke-checklist.md) - repeatable
   verification checklist for an operator-run deployment.
 - [Reference Deployment Doctor](reference-deployment-doctor.md) - read-only
-  private diagnostics for env, services, routes, validators, DB, backups, and
-  restore-drill readiness.
+  private diagnostics for env, small-host resources, services, proxy exposure,
+  validators, DB/PostGIS/pool guidance, backups, restore-drill readiness, and
+  upgrade/rollback checklist posture.
 - [OCI Reference Check](oci-reference-check.md) - private reference diagnostic
   helper for public five-feed fetches, optional SSH loopback health, backup/
   restore configuration presence, and all-false claim flags.
