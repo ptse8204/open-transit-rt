@@ -248,3 +248,89 @@ Proceed to validation checkpoint 000003.
 
 Next checkpoint:
 Phase 103 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 103 -- Checkpoint 000003: run validation and patch required gaps.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. QA, Claim-Boundary, Security/Auth,
+Documentation / IA, UI/UX, Data/Migration, Implementation, and
+Release/Supply-Chain roles were simulated by the Master Agent for validation.
+Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/phase-103-monitoring-notifications-and-export-surfaces.md`.
+
+Validation run:
+Passed `git status --short`; `git diff --check`; `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null`; exact
+prepared-only consumer tracker assertion; `git status --short --
+docs/evidence/consumer-submissions docs/evidence/captured db/migrations
+go.mod go.sum`; `go test ./cmd/agency-config -run
+'OperationsNotify|OperationsReliability|Maintenance|Reliability|Monitoring|OperationsNavigation|RouteTitles|Help'`;
+`go test ./examples/connectors/sdk/monitoring ./examples/connectors/monitoring-export
+./internal/connectors ./cmd/adapter-conformance`; `sh -n
+scripts/operations-notify.sh scripts/operations-reliability.sh`;
+`OUTPUT_DIR=.cache/phase-103/operations-notify FORCE=true
+scripts/operations-notify.sh --dry-run`; JSON validation for generated
+operations-notify `summary.json` and `manifest.json`;
+`OUTPUT_DIR=.cache/phase-103/operations-reliability FORCE=true
+OPERATIONS_NOTIFY_SUMMARY=.cache/phase-103/operations-notify/summary.json
+scripts/operations-reliability.sh --dry-run`; JSON validation for generated
+operations-reliability `summary.json` and `manifest.json`; generated no-send
+assertions for notification, channel, monitoring export, and private ops
+summary fields; `make check`; `make external-connection-check`; `make
+adapter-conformance`; `make test-connector-examples`; `make
+audit-product-acceptance`; `make audit-final-claim-review`; `make validate`;
+`make test`; `docker compose -f deploy/docker-compose.yml config`; final `git
+status --short`; final `git diff --check`; and final `.cache` plus protected
+paths status check.
+
+Blocked checks:
+No Phase 103-required checks are blocked. Release-candidate diagnostics,
+release package generation, retained evidence intake, live webhook/email
+sending, hosted monitoring services, consumer submission, public publication,
+and tag/release/package/image publication remain out of scope and blocked by
+authorization boundaries.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+protected-path status check returned no output before and after validation.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven targets remain in order and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. Phase 103 still makes no
+hosted monitoring, SLA, uptime, production readiness, compliance, consumer
+acceptance, public launch, agency adoption, vendor, hardware,
+release-readiness, production-grade ETA, or real-world ETA claim.
+
+Security/auth status:
+Validation preserved no-send defaults, destination-value redaction, private
+Maintenance review, exact `.cache` output contracts, evidence-path rejection,
+symlink/unsafe source rejection coverage, and no browser notification send.
+
+Data/migration status:
+The protected migration/module status check returned no output. No migration,
+durable notification state, delivery-attempt table, queue, scheduler,
+monitoring backend, telemetry contract change, public feed contract change, or
+module dependency change was added.
+
+Master review:
+Approved. Validation passed after the scoped implementation, with no required
+code patches at this checkpoint.
+
+Required edits:
+Close Phase 103 with handoff/status docs and final checkpoint commit.
+
+Decision:
+Proceed to closeout checkpoint 000004.
+
+Next checkpoint:
+Phase 103 -- Checkpoint 000004: close monitoring, notifications, and export
+surfaces review.
