@@ -184,3 +184,72 @@ Proceed to implementation checkpoint 000002 after plan validation and commit.
 
 Next checkpoint:
 Phase 106 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 106 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Implementation, QA, UI/UX, Documentation / IA, Claim-Boundary, Security/Auth,
+and Data/Migration roles are simulated by the Master Agent using the approved
+plan and the real Planning Sub-Agent output. Master Agent -- GPT-5.5 x-high,
+current thread.
+
+Changed files:
+`cmd/agency-config/operations_help.go`; `cmd/agency-config/operations.go`;
+`cmd/agency-config/main_test.go`; `docs/operator-training-guide.md`;
+`docs/tutorials/README.md`; `docs/tutorials/staff-training-demo-kit.md`;
+`testdata/training-demo/README.md`; `testdata/training-demo/scenarios.json`;
+`docs/phase-106-staff-training-demo-datasets-and-adoption-kit.md`.
+
+Validation run:
+`gofmt` ran on changed Go files. `go test ./cmd/agency-config -run
+'OperationsHelp|OperationsSharedLayoutRendersContextualHelp|Training|Demo'`
+passed. `python3 -m json.tool testdata/training-demo/scenarios.json
+>/dev/null` passed. `git diff --check` passed. `make
+audit-product-acceptance` passed. `make audit-final-claim-review` passed.
+
+Blocked checks:
+Full closeout baseline, `make validate`, `make test`, Docker Compose config,
+and final protected-path checks are deferred to checkpoint 000003/000004.
+Release-candidate checks, package generation/audit, evidence collection,
+publication, external contact, real credentials, and consumer actions are out
+of scope.
+
+Protected path status:
+No protected evidence path was modified or required.
+
+Consumer tracker status:
+The consumer tracker was not modified. The seven targets remain required to
+stay in order and `prepared`.
+
+Claim-boundary status:
+The implementation adds training/demo guidance only and repeats no-evidence,
+no-adoption, no-compliance, no-consumer, no-public-launch, no-hosted-service,
+no-SLA, no-vendor, no-hardware, and no-ETA-quality boundaries.
+
+Security/auth status:
+The private Help additions remain authenticated, read-only, `no-store`, and
+free of forms, mutation routes, backend command execution, `.cache` reads,
+credential collection, public admin routes, and raw private data.
+
+Data/migration status:
+No migration, persistent training state, user progress tracking, hosted
+analytics, notification send, public feed contract change, or module dependency
+change occurred. The new scenario catalog references only committed synthetic
+fixtures under `testdata/`.
+
+Master review:
+Approved. The implementation keeps Phase 106 inside training/adoption-kit
+boundaries while improving in-app discoverability and docs.
+
+Required edits:
+Run the full focused validation and baseline checks. Patch only failures
+caused by this phase.
+
+Decision:
+Proceed to validation/audit checkpoint 000003.
+
+Next checkpoint:
+Phase 106 -- Checkpoint 000003: run validation and patch required gaps.

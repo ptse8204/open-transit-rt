@@ -2159,6 +2159,19 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Area</th><th>From</th><th>To</th><th>Confirm</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
 {{range .Help.Handoff}}<tr id="help-handoff-{{.ID}}"><td>{{.Area}}</td><td>{{.FromRole}}</td><td>{{.ToRole}}</td><td>{{.Confirm}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Demo Scenario Catalog</h3>
+<p class="section-note">Use these committed local/synthetic fixtures for training. They are teaching scenarios, not agency evidence or vendor proof.</p>
+<table><thead><tr><th>Scenario</th><th>Audience</th><th>Fixtures</th><th>Exercise</th><th>Done when</th><th>Recovery prompt</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Help.DemoScenarios}}<tr id="help-demo-scenario-{{.ID}}"><td>{{.Label}}<br><code>{{.ID}}</code></td><td>{{.Audience}}</td><td>{{range .FixturePaths}}<code>{{.}}</code><br>{{end}}</td><td>{{.Exercise}}</td><td>{{.DoneWhen}}</td><td>{{.RecoveryPrompt}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Trainer Script</h3>
+<table><thead><tr><th>Segment</th><th>Minutes</th><th>Talk track</th><th>Ask participant</th><th>Console</th><th>Boundary</th></tr></thead><tbody>
+{{range .Help.TrainerScript}}<tr id="help-trainer-step-{{.ID}}"><td>{{.Segment}}</td><td>{{.Minutes}}</td><td>{{.TalkTrack}}</td><td>{{.AskParticipant}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.Boundary}}</td></tr>{{end}}
+</tbody></table>
+<h3>Technical-Helper Checklist</h3>
+<table><thead><tr><th>Area</th><th>Collect</th><th>Do not collect</th><th>Console</th><th>Docs</th><th>Needs separate authorization when</th></tr></thead><tbody>
+{{range .Help.HelperChecklist}}<tr id="help-helper-check-{{.ID}}"><td>{{.Area}}</td><td>{{.Collect}}</td><td>{{.DoNotCollect}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.NeedsAuthorizationWhen}}</td></tr>{{end}}
+</tbody></table>
 <div class="card-grid" aria-label="Help topics">
 {{range .Help.Topics}}<section class="card" id="help-{{.ID}}">
 <h3>{{.Label}}</h3>

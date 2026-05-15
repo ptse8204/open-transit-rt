@@ -3401,6 +3401,9 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"Printable Staff Training Guide",
 		"Quick Tasks",
 		"Staff Handoff Checklist",
+		"Demo Scenario Catalog",
+		"Trainer Script",
+		"Technical-Helper Checklist",
 		"docs/operator-training-guide.md",
 		"No-developer evaluator",
 		"Director or manager",
@@ -3418,6 +3421,15 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		`id="help-quick-task-support_bundle"`,
 		`id="help-handoff-setup_owner"`,
 		`id="help-handoff-claim_owner"`,
+		`id="help-demo-scenario-baseline_start"`,
+		`id="help-demo-scenario-after_midnight"`,
+		`id="help-demo-scenario-connector_conformance"`,
+		`id="help-trainer-step-open_boundary"`,
+		`id="help-trainer-step-closeout"`,
+		`id="help-helper-check-startup_context"`,
+		`id="help-helper-check-evidence_context"`,
+		"testdata/gtfs/valid-small",
+		"testdata/adapter-conformance/suite.json",
 		"Trip Updates are empty, fallback, or withheld",
 		"Prepared packet visibility does not prove submission",
 		safePluginDefinition,
@@ -7190,7 +7202,7 @@ func assertFirstRunFlagsFalse(t *testing.T, flags operationsFirstRunClaimFlags) 
 
 func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.TrainingGuide.DocsPath == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 || len(view.QuickTasks) != 7 || len(view.Handoff) != 6 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.TrainingGuide.DocsPath == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 || len(view.QuickTasks) != 7 || len(view.Handoff) != 6 || len(view.DemoScenarios) != 6 || len(view.TrainerScript) != 6 || len(view.HelperChecklist) != 7 {
 		t.Fatalf("invalid help top-level shape: %+v", view)
 	}
 	if view.TrainingGuide.DocsPath != "docs/operator-training-guide.md" || view.TrainingGuide.Label == "" || view.TrainingGuide.Audience == "" || view.TrainingGuide.HowToUse == "" || view.TrainingGuide.Boundary == "" {
@@ -7260,6 +7272,38 @@ func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 		}
 		if !strings.HasPrefix(item.ConsoleLink, "/admin/") {
 			t.Fatalf("handoff item %s has unsafe console link %q", item.ID, item.ConsoleLink)
+		}
+	}
+	for _, scenario := range view.DemoScenarios {
+		if scenario.ID == "" || scenario.Label == "" || scenario.Audience == "" || len(scenario.FixturePaths) == 0 || scenario.ConsoleLink == "" || scenario.Exercise == "" || scenario.DoneWhen == "" || scenario.RecoveryPrompt == "" || scenario.DoesNotProve == "" {
+			t.Fatalf("invalid demo scenario shape: %+v", scenario)
+		}
+		if !strings.HasPrefix(scenario.ConsoleLink, "/admin/") {
+			t.Fatalf("demo scenario %s has unsafe console link %q", scenario.ID, scenario.ConsoleLink)
+		}
+		for _, link := range scenario.FixturePaths {
+			if !strings.HasPrefix(link, "testdata/") || strings.Contains(link, "..") {
+				t.Fatalf("demo scenario %s has unsafe fixture link %q", scenario.ID, link)
+			}
+		}
+	}
+	for _, step := range view.TrainerScript {
+		if step.ID == "" || step.Segment == "" || step.Minutes == "" || step.TalkTrack == "" || step.AskParticipant == "" || step.ConsoleLink == "" || step.Boundary == "" {
+			t.Fatalf("invalid trainer step shape: %+v", step)
+		}
+		if !strings.HasPrefix(step.ConsoleLink, "/admin/") {
+			t.Fatalf("trainer step %s has unsafe console link %q", step.ID, step.ConsoleLink)
+		}
+	}
+	for _, item := range view.HelperChecklist {
+		if item.ID == "" || item.Area == "" || item.Collect == "" || item.DoNotCollect == "" || item.ConsoleLink == "" || item.DocsLink == "" || item.NeedsAuthorizationWhen == "" {
+			t.Fatalf("invalid helper checklist item shape: %+v", item)
+		}
+		if !strings.HasPrefix(item.ConsoleLink, "/admin/") {
+			t.Fatalf("helper checklist item %s has unsafe console link %q", item.ID, item.ConsoleLink)
+		}
+		if !strings.HasPrefix(item.DocsLink, "docs/") {
+			t.Fatalf("helper checklist item %s has unsafe docs link %q", item.ID, item.DocsLink)
 		}
 	}
 	wantIDs := []string{"gtfs", "gtfs_rt", "connectors", "readiness", "validators", "telemetry", "claims_evidence"}

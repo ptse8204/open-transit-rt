@@ -1,0 +1,95 @@
+{
+  "schema_version": "training-demo-scenarios-v1",
+  "boundary": "Local and synthetic staff training catalog only. This is not evidence, agency adoption, consumer acceptance, compliance, public launch, hosted service, SLA, production readiness, vendor compatibility, hardware certification, or ETA-quality proof.",
+  "claim_flags": {
+    "external_evidence_created": false,
+    "consumer_statuses_changed": false,
+    "external_network_contacted": false,
+    "real_credentials_required": false,
+    "real_agency_data_required": false,
+    "adoption_claimed": false,
+    "compliance_claimed": false,
+    "production_readiness_claimed": false,
+    "vendor_compatibility_claimed": false,
+    "hardware_certification_claimed": false,
+    "production_grade_eta_quality_claimed": false
+  },
+  "scenarios": [
+    {
+      "id": "baseline_start",
+      "label": "Baseline local agency walkthrough",
+      "audience": "No-developer evaluator and trainer",
+      "fixtures": [
+        "testdata/gtfs/valid-small",
+        "testdata/telemetry-simulator/on-route.json"
+      ],
+      "console_path": "/admin/operations",
+      "exercise": "Use Start Here to explain schedule import, feed URLs, realtime status, and help boundaries from a clean local demo.",
+      "does_not_prove": "Does not prove agency adoption, public launch, final-root readiness, or consumer display."
+    },
+    {
+      "id": "after_midnight",
+      "label": "After-midnight service drill",
+      "audience": "Daily operator and technical helper",
+      "fixtures": [
+        "testdata/gtfs/after-midnight",
+        "testdata/telemetry-simulator/after-midnight.json",
+        "testdata/replay/after-midnight-service.json"
+      ],
+      "console_path": "/admin/operations/realtime",
+      "exercise": "Review agency-local service day, stale thresholds, and conservative matching for late-night trips.",
+      "does_not_prove": "Does not prove real-world overnight reliability or ETA accuracy."
+    },
+    {
+      "id": "frequency_service",
+      "label": "Frequency-based service drill",
+      "audience": "Technical helper and integrator",
+      "fixtures": [
+        "testdata/gtfs/frequency-based",
+        "testdata/telemetry/frequency-based.json",
+        "testdata/replay/frequency-exact-window.json"
+      ],
+      "console_path": "/admin/operations/prediction-lab",
+      "exercise": "Use frequency fixtures to discuss headways, repeated trip instances, and withheld Trip Updates when confidence is insufficient.",
+      "does_not_prove": "Does not prove production-grade ETA quality or real-world headway prediction accuracy."
+    },
+    {
+      "id": "stale_unknown_device",
+      "label": "Stale and unknown-device recovery drill",
+      "audience": "Daily operator",
+      "fixtures": [
+        "testdata/telemetry-simulator/stale.json",
+        "testdata/telemetry-simulator/unknown-device.json",
+        "testdata/replay/stale-telemetry-withheld.json"
+      ],
+      "console_path": "/admin/operations/devices",
+      "exercise": "Practice tracing stale telemetry and unknown devices through Devices, Telemetry, and Realtime Center.",
+      "does_not_prove": "Does not prove device fleet reliability, vendor compatibility, or hardware certification."
+    },
+    {
+      "id": "alerts_disruption",
+      "label": "Disruption and alert lifecycle drill",
+      "audience": "Daily operator and director",
+      "fixtures": [
+        "testdata/replay/cancellation-alert-linkage.json",
+        "testdata/replay/disruption-diagnostics-baseline.json"
+      ],
+      "console_path": "/admin/alerts/console",
+      "exercise": "Review how canceled-trip hints, alert lifecycle, and public Alerts usefulness guidance fit together.",
+      "does_not_prove": "Does not prove public alert display, consumer ingestion, or agency approval."
+    },
+    {
+      "id": "connector_conformance",
+      "label": "Connector conformance tabletop",
+      "audience": "Integrator and technical helper",
+      "fixtures": [
+        "testdata/adapter-conformance/suite.json",
+        "testdata/connectors/valid/synthetic-telemetry-source-input.json",
+        "testdata/connectors/valid/synthetic-prediction-input.json"
+      ],
+      "console_path": "/admin/operations/connectors/workbench",
+      "exercise": "Map a proposed CSV/API/POST/prediction/monitoring integration to synthetic adapter boundaries before any real credentials exist.",
+      "does_not_prove": "Does not prove named vendor compatibility, real device proof, or hardware certification."
+    }
+  ]
+}

@@ -3,25 +3,29 @@ package main
 import (
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"open-transit-rt/internal/auth"
 )
 
 type operationsHelpView struct {
-	GeneratedAt    time.Time                     `json:"generated_at"`
-	AgencyID       string                        `json:"agency_id"`
-	Boundary       string                        `json:"boundary"`
-	RoleTours      []operationsHelpRoleTour      `json:"role_tours"`
-	FirstWeek      []operationsHelpFirstWeekItem `json:"first_week_checklist"`
-	Glossary       []operationsHelpGlossaryTerm  `json:"glossary"`
-	Recovery       []operationsHelpRecoveryRow   `json:"recovery_guidance"`
-	TrainingGuide  operationsHelpTrainingGuide   `json:"training_guide"`
-	QuickTasks     []operationsHelpQuickTask     `json:"quick_tasks"`
-	Handoff        []operationsHelpHandoffItem   `json:"handoff_checklist"`
-	Topics         []operationsHelpTopic         `json:"topics"`
-	ContextualHelp operationsContextHelp         `json:"contextual_help"`
-	ClaimFlags     operationsHelpClaimFlags      `json:"claim_flags"`
+	GeneratedAt     time.Time                     `json:"generated_at"`
+	AgencyID        string                        `json:"agency_id"`
+	Boundary        string                        `json:"boundary"`
+	RoleTours       []operationsHelpRoleTour      `json:"role_tours"`
+	FirstWeek       []operationsHelpFirstWeekItem `json:"first_week_checklist"`
+	Glossary        []operationsHelpGlossaryTerm  `json:"glossary"`
+	Recovery        []operationsHelpRecoveryRow   `json:"recovery_guidance"`
+	TrainingGuide   operationsHelpTrainingGuide   `json:"training_guide"`
+	QuickTasks      []operationsHelpQuickTask     `json:"quick_tasks"`
+	Handoff         []operationsHelpHandoffItem   `json:"handoff_checklist"`
+	DemoScenarios   []operationsHelpDemoScenario  `json:"demo_scenarios"`
+	TrainerScript   []operationsHelpTrainerStep   `json:"trainer_script"`
+	HelperChecklist []operationsHelpHelperItem    `json:"technical_helper_checklist"`
+	Topics          []operationsHelpTopic         `json:"topics"`
+	ContextualHelp  operationsContextHelp         `json:"contextual_help"`
+	ClaimFlags      operationsHelpClaimFlags      `json:"claim_flags"`
 }
 
 type operationsHelpRoleTour struct {
@@ -96,6 +100,38 @@ type operationsHelpHandoffItem struct {
 	Confirm      string `json:"confirm"`
 	ConsoleLink  string `json:"console_link"`
 	DoesNotProve string `json:"does_not_prove"`
+}
+
+type operationsHelpDemoScenario struct {
+	ID             string   `json:"id"`
+	Label          string   `json:"label"`
+	Audience       string   `json:"audience"`
+	FixturePaths   []string `json:"fixture_paths"`
+	ConsoleLink    string   `json:"console_link"`
+	Exercise       string   `json:"exercise"`
+	DoneWhen       string   `json:"done_when"`
+	RecoveryPrompt string   `json:"recovery_prompt"`
+	DoesNotProve   string   `json:"does_not_prove"`
+}
+
+type operationsHelpTrainerStep struct {
+	ID             string `json:"id"`
+	Segment        string `json:"segment"`
+	Minutes        string `json:"minutes"`
+	TalkTrack      string `json:"talk_track"`
+	AskParticipant string `json:"ask_participant"`
+	ConsoleLink    string `json:"console_link"`
+	Boundary       string `json:"boundary"`
+}
+
+type operationsHelpHelperItem struct {
+	ID                     string `json:"id"`
+	Area                   string `json:"area"`
+	Collect                string `json:"collect"`
+	DoNotCollect           string `json:"do_not_collect"`
+	ConsoleLink            string `json:"console_link"`
+	DocsLink               string `json:"docs_link"`
+	NeedsAuthorizationWhen string `json:"needs_authorization_when"`
 }
 
 type operationsHelpTopic struct {
@@ -184,19 +220,22 @@ func buildOperationsHelpView(generatedAt time.Time, agencyID string, section str
 	topics := operationsHelpTopics()
 	context := contextualOperationsHelp(section, topics)
 	return operationsHelpView{
-		GeneratedAt:    generatedAt,
-		AgencyID:       agencyID,
-		Boundary:       "Private authenticated Operations Console help only. Viewing it is read-only guidance: it creates no evidence, contacts no outside party, changes no consumer status, and records no approval or outside outcome.",
-		RoleTours:      operationsHelpRoleTours(),
-		FirstWeek:      operationsHelpFirstWeekChecklist(),
-		Glossary:       operationsHelpGlossary(),
-		Recovery:       operationsHelpRecoveryGuidance(),
-		TrainingGuide:  operationsHelpTrainingGuideLink(),
-		QuickTasks:     operationsHelpQuickTasks(),
-		Handoff:        operationsHelpHandoffChecklist(),
-		Topics:         topics,
-		ContextualHelp: context,
-		ClaimFlags:     operationsHelpClaimFlags{},
+		GeneratedAt:     generatedAt,
+		AgencyID:        agencyID,
+		Boundary:        "Private authenticated Operations Console help only. Viewing it is read-only guidance: it creates no evidence, contacts no outside party, changes no consumer status, and records no approval or outside outcome.",
+		RoleTours:       operationsHelpRoleTours(),
+		FirstWeek:       operationsHelpFirstWeekChecklist(),
+		Glossary:        operationsHelpGlossary(),
+		Recovery:        operationsHelpRecoveryGuidance(),
+		TrainingGuide:   operationsHelpTrainingGuideLink(),
+		QuickTasks:      operationsHelpQuickTasks(),
+		Handoff:         operationsHelpHandoffChecklist(),
+		DemoScenarios:   operationsHelpDemoScenarios(),
+		TrainerScript:   operationsHelpTrainerScript(),
+		HelperChecklist: operationsHelpHelperChecklist(),
+		Topics:          topics,
+		ContextualHelp:  context,
+		ClaimFlags:      operationsHelpClaimFlags{},
 	}
 }
 
@@ -337,6 +376,94 @@ func operationsHelpHandoffChecklist() []operationsHelpHandoffItem {
 		helpHandoffItem("maintenance_owner", "Maintenance", "Technical helper", "Director or manager", "Backup/restore review, upgrade/rollback review, support-bundle guidance, and cadence rows have owners.", "/admin/operations/maintenance", "Does not prove hosted-service availability, SLA, uptime, managed support, or release readiness."),
 		helpHandoffItem("claim_owner", "Claims and evidence", "Director or manager", "Maintainer or authorized evidence owner", "Prepared packet, final-root, consumer, agency pilot, vendor/device, ETA-quality, and compliance gates stay separate.", "/admin/operations/consumers", "Does not create evidence, authorize external contact, move consumer status, or prove public outcomes."),
 	}
+}
+
+func operationsHelpDemoScenarios() []operationsHelpDemoScenario {
+	return []operationsHelpDemoScenario{
+		helpDemoScenario("baseline_start", "Baseline local agency walkthrough", "No-developer evaluator and trainer", []string{"testdata/gtfs/valid-small", "testdata/telemetry-simulator/on-route.json"}, "/admin/operations", "Use Start Here to explain schedule import, feed URLs, realtime status, and help boundaries from a clean local demo.", "Participant can name the next private action and what the demo does not prove.", "If the page is empty, use Agency Setup and keep missing rows missing until local inputs exist.", "Does not prove agency adoption, public launch, final-root readiness, or consumer display."),
+		helpDemoScenario("after_midnight", "After-midnight service drill", "Daily operator and technical helper", []string{"testdata/gtfs/after-midnight", "testdata/telemetry-simulator/after-midnight.json", "testdata/replay/after-midnight-service.json"}, "/admin/operations/realtime", "Review how service-day language, stale thresholds, and conservative matching behave for late-night trips.", "Operator can explain why agency-local service day matters before relying on realtime output.", "If a vehicle looks unmatched, inspect trip candidates and avoid inventing a trip descriptor.", "Does not prove real-world overnight reliability or ETA accuracy."),
+		helpDemoScenario("frequency_service", "Frequency-based service drill", "Technical helper and integrator", []string{"testdata/gtfs/frequency-based", "testdata/telemetry/frequency-based.json", "testdata/replay/frequency-exact-window.json"}, "/admin/operations/prediction-lab", "Use frequency fixtures to discuss headways, repeated trip instances, and withheld Trip Updates when confidence is insufficient.", "Participant can identify why unknown is safer than false certainty.", "If output is withheld, read the Prediction Lab diagnostics before changing thresholds.", "Does not prove production-grade ETA quality or real-world headway prediction accuracy."),
+		helpDemoScenario("stale_unknown_device", "Stale and unknown-device recovery drill", "Daily operator", []string{"testdata/telemetry-simulator/stale.json", "testdata/telemetry-simulator/unknown-device.json", "testdata/replay/stale-telemetry-withheld.json"}, "/admin/operations/devices", "Practice tracing stale telemetry and unknown devices through Devices, Telemetry, and Realtime Center.", "Operator can decide when to escalate device binding or token work to a technical helper.", "If a token or binding change is needed, keep token values out of notes and issue trackers.", "Does not prove device fleet reliability, vendor compatibility, or hardware certification."),
+		helpDemoScenario("alerts_disruption", "Disruption and alert lifecycle drill", "Daily operator and director", []string{"testdata/replay/cancellation-alert-linkage.json", "testdata/replay/disruption-diagnostics-baseline.json"}, "/admin/alerts/console", "Review how canceled-trip hints, alert lifecycle, and public Alerts usefulness guidance fit together.", "Participant can separate an operator alert draft from public launch or consumer acceptance.", "If a real disruption requires publication, use existing alert workflow and agency policy outside this training drill.", "Does not prove public alert display, consumer ingestion, or agency approval."),
+		helpDemoScenario("connector_conformance", "Connector conformance tabletop", "Integrator and technical helper", []string{"testdata/adapter-conformance/suite.json", "testdata/connectors/valid/synthetic-telemetry-source-input.json", "testdata/connectors/valid/synthetic-prediction-input.json"}, "/admin/operations/connectors/workbench", "Map a proposed CSV/API/POST/prediction/monitoring integration to synthetic adapter boundaries before any real credentials exist.", "Participant can choose the safest local recipe and name what authorization would be needed next.", "If a vendor payload is proposed, stop and request separate written authorization and redaction review.", "Does not prove named vendor compatibility, real device proof, or hardware certification."),
+	}
+}
+
+func operationsHelpTrainerScript() []operationsHelpTrainerStep {
+	return []operationsHelpTrainerStep{
+		helpTrainerStep("open_boundary", "Opening boundary", "5", "State that this is private training over local or synthetic data only.", "Ask each participant to name one thing the session must not prove.", "/admin/operations/help", "Creates no evidence, no outside contact, and no consumer status change."),
+		helpTrainerStep("role_path", "Role path assignment", "10", "Assign each participant one role path: evaluator, director, operator, technical helper, or integrator.", "Ask the participant to open the role's first console page and read the first next action.", "/admin/operations/help", "Does not create support entitlement, adoption proof, or approval."),
+		helpTrainerStep("demo_scenario", "Scenario walkthrough", "20", "Choose one demo scenario and follow only the listed console and fixture references.", "Ask what a blocked or missing row means and when to escalate.", "/admin/operations/help", "Uses synthetic/local fixtures only and does not prove field outcomes."),
+		helpTrainerStep("recovery_drill", "Recovery drill", "15", "Pick one common mistake row and rehearse the safe first step before any technical action.", "Ask what not to copy into notes or tickets.", "/admin/operations/help", "Does not authorize credential sharing, private data retention, or external contact."),
+		helpTrainerStep("handoff", "Technical-helper handoff", "10", "Complete a handoff using page, blocker, owner, intended next action, and authorization need.", "Ask whether the handoff needs a maintainer, technical helper, or separate evidence gate.", "/admin/operations/help", "Does not start an evidence, release, vendor, or consumer workflow."),
+		helpTrainerStep("closeout", "Closeout", "5", "Review claim boundaries and leave statuses unchanged unless a real authorized workflow exists.", "Ask participants to repeat that all consumer targets remain prepared.", "/admin/operations/consumers", "Does not prove adoption, consumer acceptance, compliance, public launch, hosted service, SLA, or production readiness."),
+	}
+}
+
+func operationsHelpHelperChecklist() []operationsHelpHelperItem {
+	return []operationsHelpHelperItem{
+		helpHelperItem("startup_context", "Startup context", "App URL, command attempted, visible status, and local-only environment label.", "Secrets, tokens, database URLs, private logs, or screenshots with credentials.", "/admin/operations/setup", "docs/tutorials/agency-first-run.md", "Real deployment, public-root proof, or hosted-service claims are requested."),
+		helpHelperItem("schedule_context", "Schedule context", "GTFS source type, import status, active feed version, validator row, and fixture path when demo-only.", "Real agency private schedule files unless explicitly authorized and redacted.", "/admin/operations/gtfs-workbench", "docs/tutorials/gtfs-validation-triage.md", "Source-of-truth listing, agency approval, or compliance proof is requested."),
+		helpHelperItem("realtime_context", "Realtime context", "Vehicle ID, stale/unmatched state, simulator scenario, device binding status, and withheld reason.", "Device tokens, raw private AVL payloads, or unredacted vendor logs.", "/admin/operations/realtime", "docs/tutorials/telemetry-simulator-and-device-trial.md", "Real device proof, vendor proof, or ETA-quality claims are requested."),
+		helpHelperItem("connector_context", "Connector context", "Chosen recipe, synthetic fixture, conformance case, expected input shape, and no-send posture.", "Real credentials, portal tokens, private endpoint URLs, or vendor payload samples.", "/admin/operations/connectors/workbench", "docs/tutorials/external-adapter-conformance.md", "Live vendor/device integration or network sends are proposed."),
+		helpHelperItem("monitoring_context", "Monitoring context", "Health digest row, monitoring export row, no-send channel state, and local summary path if already produced.", "Webhook URLs, email credentials, destination values, or private alert recipient lists.", "/admin/operations/maintenance", "docs/tutorials/self-hosted-operations-notifications.md", "Live notification delivery, hosted monitoring, SLA, or uptime claims are requested."),
+		helpHelperItem("evidence_context", "Evidence and claims", "Which claim is requested, current prepared-only status, required gate, and missing retained proof.", "Protected evidence paths, private portal records, or target-originated artifacts unless the evidence gate authorizes them.", "/admin/operations/evidence", "docs/evidence/evidence-track-router.md", "Any evidence retention, consumer submission, or status movement is requested."),
+		helpHelperItem("release_context", "Release or package context", "Current local diagnostic status, release note draft path, blocker, and exact command that was run.", "Signing keys, registry tokens, private release credentials, or publication secrets.", "/admin/operations/readiness", "docs/release-candidate-readiness.md", "Tagging, package publication, image push, GitHub Release creation, or release-readiness claims are requested."),
+	}
+}
+
+func helpDemoScenario(id string, label string, audience string, fixturePaths []string, consoleLink string, exercise string, doneWhen string, recoveryPrompt string, doesNotProve string) operationsHelpDemoScenario {
+	return operationsHelpDemoScenario{
+		ID:             id,
+		Label:          label,
+		Audience:       audience,
+		FixturePaths:   safeFixtureLinks(fixturePaths),
+		ConsoleLink:    helpAdminLink(consoleLink),
+		Exercise:       exercise,
+		DoneWhen:       doneWhen,
+		RecoveryPrompt: recoveryPrompt,
+		DoesNotProve:   doesNotProve,
+	}
+}
+
+func helpTrainerStep(id string, segment string, minutes string, talkTrack string, askParticipant string, consoleLink string, boundary string) operationsHelpTrainerStep {
+	return operationsHelpTrainerStep{
+		ID:             id,
+		Segment:        segment,
+		Minutes:        minutes,
+		TalkTrack:      talkTrack,
+		AskParticipant: askParticipant,
+		ConsoleLink:    helpAdminLink(consoleLink),
+		Boundary:       boundary,
+	}
+}
+
+func helpHelperItem(id string, area string, collect string, doNotCollect string, consoleLink string, docsLink string, needsAuthorizationWhen string) operationsHelpHelperItem {
+	links := safeDocsLinks([]string{docsLink})
+	if len(links) == 0 {
+		links = []string{"docs/operator-training-guide.md"}
+	}
+	return operationsHelpHelperItem{
+		ID:                     id,
+		Area:                   area,
+		Collect:                collect,
+		DoNotCollect:           doNotCollect,
+		ConsoleLink:            helpAdminLink(consoleLink),
+		DocsLink:               links[0],
+		NeedsAuthorizationWhen: needsAuthorizationWhen,
+	}
+}
+
+func safeFixtureLinks(values []string) []string {
+	var out []string
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" || !strings.HasPrefix(trimmed, "testdata/") || strings.Contains(trimmed, "..") || unsafePrivateString(trimmed) {
+			continue
+		}
+		out = append(out, trimmed)
+	}
+	return out
 }
 
 func helpRoleTour(id string, label string, who string, startHere string, reviewFirst string, firstActions string, escalate string, doesNotProve string, adminLinks []string, docsLinks []string) operationsHelpRoleTour {
