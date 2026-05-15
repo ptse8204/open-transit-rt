@@ -470,8 +470,17 @@ and rollback-review guidance. Phase 96 added no public admin route, migration,
 rollback execution, evidence write, consumer status change, release-ready
 claim, hosted-service claim, production-readiness claim, vendor claim, hardware
 claim, SLA/uptime claim, or ETA-quality claim.
-The authorized autonomous post-90 roadmap continues next with Phase 97 -- GTFS
-Quality Fix Planner And Safe Draft Suggestions.
+Phase 97 -- GTFS Quality Fix Planner And Safe Draft Suggestions is complete,
+with closeout at `docs/handoffs/phase-97.md`: the private GTFS Quality page
+now includes an advisory fix planner, safe draft suggestion guidance,
+before/after validation steps, and a copyable private checklist derived from
+sanitized validator/importer groups. Phase 97 added no public admin route,
+migration, draft mutation, production GTFS edit, evidence write, consumer
+status change, release-ready claim, hosted-service claim, production-readiness
+claim, vendor claim, hardware claim, SLA/uptime claim, compliance claim, or
+ETA-quality claim.
+The authorized autonomous post-90 roadmap continues next with Phase 98 --
+Realtime Operations QA And Feed Usefulness.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

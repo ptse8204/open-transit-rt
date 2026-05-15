@@ -252,9 +252,14 @@ Rollback Workbench is complete, with closeout at
 `docs/handoffs/phase-96.md`: it added private active-vs-previous schedule
 comparison, file-level row-count diffs, bounded route/stop/trip/service/
 frequency sample summaries, and rollback-review guidance without adding
-rollback execution. The exact next checkpoint in the authorized autonomous run
-is Phase 97 -- Checkpoint 000001: add GTFS quality fix planner and safe draft
-suggestions plan. Any future evidence intake is
+rollback execution. Phase 97 -- GTFS Quality Fix Planner And Safe Draft
+Suggestions is complete, with closeout at `docs/handoffs/phase-97.md`: it
+added a private advisory GTFS quality fix planner, safe draft suggestion
+guidance, before/after validation steps, and a copyable private checklist
+without adding draft writes, production GTFS edits, retained evidence,
+consumer status changes, or compliance/readiness claims. The exact next
+checkpoint in the authorized autonomous run is Phase 98 -- Checkpoint 000001:
+add realtime operations qa and feed usefulness plan. Any future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1519,8 +1524,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 97 -- Checkpoint
-000001: add GTFS quality fix planner and safe draft suggestions plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 98 -- Checkpoint
+000001: add realtime operations qa and feed usefulness plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

@@ -8,13 +8,22 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 96 is complete for GTFS Versioning, Diff, And Rollback Workbench in the
-authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
-[`docs/handoffs/phase-96.md`](handoffs/phase-96.md). Phase 96 added private
-active-vs-previous schedule comparison, file-level row-count diffs, bounded
-route/stop/trip/service/frequency sample summaries, and rollback-review
-guidance. It did not add rollback execution, publish schedules, move consumer
-statuses, collect retained evidence, or claim compliance/release readiness.
+Phase 97 is complete for GTFS Quality Fix Planner And Safe Draft Suggestions
+in the authorized autonomous Phase 91-110 product roadmap. The closeout
+handoff is [`docs/handoffs/phase-97.md`](handoffs/phase-97.md). Phase 97 added
+private advisory fix planner rows, safe draft suggestion guidance,
+before/after validation steps, and a copyable private checklist derived from
+sanitized validator/importer groups. It did not add draft writes, production
+GTFS edits, schedule publication, consumer-status movement, retained evidence,
+or compliance/release-readiness claims.
+
+Phase 96 is complete for GTFS Versioning, Diff, And Rollback Workbench. The
+closeout handoff is [`docs/handoffs/phase-96.md`](handoffs/phase-96.md). Phase
+96 added private active-vs-previous schedule comparison, file-level row-count
+diffs, bounded route/stop/trip/service/frequency sample summaries, and
+rollback-review guidance. It did not add rollback execution, publish
+schedules, move consumer statuses, collect retained evidence, or claim
+compliance/release readiness.
 
 Phase 95 is complete for v0.1.0-rc.1 Candidate Cut. The closeout handoff is
 [`docs/handoffs/phase-95.md`](handoffs/phase-95.md). Phase 95 generated and
@@ -63,11 +72,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 97 -- GTFS
-Quality Fix Planner And Safe Draft Suggestions. Phase 97 may improve private
-operator fix planning and draft suggestion guidance, but it must not silently
-edit production GTFS, collapse draft and published models, move consumer
-statuses, collect retained evidence, or claim compliance/release readiness.
+The current authorized autonomous run continues next with Phase 98 -- Realtime
+Operations QA And Feed Usefulness. Phase 98 may improve private realtime feed
+usefulness diagnostics, but it must not claim production SLA, ETA quality,
+consumer acceptance, public launch, compliance, or real-world deployment
+readiness.
 
 Recommended work remains separated into:
 
