@@ -27,14 +27,16 @@ func TestBacktestFixtureMetricsAndGateLabels(t *testing.T) {
 		t.Fatalf("run backtest: %v", err)
 	}
 	overall := report.Summary.Overall
-	if overall.CoverageDenominator != 8 || overall.CoverageNumerator != 5 {
-		t.Fatalf("overall coverage = %d/%d, want 5/8", overall.CoverageNumerator, overall.CoverageDenominator)
+	if overall.CoverageDenominator != 11 || overall.CoverageNumerator != 5 {
+		t.Fatalf("overall coverage = %d/%d, want 5/11", overall.CoverageNumerator, overall.CoverageDenominator)
 	}
 	if overall.MatchedPredictionCount != 5 || overall.MissingPredictionCount != 1 || overall.StalePredictionCount != 1 || overall.MissingObservationCount != 1 {
 		t.Fatalf("overall counts = %+v, want matched/missing/stale/missing-observation visibility", overall)
 	}
-	if overall.WithheldByReason["manual_override_review"] != 1 {
-		t.Fatalf("withheld_by_reason = %+v, want manual override review", overall.WithheldByReason)
+	for _, reason := range []string{"manual_override_review", "unknown_assignment", "ambiguous_assignment", "external_predictor_fail_closed"} {
+		if overall.WithheldByReason[reason] != 1 {
+			t.Fatalf("withheld_by_reason = %+v, want %s", overall.WithheldByReason, reason)
+		}
 	}
 	if overall.MAEAbsoluteErrorSeconds == nil || *overall.MAEAbsoluteErrorSeconds != 29 {
 		t.Fatalf("mae = %v, want 29.0 seconds", overall.MAEAbsoluteErrorSeconds)
@@ -54,8 +56,16 @@ func TestBacktestFixtureMetricsAndGateLabels(t *testing.T) {
 	if overall.P90LeadTimeSeconds == nil || *overall.P90LeadTimeSeconds != 150 {
 		t.Fatalf("p90 lead time = %v, want 150.0 seconds", overall.P90LeadTimeSeconds)
 	}
-	if overall.PredictionCoverage.Percent == nil || *overall.PredictionCoverage.Percent != 62.5 {
-		t.Fatalf("coverage percent = %+v, want 62.5", overall.PredictionCoverage)
+	if overall.PredictionCoverage.Percent == nil || *overall.PredictionCoverage.Percent != 45.5 {
+		t.Fatalf("coverage percent = %+v, want 45.5", overall.PredictionCoverage)
+	}
+	if report.Summary.Conformance.Status != "synthetic_covered" || !report.Summary.Conformance.SyntheticOnly || !report.Summary.Conformance.AggregateOnly || len(report.Summary.Conformance.Cases) != 5 {
+		t.Fatalf("conformance summary = %+v, want five covered synthetic cases", report.Summary.Conformance)
+	}
+	for _, key := range []string{"after_midnight", "frequency", "unknown_assignment", "ambiguous_assignment", "external_predictor_fail_closed", "shadow_adapter_samples"} {
+		if report.Summary.Conformance.CaseCounts[key] <= 0 {
+			t.Fatalf("conformance case counts = %+v, want positive %s", report.Summary.Conformance.CaseCounts, key)
+		}
 	}
 	for _, group := range report.Metrics.Groups {
 		if !allowedGateLabels[group.MaturityGate] {

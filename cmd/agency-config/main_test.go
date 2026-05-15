@@ -6117,7 +6117,7 @@ func TestPredictionLabJSONShapeFlagsAndDeterministicDiagnostics(t *testing.T) {
 	if view.ShadowReview.Status != checklistStatusNeedsReview || len(view.ShadowReview.Rows) != 1 || view.ShadowReview.Rows[0].Status != prediction.StatusError || !strings.Contains(view.ShadowReview.Rows[0].CountComparison, "delta=-1") {
 		t.Fatalf("unexpected shadow review: %+v", view.ShadowReview)
 	}
-	if view.Backtests.Status != "needs_review" || len(view.Backtests.Rows) != 1 || view.Backtests.Rows[0].MaturityGate != "diagnostic_watch" || view.Backtests.Rows[0].PredictionCoverage != "62.5% (5/8)" {
+	if view.Backtests.Status != "needs_review" || len(view.Backtests.Rows) != 1 || view.Backtests.Rows[0].MaturityGate != "diagnostic_watch" || view.Backtests.Rows[0].PredictionCoverage != "62.5% (5/8)" || view.Backtests.Rows[0].ConformanceSignal != "synthetic_covered (5/5 synthetic cases)" {
 		t.Fatalf("unexpected backtest browser: %+v", view.Backtests)
 	}
 	seen := map[string]bool{}
@@ -6173,7 +6173,7 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "Conservative Handling Guide", "Telemetry is stale", "Assignment is ambiguous", "Future ETA Proof Gates", "Real observed arrival/departure comparison", "Required before collecting", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality", "make realtime-quality-backtest"} {
+	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "synthetic_covered (5/5 synthetic cases)", "Conservative Handling Guide", "Telemetry is stale", "Assignment is ambiguous", "Future ETA Proof Gates", "Real observed arrival/departure comparison", "Required before collecting", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality", "make realtime-quality-backtest"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("prediction lab html missing %q: %s", want, body)
 		}
@@ -6230,6 +6230,7 @@ func writePredictionLabBacktestFixture(t *testing.T, root string) {
 		GeneratedAt:       generatedAt,
 		InputRecordCounts: realtimequality.RecordCounts{ObservedRecords: 8, PredictionRecords: 7},
 		Overall:           overall,
+		Conformance:       coveredPredictionLabConformanceReview(),
 		GroupCount:        1,
 	}
 	metrics := realtimequality.MetricsDocument{
@@ -6268,6 +6269,25 @@ func writePredictionLabBacktestFixture(t *testing.T, root string) {
 		if err := os.WriteFile(filepath.Join(dir, name), []byte("private aggregate diagnostic summary\n"), 0o644); err != nil {
 			t.Fatalf("write prediction lab backtest %s: %v", name, err)
 		}
+	}
+}
+
+func coveredPredictionLabConformanceReview() realtimequality.ConformanceReview {
+	cases := []realtimequality.ConformanceCase{
+		{ID: "after-midnight-service", Status: "synthetic_covered", Signal: "after-midnight covered", DoesNotProve: "synthetic only"},
+		{ID: "frequency-headway-service", Status: "synthetic_covered", Signal: "frequency covered", DoesNotProve: "synthetic only"},
+		{ID: "service-calendar-start-instance", Status: "synthetic_covered", Signal: "service calendar covered", DoesNotProve: "synthetic only"},
+		{ID: "blocked-unknown-ambiguous", Status: "synthetic_covered", Signal: "withheld covered", DoesNotProve: "synthetic only"},
+		{ID: "shadow-fail-closed", Status: "synthetic_covered", Signal: "shadow covered", DoesNotProve: "synthetic only"},
+	}
+	return realtimequality.ConformanceReview{
+		Status:        "synthetic_covered",
+		Boundary:      "Private synthetic conformance summary only.",
+		SyntheticOnly: true,
+		AggregateOnly: true,
+		CaseCount:     len(cases),
+		Cases:         cases,
+		DoesNotProve:  "Synthetic conformance rows do not prove real-world ETA accuracy.",
 	}
 }
 
@@ -7558,7 +7578,7 @@ func assertPredictionLabShape(t *testing.T, view predictionLabView) {
 		}
 	}
 	for _, row := range view.Backtests.Rows {
-		if row.OutputRef == "" || row.Status == "" || row.GeneratedAt == "" || row.MaturityGate == "" || row.PredictionCoverage == "" || row.FutureStopCoverage == "" || row.MAEAbsoluteErrorSeconds == "" || row.P90AbsoluteErrorSeconds == "" || row.WithheldByReason == "" || row.DiagnosticSignal == "" || row.DoesNotProve == "" {
+		if row.OutputRef == "" || row.Status == "" || row.GeneratedAt == "" || row.MaturityGate == "" || row.PredictionCoverage == "" || row.FutureStopCoverage == "" || row.MAEAbsoluteErrorSeconds == "" || row.P90AbsoluteErrorSeconds == "" || row.WithheldByReason == "" || row.ConformanceSignal == "" || row.DiagnosticSignal == "" || row.DoesNotProve == "" {
 			t.Fatalf("invalid prediction lab backtest row: %+v", row)
 		}
 	}

@@ -32,7 +32,7 @@ func TestLoadBacktestBrowserReadsAggregateOnlySummaries(t *testing.T) {
 		t.Fatalf("browser = %+v, want one needs_review row", browser)
 	}
 	row := browser.Rows[0]
-	if row.OutputRef != ".cache/realtime-quality-backtest/20260514T120000Z" || row.MaturityGate != "diagnostic_watch" || row.PredictionCoverage != "62.5% (5/8)" || row.MAEAbsoluteErrorSeconds != "29 sec" || !strings.Contains(row.WithheldByReason, "manual_override_review=1") {
+	if row.OutputRef != ".cache/realtime-quality-backtest/20260514T120000Z" || row.MaturityGate != "diagnostic_watch" || row.PredictionCoverage != "62.5% (5/8)" || row.MAEAbsoluteErrorSeconds != "29 sec" || !strings.Contains(row.WithheldByReason, "manual_override_review=1") || row.ConformanceSignal != "synthetic_covered (5/5 synthetic cases)" {
 		t.Fatalf("unexpected browser row: %+v", row)
 	}
 	raw, err := json.Marshal(browser)
@@ -94,6 +94,7 @@ func writeBacktestBrowserFixture(t *testing.T, root, name string, forbiddenClaim
 		GeneratedAt:               generatedAt,
 		InputRecordCounts:         RecordCounts{ObservedRecords: 8, PredictionRecords: 7},
 		Overall:                   overall,
+		Conformance:               coveredBrowserConformanceReview(),
 		GroupCount:                1,
 		ProductionGradeETAClaimed: forbiddenClaim,
 	}
@@ -129,6 +130,25 @@ func writeBacktestBrowserFixture(t *testing.T, root, name string, forbiddenClaim
 		if err := os.WriteFile(filepath.Join(dir, name), []byte("private aggregate diagnostic summary\n"), 0o644); err != nil {
 			t.Fatalf("write %s: %v", name, err)
 		}
+	}
+}
+
+func coveredBrowserConformanceReview() ConformanceReview {
+	cases := []ConformanceCase{
+		{ID: "after-midnight-service", Status: "synthetic_covered", Signal: "after-midnight covered", DoesNotProve: "synthetic only"},
+		{ID: "frequency-headway-service", Status: "synthetic_covered", Signal: "frequency covered", DoesNotProve: "synthetic only"},
+		{ID: "service-calendar-start-instance", Status: "synthetic_covered", Signal: "service calendar covered", DoesNotProve: "synthetic only"},
+		{ID: "blocked-unknown-ambiguous", Status: "synthetic_covered", Signal: "withheld covered", DoesNotProve: "synthetic only"},
+		{ID: "shadow-fail-closed", Status: "synthetic_covered", Signal: "shadow covered", DoesNotProve: "synthetic only"},
+	}
+	return ConformanceReview{
+		Status:        "synthetic_covered",
+		Boundary:      "Private synthetic conformance summary only.",
+		SyntheticOnly: true,
+		AggregateOnly: true,
+		CaseCount:     len(cases),
+		Cases:         cases,
+		DoesNotProve:  "Synthetic conformance rows do not prove real-world ETA accuracy.",
 	}
 }
 

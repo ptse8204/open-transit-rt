@@ -76,6 +76,12 @@ It rejects unsafe root shapes, symlinked files, unexpected files, schema
 mismatches, raw-row persistence flags, evidence-like paths, and forbidden claim
 flags.
 
+The backtest summary also exposes a synthetic conformance signal when the local
+fixture output includes after-midnight service, frequency/headway service,
+service-calendar start instances, unknown/ambiguous withholding, and
+shadow/fail-closed predictor handling. This is a checklist for local review,
+not evidence of real-world ETA quality.
+
 ## Local Commands
 
 Run checks from an operator shell, not from the browser:

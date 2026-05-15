@@ -14,3 +14,16 @@ go run ./cmd/realtime-quality-backtest \
 ```
 
 The command writes aggregate diagnostics under `.cache/realtime-quality-backtest/`.
+
+The fixture set intentionally includes synthetic rows for:
+
+- after-midnight service using agency-local `start_date` plus `25:xx` GTFS time;
+- frequency/headway-style service with unscheduled prediction output;
+- stale and missing prediction diagnostics;
+- unknown and ambiguous assignment withholding;
+- external predictor shadow/fail-closed withholding;
+- a prediction-only shadow sample that exercises missing-observation metrics.
+
+These rows are local conformance diagnostics only. They do not prove
+real-world ETA accuracy, production-grade ETA quality, vendor compatibility,
+consumer display, compliance, public launch, or release readiness.

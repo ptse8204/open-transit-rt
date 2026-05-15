@@ -38,6 +38,7 @@ type BacktestBrowserRun struct {
 	MAEAbsoluteErrorSeconds string `json:"mae_absolute_error_seconds"`
 	P90AbsoluteErrorSeconds string `json:"p90_absolute_error_seconds"`
 	WithheldByReason        string `json:"withheld_by_reason"`
+	ConformanceSignal       string `json:"conformance_signal"`
 	DiagnosticSignal        string `json:"diagnostic_signal"`
 	DoesNotProve            string `json:"does_not_prove"`
 }
@@ -159,6 +160,7 @@ func loadBacktestBrowserRun(dir, ref string) BacktestBrowserRun {
 	row.MAEAbsoluteErrorSeconds = formatBacktestSeconds(summary.Overall.MAEAbsoluteErrorSeconds)
 	row.P90AbsoluteErrorSeconds = formatBacktestSeconds(summary.Overall.P90AbsoluteErrorSeconds)
 	row.WithheldByReason = formatBacktestWithheld(summary.Overall.WithheldByReason)
+	row.ConformanceSignal = formatBacktestConformance(summary.Conformance)
 	row.DiagnosticSignal = backtestDiagnosticSignal(summary.Overall)
 	return row
 }
@@ -204,6 +206,9 @@ func backtestBrowserDocumentsAreSafe(summary SummaryDocument, metrics MetricsDoc
 		return false
 	}
 	if summary.ExternalEvidenceCreated || summary.ConsumerStatusesChanged || summary.ComplianceClaimed || summary.ProductionReadinessClaimed || summary.HostedSaaSClaimed || summary.AgencyAdoptionClaimed || summary.ConsumerAcceptanceClaimed || summary.VendorCompatibilityClaimed || summary.ProductionGradeETAClaimed || summary.PublicAPIAdded || summary.DatabasePersistenceAdded {
+		return false
+	}
+	if summary.Conformance.Status != "" && (!summary.Conformance.SyntheticOnly || !summary.Conformance.AggregateOnly || summary.Conformance.CaseCount != len(summary.Conformance.Cases)) {
 		return false
 	}
 	if manifest.OutputKind != "private_local_realtime_quality_backtest" || !manifest.AggregateOnly || manifest.RawRowsPersisted {
@@ -304,6 +309,19 @@ func formatBacktestWithheld(counts map[string]int) string {
 		parts = append(parts, fmt.Sprintf("%s=%d", key, counts[key]))
 	}
 	return strings.Join(parts, ", ")
+}
+
+func formatBacktestConformance(review ConformanceReview) string {
+	if review.Status == "" || len(review.Cases) == 0 {
+		return "not recorded"
+	}
+	covered := 0
+	for _, row := range review.Cases {
+		if row.Status == "synthetic_covered" {
+			covered++
+		}
+	}
+	return fmt.Sprintf("%s (%d/%d synthetic cases)", review.Status, covered, len(review.Cases))
 }
 
 func backtestBrowserRootRef(root string) (string, bool) {

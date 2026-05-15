@@ -134,6 +134,29 @@ docker compose -f deploy/docker-compose.yml config
 Connector and release-candidate checks are not required for Phase 99 unless the
 implementation unexpectedly changes connector or release surfaces.
 
+## Implementation Summary
+
+Checkpoint 000002 added an aggregate synthetic conformance report to realtime
+quality backtest summaries. The report derives only from local synthetic
+fixture rows and records:
+
+- after-midnight service coverage;
+- frequency/headway service coverage;
+- service-calendar start-date/start-time instance coverage;
+- unknown, ambiguous, and fail-closed withheld-output coverage;
+- shadow/fail-closed external predictor evaluation coverage.
+
+The private Prediction Lab backtest table now surfaces only a bounded
+conformance signal such as `synthetic_covered (5/5 synthetic cases)`. The
+browser still reads exact aggregate `.cache/realtime-quality-backtest/**`
+outputs only and does not expose raw fixture rows, execute commands, contact
+predictors, mutate feeds, write evidence, or make ETA-quality claims.
+
+The committed synthetic fixture set now includes unknown-assignment,
+ambiguous-assignment, and external-predictor fail-closed withheld rows in
+addition to the existing after-midnight, frequency, stale, missing, block, and
+shadow samples.
+
 ## Checkpoint 000001 Report
 
 Checkpoint: Phase 99 -- Checkpoint 000001: add prediction / eta conformance and backtesting v2 plan
@@ -163,3 +186,33 @@ Required edits: Implement a bounded conformance/backtest-v2 improvement with tes
 Decision: Continue to Checkpoint 000002.
 
 Next checkpoint: Phase 99 -- Checkpoint 000002: implement primary scoped work
+
+## Checkpoint 000002 Report
+
+Checkpoint: Phase 99 -- Checkpoint 000002: implement primary scoped work
+
+Sub-agents used or simulated, including intended model level: Context / Repo Truth Sub-Agent GPT-5.5 x-high and Planning Sub-Agent GPT-5.5 x-high completed read-only review. Implementation, QA, UI/UX, Documentation / IA, Claim-Boundary, Security/Auth, and Data/Migration were simulated by the Master Agent for this bounded implementation checkpoint.
+
+Changed files: `internal/realtimequality/backtest.go`, `internal/realtimequality/browser.go`, `internal/realtimequality/backtest_test.go`, `internal/realtimequality/browser_test.go`, `cmd/agency-config/operations.go`, `cmd/agency-config/main_test.go`, `testdata/realtime-quality-backtest/observed-events.json`, `testdata/realtime-quality-backtest/prediction-samples.json`, `testdata/realtime-quality-backtest/README.md`, `docs/tutorials/prediction-eta-lab.md`, `docs/phase-99-prediction-eta-conformance-and-backtesting-v2.md`
+
+Validation run: `python3 -m json.tool testdata/realtime-quality-backtest/observed-events.json >/dev/null`; `python3 -m json.tool testdata/realtime-quality-backtest/prediction-samples.json >/dev/null`; `gofmt -w internal/realtimequality/backtest.go internal/realtimequality/browser.go internal/realtimequality/backtest_test.go internal/realtimequality/browser_test.go cmd/agency-config/main_test.go`; `git diff --check`; `go test ./internal/realtimequality ./cmd/realtime-quality-backtest ./internal/prediction`; `go test ./cmd/agency-config -run 'PredictionLab|Realtime|OperationsNavigation|RouteTitles'`
+
+Blocked checks: Full phase closeout validation deferred to Checkpoint 000003.
+
+Protected path status: No protected evidence path edits made.
+
+Consumer tracker status: No consumer tracker edits made; prepared-only status must be rechecked in Checkpoint 000003.
+
+Claim-boundary status: Added wording and tests keep synthetic conformance local/private and explicitly non-evidentiary; no ETA quality, compliance, consumer, vendor, hardware, hosted-service, SLA, release, or public-launch claim added.
+
+Security/auth status: Private browser surface remains read-only; no browser command execution, external predictor contact, credentials, raw private rows, raw telemetry, raw predictions, or private paths added.
+
+Data/migration status: No migration, persistence model, or raw observed-event storage added.
+
+Master review: Approved. The implementation follows the smallest safe seam: aggregate synthetic conformance metadata and private display only.
+
+Required edits: Run full required validation and patch any changed-code failures.
+
+Decision: Continue to Checkpoint 000003.
+
+Next checkpoint: Phase 99 -- Checkpoint 000003: run validation and patch required gaps

@@ -105,6 +105,45 @@
       "event_type": "arrival",
       "observed_time": "2026-05-10T01:05:00Z",
       "service_pattern_label": "missing_prediction"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-unknown",
+      "trip_id": "trip-unknown-assignment",
+      "start_date": "20260509",
+      "start_time": "14:00:00",
+      "stop_id": "unknown-stop",
+      "stop_sequence": 9,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T21:02:00Z",
+      "service_pattern_label": "unknown_assignment"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-ambiguous",
+      "trip_id": "trip-ambiguous-assignment",
+      "start_date": "20260509",
+      "start_time": "14:15:00",
+      "stop_id": "ambiguous-stop",
+      "stop_sequence": 10,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T21:18:00Z",
+      "service_pattern_label": "ambiguous_assignment"
+    },
+    {
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-external",
+      "trip_id": "trip-external-fail-closed",
+      "start_date": "20260509",
+      "start_time": "14:30:00",
+      "stop_id": "external-stop",
+      "stop_sequence": 11,
+      "event_type": "arrival",
+      "observed_time": "2026-05-09T21:33:00Z",
+      "service_pattern_label": "external_fail_closed"
     }
   ]
 }

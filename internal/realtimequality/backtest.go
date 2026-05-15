@@ -93,28 +93,49 @@ type BacktestReport struct {
 }
 
 type SummaryDocument struct {
-	SchemaVersion                      string       `json:"schema_version"`
-	GeneratedAt                        string       `json:"generated_at"`
-	InputRecordCounts                  RecordCounts `json:"input_record_counts"`
-	Overall                            MetricGroup  `json:"overall"`
-	GroupCount                         int          `json:"group_count"`
-	ExternalEvidenceCreated            bool         `json:"external_evidence_created"`
-	ConsumerStatusesChanged            bool         `json:"consumer_statuses_changed"`
-	ComplianceClaimed                  bool         `json:"compliance_claimed"`
-	ProductionReadinessClaimed         bool         `json:"production_readiness_claimed"`
-	HostedSaaSClaimed                  bool         `json:"hosted_saas_claimed"`
-	AgencyAdoptionClaimed              bool         `json:"agency_adoption_claimed"`
-	ConsumerAcceptanceClaimed          bool         `json:"consumer_acceptance_claimed"`
-	VendorCompatibilityClaimed         bool         `json:"vendor_compatibility_claimed"`
-	ProductionGradeETAClaimed          bool         `json:"production_grade_eta_claimed"`
-	PublicAPIAdded                     bool         `json:"public_api_added"`
-	DatabasePersistenceAdded           bool         `json:"database_persistence_added"`
-	OperationsConsoleBacktestViewAdded bool         `json:"operations_console_backtest_view_added"`
+	SchemaVersion                      string            `json:"schema_version"`
+	GeneratedAt                        string            `json:"generated_at"`
+	InputRecordCounts                  RecordCounts      `json:"input_record_counts"`
+	Overall                            MetricGroup       `json:"overall"`
+	Conformance                        ConformanceReview `json:"conformance"`
+	GroupCount                         int               `json:"group_count"`
+	ExternalEvidenceCreated            bool              `json:"external_evidence_created"`
+	ConsumerStatusesChanged            bool              `json:"consumer_statuses_changed"`
+	ComplianceClaimed                  bool              `json:"compliance_claimed"`
+	ProductionReadinessClaimed         bool              `json:"production_readiness_claimed"`
+	HostedSaaSClaimed                  bool              `json:"hosted_saas_claimed"`
+	AgencyAdoptionClaimed              bool              `json:"agency_adoption_claimed"`
+	ConsumerAcceptanceClaimed          bool              `json:"consumer_acceptance_claimed"`
+	VendorCompatibilityClaimed         bool              `json:"vendor_compatibility_claimed"`
+	ProductionGradeETAClaimed          bool              `json:"production_grade_eta_claimed"`
+	PublicAPIAdded                     bool              `json:"public_api_added"`
+	DatabasePersistenceAdded           bool              `json:"database_persistence_added"`
+	OperationsConsoleBacktestViewAdded bool              `json:"operations_console_backtest_view_added"`
 }
 
 type RecordCounts struct {
 	ObservedRecords   int `json:"observed_records"`
 	PredictionRecords int `json:"prediction_records"`
+}
+
+type ConformanceReview struct {
+	Status        string            `json:"status"`
+	Boundary      string            `json:"boundary"`
+	SyntheticOnly bool              `json:"synthetic_only"`
+	AggregateOnly bool              `json:"aggregate_only"`
+	CaseCount     int               `json:"case_count"`
+	CaseCounts    map[string]int    `json:"case_counts,omitempty"`
+	Cases         []ConformanceCase `json:"cases"`
+	DoesNotProve  string            `json:"does_not_prove"`
+}
+
+type ConformanceCase struct {
+	ID           string `json:"id"`
+	Label        string `json:"label"`
+	Status       string `json:"status"`
+	Signal       string `json:"signal"`
+	NextAction   string `json:"next_action"`
+	DoesNotProve string `json:"does_not_prove"`
 }
 
 type MetricsDocument struct {
@@ -449,6 +470,7 @@ func RunBacktest(observed ObservedDataset, predictions PredictionDataset, observ
 			GeneratedAt:                        generated,
 			InputRecordCounts:                  RecordCounts{ObservedRecords: len(observed.Records), PredictionRecords: len(predictions.Records)},
 			Overall:                            overallMetric,
+			Conformance:                        buildBacktestConformanceReview(observed, predictions, overallMetric),
 			GroupCount:                         len(groups),
 			ExternalEvidenceCreated:            false,
 			ConsumerStatusesChanged:            false,
@@ -507,6 +529,144 @@ func RunBacktest(observed ObservedDataset, predictions PredictionDataset, observ
 		},
 	}
 	return report, nil
+}
+
+func buildBacktestConformanceReview(observed ObservedDataset, predictions PredictionDataset, overall MetricGroup) ConformanceReview {
+	servicePatterns := observedServicePatternCounts(observed)
+	adapters := predictionAdapterCounts(predictions)
+	withheld := overall.WithheldByReason
+	startPairs := observedStartPairCount(observed)
+	shadowSamples := adapterCountContaining(adapters, "shadow")
+	failClosed := countReason(withheld, "external_predictor_fail_closed")
+
+	cases := []ConformanceCase{
+		{
+			ID:           "after-midnight-service",
+			Label:        "After-midnight service",
+			Status:       conformanceStatus(servicePatterns["after_midnight"] > 0),
+			Signal:       fmt.Sprintf("%d synthetic observed rows use agency-local start_date with post-midnight timing.", servicePatterns["after_midnight"]),
+			NextAction:   "Keep start_date/start_time visible in backtests before relying on after-midnight Trip Updates diagnostics.",
+			DoesNotProve: "Synthetic after-midnight coverage does not prove real-world ETA accuracy or production-grade ETA quality.",
+		},
+		{
+			ID:           "frequency-headway-service",
+			Label:        "Frequency/headway service",
+			Status:       conformanceStatus(servicePatterns["frequency"] > 0),
+			Signal:       fmt.Sprintf("%d synthetic observed rows exercise frequency or headway-style service.", servicePatterns["frequency"]),
+			NextAction:   "Review frequency windows and future-stop withholding before changing prediction thresholds.",
+			DoesNotProve: "Synthetic frequency coverage does not prove consumer display, compliance, or ETA accuracy.",
+		},
+		{
+			ID:           "service-calendar-start-instance",
+			Label:        "Service-calendar start instances",
+			Status:       conformanceStatus(startPairs > 0),
+			Signal:       fmt.Sprintf("%d distinct synthetic start_date/start_time pairs are present across observed events.", startPairs),
+			NextAction:   "Keep agency-local service day, repeated trip instances, and start_time in the join key.",
+			DoesNotProve: "Synthetic service-calendar grouping does not prove complete operating-day coverage.",
+		},
+		{
+			ID:           "blocked-unknown-ambiguous",
+			Label:        "Blocked, unknown, and ambiguous assignments",
+			Status:       conformanceStatus(countReason(withheld, "unknown_assignment") > 0 && countReason(withheld, "ambiguous_assignment") > 0 && failClosed > 0),
+			Signal:       fmt.Sprintf("unknown_assignment=%d; ambiguous_assignment=%d; external_predictor_fail_closed=%d", countReason(withheld, "unknown_assignment"), countReason(withheld, "ambiguous_assignment"), failClosed),
+			NextAction:   "Prefer withheld or unknown output over false certainty when assignment or external predictor signals are weak.",
+			DoesNotProve: "Withheld assignment counts do not prove production-grade ETA quality or public consumer behavior.",
+		},
+		{
+			ID:           "shadow-fail-closed",
+			Label:        "Shadow and fail-closed predictor handling",
+			Status:       conformanceStatus(shadowSamples > 0 && failClosed > 0),
+			Signal:       fmt.Sprintf("shadow_adapter_samples=%d; fail_closed_withheld=%d", shadowSamples, failClosed),
+			NextAction:   "Keep external predictor evaluation shadow-only or fail-closed until separately authorized diagnostics are reviewed.",
+			DoesNotProve: "Shadow/fail-closed synthetic rows do not prove vendor compatibility, SLA coverage, or real-world ETA accuracy.",
+		},
+	}
+
+	status := "synthetic_covered"
+	for _, row := range cases {
+		if row.Status != "synthetic_covered" {
+			status = "needs_review"
+			break
+		}
+	}
+	return ConformanceReview{
+		Status:        status,
+		Boundary:      "Private synthetic conformance summary only. It derives aggregate counts from local fixture rows and does not contact predictors, read raw private rows from the browser, write evidence, mutate feeds, or prove ETA quality.",
+		SyntheticOnly: true,
+		AggregateOnly: true,
+		CaseCount:     len(cases),
+		CaseCounts: map[string]int{
+			"after_midnight":                 servicePatterns["after_midnight"],
+			"frequency":                      servicePatterns["frequency"],
+			"service_calendar_start_pairs":   startPairs,
+			"unknown_assignment":             countReason(withheld, "unknown_assignment"),
+			"ambiguous_assignment":           countReason(withheld, "ambiguous_assignment"),
+			"external_predictor_fail_closed": failClosed,
+			"shadow_adapter_samples":         shadowSamples,
+			"stale_prediction":               overall.StalePredictionCount,
+			"missing_prediction":             overall.MissingPredictionCount,
+			"missing_observation":            overall.MissingObservationCount,
+		},
+		Cases:        cases,
+		DoesNotProve: "Synthetic conformance rows do not prove real-world ETA accuracy, production-grade ETA quality, compliance, consumer acceptance, public launch, release readiness, vendor compatibility, hardware certification, hosted service readiness, or SLA coverage.",
+	}
+}
+
+func observedServicePatternCounts(dataset ObservedDataset) map[string]int {
+	counts := map[string]int{}
+	for _, row := range dataset.Records {
+		key := strings.TrimSpace(row.ServicePatternLabel)
+		if key == "" {
+			key = "unlabeled"
+		}
+		counts[key]++
+	}
+	return counts
+}
+
+func predictionAdapterCounts(dataset PredictionDataset) map[string]int {
+	counts := map[string]int{}
+	for _, row := range dataset.Records {
+		key := strings.TrimSpace(row.AdapterName)
+		if key == "" {
+			key = "unlabeled"
+		}
+		counts[key]++
+	}
+	return counts
+}
+
+func observedStartPairCount(dataset ObservedDataset) int {
+	seen := map[string]bool{}
+	for _, row := range dataset.Records {
+		seen[row.StartDate+"\x00"+row.StartTime] = true
+	}
+	return len(seen)
+}
+
+func adapterCountContaining(counts map[string]int, token string) int {
+	total := 0
+	token = strings.ToLower(token)
+	for key, count := range counts {
+		if strings.Contains(strings.ToLower(key), token) {
+			total += count
+		}
+	}
+	return total
+}
+
+func countReason(counts map[string]int, reason string) int {
+	if len(counts) == 0 {
+		return 0
+	}
+	return counts[reason]
+}
+
+func conformanceStatus(covered bool) string {
+	if covered {
+		return "synthetic_covered"
+	}
+	return "needs_review"
 }
 
 func normalizeOptions(options BacktestOptions) BacktestOptions {
@@ -879,6 +1039,9 @@ func renderBacktestSummaryMarkdown(summary SummaryDocument) string {
 	b.WriteString(fmt.Sprintf("- prediction_records: `%d`\n", summary.InputRecordCounts.PredictionRecords))
 	b.WriteString(fmt.Sprintf("- maturity_gate: `%s`\n", summary.Overall.MaturityGate))
 	b.WriteString(fmt.Sprintf("- prediction_coverage: `%s`\n", formatRate(summary.Overall.PredictionCoverage)))
+	if summary.Conformance.Status != "" {
+		b.WriteString(fmt.Sprintf("- synthetic_conformance: `%s`\n", summary.Conformance.Status))
+	}
 	if summary.Overall.MAEAbsoluteErrorSeconds != nil {
 		b.WriteString(fmt.Sprintf("- mae_absolute_error_seconds: `%.1f`\n", *summary.Overall.MAEAbsoluteErrorSeconds))
 	}
@@ -887,6 +1050,14 @@ func renderBacktestSummaryMarkdown(summary SummaryDocument) string {
 	}
 	b.WriteString("- external_evidence_created: `false`\n")
 	b.WriteString("- consumer_statuses_changed: `false`\n")
+	if len(summary.Conformance.Cases) > 0 {
+		b.WriteString("\n## Synthetic Conformance Cases\n\n")
+		b.WriteString("| case | status | signal |\n")
+		b.WriteString("| --- | --- | --- |\n")
+		for _, row := range summary.Conformance.Cases {
+			b.WriteString(fmt.Sprintf("| %s | %s | %s |\n", row.ID, row.Status, row.Signal))
+		}
+	}
 	return b.String()
 }
 

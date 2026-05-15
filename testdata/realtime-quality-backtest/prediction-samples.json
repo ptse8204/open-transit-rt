@@ -105,6 +105,45 @@
       "schedule_relationship": "scheduled"
     },
     {
+      "generated_time": "2026-05-09T21:00:00Z",
+      "adapter_name": "deterministic",
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-unknown",
+      "trip_id": "trip-unknown-assignment",
+      "start_date": "20260509",
+      "start_time": "14:00:00",
+      "stop_sequence": 9,
+      "event_type": "arrival",
+      "withheld_reason": "unknown_assignment"
+    },
+    {
+      "generated_time": "2026-05-09T21:16:00Z",
+      "adapter_name": "deterministic",
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-ambiguous",
+      "trip_id": "trip-ambiguous-assignment",
+      "start_date": "20260509",
+      "start_time": "14:15:00",
+      "stop_sequence": 10,
+      "event_type": "arrival",
+      "withheld_reason": "ambiguous_assignment"
+    },
+    {
+      "generated_time": "2026-05-09T21:31:00Z",
+      "adapter_name": "external_http_shadow",
+      "agency_id": "demo-agency",
+      "feed_version_id": "feed-20260509",
+      "route_id": "route-external",
+      "trip_id": "trip-external-fail-closed",
+      "start_date": "20260509",
+      "start_time": "14:30:00",
+      "stop_sequence": 11,
+      "event_type": "arrival",
+      "withheld_reason": "external_predictor_fail_closed"
+    },
+    {
       "generated_time": "2026-05-09T18:05:00Z",
       "adapter_name": "deterministic_shadow",
       "agency_id": "demo-agency",
