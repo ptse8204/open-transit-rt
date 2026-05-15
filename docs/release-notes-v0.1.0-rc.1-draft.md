@@ -79,6 +79,10 @@ evidence creation, consumer status movement, or a release-readiness claim.
   `.cache/release-candidate-check/20260514T235805Z`; helper overall
   `not_checked` because follow-up `make validate`, `make test`, and `make
   smoke` rows are intentionally outside the bounded helper output.
+- Latest post-RC diagnostic:
+  `.cache/release-candidate-check/20260515T032047Z`; helper overall
+  `not_checked` with 35 passed rows, 0 blockers, 0 `needs_review` rows, and 4
+  intentionally `not_checked` rows.
 - Local release package: generated and audited locally under
   `.cache/release-package/v0.1.0-rc.1`.
 - Local Docker image build: None.
@@ -197,7 +201,8 @@ No GitHub Release creation is authorized by this draft.
 | Local package generation | passed locally | `RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true make release-package` wrote local `.cache` output only. | Master Agent |
 | Local package audit | passed locally | `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package` passed metadata, checksum, claim-flag, and consumer-tracker checks. | Master Agent |
 | Post-RC route audit | passed locally | `make audit-operations-route-inventory` and strict docs mode passed during Phase 108 Checkpoint 000002. | Master Agent |
-| Full post-RC validation rerun | scheduled | Phase 108 Checkpoint 000003 must rerun baseline, validation, tests, connector checks, release-candidate diagnostic, compose config, prepared-only tracker assertion, protected-path status, and claim audits. | Master Agent |
+| Full post-RC validation rerun | passed locally | Phase 108 Checkpoint 000003 reran baseline, route inventory, validation, tests, connector checks, release-candidate diagnostic, compose config, prepared-only tracker assertion, protected-path status, and claim audits. | Master Agent |
+| Diagnostic helper Java detail | needs_review | Phase 108 helper summary still marked the Java tool row `passed` while its detail contained the macOS system-stub message about no Java runtime; independent pinned validator check and `make validate` passed. | Future release reviewer |
 | Package publication | blocked | No public package distribution or GitHub Release asset upload is authorized. | Maintainer only |
 | Source archive review | needs_review | `git archive HEAD` includes tracked repository files; public publication requires a separate review for tracked evidence-path material. | Future release reviewer |
 | Git tag | blocked | No tag is authorized in Phase 108. | Maintainer only |
@@ -228,28 +233,29 @@ Recorded Phase 95 package checks:
 | `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true RUN_LOCAL_APP=true make release-candidate-check` | exited `0`; helper overall `not_checked` | Local app and five-feed diagnostics passed; package audit passed; bounded helper still records `make validate`, `make test`, and `make smoke` as follow-up rows. |
 | `make agency-app-down` | passed | Stopped local app containers after diagnostics. |
 
-Phase 95 closeout checks are recorded in `docs/handoffs/phase-95.md`. Phase
-108 stabilization reruns are tracked in
-`docs/phase-108-post-rc-bug-bash-and-stabilization.md`; at Checkpoint 000002
-the route inventory reruns passed and the full validation rerun remains
-scheduled for Checkpoint 000003:
+Phase 95 closeout checks are recorded in `docs/handoffs/phase-95.md`.
 
-```bash
-git status --short
-git diff --check
-make audit-operations-route-inventory
-OPERATIONS_ROUTE_AUDIT_STRICT_DOCS=true scripts/audit-operations-route-inventory.sh
-make check
-make validate
-make test
-make external-connection-check
-make adapter-conformance
-make test-connector-examples
-RUN_LOCAL_APP=true make release-candidate-check
-docker compose -f deploy/docker-compose.yml config
-make audit-product-acceptance
-make audit-final-claim-review
-```
+Recorded Phase 108 stabilization checks:
+
+| Check | Result | Scope |
+| --- | --- | --- |
+| `git status --short` | passed | Clean at start and after the validation rerun. |
+| `git diff --check` | passed | No whitespace errors. |
+| `make audit-operations-route-inventory` | passed | 28 HTML routes, 20 JSON routes, one command route, two external admin surfaces, no public admin route, README/wiki route maps aligned. |
+| `OPERATIONS_ROUTE_AUDIT_STRICT_DOCS=true scripts/audit-operations-route-inventory.sh` | passed | Strict route/docs inventory mode passed. |
+| `make check` | passed | Lightweight no-network/no-Docker/no-validator-install checks passed. |
+| `make audit-product-acceptance` | passed | Product acceptance audit passed with prepared-only tracker and clean protected-path checks. |
+| `make audit-final-claim-review` | passed | Final claim review audit passed. |
+| `make validate` | passed | Validator tooling check and validation smoke passed. |
+| `make test` | passed | `go test ./...` passed. |
+| `make external-connection-check` | passed | Connector manifests remain sidecar/manifest/conformance bounded. |
+| `make adapter-conformance` | passed | Adapter conformance suite passed. |
+| `make test-connector-examples` | passed | Connector examples passed. |
+| `RUN_LOCAL_APP=true make release-candidate-check` | exited `0`; helper overall `not_checked` | Local app and five-feed diagnostics passed; helper kept validation, tests, smoke, and package audit as bounded follow-up/not-checked rows. |
+| `make agency-app-down` | passed | Stopped local app containers after diagnostics. |
+| `docker compose -f deploy/docker-compose.yml config` | passed | Compose config rendered locally. |
+| Consumer tracker JSON parse and prepared-only assertion | passed | Seven targets remain exactly `prepared`. |
+| Protected-path status check | passed | No status under protected evidence paths, migrations, `go.mod`, or `go.sum`. |
 
 Blocked checks:
 
