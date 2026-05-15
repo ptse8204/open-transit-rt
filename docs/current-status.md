@@ -544,8 +544,22 @@ status change, hosted monitoring claim, SLA/uptime claim, compliance claim,
 consumer acceptance claim, release-readiness claim, production-readiness
 claim, vendor claim, hardware claim, public-launch claim, or production-grade
 ETA claim.
-The authorized autonomous post-90 roadmap continues next with Phase 104 --
-Small-Host Deployment And Upgrade Hardening.
+Phase 104 -- Small-Host Deployment And Upgrade Hardening is complete, with
+closeout at `docs/handoffs/phase-104.md`: private deployment diagnostics now
+include small-host resource posture, service dependency review, Caddy/proxy
+exposure posture, Postgres pool budget guidance, off-host validator guidance,
+backup/restore env aliasing, protected repo evidence-output guards, and
+upgrade/rollback checklist posture. The private Maintenance Center now exposes
+those deployment-doctor categories as read-only infrastructure rows. Phase 104
+added no public admin route, migration, durable deployment state, backup
+metadata table, restore table, service-control action, live backup/restore,
+live migration execution, real public-root validation, evidence write,
+consumer status change, deployment success claim, hosted service claim,
+SLA/uptime claim, compliance claim, consumer acceptance claim,
+release-readiness claim, production-readiness claim, vendor claim, hardware
+claim, final-root claim, public-launch claim, or production-grade ETA claim.
+The authorized autonomous post-90 roadmap continues next with Phase 105 --
+Multi-Agency Isolation And Operator Roles V2.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

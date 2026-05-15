@@ -314,11 +314,25 @@ state, delivery-attempt table, scheduler, queue, hosted monitoring backend,
 live webhook/email send, destination-value rendering, evidence write, consumer
 status change, hosted monitoring claim, SLA/uptime claim, compliance claim,
 consumer acceptance claim, release-readiness claim, production-readiness
-claim, vendor claim, hardware claim, public-launch claim, or
-production-grade ETA claim. The exact next checkpoint is Phase 104 --
-Checkpoint 000001: add small-host deployment and upgrade hardening plan. Any
-future evidence intake is
-optional and requires explicit written authorization first.
+claim, vendor claim, hardware claim, public-launch claim, or production-grade
+ETA claim.
+Phase 104 -- Small-Host Deployment And Upgrade Hardening is complete, with
+closeout at `docs/handoffs/phase-104.md`: it extended private read-only
+deployment diagnostics with bounded small-host resource posture, service
+dependency review, Caddy/proxy exposure posture, Postgres pool budget guidance,
+off-host validator guidance, backup/restore env aliasing, protected repo
+evidence-output guards, and upgrade/rollback checklist posture. It also
+surfaced those deployment-doctor categories in the private Maintenance Center.
+Phase 104 added no public admin route, migration, durable deployment state,
+backup metadata table, restore table, service-control action, live
+backup/restore, live migration execution, real public-root validation,
+evidence write, consumer status change, deployment success claim, hosted
+service claim, SLA/uptime claim, compliance claim, consumer acceptance claim,
+release-readiness claim, production-readiness claim, vendor claim, hardware
+claim, final-root claim, public-launch claim, or production-grade ETA claim.
+The exact next checkpoint is Phase 105 -- Checkpoint 000001: add multi-agency
+isolation and operator roles v2 plan. Any future evidence intake is optional
+and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1582,8 +1596,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 104 -- Checkpoint
-000001: add small-host deployment and upgrade hardening plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 105 -- Checkpoint
+000001: add multi-agency isolation and operator roles v2 plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

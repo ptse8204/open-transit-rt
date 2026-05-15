@@ -8,6 +8,22 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 104 is complete for Small-Host Deployment And Upgrade Hardening in the
+authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-104.md`](handoffs/phase-104.md). Phase 104 added
+bounded private small-host resource posture, service dependency review,
+Caddy/proxy exposure posture, Postgres pool budget guidance, off-host validator
+guidance, backup/restore env aliasing, protected repo evidence-output guards,
+upgrade/rollback checklist posture, and private Maintenance Center rows over
+those deployment-doctor categories. It did not add public admin routes,
+migrations, durable deployment state, backup metadata tables, restore tables,
+service-control actions, live backup/restore, live migration execution, real
+public-root validation, evidence writes, consumer-status movement, deployment
+success claims, hosted-service claims, SLA/uptime claims, compliance or
+release-readiness claims, consumer-acceptance claims, production-readiness
+claims, vendor claims, hardware claims, final-root claims, public-launch
+claims, or production-grade ETA claims.
+
 Phase 103 is complete for Monitoring, Notifications, And Export Surfaces in
 the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
 is [`docs/handoffs/phase-103.md`](handoffs/phase-103.md). Phase 103 added
@@ -142,13 +158,12 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 104 --
-Small-Host Deployment And Upgrade Hardening. Phase 104 may improve small-host
-resource checks, validator off-host workflow, backup/restore drill guidance,
-upgrade/rollback checklists, service dependency review, Caddy/proxy exposure
-review, and Postgres/PostGIS checks, but it must not claim production
-readiness, SLA/uptime, hosted service availability, compliance, or deployment
-success.
+The current authorized autonomous run continues next with Phase 105 --
+Multi-Agency Isolation And Operator Roles V2. Phase 105 may harden
+agency-scope checks, role matrix tests, access-denied UX, metadata-only audit
+log behavior, and tenant-safe public feed route checks, but it must not claim
+production multi-tenant hosting, hosted SaaS, SLA/uptime, compliance, consumer
+acceptance, or deployment success.
 
 Recommended work remains separated into:
 

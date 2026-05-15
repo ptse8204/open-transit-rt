@@ -344,3 +344,71 @@ Proceed to closeout checkpoint 000004.
 Next checkpoint:
 Phase 104 -- Checkpoint 000004: close small-host deployment and upgrade
 hardening review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 104 -- Checkpoint 000004: close small-host deployment and upgrade
+hardening review.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain
+closeout roles were simulated by the Master Agent. Master Agent -- GPT-5.5
+x-high, current thread.
+
+Changed files:
+`docs/phase-104-small-host-deployment-and-upgrade-hardening.md`;
+`docs/handoffs/phase-104.md`;
+`docs/handoffs/latest.md`;
+`docs/current-status.md`;
+`docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`.
+
+Validation run:
+Closeout relies on the checkpoint 000003 full validation pass: focused script
+and Go tests, generated summary JSON checks, baseline checks, product
+acceptance audit, final claim audit, `make validate`, `make test`, docker
+compose config, and final status/protected-path/diff checks all passed.
+
+Blocked checks:
+Release-candidate diagnostics, package generation/audit, retained evidence,
+real public-root validation, live deployment actions, live backup/restore,
+consumer submission, public publication, and tag/release/package/image
+publication remain blocked by scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven targets remain in order and all remain `prepared`.
+
+Claim-boundary status:
+Phase 104 closes without production-readiness, hosted-service, SLA, uptime,
+compliance, consumer-acceptance, agency-adoption, vendor, hardware, final-root,
+release-readiness, public-launch, or production-grade ETA claim.
+
+Security/auth status:
+No credential collection, raw env rendering, raw backup rendering, live send,
+service-control action, migration execution, browser validator execution,
+public admin route, or external contact was added.
+
+Data/migration status:
+No migration, schema change, durable deployment state, backup metadata table,
+restore table, service-control table, public feed contract change, or module
+dependency change was added.
+
+Master review:
+Approved. Phase 104 is complete and closed.
+
+Required edits:
+None.
+
+Decision:
+Continue immediately to Phase 105.
+
+Next checkpoint:
+Phase 105 -- Checkpoint 000001: add multi-agency isolation and operator roles
+v2 plan.
