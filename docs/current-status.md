@@ -479,8 +479,18 @@ migration, draft mutation, production GTFS edit, evidence write, consumer
 status change, release-ready claim, hosted-service claim, production-readiness
 claim, vendor claim, hardware claim, SLA/uptime claim, compliance claim, or
 ETA-quality claim.
-The authorized autonomous post-90 roadmap continues next with Phase 98 --
-Realtime Operations QA And Feed Usefulness.
+Phase 98 -- Realtime Operations QA And Feed Usefulness is complete, with
+closeout at `docs/handoffs/phase-98.md`: the private Realtime Operations
+Center now includes diagnostic usefulness scoring for Vehicle Positions, Trip
+Updates, and Alerts, freshness/lifecycle review rows, and consumer-safe
+omission rules. Phase 98 added no public admin route, migration, public feed
+mutation, telemetry ingest mutation, prediction adapter mutation, Alerts
+mutation, evidence write, consumer status change, SLA/uptime claim,
+production-readiness claim, production AVL reliability claim, production-grade
+ETA claim, real-world ETA accuracy claim, vendor claim, hardware claim, or
+compliance claim.
+The authorized autonomous post-90 roadmap continues next with Phase 99 --
+Prediction / ETA Conformance And Backtesting V2.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

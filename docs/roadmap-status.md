@@ -8,14 +8,22 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 97 is complete for GTFS Quality Fix Planner And Safe Draft Suggestions
-in the authorized autonomous Phase 91-110 product roadmap. The closeout
-handoff is [`docs/handoffs/phase-97.md`](handoffs/phase-97.md). Phase 97 added
-private advisory fix planner rows, safe draft suggestion guidance,
-before/after validation steps, and a copyable private checklist derived from
-sanitized validator/importer groups. It did not add draft writes, production
-GTFS edits, schedule publication, consumer-status movement, retained evidence,
-or compliance/release-readiness claims.
+Phase 98 is complete for Realtime Operations QA And Feed Usefulness in the
+authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-98.md`](handoffs/phase-98.md). Phase 98 added private
+diagnostic usefulness scoring for Vehicle Positions, Trip Updates, and Alerts,
+freshness/lifecycle review rows, and consumer-safe omission rules. It did not
+add public feed mutations, telemetry ingest mutation, prediction adapter
+mutation, Alerts mutation, evidence writes, consumer-status movement,
+SLA/uptime claims, ETA-quality claims, or compliance/release-readiness claims.
+
+Phase 97 is complete for GTFS Quality Fix Planner And Safe Draft Suggestions.
+The closeout handoff is [`docs/handoffs/phase-97.md`](handoffs/phase-97.md).
+Phase 97 added private advisory fix planner rows, safe draft suggestion
+guidance, before/after validation steps, and a copyable private checklist
+derived from sanitized validator/importer groups. It did not add draft writes,
+production GTFS edits, schedule publication, consumer-status movement,
+retained evidence, or compliance/release-readiness claims.
 
 Phase 96 is complete for GTFS Versioning, Diff, And Rollback Workbench. The
 closeout handoff is [`docs/handoffs/phase-96.md`](handoffs/phase-96.md). Phase
@@ -72,11 +80,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 98 -- Realtime
-Operations QA And Feed Usefulness. Phase 98 may improve private realtime feed
-usefulness diagnostics, but it must not claim production SLA, ETA quality,
-consumer acceptance, public launch, compliance, or real-world deployment
-readiness.
+The current authorized autonomous run continues next with Phase 99 --
+Prediction / ETA Conformance And Backtesting V2. Phase 99 may improve
+synthetic prediction conformance and backtesting diagnostics, but it must not
+claim production-grade ETA quality, real-world ETA accuracy, consumer
+acceptance, public launch, compliance, or real-world deployment readiness.
 
 Recommended work remains separated into:
 

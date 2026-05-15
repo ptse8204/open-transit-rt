@@ -257,9 +257,15 @@ Suggestions is complete, with closeout at `docs/handoffs/phase-97.md`: it
 added a private advisory GTFS quality fix planner, safe draft suggestion
 guidance, before/after validation steps, and a copyable private checklist
 without adding draft writes, production GTFS edits, retained evidence,
-consumer status changes, or compliance/readiness claims. The exact next
-checkpoint in the authorized autonomous run is Phase 98 -- Checkpoint 000001:
-add realtime operations qa and feed usefulness plan. Any future evidence intake is
+consumer status changes, or compliance/readiness claims. Phase 98 -- Realtime
+Operations QA And Feed Usefulness is complete, with closeout at
+`docs/handoffs/phase-98.md`: it added private diagnostic usefulness scoring
+for Vehicle Positions, Trip Updates, and Alerts, freshness/lifecycle review
+rows, and consumer-safe omission rules without adding public proof, feed
+mutations, evidence writes, consumer status changes, SLA/uptime claims, or
+ETA-quality claims. The exact next checkpoint in the authorized autonomous run
+is Phase 99 -- Checkpoint 000001: add prediction eta conformance and
+backtesting v2 plan. Any future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1524,8 +1530,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 98 -- Checkpoint
-000001: add realtime operations qa and feed usefulness plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 99 -- Checkpoint
+000001: add prediction eta conformance and backtesting v2 plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
