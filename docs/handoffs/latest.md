@@ -238,8 +238,18 @@ route inventory audit registry-backed, and fixed audit coverage for
 migration, evidence write, consumer status change, release artifact,
 release-ready claim, compliance claim, hosted-service claim,
 production-readiness claim, vendor claim, hardware claim, SLA/uptime claim, or
-ETA-quality claim. The exact next checkpoint in the authorized autonomous run
-is Phase 95 -- Checkpoint 000001: add v0.1.0-rc.1 candidate cut plan. Any future evidence intake is
+ETA-quality claim. Phase 95 -- v0.1.0-rc.1 Candidate Cut is complete, with
+closeout at `docs/handoffs/phase-95.md`: it generated and audited a local
+`.cache` candidate source package from clean commit
+`9684403b9090c948477870636de59b485df42009`, ran package-enabled local app
+release-candidate diagnostics, refreshed draft release notes, and recorded
+draft-only tag/GitHub Release text. Phase 95 added no tag, GitHub Release,
+public package distribution, image publication, retained evidence action,
+consumer status change, release-ready claim, compliance claim,
+hosted-service claim, production-readiness claim, vendor claim, hardware claim,
+SLA/uptime claim, or ETA-quality claim. The exact next checkpoint in the
+authorized autonomous run is Phase 96 -- Checkpoint 000001: add GTFS
+versioning diff and rollback workbench plan. Any future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1504,8 +1514,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 95 -- Checkpoint
-000001: add v0.1.0-rc.1 candidate cut plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 96 -- Checkpoint
+000001: add GTFS versioning diff and rollback workbench plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

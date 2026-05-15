@@ -452,9 +452,19 @@ route inventory audit registry-backed, and fixed audit coverage for
 `/admin/operations/checklist.json`. Phase 94 added no public admin route,
 migration, evidence write, consumer status change, release artifact,
 hosted-service claim, production-readiness claim, release-ready claim, vendor
-claim, hardware claim, SLA/uptime claim, or ETA-quality claim.
-The authorized autonomous post-90 roadmap continues next with Phase 95 --
-v0.1.0-rc.1 Candidate Cut.
+claim, hardware claim, SLA/uptime claim, or ETA-quality claim. Phase 95 --
+v0.1.0-rc.1 Candidate Cut is complete, with closeout at
+`docs/handoffs/phase-95.md`: it generated and audited a local `.cache`
+candidate source package from clean commit
+`9684403b9090c948477870636de59b485df42009`, ran package-enabled local app
+release-candidate diagnostics, refreshed draft release notes, and recorded
+draft-only tag/GitHub Release text. Phase 95 added no tag, GitHub Release,
+public package distribution, image publication, retained evidence action,
+consumer status change, release-ready claim, hosted-service claim,
+production-readiness claim, vendor claim, hardware claim, SLA/uptime claim, or
+ETA-quality claim.
+The authorized autonomous post-90 roadmap continues next with Phase 96 -- GTFS
+Versioning, Diff, And Rollback Workbench.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

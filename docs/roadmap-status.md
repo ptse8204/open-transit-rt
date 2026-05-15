@@ -8,8 +8,17 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 94 is complete for Operations Console Architecture Refactor in the
+Phase 95 is complete for v0.1.0-rc.1 Candidate Cut in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-95.md`](handoffs/phase-95.md). Phase 95 generated and
+audited a local `.cache` candidate source package, ran package-enabled local
+app release-candidate diagnostics, refreshed draft release notes, and recorded
+draft-only tag/GitHub Release text. It did not tag, publish, create a GitHub
+Release, push an image, move consumer statuses, collect retained evidence, or
+claim release readiness.
+
+Phase 94 is complete for Operations Console Architecture Refactor. The
+closeout handoff is
 [`docs/handoffs/phase-94.md`](handoffs/phase-94.md). Phase 94 added a central
 private Operations Console route registry, refactored nav/title generation to
 use it, made the route inventory audit registry-backed, and fixed audit
@@ -47,11 +56,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 95 --
-v0.1.0-rc.1 Candidate Cut. Phase 95 may create and audit local `.cache`
-candidate artifacts where existing tooling supports them, but it must not tag,
-publish, create a GitHub Release, push an image, move consumer statuses,
-collect retained evidence, or claim release readiness.
+The current authorized autonomous run continues next with Phase 96 -- GTFS
+Versioning, Diff, And Rollback Workbench. Phase 96 may improve private GTFS
+change-management workflows, but it must not silently edit production GTFS,
+collapse draft and published models, move consumer statuses, collect retained
+evidence, or claim compliance/release readiness.
 
 Recommended work remains separated into:
 
