@@ -8,6 +8,22 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 110 is complete for Long-Term Extensibility And Plugin Governance in
+the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
+is [`docs/handoffs/phase-110.md`](handoffs/phase-110.md). Phase 110 added
+extension governance for the sidecar/manifest model, connector manifest
+compatibility, public API stability, deprecation, security review, maintainer
+release train planning, and post-110 roadmap guidance. It did not add dynamic
+plugin loading, tag a release, create a GitHub Release, publish a package,
+push an image, create evidence, move consumer status, contact external
+parties, or claim release readiness, adoption, compliance, consumer
+acceptance, final-root readiness, hosted service, SLA/uptime, production
+readiness, vendor compatibility, hardware certification, or production-grade
+ETA quality.
+
+The authorized Phase 91-110 post-90 agency-grade GTFS-RT roadmap is complete.
+Recommended post-110 work remains separated into the gated tracks below.
+
 Phase 108 is complete for Post-RC Bug Bash And Stabilization in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
 [`docs/handoffs/phase-108.md`](handoffs/phase-108.md). Phase 108 refreshed
@@ -222,13 +238,12 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 110 --
-Long-Term Extensibility And Plugin Governance. Phase 110 may define plugin,
-sidecar, connector manifest, public API stability, deprecation, security
-review, release train, and post-110 roadmap governance, but it must not tag,
-publish, create release artifacts, collect evidence, move consumer statuses,
-or make public-launch, consumer-acceptance, compliance, hosted-service,
-SLA/uptime, production, vendor, hardware, final-root, or ETA-quality claims.
+The Phase 91-110 autonomous run is closed. Future work should start from a new
+maintainer instruction and the relevant gate below. Do not tag, publish, create
+release artifacts, collect evidence, move consumer statuses, contact external
+parties, or make public-launch, consumer-acceptance, compliance,
+hosted-service, SLA/uptime, production, vendor, hardware, final-root, or
+ETA-quality claims without separate authorization and supporting artifacts.
 
 Recommended work remains separated into:
 

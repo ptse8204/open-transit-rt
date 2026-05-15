@@ -603,8 +603,6 @@ retained evidence, consumer status change, external contact,
 release-readiness claim, compliance claim, hosted service claim,
 production-readiness claim, vendor claim, hardware claim, SLA/uptime claim,
 public-launch claim, or production-grade ETA claim.
-The authorized autonomous post-90 roadmap continues next with Phase 109 --
-Optional Evidence Intake Gate Pack.
 Phase 109 -- Optional Evidence Intake Gate Pack is complete, with closeout at
 `docs/handoffs/phase-109.md`: the future evidence intake gate pack now covers
 final-root, consumer submission, real agency pilot, real vendor/device AVL,
@@ -612,8 +610,16 @@ real-world ETA-quality study, and compliance packet gates. Phase 109 collected
 no evidence, contacted no external party, fetched no final root, wrote no
 protected path, moved no consumer status, used no real credentials or private
 data, and made no stronger public claim.
-The authorized autonomous post-90 roadmap continues next with Phase 110 --
-Long-Term Extensibility And Plugin Governance.
+Phase 110 -- Long-Term Extensibility And Plugin Governance is complete, with
+closeout at `docs/handoffs/phase-110.md`: extension governance now covers the
+sidecar/manifest extension model, connector manifest compatibility, public API
+stability, deprecation, security review, maintainer release train planning,
+and post-110 roadmap guidance. Phase 110 added no dynamic plugin loading, tag,
+GitHub Release, package publication, image publication, evidence write,
+consumer status change, external contact, production-readiness claim,
+compliance claim, hosted-service claim, vendor claim, hardware claim,
+SLA/uptime claim, public-launch claim, or ETA-quality claim.
+The authorized Phase 91-110 post-90 roadmap is closed.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

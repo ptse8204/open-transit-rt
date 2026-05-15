@@ -373,9 +373,6 @@ publication, retained evidence, consumer status change, external contact,
 release-readiness claim, compliance claim, hosted service claim,
 production-readiness claim, vendor claim, hardware claim, SLA/uptime claim,
 public-launch claim, or production-grade ETA claim.
-The exact next checkpoint is Phase 109 -- Checkpoint 000001: add optional
-evidence intake gate pack plan. Phase 109 is stub/gate-only unless separate
-written evidence authorization exists.
 Phase 109 -- Optional Evidence Intake Gate Pack is complete, with closeout at
 `docs/handoffs/phase-109.md`: it added a future evidence intake gate pack for
 final-root, consumer submission, real agency pilot, real vendor/device AVL,
@@ -383,8 +380,18 @@ real-world ETA-quality study, and compliance packet gates. Phase 109 collected
 no evidence, contacted no external party, fetched no final root, wrote no
 protected path, moved no consumer status, used no real credentials or private
 data, and made no stronger public claim.
-The exact next checkpoint is Phase 110 -- Checkpoint 000001: add long-term
-extensibility and plugin governance plan.
+Phase 110 -- Long-Term Extensibility And Plugin Governance is complete, with
+closeout at `docs/handoffs/phase-110.md`: it added extension governance for
+the sidecar/manifest model, connector manifest compatibility, public API
+stability, deprecation, security review, maintainer release train planning,
+and post-110 roadmap guidance. Phase 110 added no dynamic plugin loading, tag,
+GitHub Release, package publication, image publication, evidence write,
+consumer status change, external contact, production-readiness claim,
+compliance claim, hosted-service claim, vendor claim, hardware claim,
+SLA/uptime claim, public-launch claim, or ETA-quality claim.
+The authorized Phase 91-110 post-90 roadmap is closed. The next safe action is
+maintainer review of `docs/handoffs/phase-110.md`, `docs/extension-governance.md`,
+and the post-110 recommended work in `docs/roadmap-status.md`.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1648,14 +1655,15 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 110 -- Checkpoint
-000001: add long-term extensibility and plugin governance plan. Do not tag, publish, distribute
-packages publicly, create a GitHub Release, collect retained evidence, move
-consumer statuses, contact external parties, or claim production readiness,
-hosted service, SLA, uptime, release readiness, compliance, agency adoption,
-consumer acceptance, vendor compatibility, hardware certification, real
-vendor/device proof, or evidence without separate authorization and supporting
-artifacts.
+Review the completed Phase 91-110 post-90 roadmap closeout at
+`docs/handoffs/phase-110.md`. Any post-110 release, evidence, consumer,
+vendor/device, deployment, or compliance work remains separately gated. Do not
+tag, publish, distribute packages publicly, create a GitHub Release, collect
+retained evidence, move consumer statuses, contact external parties, or claim
+production readiness, hosted service, SLA, uptime, release readiness,
+compliance, agency adoption, consumer acceptance, vendor compatibility,
+hardware certification, real vendor/device proof, or evidence without separate
+authorization and supporting artifacts.
 
 Do not tag, publish, package, or create retained evidence unless separately
 authorized. Any future evidence intake is optional and requires explicit
