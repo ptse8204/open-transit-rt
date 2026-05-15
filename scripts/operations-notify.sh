@@ -506,6 +506,48 @@ def output_path_for_manifest(path):
     return "<redacted-source>"
 
 
+def build_channel_guidance():
+    return {
+        "no_send_default": True,
+        "browser_send_enabled": False,
+        "webhook": {
+            "present": bool(webhook_arg),
+            "send_enabled": False,
+            "destination_value_recorded": False,
+            "next_action": "Review the draft locally; configure and test delivery outside this helper only after separate operator approval.",
+        },
+        "email": {
+            "present": bool(email_arg),
+            "send_enabled": False,
+            "destination_value_recorded": False,
+            "next_action": "Review the draft locally; do not paste recipient values into committed docs or evidence folders.",
+        },
+        "operator_review": {
+            "required": True,
+            "next_action": "Read summary.md and notification.txt before deciding whether any deployment-owned send process is appropriate.",
+        },
+    }
+
+
+def build_health_digest(overall, counts, actions, overflow):
+    source_summary = "loaded_sources=" + str(counts["sources_loaded"]) + "; missing_or_skipped=" + str(counts["sources_missing_or_skipped"])
+    action_summary = "blocked=" + str(counts["blocked_actions"]) + "; needs_review=" + str(counts["needs_review_actions"]) + "; next_actions=" + str(counts["next_actions"])
+    if actions:
+        next_action = "Review the highest severity next actions in this private draft before relying on feed operations."
+    else:
+        next_action = "Review loaded private diagnostics; no local send action was taken."
+    return {
+        "status": overall,
+        "title": "Private operations health digest",
+        "source_summary": source_summary,
+        "action_summary": action_summary,
+        "overflow_count": overflow[0],
+        "template": "severity + loaded source count + blocked/needs-review counts + capped next actions + no-send boundary",
+        "next_action": next_action,
+        "does_not_prove": "Does not prove uptime, SLA coverage, hosted service availability, production readiness, compliance, consumer acceptance, or notification delivery.",
+    }
+
+
 def scan_text(name, text, strict_names=True):
     patterns = [
         ("authorization", re.compile(r"Authorization\s*:\s*\S+", re.I)),
@@ -548,14 +590,19 @@ def write_outputs(out, validator_source, doctor_source):
         "not_sent_to": ["webhook", "email", "consumers", "agency", "public_service"],
         "boundary": "Private local diagnostics only; not evidence, compliance proof, production readiness proof, or consumer acceptance.",
     }
+    channel_guidance = build_channel_guidance()
+    health_digest = build_health_digest(overall, counts, actions, overflow)
     source_files = []
     for src in (validator_source, doctor_source):
         if src.get("source_file"):
             source_files.append(output_path_for_manifest(ROOT / src["source_file"] if src["source_file"].startswith(".cache/") else pathlib.Path(src["source_file"])))
     summary = {
         "generated_at": timestamp,
+        "overall_status": overall,
         "source_summaries": [validator_summary, doctor_summary],
         "notification": notification,
+        "health_digest": health_digest,
+        "channel_guidance": channel_guidance,
         "destinations": {
             "webhook_present": bool(webhook_arg),
             "email_present": bool(email_arg),
@@ -600,6 +647,17 @@ def write_outputs(out, validator_source, doctor_source):
     summary_md += f"- Severity: `{overall}`\n"
     summary_md += "- Notification sent: `false`\n"
     summary_md += "- Boundary: private local diagnostics only; not evidence, not a compliance gate, not production health proof, and not consumer acceptance.\n\n"
+    summary_md += "## Health Digest\n\n"
+    summary_md += f"- Status: `{health_digest['status']}`\n"
+    summary_md += f"- Sources: {health_digest['source_summary']}\n"
+    summary_md += f"- Actions: {health_digest['action_summary']}\n"
+    summary_md += f"- Template: {health_digest['template']}\n"
+    summary_md += f"- Next action: {health_digest['next_action']}\n"
+    summary_md += f"- Does not prove: {health_digest['does_not_prove']}\n\n"
+    summary_md += "## Channel Guidance\n\n"
+    summary_md += "- No-send default: `true`\n"
+    summary_md += f"- Webhook destination configured: `{str(channel_guidance['webhook']['present']).lower()}`; send enabled: `false`; destination value recorded: `false`\n"
+    summary_md += f"- Email destination configured: `{str(channel_guidance['email']['present']).lower()}`; send enabled: `false`; destination value recorded: `false`\n\n"
     summary_md += "## Sources\n\n"
     for src in summary["source_summaries"]:
         summary_md += f"- {src['source']}: `{src['status']}` / `{src['severity']}`\n"
@@ -619,6 +677,7 @@ def write_outputs(out, validator_source, doctor_source):
 
     notification_txt = "DRAFT — NOT SENT\n\n"
     notification_txt += f"Severity: {overall}\n"
+    notification_txt += f"Health digest: {health_digest['source_summary']}; {health_digest['action_summary']}\n"
     notification_txt += "This local summary was not sent to webhook, email, consumers, agency, or public service.\n"
     notification_txt += "It is not evidence, compliance proof, production readiness proof, or consumer acceptance.\n\n"
     notification_txt += "Next actions:\n"

@@ -56,6 +56,19 @@ func TestOperationsNotifyScriptDryRunNoSendAndExactOutput(t *testing.T) {
 	if notification["not_sent"] != true {
 		t.Fatalf("notification.not_sent = %+v", notification["not_sent"])
 	}
+	healthDigest := summary["health_digest"].(map[string]any)
+	if healthDigest["status"] == "" || healthDigest["source_summary"] == "" || healthDigest["action_summary"] == "" || healthDigest["does_not_prove"] == "" {
+		t.Fatalf("health digest is incomplete: %+v", healthDigest)
+	}
+	channelGuidance := summary["channel_guidance"].(map[string]any)
+	if channelGuidance["no_send_default"] != true || channelGuidance["browser_send_enabled"] != false {
+		t.Fatalf("channel guidance no-send flags invalid: %+v", channelGuidance)
+	}
+	webhook := channelGuidance["webhook"].(map[string]any)
+	email := channelGuidance["email"].(map[string]any)
+	if webhook["present"] != true || webhook["send_enabled"] != false || webhook["destination_value_recorded"] != false || email["present"] != true || email["send_enabled"] != false || email["destination_value_recorded"] != false {
+		t.Fatalf("channel guidance destinations invalid: webhook=%+v email=%+v", webhook, email)
+	}
 }
 
 func TestOperationsNotifySeverityMapping(t *testing.T) {

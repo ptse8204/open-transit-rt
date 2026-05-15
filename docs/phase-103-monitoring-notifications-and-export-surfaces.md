@@ -161,3 +161,90 @@ Proceed to implementation checkpoint 000002 after plan validation and commit.
 
 Next checkpoint:
 Phase 103 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 103 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain roles
+were simulated by the Master Agent. Master Agent -- GPT-5.5 x-high, current
+thread.
+
+Changed files:
+`scripts/operations-notify.sh`;
+`scripts/operations-reliability.sh`;
+`cmd/agency-config/operations_maintenance.go`;
+`cmd/agency-config/operations.go`;
+`cmd/agency-config/main_test.go`;
+`cmd/agency-config/operations_notify_script_test.go`;
+`cmd/agency-config/operations_reliability_script_test.go`;
+`docs/tutorials/self-hosted-operations-notifications.md`;
+`docs/phase-103-monitoring-notifications-and-export-surfaces.md`.
+
+Validation run:
+`go test ./cmd/agency-config -run
+'OperationsNotify|OperationsReliability|Maintenance|Reliability|Monitoring|OperationsNavigation|RouteTitles|Help'`
+passed. `sh -n scripts/operations-notify.sh scripts/operations-reliability.sh`
+passed. `OUTPUT_DIR=.cache/phase-103/operations-notify FORCE=true
+scripts/operations-notify.sh --dry-run` passed, and generated `summary.json`
+and `manifest.json` parsed as JSON. `OUTPUT_DIR=.cache/phase-103/operations-
+reliability FORCE=true OPERATIONS_NOTIFY_SUMMARY=.cache/phase-103/operations-
+notify/summary.json scripts/operations-reliability.sh --dry-run` passed, and
+generated `summary.json` and `manifest.json` parsed as JSON. A local assertion
+verified `notification.not_sent=true`, channel send flags false, destination
+value recording false, `monitoring_export.not_sent=true`, and
+`private_ops_summary.notification_not_sent=true`. `git diff --check` passed.
+`git status --short -- .cache docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output.
+`python3 -m json.tool docs/evidence/consumer-submissions/status.json
+>/dev/null` passed, and the exact prepared-only consumer tracker assertion
+passed.
+
+Blocked checks:
+Full closeout baseline, connector/example checks, `make validate`, `make
+test`, and docker compose configuration validation are reserved for checkpoint
+000003. Release-candidate diagnostics, package generation/audit, retained
+evidence, live notification sends, external monitoring services, and consumer
+actions remain out of scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+protected-path status check returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The required
+prepared-only assertion passed and will run again in checkpoint 000003.
+
+Claim-boundary status:
+The implementation is private and no-send by default. It makes no hosted
+monitoring, SLA, uptime, production readiness, compliance, consumer acceptance,
+public launch, agency adoption, vendor, hardware, release-readiness,
+production-grade ETA, or real-world ETA claim.
+
+Security/auth status:
+No live webhook/email send, browser send control, notification destination
+value rendering, secret storage, public route, scheduler, queue, external
+network dependency, raw report display, or credential collection was added.
+
+Data/migration status:
+No migration, durable notification state, delivery-attempt table, monitoring
+backend, queue, scheduler, telemetry contract change, public feed contract
+change, or module dependency change was added.
+
+Master review:
+Approved. The implementation stays inside existing no-send `.cache` helpers
+and private Maintenance review surfaces.
+
+Required edits:
+Run full validation, patch any failures caused by Phase 103, then record
+checkpoint 000003.
+
+Decision:
+Proceed to validation checkpoint 000003.
+
+Next checkpoint:
+Phase 103 -- Checkpoint 000003: run validation and patch required gaps.

@@ -30,6 +30,13 @@ notification.txt
 The draft begins with `DRAFT — NOT SENT`. It is meant for private operator
 review before deciding what to do next.
 
+`summary.json` includes a bounded `health_digest` object and
+`channel_guidance` object. The digest is a local template with severity, loaded
+source counts, blocked/needs-review counts, capped next actions, and explicit
+"does not prove" wording. Channel guidance records only booleans such as
+`webhook.present` and `email.present`; it keeps `send_enabled=false` and
+`destination_value_recorded=false`.
+
 ## Dry Run
 
 ```bash
@@ -96,6 +103,17 @@ the script records only booleans:
 ```
 
 It never writes destination values and never sends to webhook or email.
+
+The reliability helper can consume this no-send summary:
+
+```bash
+make operations-reliability
+```
+
+Its `summary.json` includes `monitoring_export` and `private_ops_summary`
+sections for local dashboards or technical-helper review. These sections are
+still private summaries only; they do not send notifications, upload data,
+create evidence, or prove hosted monitoring.
 
 ## What To Review
 

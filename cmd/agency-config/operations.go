@@ -4063,6 +4063,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
 {{range .Maintenance.CadencePlan.Rows}}<tr id="maintenance-cadence-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Monitoring Export And Health Digest Review</h3>
+<p class="warning">{{.Maintenance.MonitoringExport.Boundary}}</p>
+<p><strong>Status:</strong> {{.Maintenance.MonitoringExport.Status}} · <strong>Next action:</strong> {{.Maintenance.MonitoringExport.NextAction}}</p>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .Maintenance.MonitoringExport.Rows}}<tr id="maintenance-monitoring-export-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h3>Next Maintenance Tasks</h3>
 <table><thead><tr><th>ID</th><th>Cadence</th><th>Task</th><th>Status</th><th>Owner</th><th>Next step</th></tr></thead><tbody>
 {{range .Maintenance.Tasks}}<tr id="maintenance-task-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Cadence}}</td><td>{{.Task}}</td><td>{{.Status}}</td><td>{{.Owner}}</td><td>{{.NextStep}}</td></tr>{{end}}

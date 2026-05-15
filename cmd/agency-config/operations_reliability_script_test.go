@@ -33,6 +33,14 @@ func TestOperationsReliabilityScriptExactFilesDefaultFlagsAndNoSend(t *testing.T
 	}
 	assertOperationsReliabilityExactFiles(t, root, outputRel)
 	summary := readOperationsReliabilitySummary(t, root, outputRel)
+	monitoring := summary["monitoring_export"].(map[string]any)
+	if monitoring["not_sent"] != true || monitoring["webhook_present"] != true || monitoring["webhook_send_enabled"] != false || monitoring["email_send_enabled"] != false || monitoring["destination_values_recorded"] != false {
+		t.Fatalf("monitoring export no-send summary invalid: %+v", monitoring)
+	}
+	privateOps := summary["private_ops_summary"].(map[string]any)
+	if privateOps["notification_not_sent"] != true || privateOps["monitoring_export_status"] == "" || privateOps["summary_json"] != "summary.json" || privateOps["manifest_json"] != "manifest.json" {
+		t.Fatalf("private ops summary invalid: %+v", privateOps)
+	}
 	flags := summary["claim_flags"].(map[string]any)
 	for _, flag := range []string{
 		"external_evidence_created",

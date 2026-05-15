@@ -319,6 +319,7 @@ def read_source(kind, explicit):
         "source": rel_to_root(path),
         "summary": safe_string(data.get("summary") or data.get("overall_status") or data.get("status"), "Safe summary loaded."),
         "next_action": safe_string(data.get("next_action"), "Review this safe private summary."),
+        "data": data,
     }
 
 
@@ -350,6 +351,55 @@ def section_from_source(source, label):
     }
 
 
+def notify_bool(data, path):
+    cursor = data
+    for part in path:
+        if not isinstance(cursor, dict):
+            return False
+        cursor = cursor.get(part)
+    return bool(cursor)
+
+
+def build_monitoring_export_section(source):
+    data = source.get("data") if isinstance(source.get("data"), dict) else {}
+    digest = data.get("health_digest") if isinstance(data.get("health_digest"), dict) else {}
+    channel = data.get("channel_guidance") if isinstance(data.get("channel_guidance"), dict) else {}
+    notification = data.get("notification") if isinstance(data.get("notification"), dict) else {}
+    return {
+        "status": source["status"],
+        "source": source["source"],
+        "summary": safe_string(digest.get("source_summary"), source["summary"]),
+        "action_summary": safe_string(digest.get("action_summary"), "not available"),
+        "template": safe_string(digest.get("template"), "severity + source counts + no-send boundary"),
+        "next_action": safe_string(digest.get("next_action"), source["next_action"]),
+        "not_sent": bool(notification.get("not_sent", True)),
+        "webhook_present": notify_bool(channel, ["webhook", "present"]) or notify_bool(data, ["destinations", "webhook_present"]),
+        "email_present": notify_bool(channel, ["email", "present"]) or notify_bool(data, ["destinations", "email_present"]),
+        "webhook_send_enabled": notify_bool(channel, ["webhook", "send_enabled"]),
+        "email_send_enabled": notify_bool(channel, ["email", "send_enabled"]),
+        "destination_values_recorded": notify_bool(channel, ["webhook", "destination_value_recorded"]) or notify_bool(channel, ["email", "destination_value_recorded"]),
+        "does_not_prove": "Does not prove notification delivery, uptime, SLA coverage, hosted service availability, production readiness, compliance, consumer acceptance, or public launch.",
+    }
+
+
+def build_private_ops_summary(overall, validator, doctor, notify, monitoring_export):
+    return {
+        "status": overall,
+        "summary_json": "summary.json",
+        "manifest_json": "manifest.json",
+        "scope": "private diagnostic summary only",
+        "sources": {
+            "validator_health": validator["status"],
+            "deployment_doctor": doctor["status"],
+            "operations_notify": notify["status"],
+        },
+        "monitoring_export_status": monitoring_export["status"],
+        "notification_not_sent": bool(monitoring_export["not_sent"]),
+        "next_action": "Use this private ops summary JSON for local review only; keep live delivery and evidence collection separately authorized.",
+        "does_not_prove": "Does not prove hosted monitoring, uptime, SLA coverage, compliance, consumer acceptance, or production readiness.",
+    }
+
+
 out = resolve_output_dir()
 validator = read_source("validator-health", validator_arg)
 doctor = read_source("deployment-doctor", doctor_arg)
@@ -376,12 +426,14 @@ backup_restore = section_from_source(doctor, "backup_restore")
 alerting = section_from_source(notify, "alerting")
 availability = section_from_source(doctor, "availability_sampling")
 long_running = section_from_source(notify, "long_running_operations")
+monitoring_export = build_monitoring_export_section(notify)
 
 overall = "unknown"
 for row in feeds:
     overall = worse(overall, row["status"])
-for section in (incidents, backup_restore, alerting, availability, long_running):
+for section in (incidents, backup_restore, alerting, availability, long_running, monitoring_export):
     overall = worse(overall, section["status"])
+private_ops_summary = build_private_ops_summary(overall, validator, doctor, notify, monitoring_export)
 
 summary = {
     "generated_at": timestamp,
@@ -392,6 +444,8 @@ summary = {
     "alerting": alerting,
     "availability_sampling": availability,
     "long_running_operations": long_running,
+    "monitoring_export": monitoring_export,
+    "private_ops_summary": private_ops_summary,
     "claim_flags": CLAIM_FLAGS,
     "dry_run": DRY_RUN,
 }
@@ -440,6 +494,12 @@ summary_md.extend([
     f"- alerting: {alerting['status']}",
     f"- availability_sampling: {availability['status']}",
     f"- long_running_operations: {long_running['status']}",
+    f"- monitoring_export: {monitoring_export['status']} (not_sent={str(monitoring_export['not_sent']).lower()})",
+    "",
+    "## Private Ops Summary",
+    f"- summary_json: {private_ops_summary['summary_json']}",
+    f"- monitoring_export_status: {private_ops_summary['monitoring_export_status']}",
+    "- notification_not_sent: true",
 ])
 
 manifest_md = [
@@ -458,6 +518,8 @@ review = [
     "Private diagnostic sampling only.",
     "No evidence, compliance, production readiness, SLA, uptime guarantee, hosted SaaS, agency adoption, consumer acceptance, vendor compatibility, or production-grade ETA claim is made.",
     f"Overall status: {overall}",
+    f"Monitoring export status: {monitoring_export['status']}",
+    "Notification sent: false",
 ]
 
 (out / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -8,20 +8,21 @@ import (
 )
 
 type operationsMaintenanceView struct {
-	GeneratedAt     time.Time                        `json:"generated_at"`
-	AgencyID        string                           `json:"agency_id"`
-	Boundary        string                           `json:"boundary"`
-	OverallStatus   string                           `json:"overall_status"`
-	SummaryRows     []operationsMaintenanceRow       `json:"summary_rows"`
-	Diagnostics     operationsMaintenanceDiagnostics `json:"diagnostics"`
-	BackupRestore   operationsMaintenancePanel       `json:"backup_restore"`
-	UpgradeRollback operationsMaintenancePanel       `json:"upgrade_rollback"`
-	SupportReview   operationsMaintenancePanel       `json:"support_review"`
-	CadencePlan     operationsMaintenancePanel       `json:"cadence_plan"`
-	Infrastructure  operationsMaintenancePanel       `json:"infrastructure"`
-	Tasks           []operationsMaintenanceTask      `json:"tasks"`
-	SupportSummary  operationsMaintenanceSupport     `json:"support_summary"`
-	ClaimFlags      operationsMaintenanceClaimFlags  `json:"claim_flags"`
+	GeneratedAt      time.Time                        `json:"generated_at"`
+	AgencyID         string                           `json:"agency_id"`
+	Boundary         string                           `json:"boundary"`
+	OverallStatus    string                           `json:"overall_status"`
+	SummaryRows      []operationsMaintenanceRow       `json:"summary_rows"`
+	Diagnostics      operationsMaintenanceDiagnostics `json:"diagnostics"`
+	BackupRestore    operationsMaintenancePanel       `json:"backup_restore"`
+	UpgradeRollback  operationsMaintenancePanel       `json:"upgrade_rollback"`
+	SupportReview    operationsMaintenancePanel       `json:"support_review"`
+	CadencePlan      operationsMaintenancePanel       `json:"cadence_plan"`
+	MonitoringExport operationsMaintenancePanel       `json:"monitoring_export"`
+	Infrastructure   operationsMaintenancePanel       `json:"infrastructure"`
+	Tasks            []operationsMaintenanceTask      `json:"tasks"`
+	SupportSummary   operationsMaintenanceSupport     `json:"support_summary"`
+	ClaimFlags       operationsMaintenanceClaimFlags  `json:"claim_flags"`
 }
 
 type operationsMaintenanceRow struct {
@@ -120,18 +121,19 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 	}
 	overall := maintenanceOverall(rows, tasks)
 	return operationsMaintenanceView{
-		GeneratedAt:     page.GeneratedAt,
-		AgencyID:        page.AgencyID,
-		Boundary:        "Private maintenance diagnostics only. This page summarizes configured/nonconfigured signals and next tasks without creating evidence, changing consumer statuses, claiming compliance, claiming production readiness, claiming SLA or uptime coverage, or exposing secret values.",
-		OverallStatus:   overall,
-		SummaryRows:     rows,
-		Diagnostics:     buildOperationsMaintenanceDiagnostics(),
-		BackupRestore:   buildOperationsMaintenanceBackupRestore(),
-		UpgradeRollback: buildOperationsMaintenanceUpgradeRollback(),
-		SupportReview:   buildOperationsMaintenanceSupportReview(),
-		CadencePlan:     buildOperationsMaintenanceCadencePlan(),
-		Infrastructure:  buildOperationsMaintenanceInfrastructureChecks(),
-		Tasks:           tasks,
+		GeneratedAt:      page.GeneratedAt,
+		AgencyID:         page.AgencyID,
+		Boundary:         "Private maintenance diagnostics only. This page summarizes configured/nonconfigured signals and next tasks without creating evidence, changing consumer statuses, claiming compliance, claiming production readiness, claiming SLA or uptime coverage, or exposing secret values.",
+		OverallStatus:    overall,
+		SummaryRows:      rows,
+		Diagnostics:      buildOperationsMaintenanceDiagnostics(),
+		BackupRestore:    buildOperationsMaintenanceBackupRestore(),
+		UpgradeRollback:  buildOperationsMaintenanceUpgradeRollback(),
+		SupportReview:    buildOperationsMaintenanceSupportReview(),
+		CadencePlan:      buildOperationsMaintenanceCadencePlan(),
+		MonitoringExport: buildOperationsMaintenanceMonitoringExport(),
+		Infrastructure:   buildOperationsMaintenanceInfrastructureChecks(),
+		Tasks:            tasks,
 		SupportSummary: operationsMaintenanceSupport{
 			Status:     operationsStatusDiagnosticOnly,
 			Command:    "make support-bundle",
@@ -156,6 +158,53 @@ func maintenanceTask(id, cadence, task, status, owner, next string) operationsMa
 
 func maintenancePanelRow(id, label, status, signal, operatorStep, helperStep, doesNotProve string) operationsMaintenancePanelRow {
 	return operationsMaintenancePanelRow{ID: id, Label: label, Status: status, CurrentSignal: signal, OperatorStep: operatorStep, TechnicalHelperStep: helperStep, DoesNotProve: doesNotProve}
+}
+
+func buildOperationsMaintenanceMonitoringExport() operationsMaintenancePanel {
+	rows := []operationsMaintenancePanelRow{
+		maintenancePanelRow(
+			"operations_notify_health_digest",
+			"No-send health digest",
+			operationsStatusDiagnosticOnly,
+			"`make operations-notify` writes a private health_digest into .cache/operations-notify/<timestamp>/summary.json",
+			"Use the digest as a local review summary before deciding what needs attention.",
+			"Run `make operations-notify`; keep webhook/email destination values out of outputs and docs.",
+			"Health digests do not prove notification delivery, uptime, SLA coverage, hosted service availability, or production readiness.",
+		),
+		maintenancePanelRow(
+			"redacted_channel_guidance",
+			"Webhook/email draft guidance",
+			operationsStatusReady,
+			"destination presence may be recorded as booleans; destination values and send attempts stay out of the helper",
+			"Treat webhook and email rows as review prompts only.",
+			"Set destination values only in deployment-owned private runtime configuration; this console and helper never send by default.",
+			"Destination presence does not prove delivery, acknowledgement, consumer notification, or public incident handling.",
+		),
+		maintenancePanelRow(
+			"monitoring_export_summary_json",
+			"Monitoring export summary JSON",
+			operationsStatusDiagnosticOnly,
+			"`make operations-reliability` writes monitoring_export and private_ops_summary sections into .cache/operations-reliability/<timestamp>/summary.json",
+			"Use the private JSON for local dashboards or technical-helper review only.",
+			"Review summary.json and manifest.json; reject raw logs, backup dumps, secrets, DB URLs, destination values, and evidence paths.",
+			"Private summary JSON does not prove hosted monitoring, compliance, consumer acceptance, or production operations.",
+		),
+		maintenancePanelRow(
+			"no_send_default",
+			"No-send default",
+			operationsStatusReady,
+			"browser_send_enabled=false; webhook_send_enabled=false; email_send_enabled=false",
+			"Do not expect the browser, maintenance page, or helper scripts to send notifications.",
+			"Use a separate deployment-owned send process only after explicit operator approval and redaction review.",
+			"No-send defaults do not prove an external notification system is configured or reliable.",
+		),
+	}
+	return operationsMaintenancePanel{
+		Status:     maintenancePanelOverall(rows),
+		Boundary:   "Monitoring export and notification rows are private no-send guidance only. They do not contact webhook/email endpoints, schedule jobs, upload diagnostics, create evidence, or prove hosted monitoring, uptime, SLA, compliance, consumer acceptance, or production readiness.",
+		NextAction: "Run local no-send helpers from an operator shell, review the private summaries, and keep any live delivery process outside this repo unless separately authorized.",
+		Rows:       rows,
+	}
 }
 
 func buildOperationsMaintenanceBackupRestore() operationsMaintenancePanel {
