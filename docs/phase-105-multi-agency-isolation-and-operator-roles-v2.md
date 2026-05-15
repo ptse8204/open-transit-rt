@@ -156,3 +156,75 @@ Proceed to implementation checkpoint 000002 after plan validation and commit.
 
 Next checkpoint:
 Phase 105 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 105 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Implementation, QA, UI/UX, Documentation / IA, Claim-Boundary, Security/Auth,
+and Data/Migration roles are simulated by the Master Agent using the approved
+plan and the prior real Context / Repo Truth and Planning sub-agent outputs.
+Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`cmd/agency-config/operations_audit.go`;
+`cmd/agency-config/operations.go`; `cmd/agency-config/main_test.go`;
+`cmd/feed-vehicle-positions/main_test.go`;
+`cmd/feed-trip-updates/main_test.go`; `cmd/feed-alerts/main_test.go`;
+`internal/auth/http_test.go`;
+`docs/phase-105-multi-agency-isolation-and-operator-roles-v2.md`.
+
+Validation run:
+`gofmt` ran on changed Go files. `go test ./internal/auth
+./internal/tenant` passed. `go test ./cmd/agency-config -run
+'Agency|Access|Audit|Role|Route|Public'` passed. `go test
+./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts`
+passed.
+
+Blocked checks:
+Full closeout baseline, route inventory audit, multi-agency hosting script,
+`make validate`, `make test`, and Docker Compose config are deferred to
+checkpoint 000003/000004. Release-candidate checks, package publication, tags,
+real credentials, hosted identity changes, evidence collection, and consumer
+actions are out of scope.
+
+Protected path status:
+No protected evidence path was modified or required.
+
+Consumer tracker status:
+The consumer tracker was not modified. The seven targets remain required to
+stay in order and `prepared`.
+
+Claim-boundary status:
+The implementation adds no production multi-tenant hosting, hosted SaaS, SLA,
+uptime, compliance, consumer-acceptance, agency-adoption, deployment-success,
+vendor, hardware, final-root, release-readiness, public-launch, or
+production-grade ETA claim.
+
+Security/auth status:
+Added tests for no-store access denial, HTML reason escaping, bounded
+non-HTML forbidden responses, agency-scope conflict short-circuiting before
+audit data load, path-routed public feed query override resistance, encoded
+slash/backslash rejection, and per-agency debug JSON non-exposure.
+
+Data/migration status:
+No migration, schema, durable tenancy state, row-level security model, hosted
+identity store, module dependency, or protected data path changed. Audit browser
+changes are metadata-only counters over already-sanitized scoped rows.
+
+Master review:
+Approved. The implementation strengthens existing boundaries with focused
+tests and limited audit metadata while preserving current route behavior and
+claims.
+
+Required edits:
+Run the full focused validation and baseline checks. Patch only failures
+caused by this phase.
+
+Decision:
+Proceed to validation/audit checkpoint 000003.
+
+Next checkpoint:
+Phase 105 -- Checkpoint 000003: run validation and patch required gaps.

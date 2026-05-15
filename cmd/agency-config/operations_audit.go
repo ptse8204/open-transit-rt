@@ -17,13 +17,24 @@ type auditLogReader interface {
 }
 
 type operationsAuditView struct {
-	GeneratedAt time.Time            `json:"generated_at"`
-	AgencyID    string               `json:"agency_id"`
-	Boundary    string               `json:"boundary"`
-	Status      string               `json:"status"`
-	Rows        []operationsAuditRow `json:"rows"`
-	EmptyState  string               `json:"empty_state"`
-	NextAction  string               `json:"next_action"`
+	GeneratedAt time.Time             `json:"generated_at"`
+	AgencyID    string                `json:"agency_id"`
+	Boundary    string                `json:"boundary"`
+	Status      string                `json:"status"`
+	Counts      operationsAuditCounts `json:"counts"`
+	Rows        []operationsAuditRow  `json:"rows"`
+	EmptyState  string                `json:"empty_state"`
+	NextAction  string                `json:"next_action"`
+}
+
+type operationsAuditCounts struct {
+	VisibleRows          int    `json:"visible_rows"`
+	QueryLimit           int    `json:"query_limit"`
+	ActorRecordedRows    int    `json:"actor_recorded_rows"`
+	ReasonRecordedRows   int    `json:"reason_recorded_rows"`
+	OldValueRecordedRows int    `json:"old_value_recorded_rows"`
+	NewValueRecordedRows int    `json:"new_value_recorded_rows"`
+	LatestCreatedAt      string `json:"latest_created_at,omitempty"`
 }
 
 type operationsAuditRow struct {
@@ -64,6 +75,7 @@ func (h *handler) buildOperationsAuditView(ctx context.Context, now time.Time, a
 		AgencyID:    agencyID,
 		Boundary:    "Private read-only audit browser. It shows scoped audit metadata only and never renders raw old/new JSON, raw reasons, credential values, payloads, private file paths, or cross-agency rows.",
 		Status:      operationsStatusMissing,
+		Counts:      operationsAuditCounts{QueryLimit: operationsAuditLimit},
 		EmptyState:  "audit log reader is not available in this runtime",
 		NextAction:  "Use this page after a database-backed runtime is configured; continue to rely on route-level role and agency checks meanwhile.",
 	}
@@ -87,7 +99,24 @@ func (h *handler) buildOperationsAuditView(ctx context.Context, now time.Time, a
 	view.Status = operationsStatusReady
 	view.EmptyState = ""
 	view.NextAction = "Review recent scoped mutation metadata and investigate unexpected actions from the source workflow; raw values remain server-owned."
+	var latest time.Time
 	for _, record := range records {
+		view.Counts.VisibleRows++
+		if record.ActorRecorded {
+			view.Counts.ActorRecordedRows++
+		}
+		if record.ReasonRecorded {
+			view.Counts.ReasonRecordedRows++
+		}
+		if record.OldValueRecorded {
+			view.Counts.OldValueRecordedRows++
+		}
+		if record.NewValueRecorded {
+			view.Counts.NewValueRecordedRows++
+		}
+		if record.CreatedAt.After(latest) {
+			latest = record.CreatedAt
+		}
 		view.Rows = append(view.Rows, operationsAuditRow{
 			ID:               record.ID,
 			CreatedAt:        record.CreatedAt.UTC().Format(time.RFC3339),
@@ -100,6 +129,9 @@ func (h *handler) buildOperationsAuditView(ctx context.Context, now time.Time, a
 			NewValueRecorded: record.NewValueRecorded,
 			DoesNotShow:      "Raw actor identifiers, reasons, JSON diffs, payloads, credential values, and private paths are not rendered.",
 		})
+	}
+	if !latest.IsZero() {
+		view.Counts.LatestCreatedAt = latest.UTC().Format(time.RFC3339)
 	}
 	return view
 }

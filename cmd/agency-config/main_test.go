@@ -614,7 +614,7 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 		t.Fatalf("audit status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Audit Log", "Recent scoped audit metadata", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
+	for _, want := range []string{"Audit Log", "Recent scoped audit metadata", "Visible rows", "2 of the latest 50", "actor=2; reason=1; old=1; new=2", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("audit body missing %q: %s", want, body)
 		}
@@ -638,6 +638,9 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 	if store.auditAgencyID != "demo-agency" || view.AgencyID != "demo-agency" || len(view.Rows) != 2 {
 		t.Fatalf("unexpected audit view agency=%q storeAgency=%q rows=%d view=%+v", view.AgencyID, store.auditAgencyID, len(view.Rows), view)
 	}
+	if view.Counts.VisibleRows != 2 || view.Counts.QueryLimit != operationsAuditLimit || view.Counts.ActorRecordedRows != 2 || view.Counts.ReasonRecordedRows != 1 || view.Counts.OldValueRecordedRows != 1 || view.Counts.NewValueRecordedRows != 2 || view.Counts.LatestCreatedAt != now.Format(time.RFC3339) {
+		t.Fatalf("unexpected audit metadata counts: %+v", view.Counts)
+	}
 	if view.Rows[0].Action != "device.rebind" || view.Rows[0].ReasonRecorded != true || view.Rows[0].OldValueRecorded != true || view.Rows[0].NewValueRecorded != true {
 		t.Fatalf("unexpected first audit row: %+v", view.Rows[0])
 	}
@@ -650,6 +653,34 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 	}
 	if strings.Contains(rr.Body.String(), "other-agency") {
 		t.Fatalf("forbidden audit response leaked conflicting agency: %s", rr.Body.String())
+	}
+}
+
+func TestOperationsAgencyScopeConflictStopsBeforeAuditDataLoad(t *testing.T) {
+	store := &fakePublicationStore{
+		auditRows: []compliance.AuditLogRecord{
+			{ID: 10, CreatedAt: time.Date(2026, 5, 14, 10, 0, 0, 0, time.UTC), Action: "secret.cross_agency_action", EntityType: "device_binding", EntityID: "secret-device", ActorRecorded: true},
+		},
+	}
+	srv := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator, auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/audit.json?agency_id=other-agency", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("conflicting agency audit JSON status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+	if store.auditAgencyID != "" {
+		t.Fatalf("audit store loaded agency %q despite conflicting query agency", store.auditAgencyID)
+	}
+	for _, forbidden := range []string{"other-agency", "secret.cross_agency_action", "secret-device"} {
+		if strings.Contains(rr.Body.String(), forbidden) {
+			t.Fatalf("forbidden audit response leaked %q: %s", forbidden, rr.Body.String())
+		}
+	}
+	if got := rr.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 }
 

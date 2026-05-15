@@ -95,11 +95,36 @@ func TestAlertsPathRoutedPublicFeedBuildsRequestedAgencyOnly(t *testing.T) {
 		t.Fatalf("calls = default %d agency %+v, want agency-b path through agency builder", builder.defaultCalls, builder.agencyCalls)
 	}
 
+	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/alerts.pb?agency_id=agency-b", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("agency-a with conflicting query status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if builder.defaultCalls != 2 || builder.agencyCalls["agency-b"] != 1 {
+		t.Fatalf("calls = default %d agency %+v, want path agency to ignore query agency", builder.defaultCalls, builder.agencyCalls)
+	}
+
 	req = httptest.NewRequest(http.MethodGet, "/public/agencies/agency-a/gtfsrt/alerts.json", nil)
 	rr = httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("per-agency debug status = %d, want 404", rr.Code)
+	}
+
+	for _, path := range []string{
+		"/public/agencies/agency%2Fbad/gtfsrt/alerts.pb",
+		"/public/agencies/agency%5Cbad/gtfsrt/alerts.pb",
+	} {
+		req = httptest.NewRequest(http.MethodGet, path, nil)
+		rr = httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusBadRequest {
+			t.Fatalf("%s status = %d, want 400: %s", path, rr.Code, rr.Body.String())
+		}
+	}
+	if builder.defaultCalls != 2 || builder.agencyCalls["agency-b"] != 1 {
+		t.Fatalf("calls changed after invalid path routes: default %d agency %+v", builder.defaultCalls, builder.agencyCalls)
 	}
 }
 

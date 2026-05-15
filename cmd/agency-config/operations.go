@@ -2087,6 +2087,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><tbody>
 <tr><th>Agency</th><td><code>{{.Audit.AgencyID}}</code></td></tr>
 <tr><th>Status</th><td>{{.Audit.Status}}</td></tr>
+<tr><th>Visible rows</th><td>{{.Audit.Counts.VisibleRows}} of the latest {{.Audit.Counts.QueryLimit}} scoped metadata rows requested</td></tr>
+<tr><th>Recorded field counts</th><td>actor={{.Audit.Counts.ActorRecordedRows}}; reason={{.Audit.Counts.ReasonRecordedRows}}; old={{.Audit.Counts.OldValueRecordedRows}}; new={{.Audit.Counts.NewValueRecordedRows}}</td></tr>
+{{if .Audit.Counts.LatestCreatedAt}}<tr><th>Latest metadata row</th><td>{{.Audit.Counts.LatestCreatedAt}}</td></tr>{{end}}
 <tr><th>Generated at</th><td>{{formatTime .Audit.GeneratedAt}}</td></tr>
 <tr><th>Next action</th><td>{{.Audit.NextAction}}</td></tr>
 </tbody></table>
