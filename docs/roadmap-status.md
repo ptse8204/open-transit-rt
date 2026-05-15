@@ -8,6 +8,19 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 106 is complete for Staff Training, Demo Datasets, And Adoption Kit in
+the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
+is [`docs/handoffs/phase-106.md`](handoffs/phase-106.md). Phase 106 added a
+private Help demo scenario catalog, trainer script, technical-helper
+checklist, printable operator training guide updates, a staff-training tutorial
+entry, and `testdata/training-demo/scenarios.json` over committed synthetic
+fixtures. It did not add real agency data, real vendor/device data,
+credentials, external contact, evidence writes, consumer-status movement,
+adoption claims, agency-approval claims, consumer-acceptance claims,
+compliance or release-readiness claims, final-root claims, hosted-service
+claims, SLA/uptime claims, production-readiness claims, vendor claims,
+hardware claims, public-launch claims, or production-grade ETA claims.
+
 Phase 105 is complete for Multi-Agency Isolation And Operator Roles V2 in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
 [`docs/handoffs/phase-105.md`](handoffs/phase-105.md). Phase 105 added
@@ -174,13 +187,12 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 106 -- Staff
-Training, Demo Datasets, And Adoption Kit. Phase 106 may add demo-only
-training scenarios, role-based training paths, first-week operator guidance,
-common mistakes and recovery, trainer scripts, and technical-helper
-checklists, but it must not claim real agency adoption, evidence collection,
-public launch, consumer acceptance, hosted SaaS, SLA/uptime, compliance, or
-production readiness.
+The current authorized autonomous run continues next with Phase 107 -- Public
+Docs/Site Freeze And Contributor Onboarding. Phase 107 may align README, docs,
+wiki/site guidance, contributor first-issue guidance, connector contribution
+guidance, and architecture overview language, but it must not claim public
+launch, adoption, consumer acceptance, hosted SaaS, SLA/uptime, compliance,
+production readiness, or release readiness.
 
 Recommended work remains separated into:
 

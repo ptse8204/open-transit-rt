@@ -343,8 +343,18 @@ deployment success claim, hosted service claim, SLA/uptime claim, compliance
 claim, consumer acceptance claim, release-readiness claim,
 production-readiness claim, vendor claim, hardware claim, final-root claim,
 public-launch claim, or production-grade ETA claim.
-The exact next checkpoint is Phase 106 -- Checkpoint 000001: add staff
-training, demo datasets, and adoption kit plan. Any future evidence intake is
+Phase 106 -- Staff Training, Demo Datasets, And Adoption Kit is complete, with
+closeout at `docs/handoffs/phase-106.md`: it added private Help demo
+scenarios, a trainer script, a technical-helper checklist, operator training
+guide updates, staff-training tutorial navigation, and a synthetic training
+scenario catalog under `testdata/training-demo/`. Phase 106 added no real
+agency data, real vendor/device data, credentials, external contact, evidence
+write, consumer status change, adoption claim, agency approval claim, consumer
+acceptance claim, compliance claim, release-readiness claim, final-root claim,
+hosted service claim, SLA/uptime claim, production-readiness claim, vendor
+claim, hardware claim, public-launch claim, or production-grade ETA claim.
+The exact next checkpoint is Phase 107 -- Checkpoint 000001: add public docs
+site freeze and contributor onboarding plan. Any future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1609,8 +1619,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 106 -- Checkpoint
-000001: add staff training, demo datasets, and adoption kit plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 107 -- Checkpoint
+000001: add public docs site freeze and contributor onboarding plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

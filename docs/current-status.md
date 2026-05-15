@@ -571,8 +571,19 @@ consumer status change, deployment success claim, hosted service claim,
 SLA/uptime claim, compliance claim, consumer acceptance claim,
 release-readiness claim, production-readiness claim, vendor claim, hardware
 claim, final-root claim, public-launch claim, or production-grade ETA claim.
-The authorized autonomous post-90 roadmap continues next with Phase 106 --
-Staff Training, Demo Datasets, And Adoption Kit.
+Phase 106 -- Staff Training, Demo Datasets, And Adoption Kit is complete, with
+closeout at `docs/handoffs/phase-106.md`: the private Help model now includes
+a demo scenario catalog, trainer script, and technical-helper checklist; the
+operator training guide and tutorials include a local/synthetic staff-training
+path; and `testdata/training-demo/scenarios.json` records the training
+scenario catalog over committed fixtures. Phase 106 added no real agency data,
+real vendor/device data, credentials, external contact, evidence write,
+consumer status change, adoption claim, agency approval claim, consumer
+acceptance claim, compliance claim, release-readiness claim, final-root claim,
+hosted service claim, SLA/uptime claim, production-readiness claim, vendor
+claim, hardware claim, public-launch claim, or production-grade ETA claim.
+The authorized autonomous post-90 roadmap continues next with Phase 107 --
+Public Docs/Site Freeze And Contributor Onboarding.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
