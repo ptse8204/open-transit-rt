@@ -264,3 +264,83 @@ Proceed to validation checkpoint 000003.
 
 Next checkpoint:
 Phase 104 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 104 -- Checkpoint 000003: run validation and patch required gaps.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain roles
+were simulated by the Master Agent. Master Agent -- GPT-5.5 x-high, current
+thread.
+
+Changed files:
+`docs/phase-104-small-host-deployment-and-upgrade-hardening.md`.
+
+Validation run:
+`git status --short` returned no output before this checkpoint doc update.
+`git diff --check` passed. `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null` passed. The exact
+prepared-only consumer tracker assertion passed. `git status --short --
+docs/evidence/consumer-submissions docs/evidence/captured db/migrations
+go.mod go.sum` returned no output. Focused script syntax checks passed.
+Deployment-doctor generation and JSON validation passed for the top-level
+summary/manifest and Phase 104 resource/dependency/Postgres/upgrade summary
+files. Off-host validation dry-run and OCI reference check dry-run generated
+valid summaries and manifests. Focused custom assertions for category keys,
+all-false flags, off-host validator guidance, `recommended_db_max_conns=3`,
+and OCI `/healthz` loopback probing passed. The pilot-ops protected-path
+negative guard passed. `go test ./cmd/agency-config -run
+'DeploymentDoctor|ReferenceCheck|Maintenance|OperationsNavigation|RouteTitles'`
+passed. `make check` passed. `make audit-product-acceptance` passed. `make
+audit-final-claim-review` passed. `make validate` passed. `make test` passed.
+`docker compose -f deploy/docker-compose.yml config` passed. Final `git status
+--short`, final `git diff --check`, and final protected-path status check
+returned no output.
+
+Blocked checks:
+No Phase 104-required checks are blocked. Release-candidate diagnostics,
+package generation/audit, retained evidence, real public-root validation, real
+deployment actions, live backup/restore, consumer submission, publication,
+tag/release/package/image publication, and external contact remain outside
+Phase 104 scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+The protected-path status checks returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven targets remain in order and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. Phase 104 still makes no
+production-readiness, hosted-service, SLA, uptime, compliance,
+consumer-acceptance, agency-adoption, vendor, hardware, final-root,
+release-readiness, public-launch, or production-grade ETA claim.
+
+Security/auth status:
+No new credential collection, raw env rendering, raw backup rendering, live
+send, service-control action, migration execution, browser validator
+execution, public admin route, or external contact was added.
+
+Data/migration status:
+No migration, schema change, durable deployment state, backup metadata table,
+restore table, service-control table, or module dependency change was added.
+
+Master review:
+Approved. Validation passed without required Phase 104 code patches after
+checkpoint 000002.
+
+Required edits:
+Close Phase 104 with handoff/status docs and final checkpoint commit.
+
+Decision:
+Proceed to closeout checkpoint 000004.
+
+Next checkpoint:
+Phase 104 -- Checkpoint 000004: close small-host deployment and upgrade
+hardening review.
