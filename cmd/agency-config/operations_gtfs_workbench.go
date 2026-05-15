@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 const (
 	gtfsWorkbenchImportHistoryLimit = 8
 	gtfsWorkbenchPreviewRowLimit    = 10
+	gtfsWorkbenchDiffSampleLimit    = 5
 )
 
 type gtfsImportHistoryReader interface {
@@ -38,6 +40,7 @@ type operationsGTFSWorkbenchView struct {
 	Boundary          string                            `json:"boundary"`
 	ActiveFeedVersion operationsGTFSActiveFeedVersion   `json:"active_feed_version"`
 	Import            operationsGTFSImportSummary       `json:"import"`
+	VersionComparison operationsGTFSVersionComparison   `json:"version_comparison"`
 	Quality           operationsGTFSQualitySummary      `json:"quality"`
 	ValidationHealth  operationsGTFSValidationSummary   `json:"validation_health"`
 	Preview           operationsGTFSPreviewSummary      `json:"preview"`
@@ -95,6 +98,47 @@ type operationsGTFSChangeRow struct {
 	CurrentSignal string `json:"current_signal"`
 	NextAction    string `json:"next_action"`
 	ClaimBoundary string `json:"claim_boundary"`
+}
+
+type operationsGTFSVersionComparison struct {
+	Status                   string                        `json:"status"`
+	HistoryStatus            string                        `json:"history_status"`
+	ActiveFeedVersionID      string                        `json:"active_feed_version_id"`
+	PreviousFeedVersionID    string                        `json:"previous_feed_version_id"`
+	PreviousLifecycleState   string                        `json:"previous_lifecycle_state"`
+	PreviousValidationStatus string                        `json:"previous_validation_status"`
+	RowLimit                 int                           `json:"row_limit"`
+	SampleLimit              int                           `json:"sample_limit"`
+	CurrentSignal            string                        `json:"current_signal"`
+	NextAction               string                        `json:"next_action"`
+	ClaimBoundary            string                        `json:"claim_boundary"`
+	FileDiffs                []operationsGTFSFileDiffRow   `json:"file_diffs"`
+	EntityDiffs              []operationsGTFSEntityDiffRow `json:"entity_diffs"`
+	ReviewRows               []operationsGTFSChangeRow     `json:"review_rows"`
+}
+
+type operationsGTFSFileDiffRow struct {
+	File          string `json:"file"`
+	Status        string `json:"status"`
+	PreviousRows  int    `json:"previous_rows"`
+	ActiveRows    int    `json:"active_rows"`
+	DeltaRows     int    `json:"delta_rows"`
+	CurrentSignal string `json:"current_signal"`
+	NextAction    string `json:"next_action"`
+	ClaimBoundary string `json:"claim_boundary"`
+}
+
+type operationsGTFSEntityDiffRow struct {
+	Entity        string   `json:"entity"`
+	Status        string   `json:"status"`
+	PreviousRows  int      `json:"previous_rows"`
+	ActiveRows    int      `json:"active_rows"`
+	AddedSample   []string `json:"added_sample"`
+	RemovedSample []string `json:"removed_sample"`
+	ChangedSample []string `json:"changed_sample"`
+	CurrentSignal string   `json:"current_signal"`
+	NextAction    string   `json:"next_action"`
+	ClaimBoundary string   `json:"claim_boundary"`
 }
 
 type operationsGTFSQualitySummary struct {
@@ -273,6 +317,7 @@ func (h *handler) buildGTFSWorkbenchView(r *http.Request, page operationsPage) o
 	view.Preview = h.buildGTFSPreviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.DraftReview = h.buildGTFSDraftReviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.ScheduleHistory = h.buildGTFSScheduleHistory(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
+	view.VersionComparison = h.buildGTFSVersionComparison(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID, view.ScheduleHistory)
 	view.FeedOutput = buildGTFSWorkbenchFeedOutput(page.Discovery)
 	view.Actions = buildGTFSWorkbenchActions(view, page)
 	return view
@@ -704,6 +749,315 @@ func rollbackCandidateSignal(rows []operationsGTFSFeedVersionRow) string {
 		}
 	}
 	return "Recent history has multiple feed versions, but no retired rollback candidate is visible in the bounded list."
+}
+
+func (h *handler) buildGTFSVersionComparison(ctx context.Context, agencyID string, activeFeedVersionID string, history operationsGTFSScheduleHistory) operationsGTFSVersionComparison {
+	boundary := "Version comparison is a private read-only review of local published GTFS tables. It does not edit GTFS, execute rollback, prove canonical validator success, prove compliance, create evidence, or prove consumer ingestion."
+	summary := operationsGTFSVersionComparison{
+		Status:              "missing",
+		HistoryStatus:       history.HistoryStatus,
+		ActiveFeedVersionID: activeFeedVersionID,
+		RowLimit:            gtfsWorkbenchPreviewRowLimit,
+		SampleLimit:         gtfsWorkbenchDiffSampleLimit,
+		CurrentSignal:       "No active schedule feed version is recorded for version comparison.",
+		NextAction:          "Import or publish a schedule before reviewing version-to-version changes.",
+		ClaimBoundary:       boundary,
+		ReviewRows: []operationsGTFSChangeRow{
+			gtfsWorkbenchChangeRow("Published feed versions only", "ok", "This comparison uses published feed_version rows and does not read GTFS Studio draft rows as active data.", "Keep draft editing and published feed review separate.", boundary),
+		},
+	}
+	if strings.TrimSpace(activeFeedVersionID) == "" {
+		return summary
+	}
+	candidate := previousFeedVersionForComparison(history.FeedVersions, activeFeedVersionID)
+	if candidate == nil {
+		summary.CurrentSignal = "No previous published feed version is visible in the bounded schedule history."
+		summary.NextAction = "Treat this as a first recorded active schedule or ask a technical helper to inspect older feed versions if rollback review is needed."
+		summary.ReviewRows = append(summary.ReviewRows,
+			gtfsWorkbenchChangeRow("Previous version candidate", "missing", "No non-active previous feed version is visible in this bounded Workbench history.", "Import or publish a later schedule before active-vs-previous comparison is available here.", boundary),
+		)
+		return summary
+	}
+	summary.PreviousFeedVersionID = candidate.ID
+	summary.PreviousLifecycleState = firstNonEmpty(candidate.LifecycleState, "unknown")
+	summary.PreviousValidationStatus = firstNonEmpty(candidate.ValidationStatus, "not_run")
+
+	reader, ok := h.store.(gtfsSchedulePreviewReader)
+	if !ok {
+		summary.Status = "unknown"
+		summary.CurrentSignal = "This runtime does not expose the GTFS schedule preview reader needed for version comparison."
+		summary.NextAction = "Use feed-version history and import records, then ask a technical helper for table-level diff review."
+		summary.ReviewRows = append(summary.ReviewRows,
+			gtfsWorkbenchChangeRow("Preview reader", "unknown", "GTFS table previews are unavailable in this runtime.", "Review database/repository wiring before relying on version comparison.", boundary),
+		)
+		return summary
+	}
+	previousPreview, previousErr := reader.GTFSSchedulePreview(ctx, agencyID, candidate.ID, gtfsWorkbenchPreviewRowLimit)
+	activePreview, activeErr := reader.GTFSSchedulePreview(ctx, agencyID, activeFeedVersionID, gtfsWorkbenchPreviewRowLimit)
+	if previousErr != nil || activeErr != nil {
+		summary.Status = "unknown"
+		summary.CurrentSignal = "One or both GTFS schedule previews could not be read for version comparison."
+		summary.NextAction = "Review feed-version table state and schedule rows with a technical helper before rollback decisions."
+		summary.ReviewRows = append(summary.ReviewRows,
+			gtfsWorkbenchChangeRow("Previous preview", statusFromErr(previousErr), previewReadSignal("previous", candidate.ID, previousErr), "Resolve missing or unreadable schedule rows before rollback review.", boundary),
+			gtfsWorkbenchChangeRow("Active preview", statusFromErr(activeErr), previewReadSignal("active", activeFeedVersionID, activeErr), "Resolve missing or unreadable schedule rows before relying on the active schedule.", boundary),
+		)
+		return summary
+	}
+	summary.FileDiffs = gtfsVersionFileDiffs(previousPreview.Counts, activePreview.Counts, boundary)
+	summary.EntityDiffs = gtfsVersionEntityDiffs(previousPreview, activePreview, boundary)
+	summary.Status = gtfsVersionComparisonStatus(summary.FileDiffs, summary.EntityDiffs)
+	summary.CurrentSignal = gtfsVersionComparisonSignal(summary)
+	summary.NextAction = gtfsVersionComparisonNextAction(summary.Status)
+	summary.ReviewRows = append(summary.ReviewRows,
+		gtfsWorkbenchChangeRow("Rollback candidate", rollbackCandidateStatusForComparison(*candidate), rollbackCandidateSignalForComparison(*candidate), "Before any rollback outside this page, confirm validation state, feed health, realtime assignment impact, operator approval, and audit expectations.", boundary),
+		gtfsWorkbenchChangeRow("Realtime assignment review", "needs_review", "Current vehicle assignments may reference the active feed version that would become retired after rollback.", "After any external rollback procedure, review realtime matching, Vehicle Positions trip descriptors, Trip Updates withholding, and Alerts links before relying on outputs.", boundary),
+		gtfsWorkbenchChangeRow("Draft-only rollback command design", "blocked", "No executable rollback command or browser POST route exists in this Workbench.", "A future rollback command must be admin-only, CSRF-protected for cookie auth, confirmation-based, agency-scoped, transactional, audited, and followed by validation/feed-health review.", boundary),
+	)
+	return summary
+}
+
+func previousFeedVersionForComparison(rows []operationsGTFSFeedVersionRow, activeFeedVersionID string) *operationsGTFSFeedVersionRow {
+	for _, row := range rows {
+		if row.ID == "" || row.ID == activeFeedVersionID || row.IsActive {
+			continue
+		}
+		if row.LifecycleState == "retired" {
+			copyRow := row
+			return &copyRow
+		}
+	}
+	for _, row := range rows {
+		if row.ID == "" || row.ID == activeFeedVersionID || row.IsActive {
+			continue
+		}
+		copyRow := row
+		return &copyRow
+	}
+	return nil
+}
+
+func statusFromErr(err error) string {
+	if err != nil {
+		return "unknown"
+	}
+	return "ok"
+}
+
+func previewReadSignal(label string, feedVersionID string, err error) string {
+	if err != nil {
+		return fmt.Sprintf("%s preview for feed version %s could not be read.", label, feedVersionID)
+	}
+	return fmt.Sprintf("%s preview for feed version %s is readable.", label, feedVersionID)
+}
+
+func gtfsVersionFileDiffs(previous compliance.GTFSSchedulePreviewCounts, active compliance.GTFSSchedulePreviewCounts, boundary string) []operationsGTFSFileDiffRow {
+	return []operationsGTFSFileDiffRow{
+		gtfsVersionFileDiff("routes.txt", previous.Routes, active.Routes, "Review route additions, removals, route type changes, and route naming with the schedule owner.", boundary),
+		gtfsVersionFileDiff("stops.txt", previous.Stops, active.Stops, "Review stop additions, removals, name changes, and coordinate changes with the schedule owner.", boundary),
+		gtfsVersionFileDiff("trips.txt", previous.Trips, active.Trips, "Review trip additions, removals, route/service/block/shape links, and repeated trip patterns.", boundary),
+		gtfsVersionFileDiff("stop_times.txt", previous.StopTimes, active.StopTimes, "Review stop-time volume changes, ordering, after-midnight times, and stop references in source GTFS.", boundary),
+		gtfsVersionFileDiff("calendar.txt", previous.Calendar, active.Calendar, "Review service IDs, weekday patterns, and service date ranges before relying on trip coverage.", boundary),
+		gtfsVersionFileDiff("calendar_dates.txt", previous.CalendarDates, active.CalendarDates, "Review added/removed service exceptions, holidays, and canceled-service dates.", boundary),
+		gtfsVersionFileDiff("shapes.txt", previous.ShapePoints, active.ShapePoints, "Review shape coverage and distance data where route geometry affects matching or previews.", boundary),
+		gtfsVersionFileDiff("frequencies.txt", previous.Frequencies, active.Frequencies, "Review frequency rows as service-affecting changes for trip instance and matching behavior.", boundary),
+	}
+}
+
+func gtfsVersionFileDiff(file string, previousRows int, activeRows int, nextAction string, boundary string) operationsGTFSFileDiffRow {
+	delta := activeRows - previousRows
+	status := "ok"
+	signal := fmt.Sprintf("%s row count is unchanged at %d.", file, activeRows)
+	if delta != 0 {
+		status = "needs_review"
+		signal = fmt.Sprintf("%s row count changed from %d to %d (%+d).", file, previousRows, activeRows, delta)
+	}
+	return operationsGTFSFileDiffRow{
+		File:          file,
+		Status:        status,
+		PreviousRows:  previousRows,
+		ActiveRows:    activeRows,
+		DeltaRows:     delta,
+		CurrentSignal: signal,
+		NextAction:    nextAction,
+		ClaimBoundary: boundary,
+	}
+}
+
+func gtfsVersionEntityDiffs(previous compliance.GTFSSchedulePreview, active compliance.GTFSSchedulePreview, boundary string) []operationsGTFSEntityDiffRow {
+	return []operationsGTFSEntityDiffRow{
+		gtfsVersionEntityDiff("Routes", previous.Counts.Routes, active.Counts.Routes, routeSignatureMap(previous.Routes), routeSignatureMap(active.Routes), "Review sampled route ID additions, removals, and changed names or route types.", boundary),
+		gtfsVersionEntityDiff("Stops", previous.Counts.Stops, active.Counts.Stops, stopSignatureMap(previous.Stops), stopSignatureMap(active.Stops), "Review sampled stop ID additions, removals, renamed stops, and coordinate changes.", boundary),
+		gtfsVersionEntityDiff("Trips", previous.Counts.Trips, active.Counts.Trips, tripSignatureMap(previous.Trips), tripSignatureMap(active.Trips), "Review sampled trip ID additions, removals, route/service/block changes, and shape changes.", boundary),
+		gtfsVersionEntityDiff("Service calendars", previous.Counts.Calendar+previous.Counts.CalendarDates, active.Counts.Calendar+active.Counts.CalendarDates, calendarSignatureMap(previous.Calendar), calendarSignatureMap(active.Calendar), "Review sampled service ID changes plus the calendar_dates row-count signal before relying on service coverage.", boundary),
+		gtfsVersionEntityDiff("Frequencies", previous.Counts.Frequencies, active.Counts.Frequencies, frequencySignatureMap(previous.Frequencies), frequencySignatureMap(active.Frequencies), "Review sampled frequency changes because headways and exact-times values affect trip instance interpretation.", boundary),
+	}
+}
+
+func gtfsVersionEntityDiff(entity string, previousRows int, activeRows int, previous map[string]string, active map[string]string, nextAction string, boundary string) operationsGTFSEntityDiffRow {
+	row := operationsGTFSEntityDiffRow{
+		Entity:        entity,
+		Status:        "ok",
+		PreviousRows:  previousRows,
+		ActiveRows:    activeRows,
+		AddedSample:   boundedKeyDiff(active, previous, gtfsWorkbenchDiffSampleLimit),
+		RemovedSample: boundedKeyDiff(previous, active, gtfsWorkbenchDiffSampleLimit),
+		ChangedSample: boundedChangedKeys(previous, active, gtfsWorkbenchDiffSampleLimit),
+		NextAction:    nextAction,
+		ClaimBoundary: boundary,
+	}
+	if previousRows != activeRows || len(row.AddedSample) > 0 || len(row.RemovedSample) > 0 || len(row.ChangedSample) > 0 {
+		row.Status = "needs_review"
+	}
+	row.CurrentSignal = entityDiffSignal(row)
+	return row
+}
+
+func routeSignatureMap(rows []compliance.GTFSScheduleRoutePreview) map[string]string {
+	out := make(map[string]string, len(rows))
+	for _, row := range rows {
+		out[boundedDisplayText(row.ID, 160)] = strings.Join([]string{row.ShortName, row.LongName, row.RouteType}, "\x00")
+	}
+	return out
+}
+
+func stopSignatureMap(rows []compliance.GTFSScheduleStopPreview) map[string]string {
+	out := make(map[string]string, len(rows))
+	for _, row := range rows {
+		out[boundedDisplayText(row.ID, 160)] = fmt.Sprintf("%s\x00%.6f\x00%.6f", row.Name, row.Lat, row.Lon)
+	}
+	return out
+}
+
+func tripSignatureMap(rows []compliance.GTFSScheduleTripPreview) map[string]string {
+	out := make(map[string]string, len(rows))
+	for _, row := range rows {
+		out[boundedDisplayText(row.ID, 160)] = strings.Join([]string{row.RouteID, row.ServiceID, row.BlockID, row.ShapeID, row.DirectionID}, "\x00")
+	}
+	return out
+}
+
+func calendarSignatureMap(rows []compliance.GTFSScheduleCalendarPreview) map[string]string {
+	out := make(map[string]string, len(rows))
+	for _, row := range rows {
+		out[boundedDisplayText(row.ServiceID, 160)] = strings.Join([]string{row.Days, row.StartDate, row.EndDate}, "\x00")
+	}
+	return out
+}
+
+func frequencySignatureMap(rows []compliance.GTFSScheduleFrequencyPreview) map[string]string {
+	out := make(map[string]string, len(rows))
+	for _, row := range rows {
+		key := boundedDisplayText(row.TripID+" @ "+row.StartTime, 160)
+		out[key] = fmt.Sprintf("%s\x00%d\x00%d", row.EndTime, row.HeadwaySecs, row.ExactTimes)
+	}
+	return out
+}
+
+func boundedKeyDiff(left map[string]string, right map[string]string, limit int) []string {
+	keys := make([]string, 0)
+	for key := range left {
+		if _, ok := right[key]; !ok {
+			keys = append(keys, key)
+		}
+	}
+	sort.Strings(keys)
+	return boundedStringSlice(keys, limit)
+}
+
+func boundedChangedKeys(previous map[string]string, active map[string]string, limit int) []string {
+	keys := make([]string, 0)
+	for key, previousValue := range previous {
+		activeValue, ok := active[key]
+		if !ok {
+			continue
+		}
+		if activeValue != previousValue {
+			keys = append(keys, key)
+		}
+	}
+	sort.Strings(keys)
+	return boundedStringSlice(keys, limit)
+}
+
+func boundedStringSlice(values []string, limit int) []string {
+	if limit <= 0 || len(values) <= limit {
+		return values
+	}
+	return append([]string(nil), values[:limit]...)
+}
+
+func entityDiffSignal(row operationsGTFSEntityDiffRow) string {
+	parts := []string{
+		fmt.Sprintf("rows %d -> %d", row.PreviousRows, row.ActiveRows),
+		fmt.Sprintf("%d added samples", len(row.AddedSample)),
+		fmt.Sprintf("%d removed samples", len(row.RemovedSample)),
+		fmt.Sprintf("%d changed samples", len(row.ChangedSample)),
+	}
+	if row.Status == "ok" {
+		return "Bounded sample comparison shows no row-count or sampled identity changes (" + strings.Join(parts, "; ") + ")."
+	}
+	return "Review bounded sample comparison (" + strings.Join(parts, "; ") + ")."
+}
+
+func gtfsVersionComparisonStatus(files []operationsGTFSFileDiffRow, entities []operationsGTFSEntityDiffRow) string {
+	if len(files) == 0 && len(entities) == 0 {
+		return "missing"
+	}
+	for _, row := range files {
+		if row.Status == "needs_review" || row.Status == "blocked" {
+			return "needs_review"
+		}
+	}
+	for _, row := range entities {
+		if row.Status == "needs_review" || row.Status == "blocked" {
+			return "needs_review"
+		}
+	}
+	return "ok"
+}
+
+func gtfsVersionComparisonSignal(summary operationsGTFSVersionComparison) string {
+	if summary.PreviousFeedVersionID == "" || summary.ActiveFeedVersionID == "" {
+		return "Version comparison needs both a previous and active feed version."
+	}
+	if summary.Status == "ok" {
+		return fmt.Sprintf("Active feed version %s and previous feed version %s have matching row counts and bounded samples.", summary.ActiveFeedVersionID, summary.PreviousFeedVersionID)
+	}
+	return fmt.Sprintf("Active feed version %s differs from previous feed version %s in row counts or bounded samples.", summary.ActiveFeedVersionID, summary.PreviousFeedVersionID)
+}
+
+func gtfsVersionComparisonNextAction(status string) string {
+	switch status {
+	case "ok":
+		return "Continue reviewing validation, feed health, and realtime assignment context before operational decisions."
+	case "needs_review":
+		return "Review source schedule changes with the schedule owner, then verify validation, feed health, and realtime implications."
+	case "missing":
+		return "Import or publish another schedule before active-vs-previous comparison is available."
+	default:
+		return "Ask a technical helper to inspect feed-version and schedule table state before rollback or publish decisions."
+	}
+}
+
+func rollbackCandidateStatusForComparison(row operationsGTFSFeedVersionRow) string {
+	if row.ID == "" {
+		return "missing"
+	}
+	if row.LifecycleState != "retired" {
+		return "needs_review"
+	}
+	if row.ValidationStatus == "failed" {
+		return "blocked"
+	}
+	return "needs_review"
+}
+
+func rollbackCandidateSignalForComparison(row operationsGTFSFeedVersionRow) string {
+	if row.ID == "" {
+		return "No rollback candidate is selected."
+	}
+	return fmt.Sprintf("Candidate %s is %s with validation status %s.", row.ID, firstNonEmpty(row.LifecycleState, "unknown"), firstNonEmpty(row.ValidationStatus, "not_run"))
 }
 
 func (h *handler) buildGTFSImportSummary(ctx context.Context, agencyID string, activeFeedVersionID string) operationsGTFSImportSummary {

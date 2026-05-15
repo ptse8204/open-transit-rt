@@ -261,3 +261,81 @@ Commit Checkpoint 000001, then proceed to CP000002 implementation.
 
 Next checkpoint:
 Phase 96 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint 000002 Report
+
+Checkpoint:
+Phase 96 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Real Implementation Review Sub-Agent -- GPT-5.5 high reviewed minimal
+no-migration implementation seams and recommended active-vs-previous
+comparison from published feed versions. Real QA Sub-Agent -- GPT-5.5 high
+returned focused Workbench assertions and validation commands. UI/UX,
+Documentation / IA, Claim-Boundary, Security/Auth, and Data/Migration roles
+were simulated by the Master Agent for implementation review, with prior
+real Data/Migration and Claim/Security reports carried forward. Master Agent
+-- GPT-5.5 x-high, current thread.
+
+Changed files:
+`cmd/agency-config/operations_gtfs_workbench.go`;
+`cmd/agency-config/operations.go`; `cmd/agency-config/main_test.go`;
+`docs/phase-96-gtfs-versioning-diff-and-rollback-workbench.md`.
+
+Validation run:
+`gofmt -w cmd/agency-config/operations_gtfs_workbench.go
+cmd/agency-config/operations.go cmd/agency-config/main_test.go`; `go test
+./cmd/agency-config -run 'GTFSWorkbench|GTFSImport|GTFSQuality|ValidationHealth|Setup'`;
+`git diff --check`; `make check`; `make audit-product-acceptance`; `make
+audit-final-claim-review`; `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null`; exact
+prepared-only consumer tracker assertion; `git status --short --
+docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod
+go.sum`.
+
+Blocked checks:
+`make validate`, `make test`, and `docker compose -f deploy/docker-compose.yml
+config` are deferred to CP000003 per the phase plan. `RUN_LOCAL_APP=true make
+release-candidate-check` was not run because CP000002 did not require a local
+app release-candidate diagnostic and must not imply release readiness.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched by
+tracked changes. The protected-path status check returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven targets remain present in order and all remain `prepared`.
+
+Claim-boundary status:
+The Workbench comparison is private, read-only, and bounded. It does not claim
+canonical validator success, compliance, consumer ingestion, agency approval,
+release readiness, production readiness, final-root readiness, hosted service,
+vendor compatibility, hardware certification, SLA/uptime, or ETA quality.
+
+Security/auth status:
+Existing private authenticated Workbench routes remain GET-only and no-store.
+No form, POST route, rollback button, browser mutation, credential path, or
+public admin route was added. Existing tests still cover POST `405`,
+cross-agency `403`, unauthenticated `401`, and public route `404`.
+
+Data/migration status:
+No migration or durable diff table was added. The implementation reuses
+existing published feed-version history and the existing bounded GTFS schedule
+preview reader to compare active and previous published schedule rows.
+
+Master review:
+Approved. CP000002 adds active-vs-previous schedule comparison, file-level
+row-count diffs, bounded route/stop/trip/service/frequency samples, and
+rollback-review guidance while preserving draft/published separation and
+read-only Workbench behavior.
+
+Required edits:
+None before committing this checkpoint.
+
+Decision:
+Commit Checkpoint 000002 and proceed to CP000003 validation and required gap
+patching.
+
+Next checkpoint:
+Phase 96 -- Checkpoint 000003: run validation and patch required gaps.

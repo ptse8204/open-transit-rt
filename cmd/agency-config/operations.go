@@ -2839,6 +2839,35 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Review item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .GTFSWorkbench.Import.Diff}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
+<h3>Active Vs Previous Schedule Comparison</h3>
+<p class="warning">{{.GTFSWorkbench.VersionComparison.ClaimBoundary}}</p>
+<table><tbody>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .GTFSWorkbench.VersionComparison.Status}}">{{.GTFSWorkbench.VersionComparison.Status}}</span></td></tr>
+<tr><th>Active feed version</th><td>{{if .GTFSWorkbench.VersionComparison.ActiveFeedVersionID}}<code>{{.GTFSWorkbench.VersionComparison.ActiveFeedVersionID}}</code>{{else}}not recorded{{end}}</td></tr>
+<tr><th>Previous feed version</th><td>{{if .GTFSWorkbench.VersionComparison.PreviousFeedVersionID}}<code>{{.GTFSWorkbench.VersionComparison.PreviousFeedVersionID}}</code>{{else}}not visible{{end}}</td></tr>
+<tr><th>Previous lifecycle</th><td>{{.GTFSWorkbench.VersionComparison.PreviousLifecycleState}}</td></tr>
+<tr><th>Previous validation</th><td>{{.GTFSWorkbench.VersionComparison.PreviousValidationStatus}}</td></tr>
+<tr><th>Current signal</th><td>{{.GTFSWorkbench.VersionComparison.CurrentSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.GTFSWorkbench.VersionComparison.NextAction}}</td></tr>
+</tbody></table>
+{{if .GTFSWorkbench.VersionComparison.FileDiffs}}
+<h4>File-Level Row Count Diff</h4>
+<table><thead><tr><th>File</th><th>Status</th><th>Previous rows</th><th>Active rows</th><th>Delta</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.VersionComparison.FileDiffs}}<tr><td><code>{{.File}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.PreviousRows}}</td><td>{{.ActiveRows}}</td><td>{{.DeltaRows}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
+{{if .GTFSWorkbench.VersionComparison.EntityDiffs}}
+<h4>Route / Stop / Trip / Service Change Summary</h4>
+<table><thead><tr><th>Entity</th><th>Status</th><th>Rows</th><th>Added sample</th><th>Removed sample</th><th>Changed sample</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.VersionComparison.EntityDiffs}}<tr><td>{{.Entity}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.PreviousRows}} -> {{.ActiveRows}}</td><td>{{if .AddedSample}}{{range .AddedSample}}<code>{{.}}</code><br>{{end}}{{else}}none in bounded sample{{end}}</td><td>{{if .RemovedSample}}{{range .RemovedSample}}<code>{{.}}</code><br>{{end}}{{else}}none in bounded sample{{end}}</td><td>{{if .ChangedSample}}{{range .ChangedSample}}<code>{{.}}</code><br>{{end}}{{else}}none in bounded sample{{end}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
+{{if .GTFSWorkbench.VersionComparison.ReviewRows}}
+<h4>Version Comparison Review Checklist</h4>
+<table><thead><tr><th>Review item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .GTFSWorkbench.VersionComparison.ReviewRows}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{end}}
 {{if .GTFSWorkbench.Import.History}}
 <h3>Recent Import History</h3>
 <table><thead><tr><th>ID</th><th>Status</th><th>Feed version</th><th>Source</th><th>Checksum</th><th>Size</th><th>Counts</th><th>Started</th><th>Completed</th></tr></thead><tbody>
@@ -2967,7 +2996,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>What should I do next?</strong> Import a GTFS ZIP or safe GTFS URL, then review GTFS Quality, Validation Health, and Feed Health.</p>
 <p><strong>Can I do it in the browser?</strong> Yes, admins can use ZIP upload or safe URL import on this page.</p>
 <p><strong>When do I need a technical helper?</strong> Use one for local app startup, very large scripted imports, unavailable import service, staged comparisons, or rollback work.</p>
-<p><strong>What this does not prove:</strong> A successful import does not prove validator-clean status, schedule correctness, agency approval, consumer acceptance, compliance, final-root readiness, hosted operation, or production readiness.</p>
+<p><strong>What this does not prove:</strong> A successful import does not prove canonical validator success, schedule correctness, agency approval, consumer acceptance, compliance, final-root readiness, hosted operation, or production readiness.</p>
 </section>
 </div>
 <h3>Source Review Before Import</h3>

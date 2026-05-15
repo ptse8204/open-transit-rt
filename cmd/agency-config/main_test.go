@@ -1704,46 +1704,79 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 				CompletedAt:    &now,
 			},
 		},
-		gtfsPreview: compliance.GTFSSchedulePreview{
-			AgencyID:      "demo-agency",
-			FeedVersionID: "feed-v2",
-			RowLimit:      10,
-			Counts: compliance.GTFSSchedulePreviewCounts{
-				Routes:        12,
-				Stops:         2,
-				Trips:         1,
-				StopTimes:     4,
-				Calendar:      1,
-				CalendarDates: 1,
-				ShapePoints:   2,
-				Frequencies:   1,
+		gtfsPreviews: map[string]compliance.GTFSSchedulePreview{
+			"feed-v2": {
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-v2",
+				RowLimit:      10,
+				Counts: compliance.GTFSSchedulePreviewCounts{
+					Routes:        12,
+					Stops:         2,
+					Trips:         1,
+					StopTimes:     4,
+					Calendar:      1,
+					CalendarDates: 1,
+					ShapePoints:   2,
+					Frequencies:   1,
+				},
+				Agency: compliance.GTFSScheduleAgencyPreview{AgencyID: "demo-agency", Name: "Demo Agency", Timezone: "America/Los_Angeles"},
+				Routes: []compliance.GTFSScheduleRoutePreview{
+					{ID: "route-01", ShortName: "1", LongName: "Main / <script>", RouteType: "3"},
+					{ID: "route-02", ShortName: "2", LongName: "Crosstown", RouteType: "3"},
+					{ID: "route-03", ShortName: "3", LongName: "Hill", RouteType: "3"},
+					{ID: "route-04", ShortName: "4", LongName: "Lake", RouteType: "3"},
+					{ID: "route-05", ShortName: "5", LongName: "Park", RouteType: "3"},
+					{ID: "route-06", ShortName: "6", LongName: "Airport", RouteType: "3"},
+					{ID: "route-07", ShortName: "7", LongName: "Depot", RouteType: "3"},
+					{ID: "route-08", ShortName: "8", LongName: "School", RouteType: "3"},
+					{ID: "route-09", ShortName: "9", LongName: "Clinic", RouteType: "3"},
+					{ID: "route-10", ShortName: "10", LongName: "Loop", RouteType: "3"},
+					{ID: "route-11", ShortName: "11", LongName: "Overflow", RouteType: "3"},
+				},
+				Stops: []compliance.GTFSScheduleStopPreview{
+					{ID: "stop-01", Name: "Main & 1st", Lat: 34.1, Lon: -118.1},
+					{ID: "stop-02", Name: "Main & 2nd", Lat: 34.2, Lon: -118.2},
+				},
+				Trips: []compliance.GTFSScheduleTripPreview{
+					{ID: "trip-01", RouteID: "route-01", ServiceID: "weekday", BlockID: "block-1", ShapeID: "shape-1", DirectionID: "0"},
+				},
+				Calendar: []compliance.GTFSScheduleCalendarPreview{
+					{ServiceID: "weekday", Days: "Mon, Tue, Wed, Thu, Fri", StartDate: "20260501", EndDate: "20261231"},
+				},
+				Frequencies: []compliance.GTFSScheduleFrequencyPreview{
+					{TripID: "trip-01", StartTime: "06:00:00", EndTime: "09:00:00", HeadwaySecs: 900, ExactTimes: 0},
+				},
 			},
-			Agency: compliance.GTFSScheduleAgencyPreview{AgencyID: "demo-agency", Name: "Demo Agency", Timezone: "America/Los_Angeles"},
-			Routes: []compliance.GTFSScheduleRoutePreview{
-				{ID: "route-01", ShortName: "1", LongName: "Main / <script>", RouteType: "3"},
-				{ID: "route-02", ShortName: "2", LongName: "Crosstown", RouteType: "3"},
-				{ID: "route-03", ShortName: "3", LongName: "Hill", RouteType: "3"},
-				{ID: "route-04", ShortName: "4", LongName: "Lake", RouteType: "3"},
-				{ID: "route-05", ShortName: "5", LongName: "Park", RouteType: "3"},
-				{ID: "route-06", ShortName: "6", LongName: "Airport", RouteType: "3"},
-				{ID: "route-07", ShortName: "7", LongName: "Depot", RouteType: "3"},
-				{ID: "route-08", ShortName: "8", LongName: "School", RouteType: "3"},
-				{ID: "route-09", ShortName: "9", LongName: "Clinic", RouteType: "3"},
-				{ID: "route-10", ShortName: "10", LongName: "Loop", RouteType: "3"},
-				{ID: "route-11", ShortName: "11", LongName: "Overflow", RouteType: "3"},
-			},
-			Stops: []compliance.GTFSScheduleStopPreview{
-				{ID: "stop-01", Name: "Main & 1st", Lat: 34.1, Lon: -118.1},
-				{ID: "stop-02", Name: "Main & 2nd", Lat: 34.2, Lon: -118.2},
-			},
-			Trips: []compliance.GTFSScheduleTripPreview{
-				{ID: "trip-01", RouteID: "route-01", ServiceID: "weekday", BlockID: "block-1", ShapeID: "shape-1", DirectionID: "0"},
-			},
-			Calendar: []compliance.GTFSScheduleCalendarPreview{
-				{ServiceID: "weekday", Days: "Mon, Tue, Wed, Thu, Fri", StartDate: "20260501", EndDate: "20261231"},
-			},
-			Frequencies: []compliance.GTFSScheduleFrequencyPreview{
-				{TripID: "trip-01", StartTime: "06:00:00", EndTime: "09:00:00", HeadwaySecs: 900, ExactTimes: 0},
+			"feed-v1": {
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-v1",
+				RowLimit:      10,
+				Counts: compliance.GTFSSchedulePreviewCounts{
+					Routes:        9,
+					Stops:         3,
+					Trips:         2,
+					StopTimes:     8,
+					Calendar:      1,
+					CalendarDates: 0,
+					ShapePoints:   1,
+					Frequencies:   0,
+				},
+				Agency: compliance.GTFSScheduleAgencyPreview{AgencyID: "demo-agency", Name: "Demo Agency", Timezone: "America/Los_Angeles"},
+				Routes: []compliance.GTFSScheduleRoutePreview{
+					{ID: "route-01", ShortName: "1", LongName: "Old Main", RouteType: "3"},
+					{ID: "route-legacy", ShortName: "L", LongName: "Legacy", RouteType: "3"},
+				},
+				Stops: []compliance.GTFSScheduleStopPreview{
+					{ID: "stop-01", Name: "Main & 1st", Lat: 34.1, Lon: -118.1},
+					{ID: "stop-03", Name: "Retired Stop", Lat: 34.3, Lon: -118.3},
+				},
+				Trips: []compliance.GTFSScheduleTripPreview{
+					{ID: "trip-01", RouteID: "route-01", ServiceID: "weekday", BlockID: "block-old", ShapeID: "shape-old", DirectionID: "0"},
+					{ID: "trip-retired", RouteID: "route-legacy", ServiceID: "weekday", BlockID: "block-old", ShapeID: "shape-old", DirectionID: "1"},
+				},
+				Calendar: []compliance.GTFSScheduleCalendarPreview{
+					{ServiceID: "weekday", Days: "Mon, Tue, Wed, Thu, Fri", StartDate: "20260101", EndDate: "20260430"},
+				},
 			},
 		},
 		gtfsDrafts: []compliance.GTFSDraftRecord{{
@@ -1824,7 +1857,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
+	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
@@ -1845,7 +1878,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &decoded); err != nil {
 		t.Fatalf("decode workbench JSON: %v\n%s", err, rr.Body.String())
 	}
-	for _, key := range []string{"generated_at", "agency_id", "boundary", "active_feed_version", "import", "quality", "validation_health", "preview", "draft_review", "schedule_history", "feed_output", "actions", "claim_flags"} {
+	for _, key := range []string{"generated_at", "agency_id", "boundary", "active_feed_version", "import", "version_comparison", "quality", "validation_health", "preview", "draft_review", "schedule_history", "feed_output", "actions", "claim_flags"} {
 		if _, ok := decoded[key]; !ok {
 			t.Fatalf("workbench JSON missing %q: %#v", key, decoded)
 		}
@@ -1870,6 +1903,44 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	routes, ok := preview["routes"].([]any)
 	if !ok || len(routes) != 10 {
 		t.Fatalf("preview routes = %#v, want capped 10 rows", preview["routes"])
+	}
+	versionComparison, ok := decoded["version_comparison"].(map[string]any)
+	if !ok || versionComparison["status"] != "needs_review" || versionComparison["active_feed_version_id"] != "feed-v2" || versionComparison["previous_feed_version_id"] != "feed-v1" {
+		t.Fatalf("version_comparison = %#v, want needs_review feed-v2 vs feed-v1", decoded["version_comparison"])
+	}
+	fileDiffs, ok := versionComparison["file_diffs"].([]any)
+	if !ok || len(fileDiffs) != 8 {
+		t.Fatalf("file_diffs = %#v, want eight GTFS file diff rows", versionComparison["file_diffs"])
+	}
+	seenFileDiffs := map[string]map[string]any{}
+	for _, item := range fileDiffs {
+		row, ok := item.(map[string]any)
+		if !ok {
+			t.Fatalf("file diff row = %#v, want object", item)
+		}
+		file, _ := row["file"].(string)
+		seenFileDiffs[file] = row
+	}
+	for _, file := range []string{"routes.txt", "stops.txt", "trips.txt", "stop_times.txt", "calendar.txt", "calendar_dates.txt", "shapes.txt", "frequencies.txt"} {
+		if _, ok := seenFileDiffs[file]; !ok {
+			t.Fatalf("file diffs missing %s in %#v", file, seenFileDiffs)
+		}
+	}
+	if got := seenFileDiffs["routes.txt"]["delta_rows"]; got != float64(3) {
+		t.Fatalf("routes delta = %#v, want 3", got)
+	}
+	if got := seenFileDiffs["frequencies.txt"]["delta_rows"]; got != float64(1) {
+		t.Fatalf("frequencies delta = %#v, want 1", got)
+	}
+	entityDiffs, ok := versionComparison["entity_diffs"].([]any)
+	if !ok || len(entityDiffs) == 0 {
+		t.Fatalf("entity_diffs = %#v, want bounded entity summaries", versionComparison["entity_diffs"])
+	}
+	entityBody := fmt.Sprint(entityDiffs)
+	for _, want := range []string{"Routes", "Stops", "Trips", "Service calendars", "Frequencies", "route-02", "route-legacy", "route-01"} {
+		if !strings.Contains(entityBody, want) {
+			t.Fatalf("entity diffs missing %q: %#v", want, entityDiffs)
+		}
 	}
 	draftReview, ok := decoded["draft_review"].(map[string]any)
 	if !ok || draftReview["status"] != "needs_review" {
@@ -8343,6 +8414,7 @@ type fakePublicationStore struct {
 	gtfsImports             []compliance.GTFSImportRecord
 	gtfsImportsErr          error
 	gtfsPreview             compliance.GTFSSchedulePreview
+	gtfsPreviews            map[string]compliance.GTFSSchedulePreview
 	gtfsPreviewErr          error
 	gtfsDrafts              []compliance.GTFSDraftRecord
 	gtfsDraftsErr           error
@@ -8503,6 +8575,13 @@ func (f *fakePublicationStore) GTFSSchedulePreview(_ context.Context, agencyID s
 		return compliance.GTFSSchedulePreview{}, f.gtfsPreviewErr
 	}
 	preview := f.gtfsPreview
+	if f.gtfsPreviews != nil {
+		if mapped, ok := f.gtfsPreviews[feedVersionID]; ok {
+			preview = mapped
+		} else if len(f.gtfsPreviews) > 0 && preview.FeedVersionID == "" {
+			return compliance.GTFSSchedulePreview{}, errors.New("GTFS preview not found")
+		}
+	}
 	if preview.AgencyID == "" {
 		preview.AgencyID = agencyID
 	}
