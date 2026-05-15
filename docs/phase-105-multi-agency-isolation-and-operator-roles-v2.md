@@ -228,3 +228,76 @@ Proceed to validation/audit checkpoint 000003.
 
 Next checkpoint:
 Phase 105 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 105 -- Checkpoint 000003: run validation and patch required gaps.
+
+Sub-agents used or simulated, including intended model level:
+QA, Security/Auth, Claim-Boundary, Data/Migration, Documentation / IA, and
+Release/Supply-Chain roles are simulated by the Master Agent for validation.
+Master Agent -- GPT-5.5 x-high, current thread.
+
+Changed files:
+`docs/phase-105-multi-agency-isolation-and-operator-roles-v2.md`.
+
+Validation run:
+Focused checks passed: `go test ./internal/auth ./internal/tenant`; `go test
+./cmd/agency-config -run 'Agency|Access|Audit|Role|Route|Public'`; `go test
+./cmd/feed-vehicle-positions ./cmd/feed-trip-updates ./cmd/feed-alerts
+./cmd/gtfs-studio ./internal/compliance`;
+`scripts/audit-operations-route-inventory.sh`; and
+`scripts/test-multi-agency-hosting.sh`.
+
+Baseline/code-change checks passed: `git status --short`; `git diff --check`;
+`make check`; `make audit-product-acceptance`; `make audit-final-claim-review`;
+`python3 -m json.tool docs/evidence/consumer-submissions/status.json
+>/dev/null`; the exact prepared-only consumer tracker assertion; `git status
+--short -- docs/evidence/consumer-submissions docs/evidence/captured
+db/migrations go.mod go.sum`; `make validate`; `make test`; and `docker
+compose -f deploy/docker-compose.yml config`.
+
+Blocked checks:
+None for this phase. Release-candidate checks, package generation/audit, tags,
+publication, evidence collection, real credentials, hosted identity changes,
+and external consumer/vendor/agency contact remain out of scope.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path was modified.
+
+Consumer tracker status:
+The JSON syntax check and exact prepared-only assertion passed. All seven
+targets remain in order and `prepared`.
+
+Claim-boundary status:
+`make audit-product-acceptance` and `make audit-final-claim-review` passed.
+No production multi-tenant hosting, hosted SaaS, SLA, uptime, compliance,
+consumer-acceptance, agency-adoption, deployment-success, vendor, hardware,
+final-root, release-readiness, public-launch, or production-grade ETA claim was
+added.
+
+Security/auth status:
+Validation covered no-store/escaped access denial, bounded forbidden response,
+agency-scope conflict short-circuiting before audit data load, route registry
+coverage, public feed path-route query override resistance, encoded
+slash/backslash rejection, and per-agency debug JSON non-exposure.
+
+Data/migration status:
+No database migration, schema, durable tenancy state, row-level security model,
+hosted identity store, module dependency, `go.mod`, or `go.sum` change occurred.
+
+Master review:
+Approved. No required validation gaps remain for the Phase 105 scope.
+
+Required edits:
+Prepare the Phase 105 handoff and closeout docs.
+
+Decision:
+Proceed to closeout checkpoint 000004.
+
+Next checkpoint:
+Phase 105 -- Checkpoint 000004: close multi-agency isolation and operator roles
+v2 review.
