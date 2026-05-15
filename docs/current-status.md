@@ -489,8 +489,19 @@ mutation, evidence write, consumer status change, SLA/uptime claim,
 production-readiness claim, production AVL reliability claim, production-grade
 ETA claim, real-world ETA accuracy claim, vendor claim, hardware claim, or
 compliance claim.
-The authorized autonomous post-90 roadmap continues next with Phase 99 --
-Prediction / ETA Conformance And Backtesting V2.
+Phase 99 -- Prediction / ETA Conformance And Backtesting V2 is complete, with
+closeout at `docs/handoffs/phase-99.md`: realtime-quality backtest summaries
+now include aggregate synthetic conformance rows, the private Prediction Lab
+surfaces a bounded conformance signal, and the committed public-safe fixture
+set covers after-midnight, frequency/headway, service-calendar start-instance,
+unknown/ambiguous withholding, and shadow/fail-closed predictor cases. Phase
+99 added no public admin route, migration, raw observed-event persistence,
+public feed mutation, external predictor contact, evidence write, consumer
+status change, production-grade ETA claim, real-world ETA accuracy claim,
+vendor claim, hardware claim, SLA/uptime claim, compliance claim, or release
+readiness claim.
+The authorized autonomous post-90 roadmap continues next with Phase 100 --
+Alerts Operations And Disruption Workflow.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

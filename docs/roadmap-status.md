@@ -8,6 +8,17 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 99 is complete for Prediction / ETA Conformance And Backtesting V2 in
+the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
+is [`docs/handoffs/phase-99.md`](handoffs/phase-99.md). Phase 99 added
+aggregate synthetic conformance rows to realtime-quality backtest summaries,
+a bounded private Prediction Lab conformance signal, and expanded public-safe
+backtest fixtures for unknown/ambiguous withholding plus external predictor
+fail-closed behavior. It did not add public feed mutations, raw observed-event
+persistence, external predictor contact, evidence writes, consumer-status
+movement, ETA-quality claims, real-world ETA accuracy claims, vendor claims,
+hardware claims, SLA/uptime claims, or compliance/release-readiness claims.
+
 Phase 98 is complete for Realtime Operations QA And Feed Usefulness in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
 [`docs/handoffs/phase-98.md`](handoffs/phase-98.md). Phase 98 added private
@@ -80,11 +91,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 99 --
-Prediction / ETA Conformance And Backtesting V2. Phase 99 may improve
-synthetic prediction conformance and backtesting diagnostics, but it must not
-claim production-grade ETA quality, real-world ETA accuracy, consumer
-acceptance, public launch, compliance, or real-world deployment readiness.
+The current authorized autonomous run continues next with Phase 100 -- Alerts
+Operations And Disruption Workflow. Phase 100 may improve private alert
+authoring review, lifecycle guidance, canceled-trip linkage, and
+missing-alert hints, but it must not claim public launch, consumer acceptance,
+compliance, production readiness, or real-world deployment readiness.
 
 Recommended work remains separated into:
 

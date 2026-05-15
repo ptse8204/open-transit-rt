@@ -246,3 +246,33 @@ Required edits: Add Phase 99 closeout handoff/status updates.
 Decision: Continue to Checkpoint 000004.
 
 Next checkpoint: Phase 99 -- Checkpoint 000004: close prediction / eta conformance and backtesting v2 review
+
+## Checkpoint 000004 Report
+
+Checkpoint: Phase 99 -- Checkpoint 000004: close prediction / eta conformance and backtesting v2 review
+
+Sub-agents used or simulated, including intended model level: Context / Repo Truth Sub-Agent GPT-5.5 x-high and Planning Sub-Agent GPT-5.5 x-high completed read-only review. Implementation, QA, UI/UX, Documentation / IA, Claim-Boundary, Security/Auth, and Data/Migration were simulated by the Master Agent for closeout.
+
+Changed files: `docs/phase-99-prediction-eta-conformance-and-backtesting-v2.md`, `docs/handoffs/phase-99.md`, `docs/handoffs/latest.md`, `docs/current-status.md`, `docs/roadmap-status.md`, `docs/open-transit-rt-master-planner-remaining-work.md`
+
+Validation run: Reused Checkpoint 000003 full validation for closeout plus `git diff --check`, `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`, exact prepared-only consumer tracker assertion, and protected-path status check after status-doc edits.
+
+Blocked checks: Release-candidate diagnostics/package checks and connector-specific checks were not run because Phase 99 is not a release or connector phase. Retained evidence, external contact, consumer action, tag/release/package publication, and public claims remain blocked by scope.
+
+Protected path status: No protected evidence path edits made.
+
+Consumer tracker status: `docs/evidence/consumer-submissions/status.json` was not edited and remains prepared-only from the Checkpoint 000003 assertion.
+
+Claim-boundary status: Closeout documents keep synthetic conformance private/local and non-evidentiary; no ETA quality, compliance, consumer, vendor, hardware, hosted-service, SLA, public-launch, release, or adoption claim added.
+
+Security/auth status: No security/auth behavior changed during closeout.
+
+Data/migration status: No data or migration change during closeout.
+
+Master review: Approved. Phase 99 is complete and safe to close.
+
+Required edits: None.
+
+Decision: Phase 99 complete. Continue to Phase 100.
+
+Next checkpoint: Phase 100 -- Checkpoint 000001: add alerts operations and disruption workflow plan

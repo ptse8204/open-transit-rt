@@ -263,9 +263,16 @@ Operations QA And Feed Usefulness is complete, with closeout at
 for Vehicle Positions, Trip Updates, and Alerts, freshness/lifecycle review
 rows, and consumer-safe omission rules without adding public proof, feed
 mutations, evidence writes, consumer status changes, SLA/uptime claims, or
-ETA-quality claims. The exact next checkpoint in the authorized autonomous run
-is Phase 99 -- Checkpoint 000001: add prediction eta conformance and
-backtesting v2 plan. Any future evidence intake is
+ETA-quality claims. Phase 99 -- Prediction / ETA Conformance And Backtesting
+V2 is complete, with closeout at `docs/handoffs/phase-99.md`: it added
+aggregate synthetic conformance rows to realtime-quality backtest summaries,
+a bounded private Prediction Lab conformance signal, and expanded public-safe
+backtest fixtures for unknown/ambiguous withholding plus external predictor
+fail-closed behavior. It added no public proof, feed mutation, evidence write,
+consumer status change, external predictor contact, production-grade ETA
+claim, real-world ETA accuracy claim, or release-readiness claim. The exact
+next checkpoint in the authorized autonomous run is Phase 100 -- Checkpoint
+000001: add alerts operations and disruption workflow plan. Any future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1530,8 +1537,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 99 -- Checkpoint
-000001: add prediction eta conformance and backtesting v2 plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 100 -- Checkpoint
+000001: add alerts operations and disruption workflow plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
