@@ -462,9 +462,16 @@ draft-only tag/GitHub Release text. Phase 95 added no tag, GitHub Release,
 public package distribution, image publication, retained evidence action,
 consumer status change, release-ready claim, hosted-service claim,
 production-readiness claim, vendor claim, hardware claim, SLA/uptime claim, or
-ETA-quality claim.
-The authorized autonomous post-90 roadmap continues next with Phase 96 -- GTFS
-Versioning, Diff, And Rollback Workbench.
+ETA-quality claim. Phase 96 -- GTFS Versioning, Diff, And Rollback Workbench
+is complete, with closeout at `docs/handoffs/phase-96.md`: the private GTFS
+Workbench now shows active-vs-previous schedule comparison, file-level
+row-count diffs, bounded route/stop/trip/service/frequency sample summaries,
+and rollback-review guidance. Phase 96 added no public admin route, migration,
+rollback execution, evidence write, consumer status change, release-ready
+claim, hosted-service claim, production-readiness claim, vendor claim, hardware
+claim, SLA/uptime claim, or ETA-quality claim.
+The authorized autonomous post-90 roadmap continues next with Phase 97 -- GTFS
+Quality Fix Planner And Safe Draft Suggestions.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

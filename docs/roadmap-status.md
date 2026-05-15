@@ -8,8 +8,15 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 95 is complete for v0.1.0-rc.1 Candidate Cut in the
+Phase 96 is complete for GTFS Versioning, Diff, And Rollback Workbench in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-96.md`](handoffs/phase-96.md). Phase 96 added private
+active-vs-previous schedule comparison, file-level row-count diffs, bounded
+route/stop/trip/service/frequency sample summaries, and rollback-review
+guidance. It did not add rollback execution, publish schedules, move consumer
+statuses, collect retained evidence, or claim compliance/release readiness.
+
+Phase 95 is complete for v0.1.0-rc.1 Candidate Cut. The closeout handoff is
 [`docs/handoffs/phase-95.md`](handoffs/phase-95.md). Phase 95 generated and
 audited a local `.cache` candidate source package, ran package-enabled local
 app release-candidate diagnostics, refreshed draft release notes, and recorded
@@ -56,11 +63,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 96 -- GTFS
-Versioning, Diff, And Rollback Workbench. Phase 96 may improve private GTFS
-change-management workflows, but it must not silently edit production GTFS,
-collapse draft and published models, move consumer statuses, collect retained
-evidence, or claim compliance/release readiness.
+The current authorized autonomous run continues next with Phase 97 -- GTFS
+Quality Fix Planner And Safe Draft Suggestions. Phase 97 may improve private
+operator fix planning and draft suggestion guidance, but it must not silently
+edit production GTFS, collapse draft and published models, move consumer
+statuses, collect retained evidence, or claim compliance/release readiness.
 
 Recommended work remains separated into:
 
