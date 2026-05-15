@@ -61,6 +61,7 @@ helper, and what the local evaluation does not prove.
 - [Integration Adapter Kit](integration-adapter-kit.md)
 - [Connector Plugin Contract](connectors/plugin-contract.md)
 - [Contributing Connectors](connectors/contributing-connectors.md)
+- [Extension Governance](extension-governance.md)
 - [Connector Cookbook](../wiki/connector-cookbook.md)
 - [Device And AVL Integration](tutorials/device-avl-integration.md)
 - [Device Token Lifecycle](tutorials/device-token-lifecycle.md)
@@ -95,6 +96,8 @@ The next recommended release milestone is `v0.1.0-rc.1` before any full
 ## Contributor Docs
 
 - [Contributing](../CONTRIBUTING.md)
+- [Governance](governance.md)
+- [Extension Governance](extension-governance.md)
 - [Contributor First Issues](contributor-first-issues.md)
 - [Contributing Connectors](connectors/contributing-connectors.md)
 - [Public Docs And Site Freeze Checklist](public-docs-site-freeze-checklist.md)

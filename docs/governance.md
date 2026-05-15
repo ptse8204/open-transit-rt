@@ -4,6 +4,11 @@ Open Transit RT is an independent open-source project. Governance is intentional
 
 ![Illustrative community workflow: Issue, Discuss, Implement, Test, PR, Review, Merge, Release Docs Update.](assets/community-workflow.png)
 
+Extension-specific governance for connector manifests, sidecars, public API
+stability, deprecation, security review, release train planning, and the
+post-110 roadmap lives in
+[`docs/extension-governance.md`](extension-governance.md).
+
 ## Maintainer Role
 
 Maintainers are responsible for:
@@ -36,6 +41,10 @@ Competing design decisions are resolved by maintainers after considering:
 - long-term maintainability for small agencies.
 
 When a decision changes service boundaries, persistence model, feed contracts, security posture, evidence interpretation, or multi-agency assumptions, update the relevant docs and add or amend an ADR.
+
+Connector or extension changes that alter manifest compatibility, public API
+stability, deprecation behavior, or security review expectations must also
+follow `docs/extension-governance.md`.
 
 ## Evidence And Claim Approval
 
@@ -73,4 +82,3 @@ Do not open public issues for suspected vulnerabilities, leaked credentials, pri
 ## Out Of Scope
 
 The project does not add rider apps, fare payments, passenger accounts, CAD/dispatch replacement, consumer submission automation, hosted SaaS promises, paid support commitments, or marketplace/vendor-equivalent claims as part of governance work.
-

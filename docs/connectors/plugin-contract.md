@@ -5,6 +5,9 @@ by a manifest and checked by conformance tests. A connector is not loaded as a
 Go dynamic plugin, cannot change core state directly, and cannot bypass the
 existing public/admin/telemetry contracts.
 
+Long-term compatibility, deprecation, and review rules live in
+[`docs/extension-governance.md`](../extension-governance.md).
+
 ## Contract Model
 
 Every connector manifest uses:
@@ -135,3 +138,11 @@ attempt cases, validator command-blocking behavior, and monitoring
 unredacted-destination blocking. Passing conformance is a local quality signal
 only. It is not compliance proof, consumer acceptance, vendor compatibility,
 production AVL reliability, or production ETA-quality evidence.
+
+## Compatibility And Deprecation
+
+The current manifest schema is `open-transit-rt.connector.v1`. Maintainers
+should keep schema changes additive when possible, update examples and
+conformance cases for new connector types or fields, and use the extension
+governance deprecation process before removing or renaming operator-facing
+contracts.
