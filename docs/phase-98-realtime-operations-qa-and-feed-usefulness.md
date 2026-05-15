@@ -1,0 +1,95 @@
+# Phase 98 - Realtime Operations QA And Feed Usefulness
+
+## Status
+
+Status: planned
+
+Phase 98 improves private realtime usefulness diagnostics so operators can
+understand whether Vehicle Positions, Trip Updates, and Alerts are useful
+operational signals, not merely reachable feed URLs. The implementation must
+stay private, local, diagnostic, and claim-bounded. It must not add SLA or
+uptime claims, production-grade ETA claims, real-world accuracy claims,
+consumer acceptance claims, public launch claims, retained evidence,
+external contact, or new realtime publication/prediction mutation paths.
+
+## Master Phase Plan
+
+1. Inspect the current Realtime Center, Feed Health realtime usefulness rows,
+   Validation Center, Prediction Lab, Alerts links, telemetry/device summaries,
+   and realtime quality backtest surfaces.
+2. Extend the private Realtime Center with an operator-facing usefulness review
+   that explicitly covers Vehicle Positions usefulness, Trip Updates
+   emitted/withheld/fallback clarity, Alerts lifecycle usefulness, stale
+   telemetry/device triage, feed freshness, and consumer-safe omission rules.
+3. Prefer derived view-model changes over migrations. Use existing telemetry,
+   device, assignment, feed-health, validation-health, reliability, and Trip
+   Updates diagnostics; do not collect raw telemetry payloads or private
+   validator/debug output.
+4. Add focused tests for private/auth/no-store behavior, bounded JSON/HTML
+   shape, all-false claim flags, sanitized output, no public route exposure,
+   and no overclaims.
+5. Run targeted realtime/feed-health/validation tests, then the full phase
+   closeout validation set after code changes.
+
+## Intended Sub-Agent Roles
+
+| Role | Model level | Use |
+| --- | --- | --- |
+| Context / Repo Truth | GPT-5.5 x-high | Confirm existing realtime/feed-health/prediction/alerts seams and no-migration path. |
+| Planning | GPT-5.5 x-high | Validate checkpoint structure and safe minimum scope. |
+| Implementation | GPT-5.5 high | Simulated by Master unless a worker slot is available; changes are expected to be route-local. |
+| QA | GPT-5.5 high | Simulated by Master through targeted and full validation. |
+| UI/UX | GPT-5.5 high | Simulated by Master; copy must distinguish useful diagnostic signal from proof. |
+| Documentation / IA | GPT-5.5 high | Simulated by Master; update phase and handoff docs. |
+| Claim-Boundary | GPT-5.5 high | Simulated by Master; no SLA, ETA-quality, production, public launch, compliance, or consumer acceptance claim. |
+| Security/Auth | GPT-5.5 high | Simulated by Master; preserve private routes, no-store, no new browser send/command surface. |
+| Data/Migration | GPT-5.5 high | Simulated by Master; no migration planned. |
+
+## Implementation Boundaries
+
+- The usefulness review is private Operations Console guidance only.
+- Vehicle Positions usefulness can summarize freshness, assignment certainty,
+  stale suppression, feed-health, and validation context, but it must not claim
+  field reliability, consumer display, vendor compatibility, hardware
+  certification, or production readiness.
+- Trip Updates usefulness can summarize emitted, withheld, fallback, unknown,
+  ambiguous, stale, and adapter diagnostics, but it must not claim ETA quality
+  or real-world accuracy.
+- Alerts usefulness can summarize configured feed state and lifecycle review
+  paths, but it must not claim agency approval, consumer display, public
+  launch, or compliance.
+- Consumer-safe omission rules must continue to prefer omitted/unknown output
+  over false certainty.
+- No new POST action, browser telemetry send, external fetch, retained
+  evidence write, consumer tracker write, migration, or module dependency is
+  planned.
+
+## Checkpoint 000001 Report
+
+Checkpoint: Phase 98 -- Checkpoint 000001: add realtime operations qa and feed usefulness plan
+
+Sub-agents used or simulated, including intended model level: Context / Repo Truth Sub-Agent GPT-5.5 x-high and Planning Sub-Agent GPT-5.5 x-high launched; Implementation, QA, UI/UX, Documentation / IA, Claim-Boundary, Security/Auth, and Data/Migration roles simulated by Master for planning.
+
+Changed files: `docs/phase-98-realtime-operations-qa-and-feed-usefulness.md`
+
+Validation run: `git status --short` showed only this new phase doc; `git diff --check` passed; `make check` passed; `make audit-product-acceptance` passed; `make audit-final-claim-review` passed; `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null` passed; prepared-only consumer tracker assertion passed; `git status --short -- docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod go.sum` returned no protected, migration, or module changes.
+
+Blocked checks: Code validation is reserved for implementation and validation checkpoints. Release-candidate checks and connector-specific checks are out of scope unless implementation changes require them.
+
+Protected path status: No protected evidence paths are modified by the plan.
+
+Consumer tracker status: Must remain exactly seven prepared targets; no tracker writes are authorized.
+
+Claim-boundary status: Plan explicitly avoids compliance, production readiness, public launch, adoption, consumer acceptance, hosted SaaS, SLA/uptime, vendor compatibility, hardware certification, production AVL reliability, production-grade ETA, and real-world ETA accuracy claims.
+
+Security/auth status: Plan preserves private authenticated routes, no-store behavior, and adds no browser telemetry-send or backend command route.
+
+Data/migration status: No migration planned. Usefulness diagnostics are derived from existing private records.
+
+Master review: Approved to proceed because the scope clarifies realtime operational usefulness without expanding mutation, evidence, external-contact, or claim surface.
+
+Required edits: Implement the route-local usefulness review, tests, docs, and closeout handoff.
+
+Decision: Proceed to Checkpoint 000002.
+
+Next checkpoint: Phase 98 -- Checkpoint 000002: implement primary scoped work
