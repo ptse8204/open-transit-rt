@@ -3387,10 +3387,31 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <div class="card-grid">
 {{range .GTFSQualityGuidance.Workflow}}<section class="card"><h3>{{.Label}}</h3><p>{{.Summary}}</p><p><strong>Next outcome:</strong> {{.NextOutcome}}</p><p class="muted">{{.DoesNotDo}}</p><p>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</p><p>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</p></section>{{end}}
 </div>
+<h3>Fix Planner</h3>
+{{with .GTFSQualityGuidance.FixPlanner}}
+<section class="card" id="gtfs-quality-fix-planner">
+<p><strong>Status:</strong> <span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.Summary}}</p>
+<p><strong>Draft suggestion mode:</strong> <code>{{.DraftSuggestionMode}}</code></p>
+<p><strong>Displayed rows:</strong> {{.DisplayedRows}} of {{.TotalRows}}{{if .HiddenRows}}; {{.HiddenRows}} hidden by display cap{{end}}</p>
+<p class="muted">{{.Boundary}}</p>
+</section>
+<table><thead><tr><th>Before validation plan</th><th>After validation plan</th></tr></thead><tbody>
+<tr><td>{{range .BeforeValidation}}{{.}}<br>{{end}}</td><td>{{range .AfterValidation}}{{.}}<br>{{end}}</td></tr>
+</tbody></table>
+{{if .Rows}}
+<table><thead><tr><th>Severity</th><th>Source</th><th>Family</th><th>Codes</th><th>Count</th><th>Likely owner</th><th>Affected files</th><th>Issue</th><th>Why it matters</th><th>Safe fix suggestion</th><th>Safe draft suggestion</th><th>Draft suggestion record</th><th>Before validation plan</th><th>After validation plan</th><th>Verify with</th><th>Escalate if</th><th>Samples</th><th>Boundary</th></tr></thead><tbody>
+{{range .Rows}}<tr><td>{{.Severity}}</td><td>{{.SourceLabel}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.LikelyOwner}}</td><td>{{.AffectedFiles}}</td><td>{{.IssueSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.SafeFixSuggestion}}</td><td>{{.DraftSuggestion}}</td><td>{{.DraftSuggestionRecord}}</td><td>{{.BeforeValidationPlan}}</td><td>{{.AfterValidationPlan}}</td><td>{{.VerifyWith}}</td><td>{{.EscalateIf}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.NoAutoApplyBoundary}}</td></tr>{{end}}
+</tbody></table>
+{{else}}<p class="warning">No fix planner rows are available yet. Import or publish GTFS and run validation before exporting a checklist.</p>{{end}}
+<h3>Private Fix Checklist</h3>
+<pre>{{.Checklist}}</pre>
+{{end}}
 <h3>Claim Flags</h3>
 <table><tbody>
 <tr><th><code>automatic_gtfs_edit_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.AutomaticGTFSEditEnabled}}</td></tr>
 <tr><th><code>draft_mutation_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.DraftMutationEnabled}}</td></tr>
+<tr><th><code>draft_suggestion_records_created</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.DraftSuggestionRecordsCreated}}</td></tr>
 <tr><th><code>schedule_publish_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.SchedulePublishEnabled}}</td></tr>
 <tr><th><code>validator_semantics_changed</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ValidatorSemanticsChanged}}</td></tr>
 <tr><th><code>external_evidence_created</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.ExternalEvidenceCreated}}</td></tr>

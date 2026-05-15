@@ -1248,7 +1248,7 @@ func buildGTFSWorkbenchQualitySummary(triage compliance.GTFSQualityTriage) opera
 		InternalResultStatus:   firstNonEmpty(triage.InternalImporter.ResultStatus, "not_run"),
 		CanonicalAction:        triage.Canonical.RecommendedAction,
 		InternalImporterAction: triage.InternalImporter.RecommendedAction,
-		ClaimBoundary:          "GTFS quality rows separate internal importer checks from canonical MobilityData static validator diagnostics. They are private review signals only.",
+		ClaimBoundary:          "GTFS quality rows and the private fix planner separate internal importer checks from canonical MobilityData static validator diagnostics. They are advisory review signals only.",
 	}
 	for _, section := range []compliance.GTFSQualitySection{triage.Canonical, triage.InternalImporter} {
 		for _, group := range section.Groups {

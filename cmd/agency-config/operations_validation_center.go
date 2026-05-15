@@ -270,7 +270,7 @@ func validationCenterQualityRow(id string, label string, section compliance.GTFS
 		Status:        status,
 		CurrentSignal: signal,
 		WhatThisMeans: "GTFS quality summarizes private validator or importer notices into operator review guidance without editing schedule data.",
-		NextAction:    firstNonEmpty(section.RecommendedAction, "Open GTFS Quality to review source-specific guidance."),
+		NextAction:    firstNonEmpty(section.RecommendedAction, "Open GTFS Quality to review the private fix planner and source-specific guidance."),
 		DoesNotProve:  "GTFS quality summaries do not prove validator-clean production data, compliance, consumer acceptance, agency approval, or production readiness.",
 		DetailsURL:    "/admin/operations/gtfs-quality",
 	}
@@ -304,7 +304,7 @@ func validationCenterIssuesFromSection(prefix string, section compliance.GTFSQua
 			AffectedFiles:     "not available from the current sanitized summary",
 			OperatorSummary:   firstNonEmpty(section.OperatorSummary, "No grouped issue rows are available for this source."),
 			WhyItMatters:      "A non-ok source summary without grouped issues still needs operator review before stronger feed-readiness language.",
-			RecommendedAction: firstNonEmpty(section.RecommendedAction, "Open GTFS Quality to review source-specific guidance."),
+			RecommendedAction: firstNonEmpty(section.RecommendedAction, "Open GTFS Quality to review the private fix planner and source-specific guidance."),
 			SafeFixPath:       "Review the source result in GTFS Quality, then fix source GTFS or rerun validation through the existing safe workflow.",
 			VerifyWith:        "Rerun or refresh the appropriate validator and return to the private Validation Center.",
 			EscalateIf:        "Escalate if this status blocks schedule or realtime review and grouped issue context is unavailable.",

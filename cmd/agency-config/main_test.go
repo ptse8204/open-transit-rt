@@ -4451,9 +4451,16 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		"Fix Workflow",
+		"Fix Planner",
+		"Private Fix Checklist",
+		"manual_review_only",
 		"Likely owner",
 		"Affected files",
 		"Safe fix path",
+		"Safe draft suggestion",
+		"Draft suggestion record",
+		"Before validation plan",
+		"After validation plan",
 		"Verify with",
 		"Escalate if",
 		"Schedule planner or GTFS source owner",
@@ -4463,7 +4470,10 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 		"GTFS export owner or source-system admin",
 		"Re-import through browser or CLI",
 		"does not edit GTFS",
+		"No automatic production edit",
+		"Advisory only; no persisted draft suggestion record",
 		"automatic_gtfs_edit_enabled",
+		"draft_suggestion_records_created",
 		"validator_semantics_changed",
 		"production_avl_reliability_claimed",
 	} {
@@ -4482,6 +4492,7 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 		"production_ready",
 		"automatic_gtfs_edit_enabled</code></th><td>true",
 		"draft_mutation_enabled</code></th><td>true",
+		"draft_suggestion_records_created</code></th><td>true",
 		"schedule_publish_enabled</code></th><td>true",
 		"validator_semantics_changed</code></th><td>true",
 		"compliance_claimed</code></th><td>true",
@@ -4489,6 +4500,51 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 	} {
 		if strings.Contains(body, forbidden) {
 			t.Fatalf("GTFS quality guidance leaked or overclaimed %q: %s", forbidden, body)
+		}
+	}
+}
+
+func TestGTFSQualityFixPlannerBoundsRowsAndNoMutationFlags(t *testing.T) {
+	groups := make([]compliance.GTFSQualityGroup, 0, gtfsQualityFixPlannerMaxRows+5)
+	for i := 0; i < gtfsQualityFixPlannerMaxRows+5; i++ {
+		groups = append(groups, compliance.GTFSQualityGroup{
+			Source:            compliance.GTFSQualitySourceCanonicalValidator,
+			Family:            fmt.Sprintf("unknown_%02d", i),
+			Codes:             []string{fmt.Sprintf("code_%02d", i)},
+			Severity:          compliance.GTFSQualityNeedsReview,
+			Count:             1,
+			OperatorSummary:   "planner row",
+			WhyItMatters:      "bounded planner rows keep the page usable",
+			RecommendedAction: "review source GTFS",
+			Samples:           []string{"code=sample"},
+		})
+	}
+	page := operationsPage{
+		AgencyID:          "demo-agency",
+		ActiveFeedVersion: "feed-v1",
+		GTFSQuality: compliance.GTFSQualityTriage{
+			Canonical: compliance.GTFSQualitySection{
+				Source:      compliance.GTFSQualitySourceCanonicalValidator,
+				SourceLabel: "Canonical MobilityData static validator",
+				Status:      compliance.GTFSQualityNeedsReview,
+				Groups:      groups,
+			},
+			InternalImporter: compliance.GTFSQualitySection{Status: compliance.GTFSQualityInformational},
+		},
+	}
+	guidance := buildOperationsGTFSQualityGuidance(page)
+	if guidance.FixPlanner.TotalRows != gtfsQualityFixPlannerMaxRows+5 || guidance.FixPlanner.DisplayedRows != gtfsQualityFixPlannerMaxRows || guidance.FixPlanner.HiddenRows != 5 {
+		t.Fatalf("planner bounds = total %d displayed %d hidden %d", guidance.FixPlanner.TotalRows, guidance.FixPlanner.DisplayedRows, guidance.FixPlanner.HiddenRows)
+	}
+	if !strings.Contains(guidance.FixPlanner.Checklist, "5 additional grouped issue row(s) are hidden") {
+		t.Fatalf("checklist missing hidden-row notice: %s", guidance.FixPlanner.Checklist)
+	}
+	if guidance.ClaimFlags.AutomaticGTFSEditEnabled || guidance.ClaimFlags.DraftMutationEnabled || guidance.ClaimFlags.DraftSuggestionRecordsCreated || guidance.ClaimFlags.SchedulePublishEnabled || guidance.ClaimFlags.ConsumerStatusesChanged || guidance.ClaimFlags.ComplianceClaimed {
+		t.Fatalf("unexpected mutation or claim flag: %+v", guidance.ClaimFlags)
+	}
+	for _, row := range guidance.FixPlanner.Rows {
+		if !strings.Contains(row.NoAutoApplyBoundary, "No automatic production edit") || !strings.Contains(row.DraftSuggestionRecord, "no persisted draft suggestion record") {
+			t.Fatalf("planner row missing safe boundary: %+v", row)
 		}
 	}
 }
