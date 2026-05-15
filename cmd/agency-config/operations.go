@@ -97,6 +97,7 @@ type operationsPage struct {
 	Devices                []devices.Binding
 	DeviceRows             []operationsDeviceRow
 	DeviceOnboarding       []operationsDeviceOnboardingUseCase
+	DeviceFleetOnboarding  operationsDeviceFleetOnboardingView
 	DeviceError            string
 	DeviceToken            string
 	DeviceTokenMeta        devices.RebindResult
@@ -1131,6 +1132,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	}
 	page.DeviceRows = buildOperationsDeviceRows(page.Devices, page.Telemetry)
 	page.DeviceOnboarding = operationsDeviceOnboardingUseCases()
+	page.DeviceFleetOnboarding = buildOperationsDeviceFleetOnboarding(page)
 	page.GTFSQuality = h.gtfsQualityTriage(r, principal.AgencyID, page.Discovery)
 	page.GTFSQualityGuidance = buildOperationsGTFSQualityGuidance(page)
 	page.ValidationHealth = h.validationHealthSummary(r, principal.AgencyID, page.Discovery, nil, nil)
@@ -3946,6 +3948,33 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <div class="card-grid">
 {{range .DeviceOnboarding}}<section class="card"><h3>{{.Name}}</h3><p>{{.When}}</p><p><strong>Next:</strong> {{.NextStep}}</p>{{if .AdminOnly}}<p class="muted">Admin required.</p>{{end}}</section>{{end}}
 </div>
+<h3>Fleet Onboarding V2 Review</h3>
+<p class="warning">{{.DeviceFleetOnboarding.Boundary}}</p>
+<p><strong>Status:</strong> {{.DeviceFleetOnboarding.Status}}</p>
+<h4>Inventory Review</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.InventoryRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h4>Bulk Import Planning</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.BulkImportRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h4>Token Lifecycle Guidance</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.TokenLifecycleRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h4>Freshness And Unknown-Device Triage</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.FreshnessTriageRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h4>Binding Review</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.BindingReviewRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h4>Technical Helper Handoff</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.TechnicalHandoffRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 {{if .DeviceToken}}<div class="token"><h3>One-time token</h3><p>Device: {{.DeviceTokenMeta.DeviceID}} · Vehicle: {{.DeviceTokenMeta.VehicleID}} · Rotated: {{.DeviceTokenMeta.RotatedAt}}</p><p><code>{{.DeviceToken}}</code></p></div>{{end}}
 {{if .DeviceError}}<p class="warning">{{.DeviceError}}</p>{{end}}
 {{if .IsAdmin}}

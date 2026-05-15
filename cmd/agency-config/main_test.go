@@ -6526,6 +6526,70 @@ func TestOperationsDevicesSummarizesTelemetryAndAssignmentsSafely(t *testing.T) 
 	}
 }
 
+func TestOperationsDevicesShowsFleetOnboardingV2GuidanceSafely(t *testing.T) {
+	now := time.Now().UTC()
+	handler := newOperationsTestHandler(&handler{
+		store: &fakePublicationStore{},
+		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{
+			{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-2 * time.Hour), CreatedAt: now.Add(-2 * time.Hour)},
+			{AgencyID: "demo-agency", DeviceID: "device-2", VehicleID: "bus-2", Status: "active", ValidFrom: now.Add(-2 * time.Hour), CreatedAt: now.Add(-2 * time.Hour)},
+		}},
+		telemetry: fakeTelemetryRepository{latest: []telemetry.StoredEvent{
+			{
+				Event: telemetry.Event{
+					AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Timestamp: now.Add(-30 * time.Second), Lat: 1, Lon: 2,
+				},
+				ReceivedAt: now.Add(-29 * time.Second), IngestStatus: telemetry.IngestStatusAccepted,
+				PayloadJSON: []byte(`{"token_hash":"payload-secret-token","private_debug":true,"vendor_id":"payload-secret-vendor"}`),
+			},
+			{
+				Event: telemetry.Event{
+					AgencyID: "demo-agency", DeviceID: "device-3", VehicleID: "bus-3", Timestamp: now.Add(-45 * time.Second), Lat: 3, Lon: 4,
+				},
+				ReceivedAt: now.Add(-44 * time.Second), IngestStatus: telemetry.IngestStatusAccepted,
+				PayloadJSON: []byte(`{"raw_payload":"payload-secret-raw"}`),
+			},
+		}},
+		state: fakeStateRepository{assignments: map[string]state.Assignment{"bus-1": {
+			VehicleID: "bus-1", State: state.StateUnknown, Confidence: 0.40, ActiveFrom: now.Add(-25 * time.Second),
+		}}},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleOperator}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/devices", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Fleet Onboarding V2 Review",
+		"Vehicle / device inventory review",
+		"fresh=1; stale=0; not_seen=1; unlisted_accepted_rows=1",
+		"Bulk import plan",
+		"the console does not import token values or generate bulk secrets",
+		"Rotate/rebind is the supported credential action",
+		"token recovery is intentionally unavailable",
+		"Not-seen device triage",
+		"1 configured bindings have no latest accepted telemetry",
+		"Unknown-device and rejected-payload triage",
+		"Unauthorized device payloads are rejected before storage",
+		"unknown_assignments=1; low_confidence_assignments=1; unlisted_accepted_rows=1",
+		"Safe technical-helper handoff",
+		"token values, request credential headers, private endpoints, raw telemetry, database URLs, or evidence packets",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"PayloadJSON", "payload_json", "raw_payload", "token_hash", "private_debug", "vendor_id", "payload-secret-token", "payload-secret-vendor", "payload-secret-raw", "Authorization:", "Bearer "} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("fleet onboarding leaks private field %q: %s", forbidden, body)
+		}
+	}
+}
+
 func TestOperationsDevicesAndTelemetryAvoidUnsupportedClaims(t *testing.T) {
 	now := time.Now().UTC()
 	handler := newOperationsTestHandler(&handler{

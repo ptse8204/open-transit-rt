@@ -112,6 +112,63 @@ Use rebind when:
 
 Use a new `device_id` when the agency wants to track a different logical device identity. Keep identifiers stable enough for operations review, but do not expose private serial numbers or vendor account IDs in public docs unless they are approved public-safe identifiers.
 
+## Fleet Onboarding Review
+
+Use the private Operations Console before installing or rotating a fleet:
+
+```text
+/admin/operations/devices
+```
+
+The Fleet Onboarding V2 review is a metadata-only checklist over configured
+bindings, latest accepted telemetry, and assignment summaries. It helps staff
+answer these questions without exposing credentials:
+
+- Which device IDs and vehicle IDs are configured?
+- Which bindings are fresh, stale, or not yet seen?
+- Which assignments are unknown or low-confidence?
+- Which rows need a technical helper before public trip descriptors are used?
+
+This review does not create retained evidence, contact a vendor, import bulk
+secrets, send telemetry, certify hardware, prove vendor compatibility, prove
+production AVL reliability, change consumer status, or prove compliance or
+production readiness.
+
+## Safe Bulk Onboarding Plan
+
+Bulk onboarding should start as a private plan, not a bulk secret generator.
+Use public-safe rows such as:
+
+| Column | Allowed content |
+| --- | --- |
+| `agency_id` | Agency identifier already configured in Open Transit RT. |
+| `device_id` | Public-safe logical device identifier. |
+| `vehicle_id` | Public-safe logical vehicle identifier. |
+| `intended_status` | Planned state such as install, rotate, hold, or remove. |
+| `install_owner` | Staff role or team, not a private person record unless approved. |
+| `notes` | Redacted setup note with no credentials or private payloads. |
+
+Do not put tokens, passwords, authorization headers, endpoint secrets,
+database URLs, raw telemetry, private serial numbers, vendor account IDs, or
+private logs in a bulk onboarding file. Actual token rotation should still use
+the audited rotate/rebind flow and should deliver each one-time token through a
+deployment-owned private secret channel.
+
+## Unknown-Device Triage
+
+Telemetry ingest rejects missing-token, invalid-token, mismatched-binding, and
+unknown-device requests before storing the event. That is intentional. If a
+device installer reports `401 Unauthorized`, troubleshoot privately:
+
+- verify `agency_id`, `device_id`, and `vehicle_id` match the current binding;
+- verify the installed token is the newest one-time token from rotate/rebind;
+- check whether a device was moved to another vehicle without rebind;
+- check adapter mappings before changing core matching logic;
+- use synthetic adapter conformance fixtures to reproduce the class of error.
+
+Do not create public artifacts from rejected raw payloads or copy token values
+into issue comments, screenshots, docs, or support summaries.
+
 ## Operator Responsibilities
 
 Operators should:

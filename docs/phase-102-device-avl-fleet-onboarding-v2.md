@@ -147,3 +147,85 @@ Proceed to implementation checkpoint 000002 after plan validation and commit.
 
 Next checkpoint:
 Phase 102 -- Checkpoint 000002: implement primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 102 -- Checkpoint 000002: implement primary scoped work.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain roles
+were simulated by the Master Agent. Master Agent -- GPT-5.5 x-high, current
+thread.
+
+Changed files:
+`cmd/agency-config/operations.go`;
+`cmd/agency-config/operations_devices.go`;
+`cmd/agency-config/main_test.go`;
+`docs/tutorials/device-token-lifecycle.md`;
+`docs/tutorials/device-avl-integration.md`;
+`docs/phase-102-device-avl-fleet-onboarding-v2.md`.
+
+Validation run:
+`go test ./internal/devices ./internal/telemetry ./cmd/telemetry-ingest
+./cmd/telemetry-simulator ./cmd/avl-vendor-adapter` passed. `go test
+./cmd/agency-config -run
+'Device|Telemetry|Realtime|OperationsNavigation|RouteTitles|Help'` initially
+failed because new helper text included generic `authorization` wording on the
+one-time-token POST page; the copy was patched to `request credential headers`
+and the focused agency-config test then passed. `git diff --check` passed.
+`scripts/device-onboarding.sh help` passed. `scripts/telemetry-simulator.sh
+--help` passed. `scripts/telemetry-simulator.sh --list-scenarios` passed. `git
+status --short -- docs/evidence/consumer-submissions docs/evidence/captured
+db/migrations go.mod go.sum` returned no output. `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null` passed, and the
+exact prepared-only consumer tracker assertion passed.
+
+Blocked checks:
+Full closeout baseline, `make validate`, `make test`, and docker compose
+configuration validation are reserved for checkpoint 000003. Release-candidate,
+package, publication, real AVL, external vendor, evidence, and consumer action
+checks remain out of scope for Phase 102.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+protected-path status check returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The required
+prepared-only assertion passed and will run again in checkpoint 000003.
+
+Claim-boundary status:
+The implementation is private, metadata-only guidance. It makes no vendor
+compatibility, hardware certification, production AVL reliability, compliance,
+consumer acceptance, hosted-service, SLA, release readiness, production
+readiness, agency adoption, public launch, production-grade ETA, or real-world
+ETA accuracy claim.
+
+Security/auth status:
+No auth behavior, credential storage, token recovery, browser token collection,
+bulk token generation, external send, public route, raw payload display, or
+admin role boundary changed. The existing POST-only one-time token behavior
+remains covered by tests.
+
+Data/migration status:
+No migration, durable fleet inventory schema, unknown-device queue, telemetry
+contract change, public feed contract change, Trip Updates coupling, or module
+dependency change was added.
+
+Master review:
+Approved. The implementation uses existing bindings and latest accepted
+telemetry to add operator guidance without widening persistence or secret
+handling.
+
+Required edits:
+Run full phase validation, patch any validation failures caused by Phase 102,
+then record checkpoint 000003.
+
+Decision:
+Proceed to validation checkpoint 000003.
+
+Next checkpoint:
+Phase 102 -- Checkpoint 000003: run validation and patch required gaps.

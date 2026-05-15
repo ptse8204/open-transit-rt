@@ -19,6 +19,20 @@ review guidance only: it does not send telemetry, start sidecars, contact
 vendors, collect evidence, certify hardware, or prove real-world AVL
 reliability.
 
+For fleet onboarding, use the private Device Credentials page first:
+
+```text
+/admin/operations/devices
+```
+
+The page includes Fleet Onboarding V2 review rows for inventory coverage, bulk
+onboarding planning, token lifecycle, freshness/unknown-device triage,
+device-to-vehicle binding review, and a safe technical-helper handoff. These
+rows are metadata-only guidance over existing bindings and latest accepted
+telemetry. They do not import token values, generate bulk credentials, run
+browser-side telemetry sends, persist unknown-device attempts, contact vendors,
+or prove hardware/vendor/production readiness.
+
 ## Telemetry Endpoint
 
 Send one vehicle observation at a time:
@@ -214,6 +228,22 @@ Adapter responsibilities:
 - record only redacted integration evidence after review.
 
 Do not add vendor-specific coupling to core matching, Vehicle Positions generation, or Trip Updates prediction. Do not claim certified vendor support, marketplace equivalence, or production hardware compatibility without retained public-safe evidence.
+
+## Device-To-Vehicle Binding Review
+
+Before forwarding AVL data, confirm the adapter mapping uses the same
+public-safe `agency_id`, `device_id`, and `vehicle_id` as the credential
+binding shown in `/admin/operations/devices`.
+
+If a device was moved between vehicles, rotate/rebind before sending new
+telemetry. If a vendor changed its internal unit ID, update the private adapter
+mapping; do not spread vendor account IDs or private serial numbers into core
+matching code, public docs, or evidence folders.
+
+If a request returns `401 Unauthorized`, the telemetry handler did not store
+the event. Treat that as a binding/token/mapping issue and troubleshoot with
+private logs. Do not build a public unknown-device evidence queue from rejected
+payloads.
 
 ## Synthetic Vendor Adapter Dry Run
 
