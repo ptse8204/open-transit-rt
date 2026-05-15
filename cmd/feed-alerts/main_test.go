@@ -155,9 +155,82 @@ func TestAlertsConsoleRendersEmptyStateAndRejectsUnauthenticated(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Alerts Console", "No alerts are recorded", "Operations Console"} {
+	for _, want := range []string{"Alerts Console", "Lifecycle Dashboard", "Cancellation Linkage", "Disruption Templates", "Validation And Feed Usefulness", "Claim Flags", "No alerts are recorded", "Operations Console"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
+		}
+	}
+}
+
+func TestAlertsConsoleRendersWorkflowReviewSections(t *testing.T) {
+	now := time.Now().UTC()
+	activeStart := now.Add(-time.Hour)
+	activeEnd := now.Add(time.Hour)
+	store := &fakeAlertStore{alerts: []domainalerts.Alert{
+		{
+			ID:          1,
+			AgencyID:    "demo-agency",
+			AlertKey:    "alert-detour",
+			Status:      domainalerts.StatusDraft,
+			Cause:       "construction",
+			Effect:      "detour",
+			HeaderText:  "Route 10 detour",
+			SourceType:  domainalerts.SourceOperator,
+			ActiveStart: &activeStart,
+			ActiveEnd:   &activeEnd,
+			Entities:    []domainalerts.InformedEntity{{AgencyID: "demo-agency", RouteID: "route-10"}},
+		},
+		{
+			ID:         2,
+			AgencyID:   "demo-agency",
+			AlertKey:   "canceled:trip-10:20260421:08:00:00",
+			Status:     domainalerts.StatusPublished,
+			Cause:      "other_cause",
+			Effect:     "no_service",
+			HeaderText: "Trip 10 canceled",
+			SourceType: domainalerts.SourceCancellationReconciler,
+			Entities: []domainalerts.InformedEntity{{
+				AgencyID:  "demo-agency",
+				RouteID:   "route-10",
+				TripID:    "trip-10",
+				StartDate: "20260421",
+				StartTime: "08:00:00",
+			}},
+		},
+	}}
+	handler := newHandler(&fakeAlertsBuilder{}, store, okPinger{})
+	req := httptest.NewRequest(http.MethodGet, "/admin/alerts/console", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Lifecycle Dashboard",
+		"draft=1; published=1; archived=0",
+		"Canceled-trip linkage",
+		"1 alerts were created or maintained by the cancellation reconciler.",
+		"Authoring preflight",
+		"published_without_active_end=1",
+		"Reconcile canceled-trip alerts",
+		"Canceled trip",
+		"Significant delay",
+		"Modified or added service",
+		"GTFS-RT Alerts validation",
+		"Missing-alert hints",
+		"Public Alerts feed usefulness",
+		"external_evidence_created",
+		"consumer_statuses_changed",
+		"browser_external_contact_enabled",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body missing %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"consumer accepted", "public launch complete", "production ready", "compliance achieved", "vendor compatible", "certified hardware"} {
+		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
+			t.Fatalf("body contains forbidden %q: %s", forbidden, body)
 		}
 	}
 }
@@ -201,6 +274,14 @@ func TestAlertsConsoleCreatePublishArchiveAndRoleBoundary(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusSeeOther || store.archivedID != 7 {
 		t.Fatalf("archive status = %d id=%d, want 303 id 7", rr.Code, store.archivedID)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/admin/alerts/console/reconcile-cancellations", strings.NewReader("agency_id=demo-agency"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusSeeOther || !store.reconciled || store.reconcileAgency != "demo-agency" {
+		t.Fatalf("reconcile status = %d reconciled=%v agency=%q, want 303 demo-agency", rr.Code, store.reconciled, store.reconcileAgency)
 	}
 }
 
@@ -332,6 +413,7 @@ func TestAlertsConsoleMutationsRejectConflictingAgencyID(t *testing.T) {
 		{name: "create", path: "/admin/alerts/console", form: "agency_id=agency-b&alert_key=bad&header_text=Wrong"},
 		{name: "publish", path: "/admin/alerts/console/7/publish", form: "agency_id=agency-b"},
 		{name: "archive", path: "/admin/alerts/console/7/archive", form: "agency_id=agency-b&reason=done"},
+		{name: "reconcile", path: "/admin/alerts/console/reconcile-cancellations", form: "agency_id=agency-b"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, tc.path, strings.NewReader(tc.form))

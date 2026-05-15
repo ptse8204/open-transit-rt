@@ -62,6 +62,23 @@ Alerts may be empty when there are no active alerts. That is different from an
 Alerts service failure; use Feed Health and the Alerts Console to distinguish
 the two.
 
+## Alert Workflow Review
+
+Use `/admin/alerts/console` for alert lifecycle work:
+
+- Review the lifecycle dashboard for draft, published, archived, active,
+  upcoming, and expired alert counts.
+- Use disruption templates for canceled trips, detours, significant delays,
+  stop closures, and modified service before filling in alert cause/effect and
+  affected entities.
+- Use canceled-trip reconciliation only after cancellation overrides are
+  reviewed; then validate Trip Updates and Alerts together.
+- Avoid agency-wide or indefinite alerts unless the service notice truly
+  applies agency-wide and has an owner for archive review.
+
+These checks are private operator workflow aids. They do not prove consumer
+display, public launch, compliance, production readiness, or acceptance.
+
 ## Safe Sharing
 
 Public feed URLs can be shared when the agency intends to share them. Private

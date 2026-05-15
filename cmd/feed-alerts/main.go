@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -393,11 +394,54 @@ type reconcileRequest struct {
 }
 
 type alertConsolePage struct {
-	AgencyID  string
-	Status    string
-	Alerts    []domainalerts.Alert
-	CSRFToken string
-	Error     string
+	AgencyID       string
+	Status         string
+	Alerts         []domainalerts.Alert
+	CSRFToken      string
+	Error          string
+	LifecycleRows  []alertConsoleReviewRow
+	DisruptionRows []alertDisruptionTemplateRow
+	ValidationRows []alertConsoleReviewRow
+	UsefulnessRows []alertConsoleReviewRow
+	Boundary       string
+	DoesNotProve   string
+	ClaimFlags     alertConsoleClaimFlags
+	GeneratedAt    time.Time
+}
+
+type alertConsoleReviewRow struct {
+	ID           string
+	Label        string
+	Status       string
+	Signal       string
+	NextAction   string
+	DoesNotProve string
+}
+
+type alertDisruptionTemplateRow struct {
+	ID             string
+	Situation      string
+	Cause          string
+	Effect         string
+	EntityGuidance string
+	WindowGuidance string
+	ReviewStep     string
+	DoesNotProve   string
+}
+
+type alertConsoleClaimFlags struct {
+	ExternalEvidenceCreated       bool
+	ConsumerStatusesChanged       bool
+	ComplianceClaimed             bool
+	ProductionReadinessClaimed    bool
+	PublicLaunchClaimed           bool
+	ConsumerAcceptanceClaimed     bool
+	VendorCompatibilityClaimed    bool
+	HardwareCertificationClaimed  bool
+	SLAClaimed                    bool
+	HostedSaaSClaimed             bool
+	BrowserExternalContactEnabled bool
+	RawPrivatePayloadsShown       bool
 }
 
 func (h *handler) alertsConsole(w http.ResponseWriter, r *http.Request) {
@@ -467,6 +511,14 @@ func (h *handler) alertsConsoleAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	trimmed := strings.Trim(strings.TrimPrefix(r.URL.Path, "/admin/alerts/console/"), "/")
+	if trimmed == "reconcile-cancellations" {
+		if _, err := h.alerts.ReconcileCanceledTripAlerts(r.Context(), principal.AgencyID, principal.Subject, time.Now().UTC()); err != nil {
+			http.Error(w, "reconcile canceled trip alerts", http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/admin/alerts/console", http.StatusSeeOther)
+		return
+	}
 	parts := strings.Split(trimmed, "/")
 	if len(parts) != 2 {
 		http.NotFound(w, r)
@@ -498,7 +550,21 @@ func (h *handler) alertsConsoleAction(w http.ResponseWriter, r *http.Request) {
 func (h *handler) renderAlertsConsole(w http.ResponseWriter, r *http.Request, principal auth.Principal, formError string) {
 	status := r.URL.Query().Get("status")
 	alerts, err := h.alerts.ListAlerts(r.Context(), domainalerts.ListFilter{AgencyID: principal.AgencyID, Status: status, Limit: 200})
-	page := alertConsolePage{AgencyID: principal.AgencyID, Status: status, Alerts: alerts, CSRFToken: alertCSRFToken(h.csrfSecret, principal), Error: formError}
+	now := time.Now().UTC()
+	page := alertConsolePage{
+		AgencyID:       principal.AgencyID,
+		Status:         status,
+		Alerts:         alerts,
+		CSRFToken:      alertCSRFToken(h.csrfSecret, principal),
+		Error:          formError,
+		LifecycleRows:  alertLifecycleRows(alerts, now),
+		DisruptionRows: alertDisruptionTemplates(),
+		ValidationRows: alertValidationRows(alerts),
+		UsefulnessRows: alertUsefulnessRows(alerts, now),
+		Boundary:       "Private Alerts Console workflow only. This page helps operators review alert lifecycle, cancellation linkage, validation steps, and feed usefulness without contacting consumers or collecting evidence.",
+		DoesNotProve:   "Alerts Console records do not prove consumer display, consumer acceptance, public launch, compliance, production readiness, vendor compatibility, hardware certification, hosted service readiness, SLA coverage, or agency approval.",
+		GeneratedAt:    now,
+	}
 	if err != nil {
 		page.Error = "list alerts"
 	}
@@ -506,6 +572,213 @@ func (h *handler) renderAlertsConsole(w http.ResponseWriter, r *http.Request, pr
 	if err := alertConsoleTemplate.Execute(w, page); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func alertLifecycleRows(alerts []domainalerts.Alert, now time.Time) []alertConsoleReviewRow {
+	counts := map[string]int{}
+	activePublished := 0
+	upcomingPublished := 0
+	expiredPublished := 0
+	reconciledCancellation := 0
+	operatorAuthored := 0
+	agencyWide := 0
+	indefinitePublished := 0
+	for _, alert := range alerts {
+		counts[alert.Status]++
+		if alert.SourceType == domainalerts.SourceCancellationReconciler {
+			reconciledCancellation++
+		}
+		if alert.SourceType == "" || alert.SourceType == domainalerts.SourceOperator {
+			operatorAuthored++
+		}
+		if len(alert.Entities) == 0 {
+			agencyWide++
+		}
+		if alert.Status == domainalerts.StatusPublished && alert.ActiveEnd == nil {
+			indefinitePublished++
+		}
+		if alert.Status != domainalerts.StatusPublished {
+			continue
+		}
+		switch alertWindowState(alert, now) {
+		case "active":
+			activePublished++
+		case "upcoming":
+			upcomingPublished++
+		case "expired":
+			expiredPublished++
+		}
+	}
+	return []alertConsoleReviewRow{
+		{
+			ID:           "lifecycle_counts",
+			Label:        "Lifecycle counts",
+			Status:       alertReviewStatus(len(alerts) > 0),
+			Signal:       fmt.Sprintf("draft=%d; published=%d; archived=%d; active_published=%d; upcoming_published=%d; expired_published=%d", counts[domainalerts.StatusDraft], counts[domainalerts.StatusPublished], counts[domainalerts.StatusArchived], activePublished, upcomingPublished, expiredPublished),
+			NextAction:   "Review draft alerts, publish only agency-approved messages, and archive expired or resolved alerts.",
+			DoesNotProve: "Lifecycle counts do not prove consumer display, public launch, or operational completeness.",
+		},
+		{
+			ID:           "cancellation_linkage",
+			Label:        "Canceled-trip linkage",
+			Status:       alertReviewStatus(reconciledCancellation > 0),
+			Signal:       fmt.Sprintf("%d alerts were created or maintained by the cancellation reconciler.", reconciledCancellation),
+			NextAction:   "Use the reconciliation action only after cancellation overrides are reviewed; then validate Trip Updates and Alerts together.",
+			DoesNotProve: "A reconciled cancellation alert does not prove consumer ingestion, rider display, or real disruption handling quality.",
+		},
+		{
+			ID:           "authoring_review",
+			Label:        "Operator-authored alerts",
+			Status:       alertReviewStatus(operatorAuthored > 0),
+			Signal:       fmt.Sprintf("%d alerts are operator-authored or source-unlabeled.", operatorAuthored),
+			NextAction:   "Confirm header text, affected entities, active window, cause/effect, and archive policy before publishing.",
+			DoesNotProve: "Operator-authored alert records do not prove agency approval or compliance.",
+		},
+		{
+			ID:           "authoring_preflight",
+			Label:        "Authoring preflight",
+			Status:       "review_required",
+			Signal:       fmt.Sprintf("agency_wide_or_unscoped=%d; published_without_active_end=%d", agencyWide, indefinitePublished),
+			NextAction:   "Avoid agency-wide or indefinite alerts unless the disruption truly applies agency-wide; invalid RFC3339 windows are ignored by the form parser, so review saved windows before publishing.",
+			DoesNotProve: "Preflight guidance does not prove alert correctness, agency approval, consumer display, or compliance.",
+		},
+	}
+}
+
+func alertWindowState(alert domainalerts.Alert, now time.Time) string {
+	if alert.ActiveEnd != nil && alert.ActiveEnd.Before(now) {
+		return "expired"
+	}
+	if alert.ActiveStart != nil && alert.ActiveStart.After(now) {
+		return "upcoming"
+	}
+	return "active"
+}
+
+func alertReviewStatus(ok bool) string {
+	if ok {
+		return "review_available"
+	}
+	return "needs_review"
+}
+
+func alertDisruptionTemplates() []alertDisruptionTemplateRow {
+	none := "Template guidance does not prove consumer display, public launch, compliance, production readiness, or real disruption handling quality."
+	return []alertDisruptionTemplateRow{
+		{
+			ID:             "canceled_trip",
+			Situation:      "Canceled trip",
+			Cause:          "other_cause",
+			Effect:         "no_service",
+			EntityGuidance: "Include route, trip_id, start_date, and start_time when known.",
+			WindowGuidance: "Use the cancellation window; archive when service is restored or the operating day ends.",
+			ReviewStep:     "Reconcile cancellation overrides, then validate Trip Updates and Alerts together.",
+			DoesNotProve:   none,
+		},
+		{
+			ID:             "detour",
+			Situation:      "Detour",
+			Cause:          "construction, police_activity, accident, or other_cause",
+			Effect:         "detour or modified_service",
+			EntityGuidance: "Prefer route and stop selectors; include trip selectors only when the detour is trip-specific.",
+			WindowGuidance: "Set a bounded active window and archive once the detour ends.",
+			ReviewStep:     "Review affected stops and Trip Updates withholding before publishing.",
+			DoesNotProve:   none,
+		},
+		{
+			ID:             "significant_delay",
+			Situation:      "Significant delay",
+			Cause:          "accident, weather, technical_problem, or other_cause",
+			Effect:         "significant_delays or reduced_service",
+			EntityGuidance: "Use route selectors first; add stops or trips only when the delay is localized.",
+			WindowGuidance: "Set a bounded review window and archive when headways recover.",
+			ReviewStep:     "Check Realtime Center freshness and Trip Updates usefulness before relying on ETA-like output.",
+			DoesNotProve:   none,
+		},
+		{
+			ID:             "stop_closure",
+			Situation:      "Stop closure or stop moved",
+			Cause:          "construction, maintenance, police_activity, or other_cause",
+			Effect:         "stop_moved, no_service, or modified_service",
+			EntityGuidance: "Include stop_id and route_id when known; avoid agency-wide alerts for local stop issues.",
+			WindowGuidance: "Use the known closure window and archive promptly.",
+			ReviewStep:     "Confirm the stop is in the active GTFS and run Alerts validation after publishing.",
+			DoesNotProve:   none,
+		},
+		{
+			ID:             "modified_or_added_service",
+			Situation:      "Modified or added service",
+			Cause:          "holiday, maintenance, or other_cause",
+			Effect:         "modified_service or additional_service",
+			EntityGuidance: "Use route selectors and add trip selectors only when the modified service is trip-specific.",
+			WindowGuidance: "Use the special-service window; review GTFS Workbench if the change belongs in schedule data.",
+			ReviewStep:     "Confirm whether the change should be static GTFS, Trip Updates, Alerts, or a combination.",
+			DoesNotProve:   none,
+		},
+	}
+}
+
+func alertValidationRows(alerts []domainalerts.Alert) []alertConsoleReviewRow {
+	published := countAlertsWithStatus(alerts, domainalerts.StatusPublished)
+	return []alertConsoleReviewRow{
+		{
+			ID:           "gtfs_rt_alerts_validation",
+			Label:        "GTFS-RT Alerts validation",
+			Status:       alertReviewStatus(published > 0),
+			Signal:       fmt.Sprintf("%d published alert records are visible in this private list.", published),
+			NextAction:   "After publishing or archiving, run the configured realtime validator for Alerts through Validation Center or `make validate`.",
+			DoesNotProve: "A local validation pass does not prove consumer acceptance, compliance, public launch, or production readiness.",
+		},
+		{
+			ID:           "feed_health_review",
+			Label:        "Alerts feed health review",
+			Status:       "review_required",
+			Signal:       "Review `/public/gtfsrt/alerts.pb` through Feed Health after lifecycle changes.",
+			NextAction:   "Check freshness, validator context, and whether the feed is intentionally empty or contains active alerts.",
+			DoesNotProve: "Feed reachability does not prove consumer display or disruption workflow completeness.",
+		},
+		{
+			ID:           "missing_alert_hints",
+			Label:        "Missing-alert hints",
+			Status:       "review_required",
+			Signal:       "Prediction Lab and Realtime Center expose cancellation-alert missing counters when canceled Trip Updates need alert linkage.",
+			NextAction:   "When cancellation_alert_links_missing is nonzero, open this console, reconcile cancellations, then validate Trip Updates and Alerts.",
+			DoesNotProve: "Missing-alert hints do not prove a real cancellation was agency-approved or displayed to riders.",
+		},
+	}
+}
+
+func alertUsefulnessRows(alerts []domainalerts.Alert, now time.Time) []alertConsoleReviewRow {
+	activePublished := 0
+	for _, alert := range alerts {
+		if alert.Status == domainalerts.StatusPublished && alertWindowState(alert, now) == "active" {
+			activePublished++
+		}
+	}
+	status := "valid_empty_or_needs_review"
+	next := "If there is an active disruption, create or publish an agency-approved alert; otherwise keep the feed valid and intentionally empty."
+	if activePublished > 0 {
+		status = "review_available"
+		next = "Validate the Alerts feed, confirm affected entities and windows, then archive stale alerts when the disruption ends."
+	}
+	return []alertConsoleReviewRow{{
+		ID:           "public_feed_usefulness",
+		Label:        "Public Alerts feed usefulness",
+		Status:       status,
+		Signal:       fmt.Sprintf("%d active published alerts are visible in this private list.", activePublished),
+		NextAction:   next,
+		DoesNotProve: "Useful local alert records do not prove consumer ingestion, consumer acceptance, public launch, compliance, or production readiness.",
+	}}
+}
+
+func countAlertsWithStatus(alerts []domainalerts.Alert, status string) int {
+	total := 0
+	for _, alert := range alerts {
+		if alert.Status == status {
+			total++
+		}
+	}
+	return total
 }
 
 func alertEntitiesFromForm(r *http.Request) []domainalerts.InformedEntity {
@@ -569,8 +842,39 @@ th{background:#f6f8fa}.warning{background:#fff8c5;padding:.5rem} label{display:b
 <h1>Alerts Console</h1>
 <p>Agency: <strong>{{.AgencyID}}</strong></p>
 <nav><a href="/admin/operations">Operations Console</a><a href="/admin/operations/feeds">Feeds</a><a href="/admin/gtfs-studio">GTFS Studio</a></nav>
-<p class="warning">Alerts shown here are operator records. They are not evidence that any consumer has accepted or displayed the alert.</p>
+<p class="warning">{{.Boundary}} {{.DoesNotProve}}</p>
 {{if .Error}}<p class="warning">{{.Error}}</p>{{end}}
+<h2>Lifecycle Dashboard</h2>
+<table><thead><tr><th>Review</th><th>Status</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .LifecycleRows}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h2>Cancellation Linkage</h2>
+<p class="warning">Use this only after canceled-trip overrides are reviewed. It creates or updates cancellation alerts from existing private overrides and links matching missing-alert review incidents; it does not contact consumers or prove display.</p>
+<form method="post" action="/admin/alerts/console/reconcile-cancellations">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="agency_id" value="{{.AgencyID}}">
+<button>Reconcile canceled-trip alerts</button>
+</form>
+<h2>Disruption Templates</h2>
+<table><thead><tr><th>Situation</th><th>Cause</th><th>Effect</th><th>Entities</th><th>Window</th><th>Review step</th><th>Does not prove</th></tr></thead><tbody>
+{{range .DisruptionRows}}<tr><td><strong>{{.Situation}}</strong><br><code>{{.ID}}</code></td><td>{{.Cause}}</td><td>{{.Effect}}</td><td>{{.EntityGuidance}}</td><td>{{.WindowGuidance}}</td><td>{{.ReviewStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h2>Validation And Feed Usefulness</h2>
+<table><thead><tr><th>Review</th><th>Status</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ValidationRows}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+{{range .UsefulnessRows}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h2>Claim Flags</h2>
+<table><tbody>
+<tr><th>external_evidence_created</th><td>{{.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
+<tr><th>consumer_statuses_changed</th><td>{{.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
+<tr><th>compliance_claimed</th><td>{{.ClaimFlags.ComplianceClaimed}}</td></tr>
+<tr><th>production_readiness_claimed</th><td>{{.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+<tr><th>public_launch_claimed</th><td>{{.ClaimFlags.PublicLaunchClaimed}}</td></tr>
+<tr><th>consumer_acceptance_claimed</th><td>{{.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
+<tr><th>browser_external_contact_enabled</th><td>{{.ClaimFlags.BrowserExternalContactEnabled}}</td></tr>
+<tr><th>raw_private_payloads_shown</th><td>{{.ClaimFlags.RawPrivatePayloadsShown}}</td></tr>
+</tbody></table>
 <h2>Alerts</h2>
 <p>Filter: <a href="/admin/alerts/console">all</a> <a href="/admin/alerts/console?status=draft">draft</a> <a href="/admin/alerts/console?status=published">published</a> <a href="/admin/alerts/console?status=archived">archived</a></p>
 {{if not .Alerts}}<p class="warning">No alerts are recorded for this filter. Next action: create a draft alert below when an agency-approved service message exists.</p>{{else}}
