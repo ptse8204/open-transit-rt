@@ -558,8 +558,21 @@ consumer status change, deployment success claim, hosted service claim,
 SLA/uptime claim, compliance claim, consumer acceptance claim,
 release-readiness claim, production-readiness claim, vendor claim, hardware
 claim, final-root claim, public-launch claim, or production-grade ETA claim.
-The authorized autonomous post-90 roadmap continues next with Phase 105 --
-Multi-Agency Isolation And Operator Roles V2.
+Phase 105 -- Multi-Agency Isolation And Operator Roles V2 is complete, with
+closeout at `docs/handoffs/phase-105.md`: focused tests now cover no-store and
+escaped access denial, bounded non-HTML forbidden bodies, agency-scope
+conflict short-circuiting before audit data load, tenant-safe public feed path
+routing, encoded slash/backslash agency rejection, and per-agency debug JSON
+non-exposure. The private audit browser also exposes metadata-only scoped row
+counts over already-sanitized audit rows. Phase 105 added no production
+multi-tenant hosting, hosted identity, row-level security, public admin route,
+migration, durable tenancy state, public feed contract change, evidence write,
+consumer status change, deployment success claim, hosted service claim,
+SLA/uptime claim, compliance claim, consumer acceptance claim,
+release-readiness claim, production-readiness claim, vendor claim, hardware
+claim, final-root claim, public-launch claim, or production-grade ETA claim.
+The authorized autonomous post-90 roadmap continues next with Phase 106 --
+Staff Training, Demo Datasets, And Adoption Kit.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

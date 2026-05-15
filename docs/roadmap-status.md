@@ -8,6 +8,22 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 105 is complete for Multi-Agency Isolation And Operator Roles V2 in the
+authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-105.md`](handoffs/phase-105.md). Phase 105 added
+focused tests for no-store/escaped access denial, bounded non-HTML forbidden
+responses, agency-scope conflict short-circuiting before audit data load,
+tenant-safe public feed path routing, encoded slash/backslash agency rejection,
+and per-agency debug JSON non-exposure. It also added metadata-only audit
+browser counts over already-sanitized scoped rows. It did not add production
+multi-tenant hosting, hosted identity, row-level security, public admin routes,
+migrations, durable tenancy state, public feed contract changes, evidence
+writes, consumer-status movement, hosted-service claims, SLA/uptime claims,
+compliance or release-readiness claims, consumer-acceptance claims,
+production-readiness claims, deployment-success claims, vendor claims,
+hardware claims, final-root claims, public-launch claims, or production-grade
+ETA claims.
+
 Phase 104 is complete for Small-Host Deployment And Upgrade Hardening in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
 [`docs/handoffs/phase-104.md`](handoffs/phase-104.md). Phase 104 added
@@ -158,12 +174,13 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 105 --
-Multi-Agency Isolation And Operator Roles V2. Phase 105 may harden
-agency-scope checks, role matrix tests, access-denied UX, metadata-only audit
-log behavior, and tenant-safe public feed route checks, but it must not claim
-production multi-tenant hosting, hosted SaaS, SLA/uptime, compliance, consumer
-acceptance, or deployment success.
+The current authorized autonomous run continues next with Phase 106 -- Staff
+Training, Demo Datasets, And Adoption Kit. Phase 106 may add demo-only
+training scenarios, role-based training paths, first-week operator guidance,
+common mistakes and recovery, trainer scripts, and technical-helper
+checklists, but it must not claim real agency adoption, evidence collection,
+public launch, consumer acceptance, hosted SaaS, SLA/uptime, compliance, or
+production readiness.
 
 Recommended work remains separated into:
 

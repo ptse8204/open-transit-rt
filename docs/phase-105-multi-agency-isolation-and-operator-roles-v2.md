@@ -301,3 +301,73 @@ Proceed to closeout checkpoint 000004.
 Next checkpoint:
 Phase 105 -- Checkpoint 000004: close multi-agency isolation and operator roles
 v2 review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 105 -- Checkpoint 000004: close multi-agency isolation and operator roles
+v2 review.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain
+closeout roles were simulated by the Master Agent. Master Agent -- GPT-5.5
+x-high, current thread.
+
+Changed files:
+`docs/handoffs/phase-105.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-105-multi-agency-isolation-and-operator-roles-v2.md`.
+
+Validation run:
+Closeout relies on the checkpoint 000003 full validation pass: focused auth,
+tenant, agency-config, feed, GTFS Studio, compliance, route-inventory, and
+multi-agency hosting checks passed; baseline checks, product acceptance audit,
+final claim audit, `make validate`, `make test`, docker compose config, and
+protected-path checks passed.
+
+Blocked checks:
+Release-candidate diagnostics, package generation/audit, retained evidence,
+real public-root validation, hosted identity changes, production tenancy
+claims, consumer submission, public publication, and tag/release/package/image
+publication remain blocked by scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+protected-path status check returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets remain present in order and all remain `prepared`.
+
+Claim-boundary status:
+No production multi-tenant hosting, hosted SaaS, SLA, uptime, compliance,
+consumer-acceptance, agency-adoption, deployment-success, vendor, hardware,
+final-root, release-readiness, public-launch, or production-grade ETA claim was
+added.
+
+Security/auth status:
+Existing auth, agency-scope, role/access, no-store forbidden responses,
+metadata-only audit browsing, and tenant-safe public feed path parsing are
+preserved and covered by focused tests.
+
+Data/migration status:
+No migration, schema change, durable tenancy state, row-level security model,
+hosted identity store, public feed contract change, or module dependency change
+was added.
+
+Master review:
+Approved. Phase 105 is complete and safe to close.
+
+Required edits:
+None for Phase 105.
+
+Decision:
+Close Phase 105 and continue immediately to Phase 106 -- Staff Training, Demo
+Datasets, And Adoption Kit.
+
+Next checkpoint:
+Phase 106 -- Checkpoint 000001: add staff training, demo datasets, and adoption
+kit plan.

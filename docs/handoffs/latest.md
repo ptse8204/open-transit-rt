@@ -330,9 +330,22 @@ evidence write, consumer status change, deployment success claim, hosted
 service claim, SLA/uptime claim, compliance claim, consumer acceptance claim,
 release-readiness claim, production-readiness claim, vendor claim, hardware
 claim, final-root claim, public-launch claim, or production-grade ETA claim.
-The exact next checkpoint is Phase 105 -- Checkpoint 000001: add multi-agency
-isolation and operator roles v2 plan. Any future evidence intake is optional
-and requires explicit written authorization first.
+Phase 105 -- Multi-Agency Isolation And Operator Roles V2 is complete, with
+closeout at `docs/handoffs/phase-105.md`: it added focused no-store/escaped
+access-denied tests, bounded non-HTML forbidden-body tests, agency-scope
+conflict short-circuiting before audit data load, tenant-safe public feed
+path-route tests, encoded slash/backslash agency rejection tests, per-agency
+debug JSON non-exposure checks, and metadata-only audit browser counters.
+Phase 105 added no production multi-tenant hosting, hosted identity,
+row-level security, public admin route, migration, durable tenancy state,
+public feed contract change, evidence write, consumer status change,
+deployment success claim, hosted service claim, SLA/uptime claim, compliance
+claim, consumer acceptance claim, release-readiness claim,
+production-readiness claim, vendor claim, hardware claim, final-root claim,
+public-launch claim, or production-grade ETA claim.
+The exact next checkpoint is Phase 106 -- Checkpoint 000001: add staff
+training, demo datasets, and adoption kit plan. Any future evidence intake is
+optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
@@ -1596,8 +1609,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 105 -- Checkpoint
-000001: add multi-agency isolation and operator roles v2 plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 106 -- Checkpoint
+000001: add staff training, demo datasets, and adoption kit plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
