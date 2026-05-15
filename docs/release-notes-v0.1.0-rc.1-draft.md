@@ -11,15 +11,22 @@ readiness claim.
 
 - Candidate label: `v0.1.0-rc.1`
 - Git tag: None; not tagged.
-- Source package: pending Phase 95 local `.cache` package generation.
+- Source package: local `.cache` diagnostic package at
+  `.cache/release-package/v0.1.0-rc.1`.
+- Source package commit:
+  `9684403b9090c948477870636de59b485df42009`
 - Release notes link: local draft at
   `docs/release-notes-v0.1.0-rc.1-draft.md`
 - Current gate references:
   - `docs/phase-89-rc1-gate-results.md`
   - `docs/phase-92-clean-checkout-release-candidate-gate.md`
   - `docs/phase-95-v0-1-0-rc-1-candidate-cut.md`
-- Artifact checksums: pending local package generation.
-- SBOM/provenance: pending local package generation.
+- Artifact checksums: local checksum manifest at
+  `.cache/release-package/v0.1.0-rc.1/checksums/SHA256SUMS.txt`.
+- Source archive checksum:
+  `ef7f667cf8e0a4238d78ebbb2812c40250e40857057a75d55d2640c781724214`
+- SBOM/provenance: local metadata generated under
+  `.cache/release-package/v0.1.0-rc.1`; SBOM status `present` with 73 modules.
 - Published Docker image: None.
 - GitHub Release: None.
 
@@ -57,12 +64,15 @@ evidence creation, consumer status movement, or a release-readiness claim.
 ## Install And Upgrade Notes
 
 - Clean install from source tag: None; no tag exists for this draft.
-- Local app verification: most recently recorded in Phase 93 and Phase 94
-  closeouts; Phase 95 will rerun the release-candidate diagnostic after the
-  local package is generated.
-- Release-candidate diagnostic: pending Phase 95 package-enabled run.
-- Local release package: pending Phase 95 `.cache` package generation and
-  audit.
+- Local app verification: Phase 95 package-enabled
+  `RUN_LOCAL_APP=true make release-candidate-check` completed local app startup
+  and five-feed diagnostics.
+- Release-candidate diagnostic:
+  `.cache/release-candidate-check/20260514T235805Z`; helper overall
+  `not_checked` because follow-up `make validate`, `make test`, and `make
+  smoke` rows are intentionally outside the bounded helper output.
+- Local release package: generated and audited locally under
+  `.cache/release-package/v0.1.0-rc.1`.
 - Local Docker image build: None.
 - Published production Docker image: None.
 
@@ -106,8 +116,9 @@ make migrate-status
 ## Dependency Changes
 
 - None in Phase 95 documentation refresh.
-- Phase 95 package generation will record SBOM/provenance metadata locally if
-  the existing tooling succeeds.
+- Phase 95 package generation recorded local SBOM/provenance metadata. The
+  local package helper reported clean source metadata, but this is not a
+  release-readiness, publication, or public-distribution claim.
 
 ## Evidence Or Claim Changes
 
@@ -169,8 +180,8 @@ No GitHub Release creation is authorized by this draft.
 | Area | Status | Exact blocker or note | Next owner |
 | --- | --- | --- | --- |
 | Release action authorization | blocked | No authorization exists to tag, publish, distribute packages, publish images, create a GitHub Release, or claim release readiness. | Maintainer |
-| Local package generation | pending | Phase 95 authorizes local `.cache` package generation and audit only after this draft is committed. | Master Agent |
-| Local package audit | pending | Must pass `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package`. | Master Agent |
+| Local package generation | passed locally | `RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true make release-package` wrote local `.cache` output only. | Master Agent |
+| Local package audit | passed locally | `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package` passed metadata, checksum, claim-flag, and consumer-tracker checks. | Master Agent |
 | Package publication | blocked | No public package distribution or GitHub Release asset upload is authorized. | Maintainer only |
 | Source archive review | needs_review | `git archive HEAD` includes tracked repository files; public publication requires a separate review for tracked evidence-path material. | Future release reviewer |
 | Git tag | blocked | No tag will be created in Phase 95. | Maintainer only |
@@ -191,7 +202,17 @@ No GitHub Release creation is authorized by this draft.
 
 ## Checks
 
-Phase 95 package and closeout checks to record:
+Recorded Phase 95 package checks:
+
+| Check | Result | Scope |
+| --- | --- | --- |
+| `make test-release-package` | passed | Local package helper tests. |
+| `RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true RELEASE_PACKAGE_FORCE=true make release-package` | passed | Local `.cache` source archive, checksum, SBOM, provenance, manifest, image metadata summary. |
+| `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package` | passed | Local package metadata/checksum/claim-flag audit. Does not inspect source archive contents for public distribution. |
+| `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true RUN_LOCAL_APP=true make release-candidate-check` | exited `0`; helper overall `not_checked` | Local app and five-feed diagnostics passed; package audit passed; bounded helper still records `make validate`, `make test`, and `make smoke` as follow-up rows. |
+| `make agency-app-down` | passed | Stopped local app containers after diagnostics. |
+
+Phase 95 closeout checks still to record:
 
 ```bash
 git status --short
@@ -199,10 +220,6 @@ git diff --check
 make check
 make validate
 make test
-make test-release-package
-RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true make release-package
-RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package
-RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true RUN_LOCAL_APP=true make release-candidate-check
 docker compose -f deploy/docker-compose.yml config
 make audit-product-acceptance
 make audit-final-claim-review
@@ -217,9 +234,9 @@ Blocked checks:
 
 Release-candidate summary:
 
-- Output summary: pending Phase 95 package-enabled diagnostic.
+- Output summary: `.cache/release-candidate-check/20260514T235805Z`.
 - Overall status: `needs_review`.
-- Package audit status: pending.
+- Package audit status: passed locally.
 - Claim-boundary result: no retained evidence, consumer status change, image
   push, hosted-service claim, production-readiness claim, release-readiness
   claim, or compliance claim is authorized.
