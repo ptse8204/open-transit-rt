@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "telemetry-invalid-coordinate", "lat": 95.2, "lon": -122.41, "expected": "reject"}

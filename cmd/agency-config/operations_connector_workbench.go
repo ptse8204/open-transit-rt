@@ -23,18 +23,32 @@ const (
 )
 
 type connectorWorkbenchView struct {
-	GeneratedAt      time.Time                          `json:"generated_at"`
-	AgencyID         string                             `json:"agency_id"`
-	Boundary         string                             `json:"boundary"`
-	Recipes          []connectorWorkbenchRecipe         `json:"recipes"`
-	DryRunCommands   []connectorWorkbenchDryRun         `json:"dry_run_commands"`
-	TelemetryPreview connectorWorkbenchTelemetryPreview `json:"telemetry_preview"`
-	WebhookBoundary  connectorWorkbenchWebhookBoundary  `json:"webhook_boundary"`
-	PredictionGuide  connectorWorkbenchGuide            `json:"prediction_guide"`
-	MonitoringGuide  connectorWorkbenchGuide            `json:"monitoring_guide"`
-	Conformance      connectorWorkbenchConformanceView  `json:"conformance"`
-	ManifestReview   connectorWorkbenchManifestReview   `json:"manifest_review"`
-	ClaimFlags       connectorWorkbenchClaimFlags       `json:"claim_flags"`
+	GeneratedAt        time.Time                             `json:"generated_at"`
+	AgencyID           string                                `json:"agency_id"`
+	Boundary           string                                `json:"boundary"`
+	DecisionTree       []connectorWorkbenchDecisionRow       `json:"decision_tree"`
+	Recipes            []connectorWorkbenchRecipe            `json:"recipes"`
+	RedactionTemplates []connectorWorkbenchRedactionTemplate `json:"redaction_templates"`
+	DryRunCommands     []connectorWorkbenchDryRun            `json:"dry_run_commands"`
+	TelemetryPreview   connectorWorkbenchTelemetryPreview    `json:"telemetry_preview"`
+	WebhookBoundary    connectorWorkbenchWebhookBoundary     `json:"webhook_boundary"`
+	PredictionGuide    connectorWorkbenchGuide               `json:"prediction_guide"`
+	MonitoringGuide    connectorWorkbenchGuide               `json:"monitoring_guide"`
+	Conformance        connectorWorkbenchConformanceView     `json:"conformance"`
+	ManifestReview     connectorWorkbenchManifestReview      `json:"manifest_review"`
+	ClaimFlags         connectorWorkbenchClaimFlags          `json:"claim_flags"`
+}
+
+type connectorWorkbenchDecisionRow struct {
+	ID             string   `json:"id"`
+	SourceSignal   string   `json:"source_signal"`
+	UseWhen        string   `json:"use_when"`
+	Boundary       string   `json:"boundary"`
+	FirstSafeCheck string   `json:"first_safe_check"`
+	StopIf         string   `json:"stop_if"`
+	NextAdminLink  string   `json:"next_admin_link"`
+	DocsLinks      []string `json:"docs_links"`
+	DoesNotProve   string   `json:"does_not_prove"`
 }
 
 type connectorWorkbenchRecipe struct {
@@ -54,12 +68,38 @@ type connectorWorkbenchRecipe struct {
 	ManifestIDs    []string `json:"manifest_ids"`
 }
 
+type connectorWorkbenchRedactionTemplate struct {
+	ID                 string   `json:"id"`
+	Label              string   `json:"label"`
+	AppliesTo          string   `json:"applies_to"`
+	DataClassification string   `json:"data_classification"`
+	AllowedFields      []string `json:"allowed_fields"`
+	RedactFields       []string `json:"redact_fields"`
+	BlockedFields      []string `json:"blocked_fields"`
+	NoSendDefault      string   `json:"no_send_default"`
+	FailClosedRule     string   `json:"fail_closed_rule"`
+	FirstSafeCheck     string   `json:"first_safe_check"`
+	DoesNotProve       string   `json:"does_not_prove"`
+	DocsLinks          []string `json:"docs_links"`
+}
+
 type connectorWorkbenchManifestReview struct {
 	Title            string                            `json:"title"`
 	Summary          string                            `json:"summary"`
 	PluginDefinition string                            `json:"plugin_definition"`
 	Rows             []connectorWorkbenchManifestRow   `json:"rows"`
+	LintChecks       []connectorWorkbenchManifestLint  `json:"lint_checks"`
 	Diagnostics      []connectorpkg.RegistryDiagnostic `json:"diagnostics"`
+}
+
+type connectorWorkbenchManifestLint struct {
+	ID             string `json:"id"`
+	Label          string `json:"label"`
+	Status         string `json:"status"`
+	EnforcedBy     string `json:"enforced_by"`
+	Blocks         string `json:"blocks"`
+	OperatorAction string `json:"operator_action"`
+	DoesNotProve   string `json:"does_not_prove"`
 }
 
 type connectorWorkbenchDryRun struct {
@@ -245,9 +285,10 @@ func (h *handler) renderConnectorWorkbenchJSON(w http.ResponseWriter, r *http.Re
 func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 	registry := connectorpkg.LoadExampleRegistry()
 	return connectorWorkbenchView{
-		GeneratedAt: page.GeneratedAt,
-		AgencyID:    page.AgencyID,
-		Boundary:    "Private connector planning and review only. This page does not launch sidecars, run connector commands, send telemetry, contact vendors, create evidence, change consumer statuses, or prove compatibility.",
+		GeneratedAt:  page.GeneratedAt,
+		AgencyID:     page.AgencyID,
+		Boundary:     "Private connector planning and review only. This page does not launch sidecars, run connector commands, send telemetry, contact vendors, create evidence, change consumer statuses, or prove compatibility.",
+		DecisionTree: connectorWorkbenchDecisionTreeRows(),
 		Recipes: []connectorWorkbenchRecipe{
 			connectorWorkbenchRecipeView(
 				"csv_telemetry_sandbox",
@@ -362,20 +403,201 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 				[]string{"example.validator-allowlist"},
 			),
 		},
-		DryRunCommands:   connectorWorkbenchDryRunCommands(),
-		TelemetryPreview: buildConnectorWorkbenchTelemetryPreview(),
-		WebhookBoundary:  connectorWorkbenchWebhookBoundaryView(),
-		PredictionGuide:  connectorWorkbenchPredictionGuideView(),
-		MonitoringGuide:  connectorWorkbenchMonitoringGuideView(),
-		Conformance:      buildConnectorWorkbenchConformanceView(),
+		RedactionTemplates: connectorWorkbenchRedactionTemplates(),
+		DryRunCommands:     connectorWorkbenchDryRunCommands(),
+		TelemetryPreview:   buildConnectorWorkbenchTelemetryPreview(),
+		WebhookBoundary:    connectorWorkbenchWebhookBoundaryView(),
+		PredictionGuide:    connectorWorkbenchPredictionGuideView(),
+		MonitoringGuide:    connectorWorkbenchMonitoringGuideView(),
+		Conformance:        buildConnectorWorkbenchConformanceView(),
 		ManifestReview: connectorWorkbenchManifestReview{
 			Title:            "Example Manifest Registry Review",
 			Summary:          "Committed synthetic connector manifests only. This registry review does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.",
 			PluginDefinition: safePluginDefinition,
 			Rows:             connectorWorkbenchManifestRows(registry),
+			LintChecks:       connectorWorkbenchManifestLintChecks(),
 			Diagnostics:      registry.Diagnostics,
 		},
 		ClaimFlags: connectorWorkbenchClaimFlags{},
+	}
+}
+
+func connectorWorkbenchDecisionTreeRows() []connectorWorkbenchDecisionRow {
+	return []connectorWorkbenchDecisionRow{
+		connectorWorkbenchDecisionRowView(
+			"csv_vehicle_locations",
+			"Vehicle location rows arrive as a file or spreadsheet export.",
+			"Use the CSV replay example first, then review column mapping and timestamp/device identity before any deployment-owned import path.",
+			"CSV replay adapter around committed or operator-redacted rows; no browser upload and no automatic ingest.",
+			"make test-connector-examples",
+			"Stop if rows include private identifiers, unredacted locations from a real fleet, credentials, or unclear device ownership.",
+			"/admin/operations/telemetry-simulator",
+			[]string{"examples/connectors/telemetry-csv-replay/README.md", "docs/tutorials/device-avl-integration.md"},
+			"Production data quality, hardware certification, real device proof, compliance, consumer acceptance, or production readiness.",
+		),
+		connectorWorkbenchDecisionRowView(
+			"gps_polling_api",
+			"A source exposes a GPS polling API.",
+			"Use the synthetic HTTP poller shape to review response normalization, retries, credential ownership, and no-send defaults.",
+			"Deployment-owned sidecar or command adapter; credentials stay outside manifests and outside browser pages.",
+			"make external-connection-check",
+			"Stop if the manifest contains live URLs, bearer values, private endpoint text, or source payload bodies.",
+			"/admin/operations/connectors/tests",
+			[]string{"examples/connectors/telemetry-http-poller/README.md", "docs/integration-adapter-kit.md"},
+			"Named API support, vendor compatibility, external connectivity, production AVL reliability, compliance, or public launch.",
+		),
+		connectorWorkbenchDecisionRowView(
+			"avl_can_post",
+			"An AVL system can POST observations.",
+			"Treat the receiver as deployment-owned infrastructure and transform observations before authenticated telemetry ingest.",
+			"Webhook receiver outside the Operations Console; this page only reviews allowed inputs, blocked inputs, redaction, and fail-closed behavior.",
+			"go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
+			"Stop if authentication, agency mapping, device binding, timestamp handling, or redaction is not reviewed.",
+			"/admin/operations/devices",
+			[]string{"docs/tutorials/device-avl-integration.md", "docs/evidence/redaction-policy.md"},
+			"Vendor support, hardware certification, production AVL reliability, SLA, compliance, consumer acceptance, or agency approval.",
+		),
+		connectorWorkbenchDecisionRowView(
+			"synthetic_only",
+			"No external source is available or authorized.",
+			"Use simulator and committed conformance fixtures to exercise local behavior without contacting a third party.",
+			"Synthetic-only local diagnostics through existing simulator and adapter examples.",
+			"make telemetry-simulator",
+			"Stop before using real credentials, real payloads, retained evidence, or any public claim.",
+			"/admin/operations/telemetry-simulator",
+			[]string{"docs/tutorials/telemetry-simulator-and-device-trial.md", "docs/tutorials/external-adapter-conformance.md"},
+			"Agency adoption, real device proof, consumer acceptance, compliance, production readiness, or ETA quality.",
+		),
+		connectorWorkbenchDecisionRowView(
+			"prediction_sidecar",
+			"Trip Updates prediction needs an external sidecar review.",
+			"Keep Vehicle Positions independent and evaluate predictor output in shadow or fail-closed mode using sanitized synthetic inputs.",
+			"Optional prediction adapter boundary behind `internal/prediction.Adapter`; no public feed mutation from this page.",
+			"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
+			"Stop if sidecar output is stale, malformed, wrong-agency, low-confidence, lacks Vehicle Positions reference, or attempts public mutation.",
+			"/admin/operations/prediction-lab",
+			[]string{"examples/connectors/predictor-sidecar-stub/README.md", "docs/requirements-trip-updates.md"},
+			"Production-grade ETA quality, real-world accuracy, named predictor compatibility, consumer acceptance, or release readiness.",
+		),
+		connectorWorkbenchDecisionRowView(
+			"monitoring_export",
+			"Operators want summaries outside the console.",
+			"Start with redacted no-send monitoring/export output and keep delivery deployment-owned and disabled by default.",
+			"Monitoring/export summary adapter with destination redaction and no notification send from examples.",
+			"go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+			"Stop if destination, contact address, token, private endpoint, or unredacted incident detail appears in output.",
+			"/admin/operations/maintenance",
+			[]string{"examples/connectors/monitoring-export/README.md", "docs/tutorials/self-hosted-operations-notifications.md"},
+			"SLA coverage, uptime guarantee, hosted service availability, retained evidence, production readiness, or compliance.",
+		),
+		connectorWorkbenchDecisionRowView(
+			"off_host_validation",
+			"The local host is too small for validator tooling.",
+			"Use server-owned validator IDs and operator-run off-host checks; record blockers privately without turning them into evidence.",
+			"Operator-run validator workflow using allowlisted IDs and redacted artifact references.",
+			"go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance",
+			"Stop if a raw validator command, private artifact path, or unsupported validator ID is required.",
+			"/admin/operations/validation-center",
+			[]string{"examples/connectors/validator-allowlist/README.md", "docs/tutorials/gtfs-validation-triage.md"},
+			"Validator-clean proof, CAL-ITP/Caltrans compliance, consumer acceptance, public launch, or production readiness.",
+		),
+	}
+}
+
+func connectorWorkbenchDecisionRowView(id string, signal string, useWhen string, boundary string, check string, stopIf string, adminLink string, docsLinks []string, doesNotProve string) connectorWorkbenchDecisionRow {
+	adminLinks := safeAdminLinks([]string{adminLink})
+	nextAdminLink := "/admin/operations/connectors/tests"
+	if len(adminLinks) > 0 {
+		nextAdminLink = adminLinks[0]
+	}
+	return connectorWorkbenchDecisionRow{
+		ID:             firstNonEmpty(id, "connector_decision"),
+		SourceSignal:   firstNonEmpty(signal, "Review the available source shape."),
+		UseWhen:        firstNonEmpty(useWhen, "Choose the safest local/synthetic boundary."),
+		Boundary:       firstNonEmpty(boundary, "Private connector review boundary."),
+		FirstSafeCheck: firstNonEmpty(check, "make external-connection-check"),
+		StopIf:         firstNonEmpty(stopIf, "Stop if credentials, private payloads, external contact, evidence, or stronger claims are required."),
+		NextAdminLink:  nextAdminLink,
+		DocsLinks:      safeDocsLinks(docsLinks),
+		DoesNotProve:   firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
+	}
+}
+
+func connectorWorkbenchRedactionTemplates() []connectorWorkbenchRedactionTemplate {
+	return []connectorWorkbenchRedactionTemplate{
+		connectorWorkbenchRedactionTemplateView(
+			"telemetry_source",
+			"Telemetry Source Template",
+			"CSV replay, GPS polling API, or AVL POST transform.",
+			"Device and vehicle observations; treat as private until operator-redacted.",
+			[]string{"agency_id", "device_id", "vehicle_id", "timestamp", "lat", "lon", "quality or accuracy"},
+			[]string{"source record id", "operator contact", "private endpoint", "authorization header", "source payload body"},
+			[]string{"bearer values", "API keys", "database URLs", "private paths", "unbounded vendor fields"},
+			"send_enabled=false and network_send=false until deployment owner enables an adapter outside this page.",
+			"Reject before ingest when identity, timestamp, agency, coordinates, quality, duplicate, or ordering checks fail.",
+			"go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
+			"Accepted telemetry, Vehicle Positions output, real device proof, vendor compatibility, hardware certification, compliance, or production readiness.",
+			[]string{"docs/tutorials/device-avl-integration.md", "docs/evidence/redaction-policy.md"},
+		),
+		connectorWorkbenchRedactionTemplateView(
+			"prediction_sidecar",
+			"Prediction Sidecar Template",
+			"External predictor shadow or fail-closed review.",
+			"Sanitized prediction input and output; treat as private diagnostics until reviewed.",
+			[]string{"active feed version id", "assignment ids", "Vehicle Positions reference", "synthetic timestamps", "confidence"},
+			[]string{"source private payload", "private URL", "operator notes", "raw predictor diagnostics"},
+			[]string{"public feed mutation flags", "consumer submission fields", "credentials", "unvalidated Trip Updates"},
+			"public_mutation=false; Vehicle Positions publishing remains independent.",
+			"Withhold output when predictor response is stale, malformed, wrong-agency, low-confidence, or missing Vehicle Positions reference.",
+			"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
+			"Production-grade ETA quality, real-world accuracy, named predictor support, consumer acceptance, release readiness, or production readiness.",
+			[]string{"docs/requirements-trip-updates.md", "docs/tutorials/prediction-eta-lab.md"},
+		),
+		connectorWorkbenchRedactionTemplateView(
+			"validator_off_host",
+			"Validator / Off-Host Template",
+			"Server-owned validator ID review and off-host validation planning.",
+			"Validator selection metadata; treat artifacts and host paths as private deployment details.",
+			[]string{"validator_id", "feed_type", "artifact_ref", "run intent", "blocked-check reason"},
+			[]string{"private artifact path", "hostnames", "operator workstation path", "validator command arguments"},
+			[]string{"raw commands", "arbitrary argv", "private files", "unsupported validator ids", "evidence paths"},
+			"validator execution remains operator-run or server-owned; no browser execution.",
+			"Block checks that require raw commands, unsupported IDs, private paths, or evidence writes.",
+			"go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance",
+			"Validator-clean result, compliance, consumer acceptance, production readiness, or public launch.",
+			[]string{"docs/tutorials/gtfs-validation-triage.md", "docs/dependencies.md"},
+		),
+		connectorWorkbenchRedactionTemplateView(
+			"monitoring_export",
+			"Monitoring / Export Template",
+			"Health digests, monitoring summaries, and deployment-owned notification drafts.",
+			"Operational health metadata; treat destination details and incident notes as private.",
+			[]string{"feed freshness bucket", "validator count", "stale telemetry count", "redacted incident category"},
+			[]string{"notification destination", "person name", "email address", "private endpoint", "unredacted incident text"},
+			[]string{"webhook tokens", "send-enabled defaults", "SLA evidence", "retained evidence paths"},
+			"send_by_default=false and destination_redacted=true in examples.",
+			"Block export when destination, token, private endpoint, or unredacted incident detail appears.",
+			"go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+			"SLA coverage, uptime guarantee, hosted service availability, retained evidence, compliance, or production readiness.",
+			[]string{"docs/tutorials/self-hosted-operations-notifications.md", "examples/connectors/monitoring-export/README.md"},
+		),
+	}
+}
+
+func connectorWorkbenchRedactionTemplateView(id string, label string, appliesTo string, classification string, allowed []string, redact []string, blocked []string, noSend string, failClosed string, check string, doesNotProve string, docsLinks []string) connectorWorkbenchRedactionTemplate {
+	return connectorWorkbenchRedactionTemplate{
+		ID:                 firstNonEmpty(id, "redaction_template"),
+		Label:              firstNonEmpty(label, "Redaction template"),
+		AppliesTo:          firstNonEmpty(appliesTo, "Connector review."),
+		DataClassification: firstNonEmpty(classification, "Private until operator-redacted."),
+		AllowedFields:      cleanLaunchpadList(allowed),
+		RedactFields:       cleanLaunchpadList(redact),
+		BlockedFields:      cleanLaunchpadList(blocked),
+		NoSendDefault:      firstNonEmpty(noSend, "send_enabled=false"),
+		FailClosedRule:     firstNonEmpty(failClosed, "Fail closed when input safety is unclear."),
+		FirstSafeCheck:     firstNonEmpty(check, "make adapter-conformance"),
+		DoesNotProve:       firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
+		DocsLinks:          safeDocsLinks(docsLinks),
 	}
 }
 
@@ -742,28 +964,28 @@ func connectorWorkbenchCaseGroups(cases []connectorWorkbenchSuiteCase) []connect
 		{
 			id:       "telemetry",
 			label:    "Telemetry connector cases",
-			required: []string{"malformed", "stale", "future", "wrong-agency", "unknown-device", "low-quality", "duplicate", "out-of-order"},
+			required: []string{"malformed", "stale", "future", "wrong-agency", "unknown-device", "low-quality", "duplicate", "out-of-order", "missing-required-field", "invalid-coordinate"},
 			command:  "go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
 			boundary: "Real device proof, production AVL reliability, vendor compatibility, hardware certification, compliance, or consumer acceptance.",
 		},
 		{
 			id:       "prediction",
 			label:    "Prediction connector cases",
-			required: []string{"timeout", "malformed", "stale", "wrong-agency", "low-confidence"},
+			required: []string{"timeout", "malformed", "stale", "wrong-agency", "low-confidence", "missing-vehicle-positions-ref", "public-mutation-attempt"},
 			command:  "go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
 			boundary: "Production-grade ETA quality, real-world accuracy, named predictor support, production readiness, or consumer acceptance.",
 		},
 		{
 			id:       "validator",
 			label:    "Validator connector cases",
-			required: []string{"allowlist"},
+			required: []string{"allowlist", "raw-command"},
 			command:  "go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance",
 			boundary: "Validator-clean feeds, CAL-ITP/Caltrans compliance, consumer acceptance, public launch, or production readiness.",
 		},
 		{
 			id:       "monitoring",
 			label:    "Monitoring/export connector cases",
-			required: []string{"redaction", "no-send"},
+			required: []string{"redaction", "no-send", "unredacted-destination"},
 			command:  "go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
 			boundary: "SLA coverage, uptime guarantee, hosted service availability, production readiness, or retained evidence.",
 		},
@@ -852,6 +1074,68 @@ func connectorWorkbenchRecipeView(id string, label string, story string, status 
 		AdminLinks:     safeAdminLinks(adminLinks),
 		DocsLinks:      safeDocsLinks(docsLinks),
 		ManifestIDs:    cleanLaunchpadList(manifestIDs),
+	}
+}
+
+func connectorWorkbenchManifestLintChecks() []connectorWorkbenchManifestLint {
+	return []connectorWorkbenchManifestLint{
+		connectorWorkbenchManifestLintView(
+			"secret_and_endpoint_scan",
+			"Secrets and private endpoints",
+			"covered",
+			"internal/connectors.DecodeManifest and make external-connection-check",
+			"Secret-like values, bearer text, private endpoint strings, private local paths, and unsafe URLs in displayable manifest fields.",
+			"Remove real credentials, live endpoints, private paths, and payload fragments before committing a manifest.",
+			"Credential validity, live connectivity, vendor approval, production readiness, or SLA.",
+		),
+		connectorWorkbenchManifestLintView(
+			"command_and_plugin_boundary",
+			"Command and plugin boundary",
+			"covered",
+			"manifest unknown-field rejection, raw command rejection, and safe plugin definition review",
+			"Manifest-provided commands, arbitrary argv, dynamic backend plugin loading, validator command strings, and browser-run sidecars.",
+			"Use fixed operator-shell commands from Connector Tests and server-owned validator IDs instead of manifest commands.",
+			"Runtime connector execution, validator-clean proof, external contact, compliance, or compatibility.",
+		),
+		connectorWorkbenchManifestLintView(
+			"status_submission_no_send",
+			"No status mutation, submission automation, or send-by-default",
+			"covered",
+			"internal/connectors.Manifest.Validate",
+			"Consumer submission automation, consumer tracker mutation, internal status mutation, and notification sending by default.",
+			"Keep connectors disabled by default, no-send by default, and operator-reviewed before any deployment-owned delivery path.",
+			"Consumer acceptance, notification delivery, hosted service availability, public launch, or evidence creation.",
+		),
+		connectorWorkbenchManifestLintView(
+			"claim_boundary",
+			"Positive claim allowlist",
+			"covered",
+			"internal/connectors.Manifest.Validate",
+			"Unsupported positive claims about compliance, agency approval, public launch, vendor compatibility, hardware certification, production readiness, hosted service, SLA, or ETA quality.",
+			"Use only bounded claims such as adapter contract only, synthetic conformance tested, disabled by default, redacted diagnostics only, and no status mutation.",
+			"Any real-world proof, external acceptance, or release readiness.",
+		),
+		connectorWorkbenchManifestLintView(
+			"fixture_scope",
+			"Synthetic fixture scope",
+			"covered",
+			"internal/connectors.Manifest.Validate and cmd/adapter-conformance",
+			"Absolute paths, parent traversal, evidence paths, non-synthetic fixtures, and unbounded fixture references.",
+			"Reference committed synthetic fixtures under allowed testdata or examples paths and keep cases offline.",
+			"Production data quality, real device proof, retained evidence, compliance, or consumer acceptance.",
+		),
+	}
+}
+
+func connectorWorkbenchManifestLintView(id string, label string, status string, enforcedBy string, blocks string, action string, doesNotProve string) connectorWorkbenchManifestLint {
+	return connectorWorkbenchManifestLint{
+		ID:             firstNonEmpty(id, "manifest_lint"),
+		Label:          firstNonEmpty(label, "Manifest lint"),
+		Status:         firstNonEmpty(status, "covered"),
+		EnforcedBy:     firstNonEmpty(enforcedBy, "make external-connection-check"),
+		Blocks:         firstNonEmpty(blocks, "Unsafe connector manifest content."),
+		OperatorAction: firstNonEmpty(action, "Fix the manifest before review."),
+		DoesNotProve:   firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
 	}
 }
 

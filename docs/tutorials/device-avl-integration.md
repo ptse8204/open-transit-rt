@@ -227,7 +227,11 @@ go run ./cmd/avl-vendor-adapter --dry-run \
   testdata/avl-vendor/minimal-gps.json
 ```
 
-The CLI requires `--dry-run`. Running without it fails because network send mode is not implemented.
+The default documented path requires `--dry-run`. A separate explicit `--send`
+mode exists for deployment-owned local trials against `/v1/telemetry`, but it
+requires an operator-owned target URL and device token outside this guide's
+synthetic example path. Do not use `--send` with real credentials, real AVL
+payloads, or external endpoints unless separately authorized by the operator.
 
 Output streams are intentionally predictable:
 

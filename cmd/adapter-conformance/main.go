@@ -26,6 +26,8 @@ var requiredScenarios = map[string][]string{
 		"low-quality",
 		"duplicate",
 		"out-of-order",
+		"missing-required-field",
+		"invalid-coordinate",
 	},
 	"prediction": {
 		"timeout",
@@ -33,13 +35,17 @@ var requiredScenarios = map[string][]string{
 		"stale",
 		"wrong-agency",
 		"low-confidence",
+		"missing-vehicle-positions-ref",
+		"public-mutation-attempt",
 	},
 	"validator": {
 		"allowlist",
+		"raw-command",
 	},
 	"monitoring": {
 		"redaction",
 		"no-send",
+		"unredacted-destination",
 	},
 }
 
@@ -344,12 +350,24 @@ func requiredAssertions(tc testCase) error {
 	required := []string{"offline", "fail_closed"}
 	switch tc.Type {
 	case "validator":
-		required = []string{"offline", "allowlisted_validator_id"}
+		switch tc.Scenario {
+		case "allowlist":
+			required = []string{"offline", "allowlisted_validator_id"}
+		case "raw-command":
+			required = []string{"offline", "command_blocked"}
+		default:
+			required = []string{"offline"}
+		}
 	case "monitoring":
-		if tc.Scenario == "redaction" {
+		switch tc.Scenario {
+		case "redaction":
 			required = []string{"offline", "redacted"}
-		} else {
+		case "no-send":
 			required = []string{"offline", "no_send"}
+		case "unredacted-destination":
+			required = []string{"offline", "redacted", "no_send"}
+		default:
+			required = []string{"offline"}
 		}
 	}
 	for _, assertion := range required {

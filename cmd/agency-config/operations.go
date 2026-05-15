@@ -2547,6 +2547,21 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>production_readiness_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
 <tr><th><code>production_grade_eta_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
 </tbody></table>
+<h3>Connection Decision Tree</h3>
+<p>Pick the row that matches the source shape, run only the fixed local check, and stop when the stop condition applies.</p>
+<table><thead><tr><th>Source signal</th><th>Use when</th><th>Boundary</th><th>First safe check</th><th>Stop if</th><th>Next review</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.DecisionTree}}
+<tr>
+<td><strong>{{.SourceSignal}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.UseWhen}}</td>
+<td>{{.Boundary}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.StopIf}}</td>
+<td><a href="{{.NextAdminLink}}">{{.NextAdminLink}}</a><br>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+<td>{{.DoesNotProve}}</td>
+</tr>
+{{end}}
+</tbody></table>
 <h3>Recipe Chooser</h3>
 <div class="card-grid" aria-label="Connector recipe chooser">
 {{range .ConnectorWorkbench.Recipes}}
@@ -2567,6 +2582,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 {{end}}
 </div>
+<h3>Redaction-First Templates</h3>
+<p>Use these templates before adapting a source. They describe what may be shown in local diagnostics and what must be removed or blocked.</p>
+<table><thead><tr><th>Template</th><th>Applies to</th><th>Data classification</th><th>Allowed fields</th><th>Redact fields</th><th>Blocked fields</th><th>No-send default</th><th>Fail-closed rule</th><th>First safe check</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.RedactionTemplates}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.AppliesTo}}</td>
+<td>{{.DataClassification}}</td>
+<td>{{range .AllowedFields}}{{.}}<br>{{end}}</td>
+<td>{{range .RedactFields}}{{.}}<br>{{end}}</td>
+<td>{{range .BlockedFields}}{{.}}<br>{{end}}</td>
+<td>{{.NoSendDefault}}</td>
+<td>{{.FailClosedRule}}</td>
+<td><code>{{.FirstSafeCheck}}</code><br>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+<td>{{.DoesNotProve}}</td>
+</tr>
+{{end}}
+</tbody></table>
 <h3>Dry-Run Command Cards</h3>
 <p>These are fixed operator-shell instructions. The browser does not execute them, read command output, send telemetry, or contact external systems.</p>
 <table><thead><tr><th>Dry run</th><th>Instruction</th><th>Runs where</th><th>Inputs</th><th>Expected result</th><th>If it fails</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
@@ -2717,6 +2750,19 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>{{.ConnectorWorkbench.ManifestReview.Title}}</h3>
 <p>{{.ConnectorWorkbench.ManifestReview.Summary}}</p>
 <p><strong>Safe plugin definition:</strong> {{.ConnectorWorkbench.ManifestReview.PluginDefinition}}</p>
+<h4>Manifest Lint Summary</h4>
+<table><thead><tr><th>Lint</th><th>Status</th><th>Enforced by</th><th>Blocks</th><th>Operator action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.ManifestReview.LintChecks}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.EnforcedBy}}</td>
+<td>{{.Blocks}}</td>
+<td>{{.OperatorAction}}</td>
+<td>{{.DoesNotProve}}</td>
+</tr>
+{{end}}
+</tbody></table>
 {{if .ConnectorWorkbench.ManifestReview.Diagnostics}}
 <table><thead><tr><th>Level</th><th>Code</th><th>Path</th><th>Message</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.ManifestReview.Diagnostics}}<tr><td>{{.Level}}</td><td><code>{{.Code}}</code></td><td><code>{{.Path}}</code></td><td>{{.Message}}</td></tr>{{end}}

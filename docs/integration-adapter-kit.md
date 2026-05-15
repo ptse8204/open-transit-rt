@@ -33,6 +33,7 @@ Use the existing boundary that matches the system being integrated:
 | Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
 | Validate an external connector manifest | Sidecar/manifest contract and local checks | [Connector Plugin Contract](connectors/plugin-contract.md), [External Connection Readiness](external-connection-readiness.md) |
 | Choose a local/synthetic connector recipe in the private browser UI | `/admin/operations/connectors/workbench` | [Connector Plugin Contract](connectors/plugin-contract.md), [External Adapter Conformance](tutorials/external-adapter-conformance.md) |
+| Choose redaction-first connector templates | Source-shape decision tree and no-send templates | [Redaction-First Connector Recipes](connectors/redaction-first-recipes.md) |
 | Run synthetic adapter conformance | Offline synthetic conformance suite | [External Adapter Conformance](tutorials/external-adapter-conformance.md) |
 | Swap or evaluate Trip Updates prediction | `internal/prediction.Adapter` | [Dependencies](dependencies.md), [Trip Updates requirements](requirements-trip-updates.md) |
 | Validate GTFS or GTFS-Realtime artifacts | Server-side allowlisted validator IDs | [GTFS Validation Triage](tutorials/gtfs-validation-triage.md), [Dependencies](dependencies.md) |
@@ -64,6 +65,9 @@ Use the existing boundary that matches the system being integrated:
    needs to choose among CSV replay, GPS/API polling, webhook transforms,
    synthetic telemetry, prediction sidecar, monitoring/export, or off-host
    validation recipes before a technical helper runs the fixed local commands.
+13. Use [Redaction-First Connector Recipes](connectors/redaction-first-recipes.md)
+   before adapting any real source shape; keep live endpoints, credentials,
+   destination details, and private payloads out of manifests and examples.
 
 For release-candidate review, add `make external-connection-check`,
 `make adapter-conformance`, validator-health review, telemetry simulator
@@ -157,9 +161,11 @@ production readiness, SLA/uptime, consumer acceptance, or production-grade ETA
 quality.
 
 The CLI covers telemetry malformed/stale/future/wrong-agency/unknown-device/
-low-quality/duplicate/out-of-order cases, prediction timeout/malformed/stale/
-wrong-agency/low-confidence cases, validator allowlisting, and monitoring
-redaction/no-send defaults. It does not send network traffic, run validators,
+low-quality/duplicate/out-of-order/missing-required-field/invalid-coordinate
+cases, prediction timeout/malformed/stale/wrong-agency/low-confidence/missing
+Vehicle Positions reference/public-mutation-attempt cases, validator
+allowlisting and command-blocking, and monitoring redaction/no-send/
+unredacted-destination cases. It does not send network traffic, run validators,
 contact consumers, write evidence, or change repo state. See
 [External Adapter Conformance](tutorials/external-adapter-conformance.md).
 

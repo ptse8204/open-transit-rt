@@ -27,6 +27,43 @@ func TestAdapterConformanceCommandsPassSyntheticSuite(t *testing.T) {
 	}
 }
 
+func TestAdapterConformanceV2ScenarioCoverage(t *testing.T) {
+	root := repoRootForTest(t)
+	s, err := loadSuite(filepath.Join(root, "testdata", "adapter-conformance"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string][]string{
+		"telemetry":  {"malformed", "stale", "future", "wrong-agency", "unknown-device", "low-quality", "duplicate", "out-of-order", "missing-required-field", "invalid-coordinate"},
+		"prediction": {"timeout", "malformed", "stale", "wrong-agency", "low-confidence", "missing-vehicle-positions-ref", "public-mutation-attempt"},
+		"validator":  {"allowlist", "raw-command"},
+		"monitoring": {"redaction", "no-send", "unredacted-destination"},
+	}
+	for caseType, scenarios := range want {
+		if !sameStrings(requiredScenarios[caseType], scenarios) {
+			t.Fatalf("requiredScenarios[%s] = %v, want %v", caseType, requiredScenarios[caseType], scenarios)
+		}
+		seen := map[string]testCase{}
+		for _, tc := range s.Cases {
+			if tc.Type == caseType {
+				seen[tc.Scenario] = tc
+			}
+		}
+		for _, scenario := range scenarios {
+			tc, ok := seen[scenario]
+			if !ok {
+				t.Fatalf("missing %s scenario %s", caseType, scenario)
+			}
+			if !tc.SyntheticOnly {
+				t.Fatalf("case %s must be synthetic_only", tc.ID)
+			}
+			if err := requiredAssertions(tc); err != nil {
+				t.Fatalf("case %s required assertions: %v", tc.ID, err)
+			}
+		}
+	}
+}
+
 func TestAdapterConformanceRejectsMissingScenario(t *testing.T) {
 	root := repoRootForTest(t)
 	tmp, tmpRel := tempSuiteDir(t, root, "missing-scenario")
@@ -46,6 +83,18 @@ func TestAdapterConformanceRejectsMissingScenario(t *testing.T) {
 	if code == 0 || !strings.Contains(stderr.String(), "missing required telemetry scenario stale") {
 		t.Fatalf("expected missing stale scenario failure, code=%d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
 	}
+}
+
+func sameStrings(got []string, want []string) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	for i := range got {
+		if got[i] != want[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func TestAdapterConformanceRejectsEvidenceSuitePath(t *testing.T) {

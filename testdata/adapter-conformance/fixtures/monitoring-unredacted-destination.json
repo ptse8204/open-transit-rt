@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "monitoring-unredacted-destination", "destination_redacted": true, "send_by_default": false, "expected": "no_send"}

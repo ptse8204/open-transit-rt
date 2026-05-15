@@ -1,0 +1,1 @@
+{"synthetic_only": true, "case": "prediction-missing-vehicle-positions-ref", "vehicle_positions_reference": "", "expected": "withhold"}

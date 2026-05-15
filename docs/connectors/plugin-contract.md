@@ -105,6 +105,12 @@ Manifest validation rejects:
 - notification send-by-default flags;
 - consumer submission automation or consumer status mutation flags.
 
+The private Connector Workbench also summarizes these lint checks as operator
+guidance: secrets/private endpoints, command/plugin boundaries, no status
+mutation or send-by-default, positive-claim allowlisting, and synthetic fixture
+scope. That summary is read-only guidance over the same local validation
+contract; it does not execute manifests or prove external integration.
+
 ## Runtime Boundary
 
 Connectors communicate with Open Transit RT through documented interfaces:
@@ -122,7 +128,10 @@ default changes.
 
 ## Conformance
 
-Each connector manifest lists synthetic conformance cases. Passing conformance
-is a local quality signal only. It is not compliance proof, consumer
-acceptance, vendor compatibility, production AVL reliability, or production
-ETA-quality evidence.
+Each connector manifest lists synthetic conformance cases. Phase 101 V2
+coverage includes additional telemetry missing-field and invalid-coordinate
+cases, prediction missing Vehicle Positions reference and public-mutation
+attempt cases, validator command-blocking behavior, and monitoring
+unredacted-destination blocking. Passing conformance is a local quality signal
+only. It is not compliance proof, consumer acceptance, vendor compatibility,
+production AVL reliability, or production ETA-quality evidence.

@@ -177,3 +177,57 @@ Required edits: Implement bounded V2 connector recipe, manifest linting, conform
 Decision: Continue to Checkpoint 000002.
 
 Next checkpoint: Phase 101 -- Checkpoint 000002: implement primary scoped work
+
+## Implementation Summary
+
+Checkpoint 000002 improved the private/offline connector maturity path without
+adding routes, migrations, browser command execution, dynamic plugin loading,
+network sends, evidence writes, or consumer status movement:
+
+- added a private Connector Workbench connection decision tree for CSV vehicle
+  locations, GPS polling APIs, AVL POST sources, synthetic-only telemetry,
+  external prediction sidecars, monitoring/export summaries, and off-host
+  validation;
+- added redaction-first templates for telemetry sources, prediction sidecars,
+  validator/off-host workflows, and monitoring/export summaries;
+- added a Workbench manifest lint summary for secret/private endpoint scans,
+  command/plugin boundaries, no status/submission/send-by-default behavior,
+  positive claim allowlisting, and synthetic fixture scope;
+- expanded offline adapter conformance from 16 to 22 synthetic cases with
+  missing telemetry field, invalid coordinate, missing Vehicle Positions
+  reference, public mutation attempt, validator command-blocking, and
+  unredacted monitoring destination fixtures;
+- updated Connector Tests, connector docs, examples, wiki guidance, and
+  Makefile fixture checks to reflect V2 coverage;
+- corrected stale AVL guide wording so explicit local `--send` support is
+  documented as deployment-owned and outside the synthetic example path.
+
+## Checkpoint 000002 Report
+
+Checkpoint: Phase 101 -- Checkpoint 000002: implement primary scoped work
+
+Sub-agents used or simulated, including intended model level: Context / Repo Truth Sub-Agent GPT-5.5 x-high and Planning Sub-Agent GPT-5.5 x-high completed read-only review. Implementation, QA, UI/UX, Documentation / IA, Claim-Boundary, Security/Auth, and Data/Migration were simulated by the Master Agent for this bounded implementation checkpoint.
+
+Changed files: `Makefile`, `cmd/adapter-conformance/main.go`, `cmd/adapter-conformance/main_test.go`, `cmd/agency-config/main_test.go`, `cmd/agency-config/operations.go`, `cmd/agency-config/operations_connector_tests.go`, `cmd/agency-config/operations_connector_workbench.go`, `docs/connectors/plugin-contract.md`, `docs/connectors/redaction-first-recipes.md`, `docs/integration-adapter-kit.md`, `docs/tutorials/device-avl-integration.md`, `docs/tutorials/external-adapter-conformance.md`, `examples/README.md`, `testdata/adapter-conformance/suite.json`, `testdata/adapter-conformance/fixtures/monitoring-unredacted-destination.json`, `testdata/adapter-conformance/fixtures/prediction-missing-vehicle-positions-ref.json`, `testdata/adapter-conformance/fixtures/prediction-public-mutation-attempt.json`, `testdata/adapter-conformance/fixtures/telemetry-invalid-coordinate.json`, `testdata/adapter-conformance/fixtures/telemetry-missing-required-field.json`, `testdata/adapter-conformance/fixtures/validator-raw-command.json`, `wiki/connector-cookbook.md`, `docs/phase-101-connector-maturity-and-adapter-recipes-v2.md`
+
+Validation run: `gofmt -w cmd/adapter-conformance/main.go cmd/adapter-conformance/main_test.go cmd/agency-config/operations_connector_workbench.go cmd/agency-config/operations_connector_tests.go cmd/agency-config/main_test.go`; `python3 -m json.tool testdata/adapter-conformance/suite.json >/dev/null` plus all adapter conformance fixtures; `git diff --check`; `go test ./internal/connectors ./cmd/adapter-conformance ./examples/connectors/...`; `go test ./cmd/agency-config -run 'Connector|Workbench|OperationsNavigation|RouteTitles|Help'`; `go test ./cmd/adapter-conformance ./cmd/agency-config -run 'AdapterConformance|Connector|Workbench|OperationsNavigation|RouteTitles|Help'`; `make external-connection-check`; `make adapter-conformance`; `make test-connector-examples`; protected-path status check.
+
+Blocked checks: Full phase closeout validation deferred to Checkpoint 000003.
+
+Protected path status: No protected evidence path edits made.
+
+Consumer tracker status: No consumer tracker edits made; prepared-only status must be rechecked in Checkpoint 000003.
+
+Claim-boundary status: Added Workbench/docs wording is explicitly local, synthetic, private, no-send, and non-evidentiary. No real vendor compatibility, hardware certification, production AVL reliability, compliance, consumer acceptance, production readiness, hosted-service, SLA, production-grade ETA, release-readiness, public-launch, or adoption claim added.
+
+Security/auth status: Private authenticated Connector Workbench and Connector Tests remain GET-only guidance; no browser command execution, dynamic backend plugin loading, manifest command execution, live endpoint storage, secret rendering, notification send, external contact, or consumer submission automation added.
+
+Data/migration status: No migration, durable connector runtime state, telemetry ingest contract change, public feed contract change, Trip Updates hard-coupling, or go module dependency change added.
+
+Master review: Approved. The implementation follows the existing sidecar/manifest/conformance model and addresses sub-agent gaps with exact ID/order assertions, V2 scenario coverage tests, stale docs correction, and updated connector-test copy.
+
+Required edits: Run full required validation and patch any changed-code failures.
+
+Decision: Continue to Checkpoint 000003.
+
+Next checkpoint: Phase 101 -- Checkpoint 000003: run validation and patch required gaps

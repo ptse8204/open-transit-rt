@@ -36,6 +36,7 @@ Before writing adapter code, open:
 ```text
 /admin/operations/connectors
 /admin/operations/connectors/tests
+/admin/operations/connectors/workbench
 /admin/operations/telemetry-simulator
 ```
 
@@ -53,6 +54,7 @@ commands or contact external systems.
 | I need predictions | Keep Trip Updates behind `internal/prediction.Adapter` or an external sidecar boundary | `make adapter-conformance` | Production-grade ETA quality |
 | I need validation checks | Use server-owned allowlisted validator IDs | `/admin/operations/validation-health` | CAL-ITP/Caltrans compliance |
 | I need monitoring/export | Keep redacted summaries local until a separate sharing decision exists | `examples/connectors/monitoring-export` | SLA, uptime, or notification delivery |
+| I need a redaction-first starting point | Use `docs/connectors/redaction-first-recipes.md` and the Workbench decision tree | `make external-connection-check` and `make adapter-conformance` | Real integration proof or production readiness |
 
 The release-candidate path should also review feed-consumer URL and metadata
 expectations, redaction checks, validator tooling, and monitoring/export
@@ -76,9 +78,12 @@ make adapter-conformance
 make test-connector-examples
 ```
 
-These are local quality checks. They do not prove vendor compatibility,
-production AVL reliability, production-grade ETA quality, consumer acceptance,
-production readiness, or CAL-ITP/Caltrans compliance.
+These are local quality checks. Phase 101 V2 conformance also covers missing
+telemetry fields, invalid coordinates, missing Vehicle Positions references,
+public mutation attempts, validator command blocking, and unredacted monitoring
+destinations. These checks do not prove vendor compatibility, production AVL
+reliability, production-grade ETA quality, consumer acceptance, production
+readiness, or CAL-ITP/Caltrans compliance.
 
 ## Predictor Sidecars
 

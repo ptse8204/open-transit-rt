@@ -532,14 +532,20 @@ validate:
 	@test -f testdata/adapter-conformance/fixtures/telemetry-low-quality.json
 	@test -f testdata/adapter-conformance/fixtures/telemetry-duplicate.json
 	@test -f testdata/adapter-conformance/fixtures/telemetry-out-of-order.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-missing-required-field.json
+	@test -f testdata/adapter-conformance/fixtures/telemetry-invalid-coordinate.json
 	@test -f testdata/adapter-conformance/fixtures/prediction-timeout.json
 	@test -f testdata/adapter-conformance/fixtures/prediction-malformed.json
 	@test -f testdata/adapter-conformance/fixtures/prediction-stale.json
 	@test -f testdata/adapter-conformance/fixtures/prediction-wrong-agency.json
 	@test -f testdata/adapter-conformance/fixtures/prediction-low-confidence.json
+	@test -f testdata/adapter-conformance/fixtures/prediction-missing-vehicle-positions-ref.json
+	@test -f testdata/adapter-conformance/fixtures/prediction-public-mutation-attempt.json
 	@test -f testdata/adapter-conformance/fixtures/validator-allowlist.json
+	@test -f testdata/adapter-conformance/fixtures/validator-raw-command.json
 	@test -f testdata/adapter-conformance/fixtures/monitoring-redaction.json
 	@test -f testdata/adapter-conformance/fixtures/monitoring-no-send.json
+	@test -f testdata/adapter-conformance/fixtures/monitoring-unredacted-destination.json
 	@for f in testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json; do python3 -m json.tool "$$f" >/dev/null; done
 	@test -f testdata/telemetry-simulator/README.md
 	@test -f testdata/telemetry-simulator/on-route.json

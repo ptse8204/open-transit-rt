@@ -44,18 +44,23 @@ sidecars.
 ## Covered Cases
 
 Telemetry cases cover malformed, stale, future-dated, wrong-agency,
-unknown-device, low-quality, duplicate, and out-of-order input. Expected
-behavior is fail-closed rejection or review, not guessed vehicle state.
+unknown-device, low-quality, duplicate, out-of-order, missing required field,
+and invalid coordinate input. Expected behavior is fail-closed rejection or
+review, not guessed vehicle state.
 
 Prediction cases cover timeout, malformed output, stale output, wrong-agency
-output, and low-confidence output. Vehicle Positions remain independent of
-predictor availability, and deterministic prediction remains the default.
+output, low-confidence output, missing Vehicle Positions reference, and public
+mutation attempts. Vehicle Positions remain independent of predictor
+availability, and deterministic prediction remains the default.
 
-Validator cases cover allowlisted validator IDs. The suite does not run
-validators and does not accept raw validator commands.
+Validator cases cover allowlisted validator IDs and command-blocking behavior.
+The suite does not run validators and does not accept raw validator commands.
 
-Monitoring cases cover redaction and no-send defaults. The suite does not send
-notifications or create SLA/uptime evidence.
+Monitoring cases cover redaction, no-send defaults, and unredacted-destination
+blocking. The suite does not send notifications or create SLA/uptime evidence.
+
+For operator-facing redaction templates and source-shape decisions, see
+[Redaction-First Connector Recipes](../connectors/redaction-first-recipes.md).
 
 Passing conformance is a local quality signal only. It is not CAL-ITP/Caltrans
 compliance, consumer acceptance, agency approval, vendor compatibility,

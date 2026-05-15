@@ -20,6 +20,11 @@ make external-connection-check
 make adapter-conformance
 ```
 
+The Phase 101 V2 conformance suite includes local synthetic checks for missing
+telemetry fields, invalid coordinates, missing Vehicle Positions references,
+public mutation attempts, validator command blocking, and unredacted monitoring
+destinations. These are fail-closed local checks, not real integration proof.
+
 | Example | What it demonstrates | What it does not prove |
 | --- | --- | --- |
 | `connectors/telemetry-http-poller` | A synthetic sidecar that normalizes source observations before telemetry ingest | No real source polling, credentials, network send, or vendor compatibility |
@@ -54,5 +59,6 @@ details.
 
 - [Integration Adapter Kit](../docs/integration-adapter-kit.md)
 - [Connector Plugin Contract](../docs/connectors/plugin-contract.md)
+- [Redaction-First Connector Recipes](../docs/connectors/redaction-first-recipes.md)
 - [External Adapter Conformance](../docs/tutorials/external-adapter-conformance.md)
 - [Connector Cookbook](../wiki/connector-cookbook.md)

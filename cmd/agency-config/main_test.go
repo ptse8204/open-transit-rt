@@ -2648,6 +2648,30 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 	if strings.Join(gotRecipes, ",") != strings.Join(wantRecipes, ",") {
 		t.Fatalf("recipe ids = %v, want %v", gotRecipes, wantRecipes)
 	}
+	wantDecisionRows := []string{"csv_vehicle_locations", "gps_polling_api", "avl_can_post", "synthetic_only", "prediction_sidecar", "monitoring_export", "off_host_validation"}
+	var gotDecisionRows []string
+	for _, row := range view.DecisionTree {
+		gotDecisionRows = append(gotDecisionRows, row.ID)
+	}
+	if strings.Join(gotDecisionRows, ",") != strings.Join(wantDecisionRows, ",") {
+		t.Fatalf("decision row ids = %v, want %v", gotDecisionRows, wantDecisionRows)
+	}
+	wantTemplates := []string{"telemetry_source", "prediction_sidecar", "validator_off_host", "monitoring_export"}
+	var gotTemplates []string
+	for _, row := range view.RedactionTemplates {
+		gotTemplates = append(gotTemplates, row.ID)
+	}
+	if strings.Join(gotTemplates, ",") != strings.Join(wantTemplates, ",") {
+		t.Fatalf("redaction template ids = %v, want %v", gotTemplates, wantTemplates)
+	}
+	wantLintChecks := []string{"secret_and_endpoint_scan", "command_and_plugin_boundary", "status_submission_no_send", "claim_boundary", "fixture_scope"}
+	var gotLintChecks []string
+	for _, row := range view.ManifestReview.LintChecks {
+		gotLintChecks = append(gotLintChecks, row.ID)
+	}
+	if strings.Join(gotLintChecks, ",") != strings.Join(wantLintChecks, ",") {
+		t.Fatalf("manifest lint ids = %v, want %v", gotLintChecks, wantLintChecks)
+	}
 	var registryIDs []string
 	for _, row := range view.ManifestReview.Rows {
 		registryIDs = append(registryIDs, row.ConnectorID)
@@ -2682,7 +2706,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "prediction-timeout", "validator-allowlist", "monitoring-no-send", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Connection Decision Tree", "csv_vehicle_locations", "Redaction-First Templates", "Telemetry Source Template", "send_enabled=false", "public_mutation=false", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "telemetry-missing-required-field", "prediction-timeout", "prediction-public-mutation-attempt", "validator-allowlist", "validator-raw-command", "monitoring-no-send", "monitoring-unredacted-destination", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Manifest Lint Summary", "Positive claim allowlist", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -7251,8 +7275,26 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Recipes) != 7 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 9 || view.Conformance.CaseCount != 16 || len(view.Conformance.Groups) != 4 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 7 || len(view.Recipes) != 7 || len(view.RedactionTemplates) != 4 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 9 || view.Conformance.CaseCount != 22 || len(view.Conformance.Groups) != 4 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 || len(view.ManifestReview.LintChecks) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
+	}
+	seenDecisions := map[string]bool{}
+	for _, row := range view.DecisionTree {
+		if row.ID == "" || row.SourceSignal == "" || row.UseWhen == "" || row.Boundary == "" || row.FirstSafeCheck == "" || row.StopIf == "" || row.NextAdminLink == "" || len(row.DocsLinks) == 0 || row.DoesNotProve == "" {
+			t.Fatalf("invalid connector workbench decision row: %+v", row)
+		}
+		if seenDecisions[row.ID] {
+			t.Fatalf("duplicate connector workbench decision row %q", row.ID)
+		}
+		seenDecisions[row.ID] = true
+		if !strings.HasPrefix(row.NextAdminLink, "/admin/") {
+			t.Fatalf("decision row %s has unsafe admin link %q", row.ID, row.NextAdminLink)
+		}
+		for _, link := range row.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") && !strings.HasPrefix(link, "examples/") {
+				t.Fatalf("decision row %s has unsafe docs link %q", row.ID, link)
+			}
+		}
 	}
 	seenRecipes := map[string]bool{}
 	for _, recipe := range view.Recipes {
@@ -7274,6 +7316,21 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 			}
 		}
 	}
+	seenTemplates := map[string]bool{}
+	for _, template := range view.RedactionTemplates {
+		if template.ID == "" || template.Label == "" || template.AppliesTo == "" || template.DataClassification == "" || len(template.AllowedFields) == 0 || len(template.RedactFields) == 0 || len(template.BlockedFields) == 0 || template.NoSendDefault == "" || template.FailClosedRule == "" || template.FirstSafeCheck == "" || template.DoesNotProve == "" || len(template.DocsLinks) == 0 {
+			t.Fatalf("invalid connector workbench redaction template: %+v", template)
+		}
+		if seenTemplates[template.ID] {
+			t.Fatalf("duplicate connector workbench redaction template %q", template.ID)
+		}
+		seenTemplates[template.ID] = true
+		for _, link := range template.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") && !strings.HasPrefix(link, "examples/") {
+				t.Fatalf("redaction template %s has unsafe docs link %q", template.ID, link)
+			}
+		}
+	}
 	seenRows := map[string]bool{}
 	for _, row := range view.ManifestReview.Rows {
 		if row.SourcePath == "" || row.ConnectorID == "" || row.DisplayName == "" || row.ConnectorType == "" || row.Mode == "" || row.SecretStorage == "" || len(row.InputContracts) == 0 || len(row.OutputContracts) == 0 || row.ConformanceCaseCount == 0 || row.DocsLink == "" || row.Boundary == "" || row.FirstCheck == "" || row.DoesNotProve == "" {
@@ -7289,6 +7346,16 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 		if !strings.HasPrefix(row.DocsLink, "examples/connectors/") && !strings.HasPrefix(row.DocsLink, "docs/") {
 			t.Fatalf("manifest row %s has unsafe docs link %q", row.ConnectorID, row.DocsLink)
 		}
+	}
+	seenLintChecks := map[string]bool{}
+	for _, lint := range view.ManifestReview.LintChecks {
+		if lint.ID == "" || lint.Label == "" || lint.Status == "" || lint.EnforcedBy == "" || lint.Blocks == "" || lint.OperatorAction == "" || lint.DoesNotProve == "" {
+			t.Fatalf("invalid connector workbench manifest lint: %+v", lint)
+		}
+		if seenLintChecks[lint.ID] {
+			t.Fatalf("duplicate connector workbench manifest lint %q", lint.ID)
+		}
+		seenLintChecks[lint.ID] = true
 	}
 	if view.TelemetryPreview.Counts.Sources != 2 || view.TelemetryPreview.Counts.Rows != 6 || view.TelemetryPreview.Counts.Events != 4 || view.TelemetryPreview.Counts.Drops != 2 || view.TelemetryPreview.Counts.NetworkSendEnabled {
 		t.Fatalf("invalid connector workbench telemetry preview counts: %+v", view.TelemetryPreview.Counts)
@@ -7373,9 +7440,9 @@ func assertConnectorWorkbenchGuideShape(t *testing.T, label string, guide connec
 
 func assertConnectorWorkbenchConformanceShape(t *testing.T, view connectorWorkbenchConformanceView) {
 	t.Helper()
-	wantCases := map[string]int{"telemetry": 8, "prediction": 5, "validator": 1, "monitoring": 2}
+	wantCases := map[string]int{"telemetry": 10, "prediction": 7, "validator": 2, "monitoring": 3}
 	seen := map[string]bool{}
-	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 9 || view.CaseCount != 16 || len(view.Groups) != 4 || len(view.RunnerCommands) != 4 {
+	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 9 || view.CaseCount != 22 || len(view.Groups) != 4 || len(view.RunnerCommands) != 4 {
 		t.Fatalf("invalid connector workbench conformance view: %+v", view)
 	}
 	for _, command := range view.RunnerCommands {
