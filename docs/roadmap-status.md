@@ -8,6 +8,17 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
+Phase 100 is complete for Alerts Operations And Disruption Workflow in the
+authorized autonomous Phase 91-110 product roadmap. The closeout handoff is
+[`docs/handoffs/phase-100.md`](handoffs/phase-100.md). Phase 100 added
+private Alerts Console lifecycle dashboard rows, canceled-trip reconciliation
+guidance/form, disruption templates, GTFS-RT Alerts validation guidance,
+missing-alert hints, public-feed usefulness review, and all-false claim flags.
+It did not add public admin routes, public feed mutations, prediction adapter
+coupling, evidence writes, consumer-status movement, public-launch claims,
+consumer-acceptance claims, compliance/release-readiness claims, vendor
+claims, hardware claims, hosted-service claims, or SLA/uptime claims.
+
 Phase 99 is complete for Prediction / ETA Conformance And Backtesting V2 in
 the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
 is [`docs/handoffs/phase-99.md`](handoffs/phase-99.md). Phase 99 added
@@ -91,11 +102,11 @@ Phases 75-90 are complete for maintainer review. Phase 72 still ended with
 `needs_review`. Phase 74 CP000008 remains the latest GitHub Pages publication
 at commit `a8b250e`.
 
-The current authorized autonomous run continues next with Phase 100 -- Alerts
-Operations And Disruption Workflow. Phase 100 may improve private alert
-authoring review, lifecycle guidance, canceled-trip linkage, and
-missing-alert hints, but it must not claim public launch, consumer acceptance,
-compliance, production readiness, or real-world deployment readiness.
+The current authorized autonomous run continues next with Phase 101 --
+Connector Maturity And Adapter Recipes V2. Phase 101 may improve
+synthetic/local connector recipes and conformance coverage, but it must not
+claim real vendor compatibility, certified hardware support, consumer
+acceptance, public launch, compliance, or real-world deployment readiness.
 
 Recommended work remains separated into:
 

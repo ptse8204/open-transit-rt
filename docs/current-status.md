@@ -500,8 +500,18 @@ public feed mutation, external predictor contact, evidence write, consumer
 status change, production-grade ETA claim, real-world ETA accuracy claim,
 vendor claim, hardware claim, SLA/uptime claim, compliance claim, or release
 readiness claim.
-The authorized autonomous post-90 roadmap continues next with Phase 100 --
-Alerts Operations And Disruption Workflow.
+Phase 100 -- Alerts Operations And Disruption Workflow is complete, with
+closeout at `docs/handoffs/phase-100.md`: the private Alerts Console now
+includes lifecycle dashboard rows, a canceled-trip reconciliation form,
+disruption templates, GTFS-RT Alerts validation guidance, missing-alert hints,
+public-feed usefulness review, and all-false claim flags. Phase 100 added no
+public admin route, migration, public feed mutation, prediction adapter
+coupling, evidence write, consumer status change, public-launch claim,
+consumer-acceptance claim, compliance claim, release-readiness claim,
+production-readiness claim, vendor claim, hardware claim, hosted-service claim,
+or SLA/uptime claim.
+The authorized autonomous post-90 roadmap continues next with Phase 101 --
+Connector Maturity And Adapter Recipes V2.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

@@ -270,9 +270,19 @@ a bounded private Prediction Lab conformance signal, and expanded public-safe
 backtest fixtures for unknown/ambiguous withholding plus external predictor
 fail-closed behavior. It added no public proof, feed mutation, evidence write,
 consumer status change, external predictor contact, production-grade ETA
-claim, real-world ETA accuracy claim, or release-readiness claim. The exact
-next checkpoint in the authorized autonomous run is Phase 100 -- Checkpoint
-000001: add alerts operations and disruption workflow plan. Any future evidence intake is
+claim, real-world ETA accuracy claim, or release-readiness claim. Phase 100 --
+Alerts Operations And Disruption Workflow is complete, with closeout at
+`docs/handoffs/phase-100.md`: it added private Alerts Console lifecycle
+dashboard rows, canceled-trip reconciliation guidance/form, disruption
+templates, GTFS-RT Alerts validation guidance, missing-alert hints,
+public-feed usefulness review, and all-false claim flags. It added no public
+admin route, migration, public feed mutation, prediction adapter coupling,
+evidence write, consumer status change, public-launch claim, consumer
+acceptance claim, compliance claim, release-readiness claim,
+production-readiness claim, vendor claim, hardware claim, hosted-service
+claim, or SLA/uptime claim. The exact next checkpoint is Phase 101 --
+Checkpoint 000001: add connector maturity and adapter recipes v2 plan. Any
+future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1537,8 +1547,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 100 -- Checkpoint
-000001: add alerts operations and disruption workflow plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 101 -- Checkpoint
+000001: add connector maturity and adapter recipes v2 plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,
