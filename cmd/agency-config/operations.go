@@ -3739,6 +3739,23 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 {{end}}
 </div>
+<h3>Realtime Feed Usefulness Review</h3>
+<section class="card" id="realtime-usefulness-review">
+<p class="status"><span class="status-chip status-{{statusClass .Realtime.Usefulness.Status}}">{{.Realtime.Usefulness.Status}}</span></p>
+<p>{{.Realtime.Usefulness.Summary}}</p>
+<p class="muted">{{.Realtime.Usefulness.Boundary}}</p>
+</section>
+<table><thead><tr><th>Feed</th><th>Score</th><th>Current signal</th><th>Helpful signal</th><th>Needs review</th><th>Consumer-safe behavior</th><th>Next action</th><th>Details</th><th>Boundary</th></tr></thead><tbody>
+{{range .Realtime.Usefulness.Rows}}<tr><td>{{.Label}}</td><td>{{.Score}} / 3<br><span class="status-chip status-{{statusClass .ScoreLabel}}">{{.ScoreLabel}}</span></td><td>{{.CurrentSignal}}</td><td>{{.HelpfulSignal}}</td><td>{{.NeedsReviewSignal}}</td><td>{{.ConsumerSafeBehavior}}</td><td>{{.NextAction}}</td><td>{{range .Details}}<span class="pill">{{.Label}}: {{.Count}}</span> {{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Freshness And Lifecycle Review</h3>
+<table><thead><tr><th>Area</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
+{{range .Realtime.Usefulness.Freshness}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Consumer-Safe Omission Rules</h3>
+<table><thead><tr><th>Condition</th><th>Safe behavior</th><th>Review step</th><th>Boundary</th></tr></thead><tbody>
+{{range .Realtime.Usefulness.OmissionRules}}<tr><td>{{.Condition}}</td><td>{{.SafeBehavior}}</td><td>{{.ReviewStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h3>Needs Operator Review</h3>
 <table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .Realtime.Issues}}<tr><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.Area}}</a>{{else}}{{.Area}}{{end}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}

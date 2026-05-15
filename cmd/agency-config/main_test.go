@@ -5897,7 +5897,7 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
+	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "Realtime Feed Usefulness Review", "Freshness And Lifecycle Review", "Consumer-Safe Omission Rules", "Vehicle Positions usefulness", "Trip Updates usefulness", "Alerts usefulness", "Consumer-safe behavior", "emitted from", "valid empty/fallback output", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -5918,8 +5918,24 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	if view.AgencyID != "demo-agency" || view.Boundary == "" || len(view.Fleet) != 3 || len(view.Feeds) != 3 || len(view.Issues) == 0 || len(view.Guidance) < 6 {
 		t.Fatalf("unexpected realtime JSON shape: %+v", view)
 	}
+	if view.Usefulness.Status == "" || len(view.Usefulness.Rows) != 3 || len(view.Usefulness.Freshness) != 5 || len(view.Usefulness.OmissionRules) != 4 || view.Usefulness.Boundary == "" {
+		t.Fatalf("unexpected realtime usefulness shape: %+v", view.Usefulness)
+	}
 	if view.Issues[0].Severity == "" || view.Issues[0].NextAction == "" || view.Guidance[0].DoesNotProve == "" {
 		t.Fatalf("realtime review guidance is not actionable: issues=%+v guidance=%+v", view.Issues, view.Guidance)
+	}
+	for _, row := range view.Usefulness.Rows {
+		if row.ID == "" || row.Label == "" || row.ScoreLabel == "" || row.CurrentSignal == "" || row.HelpfulSignal == "" || row.NeedsReviewSignal == "" || row.ConsumerSafeBehavior == "" || row.NextAction == "" || row.DoesNotProve == "" {
+			t.Fatalf("realtime usefulness row is not actionable: %+v", row)
+		}
+		if row.Score < 0 || row.Score > 3 {
+			t.Fatalf("realtime usefulness score out of range: %+v", row)
+		}
+	}
+	for _, rule := range view.Usefulness.OmissionRules {
+		if rule.Condition == "" || rule.SafeBehavior == "" || rule.ReviewStep == "" || rule.DoesNotProve == "" {
+			t.Fatalf("omission rule missing operator guidance: %+v", rule)
+		}
 	}
 	if view.Summary.LatestTelemetryRows != 2 || view.Summary.StaleTelemetryRows != 1 || view.Summary.DeviceBindings != 3 || view.Summary.DevicesNotSeen != 1 || view.Summary.MatchedAssignments != 1 || view.Summary.UnknownAssignments != 2 || view.Summary.LowConfidenceRows != 1 {
 		t.Fatalf("unexpected realtime summary: %+v", view.Summary)

@@ -19,6 +19,7 @@ type operationsRealtimeView struct {
 	StaleThreshold string                         `json:"stale_threshold"`
 	Summary        operationsRealtimeSummary      `json:"summary"`
 	Feeds          []operationsRealtimeFeedStatus `json:"feeds"`
+	Usefulness     operationsRealtimeUsefulness   `json:"usefulness"`
 	Fleet          []operationsRealtimeFleetRow   `json:"fleet"`
 	Issues         []operationsRealtimeIssue      `json:"issues"`
 	Guidance       []operationsRealtimeGuidance   `json:"guidance"`
@@ -40,6 +41,46 @@ type operationsRealtimeSummary struct {
 	ManualOverrides     int    `json:"manual_overrides"`
 	NextAction          string `json:"next_action"`
 	DoesNotProve        string `json:"does_not_prove"`
+}
+
+type operationsRealtimeUsefulness struct {
+	Status        string                              `json:"status"`
+	Summary       string                              `json:"summary"`
+	Boundary      string                              `json:"boundary"`
+	Rows          []operationsRealtimeUsefulnessScore `json:"rows"`
+	Freshness     []operationsRealtimeFreshnessReview `json:"freshness"`
+	OmissionRules []operationsRealtimeOmissionRule    `json:"omission_rules"`
+}
+
+type operationsRealtimeUsefulnessScore struct {
+	ID                   string      `json:"id"`
+	Label                string      `json:"label"`
+	Score                int         `json:"score"`
+	ScoreLabel           string      `json:"score_label"`
+	CurrentSignal        string      `json:"current_signal"`
+	HelpfulSignal        string      `json:"helpful_signal"`
+	NeedsReviewSignal    string      `json:"needs_review_signal"`
+	ConsumerSafeBehavior string      `json:"consumer_safe_behavior"`
+	NextAction           string      `json:"next_action"`
+	DoesNotProve         string      `json:"does_not_prove"`
+	Details              []countView `json:"details,omitempty"`
+}
+
+type operationsRealtimeFreshnessReview struct {
+	ID            string `json:"id"`
+	Label         string `json:"label"`
+	Status        string `json:"status"`
+	CurrentSignal string `json:"current_signal"`
+	NextAction    string `json:"next_action"`
+	DoesNotProve  string `json:"does_not_prove"`
+}
+
+type operationsRealtimeOmissionRule struct {
+	ID           string `json:"id"`
+	Condition    string `json:"condition"`
+	SafeBehavior string `json:"safe_behavior"`
+	ReviewStep   string `json:"review_step"`
+	DoesNotProve string `json:"does_not_prove"`
 }
 
 type operationsRealtimeFeedStatus struct {
@@ -142,6 +183,7 @@ func buildOperationsRealtime(page operationsPage) operationsRealtimeView {
 		StaleThreshold: page.StaleThreshold.String(),
 		Summary:        summary,
 		Feeds:          feeds,
+		Usefulness:     buildRealtimeUsefulnessReview(page, summary, fleet, feeds),
 		Fleet:          fleet,
 		Issues:         realtimeOperatorIssues(page, summary, fleet, feeds),
 		Guidance:       realtimeQualityGuidance(page, summary, feeds),
@@ -208,6 +250,274 @@ func buildRealtimeSummary(page operationsPage, fleet []operationsRealtimeFleetRo
 		summary.NextAction = "Continue monitoring freshness, assignment confidence, Vehicle Positions, Trip Updates diagnostics, and Alerts lifecycle."
 	}
 	return summary
+}
+
+func buildRealtimeUsefulnessReview(page operationsPage, summary operationsRealtimeSummary, fleet []operationsRealtimeFleetRow, feeds []operationsRealtimeFeedStatus) operationsRealtimeUsefulness {
+	feedByID := realtimeFeedStatusByID(feeds)
+	rows := []operationsRealtimeUsefulnessScore{
+		vehiclePositionsUsefulnessScore(page, summary, feedByID["vehicle_positions"]),
+		tripUpdatesUsefulnessScore(page, feedByID["trip_updates"]),
+		alertsUsefulnessScore(feedByID["alerts"]),
+	}
+	return operationsRealtimeUsefulness{
+		Status:        realtimeUsefulnessStatus(rows),
+		Summary:       fmt.Sprintf("Private usefulness scoring reviews %d realtime feed types, %d fleet rows, and %d latest telemetry rows.", len(rows), len(fleet), summary.LatestTelemetryRows),
+		Boundary:      "Usefulness scores are private operator diagnostics only. They are not SLA, uptime, production readiness, production-grade ETA, real-world accuracy, consumer display, public launch, compliance, vendor, or hardware proof.",
+		Rows:          rows,
+		Freshness:     realtimeFreshnessReviewRows(page, summary, feedByID),
+		OmissionRules: realtimeConsumerSafeOmissionRules(),
+	}
+}
+
+func realtimeFeedStatusByID(feeds []operationsRealtimeFeedStatus) map[string]operationsRealtimeFeedStatus {
+	out := map[string]operationsRealtimeFeedStatus{}
+	for _, feed := range feeds {
+		out[feed.ID] = feed
+	}
+	return out
+}
+
+func vehiclePositionsUsefulnessScore(page operationsPage, summary operationsRealtimeSummary, feed operationsRealtimeFeedStatus) operationsRealtimeUsefulnessScore {
+	score := 0
+	label := "missing_signal"
+	helpful := "No accepted latest telemetry rows are visible."
+	needs := "Device credentials, telemetry ingest, and Vehicle Positions feed-health rows need review."
+	if summary.LatestTelemetryRows > 0 {
+		score = 1
+		label = "telemetry_visible"
+		helpful = fmt.Sprintf("%d latest telemetry rows are visible.", summary.LatestTelemetryRows)
+		needs = fmt.Sprintf("%d stale rows; %d unknown assignments; %d low-confidence rows.", summary.StaleTelemetryRows, summary.UnknownAssignments, summary.LowConfidenceRows)
+		if summary.FreshTelemetryRows > 0 {
+			score = 2
+			label = "useful_with_review"
+		}
+		if summary.FreshTelemetryRows > 0 && summary.MatchedAssignments > 0 && summary.UnknownAssignments == 0 && summary.LowConfidenceRows == 0 && !realtimeFeedNeedsReview(feed.State) {
+			score = 3
+			label = "useful_for_local_review"
+			needs = "Continue periodic stale telemetry, assignment, validator, and feed-health review."
+		}
+		if summary.StaleTelemetryRows == summary.LatestTelemetryRows {
+			label = "stale_only"
+		}
+	}
+	return operationsRealtimeUsefulnessScore{
+		ID:                   "vehicle_positions",
+		Label:                "Vehicle Positions usefulness",
+		Score:                score,
+		ScoreLabel:           label,
+		CurrentSignal:        firstNonEmpty(feed.LatestSignal, summary.CurrentSignal, "Vehicle Positions signal is not available."),
+		HelpfulSignal:        helpful,
+		NeedsReviewSignal:    needs,
+		ConsumerSafeBehavior: "Emit only defensible vehicle position fields; suppress stale rows when configured and omit trip descriptors when assignment confidence is weak.",
+		NextAction:           "Review telemetry freshness, stale suppression, assignment confidence, Vehicle Positions feed health, and realtime validation together.",
+		DoesNotProve:         "Does not prove field reliability, vendor compatibility, hardware certification, consumer display, compliance, SLA, uptime, or production readiness.",
+		Details: []countView{
+			{Label: "fresh_telemetry", Count: summary.FreshTelemetryRows},
+			{Label: "stale_telemetry", Count: summary.StaleTelemetryRows},
+			{Label: "matched_assignments", Count: summary.MatchedAssignments},
+			{Label: "unknown_assignments", Count: summary.UnknownAssignments},
+		},
+	}
+}
+
+func tripUpdatesUsefulnessScore(page operationsPage, feed operationsRealtimeFeedStatus) operationsRealtimeUsefulnessScore {
+	score := 0
+	label := "diagnostics_missing"
+	helpful := "Trip Updates diagnostics are not recorded."
+	needs := "Review telemetry and assignment confidence before relying on prediction output."
+	details := []countView{}
+	if page.TripUpdatesQuality.Recorded {
+		score = 1
+		label = "withheld_or_empty"
+		helpful = fmt.Sprintf("%d Trip Updates emitted from %d eligible candidates.", page.TripUpdatesQuality.TripUpdatesEmitted, page.TripUpdatesQuality.EligiblePredictionCandidates)
+		needs = fmt.Sprintf("%d unknown assignments; %d ambiguous assignments; %d stale telemetry rows.", page.TripUpdatesQuality.UnknownAssignments, page.TripUpdatesQuality.AmbiguousAssignments, page.TripUpdatesQuality.StaleTelemetryRows)
+		details = append(details,
+			countView{Label: "emitted", Count: page.TripUpdatesQuality.TripUpdatesEmitted},
+			countView{Label: "eligible_candidates", Count: page.TripUpdatesQuality.EligiblePredictionCandidates},
+			countView{Label: "unknown_assignments", Count: page.TripUpdatesQuality.UnknownAssignments},
+			countView{Label: "ambiguous_assignments", Count: page.TripUpdatesQuality.AmbiguousAssignments},
+			countView{Label: "stale_telemetry", Count: page.TripUpdatesQuality.StaleTelemetryRows},
+		)
+		details = append(details, page.TripUpdatesQuality.WithheldByReason...)
+		if page.TripUpdatesQuality.TripUpdatesEmitted > 0 {
+			score = 2
+			label = "generated_with_review"
+		}
+		if page.TripUpdatesQuality.TripUpdatesEmitted > 0 && page.TripUpdatesQuality.UnknownAssignments == 0 && page.TripUpdatesQuality.AmbiguousAssignments == 0 && page.TripUpdatesQuality.StaleTelemetryRows == 0 && !realtimeFeedNeedsReview(feed.State) {
+			score = 3
+			label = "useful_for_local_review"
+			needs = "Continue reviewing withheld reasons, future-stop coverage, adapter status, and validation before stronger language."
+		}
+	}
+	return operationsRealtimeUsefulnessScore{
+		ID:                   "trip_updates",
+		Label:                "Trip Updates usefulness",
+		Score:                score,
+		ScoreLabel:           label,
+		CurrentSignal:        firstNonEmpty(feed.LatestSignal, page.TripUpdatesQuality.Message, "Trip Updates signal is not available."),
+		HelpfulSignal:        helpful,
+		NeedsReviewSignal:    needs,
+		ConsumerSafeBehavior: "Withhold Trip Updates or emit valid empty/fallback output when prediction evidence is stale, ambiguous, low confidence, or missing future-stop support.",
+		NextAction:           "Review emitted counts, withheld reasons, stale telemetry, adapter fallback state, and realtime validation before relying on ETAs.",
+		DoesNotProve:         "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, public launch, compliance, SLA, or production readiness.",
+		Details:              details,
+	}
+}
+
+func alertsUsefulnessScore(feed operationsRealtimeFeedStatus) operationsRealtimeUsefulnessScore {
+	score := 0
+	label := "missing_signal"
+	helpful := "Alerts feed state is not available."
+	needs := "Open Alerts Console and feed health before relying on alert output."
+	if strings.TrimSpace(feed.State) != "" && feed.State != "not available yet" {
+		score = 1
+		label = "lifecycle_needs_review"
+		helpful = "Alerts feed state is visible in private feed health."
+		needs = "Active alert count is not exposed in this bounded summary; lifecycle review still belongs in the Alerts Console."
+		if !realtimeFeedNeedsReview(feed.State) {
+			score = 2
+			label = "configured_lifecycle_review"
+		}
+	}
+	return operationsRealtimeUsefulnessScore{
+		ID:                   "alerts",
+		Label:                "Alerts usefulness",
+		Score:                score,
+		ScoreLabel:           label,
+		CurrentSignal:        firstNonEmpty(feed.LatestSignal, "Alerts signal is not available."),
+		HelpfulSignal:        helpful,
+		NeedsReviewSignal:    needs,
+		ConsumerSafeBehavior: "Publish only authored and reviewed Alerts records; do not infer a disruption or an all-clear state from missing private rows.",
+		NextAction:           "Review active, planned, archived, and canceled-service alert workflows in the Alerts Console, then check feed health and validation.",
+		DoesNotProve:         "Does not prove agency approval, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
+	}
+}
+
+func realtimeUsefulnessStatus(rows []operationsRealtimeUsefulnessScore) string {
+	if len(rows) == 0 {
+		return checklistStatusUnknown
+	}
+	hasZero := false
+	hasReview := false
+	for _, row := range rows {
+		if row.Score <= 0 {
+			hasZero = true
+			continue
+		}
+		if row.Score < 3 {
+			hasReview = true
+		}
+	}
+	switch {
+	case hasZero:
+		return checklistStatusMissing
+	case hasReview:
+		return checklistStatusNeedsReview
+	default:
+		return checklistStatusOK
+	}
+}
+
+func realtimeFreshnessReviewRows(page operationsPage, summary operationsRealtimeSummary, feeds map[string]operationsRealtimeFeedStatus) []operationsRealtimeFreshnessReview {
+	tripSignal := page.TripUpdatesQuality.Message
+	tripStatus := checklistStatusMissing
+	if page.TripUpdatesQuality.Recorded {
+		tripStatus = checklistStatusNeedsReview
+		if page.TripUpdatesQuality.TripUpdatesEmitted > 0 && page.TripUpdatesQuality.StaleTelemetryRows == 0 {
+			tripStatus = checklistStatusOK
+		}
+		tripSignal = fmt.Sprintf("%s/%s at %s", page.TripUpdatesQuality.DiagnosticsStatus, page.TripUpdatesQuality.DiagnosticsReason, formatTimeForText(page.TripUpdatesQuality.SnapshotAt))
+	}
+	return []operationsRealtimeFreshnessReview{
+		{
+			ID:            "telemetry_freshness",
+			Label:         "Telemetry freshness",
+			Status:        summary.Status,
+			CurrentSignal: fmt.Sprintf("%d latest rows; %d fresh; %d stale at %s", summary.LatestTelemetryRows, summary.FreshTelemetryRows, summary.StaleTelemetryRows, page.StaleThreshold),
+			NextAction:    "Check stale devices before changing matching thresholds or prediction settings.",
+			DoesNotProve:  "Fresh telemetry does not prove field reliability, SLA, uptime, or vendor compatibility.",
+		},
+		{
+			ID:            "device_state",
+			Label:         "Device state triage",
+			Status:        realtimeDeviceFreshnessStatus(summary),
+			CurrentSignal: fmt.Sprintf("%d bindings; %d reporting; %d not seen", summary.DeviceBindings, summary.DevicesReporting, summary.DevicesNotSeen),
+			NextAction:    "Review device bindings and one-time token lifecycle when devices are not seen.",
+			DoesNotProve:  "A visible binding does not prove hardware certification or production AVL reliability.",
+		},
+		realtimeFeedFreshnessRow("vehicle_positions_feed", "Vehicle Positions feed freshness", feeds["vehicle_positions"]),
+		{
+			ID:            "trip_updates_diagnostics",
+			Label:         "Trip Updates diagnostics freshness",
+			Status:        tripStatus,
+			CurrentSignal: tripSignal,
+			NextAction:    "Review diagnostics recency, withheld reasons, and adapter fallback before relying on prediction output.",
+			DoesNotProve:  "Recent diagnostics do not prove ETA accuracy or consumer display.",
+		},
+		realtimeFeedFreshnessRow("alerts_feed", "Alerts feed freshness", feeds["alerts"]),
+	}
+}
+
+func realtimeFeedFreshnessRow(id string, label string, feed operationsRealtimeFeedStatus) operationsRealtimeFreshnessReview {
+	status := checklistStatusMissing
+	if strings.TrimSpace(feed.State) != "" {
+		status = checklistStatusNeedsReview
+		if !realtimeFeedNeedsReview(feed.State) {
+			status = checklistStatusOK
+		}
+	}
+	return operationsRealtimeFreshnessReview{
+		ID:            id,
+		Label:         label,
+		Status:        status,
+		CurrentSignal: fmt.Sprintf("%s; %s; %s", firstNonEmpty(feed.State, "not available"), firstNonEmpty(feed.LatestSignal, "no latest signal"), firstNonEmpty(feed.StaleOrWithheld, "no stale or withheld summary")),
+		NextAction:    firstNonEmpty(feed.NextAction, "Open feed health and validation center before relying on this feed."),
+		DoesNotProve:  feed.DoesNotProve,
+	}
+}
+
+func realtimeDeviceFreshnessStatus(summary operationsRealtimeSummary) string {
+	switch {
+	case summary.DeviceBindings == 0:
+		return checklistStatusMissing
+	case summary.DevicesNotSeen > 0:
+		return checklistStatusNeedsReview
+	default:
+		return checklistStatusOK
+	}
+}
+
+func realtimeConsumerSafeOmissionRules() []operationsRealtimeOmissionRule {
+	return []operationsRealtimeOmissionRule{
+		{
+			ID:           "stale_vehicle_position",
+			Condition:    "Telemetry is stale or older than the configured suppression threshold.",
+			SafeBehavior: "Prefer suppressing stale vehicles or omitting stale-sensitive fields over presenting old movement as current.",
+			ReviewStep:   "Check device power, network, timestamps, and ingest cadence before changing thresholds.",
+			DoesNotProve: "Suppressing stale rows does not prove fleet reliability or uptime.",
+		},
+		{
+			ID:           "unknown_assignment",
+			Condition:    "Assignment is unknown, ambiguous, manually withheld, or below confidence threshold.",
+			SafeBehavior: "Emit Vehicle Positions without a trip descriptor or keep the public trip context unknown.",
+			ReviewStep:   "Review service day, after-midnight trips, frequency service, block continuity, and active overrides.",
+			DoesNotProve: "A later match does not prove consumer display or ETA quality.",
+		},
+		{
+			ID:           "trip_updates_withheld",
+			Condition:    "Trip Updates lack safe prediction evidence, future-stop support, or adapter output.",
+			SafeBehavior: "Withhold Trip Updates or emit valid empty/fallback output instead of inventing ETAs.",
+			ReviewStep:   "Review withheld reasons, adapter diagnostics, stale telemetry, and validation before changing prediction behavior.",
+			DoesNotProve: "Withheld or emitted Trip Updates do not prove production-grade ETA quality or real-world accuracy.",
+		},
+		{
+			ID:           "alerts_not_authored",
+			Condition:    "No active alert is authored for a disruption or cancellation signal.",
+			SafeBehavior: "Do not infer or publish a service alert automatically from telemetry or prediction data.",
+			ReviewStep:   "Use the Alerts Console lifecycle review and cancellation-link guidance before publishing alert records.",
+			DoesNotProve: "An absent alert does not prove there is no disruption or that an agency approved messaging.",
+		},
+	}
 }
 
 func buildRealtimeFleetRows(page operationsPage) []operationsRealtimeFleetRow {
