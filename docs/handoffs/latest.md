@@ -290,9 +290,21 @@ change, Trip Updates hard-coupling, durable connector runtime state, evidence
 write, consumer status change, real vendor/device proof, vendor-compatibility
 claim, hardware-certification claim, compliance claim, release-readiness
 claim, production-readiness claim, hosted-service claim, SLA/uptime claim,
-public-launch claim, or production-grade ETA claim. The exact next checkpoint
-is Phase 102 -- Checkpoint 000001: add device / avl fleet onboarding v2 plan. Any
-future evidence intake is
+public-launch claim, or production-grade ETA claim. Phase 102 -- Device / AVL
+Fleet Onboarding V2 is complete, with closeout at
+`docs/handoffs/phase-102.md`: it added private metadata-only fleet onboarding
+review rows for inventory coverage, bulk onboarding planning, token lifecycle
+guidance, freshness and unknown-device triage, binding review, and safe
+technical-helper handoff, plus device token lifecycle and AVL integration docs.
+It added no public admin route, migration, durable fleet inventory schema,
+bulk token generation, token recovery, browser token collection,
+unknown-device persistence, telemetry ingest contract change, public feed
+contract change, evidence write, consumer status change, real vendor/device
+proof, vendor-compatibility claim, hardware-certification claim, compliance
+claim, release-readiness claim, production-readiness claim, hosted-service
+claim, SLA/uptime claim, public-launch claim, or production-grade ETA claim.
+The exact next checkpoint is Phase 103 -- Checkpoint 000001: add monitoring
+notifications and export surfaces plan. Any future evidence intake is
 optional and requires explicit written authorization first.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
@@ -1557,8 +1569,8 @@ target-originated evidence supports a target-specific status transition.
 
 ## Exact Next-Step Recommendation
 
-Continue the authorized autonomous post-90 roadmap with Phase 102 -- Checkpoint
-000001: add device / avl fleet onboarding v2 plan. Do not tag, publish, distribute
+Continue the authorized autonomous post-90 roadmap with Phase 103 -- Checkpoint
+000001: add monitoring notifications and export surfaces plan. Do not tag, publish, distribute
 packages publicly, create a GitHub Release, collect retained evidence, move
 consumer statuses, contact external parties, or claim production readiness,
 hosted service, SLA, uptime, release readiness, compliance, agency adoption,

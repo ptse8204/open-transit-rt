@@ -520,8 +520,20 @@ state, evidence write, consumer status change, real vendor/device proof,
 vendor-compatibility claim, hardware-certification claim, compliance claim,
 release-readiness claim, production-readiness claim, hosted-service claim,
 SLA/uptime claim, public-launch claim, or production-grade ETA claim.
-The authorized autonomous post-90 roadmap continues next with Phase 102 --
-Device / AVL Fleet Onboarding V2.
+Phase 102 -- Device / AVL Fleet Onboarding V2 is complete, with closeout at
+`docs/handoffs/phase-102.md`: the private Device Credentials page now includes
+metadata-only fleet onboarding review rows for inventory coverage, bulk
+onboarding planning, token lifecycle, freshness and unknown-device triage,
+device-to-vehicle binding review, and technical-helper handoff guidance. Phase
+102 added no public admin route, migration, durable fleet inventory schema,
+bulk token generation, token recovery, browser token collection,
+unknown-device persistence, telemetry ingest contract change, public feed
+contract change, evidence write, consumer status change, real vendor/device
+proof, vendor-compatibility claim, hardware-certification claim, compliance
+claim, release-readiness claim, production-readiness claim, hosted-service
+claim, SLA/uptime claim, public-launch claim, or production-grade ETA claim.
+The authorized autonomous post-90 roadmap continues next with Phase 103 --
+Monitoring, Notifications, And Export Surfaces.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

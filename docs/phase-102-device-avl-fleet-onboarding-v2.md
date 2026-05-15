@@ -305,3 +305,75 @@ Proceed to closeout checkpoint 000004.
 
 Next checkpoint:
 Phase 102 -- Checkpoint 000004: close device / avl fleet onboarding v2 review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 102 -- Checkpoint 000004: close device / avl fleet onboarding v2 review.
+
+Sub-agents used or simulated, including intended model level:
+Real Context / Repo Truth Sub-Agent -- GPT-5.5 x-high; real Planning
+Sub-Agent -- GPT-5.5 x-high. Implementation, QA, UI/UX, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, and Release/Supply-Chain
+closeout roles were simulated by the Master Agent. Master Agent -- GPT-5.5
+x-high, current thread.
+
+Changed files:
+`docs/phase-102-device-avl-fleet-onboarding-v2.md`;
+`docs/handoffs/phase-102.md`;
+`docs/handoffs/latest.md`;
+`docs/current-status.md`;
+`docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`.
+
+Validation run:
+Closeout relies on the checkpoint 000003 validation pass: baseline checks,
+focused device/telemetry tests, helper script checks, `make check`, product
+acceptance audit, final claim audit, `make validate`, `make test`, docker
+compose config, final protected-path check, and final `git diff --check`.
+After closeout wording updates, `git diff --check`, `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null`, the exact
+prepared-only consumer tracker assertion, the protected-path status check,
+`make audit-product-acceptance`, and `make audit-final-claim-review` also
+passed.
+
+Blocked checks:
+Release-candidate diagnostics, package generation/audit, retained evidence,
+external vendor/device testing, consumer submission, public publication, and
+tag/release/package/image publication remain blocked by scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven targets remain in order and all remain `prepared`.
+
+Claim-boundary status:
+Phase 102 closes without vendor compatibility, hardware certification,
+production AVL reliability, compliance, release readiness, production
+readiness, hosted-service, SLA, public-launch, adoption, consumer acceptance,
+production-grade ETA, or real-world ETA claim.
+
+Security/auth status:
+No public admin route, auth behavior change, credential storage change, token
+recovery, browser token collection, bulk secret generation, external send, or
+raw payload rendering was added.
+
+Data/migration status:
+No migration, durable fleet schema, unknown-device queue, telemetry contract
+change, public feed mutation, Trip Updates coupling, or module dependency
+change was added.
+
+Master review:
+Approved. Phase 102 is complete and closed.
+
+Required edits:
+None.
+
+Decision:
+Continue immediately to Phase 103.
+
+Next checkpoint:
+Phase 103 -- Checkpoint 000001: add monitoring notifications and export
+surfaces plan.
