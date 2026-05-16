@@ -456,8 +456,11 @@ Usefulness And Reliability V2 is complete, with closeout at
 private health snapshots now include redaction-safe aggregate review summaries
 for protobuf inclusion, published trip descriptors, stale/suppressed vehicles,
 unmatched vehicles, assignment telemetry mismatches, and trip descriptor
-omission reasons. Phase 121 is active for GTFS-RT Interoperability Conformance
-Harness.
+omission reasons. Phase 121 -- GTFS-RT Interoperability Conformance Harness is
+complete, with closeout at `docs/handoffs/phase-121.md`: the repo now has an
+offline GTFS-RT protobuf conformance library, CLI, and `make gtfsrt-conformance`
+target for local Vehicle Positions, Trip Updates, and Alerts artifact review.
+Phase 122 is active for GTFS-RT Fixture Library And Edge-Case Coverage.
 Do not stop after publication, download replay, install confidence, or UX
 validation; continue through Phase 132.
 

@@ -228,15 +228,19 @@ The first instruction in this workstream was to make the Codex instructions expa
   home, wiki, local quickstart, release-candidate readiness, and draft rc1
   release notes now point at the actual public rc1 GitHub Release, the verified
   fresh-clone install path, and the known published source-archive `make check`
-  limitation. Phase 120 is active for GTFS-RT Feed Usefulness And Reliability
-  V2.
+  limitation.
 - Phase 120 is complete for GTFS-RT Feed Usefulness And Reliability V2. The
   closeout lives at `docs/handoffs/phase-120.md`. Current-source Vehicle
   Positions debug and private health snapshots now include redaction-safe
   aggregate review summaries for protobuf inclusion, published trip
   descriptors, stale/suppressed vehicles, unmatched vehicles, assignment
-  telemetry mismatches, and trip descriptor omission reasons. Phase 121 is
-  active for GTFS-RT Interoperability Conformance Harness.
+  telemetry mismatches, and trip descriptor omission reasons.
+- Phase 121 is complete for GTFS-RT Interoperability Conformance Harness. The
+  closeout lives at `docs/handoffs/phase-121.md`. The repo now has an offline
+  GTFS-RT protobuf conformance library, CLI, and `make gtfsrt-conformance`
+  target for local Vehicle Positions, Trip Updates, and Alerts artifact
+  review. Phase 122 is active for GTFS-RT Fixture Library And Edge-Case
+  Coverage.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

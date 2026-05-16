@@ -67,8 +67,13 @@ for GTFS-RT feed usefulness and reliability V2; the closeout handoff is
 Positions debug and private health snapshots now include safe aggregate review
 summaries for protobuf inclusion, trip descriptor publication/omission, stale
 and suppressed rows, unmatched rows, and assignment telemetry mismatches.
-Phase 121 is active for GTFS-RT interoperability conformance harness work. This
-release remains a candidate for
+Phase 121 is complete for GTFS-RT interoperability conformance harness work;
+the closeout handoff is
+[`docs/handoffs/phase-121.md`](handoffs/phase-121.md). The repo now has an
+offline GTFS-RT protobuf conformance library, CLI, and
+`make gtfsrt-conformance` target for local Vehicle Positions, Trip Updates,
+and Alerts artifact review. Phase 122 is active for GTFS-RT fixture library
+and edge-case coverage. This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,

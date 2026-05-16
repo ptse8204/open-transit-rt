@@ -320,3 +320,73 @@ Proceed to checkpoint 000003 commit and Phase 121 closeout.
 Next checkpoint:
 Phase 121 -- Checkpoint 000004: close GTFS-RT interoperability conformance
 harness review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 121 -- Checkpoint 000004: close GTFS-RT interoperability conformance
+harness review.
+
+Goal status:
+Active. Phase 121 is closed and the goal continues to Phase 122.
+
+Sub-agents used or simulated:
+Context / Repo Truth, Planning, Implementation, QA, GTFS-RT Domain, Connector,
+Claim-Boundary, Security/Auth, Data/Migration, Documentation / IA, Web Design
+Skill, Release, and Install Confidence roles were simulated by the Master
+Agent because the agent thread limit prevented new real sub-agents.
+
+Changed files:
+`docs/handoffs/phase-121.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-121-gtfs-rt-interoperability-conformance-harness.md`.
+
+Validation run:
+Full Phase 121 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+No Phase 121 check remains blocked.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 121 remains bounded to offline/local GTFS-RT conformance diagnostics and
+makes no stronger public claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No release action was taken.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete.
+
+Master review:
+Approved. Phase 121 closes with an offline protobuf conformance harness and
+full validation passed.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 122.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 122.
+
+Next checkpoint:
+Phase 122 -- Checkpoint 000001: add GTFS-RT fixture library and edge-case
+coverage plan.
