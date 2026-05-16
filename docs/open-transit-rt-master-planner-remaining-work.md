@@ -223,8 +223,13 @@ The first instruction in this workstream was to make the Codex instructions expa
   used, the public rc1 local app private Operations Console was reviewed
   through authenticated HTML/JSON routes, no Phase 118 code patch was required,
   and browser automation/screenshots were unavailable in this session.
-  Phase 119 is active for public docs, README, and quickstart release
-  alignment.
+- Phase 119 is complete for Public Docs Site README And Quickstart Release
+  Alignment. The closeout lives at `docs/handoffs/phase-119.md`. README, docs
+  home, wiki, local quickstart, release-candidate readiness, and draft rc1
+  release notes now point at the actual public rc1 GitHub Release, the verified
+  fresh-clone install path, and the known published source-archive `make check`
+  limitation. Phase 120 is active for GTFS-RT Feed Usefulness And Reliability
+  V2.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

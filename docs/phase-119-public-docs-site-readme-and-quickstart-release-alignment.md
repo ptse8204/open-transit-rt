@@ -312,3 +312,72 @@ Proceed to checkpoint 000003 commit and Phase 119 closeout.
 Next checkpoint:
 Phase 119 -- Checkpoint 000004: close public docs site README and quickstart
 release alignment review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 119 -- Checkpoint 000004: close public docs site README and quickstart
+release alignment review.
+
+Goal status:
+Active. Phase 119 is closed and the goal continues to Phase 120.
+
+Sub-agents used or simulated:
+Documentation / IA, Claim-Boundary, Release, Install Confidence, QA,
+Security/Auth, Data/Migration, Web Design Skill, GTFS-RT Domain, Planning, and
+Implementation closeout roles were simulated by the Master Agent.
+
+Changed files:
+`docs/handoffs/phase-119.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-119-public-docs-site-readme-and-quickstart-release-alignment.md`.
+
+Validation run:
+Phase 119 full validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+No Phase 119 check remains blocked.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 119 records docs alignment only. It makes no stronger public claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, or Go
+module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No new release action was taken.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact is complete.
+
+Master review:
+Approved. Phase 119 closes with public docs aligned to the actual rc1 release
+and install-confidence state.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 120.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 120.
+
+Next checkpoint:
+Phase 120 -- Checkpoint 000001: add GTFS-RT feed usefulness and reliability
+v2 plan.

@@ -694,7 +694,13 @@ artifact at `docs/ux/web-design-skill-review-phase-118.md`: the Web Design
 Skill was used, the public rc1 local app private Operations Console was
 reviewed through authenticated HTML/JSON routes, no Phase 118 code patch was
 required, and browser automation/screenshots were unavailable in this session.
-Phase 119 is active for public docs, README, and quickstart release alignment.
+Phase 119 -- Public Docs Site README And Quickstart Release Alignment is
+complete, with closeout at `docs/handoffs/phase-119.md`: README, docs home,
+wiki, local quickstart, release-candidate readiness, and draft rc1 release
+notes now point at the actual public rc1 GitHub Release, the verified
+fresh-clone install path, and the known published source-archive `make check`
+limitation without adding stronger claims. Phase 120 is active for GTFS-RT
+feed usefulness and reliability V2.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

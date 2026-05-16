@@ -59,8 +59,10 @@ is
 [`docs/ux/web-design-skill-review-phase-118.md`](ux/web-design-skill-review-phase-118.md).
 The Web Design Skill was used, the public rc1 local app private Operations
 Console was reviewed through authenticated HTML/JSON routes, and no Phase 118
-code patch was required. Phase 119 is active for public docs, README, and
-quickstart release alignment. This release remains a candidate for
+code patch was required. Phase 119 is complete for public docs, README, wiki,
+quickstart, readiness, and rc1 release-note alignment; the closeout handoff is
+[`docs/handoffs/phase-119.md`](handoffs/phase-119.md). Phase 120 is active for
+GTFS-RT feed usefulness and reliability V2. This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,
