@@ -8,10 +8,21 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 110 is complete for Long-Term Extensibility And Plugin Governance in
-the authorized autonomous Phase 91-110 product roadmap. The closeout handoff
-is [`docs/handoffs/phase-110.md`](handoffs/phase-110.md). Phase 110 added
-extension governance for the sidecar/manifest model, connector manifest
+Phase 111 is active for goal activation and the Phase 111-132 public release,
+independent install confidence, Web Design Skill UX validation, and GTFS-RT
+adoption roadmap pack. The roadmap lives at
+[`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`](roadmaps/post-110-goal-public-release-install-ux/README.md).
+Phase 115 is authorized to attempt public `v0.1.0-rc.1` release-candidate
+publication only if release gates pass and authenticated tooling is available.
+If release credentials, tooling, source-archive review, protected-path review,
+or claim gates block publication, the phase must record exact blocker evidence
+and continue safe downstream phases without faking publication or stronger
+claims.
+
+Phase 110 remains complete for Long-Term Extensibility And Plugin Governance
+in the authorized autonomous Phase 91-110 product roadmap. The closeout
+handoff is [`docs/handoffs/phase-110.md`](handoffs/phase-110.md). Phase 110
+added extension governance for the sidecar/manifest model, connector manifest
 compatibility, public API stability, deprecation, security review, maintainer
 release train planning, and post-110 roadmap guidance. It did not add dynamic
 plugin loading, tag a release, create a GitHub Release, publish a package,
@@ -22,7 +33,8 @@ readiness, vendor compatibility, hardware certification, or production-grade
 ETA quality.
 
 The authorized Phase 91-110 post-90 agency-grade GTFS-RT roadmap is complete.
-Recommended post-110 work remains separated into the gated tracks below.
+The authorized post-110 work is now separated into the Phase 111-132 gated
+track above.
 
 Phase 108 is complete for Post-RC Bug Bash And Stabilization in the
 authorized autonomous Phase 91-110 product roadmap. The closeout handoff is

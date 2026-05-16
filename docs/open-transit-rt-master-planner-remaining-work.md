@@ -172,6 +172,14 @@ The first instruction in this workstream was to make the Codex instructions expa
   planning, and post-110 roadmap guidance without dynamic plugin loading,
   release action, evidence, consumer-status movement, or stronger public
   claims.
+- Phase 111 is active for goal activation and the Phase 111-132 public release,
+  independent install confidence, Web Design Skill UX validation, and GTFS-RT
+  adoption roadmap pack at
+  `docs/roadmaps/post-110-goal-public-release-install-ux/README.md`. Phase 115
+  is the first phase authorized to attempt public `v0.1.0-rc.1` publication,
+  only if gates pass and authenticated tooling is available; blocked
+  publication must be recorded truthfully and downstream safe phases must
+  continue.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

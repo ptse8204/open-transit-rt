@@ -12,8 +12,10 @@ stronger deployment or consumer claims separate from local evaluation.
 Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
 
-Current maintainer next step: continue adoption-first product hardening toward
-a `v0.1.0-rc.1` agency evaluation release candidate. The default path is
+Current maintainer next step: execute the authorized public release,
+independent install confidence, UX validation, and GTFS-RT adoption roadmap
+toward a `v0.1.0-rc.1` release candidate. Publication is gated by release
+checks and available authenticated tooling; the default path remains
 browser-first operations, docs, remote diagnostics, off-host validation, and
 connector usability, not real agency pilot evidence. See
 [Review And Recommendations](docs/roadmap-status.md#review-and-recommendations).
@@ -289,6 +291,7 @@ evaluation or open-source contribution.
 - [Contributing Connectors](docs/connectors/contributing-connectors.md)
 - [Current Status](docs/current-status.md)
 - [Latest Handoff](docs/handoffs/latest.md)
+- [Phase 111-132 Public Release / Install / UX Roadmap](docs/roadmaps/post-110-goal-public-release-install-ux/README.md)
 - [Phase 61+ Product Roadmap](docs/roadmaps/agency-first-connector-platform/README.md)
 - [Adoption Productization Roadmap](docs/roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md)
 - [Consumer-Grade Control Plane Proposed/Authorized Roadmap Pack](docs/roadmaps/consumer-grade-control-plane/README.md)

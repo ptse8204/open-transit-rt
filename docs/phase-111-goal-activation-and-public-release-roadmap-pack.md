@@ -175,3 +175,94 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 111 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 111 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 111-132 roadmap execution is now represented in tracked docs,
+with Phase 115 publication gated by release checks and available authenticated
+tooling.
+
+Sub-agents used or simulated:
+Real read-only Release/Supply-Chain, Install Confidence, Web Design Skill UX,
+and GTFS-RT Domain sub-agents were running in parallel during this checkpoint.
+The Web Design Skill UX sub-agent returned Phase 114/118 findings and
+confirmed the skill file was read. Implementation, QA, Documentation / IA,
+Claim-Boundary, Security/Auth, and Data/Migration roles were simulated by the
+Master Agent for the docs-only activation work.
+
+Changed files:
+`README.md`; `docs/README.md`; `docs/current-status.md`;
+`docs/handoffs/latest.md`; `docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/roadmap-status.md`; `docs/phase-111-goal-activation-and-public-release-roadmap-pack.md`;
+tracked files under `docs/roadmaps/post-110-goal-public-release-install-ux/`.
+
+Validation run:
+`git status --short`; `git diff --check`; `make check`; `make
+audit-product-acceptance`; `make audit-final-claim-review`; `python3 -m
+json.tool docs/evidence/consumer-submissions/status.json >/dev/null`; exact
+prepared-only consumer tracker assertion; `git status --short --
+docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod
+go.sum`.
+
+Blocked checks:
+`make validate`, `make test`, and `docker compose -f
+deploy/docker-compose.yml config` were not required for this docs-only
+roadmap activation checkpoint. Release publication, retained evidence,
+external contact, consumer status movement, protected evidence writes, and
+stronger claims remain out of Phase 111 scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+protected-path status check returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets remain in order and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. Source-of-truth docs now
+state publication is gated and do not claim release readiness, compliance,
+adoption, consumer acceptance, final-root readiness, hosted service
+availability, SLA/uptime, production readiness, vendor compatibility, hardware
+certification, or production-grade ETA quality.
+
+Security/auth status:
+No route, auth behavior, CSRF behavior, credential handling, token handling,
+public exposure, private payload handling, external contact, or command
+execution behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was added.
+
+Release/publication status:
+No tag, GitHub Release, public package, asset upload, image push, or public
+announcement was created. Phase 115 remains the publication attempt phase, if
+all gates pass and authenticated tooling is available.
+
+Install confidence status:
+No fresh-clone or release-archive replay was performed in Phase 111. The
+roadmap pack records those checks for Phases 113, 116, and 117.
+
+Web design skill status:
+The Web Design Skill was read by the UX sub-agent and the path exists. Actual
+UX artifacts are scheduled for Phases 114 and 118.
+
+Master review:
+Approved. The roadmap pack is reconciled into the repo and source-of-truth
+docs now point to the active Phase 111-132 continuation without putting phase
+history ahead of the public README product path.
+
+Required edits:
+Run Phase 111 checkpoint 000003 validation and patch any remaining docs,
+claim, or protected-path gaps.
+
+Decision:
+Proceed to checkpoint 000002 commit, then checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 111 -- Checkpoint 000003: run validation and patch required gaps.

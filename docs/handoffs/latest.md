@@ -389,9 +389,13 @@ GitHub Release, package publication, image publication, evidence write,
 consumer status change, external contact, production-readiness claim,
 compliance claim, hosted-service claim, vendor claim, hardware claim,
 SLA/uptime claim, public-launch claim, or ETA-quality claim.
-The authorized Phase 91-110 post-90 roadmap is closed. The next safe action is
-maintainer review of `docs/handoffs/phase-110.md`, `docs/extension-governance.md`,
-and the post-110 recommended work in `docs/roadmap-status.md`.
+The authorized Phase 91-110 post-90 roadmap is closed. Phase 111 is active for
+goal activation and the Phase 111-132 public release, independent install
+confidence, Web Design Skill UX validation, and GTFS-RT adoption roadmap pack.
+The active roadmap pack lives at
+`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`. Continue to
+Phase 112 after Phase 111 closeout; do not stop after roadmap activation or a
+release recommendation.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and
