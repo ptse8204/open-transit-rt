@@ -738,8 +738,10 @@ resource budget, recovery path, and upgrade stop-point review. Phase 128 --
 Contributor And Agency Evaluator Adoption Kit is complete, with closeout at
 `docs/handoffs/phase-128.md`: the repo now has a public-safe evaluator and
 contributor kit for no-claim trials, demo paths, feedback guidance, and first
-contributions. Phase 129 is active for Community Support Feedback And Issue
-Triage Kit.
+contributions. Phase 129 -- Community Support Feedback And Issue Triage Kit
+is complete, with closeout at `docs/handoffs/phase-129.md`: the repo now has
+public-safe support/triage guidance and a release-candidate feedback issue
+template. Phase 130 is active for Release Candidate Patch Loop And rc2 Gate.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

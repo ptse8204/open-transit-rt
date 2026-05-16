@@ -104,8 +104,11 @@ upgrade stop-point review. Phase 128 is complete for Contributor And Agency
 Evaluator Adoption Kit; the closeout handoff is
 [`docs/handoffs/phase-128.md`](handoffs/phase-128.md). The repo now has a
 public-safe evaluator and contributor kit for no-claim trials, demo paths,
-feedback guidance, and first contributions. Phase 129 is active for Community
-Support Feedback And Issue Triage Kit.
+feedback guidance, and first contributions. Phase 129 is complete for
+Community Support Feedback And Issue Triage Kit; the closeout handoff is
+[`docs/handoffs/phase-129.md`](handoffs/phase-129.md). The repo now has
+public-safe support/triage guidance and a release-candidate feedback issue
+template. Phase 130 is active for Release Candidate Patch Loop And rc2 Gate.
 This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root

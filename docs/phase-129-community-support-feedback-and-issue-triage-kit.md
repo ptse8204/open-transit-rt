@@ -307,3 +307,84 @@ Proceed to checkpoint 000003 commit.
 Next checkpoint:
 Phase 129 -- Checkpoint 000004: close community support feedback and issue
 triage kit review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 129 -- Checkpoint 000004: close community support feedback and issue
+triage kit review.
+
+Goal status:
+Active. Phase 129 is closed and the goal continues to Phase 130.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Documentation / IA, Claim-Boundary,
+Security/Auth, Data/Migration, Release, Install Confidence, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Closeout summary:
+Phase 129 added community support and triage guidance plus a release-candidate
+feedback issue template. The work remains public-safe, best-effort, and
+claim-bounded; it does not create paid support, response targets, SLA, hosted
+service, evidence, external contact, or consumer-status movement.
+
+Changed files:
+`docs/handoffs/phase-129.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`; and this phase
+report.
+
+Validation run:
+Full Phase 129 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+No Phase 129 check remains blocked.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 129 remains bounded to community best-effort support and triage guidance
+and makes no paid support, support SLA, response-time commitment, stable
+release readiness, deployment success, production readiness, compliance,
+adoption, agency approval, consumer acceptance, consumer
+ingestion/listing/display, final-root readiness, hosted service availability,
+vendor compatibility, hardware certification, production AVL reliability,
+production-grade ETA quality, real-world ETA accuracy, or consumer display
+claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No release action was taken.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Not used; no visual UI changed.
+
+Master review:
+Approved. Phase 129 closes with validated support and issue triage guidance.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 130.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 130.
+
+Next checkpoint:
+Phase 130 -- Checkpoint 000001: add release candidate patch loop and rc2 gate
+plan.
