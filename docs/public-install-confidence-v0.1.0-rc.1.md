@@ -116,6 +116,39 @@ Other first-attempt steps passed:
 This keeps the default light path unchanged when validation is not requested,
 while making validation-enabled public fresh-clone trials self-contained.
 
+## Current-Source Replay
+
+Command:
+
+```bash
+INSTALL_CONFIDENCE_MODE=clone \
+INSTALL_CONFIDENCE_SOURCE=/Users/edwintse/Downloads/open-transit-rt \
+INSTALL_CONFIDENCE_REF=HEAD \
+INSTALL_CONFIDENCE_RUN_LOCAL_APP=false \
+INSTALL_CONFIDENCE_RUN_VALIDATE=true \
+INSTALL_CONFIDENCE_RUN_TEST=true \
+INSTALL_CONFIDENCE_OUTPUT_DIR=.cache/install-confidence/phase117-current-head \
+INSTALL_CONFIDENCE_FORCE=true \
+scripts/install-confidence.sh
+```
+
+Result:
+
+- Output directory: `.cache/install-confidence/phase117-current-head`
+- Generated at: `20260516T032630Z`
+- Checked-out commit: `d87e1ba8c4903ab838e2b123b82d8d51d41555a6`
+- Describe: `v0.1.0-rc.1-7-gd87e1ba`
+- Overall status: `passed`
+- `git_clone`: passed
+- `git_checkout`: passed
+- `make-check`: passed
+- `bootstrap-check`: passed
+- `validators-install`: passed
+- `make-validate`: passed
+- `make-test`: passed
+- `local_app`: not checked for current-source replay because the public tag
+  replay already covered local app startup and five local public feed fetches.
+
 ## Relationship To Phase 116
 
 Phase 116 recorded that the published rc1 source archive extraction still

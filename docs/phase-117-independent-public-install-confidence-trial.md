@@ -284,3 +284,100 @@ Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
 
 Next checkpoint:
 Phase 117 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 117 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Full repository validation and current-source fresh-clone replay
+passed after the install-confidence harness patch.
+
+Sub-agents used or simulated:
+Install Confidence sub-agent role was simulated because the environment
+reported the sub-agent thread limit was reached. QA, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, Release, Implementation,
+Web Design Skill, and GTFS-RT Domain roles were simulated by the Master Agent.
+
+Changed files:
+`docs/public-install-confidence-v0.1.0-rc.1.md`;
+`docs/phase-117-independent-public-install-confidence-trial.md`.
+
+Validation run:
+Passed:
+
+- `make check`
+- `make validate`
+- `make test`
+- `docker compose -f deploy/docker-compose.yml config`
+- `make test-install-confidence`
+- current-source install-confidence replay:
+  `.cache/install-confidence/phase117-current-head`
+
+Current-source replay details:
+
+- source: `/Users/edwintse/Downloads/open-transit-rt`
+- ref: `HEAD`
+- checked-out commit: `d87e1ba8c4903ab838e2b123b82d8d51d41555a6`
+- describe: `v0.1.0-rc.1-7-gd87e1ba`
+- `git_clone`: passed
+- `git_checkout`: passed
+- `make-check`: passed
+- `bootstrap-check`: passed
+- `validators-install`: passed
+- `make-validate`: passed
+- `make-test`: passed
+- `local_app`: not checked because public tag replay already covered local app
+  startup and five local public feed fetches
+
+Blocked checks:
+No Phase 117 fresh-clone install-confidence check remains blocked. Published
+rc1 release-archive `make check` replay remains the Phase 116 blocker.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Validation records install mechanics only. It does not claim stable release,
+production readiness, compliance, adoption, consumer acceptance, final-root
+readiness, hosted service, paid support, SLA/uptime, vendor compatibility,
+hardware certification, production AVL reliability, or ETA quality.
+
+Security/auth status:
+No application route auth, CSRF behavior, credential handling, token handling,
+private payload handling, public exposure, or operator command behavior
+changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, dependency, or Go
+module change was added.
+
+Release/publication status:
+No new tag, release, or asset upload was created. The public rc1 prerelease
+remains unchanged.
+
+Install confidence status:
+Public tag fresh-clone install confidence and current-source fresh-clone
+validation replay both passed.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 117 does not touch UX.
+
+Master review:
+Approved. Validation confirms the harness patch and records no remaining
+fresh-clone install-confidence blocker.
+
+Required edits:
+Commit checkpoint 000003, then close Phase 117 with handoff/status docs.
+
+Decision:
+Proceed to checkpoint 000003 commit and Phase 117 closeout.
+
+Next checkpoint:
+Phase 117 -- Checkpoint 000004: close independent public install confidence
+trial review.
