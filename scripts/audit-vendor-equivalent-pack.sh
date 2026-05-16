@@ -136,13 +136,24 @@ for name in REQUIRED:
     if name != "README.md" and ("<" not in text or ">" not in text):
         fail(f"template placeholders missing from {rel(path)}")
 
-tracker = json.loads((ROOT / "docs/evidence/consumer-submissions/status.json").read_text(encoding="utf-8"))
-records = tracker.get("targets", [])
-seen = {row["target"]: row.get("status") for row in records}
-if list(seen) != EXPECTED_CONSUMERS:
-    fail(f"consumer target order drifted: {seen}")
-if any(seen[name] != "prepared" for name in EXPECTED_CONSUMERS):
-    fail(f"consumer target status drifted: {seen}")
+tracker_path = ROOT / "docs/evidence/consumer-submissions/status.json"
+if not tracker_path.exists():
+    attrs = ROOT / ".gitattributes"
+    archive_export = (
+        not (ROOT / ".git").exists()
+        and attrs.exists()
+        and "/docs/evidence/consumer-submissions/status.json export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+    )
+    if not archive_export:
+        fail(f"consumer tracker missing: {rel(tracker_path)}")
+else:
+    tracker = json.loads(tracker_path.read_text(encoding="utf-8"))
+    records = tracker.get("targets", [])
+    seen = {row["target"]: row.get("status") for row in records}
+    if list(seen) != EXPECTED_CONSUMERS:
+        fail(f"consumer target order drifted: {seen}")
+    if any(seen[name] != "prepared" for name in EXPECTED_CONSUMERS):
+        fail(f"consumer target status drifted: {seen}")
 
 print(f"vendor-equivalent pack audit passed: {rel(PACK)}")
 PY

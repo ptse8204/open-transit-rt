@@ -12,7 +12,7 @@ import shutil
 import subprocess
 
 ROOT = pathlib.Path(__import__("sys").argv[1]).resolve()
-BASE = ROOT / ".cache" / "final-claim-review-tests"
+BASE = ROOT / ".cache" / "final-claim-review-tests" / str(os.getpid())
 AUDIT = ROOT / "scripts" / "audit-final-claim-review.sh"
 EXPECTED_TARGETS = [
     "Google Maps",

@@ -246,6 +246,16 @@ def check_text_scans():
 
 
 def check_consumer_tracker():
+    if not STATUS_PATH.exists():
+        attrs = ROOT / ".gitattributes"
+        archive_export = (
+            not (ROOT / ".git").exists()
+            and attrs.exists()
+            and "/docs/evidence/consumer-submissions/status.json export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+        )
+        if archive_export:
+            record_pass("consumer tracker check skipped because protected tracker is export-ignored from source archive")
+            return
     data = load_json(STATUS_PATH)
     records = data.get("targets", [])
     seen = {row.get("target"): row.get("status") for row in records}
@@ -260,6 +270,15 @@ def check_consumer_tracker():
 
 def check_artifacts_readme_only():
     if not ARTIFACTS_DIR.exists():
+        attrs = ROOT / ".gitattributes"
+        archive_export = (
+            not (ROOT / ".git").exists()
+            and attrs.exists()
+            and "/docs/evidence/consumer-submissions/artifacts export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+        )
+        if archive_export:
+            record_pass("consumer artifact directory check skipped because protected artifacts are export-ignored from source archive")
+            return
         record_failure(f"consumer artifact directory missing: {rel(ARTIFACTS_DIR)}")
         return
     bad = []

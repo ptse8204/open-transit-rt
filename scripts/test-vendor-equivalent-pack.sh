@@ -12,7 +12,7 @@ import os
 import sys
 
 ROOT = pathlib.Path(sys.argv[1]).resolve()
-BASE = ROOT / ".cache" / "vendor-equivalent-pack-tests"
+BASE = ROOT / ".cache" / "vendor-equivalent-pack-tests" / str(os.getpid())
 AUDIT = ROOT / "scripts" / "audit-vendor-equivalent-pack.sh"
 SOURCE = ROOT / "docs" / "vendor-equivalent-pack"
 

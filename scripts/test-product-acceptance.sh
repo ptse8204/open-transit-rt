@@ -13,7 +13,7 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(sys.argv[1]).resolve()
-BASE = ROOT / ".cache" / "product-acceptance-tests"
+BASE = ROOT / ".cache" / "product-acceptance-tests" / str(os.getpid())
 AUDIT = ROOT / "scripts" / "audit-product-acceptance.sh"
 EXPECTED_TARGETS = [
     "Google Maps",

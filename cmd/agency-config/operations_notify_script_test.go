@@ -175,26 +175,17 @@ func TestOperationsNotifySeverityMapping(t *testing.T) {
 func TestOperationsNotifySourceDiscoveryTimestampRules(t *testing.T) {
 	root := operationsNotifyRepoRoot(t)
 	base := operationsNotifyTempRel(t, root, "discovery")
-	for _, rel := range []string{
-		filepath.ToSlash(filepath.Join(".cache", "validator-health", "99991231T235900Z")),
-		filepath.ToSlash(filepath.Join(".cache", "validator-health", "99991231T235901Z")),
-		filepath.ToSlash(filepath.Join(".cache", "validator-health", "not-a-timestamp-ops-test")),
-		filepath.ToSlash(filepath.Join(".cache", "deployment-doctor", "99991231T235900Z")),
-		filepath.ToSlash(filepath.Join(".cache", "deployment-doctor", "99991231T235901Z")),
-	} {
-		t.Cleanup(func(rel string) func() {
-			return func() { _ = os.RemoveAll(filepath.Join(root, rel)) }
-		}(rel))
-	}
-	writeOperationsNotifyJSON(t, root, ".cache/validator-health/not-a-timestamp-ops-test/summary.json", operationsNotifyValidatorSummary("blocked"))
-	writeOperationsNotifyJSON(t, root, ".cache/validator-health/99991231T235900Z/summary.json", operationsNotifyValidatorSummary("blocked"))
-	writeOperationsNotifyJSON(t, root, ".cache/validator-health/99991231T235901Z/summary.json", operationsNotifyValidatorSummary("recorded"))
-	mkdirOperationsNotify(t, root, ".cache/deployment-doctor/99991231T235900Z")
-	writeOperationsNotifyJSON(t, root, ".cache/deployment-doctor/99991231T235901Z/summary.json", operationsNotifyDoctorSummary("passed", nil))
+	diagnosticCache := filepath.ToSlash(filepath.Join(base, "diagnostic-cache"))
+	writeOperationsNotifyJSON(t, root, filepath.ToSlash(filepath.Join(diagnosticCache, "validator-health", "99991231T235900Z", "summary.json")), operationsNotifyValidatorSummary("blocked"))
+	writeOperationsNotifyJSON(t, root, filepath.ToSlash(filepath.Join(diagnosticCache, "validator-health", "99991231T235901Z", "summary.json")), operationsNotifyValidatorSummary("recorded"))
+	writeOperationsNotifyJSON(t, root, filepath.ToSlash(filepath.Join(diagnosticCache, "validator-health", "not-a-timestamp-ops-test", "summary.json")), operationsNotifyValidatorSummary("blocked"))
+	mkdirOperationsNotify(t, root, filepath.ToSlash(filepath.Join(diagnosticCache, "deployment-doctor", "99991231T235900Z")))
+	writeOperationsNotifyJSON(t, root, filepath.ToSlash(filepath.Join(diagnosticCache, "deployment-doctor", "99991231T235901Z", "summary.json")), operationsNotifyDoctorSummary("passed", nil))
 	outputRel := filepath.ToSlash(filepath.Join(base, "out"))
 	cmd := operationsNotifyCommand(root)
 	cmd.Env = append(os.Environ(),
 		"OUTPUT_DIR="+outputRel,
+		"DIAGNOSTIC_CACHE_ROOT="+diagnosticCache,
 		"FORCE=true",
 	)
 	out, err := cmd.CombinedOutput()

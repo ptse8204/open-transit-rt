@@ -14,6 +14,7 @@ MAX_SOURCE_BYTES="${MAX_SOURCE_BYTES:-5242880}"
 VALIDATOR_HEALTH_SUMMARY="${VALIDATOR_HEALTH_SUMMARY:-}"
 DEPLOYMENT_DOCTOR_SUMMARY="${DEPLOYMENT_DOCTOR_SUMMARY:-}"
 OPERATIONS_NOTIFY_SUMMARY="${OPERATIONS_NOTIFY_SUMMARY:-}"
+DIAGNOSTIC_CACHE_ROOT="${DIAGNOSTIC_CACHE_ROOT:-.cache}"
 DRY_RUN="false"
 TMP_DIR=""
 
@@ -31,6 +32,7 @@ Environment:
   VALIDATOR_HEALTH_SUMMARY           Optional explicit .cache/validator-health/.../summary.json
   DEPLOYMENT_DOCTOR_SUMMARY          Optional explicit .cache/deployment-doctor/.../summary.json
   OPERATIONS_NOTIFY_SUMMARY          Optional explicit .cache/operations-notify/.../summary.json
+  DIAGNOSTIC_CACHE_ROOT              Optional source discovery cache root, default .cache
 
 Safety:
   This helper creates private local reliability diagnostics only. It writes
@@ -92,7 +94,7 @@ positive_int MAX_SOURCE_BYTES "$MAX_SOURCE_BYTES"
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/open-transit-rt-operations-reliability.XXXXXX")"
 
-python3 - "$ROOT_DIR" "$OUTPUT_DIR" "$TIMESTAMP" "$FORCE" "$ALLOW_UNIGNORED_OUTPUT_DIR" "$ALLOW_UNIGNORED_SOURCE_DIR" "$MAX_SOURCE_BYTES" "$VALIDATOR_HEALTH_SUMMARY" "$DEPLOYMENT_DOCTOR_SUMMARY" "$OPERATIONS_NOTIFY_SUMMARY" "$DRY_RUN" <<'PY'
+python3 - "$ROOT_DIR" "$OUTPUT_DIR" "$TIMESTAMP" "$FORCE" "$ALLOW_UNIGNORED_OUTPUT_DIR" "$ALLOW_UNIGNORED_SOURCE_DIR" "$MAX_SOURCE_BYTES" "$VALIDATOR_HEALTH_SUMMARY" "$DEPLOYMENT_DOCTOR_SUMMARY" "$OPERATIONS_NOTIFY_SUMMARY" "$DIAGNOSTIC_CACHE_ROOT" "$DRY_RUN" <<'PY'
 import json
 import os
 import pathlib
@@ -111,8 +113,9 @@ import sys
     validator_arg,
     doctor_arg,
     notify_arg,
+    diagnostic_cache_arg,
     dry_run_arg,
-) = sys.argv[1:12]
+) = sys.argv[1:13]
 
 ROOT = pathlib.Path(root_arg).resolve()
 OUTPUT_RAW = pathlib.Path(output_arg)
@@ -165,6 +168,20 @@ def is_evidence_like(path):
     return "docs/evidence" in raw or "evidence" in parts or "proof" in parts or "submission" in parts
 
 
+def resolve_diagnostic_cache_root():
+    raw = pathlib.Path(diagnostic_cache_arg)
+    path = raw if raw.is_absolute() else ROOT / raw
+    resolved = path.resolve(strict=False)
+    if is_evidence_like(path) or is_evidence_like(resolved):
+        fail("DIAGNOSTIC_CACHE_ROOT must not be evidence-like or under docs/evidence")
+    if path_has_symlink(path):
+        fail("DIAGNOSTIC_CACHE_ROOT must not contain symlink directories")
+    return resolved
+
+
+DIAGNOSTIC_CACHE = resolve_diagnostic_cache_root()
+
+
 def rel_to_root(path):
     try:
         return pathlib.Path(path).resolve(strict=False).relative_to(ROOT).as_posix()
@@ -201,7 +218,7 @@ def resolve_output_dir():
 
 
 def discover_latest(kind):
-    base = ROOT / ".cache" / kind
+    base = DIAGNOSTIC_CACHE / kind
     if not base.exists() or path_has_symlink(base):
         return None
     candidates = []

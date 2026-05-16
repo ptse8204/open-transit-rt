@@ -277,6 +277,19 @@ def source_path_allowed(path, allow_consumer_status=False):
         return False
 
 
+def is_release_archive_without_protected_tracker(path):
+    expected = (ROOT / "docs/evidence/consumer-submissions/status.json").resolve(strict=False)
+    if path.resolve(strict=False) != expected:
+        return False
+    if path.exists() or (ROOT / ".git").exists():
+        return False
+    attrs = ROOT / ".gitattributes"
+    if not attrs.exists():
+        return False
+    text = attrs.read_text(encoding="utf-8", errors="replace")
+    return "/docs/evidence/consumer-submissions/status.json export-ignore" in text
+
+
 def read_json_source(kind, raw_arg, required=False, allow_consumer_status=False):
     if not raw_arg:
         return None, {
@@ -290,6 +303,13 @@ def read_json_source(kind, raw_arg, required=False, allow_consumer_status=False)
     if not source_path_allowed(path, allow_consumer_status=allow_consumer_status):
         fail(f"{kind} source path is not allowed")
     if not path.exists() or not path.is_file() or path.is_symlink():
+        if kind == "consumer_status" and is_release_archive_without_protected_tracker(path):
+            return {"archive_export_ignored": True}, {
+                "kind": kind,
+                "status": "present",
+                "source": "source_archive_export_ignore",
+                "detail": "Protected consumer tracker is intentionally export-ignored from public source archives.",
+            }
         return None, {
             "kind": kind,
             "status": "missing",
@@ -504,6 +524,8 @@ def https_row(urls):
 def consumer_row(consumer_data, source_info):
     if not isinstance(consumer_data, dict):
         return row("consumer_packet_preparedness", "missing", source_info["detail"], source_info["source"], "Consumer tracker could not be read.", "Consumer packet state is separate from submission, acceptance, ingestion, listing, or display.")
+    if consumer_data.get("archive_export_ignored") is True:
+        return row("consumer_packet_preparedness", "present", "protected consumer tracker is export-ignored from public source archives", source_info["source"], "Run scripts/check-consumer-tracker.sh in a normal repository checkout for exact seven-target status verification.", "Archive-safe prepared-only guard does not prove submission, review, acceptance, ingestion, listing, or display.")
     records = consumer_data.get("targets", [])
     seen = {record.get("target"): record.get("status") for record in records if isinstance(record, dict)}
     ordered = list(seen)

@@ -103,9 +103,21 @@ func referenceCheckRepoRoot(t *testing.T) string {
 
 func referenceCheckTempRel(t *testing.T, root, name string) string {
 	t.Helper()
-	rel := filepath.ToSlash(filepath.Join(".cache", "reference-check-test", name, strings.ReplaceAll(t.Name(), "/", "-")))
-	t.Cleanup(func() { _ = os.RemoveAll(filepath.Join(root, rel)) })
-	return rel
+	base := filepath.Join(root, ".cache", "reference-check-test")
+	if err := os.MkdirAll(base, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	prefix := name + "-" + strings.ReplaceAll(t.Name(), "/", "-") + "-"
+	dir, err := os.MkdirTemp(base, prefix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	rel, err := filepath.Rel(root, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return filepath.ToSlash(rel)
 }
 
 func readReferenceCheckJSON(t *testing.T, root, outputRel, name string) map[string]any {

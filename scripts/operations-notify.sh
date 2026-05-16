@@ -14,6 +14,7 @@ STRICT_OPERATIONS_NOTIFY="${STRICT_OPERATIONS_NOTIFY:-false}"
 MAX_SOURCE_BYTES="${MAX_SOURCE_BYTES:-5242880}"
 VALIDATOR_HEALTH_SUMMARY="${VALIDATOR_HEALTH_SUMMARY:-}"
 DEPLOYMENT_DOCTOR_SUMMARY="${DEPLOYMENT_DOCTOR_SUMMARY:-}"
+DIAGNOSTIC_CACHE_ROOT="${DIAGNOSTIC_CACHE_ROOT:-.cache}"
 NOTIFY_WEBHOOK_URL="${NOTIFY_WEBHOOK_URL:-}"
 NOTIFY_EMAIL_TO="${NOTIFY_EMAIL_TO:-}"
 DRY_RUN="false"
@@ -30,6 +31,7 @@ Environment:
   ALLOW_UNIGNORED_OUTPUT_DIR         true|false; allow output outside .cache except evidence-like paths
   VALIDATOR_HEALTH_SUMMARY           Optional explicit .cache/validator-health/.../summary.json
   DEPLOYMENT_DOCTOR_SUMMARY          Optional explicit .cache/deployment-doctor/.../summary.json
+  DIAGNOSTIC_CACHE_ROOT              Optional source discovery cache root, default .cache
   ALLOW_UNIGNORED_SOURCE_DIR         true|false; allow explicit source summaries outside .cache except evidence-like paths
   STRICT_OPERATIONS_NOTIFY           true|false; fail on missing, malformed, oversized, blocked, or unhealthy inputs
   MAX_SOURCE_BYTES                   Maximum bytes per source summary, default 5242880
@@ -103,7 +105,7 @@ positive_int MAX_SOURCE_BYTES "$MAX_SOURCE_BYTES"
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/open-transit-rt-operations-notify.XXXXXX")"
 
-if ! python3 - "$ROOT_DIR" "$OUTPUT_DIR" "$TMP_DIR" "$TIMESTAMP" "$FORCE" "$ALLOW_UNIGNORED_OUTPUT_DIR" "$ALLOW_UNIGNORED_SOURCE_DIR" "$STRICT_OPERATIONS_NOTIFY" "$MAX_SOURCE_BYTES" "$VALIDATOR_HEALTH_SUMMARY" "$DEPLOYMENT_DOCTOR_SUMMARY" "$DRY_RUN" "$NOTIFY_WEBHOOK_URL" "$NOTIFY_EMAIL_TO" <<'PY'
+if ! python3 - "$ROOT_DIR" "$OUTPUT_DIR" "$TMP_DIR" "$TIMESTAMP" "$FORCE" "$ALLOW_UNIGNORED_OUTPUT_DIR" "$ALLOW_UNIGNORED_SOURCE_DIR" "$STRICT_OPERATIONS_NOTIFY" "$MAX_SOURCE_BYTES" "$VALIDATOR_HEALTH_SUMMARY" "$DEPLOYMENT_DOCTOR_SUMMARY" "$DIAGNOSTIC_CACHE_ROOT" "$DRY_RUN" "$NOTIFY_WEBHOOK_URL" "$NOTIFY_EMAIL_TO" <<'PY'
 import json
 import os
 import pathlib
@@ -123,10 +125,11 @@ import sys
     max_source_bytes_arg,
     validator_arg,
     doctor_arg,
+    diagnostic_cache_arg,
     dry_run_arg,
     webhook_arg,
     email_arg,
-) = sys.argv[1:15]
+) = sys.argv[1:16]
 
 ROOT = pathlib.Path(root_arg).resolve()
 OUTPUT_RAW = pathlib.Path(output_arg)
@@ -178,6 +181,20 @@ def is_evidence_like(path):
     return False
 
 
+def resolve_diagnostic_cache_root():
+    raw = pathlib.Path(diagnostic_cache_arg)
+    path = raw if raw.is_absolute() else ROOT / raw
+    resolved = path.resolve(strict=False)
+    if is_evidence_like(path) or is_evidence_like(resolved):
+        fail("DIAGNOSTIC_CACHE_ROOT must not be evidence-like or under docs/evidence")
+    if path_has_symlink(path):
+        fail("DIAGNOSTIC_CACHE_ROOT must not contain symlink directories")
+    return resolved
+
+
+DIAGNOSTIC_CACHE = resolve_diagnostic_cache_root()
+
+
 def resolve_output_dir():
     out = OUTPUT_RAW if OUTPUT_RAW.is_absolute() else ROOT / OUTPUT_RAW
     resolved = out.resolve(strict=False)
@@ -225,7 +242,7 @@ def source_allowed(path):
 
 
 def discover_latest(kind):
-    base = ROOT / ".cache" / kind
+    base = DIAGNOSTIC_CACHE / kind
     if not base.exists() or path_has_symlink(base):
         return None
     candidates = []

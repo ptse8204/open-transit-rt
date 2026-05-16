@@ -15,7 +15,7 @@ import sys
 import tarfile
 
 ROOT = pathlib.Path(sys.argv[1]).resolve()
-BASE = ROOT / ".cache" / "release-package-tests"
+BASE = ROOT / ".cache" / "release-package-tests" / str(os.getpid())
 GENERATE = ROOT / "scripts" / "release-package.sh"
 AUDIT = ROOT / "scripts" / "audit-release-package.sh"
 

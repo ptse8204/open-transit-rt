@@ -175,6 +175,16 @@ def has_symlink(path):
 
 def check_consumer_tracker():
     status_path = ROOT / "docs" / "evidence" / "consumer-submissions" / "status.json"
+    if not status_path.exists():
+        attrs = ROOT / ".gitattributes"
+        archive_export = (
+            not (ROOT / ".git").exists()
+            and attrs.exists()
+            and "/docs/evidence/consumer-submissions/status.json export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+        )
+        if archive_export:
+            record_pass("consumer tracker check skipped because protected tracker is export-ignored from source archive")
+            return
     data = load_json(status_path)
     records = data.get("targets", [])
     seen = {row.get("target"): row.get("status") for row in records}

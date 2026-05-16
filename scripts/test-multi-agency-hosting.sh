@@ -13,7 +13,7 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(sys.argv[1]).resolve()
-BASE = ROOT / ".cache" / "multi-agency-hosting-tests"
+BASE = ROOT / ".cache" / "multi-agency-hosting-tests" / str(os.getpid())
 SCRIPT = ROOT / "scripts" / "multi-agency-hosting.sh"
 EXPECTED_FILES = ["manifest.json", "manifest.md", "summary.json", "summary.md"]
 EXPECTED_ROUTES = [
@@ -59,13 +59,14 @@ BASE.mkdir(parents=True)
 
 run([str(SCRIPT), "--help"])
 
-default_proc = run([str(SCRIPT)])
+default_out = BASE / "default"
+default_proc = run([str(SCRIPT)], env={"OUTPUT_DIR": default_out})
 default_path = None
 for line in default_proc.stdout.splitlines():
     if "multi-agency hosting diagnostic:" in line:
         default_path = ROOT / line.split(":", 1)[1].strip()
-if default_path is None or not default_path.resolve().is_relative_to((ROOT / ".cache" / "multi-agency-hosting").resolve()):
-    raise AssertionError(f"default output did not use .cache/multi-agency-hosting: {default_proc.stdout}")
+if default_path is None or default_path.resolve() != default_out.resolve():
+    raise AssertionError(f"explicit output did not use requested .cache path: {default_proc.stdout}")
 assert_exact_files(default_path)
 
 custom = BASE / "custom"

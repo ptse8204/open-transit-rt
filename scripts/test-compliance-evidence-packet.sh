@@ -12,7 +12,7 @@ import shutil
 import subprocess
 
 ROOT = pathlib.Path(__import__("sys").argv[1]).resolve()
-BASE = ROOT / ".cache" / "compliance-evidence-packet-tests"
+BASE = ROOT / ".cache" / "compliance-evidence-packet-tests" / str(os.getpid())
 GENERATE = ROOT / "scripts" / "generate-compliance-evidence-packet.sh"
 AUDIT = ROOT / "scripts" / "audit-compliance-evidence-packet.sh"
 
@@ -107,13 +107,14 @@ assert blocker_json["mode"] == "blocker", blocker_json
 assert_claim_flags_false(blocker_json)
 run([str(AUDIT)], env={"COMPLIANCE_PACKET_DIR": blocker})
 
-default_proc = run([str(GENERATE)])
+default_out = BASE / "default"
+default_proc = run([str(GENERATE)], env={"COMPLIANCE_PACKET_OUTPUT_DIR": default_out})
 default_path = None
 for line in default_proc.stdout.splitlines():
     if "compliance evidence blocker packet:" in line:
         default_path = line.split(":", 1)[1].strip()
-if not default_path or not default_path.startswith(".cache/compliance-evidence-packet/"):
-    raise AssertionError(f"default output did not use .cache/compliance-evidence-packet: {default_proc.stdout}")
+if pathlib.Path(default_path).resolve() != default_out.resolve():
+    raise AssertionError(f"explicit output did not use requested .cache path: {default_proc.stdout}")
 
 deployment = BASE / "deployment"
 run([str(GENERATE)], env={

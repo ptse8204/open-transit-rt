@@ -87,10 +87,9 @@ func TestReleaseCandidateCheckRejectsEvidenceOutput(t *testing.T) {
 
 func TestReleaseCandidateCheckRejectsSymlinkOutput(t *testing.T) {
 	root := releaseCandidateRepoRoot(t)
-	base := filepath.Join(root, ".cache", "release-candidate-check-test", "symlink")
+	base := filepath.Join(root, releaseCandidateTempRel(t, root, "symlink"))
 	target := filepath.Join(base, "target")
 	link := filepath.Join(base, "link")
-	t.Cleanup(func() { _ = os.RemoveAll(base) })
 	if err := os.MkdirAll(target, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +98,11 @@ func TestReleaseCandidateCheckRejectsSymlinkOutput(t *testing.T) {
 	}
 
 	cmd := releaseCandidateCommand(root, "--dry-run")
-	cmd.Env = append(os.Environ(), "OUTPUT_DIR="+filepath.ToSlash(filepath.Join(".cache", "release-candidate-check-test", "symlink", "link")))
+	linkRel, err := filepath.Rel(root, link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cmd.Env = append(os.Environ(), "OUTPUT_DIR="+filepath.ToSlash(linkRel))
 	out, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Fatalf("expected symlink output rejection, got success: %s", out)
@@ -139,7 +142,7 @@ func TestReleaseCandidateCheckPinsValidatorToolingDespiteAmbientStub(t *testing.
 		"OUTPUT_DIR="+outputRel,
 		"FORCE=true",
 		"VALIDATOR_TOOLING_MODE=stub",
-		"GTFS_VALIDATOR_PATH="+filepath.Join(root, ".cache", "release-candidate-check-test", "missing-validator.jar"),
+		"GTFS_VALIDATOR_PATH="+filepath.Join(root, outputRel, "missing-validator.jar"),
 	)
 	out, err := cmd.CombinedOutput()
 	if err == nil {
@@ -219,9 +222,21 @@ func releaseCandidateRepoRoot(t *testing.T) string {
 
 func releaseCandidateTempRel(t *testing.T, root, name string) string {
 	t.Helper()
-	rel := filepath.ToSlash(filepath.Join(".cache", "release-candidate-check-test", name, strings.ReplaceAll(t.Name(), "/", "-")))
-	t.Cleanup(func() { _ = os.RemoveAll(filepath.Join(root, rel)) })
-	return rel
+	base := filepath.Join(root, ".cache", "release-candidate-check-test")
+	if err := os.MkdirAll(base, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	prefix := name + "-" + strings.ReplaceAll(t.Name(), "/", "-") + "-"
+	dir, err := os.MkdirTemp(base, prefix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	rel, err := filepath.Rel(root, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return filepath.ToSlash(rel)
 }
 
 func readReleaseCandidateSummary(t *testing.T, root, outputRel string) map[string]any {

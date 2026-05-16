@@ -18,7 +18,7 @@ import tempfile
 import threading
 
 ROOT = pathlib.Path(__import__("sys").argv[1]).resolve()
-BASE = ROOT / ".cache" / "final-root-evidence-tests"
+BASE = ROOT / ".cache" / "final-root-evidence-tests" / str(os.getpid())
 COLLECT = ROOT / "scripts" / "collect-final-root-evidence.sh"
 AUDIT = ROOT / "scripts" / "audit-final-root-evidence.sh"
 

@@ -35,6 +35,40 @@ func TestCaltransReadinessCheckDryRunExactFilesFlagsAndStatuses(t *testing.T) {
 	}
 }
 
+func TestCaltransReadinessCheckArchiveExportIgnoredConsumerTracker(t *testing.T) {
+	root := caltransReadinessRepoRoot(t)
+	archiveRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(archiveRoot, "scripts"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	source, err := os.ReadFile(filepath.Join(root, "scripts", "caltrans-readiness-check.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	scriptPath := filepath.Join(archiveRoot, "scripts", "caltrans-readiness-check.sh")
+	if err := os.WriteFile(scriptPath, source, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(archiveRoot, ".gitattributes"), []byte("/docs/evidence/consumer-submissions/status.json export-ignore\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command("sh", scriptPath, "--dry-run")
+	cmd.Env = append(os.Environ(), "OUTPUT_DIR=.cache/caltrans-readiness-check/archive", "FORCE=true")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("archive export-ignore run failed: %v\n%s", err, out)
+	}
+	summary := readCaltransReadinessSummary(t, archiveRoot, ".cache/caltrans-readiness-check/archive")
+	assertCaltransReadinessConsumerPreparedOnly(t, summary)
+	if status := caltransReadinessRowStatus(summary, "consumer_packet_preparedness"); status != "present" {
+		t.Fatalf("consumer_packet_preparedness status = %q, want present", status)
+	}
+	tracker := summary["consumer_tracker"].(map[string]any)
+	if tracker["source"] != "source_archive_export_ignore" {
+		t.Fatalf("consumer tracker source = %v, want source_archive_export_ignore", tracker["source"])
+	}
+}
+
 func TestCaltransReadinessCheckWithSafeFeedsSummary(t *testing.T) {
 	root := caltransReadinessRepoRoot(t)
 	base := caltransReadinessTempRel(t, root, "feeds")
@@ -175,9 +209,21 @@ func caltransReadinessRepoRoot(t *testing.T) string {
 
 func caltransReadinessTempRel(t *testing.T, root, name string) string {
 	t.Helper()
-	rel := filepath.ToSlash(filepath.Join(".cache", "caltrans-readiness-check-test", name, strings.ReplaceAll(t.Name(), "/", "-")))
-	t.Cleanup(func() { _ = os.RemoveAll(filepath.Join(root, rel)) })
-	return rel
+	base := filepath.Join(root, ".cache", "caltrans-readiness-check-test")
+	if err := os.MkdirAll(base, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	prefix := name + "-" + strings.ReplaceAll(t.Name(), "/", "-") + "-"
+	dir, err := os.MkdirTemp(base, prefix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	rel, err := filepath.Rel(root, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return filepath.ToSlash(rel)
 }
 
 func writeCaltransReadinessJSON(t *testing.T, root, rel string, payload any) {

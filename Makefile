@@ -501,7 +501,7 @@ validate:
 	@test -f docs/phase-49-external-predictor-runtime-adapter.md
 	@test -f docs/phase-50-realtime-quality-backtesting.md
 	@test -f docs/roadmap-to-calitp-compliance-and-gap-closure.md
-	@python3 -c 'import json; from pathlib import Path; expected=["Google Maps","Apple Maps","Transit App","Bing Maps","Moovit","Mobility Database","transit.land"]; data=json.loads(Path("docs/evidence/consumer-submissions/status.json").read_text()); records=data.get("targets", []); seen={r["target"]: r.get("status") for r in records}; assert list(seen)==expected, seen; assert all(seen[name]=="prepared" for name in expected), seen'
+	@scripts/check-consumer-tracker.sh >/dev/null
 	@test -f testdata/avl-vendor/README.md
 	@test -f testdata/avl-vendor/minimal-gps.json
 	@test -f testdata/avl-vendor/full-gps.json

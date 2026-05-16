@@ -65,14 +65,15 @@ func TestOperationsReliabilityScriptExactFilesDefaultFlagsAndNoSend(t *testing.T
 
 func TestOperationsReliabilityScriptMissingSourcesAreNotOK(t *testing.T) {
 	root := operationsReliabilityRepoRoot(t)
-	outputRel := filepath.ToSlash(filepath.Join(operationsReliabilityTempRel(t, root, "missing"), "out"))
+	base := operationsReliabilityTempRel(t, root, "missing")
+	outputRel := filepath.ToSlash(filepath.Join(base, "out"))
 	cmd := operationsReliabilityCommand(root, "--dry-run")
 	cmd.Env = append(os.Environ(),
 		"OUTPUT_DIR="+outputRel,
 		"FORCE=true",
-		"VALIDATOR_HEALTH_SUMMARY=.cache/operations-reliability-test/missing-validator/summary.json",
-		"DEPLOYMENT_DOCTOR_SUMMARY=.cache/operations-reliability-test/missing-doctor/summary.json",
-		"OPERATIONS_NOTIFY_SUMMARY=.cache/operations-reliability-test/missing-notify/summary.json",
+		"VALIDATOR_HEALTH_SUMMARY="+filepath.ToSlash(filepath.Join(base, "missing-validator", "summary.json")),
+		"DEPLOYMENT_DOCTOR_SUMMARY="+filepath.ToSlash(filepath.Join(base, "missing-doctor", "summary.json")),
+		"OPERATIONS_NOTIFY_SUMMARY="+filepath.ToSlash(filepath.Join(base, "missing-notify", "summary.json")),
 	)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -162,9 +163,21 @@ func operationsReliabilityRepoRoot(t *testing.T) string {
 
 func operationsReliabilityTempRel(t *testing.T, root, name string) string {
 	t.Helper()
-	rel := filepath.ToSlash(filepath.Join(".cache", "operations-reliability-test", name, strings.ReplaceAll(t.Name(), "/", "-")))
-	t.Cleanup(func() { _ = os.RemoveAll(filepath.Join(root, rel)) })
-	return rel
+	base := filepath.Join(root, ".cache", "operations-reliability-test")
+	if err := os.MkdirAll(base, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	prefix := name + "-" + strings.ReplaceAll(t.Name(), "/", "-") + "-"
+	dir, err := os.MkdirTemp(base, prefix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	rel, err := filepath.Rel(root, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return filepath.ToSlash(rel)
 }
 
 func writeOperationsReliabilityJSON(t *testing.T, root, rel string, payload any) {
