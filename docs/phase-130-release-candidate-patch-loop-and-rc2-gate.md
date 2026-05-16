@@ -240,3 +240,83 @@ Proceed to checkpoint 000002 commit.
 
 Next checkpoint:
 Phase 130 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 130 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Full Phase 130 validation passed with no repo-caused failures.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Release/Supply-Chain, Install Confidence,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+`docs/release-candidate-rc2-gate.md` and this phase report.
+
+Validation run:
+`git status --short` returned clean at validation start. `git diff --check`
+passed. `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json` passed.
+`scripts/check-consumer-tracker.sh` passed. Protected-path git status returned
+no output. `make check` passed. `make test-release-package` passed.
+`RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.2
+scripts/audit-release-package.sh` passed. `make validate` passed. `make test`
+passed. `make smoke` passed. `make audit-product-acceptance` passed. `make
+audit-final-claim-review` passed. `make external-connection-check` passed.
+`make adapter-conformance` passed. `make gtfsrt-conformance` passed. `docker
+compose -f deploy/docker-compose.yml config` passed. Final `git status
+--short`, `git diff --check`, and protected-path git status returned clean.
+
+Blocked checks:
+None. The release-candidate helper's separately recorded `make validate`,
+`make test`, and `make smoke` rows were run and passed in this checkpoint.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. The rc2 gate remains local
+and not published; it makes no stable release, production, compliance,
+adoption, consumer, hosted-service, SLA, vendor, hardware, final-root, or
+ETA-quality claim.
+
+Security/auth status:
+No auth, CSRF, credential, token, private payload, support bundle, retained
+evidence, public route, tag push, or release publication behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. No rc2 tag or GitHub Release was
+created.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed. The local
+rc2-style extracted source archive passes `make check` and bootstrap preflight.
+
+Web design skill status:
+Not used for checkpoint 000003 because Phase 130 did not touch a visual UI
+surface.
+
+Master review:
+Approved for Phase 130 closeout.
+
+Required edits:
+None.
+
+Decision:
+Proceed to checkpoint 000003 commit.
+
+Next checkpoint:
+Phase 130 -- Checkpoint 000004: close release candidate patch loop and rc2
+gate review.

@@ -106,6 +106,15 @@ The three `not_checked` rows are `make validate`, `make test`, and
 `make smoke`, which are intentionally recorded outside the bounded helper and
 must be run separately before any public rc2 cut.
 
+Phase 130 checkpoint 000003 ran those separate rows:
+
+- `make validate`: passed.
+- `make test`: passed.
+- `make smoke`: passed.
+
+After those separate runs, the local rc2 gate has no known current-source
+validation blocker. This still does not publish or authorize public rc2.
+
 ## Remote Publication Status
 
 - `gh release view v0.1.0-rc.2 --repo ptse8204/open-transit-rt`: `release not found`
