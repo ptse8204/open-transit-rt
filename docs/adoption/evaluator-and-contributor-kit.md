@@ -79,6 +79,10 @@ feature requests, use the GitHub issue templates and keep the report
 reproducible with public-safe commands, synthetic fixtures, redacted output,
 and exact expected/actual behavior.
 
+For release-candidate feedback, support-bundle sharing, and maintainer triage
+lanes, use
+`docs/support/community-support-and-issue-triage-kit.md`.
+
 Include:
 
 - command or browser route reviewed;

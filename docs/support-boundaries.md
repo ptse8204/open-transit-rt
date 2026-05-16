@@ -18,6 +18,10 @@ Maintainers can reasonably help with:
 
 Useful reports include exact commands, local fixture names, endpoint paths, expected behavior, actual behavior, and redacted logs.
 
+For issue triage lanes, release-candidate feedback, and support-bundle sharing
+rules, see
+[Community Support And Issue Triage Kit](support/community-support-and-issue-triage-kit.md).
+
 ## Operators Must Own
 
 Operators and deployments own:
@@ -62,4 +66,3 @@ If a report involves a vulnerability or leaked secret, follow `SECURITY.md` inst
 ## Feature Requests
 
 Feature requests should explain the agency or operator problem and the smallest useful outcome. Requests remain out of scope if they ask for rider apps, fare payments, passenger accounts, CAD/dispatch replacement, consumer submission automation, hosted SaaS promises, paid support, or marketplace/vendor-equivalent commitments.
-

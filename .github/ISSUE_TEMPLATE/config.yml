@@ -6,4 +6,6 @@ contact_links:
   - name: Contributor guide
     url: https://github.com/ptse8204/open-transit-rt/blob/main/CONTRIBUTING.md
     about: Read contribution scope, checks, and secret-safety rules before opening an issue or PR.
-
+  - name: Community support and issue triage
+    url: https://github.com/ptse8204/open-transit-rt/blob/main/docs/support/community-support-and-issue-triage-kit.md
+    about: Read support boundaries, release-feedback guidance, and public-safe triage rules.

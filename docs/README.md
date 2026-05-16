@@ -105,6 +105,7 @@ state is intentionally excluded from public archives.
 
 - [Contributing](../CONTRIBUTING.md)
 - [Evaluator And Contributor Kit](adoption/evaluator-and-contributor-kit.md)
+- [Community Support And Issue Triage Kit](support/community-support-and-issue-triage-kit.md)
 - [Governance](governance.md)
 - [Extension Governance](extension-governance.md)
 - [Contributor First Issues](contributor-first-issues.md)

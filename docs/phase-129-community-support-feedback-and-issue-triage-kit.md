@@ -141,3 +141,94 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 129 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 129 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 129 implemented the scoped community support, feedback, release
+feedback, and issue triage kit.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Documentation / IA, Claim-Boundary,
+Security/Auth, Data/Migration, Release, Install Confidence, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+`docs/support/community-support-and-issue-triage-kit.md`,
+`.github/ISSUE_TEMPLATE/release_feedback.yml`,
+`.github/ISSUE_TEMPLATE/config.yml`, `docs/support-boundaries.md`,
+`wiki/support-and-contribute.md`, `docs/README.md`,
+`docs/adoption/evaluator-and-contributor-kit.md`, and this phase report.
+
+Implementation summary:
+Added a public-safe Community Support And Issue Triage Kit with triage lanes,
+reporter and maintainer checklists, release-candidate feedback guidance,
+support-bundle sharing boundaries, and bounded public reply patterns. Added a
+release-feedback GitHub issue template for `v0.1.0-rc.1` install/download/local
+evaluation feedback and linked the kit from issue contact links, support
+boundaries, wiki support, docs home, and the evaluator/contributor kit. The
+change does not create a support SLA, response-time target, paid support
+commitment, hosted-service claim, evidence collection, external contact, or
+consumer status movement.
+
+Validation run:
+`git diff --check` passed. `scripts/check-consumer-tracker.sh` passed.
+Protected-path git status returned no output. All `.github/ISSUE_TEMPLATE/*.yml`
+files parsed as YAML. `make audit-product-acceptance` passed. `make
+audit-final-claim-review` passed. `make check` passed.
+
+Blocked checks:
+None for this checkpoint. Full Phase 129 validation is scheduled for
+checkpoint 000003.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. The support kit explicitly
+states community support is best-effort and does not claim paid support, SLA,
+response-time guarantees, hosted availability, production readiness,
+compliance, adoption, agency approval, consumer acceptance, vendor
+compatibility, hardware certification, final-root readiness, or ETA quality.
+
+Security/auth status:
+No auth, CSRF, credential, token, private payload, support bundle, retained
+evidence, public route, or browser behavior changed. The issue template and
+kit direct suspected vulnerabilities or leaked secrets away from public issues.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 129 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Not used for checkpoint 000002 because the implementation was docs and GitHub
+issue-template configuration only; it did not touch a visual UI surface.
+
+Master review:
+Approved for full validation. The implementation improves triage support
+without making support, adoption, release, or production claims.
+
+Required edits:
+Run checkpoint 000003 full validation and patch any repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 129 -- Checkpoint 000003: run validation and patch required gaps.

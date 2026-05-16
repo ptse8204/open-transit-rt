@@ -1,0 +1,71 @@
+name: Release-candidate feedback
+description: Share public-safe feedback about v0.1.0-rc.1 install, download, or local evaluation.
+title: "[Release feedback]: "
+labels:
+  - readiness
+  - agency-feedback
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for public-safe feedback about the `v0.1.0-rc.1` release candidate. Do not paste tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, raw support bundles, or unredacted operator artifacts.
+
+        Release-candidate feedback helps decide whether docs patches, current-source fixes, or an rc2 gate review are needed. It does not prove production readiness, compliance, hosted service availability, SLA coverage, consumer acceptance, or stable release readiness.
+  - type: dropdown
+    id: trial_type
+    attributes:
+      label: Trial type
+      options:
+        - Fresh clone of v0.1.0-rc.1
+        - GitHub Release download
+        - Source archive inspection
+        - Local app startup
+        - Validator-enabled local trial
+        - Operations Console review
+        - Public feed path fetch
+        - Docs or quickstart review
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands or browser path reviewed
+      description: Include exact public-safe commands, route paths, or docs links.
+      placeholder: |
+        git checkout v0.1.0-rc.1
+        make check
+        make agency-app-up
+        /admin/operations
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result or blocker
+      description: Include redacted output or public-safe notes only.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Public-safe environment summary
+      description: OS, Go version, Docker/Compose version, and non-secret setup details.
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Boundary check
+      options:
+        - label: I did not include secrets, private logs, raw support bundles, private portal links, or unredacted operator artifacts.
+          required: true
+        - label: This feedback does not claim production readiness, compliance, hosted availability, SLA coverage, consumer acceptance, or stable release readiness.
+          required: true
+        - label: I understand this feedback may inform docs/current-source fixes or rc2 gate review, but does not promise a new release candidate.
+          required: true
