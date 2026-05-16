@@ -383,3 +383,115 @@ Proceed to checkpoint 000003 commit and final publication gate execution.
 Next checkpoint:
 Phase 115 -- Checkpoint 000004: close v0.1.0-rc.1 public release cut review.
 
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 115 -- Checkpoint 000004: close v0.1.0-rc.1 public release cut review.
+
+Goal status:
+Active. Phase 115 published the authorized public `v0.1.0-rc.1` release
+candidate after all release gates passed.
+
+Sub-agents used or simulated:
+Release/Supply-Chain sub-agent findings from checkpoint 000001 were applied.
+QA, Claim-Boundary, Security/Auth, Data/Migration, Documentation / IA,
+Install Confidence, Web Design Skill, GTFS-RT Domain, Planning, and
+Implementation roles were simulated by the Master Agent for closeout.
+
+Changed files:
+`docs/release-status-v0.1.0-rc.1.md`;
+`docs/phase-115-v0.1.0-rc.1-public-release-cut.md`;
+`docs/handoffs/phase-115.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`.
+
+Validation run:
+Passed before publication from release commit
+`497f99a97baff630af147c83a7e1249bb08e32da`:
+
+- `make test-release-package`
+- strict `RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 ... make release-package`
+- `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package`
+- source archive protected-path scan: `0`
+- `make check`
+- `make validate`
+- `make test`
+- `make smoke`
+- `docker compose -f deploy/docker-compose.yml config`
+- `RUN_LOCAL_APP=true RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true make release-candidate-check`
+- `make agency-app-down`
+- `make audit-product-acceptance`
+- `make audit-final-claim-review`
+- consumer tracker JSON parse and exact prepared-only assertion
+- protected-path git status check
+- `gh auth status`
+- `gh repo view ptse8204/open-transit-rt --json nameWithOwner,visibility,viewerPermission`
+- remote tag absence check before publication
+- GitHub Release absence check before publication
+- release metadata verification after publication
+
+Release-candidate diagnostics were written to
+`.cache/release-candidate-check/20260516T030728Z`. The helper exited `0` with
+36 passed, 0 blocker, 0 `needs_review`, and 3 `not_checked`; the three
+not-checked rows were `make validate`, `make test`, and `make smoke`, all run
+separately and passed.
+
+Blocked checks:
+No Phase 115 publication gate remained blocked. Published release download
+replay and GitHub-generated archive replay are Phase 116 scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+The audited release package source archive contained zero protected-path
+entries after the `export-ignore` policy.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. The release status artifact
+records a public release candidate for local/self-hosted evaluation only and
+explicitly withholds stable, production, compliance, adoption, consumer,
+final-root, hosted-service, vendor, SLA, and ETA-quality claims.
+
+Security/auth status:
+GitHub tooling was authenticated as active account `ptse8204`; repository
+`ptse8204/open-transit-rt` is public and viewer permission was `ADMIN`. No
+application route auth, CSRF behavior, credential handling, private payload
+handling, or operator command behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, or Go module change
+was added.
+
+Release/publication status:
+Published. The annotated tag `v0.1.0-rc.1` was pushed to origin and
+dereferences to `497f99a97baff630af147c83a7e1249bb08e32da`. The GitHub
+Release is a public prerelease, draft `false`, published at
+`2026-05-16T03:09:40Z`:
+`https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`.
+
+Install confidence status:
+Phase 113 remains the current bounded local fresh-clone and local
+source-archive install-confidence result. Independent public download replay
+is Phase 116 and Phase 117 scope.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 115 did not touch UX.
+
+Master review:
+Approved. Phase 115 closed with a real public `v0.1.0-rc.1` prerelease after
+release, package, claim, protected-path, prepared-only consumer, and GitHub
+publication gates passed.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 116 published
+release verification and download replay.
+
+Decision:
+Phase 115 is complete.
+
+Next checkpoint:
+Phase 116 -- Checkpoint 000001: add published release verification and
+download replay plan.

@@ -402,8 +402,8 @@ Public Release Artifact And Claim Blocking Audit is complete, with closeout at
 `docs/handoffs/phase-112.md`: local rc1 package generation and package audit
 passed from a clean commit, local app release-candidate diagnostics passed
 where run, `docs/release-status-v0.1.0-rc.1.md` records exact status, and
-publication remains blocked by source archive public-distribution review
-because the archive contains tracked protected evidence and
+publication was blocked at that time by source archive public-distribution
+review because the archive contained tracked protected evidence and
 consumer-submission paths. Phase 113 -- Fresh Clone Install Harness And
 Release Dry Run is complete, with closeout at `docs/handoffs/phase-113.md`:
 the repo now has a repeatable install-confidence harness, local fresh-clone
@@ -414,10 +414,17 @@ complete for Web Design Skill UX audit and control-plane polish, with closeout
 at `docs/handoffs/phase-114.md`: the Web Design Skill was used, the required
 Phase 114 UX artifact was added, missing feed URL copy affordances no longer
 copy `missing`, and the first-run realtime task now uses plain-language
-Vehicle Positions, Trip Updates, and Alerts labeling. Phase 115 is active for
-the gated public `v0.1.0-rc.1` release-candidate cut. Continue to Phase 115;
-do not stop after install confidence, release blocking audit, UX validation,
-or a release recommendation.
+Vehicle Positions, Trip Updates, and Alerts labeling. Phase 115 -- v0.1.0-rc.1
+Public Release Cut is complete, with closeout at
+`docs/handoffs/phase-115.md`: the source archive blocker was resolved with a
+root `.gitattributes` `export-ignore` policy, release gates passed, and the
+public GitHub prerelease was published at
+`https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`.
+The annotated tag dereferences to
+`497f99a97baff630af147c83a7e1249bb08e32da`. Phase 116 is active for
+published release verification and download replay, including uploaded asset
+checksum verification and GitHub-generated source archive protected-path
+review. Do not stop after publication; continue through Phase 132.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

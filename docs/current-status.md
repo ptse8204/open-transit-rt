@@ -630,8 +630,8 @@ source-of-truth docs point to it as the active post-110 execution track. Phase
 closeout at `docs/handoffs/phase-112.md`: the local rc1 package generation and
 package audit passed from a clean commit, local app release-candidate
 diagnostics passed where run, `docs/release-status-v0.1.0-rc.1.md` records
-the exact status, and publication remains blocked by source archive
-public-distribution review because the archive contains tracked protected
+the exact status, and publication was blocked at that time by source archive
+public-distribution review because the archive contained tracked protected
 evidence and consumer-submission paths. Phase 112 added no tag, GitHub
 Release, package publication, image publication, retained evidence, consumer
 status change, external contact, protected-path write, release-readiness
@@ -657,8 +657,20 @@ plain-language realtime feed labeling. Phase 114 added no release action,
 retained evidence, consumer status change, external contact, protected-path
 write, production-readiness claim, compliance claim, hosted-service claim,
 vendor claim, hardware claim, SLA/uptime claim, public-launch claim, or
-ETA-quality claim. Phase 115 is active for gated public `v0.1.0-rc.1`
-release-candidate cut.
+ETA-quality claim. Phase 115 -- v0.1.0-rc.1 Public Release Cut is complete,
+with closeout at `docs/handoffs/phase-115.md`: a root
+`.gitattributes` `export-ignore` policy resolved the audited source archive
+protected-path blocker without editing protected paths, release package and
+validation gates passed, the annotated tag `v0.1.0-rc.1` was pushed, and the
+public GitHub prerelease was published at
+`https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`.
+The tag dereferences to `497f99a97baff630af147c83a7e1249bb08e32da`.
+Phase 115 made only the bounded claim that this is a public release candidate
+for local/self-hosted evaluation; it did not claim stable release readiness,
+production readiness, compliance, adoption, consumer acceptance, final-root
+readiness, hosted service availability, SLA/uptime, vendor compatibility,
+hardware certification, or production-grade ETA quality. Phase 116 is active
+for published release verification and download replay.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

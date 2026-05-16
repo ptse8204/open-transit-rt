@@ -190,11 +190,16 @@ The first instruction in this workstream was to make the Codex instructions expa
   Polish. The closeout lives at `docs/handoffs/phase-114.md`;
   `docs/ux/web-design-skill-review-phase-114.md` records the skill-backed UX
   review, missing feed URL copy polish, and plain-language realtime feed
-  labeling. Phase 115 is active for the gated public release-candidate cut
-  and is the first phase authorized to attempt public `v0.1.0-rc.1`
-  publication, only if gates pass and authenticated tooling is available;
-  blocked publication must be recorded truthfully and downstream safe phases
-  must continue.
+  labeling.
+- Phase 115 is complete for v0.1.0-rc.1 Public Release Cut. The closeout
+  lives at `docs/handoffs/phase-115.md`; the release status artifact lives at
+  `docs/release-status-v0.1.0-rc.1.md`; and the public GitHub prerelease is
+  `https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`.
+  The annotated tag dereferences to
+  `497f99a97baff630af147c83a7e1249bb08e32da`. Phase 115 makes only the
+  bounded claim that this is a public release candidate for local/self-hosted
+  evaluation. Phase 116 is active for published release verification and
+  download replay.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

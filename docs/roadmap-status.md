@@ -27,13 +27,20 @@ complete for Web Design Skill UX audit and control-plane polish. The closeout
 handoff is [`docs/handoffs/phase-114.md`](handoffs/phase-114.md), and the UX
 artifact is
 [`docs/ux/web-design-skill-review-phase-114.md`](ux/web-design-skill-review-phase-114.md).
-Phase 115 is active for the gated public `v0.1.0-rc.1` release-candidate cut.
-Phase 115 is authorized to attempt public `v0.1.0-rc.1` release-candidate
-publication only if release gates pass and authenticated tooling is available.
-If release credentials, tooling, source-archive review, protected-path review,
-or claim gates block publication, the phase must record exact blocker evidence
-and continue safe downstream phases without faking publication or stronger
-claims.
+Phase 115 is complete for the gated public `v0.1.0-rc.1` release-candidate
+cut. The closeout handoff is
+[`docs/handoffs/phase-115.md`](handoffs/phase-115.md), and the release status
+artifact is
+[`docs/release-status-v0.1.0-rc.1.md`](release-status-v0.1.0-rc.1.md).
+The public GitHub prerelease is
+[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1),
+draft `false`, prerelease `true`, and the tag dereferences to
+`497f99a97baff630af147c83a7e1249bb08e32da`. Phase 116 is active for
+published release verification and download replay. This release remains a
+candidate for local/self-hosted evaluation only and does not claim stable
+release readiness, production readiness, compliance, adoption, consumer
+acceptance, final-root readiness, hosted service availability, SLA/uptime,
+vendor compatibility, hardware certification, or production-grade ETA quality.
 
 Phase 110 remains complete for Long-Term Extensibility And Plugin Governance
 in the authorized autonomous Phase 91-110 product roadmap. The closeout
