@@ -431,9 +431,17 @@ published rc1 extracted source archives failed `make check` because the
 protected consumer tracker is correctly export-ignored while the rc1 tag still
 requires it. The current repo was patched so future source archives skip that
 protected-file check only outside git checkouts with the committed
-`export-ignore` policy. Phase 117 is active for independent public fresh-clone
-install confidence. Do not stop after publication or download replay; continue
-through Phase 132.
+`export-ignore` policy. Phase 117 -- Independent Public Install Confidence
+Trial is complete, with closeout at `docs/handoffs/phase-117.md` and report at
+`docs/public-install-confidence-v0.1.0-rc.1.md`: a public fresh clone of
+`https://github.com/ptse8204/open-transit-rt.git` at tag `v0.1.0-rc.1`
+checked out `497f99a97baff630af147c83a7e1249bb08e32da`, passed `make check`,
+bootstrap preflight, pinned validator install, `make validate`, `make test`,
+local app startup, and all five local public feed fetches after the
+install-confidence harness was patched to run `make validators-install` before
+validate-enabled trials. Phase 118 is active for post-release Web Design Skill
+UX validation. Do not stop after publication, download replay, or install
+confidence; continue through Phase 132.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

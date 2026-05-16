@@ -381,3 +381,79 @@ Proceed to checkpoint 000003 commit and Phase 117 closeout.
 Next checkpoint:
 Phase 117 -- Checkpoint 000004: close independent public install confidence
 trial review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 117 -- Checkpoint 000004: close independent public install confidence
+trial review.
+
+Goal status:
+Active. Phase 117 is closed and Phase 118 starts next.
+
+Sub-agents used or simulated:
+Install Confidence sub-agent role was simulated because the environment
+reported the sub-agent thread limit was reached. QA, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, Release, Web Design Skill,
+GTFS-RT Domain, Planning, and Implementation closeout roles were simulated by
+the Master Agent.
+
+Changed files:
+`docs/handoffs/phase-117.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-117-independent-public-install-confidence-trial.md`.
+
+Validation run:
+Closeout relies on checkpoint 000003 full validation. After closeout docs were
+updated, focused docs/protected-path validation is rerun before the checkpoint
+000004 commit.
+
+Blocked checks:
+No public fresh-clone install-confidence check remains blocked. The Phase 116
+published source-archive `make check` blocker remains recorded separately.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 117 records local install confidence only. It makes no stable,
+production, compliance, adoption, consumer, final-root, hosted-service,
+vendor, SLA, hardware, or ETA-quality claim.
+
+Security/auth status:
+No application route auth, CSRF behavior, credential handling, token handling,
+private payload handling, public exposure, or operator command behavior
+changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, dependency, or Go
+module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No new tag, release, or asset
+upload was created.
+
+Install confidence status:
+Public fresh-clone install confidence passed for rc1.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 118 remains scheduled.
+
+Master review:
+Approved. Phase 117 closes with a validated public fresh-clone path and
+bounded install-confidence report.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 118.
+
+Decision:
+Phase 117 is complete.
+
+Next checkpoint:
+Phase 118 -- Checkpoint 000001: add post-release web design skill ux
+validation plan.

@@ -45,9 +45,17 @@ manifest, and uploaded/GitHub-generated archives had zero protected-path hits.
 Extracted published rc1 source archives still fail `make check` because the
 protected consumer tracker is correctly excluded while the rc1 tag still
 requires it; the current repo is patched for future archives. Phase 117 is
-active for independent public fresh-clone install confidence. This release
-remains a candidate for local/self-hosted evaluation only and does not claim
-stable release readiness, production readiness, compliance, adoption, consumer
+complete for independent public fresh-clone install confidence. The closeout
+handoff is [`docs/handoffs/phase-117.md`](handoffs/phase-117.md), and the
+report is
+[`docs/public-install-confidence-v0.1.0-rc.1.md`](public-install-confidence-v0.1.0-rc.1.md).
+A public fresh clone of the rc1 tag passed `make check`, bootstrap preflight,
+pinned validator install, `make validate`, `make test`, local app startup, and
+all five local public feed fetches after the install-confidence harness was
+patched to install validators before validate-enabled trials. Phase 118 is
+active for post-release Web Design Skill UX validation. This release remains a
+candidate for local/self-hosted evaluation only and does not claim stable
+release readiness, production readiness, compliance, adoption, consumer
 acceptance, final-root readiness, hosted service availability, SLA/uptime,
 vendor compatibility, hardware certification, or production-grade ETA quality.
 
