@@ -4,6 +4,18 @@ This file is the source of truth for the next Codex instance.
 
 ## Active Phase
 
+Post-132 rc2 publication is complete. Open Transit RT v0.1.0-rc.2 is a public release candidate for local/self-hosted evaluation.
+It is not a stable release and does not prove production readiness, compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, vendor compatibility, hardware certification, SLA/uptime, production AVL reliability, production-grade ETA quality, or real-world ETA accuracy.
+The GitHub prerelease is published at
+`https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2`.
+The annotated tag object is `3b7e9b616d98dee908b48645108035117a68e5dc`; the
+tag target commit is `15a0ec7cbdacf2301ac906ff3ecbe655371fccc6`. The release
+status doc is `docs/release-status-v0.1.0-rc.2.md`, and the download replay
+doc is `docs/release-download-replay-v0.1.0-rc.2.md`. Protected archive scans
+returned zero hits, extracted downloaded source archive replay passed,
+protected evidence paths remained untouched, and the consumer tracker remains
+exactly seven prepared-only targets.
+
 Phases 0 through 60 remain closed for their documented scopes. After the
 Post-60 agency-ready productization audit, the maintainer authorized Phase 61+
 as the forward product roadmap naming for agency-first UI, guided setup,

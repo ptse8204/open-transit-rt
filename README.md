@@ -13,14 +13,13 @@ Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
 
 Public release candidate:
-[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1).
+[`v0.1.0-rc.2`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2).
 Use it for local/self-hosted evaluation only. It is not a stable release and
 does not prove production readiness, compliance, adoption, consumer acceptance,
 hosted service availability, vendor compatibility, SLA/uptime, or
 production-grade ETA quality. See the
-[release status](docs/release-status-v0.1.0-rc.1.md),
-[download replay](docs/release-download-replay-v0.1.0-rc.1.md), and
-[public install confidence](docs/public-install-confidence-v0.1.0-rc.1.md).
+[release status](docs/release-status-v0.1.0-rc.2.md) and
+[download replay](docs/release-download-replay-v0.1.0-rc.2.md).
 
 Agency evaluators and new contributors can start with the
 [Evaluator And Contributor Kit](docs/adoption/evaluator-and-contributor-kit.md).
@@ -60,7 +59,7 @@ From a clean checkout:
 ```bash
 git clone https://github.com/ptse8204/open-transit-rt.git
 cd open-transit-rt
-git checkout v0.1.0-rc.1
+git checkout v0.1.0-rc.2
 make check
 make agency-app-up
 ```
@@ -96,11 +95,10 @@ make validate
 make test
 ```
 
-The public fresh-clone rc1 trial passed this path with local app startup and
-all five local public feed fetches. The published source archive is available
-for inspection, but extracted rc1 source archives have a known `make check`
-limitation because protected consumer-tracker state is intentionally excluded
-from public archives.
+The rc2 source archive replay passed `make check`, bootstrap preflight,
+validator installation, validation, and tests. The generated rc2 archive also
+passed install-confidence with local app startup and all five local public feed
+fetches.
 
 ## What You Can Do In The UI
 

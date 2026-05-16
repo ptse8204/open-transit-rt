@@ -10,6 +10,20 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
+Post-132 release publication is complete for `v0.1.0-rc.2`.
+Open Transit RT v0.1.0-rc.2 is a public release candidate for local/self-hosted evaluation.
+It is not a stable release and does not prove production readiness, compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, vendor compatibility, hardware certification, SLA/uptime, production AVL reliability, production-grade ETA quality, or real-world ETA accuracy.
+The GitHub prerelease is published at
+`https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2`.
+The annotated tag object is `3b7e9b616d98dee908b48645108035117a68e5dc` and
+the tag target commit is `15a0ec7cbdacf2301ac906ff3ecbe655371fccc6`.
+Release status is recorded in `docs/release-status-v0.1.0-rc.2.md`, and
+download replay is recorded in `docs/release-download-replay-v0.1.0-rc.2.md`.
+The rc2 gate passed, the uploaded assets and source archive checksums were
+recorded, protected archive scans returned zero hits, extracted downloaded
+source archive replay passed, protected evidence paths remained untouched, and
+the consumer tracker remains exactly seven prepared-only targets.
+
 Open Transit RT is a technically broad, evidence-bounded open-source backend
 for GTFS and GTFS Realtime publication. Phases 0 through 60 are closed for
 their documented scopes. The forward product roadmap now uses Phase 61+
