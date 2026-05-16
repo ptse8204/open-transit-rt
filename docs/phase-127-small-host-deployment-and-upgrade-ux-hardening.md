@@ -256,3 +256,91 @@ Proceed to checkpoint 000002 commit.
 
 Next checkpoint:
 Phase 127 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 127 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Full Phase 127 validation passed with no repo-caused failures.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, UI/UX, Web Design Skill, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, Release, Install Confidence,
+Connector, and GTFS-RT Domain roles are simulated by the Master Agent.
+
+Changed files:
+`docs/phase-127-small-host-deployment-and-upgrade-ux-hardening.md`.
+
+Validation run:
+`git status --short` returned clean at validation start. `git diff --check`
+passed. `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json` passed.
+`scripts/check-consumer-tracker.sh` passed. Protected-path git status returned
+no output. `sh -n scripts/deployment-doctor.sh scripts/oci-reference-check.sh
+scripts/validate-public-feeds.sh scripts/pilot-ops.sh` passed. `go test
+./cmd/agency-config -run
+'TestOperationsMaintenance|TestOperationsNavigation|TestOperationsRouteTitles|TestOperationsConsole'`
+passed. `OUTPUT_DIR=.cache/phase-127/deployment-doctor FORCE=true
+scripts/deployment-doctor.sh` passed and reported expected local configuration
+blockers while all claim flags remained false. `PUBLIC_BASE_URL=https://feeds.example.org
+OUTPUT_DIR=.cache/phase-127/validate-public-feeds FORCE=true
+scripts/validate-public-feeds.sh --dry-run` passed. `PUBLIC_BASE_URL=https://feeds.example.org
+OUTPUT_DIR=.cache/phase-127/oci-reference-check FORCE=true
+scripts/oci-reference-check.sh --dry-run` passed. Generated Phase 127 helper
+JSON parsed successfully. `make check` passed. `make validate` passed. `make
+test` passed. `docker compose -f deploy/docker-compose.yml config` passed.
+`make audit-product-acceptance` passed. `make audit-final-claim-review`
+passed. `make external-connection-check` passed. `make adapter-conformance`
+passed. `make gtfsrt-conformance` passed. Final `git status --short`, `git
+diff --check`, and protected-path git status returned clean.
+
+Blocked checks:
+None.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. The deployment-doctor dry
+run reported local backup/restore and environment blockers as private
+configuration blockers, not as production, uptime, SLA, compliance, deployment
+success, or release-readiness proof.
+
+Security/auth status:
+No route auth, CSRF behavior, credential handling, token handling, public
+exposure, raw env rendering, raw backup rendering, private payload handling, or
+browser command execution behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 127 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+The Web Design Skill was used for the Phase 127 private Maintenance Center UX
+change. Validation found no follow-up visual/code patch required.
+
+Master review:
+Approved for Phase 127 closeout.
+
+Required edits:
+None.
+
+Decision:
+Proceed to checkpoint 000003 commit.
+
+Next checkpoint:
+Phase 127 -- Checkpoint 000004: close small host deployment and upgrade ux
+hardening review.
