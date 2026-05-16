@@ -141,3 +141,92 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 121 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 121 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 121 implemented an offline GTFS-RT interoperability conformance
+harness.
+
+Sub-agents used or simulated:
+The agent thread limit still prevents new real sub-agents. Context / Repo
+Truth, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles were simulated by the Master Agent.
+
+Changed files:
+`internal/gtfsrtconformance/conformance.go`;
+`internal/gtfsrtconformance/conformance_test.go`;
+`cmd/gtfsrt-conformance/main.go`;
+`cmd/gtfsrt-conformance/main_test.go`;
+`Makefile`;
+`docs/phase-121-gtfs-rt-interoperability-conformance-harness.md`.
+
+Validation run:
+Passed:
+
+- `gofmt -w internal/gtfsrtconformance cmd/gtfsrt-conformance`
+- `go test ./internal/gtfsrtconformance ./cmd/gtfsrt-conformance`
+- `make gtfsrt-conformance`
+- `git diff --check`
+- `make check`
+- protected-path git status check
+
+Blocked checks:
+Full Phase 121 validation, connector validation, and claim audits are
+scheduled for checkpoint 000003.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+The harness reports all-false claim flags and explicitly says offline
+conformance diagnostics do not prove compliance, consumer acceptance,
+production readiness, SLA/uptime, vendor compatibility, hardware
+certification, production-grade ETA quality, or real-world ETA accuracy.
+
+Security/auth status:
+The harness is offline and reads local protobuf files only. It rejects
+evidence-like paths, enforces a 10 MiB payload cap, does not fetch URLs, does
+not contact consumers, does not write files, and does not expose credentials or
+private payloads in tests.
+
+Data/migration status:
+No migration, schema, durable state, runtime dependency, or Go module change
+was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 121 does not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed. The changed
+code is post-rc1 current-source hardening and is not part of the published rc1
+tag.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. CP000002 did not change
+visual UI templates.
+
+Master review:
+Approved. The new harness checks parseability, header/version/timestamp,
+FULL_DATASET profile, unique entity IDs, Vehicle Positions payload shape, Trip
+Updates trip identity/start-date/stop-time coverage, and Alerts header text,
+informed entities, and active periods using synthetic/local data.
+
+Required edits:
+Commit checkpoint 000002, then run Phase 121 validation and patch any
+repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 121 -- Checkpoint 000003: run validation and patch required gaps.

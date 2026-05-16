@@ -10,7 +10,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: help check build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check external-connection-check adapter-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: help check build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check external-connection-check adapter-conformance gtfsrt-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 help:
 	@printf '%s\n' 'Open Transit RT command map'
@@ -29,6 +29,7 @@ help:
 	@printf '%s\n' 'Connector checks:'
 	@printf '%s\n' '  make external-connection-check  Validate connector manifests and examples'
 	@printf '%s\n' '  make adapter-conformance        Run offline adapter conformance fixtures'
+	@printf '%s\n' '  make gtfsrt-conformance        Test offline GTFS-RT protobuf conformance harness'
 	@printf '%s\n' '  make test-connector-examples    Test synthetic connector examples'
 	@printf '%s\n' ''
 	@printf '%s\n' 'Release/readiness:'
@@ -267,6 +268,9 @@ realtime-quality:
 realtime-quality-backtest:
 	go run ./cmd/realtime-quality-backtest --observed testdata/realtime-quality-backtest/observed-events.json --predictions testdata/realtime-quality-backtest/prediction-samples.json
 
+gtfsrt-conformance:
+	go test ./internal/gtfsrtconformance ./cmd/gtfsrt-conformance
+
 test-integration: migrate-status
 	@echo "Phase 9 production-closure integration: database is reachable; DB-backed telemetry, matcher, Vehicle Positions, GTFS import, GTFS Studio, Trip Updates diagnostics, prediction operations, Alerts, publication, compliance, device auth, assignment race, and hardening tests use isolated temporary databases when supported."
 	@INTEGRATION_TESTS=1 go test ./...
@@ -460,6 +464,7 @@ validate:
 	@go run ./cmd/adapter-conformance help >/dev/null
 	@go run ./cmd/adapter-conformance manifest --suite testdata/adapter-conformance >/dev/null
 	@go run ./cmd/adapter-conformance run --suite testdata/adapter-conformance >/dev/null
+	@go run ./cmd/gtfsrt-conformance --help >/dev/null
 	@go run ./cmd/realtime-quality-backtest --help >/dev/null
 	@rm -rf .cache/validate/realtime-quality-backtest
 	@go run ./cmd/realtime-quality-backtest --observed testdata/realtime-quality-backtest/observed-events.json --predictions testdata/realtime-quality-backtest/prediction-samples.json --output-dir .cache/validate/realtime-quality-backtest --generated-at 2026-05-09T20:00:00Z >/dev/null
