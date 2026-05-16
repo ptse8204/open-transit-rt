@@ -144,3 +144,89 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 124 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 124 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 124 implemented conservative aggregate prediction confidence
+reporting for realtime-quality backtests.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+`internal/realtimequality/backtest.go`,
+`internal/realtimequality/backtest_test.go`, and this phase report.
+
+Implementation summary:
+Backtest reports now include an aggregate `confidence` review in
+`summary.json`, per-group confidence fields in `metrics.json`, and confidence
+coverage/band rows in the markdown summaries. Confidence bands are counted
+only for matched, non-stale prediction samples, so stale, missing, and
+withheld rows cannot inflate confidence diagnostics. The report tracks
+confidence sample coverage, missing confidence, low/medium/high confidence
+bands, mean/median/P10/P90 confidence, and conservative recommendations that
+keep low or missing confidence in `diagnostic_watch`.
+
+Validation run:
+`gofmt` passed on touched Go files. `git diff --check` passed. `go test
+./internal/realtimequality ./cmd/realtime-quality-backtest ./internal/prediction`
+passed. `make realtime-quality-backtest` passed and wrote only ignored
+private `.cache/` diagnostics. `scripts/check-consumer-tracker.sh` passed.
+
+Blocked checks:
+None for this checkpoint. Full repo validation is scheduled for checkpoint
+000003.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+The confidence review explicitly states that confidence diagnostics do not
+prove production-grade ETA quality, real-world ETA accuracy, compliance,
+consumer acceptance, public launch, release readiness, vendor compatibility,
+hardware certification, hosted service readiness, or SLA coverage.
+
+Security/auth status:
+No route auth, CSRF behavior, credential handling, token handling, public
+exposure, private payload handling, or operator command behavior was changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 124 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. Phase 124 did not make
+visual UX changes.
+
+Master review:
+Approved for full validation. The implementation improves realtime QA
+confidence reporting while preserving aggregate-only, local/private, and
+no-ETA-proof boundaries.
+
+Required edits:
+Run checkpoint 000003 full validation and patch any repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 124 -- Checkpoint 000003: run validation and patch required gaps.

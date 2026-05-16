@@ -98,6 +98,7 @@ type SummaryDocument struct {
 	InputRecordCounts                  RecordCounts      `json:"input_record_counts"`
 	Overall                            MetricGroup       `json:"overall"`
 	Conformance                        ConformanceReview `json:"conformance"`
+	Confidence                         ConfidenceReview  `json:"confidence"`
 	GroupCount                         int               `json:"group_count"`
 	ExternalEvidenceCreated            bool              `json:"external_evidence_created"`
 	ConsumerStatusesChanged            bool              `json:"consumer_statuses_changed"`
@@ -136,6 +137,24 @@ type ConformanceCase struct {
 	Signal       string `json:"signal"`
 	NextAction   string `json:"next_action"`
 	DoesNotProve string `json:"does_not_prove"`
+}
+
+type ConfidenceReview struct {
+	Status                 string   `json:"status"`
+	Boundary               string   `json:"boundary"`
+	MatchedPredictionCount int      `json:"matched_prediction_count"`
+	ConfidenceSampleCount  int      `json:"confidence_sample_count"`
+	MissingConfidenceCount int      `json:"missing_confidence_count"`
+	LowConfidenceCount     int      `json:"low_confidence_count"`
+	MediumConfidenceCount  int      `json:"medium_confidence_count"`
+	HighConfidenceCount    int      `json:"high_confidence_count"`
+	ConfidenceCoverage     Rate     `json:"confidence_coverage"`
+	MeanConfidence         *float64 `json:"mean_confidence,omitempty"`
+	MedianConfidence       *float64 `json:"median_confidence,omitempty"`
+	P10Confidence          *float64 `json:"p10_confidence,omitempty"`
+	P90Confidence          *float64 `json:"p90_confidence,omitempty"`
+	Recommendation         string   `json:"recommendation"`
+	DoesNotProve           string   `json:"does_not_prove"`
 }
 
 type MetricsDocument struct {
@@ -177,6 +196,16 @@ type MetricGroup struct {
 	MissingObservationCount     int            `json:"missing_observation_count"`
 	StalePredictionCount        int            `json:"stale_prediction_count"`
 	WithheldByReason            map[string]int `json:"withheld_by_reason,omitempty"`
+	ConfidenceSampleCount       int            `json:"confidence_sample_count"`
+	MissingConfidenceCount      int            `json:"missing_confidence_count"`
+	LowConfidenceCount          int            `json:"low_confidence_count"`
+	MediumConfidenceCount       int            `json:"medium_confidence_count"`
+	HighConfidenceCount         int            `json:"high_confidence_count"`
+	ConfidenceCoverage          Rate           `json:"confidence_coverage"`
+	MeanConfidence              *float64       `json:"mean_confidence,omitempty"`
+	MedianConfidence            *float64       `json:"median_confidence,omitempty"`
+	P10Confidence               *float64       `json:"p10_confidence,omitempty"`
+	P90Confidence               *float64       `json:"p90_confidence,omitempty"`
 	MAEAbsoluteErrorSeconds     *float64       `json:"mae_absolute_error_seconds,omitempty"`
 	MedianAbsoluteErrorSeconds  *float64       `json:"median_absolute_error_seconds,omitempty"`
 	P90AbsoluteErrorSeconds     *float64       `json:"p90_absolute_error_seconds,omitempty"`
@@ -415,6 +444,7 @@ func RunBacktest(observed ObservedDataset, predictions PredictionDataset, observ
 			acc.coverageNumerator++
 			acc.matched++
 			acc.errors = append(acc.errors, absErr)
+			acc.addConfidence(sample.Confidence)
 			if future {
 				acc.futureStopCoverageNumerator++
 				acc.leadTimes = append(acc.leadTimes, leadTime)
@@ -452,7 +482,7 @@ func RunBacktest(observed ObservedDataset, predictions PredictionDataset, observ
 	if len(groups) > options.MaxGroups {
 		return BacktestReport{}, fmt.Errorf("metric group count exceeds %d", options.MaxGroups)
 	}
-	overallMetric := MetricGroup{GroupType: "overall", MaturityGate: "insufficient_data", PredictionCoverage: rate(0, 0), FutureStopCoverage: rate(0, 0)}
+	overallMetric := MetricGroup{GroupType: "overall", MaturityGate: "insufficient_data", PredictionCoverage: rate(0, 0), FutureStopCoverage: rate(0, 0), ConfidenceCoverage: rate(0, 0)}
 	for _, group := range groups {
 		if group.GroupType == "overall" {
 			overallMetric = group
@@ -471,6 +501,7 @@ func RunBacktest(observed ObservedDataset, predictions PredictionDataset, observ
 			InputRecordCounts:                  RecordCounts{ObservedRecords: len(observed.Records), PredictionRecords: len(predictions.Records)},
 			Overall:                            overallMetric,
 			Conformance:                        buildBacktestConformanceReview(observed, predictions, overallMetric),
+			Confidence:                         buildConfidenceReview(overallMetric),
 			GroupCount:                         len(groups),
 			ExternalEvidenceCreated:            false,
 			ConsumerStatusesChanged:            false,
@@ -515,6 +546,7 @@ func RunBacktest(observed ObservedDataset, predictions PredictionDataset, observ
 				"public_api_added":                 false,
 				"consumer_tracker_changed":         false,
 				"external_predictor_runtime_added": false,
+				"confidence_is_eta_quality_proof":  false,
 			},
 			AggregateOnly:             true,
 			RawRowsPersisted:          false,
@@ -525,6 +557,7 @@ func RunBacktest(observed ObservedDataset, predictions PredictionDataset, observ
 				"pass_min_coverage":    fmt.Sprintf("%.2f", options.PassMinCoverage),
 				"pass_max_mae_seconds": fmt.Sprintf("%.0f", options.PassMaxMAESeconds),
 				"pass_max_p90_seconds": fmt.Sprintf("%.0f", options.PassMaxP90Seconds),
+				"confidence_bands":     "low:<0.65,medium:0.65-0.85,high:>=0.85",
 			},
 		},
 	}
@@ -609,6 +642,36 @@ func buildBacktestConformanceReview(observed ObservedDataset, predictions Predic
 		},
 		Cases:        cases,
 		DoesNotProve: "Synthetic conformance rows do not prove real-world ETA accuracy, production-grade ETA quality, compliance, consumer acceptance, public launch, release readiness, vendor compatibility, hardware certification, hosted service readiness, or SLA coverage.",
+	}
+}
+
+func buildConfidenceReview(overall MetricGroup) ConfidenceReview {
+	status := "insufficient_data"
+	recommendation := "Collect more matched synthetic samples before interpreting prediction confidence diagnostics."
+	if overall.MatchedPredictionCount > 0 {
+		status = "diagnostic_observed"
+		recommendation = "Review confidence coverage, low-confidence counts, withheld reasons, stale counts, and error metrics together before changing prediction thresholds."
+		if overall.MissingConfidenceCount > 0 || overall.LowConfidenceCount > 0 {
+			status = "diagnostic_watch"
+			recommendation = "Keep low-confidence or missing-confidence predictions conservative; prefer withholding Trip Updates over false certainty."
+		}
+	}
+	return ConfidenceReview{
+		Status:                 status,
+		Boundary:               "Private aggregate confidence diagnostics only. Confidence bands are review signals for matched, non-stale synthetic prediction samples and do not prove ETA quality or real-world accuracy.",
+		MatchedPredictionCount: overall.MatchedPredictionCount,
+		ConfidenceSampleCount:  overall.ConfidenceSampleCount,
+		MissingConfidenceCount: overall.MissingConfidenceCount,
+		LowConfidenceCount:     overall.LowConfidenceCount,
+		MediumConfidenceCount:  overall.MediumConfidenceCount,
+		HighConfidenceCount:    overall.HighConfidenceCount,
+		ConfidenceCoverage:     overall.ConfidenceCoverage,
+		MeanConfidence:         overall.MeanConfidence,
+		MedianConfidence:       overall.MedianConfidence,
+		P10Confidence:          overall.P10Confidence,
+		P90Confidence:          overall.P90Confidence,
+		Recommendation:         recommendation,
+		DoesNotProve:           "Confidence diagnostics do not prove production-grade ETA quality, real-world ETA accuracy, compliance, consumer acceptance, public launch, release readiness, vendor compatibility, hardware certification, hosted service readiness, or SLA coverage.",
 	}
 }
 
@@ -749,6 +812,11 @@ type metricAccumulator struct {
 	withheld                    map[string]int
 	errors                      []float64
 	leadTimes                   []float64
+	confidenceValues            []float64
+	missingConfidence           int
+	lowConfidence               int
+	mediumConfidence            int
+	highConfidence              int
 }
 
 func (a *metricAccumulator) group(options BacktestOptions) MetricGroup {
@@ -756,6 +824,8 @@ func (a *metricAccumulator) group(options BacktestOptions) MetricGroup {
 	sort.Float64s(errorsSorted)
 	leadTimesSorted := append([]float64(nil), a.leadTimes...)
 	sort.Float64s(leadTimesSorted)
+	confidenceSorted := append([]float64(nil), a.confidenceValues...)
+	sort.Float64s(confidenceSorted)
 	group := MetricGroup{
 		GroupType:                   a.key.kind,
 		RouteID:                     a.key.routeID,
@@ -768,9 +838,21 @@ func (a *metricAccumulator) group(options BacktestOptions) MetricGroup {
 		MissingObservationCount:     a.missingObservation,
 		StalePredictionCount:        a.stalePrediction,
 		WithheldByReason:            sortedReasonMap(a.withheld),
+		ConfidenceSampleCount:       len(a.confidenceValues),
+		MissingConfidenceCount:      a.missingConfidence,
+		LowConfidenceCount:          a.lowConfidence,
+		MediumConfidenceCount:       a.mediumConfidence,
+		HighConfidenceCount:         a.highConfidence,
+		ConfidenceCoverage:          rate(len(a.confidenceValues), a.matched),
 		PredictionCoverage:          rate(a.coverageNumerator, a.coverageDenominator),
 		FutureStopCoverage:          rate(a.futureStopCoverageNumerator, a.coverageDenominator),
 		MaturityGate:                "insufficient_data",
+	}
+	if len(confidenceSorted) > 0 {
+		group.MeanConfidence = floatPtr(round2(mean(confidenceSorted)))
+		group.MedianConfidence = floatPtr(round2(percentileNearest(confidenceSorted, 0.50)))
+		group.P10Confidence = floatPtr(round2(percentileNearest(confidenceSorted, 0.10)))
+		group.P90Confidence = floatPtr(round2(percentileNearest(confidenceSorted, 0.90)))
 	}
 	if len(errorsSorted) > 0 {
 		group.MAEAbsoluteErrorSeconds = floatPtr(round1(mean(errorsSorted)))
@@ -796,6 +878,23 @@ func (a *metricAccumulator) group(options BacktestOptions) MetricGroup {
 		}
 	}
 	return group
+}
+
+func (a *metricAccumulator) addConfidence(confidence *float64) {
+	if confidence == nil {
+		a.missingConfidence++
+		return
+	}
+	value := *confidence
+	a.confidenceValues = append(a.confidenceValues, value)
+	switch {
+	case value < 0.65:
+		a.lowConfidence++
+	case value < 0.85:
+		a.mediumConfidence++
+	default:
+		a.highConfidence++
+	}
 }
 
 func rate(numerator, denominator int) Rate {
@@ -829,6 +928,10 @@ func percentileNearest(sorted []float64, p float64) float64 {
 		index = len(sorted) - 1
 	}
 	return sorted[index]
+}
+
+func round2(value float64) float64 {
+	return math.Round(value*100) / 100
 }
 
 func sortedReasonMap(in map[string]int) map[string]int {
@@ -1042,8 +1145,16 @@ func renderBacktestSummaryMarkdown(summary SummaryDocument) string {
 	if summary.Conformance.Status != "" {
 		b.WriteString(fmt.Sprintf("- synthetic_conformance: `%s`\n", summary.Conformance.Status))
 	}
+	if summary.Confidence.Status != "" {
+		b.WriteString(fmt.Sprintf("- confidence_status: `%s`\n", summary.Confidence.Status))
+		b.WriteString(fmt.Sprintf("- confidence_coverage: `%s`\n", formatRate(summary.Confidence.ConfidenceCoverage)))
+		b.WriteString(fmt.Sprintf("- confidence_bands: `low=%d medium=%d high=%d missing=%d`\n", summary.Confidence.LowConfidenceCount, summary.Confidence.MediumConfidenceCount, summary.Confidence.HighConfidenceCount, summary.Confidence.MissingConfidenceCount))
+	}
 	if summary.Overall.MAEAbsoluteErrorSeconds != nil {
 		b.WriteString(fmt.Sprintf("- mae_absolute_error_seconds: `%.1f`\n", *summary.Overall.MAEAbsoluteErrorSeconds))
+	}
+	if summary.Confidence.MeanConfidence != nil {
+		b.WriteString(fmt.Sprintf("- mean_confidence: `%.2f`\n", *summary.Confidence.MeanConfidence))
 	}
 	if summary.Overall.MeanLeadTimeSeconds != nil {
 		b.WriteString(fmt.Sprintf("- mean_lead_time_seconds: `%.1f`\n", *summary.Overall.MeanLeadTimeSeconds))
@@ -1064,13 +1175,18 @@ func renderBacktestSummaryMarkdown(summary SummaryDocument) string {
 func renderBacktestMetricsMarkdown(metrics MetricsDocument) string {
 	var b strings.Builder
 	b.WriteString("# Realtime Quality Backtest Metrics\n\n")
-	b.WriteString("| group | coverage | future_stop_coverage | mae_s | median_s | p90_s | mean_lead_s | median_lead_s | p90_lead_s | stale | missing_prediction | missing_observation | gate |\n")
-	b.WriteString("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n")
+	b.WriteString("| group | coverage | future_stop_coverage | confidence_coverage | confidence_bands | mae_s | median_s | p90_s | mean_lead_s | median_lead_s | p90_lead_s | stale | missing_prediction | missing_observation | gate |\n")
+	b.WriteString("| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n")
 	for _, group := range metrics.Groups {
-		b.WriteString(fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s | %s | %s | %d | %d | %d | %s |\n",
+		b.WriteString(fmt.Sprintf("| %s | %s | %s | %s | low=%d medium=%d high=%d missing=%d | %s | %s | %s | %s | %s | %s | %d | %d | %d | %s |\n",
 			markdownGroupLabel(group),
 			formatRate(group.PredictionCoverage),
 			formatRate(group.FutureStopCoverage),
+			formatRate(group.ConfidenceCoverage),
+			group.LowConfidenceCount,
+			group.MediumConfidenceCount,
+			group.HighConfidenceCount,
+			group.MissingConfidenceCount,
 			formatOptionalFloat(group.MAEAbsoluteErrorSeconds),
 			formatOptionalFloat(group.MedianAbsoluteErrorSeconds),
 			formatOptionalFloat(group.P90AbsoluteErrorSeconds),

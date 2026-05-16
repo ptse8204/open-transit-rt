@@ -59,6 +59,30 @@ func TestBacktestFixtureMetricsAndGateLabels(t *testing.T) {
 	if overall.PredictionCoverage.Percent == nil || *overall.PredictionCoverage.Percent != 45.5 {
 		t.Fatalf("coverage percent = %+v, want 45.5", overall.PredictionCoverage)
 	}
+	if overall.ConfidenceSampleCount != 5 || overall.MissingConfidenceCount != 0 || overall.LowConfidenceCount != 0 || overall.MediumConfidenceCount != 1 || overall.HighConfidenceCount != 4 {
+		t.Fatalf("confidence counts = %+v, want five samples split into medium/high bands", overall)
+	}
+	if overall.ConfidenceCoverage.Percent == nil || *overall.ConfidenceCoverage.Percent != 100 {
+		t.Fatalf("confidence coverage = %+v, want 100%%", overall.ConfidenceCoverage)
+	}
+	if overall.MeanConfidence == nil || *overall.MeanConfidence != 0.87 {
+		t.Fatalf("mean confidence = %v, want 0.87", overall.MeanConfidence)
+	}
+	if overall.MedianConfidence == nil || *overall.MedianConfidence != 0.88 {
+		t.Fatalf("median confidence = %v, want 0.88", overall.MedianConfidence)
+	}
+	if overall.P10Confidence == nil || *overall.P10Confidence != 0.81 {
+		t.Fatalf("p10 confidence = %v, want 0.81", overall.P10Confidence)
+	}
+	if overall.P90Confidence == nil || *overall.P90Confidence != 0.92 {
+		t.Fatalf("p90 confidence = %v, want 0.92", overall.P90Confidence)
+	}
+	if report.Summary.Confidence.Status != "diagnostic_observed" || report.Summary.Confidence.ConfidenceSampleCount != 5 || report.Summary.Confidence.HighConfidenceCount != 4 {
+		t.Fatalf("confidence summary = %+v, want aggregate diagnostic confidence review", report.Summary.Confidence)
+	}
+	if !strings.Contains(report.Summary.Confidence.DoesNotProve, "real-world ETA accuracy") {
+		t.Fatalf("confidence boundary = %q, want no ETA-quality proof wording", report.Summary.Confidence.DoesNotProve)
+	}
 	if report.Summary.Conformance.Status != "synthetic_covered" || !report.Summary.Conformance.SyntheticOnly || !report.Summary.Conformance.AggregateOnly || len(report.Summary.Conformance.Cases) != 5 {
 		t.Fatalf("conformance summary = %+v, want five covered synthetic cases", report.Summary.Conformance)
 	}
@@ -95,6 +119,88 @@ func TestBacktestZeroDenominatorIsInsufficientData(t *testing.T) {
 	if report.Summary.Overall.MeanLeadTimeSeconds != nil || report.Summary.Overall.P90LeadTimeSeconds != nil {
 		t.Fatalf("lead time metrics = %+v, want omitted for zero denominator", report.Summary.Overall)
 	}
+	if report.Summary.Confidence.Status != "insufficient_data" || report.Summary.Confidence.ConfidenceCoverage.Status != "not_applicable" {
+		t.Fatalf("confidence summary = %+v, want insufficient data confidence review", report.Summary.Confidence)
+	}
+}
+
+func TestBacktestConfidenceWatchForLowOrMissingConfidence(t *testing.T) {
+	low := 0.40
+	observed := ObservedDataset{
+		SchemaVersion:  ObservedSchemaVersion,
+		AgencyTimezone: "America/Los_Angeles",
+		Records: []ObservedEvent{
+			{
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-watch",
+				RouteID:       "route-low",
+				TripID:        "trip-low",
+				StartDate:     "20260509",
+				StartTime:     "08:00:00",
+				StopID:        "stop-low",
+				StopSequence:  1,
+				EventType:     "arrival",
+				ObservedTime:  time.Date(2026, 5, 9, 15, 5, 0, 0, time.UTC),
+			},
+			{
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-watch",
+				RouteID:       "route-missing-confidence",
+				TripID:        "trip-missing-confidence",
+				StartDate:     "20260509",
+				StartTime:     "09:00:00",
+				StopID:        "stop-missing-confidence",
+				StopSequence:  2,
+				EventType:     "arrival",
+				ObservedTime:  time.Date(2026, 5, 9, 16, 5, 0, 0, time.UTC),
+			},
+		},
+	}
+	predictions := PredictionDataset{
+		SchemaVersion: PredictionSchemaVersion,
+		Records: []PredictionSample{
+			{
+				GeneratedTime: time.Date(2026, 5, 9, 15, 3, 0, 0, time.UTC),
+				AdapterName:   "deterministic",
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-watch",
+				RouteID:       "route-low",
+				TripID:        "trip-low",
+				StartDate:     "20260509",
+				StartTime:     "08:00:00",
+				StopSequence:  1,
+				EventType:     "arrival",
+				PredictedTime: time.Date(2026, 5, 9, 15, 5, 10, 0, time.UTC),
+				Confidence:    &low,
+			},
+			{
+				GeneratedTime: time.Date(2026, 5, 9, 16, 3, 0, 0, time.UTC),
+				AdapterName:   "deterministic",
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-watch",
+				RouteID:       "route-missing-confidence",
+				TripID:        "trip-missing-confidence",
+				StartDate:     "20260509",
+				StartTime:     "09:00:00",
+				StopSequence:  2,
+				EventType:     "arrival",
+				PredictedTime: time.Date(2026, 5, 9, 16, 5, 10, 0, time.UTC),
+			},
+		},
+	}
+	report, err := RunBacktest(observed, predictions, []byte(`{"synthetic":"observed"}`), []byte(`{"synthetic":"predictions"}`), BacktestOptions{
+		GeneratedAt: time.Date(2026, 5, 9, 20, 0, 0, 0, time.UTC),
+	})
+	if err != nil {
+		t.Fatalf("run low-confidence backtest: %v", err)
+	}
+	confidence := report.Summary.Confidence
+	if confidence.Status != "diagnostic_watch" || confidence.LowConfidenceCount != 1 || confidence.MissingConfidenceCount != 1 {
+		t.Fatalf("confidence summary = %+v, want diagnostic watch for low and missing confidence", confidence)
+	}
+	if !strings.Contains(confidence.Recommendation, "prefer withholding Trip Updates") {
+		t.Fatalf("recommendation = %q, want conservative withholding guidance", confidence.Recommendation)
+	}
 }
 
 func TestBacktestSyntheticScaleUsesIndexedJoin(t *testing.T) {
@@ -118,6 +224,9 @@ func TestBacktestSyntheticScaleUsesIndexedJoin(t *testing.T) {
 	}
 	if overall.MeanLeadTimeSeconds == nil || *overall.MeanLeadTimeSeconds != 120 {
 		t.Fatalf("scale mean lead time = %v, want 120.0", overall.MeanLeadTimeSeconds)
+	}
+	if overall.ConfidenceSampleCount != count || overall.HighConfidenceCount != count || overall.MissingConfidenceCount != 0 {
+		t.Fatalf("scale confidence metrics = %+v, want all high-confidence matched samples", overall)
 	}
 	if len(report.Metrics.Groups) > 200 {
 		t.Fatalf("group count = %d, want bounded under 200", len(report.Metrics.Groups))
