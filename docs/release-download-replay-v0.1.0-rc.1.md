@@ -138,6 +138,16 @@ Patch validation:
 - Export-like copy with downloaded package copied to
   `.cache/release-package/v0.1.0-rc.1`: `scripts/audit-release-package.sh`
   passed.
+- Post-patch `git archive HEAD` protected-path scan: `0`.
+- Post-patch `git archive HEAD` extracted tree:
+  `scripts/check-consumer-tracker.sh` skipped only because the protected
+  tracker was export-ignored from a source archive.
+- Post-patch `git archive HEAD` extracted tree: `make check` passed.
+- Post-patch `git archive HEAD` extracted tree:
+  `scripts/bootstrap-dev.sh --check` passed.
+- Post-patch `git archive HEAD` extracted tree with downloaded package under
+  `.cache/release-package/v0.1.0-rc.1`: `scripts/audit-release-package.sh`
+  passed.
 
 ## Claim And Boundary Notes
 

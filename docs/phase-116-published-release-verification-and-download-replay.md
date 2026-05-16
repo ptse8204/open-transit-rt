@@ -271,3 +271,94 @@ Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
 
 Next checkpoint:
 Phase 116 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 116 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. The Phase 116 patch was validated in the normal repository checkout
+and in a post-patch exported source archive.
+
+Sub-agents used or simulated:
+Release/Install Confidence sub-agent recommendations were incorporated.
+QA, Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration,
+Implementation, Web Design Skill, and GTFS-RT Domain roles were simulated by
+the Master Agent.
+
+Changed files:
+`docs/release-download-replay-v0.1.0-rc.1.md`;
+`docs/phase-116-published-release-verification-and-download-replay.md`.
+
+Validation run:
+Passed:
+
+- `make check`
+- `make validate`
+- `make test`
+- `docker compose -f deploy/docker-compose.yml config`
+- `make test-release-package`
+- post-patch `git archive HEAD` protected-path scan: `0`
+- post-patch `git archive HEAD` extracted tree `scripts/check-consumer-tracker.sh`: skipped only because the protected tracker is export-ignored from source archive output
+- post-patch `git archive HEAD` extracted tree `make check`
+- post-patch `git archive HEAD` extracted tree `scripts/bootstrap-dev.sh --check`
+- post-patch `git archive HEAD` extracted tree with downloaded rc1 package copied to `.cache/release-package/v0.1.0-rc.1`: `scripts/audit-release-package.sh`
+
+Blocked checks:
+The already published rc1 source archives still fail `make check` because the
+fix is not present in the published tag. This remains a truthful Phase 116
+replay blocker and is recorded in
+`docs/release-download-replay-v0.1.0-rc.1.md`.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+The current post-patch source archive scan returned zero protected-path hits.
+
+Consumer tracker status:
+The tracker was not edited. The repository checkout still requires the exact
+seven prepared-only targets. Exported archive trees skip only the missing
+protected tracker that `.gitattributes` explicitly excludes.
+
+Claim-boundary status:
+Validation records package/download/archive mechanics and a repo-caused
+archive replay bug only. It does not claim stable release, production
+readiness, compliance, adoption, consumer acceptance, final-root readiness,
+hosted service, paid support, SLA/uptime, vendor compatibility, hardware
+certification, production AVL reliability, or ETA quality.
+
+Security/auth status:
+No application auth, CSRF, credential handling, token handling, private
+payload handling, route exposure, or operator command behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, dependency, or Go
+module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No new tag, release, or asset
+upload was created in checkpoint 000003.
+
+Install confidence status:
+Published rc1 release archive replay remains blocked for `make check`, while
+post-patch current source archive replay passes the lightweight check and
+bootstrap preflight. Phase 117 should run public fresh-clone install
+confidence.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 116 does not touch UX.
+
+Master review:
+Approved. The validation confirms the patch keeps prepared-only enforcement
+in repository checkouts while making exported future archives usable without
+protected evidence files.
+
+Required edits:
+Commit checkpoint 000003, then close Phase 116 with handoff/status docs.
+
+Decision:
+Proceed to checkpoint 000003 commit and Phase 116 closeout.
+
+Next checkpoint:
+Phase 116 -- Checkpoint 000004: close published release verification and
+download replay review.
