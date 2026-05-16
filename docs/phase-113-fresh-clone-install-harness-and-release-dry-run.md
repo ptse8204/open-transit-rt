@@ -1,0 +1,179 @@
+# Phase 113 -- Fresh Clone Install Harness And Release Dry Run
+
+## Goal
+
+Build and run a repeatable install-confidence harness so a non-maintainer path
+can be tested from a fresh clone and/or release archive before publication.
+
+Phase 113 must record exact local blockers and must not convert local install
+signals into production readiness, compliance, hosted-service, consumer,
+adoption, vendor, hardware, SLA/uptime, or ETA-quality claims.
+
+## Current Repo Context
+
+- Phase 112 closed with publication status
+  `blocked_public_distribution_review`.
+- Install-confidence audit found that GitHub source archives do not include
+  `.git`, while the current `make check` assumes a Git worktree because it
+  runs `git diff --check`.
+- Fresh-clone install confidence can run from a clone outside the active
+  checkout without touching protected evidence paths.
+- Raw install logs and downloaded feed artifacts must stay under ignored
+  `.cache` or temporary directories.
+
+## Scope
+
+- Add a local install-confidence harness that can:
+  - clone a source repository into ignored `.cache`;
+  - checkout a requested ref;
+  - record bounded environment metadata;
+  - run `make check`;
+  - run `scripts/bootstrap-dev.sh --check`;
+  - optionally run a local app startup and five-feed fetch;
+  - support archive extraction/replay for later Phase 116/117 use.
+- Make lightweight checks archive-aware where needed.
+- Add focused tests for the harness boundaries.
+- Run the harness from outside the active checkout using the local repository
+  as the clone source, because Phase 111/112 commits are not pushed yet.
+- Record a non-protected install-confidence summary artifact.
+
+## Boundaries
+
+- Do not tag, push, create a GitHub Release, upload assets, push images, create
+  retained evidence, contact external parties, or move consumer statuses.
+- Do not modify or generate files under:
+  - `docs/evidence/captured/**`
+  - `docs/evidence/consumer-submissions/status.json`
+  - `docs/evidence/consumer-submissions/current/**`
+  - `docs/evidence/consumer-submissions/artifacts/**`
+  - `docs/evidence/consumer-submissions/packets/**`
+- Do not commit raw install logs, downloaded feed artifacts, credentials,
+  private paths, raw external payloads, or `.cache` outputs.
+- Do not claim stable release readiness, production readiness, compliance,
+  adoption, agency approval, consumer acceptance, consumer
+  ingestion/listing/display, final-root readiness, hosted service
+  availability, paid support, SLA/uptime, vendor compatibility, hardware
+  certification, production AVL reliability, production-grade ETA quality, or
+  real-world ETA accuracy.
+
+## Deliverables
+
+- `scripts/install-confidence.sh`
+- `scripts/test-install-confidence.sh`
+- Make targets for install-confidence checks
+- `docs/install-confidence-v0.1.0-rc.1.md`
+- `docs/handoffs/phase-113.md`
+- Source-of-truth status updates
+
+## Implementation Plan
+
+1. Add this Phase 113 plan and commit checkpoint 000001.
+2. Add the install-confidence harness, archive-aware lightweight check
+   behavior, tests, Make targets, and a first install-confidence summary.
+3. Run focused and baseline validation; patch required gaps.
+4. Close Phase 113 with a handoff and continue immediately to Phase 114.
+
+## Checkpoint Plan
+
+- `Phase 113 -- Checkpoint 000001: add fresh clone install harness and release dry run plan`
+- `Phase 113 -- Checkpoint 000002: implement or audit primary scoped work`
+- `Phase 113 -- Checkpoint 000003: run validation and patch required gaps`
+- `Phase 113 -- Checkpoint 000004: close fresh clone install harness and release dry run review`
+
+## Focused Validation Targets
+
+- `git status --short`
+- `git diff --check`
+- `make check`
+- `make test-install-confidence`
+- `make install-confidence` with local repository source and startup disabled
+- archive-mode harness dry run against a generated local source archive
+- `make audit-product-acceptance`
+- `make audit-final-claim-review`
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`
+- exact prepared-only consumer tracker assertion
+- `git status --short -- docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod go.sum`
+
+Because Phase 113 changes scripts and Makefile behavior, also run:
+
+- `make validate`
+- `make test`
+- `docker compose -f deploy/docker-compose.yml config`
+
+## Checkpoint Report -- 000001
+
+Checkpoint:
+Phase 113 -- Checkpoint 000001: add fresh clone install harness and release
+dry run plan.
+
+Goal status:
+Active. Phase 112 is closed and Phase 113 has started.
+
+Sub-agents used or simulated:
+Install Confidence sub-agent findings from Phase 111 were incorporated.
+Planning, Implementation, QA, Documentation / IA, Claim-Boundary,
+Security/Auth, Data/Migration, Release/Supply-Chain, and Web Design Skill
+roles are simulated by the Master Agent for this plan checkpoint.
+
+Changed files:
+`docs/phase-113-fresh-clone-install-harness-and-release-dry-run.md`.
+
+Validation run:
+Initial Phase 113 inspection reviewed the Phase 113 prompt, independent
+install-confidence audit prompt, `scripts/bootstrap-dev.sh`,
+`scripts/check-validators.sh`, `Makefile`, current git status, and Phase 112
+release status. Focused checkpoint validation is scheduled before commit.
+
+Blocked checks:
+Implementation, harness tests, fresh-clone dry run, archive dry run, and full
+script validation are scheduled for later Phase 113 checkpoints. Release
+publication, retained evidence, external contact, consumer status movement,
+protected path writes, and stronger claims are out of Phase 113 scope.
+
+Protected path status:
+No protected evidence path is part of the plan. The plan forbids protected
+path writes.
+
+Consumer tracker status:
+The consumer tracker is not part of the plan. The seven targets must remain in
+order and exactly `prepared`.
+
+Claim-boundary status:
+The plan explicitly forbids stable release readiness, production readiness,
+compliance, adoption, consumer acceptance, final-root, hosted-service,
+paid-support, SLA/uptime, vendor, hardware, production AVL, and ETA-quality
+claims.
+
+Security/auth status:
+The plan records only bounded local install metadata and does not change route
+auth, CSRF, credentials, token handling, public exposure, private payload
+handling, external contact, or command execution behavior.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, or Go
+module change is planned.
+
+Release/publication status:
+No release action is planned for Phase 113. Publication remains blocked by
+Phase 112 source archive public-distribution review.
+
+Install confidence status:
+Harness implementation and dry runs are planned for checkpoint 000002.
+
+Web design skill status:
+No UX artifact is planned for Phase 113. Web Design Skill artifacts are
+scheduled for Phases 114 and 118.
+
+Master review:
+Approved. The phase addresses a real install replay friction and keeps all
+raw outputs in ignored local directories.
+
+Required edits:
+Run checkpoint 000001 validation and commit, then implement the harness and
+first summary artifact.
+
+Decision:
+Proceed to checkpoint 000001 validation and commit.
+
+Next checkpoint:
+Phase 113 -- Checkpoint 000002: implement or audit primary scoped work.
