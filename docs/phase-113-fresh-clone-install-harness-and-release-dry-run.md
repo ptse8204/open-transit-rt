@@ -261,3 +261,89 @@ Proceed to checkpoint 000002 commit, then checkpoint 000003 validation.
 
 Next checkpoint:
 Phase 113 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 113 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Harness validation found and patched a shell portability bug before
+fresh-clone closeout diagnostics.
+
+Sub-agents used or simulated:
+Install Confidence and QA were simulated by the Master Agent for this
+validation checkpoint. Documentation / IA, Claim-Boundary, Security/Auth,
+Data/Migration, Release/Supply-Chain, and Web Design Skill roles were
+simulated or deferred according to Phase 113 scope.
+
+Changed files:
+`scripts/install-confidence.sh`;
+`docs/phase-113-fresh-clone-install-harness-and-release-dry-run.md`.
+
+Validation run:
+An initial local fresh-clone run reached the harness summary writer after app
+startup and feed fetches but failed on a shell `printf` portability issue for
+Markdown bullet lines. The script was patched to use `printf --` for bullet
+format strings. After the patch, `make agency-app-down` passed; `make
+test-install-confidence` passed; `git diff --check` passed; `make check`
+passed; `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null` passed; and the
+protected-path status check returned no output.
+
+Blocked checks:
+Full clone/archive dry runs are scheduled for checkpoint 000004 after this
+fix is committed, so the cloned checkout includes the patched harness.
+`make validate`, `make test`, and compose config remain scheduled before Phase
+113 closeout because scripts/Makefile behavior changed. Release publication,
+retained evidence, external contact, consumer status movement, protected path
+writes, and stronger claims remain out of Phase 113 scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets remain in order and all remain `prepared`.
+
+Claim-boundary status:
+The harness wording remains local-diagnostic only and does not claim release
+readiness, production readiness, compliance, adoption, consumer acceptance,
+final-root readiness, hosted service availability, SLA/uptime, vendor
+compatibility, hardware certification, or ETA quality.
+
+Security/auth status:
+No route, auth behavior, CSRF behavior, credential handling, token handling,
+public exposure, private payload handling, external contact, or command
+execution behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, or Go
+module change was added.
+
+Release/publication status:
+No tag, GitHub Release, public package, asset upload, image push, or public
+announcement was created. Publication remains blocked by the Phase 112 source
+archive public-distribution review.
+
+Install confidence status:
+Harness tests pass. Full clone/archive diagnostics are deferred until after
+this checkpoint commit so the clone contains the patched script.
+
+Web design skill status:
+No UX artifact was added in Phase 113.
+
+Master review:
+Approved. The bug was caught by using the harness in the intended mode and
+patched before install-confidence results were recorded.
+
+Required edits:
+Commit checkpoint 000003, rerun fresh-clone and archive diagnostics, then
+record results in the Phase 113 closeout.
+
+Decision:
+Proceed to checkpoint 000003 commit, then checkpoint 000004 closeout dry runs.
+
+Next checkpoint:
+Phase 113 -- Checkpoint 000004: close fresh clone install harness and release
+dry run review.

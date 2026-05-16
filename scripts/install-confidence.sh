@@ -229,14 +229,14 @@ fi
 
 {
   printf '# Install Confidence Summary\n\n'
-  printf '- Generated at: `%s`\n' "$TIMESTAMP"
-  printf '- Mode: `%s`\n' "$MODE"
-  printf '- Source: `%s`\n' "$SOURCE"
-  printf '- Ref: `%s`\n' "$REF"
-  printf '- Overall status: `%s`\n' "$overall"
-  printf '- Run local app: `%s`\n' "$RUN_LOCAL_APP"
-  printf '- Run validate: `%s`\n' "$RUN_VALIDATE"
-  printf '- Run test: `%s`\n\n' "$RUN_TEST"
+  printf -- '- Generated at: `%s`\n' "$TIMESTAMP"
+  printf -- '- Mode: `%s`\n' "$MODE"
+  printf -- '- Source: `%s`\n' "$SOURCE"
+  printf -- '- Ref: `%s`\n' "$REF"
+  printf -- '- Overall status: `%s`\n' "$overall"
+  printf -- '- Run local app: `%s`\n' "$RUN_LOCAL_APP"
+  printf -- '- Run validate: `%s`\n' "$RUN_VALIDATE"
+  printf -- '- Run test: `%s`\n\n' "$RUN_TEST"
   printf 'This is a local install-confidence diagnostic only. It is not retained evidence, release publication, production readiness, compliance proof, consumer acceptance, agency approval, hosted service availability, vendor compatibility, SLA/uptime, or ETA-quality proof.\n\n'
   printf '## Steps\n\n'
   while IFS='	' read -r step status label; do
