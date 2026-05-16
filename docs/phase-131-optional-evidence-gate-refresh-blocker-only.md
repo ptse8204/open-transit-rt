@@ -330,3 +330,85 @@ Proceed to checkpoint 000003 commit.
 Next checkpoint:
 Phase 131 -- Checkpoint 000004: close optional evidence gate refresh blocker
 only review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 131 -- Checkpoint 000004: close optional evidence gate refresh blocker
+only review.
+
+Goal status:
+Active. Phase 131 is closed and the goal continues to Phase 132.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Release/Supply-Chain, Install Confidence,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Closeout summary:
+Phase 131 refreshed optional evidence gates as blocker-only in
+`docs/optional-evidence-gate-refresh-phase-131.md`. It did not collect
+evidence, contact external parties, fetch final roots, move consumer statuses,
+write protected paths, or make stronger claims.
+
+Changed files:
+`docs/handoffs/phase-131.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`; and this phase
+report.
+
+Validation run:
+Full Phase 131 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+Optional evidence gates remain blocked until future retained intakes authorize
+specific work. No evidence collection, external contact, final-root fetch,
+consumer status movement, protected-path write, real credential use, private
+payload handling, retained evidence packet, public announcement, or stronger
+claim was attempted.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 131 remains bounded to blocker-only optional evidence gate refresh and
+makes no stable release, final-root, consumer, agency, compliance,
+hosted-service, paid-support, SLA, production, vendor, hardware, production
+AVL reliability, ETA-quality, or real-world ETA accuracy claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No release action was performed.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Not used; no visual UI changed.
+
+Master review:
+Approved. Phase 131 closes with optional evidence gates refreshed as blocked.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 132.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 132.
+
+Next checkpoint:
+Phase 132 -- Checkpoint 000001: add final public release install ux roadmap
+closeout plan.

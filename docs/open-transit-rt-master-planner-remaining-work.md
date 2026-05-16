@@ -280,8 +280,12 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 130 is complete for Release Candidate Patch Loop And rc2 Gate. The
   closeout lives at `docs/handoffs/phase-130.md`. The local rc2 gate is
   prepared at `docs/release-candidate-rc2-gate.md`, but no rc2 tag or GitHub
-  Release was created. Phase 131 is active for Optional Evidence Gate Refresh
-  Blocker-Only.
+  Release was created.
+- Phase 131 is complete for Optional Evidence Gate Refresh Blocker-Only. The
+  closeout lives at `docs/handoffs/phase-131.md`. Optional evidence gates are
+  refreshed as blocked in
+  `docs/optional-evidence-gate-refresh-phase-131.md`. Phase 132 is active for
+  Final Public Release Install UX Roadmap Closeout.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

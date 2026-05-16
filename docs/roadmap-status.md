@@ -112,8 +112,12 @@ template. Phase 130 is complete for Release Candidate Patch Loop And rc2 Gate;
 the closeout handoff is [`docs/handoffs/phase-130.md`](handoffs/phase-130.md).
 The local rc2 gate is prepared at
 [`docs/release-candidate-rc2-gate.md`](release-candidate-rc2-gate.md), but no
-rc2 tag or GitHub Release was created. Phase 131 is active for Optional
-Evidence Gate Refresh Blocker-Only.
+rc2 tag or GitHub Release was created. Phase 131 is complete for Optional
+Evidence Gate Refresh Blocker-Only; the closeout handoff is
+[`docs/handoffs/phase-131.md`](handoffs/phase-131.md). Optional evidence gates
+are refreshed as blocked in
+[`docs/optional-evidence-gate-refresh-phase-131.md`](optional-evidence-gate-refresh-phase-131.md).
+Phase 132 is active for Final Public Release Install UX Roadmap Closeout.
 This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
