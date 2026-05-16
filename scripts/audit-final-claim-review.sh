@@ -282,6 +282,16 @@ def check_required_public_boundaries():
 
 
 def check_consumer_tracker():
+    if not STATUS_PATH.exists():
+        attrs = ROOT / ".gitattributes"
+        archive_export = (
+            not (ROOT / ".git").exists()
+            and attrs.exists()
+            and "/docs/evidence/consumer-submissions/status.json export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+        )
+        if archive_export:
+            record_pass("consumer tracker check skipped because protected tracker is export-ignored from source archive")
+            return
     try:
         data = json.loads(STATUS_PATH.read_text(encoding="utf-8"))
     except Exception as exc:
@@ -299,6 +309,15 @@ def check_consumer_tracker():
 
 def check_consumer_artifacts():
     if not ARTIFACTS_DIR.exists() or not ARTIFACTS_DIR.is_dir():
+        attrs = ROOT / ".gitattributes"
+        archive_export = (
+            not (ROOT / ".git").exists()
+            and attrs.exists()
+            and "/docs/evidence/consumer-submissions/artifacts export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+        )
+        if archive_export:
+            record_pass("consumer artifacts directory check skipped because protected artifacts are export-ignored from source archive")
+            return
         record_failure(f"consumer artifacts directory missing: {rel(ARTIFACTS_DIR)}")
         return
     bad = []

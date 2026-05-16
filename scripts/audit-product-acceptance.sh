@@ -255,6 +255,16 @@ def check_forbidden_claims():
 
 
 def check_consumer_tracker():
+    if not STATUS_PATH.exists():
+        attrs = ROOT / ".gitattributes"
+        archive_export = (
+            not (ROOT / ".git").exists()
+            and attrs.exists()
+            and "/docs/evidence/consumer-submissions/status.json export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+        )
+        if archive_export:
+            record_pass("consumer tracker check skipped because protected tracker is export-ignored from source archive")
+            return
     try:
         data = json.loads(STATUS_PATH.read_text(encoding="utf-8"))
     except FileNotFoundError:

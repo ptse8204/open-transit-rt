@@ -136,6 +136,15 @@ def check_claim_flags(data, label):
 
 def check_consumer_tracker():
     path = ROOT / "docs/evidence/consumer-submissions/status.json"
+    if not path.exists():
+        attrs = ROOT / ".gitattributes"
+        archive_export = (
+            not (ROOT / ".git").exists()
+            and attrs.exists()
+            and "/docs/evidence/consumer-submissions/status.json export-ignore" in attrs.read_text(encoding="utf-8", errors="replace")
+        )
+        if archive_export:
+            return
     data = json.loads(path.read_text(encoding="utf-8"))
     records = data.get("targets", [])
     seen = {row["target"]: row.get("status") for row in records}

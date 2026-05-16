@@ -168,3 +168,106 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 116 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 116 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Published release assets and GitHub-generated archives were
+downloaded and scanned; a release-archive `make check` blocker was found and
+patched in the current repository for future archives.
+
+Sub-agents used or simulated:
+Release/Install Confidence sub-agent independently recommended Phase 116
+commands and risks. Implementation, QA, Documentation / IA, Claim-Boundary,
+Security/Auth, Data/Migration, Web Design Skill, and GTFS-RT Domain roles
+were simulated by the Master Agent.
+
+Changed files:
+`Makefile`; `scripts/check-consumer-tracker.sh`;
+`scripts/audit-product-acceptance.sh`;
+`scripts/audit-final-claim-review.sh`; `scripts/audit-release-package.sh`;
+`docs/release-download-replay-v0.1.0-rc.1.md`;
+`docs/phase-116-published-release-verification-and-download-replay.md`.
+
+Validation run:
+Passed:
+
+- `gh release download v0.1.0-rc.1 --repo ptse8204/open-transit-rt --dir .cache/release-download/v0.1.0-rc.1 --clobber`
+- published `SHA256SUMS.txt` verification for all downloaded uploaded assets
+- uploaded source archive protected-path scan: `0`
+- GitHub-generated tag `tar.gz` protected-path scan: `0`
+- GitHub-generated tag `zip` protected-path scan: `0`
+- current repository `scripts/check-consumer-tracker.sh`
+- current repository `make check`
+- current repository `make audit-product-acceptance`
+- current repository `make audit-final-claim-review`
+- current repository `make test-release-package`
+- export-like copy without protected paths: `make check`
+- export-like copy without protected paths: `scripts/bootstrap-dev.sh --check`
+- export-like copy with downloaded package under `.cache/release-package/v0.1.0-rc.1`: `scripts/audit-release-package.sh`
+
+Blocked checks:
+Published rc1 uploaded source archive and GitHub-generated tag archive
+extraction replay both failed `make check` before the Phase 116 patch because
+the protected consumer tracker is correctly excluded from public archives but
+the published rc1 `make check` still requires it. This is recorded in
+`docs/release-download-replay-v0.1.0-rc.1.md` and cannot be fixed inside the
+already published rc1 archive.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+Published archive scans returned zero protected-path hits.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared` in the repository checkout. Exported archives skip
+the tracker check only when the protected tracker is missing outside a `.git`
+checkout and the committed `.gitattributes` export policy documents that
+absence.
+
+Claim-boundary status:
+The replay report records publication and download mechanics only. It does not
+claim stable release, production readiness, compliance, adoption, consumer
+acceptance, final-root readiness, hosted service, paid support, SLA/uptime,
+vendor compatibility, hardware certification, production AVL reliability, or
+ETA quality.
+
+Security/auth status:
+No application auth, CSRF, credential handling, token handling, private
+payload handling, route exposure, or operator command behavior changed. The
+new helper reads only local files.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, dependency, or Go
+module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No new tag, release, or asset
+upload was created in checkpoint 000002.
+
+Install confidence status:
+Published asset download and checksum replay passed, but published rc1 source
+archive `make check` replay is blocked by the documented protected-tracker
+check bug. Phase 117 should use a public fresh clone for independent install
+confidence.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 116 does not touch UX.
+
+Master review:
+Approved. The checkpoint records the public download facts truthfully and
+patches the current repo without weakening protected-path or prepared-only
+consumer checks in normal repository checkouts.
+
+Required edits:
+Commit checkpoint 000002, then run broader validation and decide whether any
+additional archive replay patching is needed.
+
+Decision:
+Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 116 -- Checkpoint 000003: run validation and patch required gaps.
