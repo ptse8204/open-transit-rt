@@ -232,3 +232,83 @@ Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
 
 Next checkpoint:
 Phase 119 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 119 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Public docs release alignment validation passed.
+
+Sub-agents used or simulated:
+Documentation / IA, Claim-Boundary, Release, Install Confidence, QA,
+Security/Auth, Data/Migration, Web Design Skill, and GTFS-RT Domain roles were
+simulated by the Master Agent.
+
+Changed files:
+`docs/phase-119-public-docs-site-readme-and-quickstart-release-alignment.md`.
+
+Validation run:
+Passed:
+
+- `make check`
+- `make validate`
+- `make test`
+- `docker compose -f deploy/docker-compose.yml config`
+- `make audit-product-acceptance`
+- `make audit-final-claim-review`
+- stale pre-publication wording scan over the patched public entry points
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null`
+- exact prepared-only consumer tracker assertion
+- protected-path git status check
+
+Blocked checks:
+No Phase 119 validation blocker remains.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. Public docs remain bounded
+to rc1 local/self-hosted evaluation and do not claim stable release,
+production readiness, compliance, adoption, consumer acceptance, final-root
+readiness, hosted service, paid support, SLA/uptime, vendor compatibility,
+hardware certification, production AVL reliability, or ETA quality.
+
+Security/auth status:
+Documentation-only changes. No application route auth, CSRF behavior,
+credential handling, token handling, private payload handling, public
+exposure, or operator command behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, dependency, or Go
+module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No new tag, release, or asset
+upload was created.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact is complete. Phase 119 does not touch UX.
+
+Master review:
+Approved. Validation found no additional stale pre-publication copy in the
+patched public entry points.
+
+Required edits:
+Commit checkpoint 000003, then close Phase 119 with handoff/status docs.
+
+Decision:
+Proceed to checkpoint 000003 commit and Phase 119 closeout.
+
+Next checkpoint:
+Phase 119 -- Checkpoint 000004: close public docs site README and quickstart
+release alignment review.
