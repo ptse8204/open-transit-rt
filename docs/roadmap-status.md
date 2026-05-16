@@ -61,8 +61,14 @@ The Web Design Skill was used, the public rc1 local app private Operations
 Console was reviewed through authenticated HTML/JSON routes, and no Phase 118
 code patch was required. Phase 119 is complete for public docs, README, wiki,
 quickstart, readiness, and rc1 release-note alignment; the closeout handoff is
-[`docs/handoffs/phase-119.md`](handoffs/phase-119.md). Phase 120 is active for
-GTFS-RT feed usefulness and reliability V2. This release remains a candidate for
+[`docs/handoffs/phase-119.md`](handoffs/phase-119.md). Phase 120 is complete
+for GTFS-RT feed usefulness and reliability V2; the closeout handoff is
+[`docs/handoffs/phase-120.md`](handoffs/phase-120.md). Current-source Vehicle
+Positions debug and private health snapshots now include safe aggregate review
+summaries for protobuf inclusion, trip descriptor publication/omission, stale
+and suppressed rows, unmatched rows, and assignment telemetry mismatches.
+Phase 121 is active for GTFS-RT interoperability conformance harness work. This
+release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,

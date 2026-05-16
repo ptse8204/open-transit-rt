@@ -230,6 +230,13 @@ The first instruction in this workstream was to make the Codex instructions expa
   fresh-clone install path, and the known published source-archive `make check`
   limitation. Phase 120 is active for GTFS-RT Feed Usefulness And Reliability
   V2.
+- Phase 120 is complete for GTFS-RT Feed Usefulness And Reliability V2. The
+  closeout lives at `docs/handoffs/phase-120.md`. Current-source Vehicle
+  Positions debug and private health snapshots now include redaction-safe
+  aggregate review summaries for protobuf inclusion, published trip
+  descriptors, stale/suppressed vehicles, unmatched vehicles, assignment
+  telemetry mismatches, and trip descriptor omission reasons. Phase 121 is
+  active for GTFS-RT Interoperability Conformance Harness.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

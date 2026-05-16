@@ -699,8 +699,14 @@ complete, with closeout at `docs/handoffs/phase-119.md`: README, docs home,
 wiki, local quickstart, release-candidate readiness, and draft rc1 release
 notes now point at the actual public rc1 GitHub Release, the verified
 fresh-clone install path, and the known published source-archive `make check`
-limitation without adding stronger claims. Phase 120 is active for GTFS-RT
-feed usefulness and reliability V2.
+limitation without adding stronger claims. Phase 120 -- GTFS-RT Feed
+Usefulness And Reliability V2 is complete, with closeout at
+`docs/handoffs/phase-120.md`: current-source Vehicle Positions debug and
+private health snapshots now include redaction-safe aggregate review summaries
+for protobuf inclusion, published trip descriptors, stale/suppressed vehicles,
+unmatched vehicles, assignment telemetry mismatches, and trip descriptor
+omission reasons. Phase 121 is active for GTFS-RT interoperability conformance
+harness work.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
