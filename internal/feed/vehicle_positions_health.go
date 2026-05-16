@@ -21,6 +21,9 @@ type VehiclePositionsHealthRecord struct {
 	TripDescriptors         int
 	StaleVehicles           int
 	UnmatchedVehicles       int
+	SuppressedVehicles      int
+	AssignmentMismatches    int
+	TripDescriptorOmissions map[string]int
 	Truncated               bool
 	VehicleLimit            int
 	LatestTelemetryRowsRead int
@@ -53,6 +56,9 @@ func (r *VehiclePositionsHealthRepository) SaveVehiclePositionsHealth(ctx contex
 		"trip_descriptors":           boundedNonNegative(record.TripDescriptors),
 		"stale_vehicles":             boundedNonNegative(record.StaleVehicles),
 		"unmatched_vehicles":         boundedNonNegative(record.UnmatchedVehicles),
+		"suppressed_vehicles":        boundedNonNegative(record.SuppressedVehicles),
+		"assignment_mismatches":      boundedNonNegative(record.AssignmentMismatches),
+		"trip_descriptor_omissions":  boundedCountMap(record.TripDescriptorOmissions),
 		"truncated":                  record.Truncated,
 		"vehicle_limit":              boundedNonNegative(record.VehicleLimit),
 		"latest_telemetry_rows_read": boundedNonNegative(record.LatestTelemetryRowsRead),
@@ -82,24 +88,9 @@ func (r *VehiclePositionsHealthRepository) SaveVehiclePositionsHealth(ctx contex
 }
 
 func HealthRecordFromVehiclePositionsSnapshot(snapshot VehiclePositionsSnapshot, generationLatency time.Duration) VehiclePositionsHealthRecord {
-	included := 0
-	publishedTrips := 0
-	stale := 0
-	unmatched := 0
+	review := snapshot.ReviewSummary()
 	var newest *time.Time
 	for _, vehicle := range snapshot.Vehicles {
-		if vehicle.IncludedInProtobuf {
-			included++
-		}
-		if vehicle.TripDescriptorPublished {
-			publishedTrips++
-		}
-		if vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionStaleTelemetry || vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionSuppressedStaleTelemetry {
-			stale++
-		}
-		if vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionNoAssignment {
-			unmatched++
-		}
 		observed := vehicle.TelemetryEvent.Timestamp.UTC()
 		if !observed.IsZero() && (newest == nil || observed.After(*newest)) {
 			t := observed
@@ -124,10 +115,13 @@ func HealthRecordFromVehiclePositionsSnapshot(snapshot VehiclePositionsSnapshot,
 		GenerationLatencyMS:     &latency,
 		MatchedVehiclePercent:   matched,
 		VehiclesInSnapshot:      snapshot.VehiclesInSnapshot,
-		VehiclesInProtobuf:      included,
-		TripDescriptors:         publishedTrips,
-		StaleVehicles:           stale,
-		UnmatchedVehicles:       unmatched,
+		VehiclesInProtobuf:      review.VehiclesInProtobuf,
+		TripDescriptors:         review.TripDescriptorsPublished,
+		StaleVehicles:           review.StaleVehicles,
+		UnmatchedVehicles:       review.UnmatchedVehicles,
+		SuppressedVehicles:      review.SuppressedVehicles,
+		AssignmentMismatches:    review.AssignmentTelemetryMismatches,
+		TripDescriptorOmissions: review.TripDescriptorOmissions,
 		Truncated:               snapshot.Truncated,
 		VehicleLimit:            snapshot.VehicleLimit,
 		LatestTelemetryRowsRead: snapshot.LatestTelemetryRowsRead,
@@ -156,4 +150,15 @@ func boundedNonNegative(value int) int {
 		return 1000000
 	}
 	return value
+}
+
+func boundedCountMap(input map[string]int) map[string]int {
+	out := make(map[string]int, len(input))
+	for key, value := range input {
+		if key == "" {
+			continue
+		}
+		out[key] = boundedNonNegative(value)
+	}
+	return out
 }

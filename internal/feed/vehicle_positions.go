@@ -323,6 +323,7 @@ func buildTripDescriptor(assignment state.Assignment) *gtfsrt.TripDescriptor {
 type VehiclePositionsDebug struct {
 	AgencyID                 string                 `json:"agency_id"`
 	GeneratedAt              time.Time              `json:"generated_at"`
+	ReviewSummary            VehiclePositionsReview `json:"review_summary"`
 	Truncated                bool                   `json:"truncated"`
 	VehicleLimit             int                    `json:"vehicle_limit"`
 	LatestTelemetryRowsRead  int                    `json:"latest_telemetry_rows_read"`
@@ -354,10 +355,62 @@ type DebugPosition struct {
 	SpeedMPS  float64 `json:"speed_mps,omitempty"`
 }
 
+type VehiclePositionsReview struct {
+	VehiclesInSnapshot            int            `json:"vehicles_in_snapshot"`
+	VehiclesInProtobuf            int            `json:"vehicles_in_protobuf"`
+	TripDescriptorsPublished      int            `json:"trip_descriptors_published"`
+	TripDescriptorOmissions       map[string]int `json:"trip_descriptor_omissions"`
+	StaleVehicles                 int            `json:"stale_vehicles"`
+	SuppressedVehicles            int            `json:"suppressed_vehicles"`
+	UnmatchedVehicles             int            `json:"unmatched_vehicles"`
+	AssignmentTelemetryMismatches int            `json:"assignment_telemetry_mismatches"`
+	Truncated                     bool           `json:"truncated"`
+	TruncatedVehicleCountMin      int            `json:"truncated_vehicle_count_min"`
+	LatestTelemetryRowsRead       int            `json:"latest_telemetry_rows_read"`
+	NoTelemetry                   bool           `json:"no_telemetry"`
+}
+
+func (s VehiclePositionsSnapshot) ReviewSummary() VehiclePositionsReview {
+	review := VehiclePositionsReview{
+		VehiclesInSnapshot:       s.VehiclesInSnapshot,
+		TripDescriptorOmissions:  map[string]int{},
+		Truncated:                s.Truncated,
+		TruncatedVehicleCountMin: s.TruncatedVehicleCountMin,
+		LatestTelemetryRowsRead:  s.LatestTelemetryRowsRead,
+		NoTelemetry:              s.NoTelemetry,
+	}
+	for _, vehicle := range s.Vehicles {
+		if vehicle.IncludedInProtobuf {
+			review.VehiclesInProtobuf++
+		}
+		if vehicle.TripDescriptorPublished {
+			review.TripDescriptorsPublished++
+		}
+		if vehicle.TripDescriptorOmissionReason != "" && vehicle.TripDescriptorOmissionReason != TripDescriptorOmissionNone {
+			review.TripDescriptorOmissions[vehicle.TripDescriptorOmissionReason]++
+		}
+		switch vehicle.TripDescriptorOmissionReason {
+		case TripDescriptorOmissionStaleTelemetry, TripDescriptorOmissionSuppressedStaleTelemetry:
+			review.StaleVehicles++
+		}
+		if vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionSuppressedStaleTelemetry {
+			review.SuppressedVehicles++
+		}
+		if vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionNoAssignment {
+			review.UnmatchedVehicles++
+		}
+		if vehicle.AssignmentTelemetryMismatch {
+			review.AssignmentTelemetryMismatches++
+		}
+	}
+	return review
+}
+
 func (s VehiclePositionsSnapshot) Debug() VehiclePositionsDebug {
 	debug := VehiclePositionsDebug{
 		AgencyID:                 s.AgencyID,
 		GeneratedAt:              s.GeneratedAt,
+		ReviewSummary:            s.ReviewSummary(),
 		Truncated:                s.Truncated,
 		VehicleLimit:             s.VehicleLimit,
 		LatestTelemetryRowsRead:  s.LatestTelemetryRowsRead,

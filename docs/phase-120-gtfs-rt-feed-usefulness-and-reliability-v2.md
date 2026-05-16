@@ -147,3 +147,88 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 120 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 120 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 120 implemented a bounded GTFS-RT Vehicle Positions usefulness
+and reliability review improvement.
+
+Sub-agents used or simulated:
+The agent thread limit still prevents new real sub-agents. Context / Repo
+Truth, Implementation, QA, GTFS-RT Domain, Claim-Boundary, Security/Auth,
+Data/Migration, Documentation / IA, Web Design Skill, Release, and Install
+Confidence roles were simulated by the Master Agent.
+
+Changed files:
+`internal/feed/vehicle_positions.go`;
+`internal/feed/vehicle_positions_health.go`;
+`internal/feed/vehicle_positions_test.go`;
+`docs/phase-120-gtfs-rt-feed-usefulness-and-reliability-v2.md`.
+
+Validation run:
+Passed:
+
+- `gofmt -w internal/feed/vehicle_positions.go internal/feed/vehicle_positions_health.go internal/feed/vehicle_positions_test.go`
+- `go test ./internal/feed/...`
+- `git diff --check`
+- protected-path git status check
+
+Blocked checks:
+Full Phase 120 baseline validation, connector/GTFS-RT validation, and claim
+audits are scheduled for checkpoint 000003.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+The implementation adds only private/local diagnostic aggregates. It makes no
+production readiness, SLA, uptime, compliance, adoption, consumer acceptance,
+vendor compatibility, hardware certification, production AVL reliability,
+production-grade ETA quality, or real-world ETA accuracy claim.
+
+Security/auth status:
+No route auth, CSRF, credential, token, public exposure, private payload, or
+operator command behavior changed. New aggregates intentionally omit raw
+payloads, URLs, credentials, private paths, tokens, and vehicle payload JSON.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was
+added. Existing `details_json` health payloads gain bounded aggregate keys for
+new snapshots only.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 120 does not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed. The changed
+code is post-rc1 current-source hardening and is not part of the published rc1
+tag.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. CP000002 did not change
+visual UI templates.
+
+Master review:
+Approved. The change improves Vehicle Positions review by adding safe
+aggregate counts for protobuf inclusion, published trip descriptors,
+stale/suppressed vehicles, assignment telemetry mismatches, and trip
+descriptor omission reasons without changing public feed semantics.
+
+Required edits:
+Commit checkpoint 000002, then run Phase 120 validation and patch any
+repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 120 -- Checkpoint 000003: run validation and patch required gaps.

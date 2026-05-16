@@ -285,14 +285,28 @@ func TestVehiclePositionsHealthRecordIsBoundedAndRedacted(t *testing.T) {
 		},
 	}
 	record := HealthRecordFromVehiclePositionsSnapshot(snapshot, 150*time.Millisecond)
-	if record.AgencyID != "demo-agency" || !record.EndpointAvailable || record.VehiclesInSnapshot != 3 || record.VehiclesInProtobuf != 2 || record.TripDescriptors != 1 || record.UnmatchedVehicles != 1 || record.StaleVehicles != 1 {
+	if record.AgencyID != "demo-agency" || !record.EndpointAvailable || record.VehiclesInSnapshot != 3 || record.VehiclesInProtobuf != 2 || record.TripDescriptors != 1 || record.UnmatchedVehicles != 1 || record.StaleVehicles != 1 || record.SuppressedVehicles != 1 {
 		t.Fatalf("record = %+v, want bounded aggregate counts", record)
+	}
+	if record.TripDescriptorOmissions[TripDescriptorOmissionNoAssignment] != 1 || record.TripDescriptorOmissions[TripDescriptorOmissionSuppressedStaleTelemetry] != 1 {
+		t.Fatalf("omissions = %+v, want no-assignment and suppressed stale counts", record.TripDescriptorOmissions)
 	}
 	if record.FreshnessSeconds == nil || *record.FreshnessSeconds != 10 {
 		t.Fatalf("freshness = %+v, want 10", record.FreshnessSeconds)
 	}
 	if record.MatchedVehiclePercent == nil || *record.MatchedVehiclePercent < 33 || *record.MatchedVehiclePercent > 34 {
 		t.Fatalf("matched percent = %+v, want about 33.3", record.MatchedVehiclePercent)
+	}
+	review := snapshot.Debug().ReviewSummary
+	if review.VehiclesInProtobuf != 2 || review.TripDescriptorsPublished != 1 || review.StaleVehicles != 1 || review.SuppressedVehicles != 1 || review.UnmatchedVehicles != 1 {
+		t.Fatalf("debug review summary = %+v, want safe aggregate counts", review)
+	}
+	payload, err := snapshot.MarshalDebugJSON()
+	if err != nil {
+		t.Fatalf("marshal debug json: %v", err)
+	}
+	if !bytes.Contains(payload, []byte(`"review_summary"`)) || !bytes.Contains(payload, []byte(`"trip_descriptor_omissions"`)) {
+		t.Fatalf("debug json missing review summary: %s", payload)
 	}
 }
 
