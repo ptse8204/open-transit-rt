@@ -1,16 +1,18 @@
-# Open Transit RT `v0.1.0-rc.1` Draft Release Notes
+# Open Transit RT `v0.1.0-rc.1` Release Notes
 
-Draft date: 2026-05-16
+Release-candidate date: 2026-05-16
 
-This is release-candidate text for the Phase 115 `v0.1.0-rc.1` publication
-gate. It is not a stable release, hosted deployment, retained evidence packet,
-image publication, consumer action, compliance proof, production-readiness
-claim, or release-readiness claim.
+This is a public `v0.1.0-rc.1` release candidate for local/self-hosted
+evaluation. It is not a stable release, hosted deployment, retained evidence
+packet, image publication, consumer action, compliance proof,
+production-readiness claim, hosted-service claim, SLA/uptime claim, vendor
+compatibility proof, hardware certification, or production-grade ETA-quality
+claim.
 
 ## Source
 
 - Candidate label: `v0.1.0-rc.1`
-- Git tag: `v0.1.0-rc.1` when attached to the published GitHub Release.
+- Git tag: `v0.1.0-rc.1`.
 - Source package: local `.cache` diagnostic package at
   `.cache/release-package/v0.1.0-rc.1`.
 - Source package commit: see attached release package `summary.json` and
@@ -31,8 +33,7 @@ claim, or release-readiness claim.
 - SBOM/provenance: local metadata generated under
   `.cache/release-package/v0.1.0-rc.1`; SBOM status `present`.
 - Published Docker image: None.
-- GitHub Release: `v0.1.0-rc.1` if these notes are attached to a published
-  release.
+- GitHub Release: `v0.1.0-rc.1`.
 
 ## Summary
 
@@ -47,12 +48,11 @@ monitoring exports, small-host guidance, multi-agency/role hardening, staff
 training material, public docs/contributor alignment, and this post-RC bug
 bash review.
 
-Phase 115 is authorized to attempt publication only if release gates pass and
-authenticated tooling is available. Phase 112 found that the regenerated source
-archive contained protected evidence and consumer-submission paths. Phase 115
-adds an export-ignore source archive policy to resolve that blocker without
-editing protected paths; publication may proceed only after the regenerated
-archive scan confirms zero protected-path entries.
+Phase 112 found that the regenerated source archive contained protected
+evidence and consumer-submission paths. Phase 115 added an export-ignore source
+archive policy to resolve that blocker without editing protected paths.
+Publication is valid only when the regenerated archive scan confirms zero
+protected-path entries and the remaining release gates pass.
 
 ## User-Facing Changes
 
@@ -157,19 +157,17 @@ support, SLA/uptime, production readiness, vendor compatibility, hardware
 certification, production AVL reliability, production-grade ETA quality,
 validator-clean feeds, or release readiness.
 
-## Draft Tag Command
+## Tag Command
 
-Draft only. Do not run before the Phase 115 publication gate passes.
+For maintainers reproducing the cut:
 
 ```bash
 git tag -a v0.1.0-rc.1 <final-reviewed-clean-main-sha> -m "Open Transit RT v0.1.0-rc.1"
 ```
 
-No `git tag`, `git push --tags`, or tag publication is authorized by this
-draft. Phase 115 is the first phase that may attempt publication if all gates
-pass.
+Do not reuse the tag name for any other commit.
 
-## Draft GitHub Release Text
+## GitHub Release Text
 
 Title:
 
@@ -177,31 +175,25 @@ Title:
 Open Transit RT v0.1.0-rc.1
 ```
 
-Body draft:
+Body:
 
 ```md
-This is draft text for a future release candidate. It has not been published.
-
 Scope: local source package review, checksum manifest, SBOM/provenance
-metadata, release notes refresh, and maintainer review.
+metadata, release notes refresh, and maintainer evaluation.
 
-Artifacts: local `.cache` package only unless a maintainer later creates
-release assets.
+Artifacts: source archive, checksum manifest, package summary, manifest,
+provenance metadata, SBOM metadata, and local image metadata placeholder.
 
-Not included: no tag created, no GitHub Release created, no image pushed, no
-package registry publication, no consumer status movement, no retained
-evidence writes, and no release-ready, production-readiness, compliance,
-consumer-acceptance, public-launch, final-root-readiness, hosted-service,
-vendor, SLA, or ETA-quality claim.
+Not included: no image pushed, no package registry publication, no consumer
+status movement, no retained evidence writes, and no stable release,
+production-readiness, compliance, consumer-acceptance, public-launch,
+final-root-readiness, hosted-service, vendor, SLA, or ETA-quality claim.
 
-Known blockers: record any failed or skipped validation commands exactly
-before any later release action.
+Known limitations: local/self-hosted evaluation only; consumer and evidence
+tracks remain separately authorization-gated.
 ```
 
-No GitHub Release creation is authorized by this draft. Phase 115 is the first
-phase that may attempt publication if all gates pass.
-
-## Known Blockers Matrix
+## Release Gate Matrix
 
 | Area | Status | Exact blocker or note | Next owner |
 | --- | --- | --- | --- |
@@ -217,7 +209,7 @@ phase that may attempt publication if all gates pass.
 | GitHub Release | gate required | Release must be absent before Phase 115 publication and verified after publication if gates pass. | Master Agent |
 | Published image | blocked | No image build or publication is authorized while source archive public-distribution review is blocked. | Future authorized release work |
 | Evidence tracks | blocked | Final-root, consumer, real agency pilot, real vendor/device, ETA-quality, and compliance evidence gates require separate written authorization. | Authorization-gated only |
-| Final conclusion | Phase 115 gate required | Publish only if final package, archive, claim, protected-path, consumer tracker, release-candidate, and GitHub tooling gates pass. | Master Agent |
+| Final conclusion | release-candidate only | This rc1 is for local/self-hosted evaluation and does not make stable, production, compliance, consumer, hosted-service, vendor, SLA, or ETA-quality claims. | Master Agent |
 
 ## Known Limitations
 

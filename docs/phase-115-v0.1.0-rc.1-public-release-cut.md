@@ -277,3 +277,109 @@ validation.
 Next checkpoint:
 Phase 115 -- Checkpoint 000003: run validation and patch required gaps.
 
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 115 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Release gates passed through local validation, strict package audit,
+protected archive scan, release-candidate diagnostics, and GitHub publication
+preflight; the release notes were patched to remove local-draft wording before
+tagging.
+
+Sub-agents used or simulated:
+Release/Supply-Chain sub-agent findings were incorporated. QA,
+Claim-Boundary, Security/Auth, Data/Migration, Documentation / IA,
+Install Confidence, Web Design Skill, GTFS-RT Domain, and Implementation roles
+were simulated by the Master Agent for this validation checkpoint.
+
+Changed files:
+`docs/release-notes-v0.1.0-rc.1-draft.md`;
+`docs/phase-115-v0.1.0-rc.1-public-release-cut.md`.
+
+Validation run:
+Passed before the release-notes wording patch:
+
+- `make test-release-package`
+- `make check`
+- `make validate`
+- `make test`
+- `docker compose -f deploy/docker-compose.yml config`
+- direct `git archive HEAD` protected-path scan: `0`
+- strict `v0.1.0-rc.1` package generation from commit
+  `10a36dc73a8533ba81ec7f7d6c2b5324b2ee70c5`
+- `make audit-release-package`
+- generated source archive protected-path scan: `0`
+- `RUN_LOCAL_APP=true RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true make release-candidate-check`
+- `make agency-app-down`
+- `make audit-product-acceptance`
+- `make audit-final-claim-review`
+- `make smoke`
+- `git diff --check`
+- consumer tracker JSON parse and exact prepared-only assertion
+- protected-path git status check
+- `gh auth status`
+- `gh repo view ptse8204/open-transit-rt --json nameWithOwner,visibility,viewerPermission`
+- remote tag absence check for `v0.1.0-rc.1`
+- GitHub Release absence check for `v0.1.0-rc.1`
+
+The release notes patch is docs-only. Final package, archive, claim, and
+publication preflight checks are rerun from this checkpoint commit before any
+tag push or GitHub Release creation.
+
+Blocked checks:
+No publication gate is currently blocked. Tag push and GitHub Release creation
+are pending the final post-commit gate rerun.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+Source archive protected-path scans returned zero hits after the export-ignore
+policy was committed.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. Release notes now describe a
+release candidate for local/self-hosted evaluation only and avoid stable,
+production, compliance, consumer, hosted-service, vendor, SLA, and ETA-quality
+claims.
+
+Security/auth status:
+GitHub tooling is available: `gh auth status` shows active account
+`ptse8204`; repository view shows `ptse8204/open-transit-rt` is public and
+viewer permission is `ADMIN`. No application auth, CSRF, credential, token,
+private payload, or route behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, or Go module change
+was added.
+
+Release/publication status:
+No tag, tag push, GitHub Release, asset upload, or public publication action
+has been taken yet in this checkpoint. The next step is final post-commit gate
+rerun and, if still passed, public rc1 publication.
+
+Install confidence status:
+Phase 113 remains the current local install-confidence result.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 115 does not touch UX.
+
+Master review:
+Approved. Gates passed before the final release-notes wording patch, and the
+remaining action is a final post-commit package/preflight rerun before
+publication.
+
+Required edits:
+Commit checkpoint 000003, rerun final package/publication gates from the
+checkpoint commit, then publish only if they still pass.
+
+Decision:
+Proceed to checkpoint 000003 commit and final publication gate execution.
+
+Next checkpoint:
+Phase 115 -- Checkpoint 000004: close v0.1.0-rc.1 public release cut review.
+
