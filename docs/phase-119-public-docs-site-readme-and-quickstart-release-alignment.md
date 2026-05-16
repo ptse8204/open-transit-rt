@@ -142,3 +142,93 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 119 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 119 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Public docs, wiki, quickstart, and rc1 release-note entry points were
+aligned to the actual published rc1 release and verified fresh-clone install
+path.
+
+Sub-agents used or simulated:
+Documentation / IA, Claim-Boundary, Release, Install Confidence, QA,
+Security/Auth, Data/Migration, Web Design Skill, and GTFS-RT Domain roles were
+simulated by the Master Agent.
+
+Changed files:
+`README.md`; `docs/README.md`; `wiki/README.md`;
+`wiki/small-agency-quick-start.md`; `docs/tutorials/local-quickstart.md`;
+`docs/release-candidate-readiness.md`;
+`docs/release-notes-v0.1.0-rc.1-draft.md`;
+`docs/phase-119-public-docs-site-readme-and-quickstart-release-alignment.md`.
+
+Validation run:
+Focused stale wording scan returned no matches in the patched public entry
+points for:
+
+- `execute the authorized public release`
+- `Publication is gated`
+- `next recommended release milestone`
+- `This draft is not tied`
+- `GitHub Release creation: blocked`
+- `No GitHub Release exists`
+- `source archive public-distribution review remains blocked`
+- `to be generated and audited`
+
+Full checkpoint validation is scheduled for checkpoint 000003.
+
+Blocked checks:
+No docs alignment blocker is known. GitHub Pages branch content was not edited
+in this checkpoint because the main-branch public docs and wiki are the scoped
+source-of-truth surfaces available in this checkout.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Docs now describe rc1 as a public release candidate for local/self-hosted
+evaluation and continue to withhold stable release, production readiness,
+compliance, adoption, consumer acceptance, final-root readiness, hosted
+service, paid support, SLA/uptime, vendor compatibility, hardware
+certification, production AVL reliability, and ETA-quality claims.
+
+Security/auth status:
+Documentation-only changes. No application route auth, CSRF behavior,
+credential handling, token handling, private payload handling, public
+exposure, or operator command behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, dependency, or Go
+module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No new tag, release, or asset
+upload was created.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed and is now the
+highlighted public install path.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact is complete. Phase 119 does not touch UX.
+
+Master review:
+Approved. The public entry points now match the actual rc1 state and avoid
+stale pre-publication blockers.
+
+Required edits:
+Commit checkpoint 000002, then run validation and patch any stale docs or
+claim-audit gaps.
+
+Decision:
+Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 119 -- Checkpoint 000003: run validation and patch required gaps.

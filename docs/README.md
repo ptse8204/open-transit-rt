@@ -79,6 +79,10 @@ evidence only when authorized.
 
 ## Release-Candidate Docs
 
+- [v0.1.0-rc.1 GitHub Release](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1)
+- [Release Status v0.1.0-rc.1](release-status-v0.1.0-rc.1.md)
+- [Release Download Replay v0.1.0-rc.1](release-download-replay-v0.1.0-rc.1.md)
+- [Public Install Confidence v0.1.0-rc.1](public-install-confidence-v0.1.0-rc.1.md)
 - [Release-Candidate Readiness](release-candidate-readiness.md)
 - [Phase 108 Post-RC Bug Bash And Stabilization](phase-108-post-rc-bug-bash-and-stabilization.md)
 - [Release Process](release-process.md)
@@ -88,10 +92,13 @@ evidence only when authorized.
 - [Demo And Documentation Site Plan](demo-docs-site-plan.md)
 - [Changelog](../CHANGELOG.md)
 
-Release-candidate checks are local maintainer diagnostics. They do not tag,
-publish, push images, create retained evidence, or prove production readiness.
-The next recommended release milestone is `v0.1.0-rc.1` before any full
-`v0.1.0` release.
+`v0.1.0-rc.1` is published as a public release candidate for local/self-hosted
+evaluation. Release-candidate and install-confidence checks remain bounded
+diagnostics; they do not prove production readiness, compliance, consumer
+acceptance, hosted service availability, SLA/uptime, vendor compatibility, or
+ETA quality. The public fresh-clone install path passed; the published source
+archive has a known `make check` limitation because protected consumer-tracker
+state is intentionally excluded from public archives.
 
 ## Contributor Docs
 

@@ -32,6 +32,11 @@ You do not need agency approval, consumer confirmation, final public root
 evidence, vendor credentials, real AVL hardware, or production hosting to run a
 local evaluation.
 
+Use the public release candidate when you want a fixed starting point:
+[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1).
+It is for local/self-hosted evaluation only, not a stable or production-ready
+release.
+
 ## Start In The Browser
 
 No-developer review starts from the private local URL provided by a technical
@@ -65,6 +70,7 @@ From a clean checkout:
 ```bash
 git clone https://github.com/ptse8204/open-transit-rt.git
 cd open-transit-rt
+git checkout v0.1.0-rc.1
 make check
 make agency-app-up
 ```
@@ -87,6 +93,21 @@ scripts/bootstrap-dev.sh --check
 
 Common blockers are Docker not running, ports `8080` or `55432` already in use,
 or a stale local demo database volume.
+
+For validation-heavy trials, run:
+
+```bash
+make validators-install
+make validate
+make test
+```
+
+The public fresh-clone rc1 install-confidence trial passed `make check`,
+bootstrap preflight, pinned validator install, `make validate`, `make test`,
+local app startup, and all five local public feed fetches. Prefer the git clone
+path for evaluation. The published source archive has a known `make check`
+limitation because protected consumer-tracker state is intentionally excluded
+from public archives.
 
 ## Private Operations Route Map
 

@@ -7,12 +7,17 @@ evaluate whether a checkout is ready for a release-candidate review. It writes
 private diagnostics under `.cache/release-candidate-check/<timestamp>` by
 default.
 
-The next recommended milestone is `v0.1.0-rc.1`. Do not treat the first RC
-review as a full `v0.1.0` release gate until the local checks, blockers,
-release notes, and claim audit have been reviewed from a clean checkout.
+`v0.1.0-rc.1` is now published as a public release candidate for
+local/self-hosted evaluation:
+`https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`.
+Do not treat this first RC as a full `v0.1.0` release gate or production
+readiness proof.
 
 Phase 72 completed the bounded hardening review for `v0.1.0-rc.1`; see
 [`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`](phase-72-v0.1.0-rc.1-release-candidate-hardening.md).
+Phase 115 published the public rc1 prerelease, Phase 116 verified release
+downloads and recorded the source-archive `make check` limitation, and
+Phase 117 verified public fresh-clone install confidence.
 Phase 72 Checkpoint 000001 is planning/status only. It does not run this gate,
 does not prove any check passed, and does not draft release notes. Checkpoint
 000003 hardens this diagnostic so its validator tooling row explicitly runs in

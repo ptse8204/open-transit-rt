@@ -13,6 +13,8 @@ claim.
 
 - Candidate label: `v0.1.0-rc.1`
 - Git tag: `v0.1.0-rc.1`.
+- GitHub Release:
+  `https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`.
 - Source package: local `.cache` diagnostic package at
   `.cache/release-package/v0.1.0-rc.1`.
 - Source package commit: see attached release package `summary.json` and
@@ -26,6 +28,9 @@ claim.
   - `docs/phase-108-post-rc-bug-bash-and-stabilization.md`
   - `docs/phase-111-goal-activation-and-public-release-roadmap-pack.md`
   - `docs/phase-112-public-release-artifact-and-claim-blocking-audit.md`
+  - `docs/phase-115-v0.1.0-rc.1-public-release-cut.md`
+  - `docs/release-download-replay-v0.1.0-rc.1.md`
+  - `docs/public-install-confidence-v0.1.0-rc.1.md`
   - `docs/release-status-v0.1.0-rc.1.md`
 - Artifact checksums: local checksum manifest at
   `.cache/release-package/v0.1.0-rc.1/checksums/SHA256SUMS.txt`.
@@ -76,8 +81,7 @@ protected-path entries and the remaining release gates pass.
 
 ## Install And Upgrade Notes
 
-- Clean install from source tag: use the published `v0.1.0-rc.1` tag after
-  publication.
+- Clean install from source tag: use the published `v0.1.0-rc.1` tag.
 - Local app verification: Phase 95 package-enabled
   `RUN_LOCAL_APP=true make release-candidate-check` completed local app startup
   and five-feed diagnostics.
@@ -89,7 +93,7 @@ protected-path entries and the remaining release gates pass.
   `.cache/release-candidate-check/20260516T023259Z`; helper overall
   `not_checked` with 36 passed rows, 0 blockers, 0 `needs_review` rows, and 3
   intentionally `not_checked` rows.
-- Local release package: to be generated and audited locally under
+- Local release package: generated and audited locally under
   `.cache/release-package/v0.1.0-rc.1`.
 - Local Docker image build: None.
 - Published production Docker image: None.
@@ -148,14 +152,15 @@ make migrate-status
 
 - None.
 
-This draft does not create retained evidence, change consumer statuses, contact
-external services, publish artifacts, tag a release, distribute a package, or
-add claims of CAL-ITP/Caltrans compliance, consumer
+These release notes accompanied the public GitHub prerelease. They do not
+create retained evidence, change consumer statuses, contact external services,
+publish a production image, or add claims of CAL-ITP/Caltrans compliance,
+consumer
 submission/review/acceptance/ingestion/listing/display, agency
 adoption/approval, final-root readiness, hosted service availability, paid
 support, SLA/uptime, production readiness, vendor compatibility, hardware
 certification, production AVL reliability, production-grade ETA quality,
-validator-clean feeds, or release readiness.
+validator-clean public feeds, or stable release readiness.
 
 ## Tag Command
 
@@ -207,15 +212,20 @@ tracks remain separately authorization-gated.
 | Package publication | gate required | Public package distribution or GitHub Release asset upload must wait for final Phase 115 gates. | Master Agent |
 | Git tag | gate required | Remote `v0.1.0-rc.1` tag must be absent before Phase 115 publication. | Master Agent |
 | GitHub Release | gate required | Release must be absent before Phase 115 publication and verified after publication if gates pass. | Master Agent |
-| Published image | blocked | No image build or publication is authorized while source archive public-distribution review is blocked. | Future authorized release work |
+| Published image | not_published | No production image was built or published for rc1. | Future authorized release work |
 | Evidence tracks | blocked | Final-root, consumer, real agency pilot, real vendor/device, ETA-quality, and compliance evidence gates require separate written authorization. | Authorization-gated only |
 | Final conclusion | release-candidate only | This rc1 is for local/self-hosted evaluation and does not make stable, production, compliance, consumer, hosted-service, vendor, SLA, or ETA-quality claims. | Master Agent |
 
 ## Known Limitations
 
-- This draft is not tied to a release tag.
-- Phase 112 local package output, once generated, remains a local diagnostic
-  artifact under `.cache`.
+- These notes are tied to the public `v0.1.0-rc.1` GitHub Release.
+- Phase 115 resolved the local package source archive public-distribution
+  blocker with a root `.gitattributes` export policy and published the public
+  prerelease.
+- Phase 116 verified public downloads and recorded that extracted published
+  rc1 source archives still fail `make check` because protected consumer
+  tracker state is intentionally excluded from public archives.
+- Phase 117 verified public fresh-clone install confidence from the rc1 tag.
 - Connector/adaptor results are synthetic/local checks only and do not prove
   real vendor/device compatibility.
 - Validator and route diagnostics are local product signals only and do not
@@ -269,14 +279,14 @@ Recorded Phase 112 release artifact audit checks:
 | `RUN_LOCAL_APP=true RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true make release-candidate-check` | exited `0`; helper overall `not_checked` | Local app and five-feed diagnostics passed; package audit passed; bounded helper keeps `make validate`, `make test`, and `make smoke` as follow-up rows. |
 | `make agency-app-down` | passed | Stopped local app containers after diagnostics. |
 | `gh repo view ptse8204/open-transit-rt --json nameWithOwner,visibility,viewerPermission` | passed | Repository is public and local viewer permission is `ADMIN`; this does not override the source-archive blocker. |
-| `gh release view v0.1.0-rc.1 --repo ptse8204/open-transit-rt` | release not found | No GitHub Release exists for the candidate. |
+| `gh release view v0.1.0-rc.1 --repo ptse8204/open-transit-rt` | published | Public prerelease exists at `https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`. |
 
 Blocked checks and actions:
 
-- `git tag`: blocked by source archive public-distribution review.
-- `git push --tags`: blocked by source archive public-distribution review.
-- GitHub Release creation: blocked by source archive public-distribution review.
-- Public image/package publication: blocked by source archive public-distribution review.
+- Public production image publication: not performed.
+- Stable `v0.1.0` release: not authorized by rc1.
+- Production/compliance/consumer/adoption evidence: still separately
+  authorization-gated.
 
 Release-candidate summary:
 

@@ -13,6 +13,11 @@ Public product explainer site:
 [Star the repo](https://github.com/ptse8204/open-transit-rt) if this work is
 useful to you.
 
+Public release candidate:
+[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1).
+Use it for local/self-hosted evaluation only; it is not a stable or
+production-ready release.
+
 ![Illustrative documentation guide showing paths for trying locally, running the agency demo, planning deployment, reviewing evidence, and contributing.](assets/docs-choose-your-path.png)
 
 *Illustrative docs navigation graphic, not an app screenshot.*
@@ -40,11 +45,22 @@ Console.
 Technical-helper startup command:
 
 ```bash
+git clone https://github.com/ptse8204/open-transit-rt.git
+cd open-transit-rt
+git checkout v0.1.0-rc.1
+make check
 make agency-app-up
 ```
 
 This command starts the local runtime. It is not the first step for
 no-developer review.
+
+The public fresh-clone rc1 path passed `make check`, bootstrap preflight,
+pinned validator install, `make validate`, `make test`, local app startup, and
+all five local public feed fetches. The published source archive is useful for
+inspection, but extracted rc1 source archives have a known `make check`
+limitation because protected consumer-tracker state is intentionally excluded
+from public archives.
 
 ## Browser-First Product Path
 

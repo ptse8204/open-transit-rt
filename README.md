@@ -12,13 +12,15 @@ stronger deployment or consumer claims separate from local evaluation.
 Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
 
-Current maintainer next step: execute the authorized public release,
-independent install confidence, UX validation, and GTFS-RT adoption roadmap
-toward a `v0.1.0-rc.1` release candidate. Publication is gated by release
-checks and available authenticated tooling; the default path remains
-browser-first operations, docs, remote diagnostics, off-host validation, and
-connector usability, not real agency pilot evidence. See
-[Review And Recommendations](docs/roadmap-status.md#review-and-recommendations).
+Public release candidate:
+[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1).
+Use it for local/self-hosted evaluation only. It is not a stable release and
+does not prove production readiness, compliance, adoption, consumer acceptance,
+hosted service availability, vendor compatibility, SLA/uptime, or
+production-grade ETA quality. See the
+[release status](docs/release-status-v0.1.0-rc.1.md),
+[download replay](docs/release-download-replay-v0.1.0-rc.1.md), and
+[public install confidence](docs/public-install-confidence-v0.1.0-rc.1.md).
 
 ## Start In The Browser
 
@@ -51,6 +53,9 @@ Use this order across the README, wiki, docs, GitHub Pages, and private UI:
 From a clean checkout:
 
 ```bash
+git clone https://github.com/ptse8204/open-transit-rt.git
+cd open-transit-rt
+git checkout v0.1.0-rc.1
 make check
 make agency-app-up
 ```
@@ -77,6 +82,20 @@ Stop the local app with:
 ```bash
 make agency-app-down
 ```
+
+For validation-heavy local trials, run:
+
+```bash
+make validators-install
+make validate
+make test
+```
+
+The public fresh-clone rc1 trial passed this path with local app startup and
+all five local public feed fetches. The published source archive is available
+for inspection, but extracted rc1 source archives have a known `make check`
+limitation because protected consumer-tracker state is intentionally excluded
+from public archives.
 
 ## What You Can Do In The UI
 
