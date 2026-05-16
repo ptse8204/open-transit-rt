@@ -232,3 +232,91 @@ Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
 
 Next checkpoint:
 Phase 120 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 120 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Phase 120 implementation validation passed.
+
+Sub-agents used or simulated:
+Context / Repo Truth, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles were simulated by the Master Agent because the
+agent thread limit prevents new real sub-agents.
+
+Changed files:
+`docs/phase-120-gtfs-rt-feed-usefulness-and-reliability-v2.md`.
+
+Validation run:
+Passed:
+
+- `git status --short`
+- `git diff --check`
+- `make check`
+- `make validate`
+- `make test`
+- `docker compose -f deploy/docker-compose.yml config`
+- `make external-connection-check`
+- `make adapter-conformance`
+- `make test-connector-examples`
+- `make audit-product-acceptance`
+- `make audit-final-claim-review`
+- `python3 -m json.tool docs/evidence/consumer-submissions/status.json`
+- `scripts/check-consumer-tracker.sh`
+- protected-path git status check
+
+Blocked checks:
+No Phase 120 validation blocker remains.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. Phase 120 remains bounded to
+local/private GTFS-RT usefulness and reliability diagnostics and makes no
+stable release readiness, production readiness, compliance, adoption, agency
+approval, consumer acceptance, consumer ingestion/listing/display, final-root
+readiness, hosted service, paid support, SLA/uptime, vendor compatibility,
+hardware certification, production AVL reliability, production-grade ETA
+quality, or real-world ETA accuracy claim.
+
+Security/auth status:
+No route auth, CSRF, credential handling, token handling, public exposure,
+private payload handling, or operator command behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was
+added.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 120 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed. Phase 120
+current-source hardening is not part of the published rc1 tag.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. Phase 120 did not change
+visual UI templates.
+
+Master review:
+Approved. Validation found no required patch after the Vehicle Positions
+aggregate review-summary implementation.
+
+Required edits:
+Commit checkpoint 000003, then close Phase 120 with handoff and status docs.
+
+Decision:
+Proceed to checkpoint 000003 commit and Phase 120 closeout.
+
+Next checkpoint:
+Phase 120 -- Checkpoint 000004: close GTFS-RT feed usefulness and reliability
+v2 review.
