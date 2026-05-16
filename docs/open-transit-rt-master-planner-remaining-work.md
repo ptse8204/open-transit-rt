@@ -276,7 +276,12 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 129 is complete for Community Support Feedback And Issue Triage Kit.
   The closeout lives at `docs/handoffs/phase-129.md`. The repo now has
   public-safe support/triage guidance and a release-candidate feedback issue
-  template. Phase 130 is active for Release Candidate Patch Loop And rc2 Gate.
+  template.
+- Phase 130 is complete for Release Candidate Patch Loop And rc2 Gate. The
+  closeout lives at `docs/handoffs/phase-130.md`. The local rc2 gate is
+  prepared at `docs/release-candidate-rc2-gate.md`, but no rc2 tag or GitHub
+  Release was created. Phase 131 is active for Optional Evidence Gate Refresh
+  Blocker-Only.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

@@ -320,3 +320,84 @@ Proceed to checkpoint 000003 commit.
 Next checkpoint:
 Phase 130 -- Checkpoint 000004: close release candidate patch loop and rc2
 gate review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 130 -- Checkpoint 000004: close release candidate patch loop and rc2
+gate review.
+
+Goal status:
+Active. Phase 130 is closed and the goal continues to Phase 131.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Release/Supply-Chain, Install Confidence,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Closeout summary:
+Phase 130 prepared a local rc2 gate and recorded it in
+`docs/release-candidate-rc2-gate.md`. The local package and extracted archive
+checks passed, but no rc2 tag or GitHub Release was created because Phase 130
+does not authorize public rc2 publication.
+
+Changed files:
+`docs/handoffs/phase-130.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`; and this phase
+report.
+
+Validation run:
+Full Phase 130 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+Public rc2 publication is not authorized by Phase 130 and was not attempted.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 130 remains bounded to local rc2 gate preparation and makes no public
+rc2 publication, stable release readiness, production readiness, compliance,
+adoption, agency approval, consumer acceptance, consumer
+ingestion/listing/display, final-root readiness, hosted service availability,
+paid support, SLA/uptime, vendor compatibility, hardware certification,
+production AVL reliability, production-grade ETA quality, real-world ETA
+accuracy, or consumer display claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No rc2 tag or GitHub Release was
+created.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Not used; no visual UI changed.
+
+Master review:
+Approved. Phase 130 closes with local rc2 gate prepared and no publication.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 131.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 131.
+
+Next checkpoint:
+Phase 131 -- Checkpoint 000001: add optional evidence gate refresh blocker
+only plan.

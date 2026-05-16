@@ -492,7 +492,10 @@ contributor kit for no-claim trials, demo paths, feedback guidance, and first
 contributions. Phase 129 -- Community Support Feedback And Issue Triage Kit
 is complete, with closeout at `docs/handoffs/phase-129.md`: the repo now has
 public-safe support/triage guidance and a release-candidate feedback issue
-template. Phase 130 is active for Release Candidate Patch Loop And rc2 Gate.
+template. Phase 130 -- Release Candidate Patch Loop And rc2 Gate is complete,
+with closeout at `docs/handoffs/phase-130.md`: the local rc2 gate is prepared
+at `docs/release-candidate-rc2-gate.md`, but no rc2 tag or GitHub Release was
+created. Phase 131 is active for Optional Evidence Gate Refresh Blocker-Only.
 Do not stop after publication, download replay, install confidence, or UX
 validation; continue through Phase 132.
 

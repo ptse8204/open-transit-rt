@@ -108,7 +108,12 @@ feedback guidance, and first contributions. Phase 129 is complete for
 Community Support Feedback And Issue Triage Kit; the closeout handoff is
 [`docs/handoffs/phase-129.md`](handoffs/phase-129.md). The repo now has
 public-safe support/triage guidance and a release-candidate feedback issue
-template. Phase 130 is active for Release Candidate Patch Loop And rc2 Gate.
+template. Phase 130 is complete for Release Candidate Patch Loop And rc2 Gate;
+the closeout handoff is [`docs/handoffs/phase-130.md`](handoffs/phase-130.md).
+The local rc2 gate is prepared at
+[`docs/release-candidate-rc2-gate.md`](release-candidate-rc2-gate.md), but no
+rc2 tag or GitHub Release was created. Phase 131 is active for Optional
+Evidence Gate Refresh Blocker-Only.
 This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
