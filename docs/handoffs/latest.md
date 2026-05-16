@@ -389,13 +389,17 @@ GitHub Release, package publication, image publication, evidence write,
 consumer status change, external contact, production-readiness claim,
 compliance claim, hosted-service claim, vendor claim, hardware claim,
 SLA/uptime claim, public-launch claim, or ETA-quality claim.
-The authorized Phase 91-110 post-90 roadmap is closed. Phase 111 is active for
-goal activation and the Phase 111-132 public release, independent install
-confidence, Web Design Skill UX validation, and GTFS-RT adoption roadmap pack.
-The active roadmap pack lives at
-`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`. Continue to
-Phase 112 after Phase 111 closeout; do not stop after roadmap activation or a
-release recommendation.
+The authorized Phase 91-110 post-90 roadmap is closed. Phase 111 -- Goal
+Activation And Public Release Roadmap Pack is complete, with closeout at
+`docs/handoffs/phase-111.md`: the Phase 111-132 public release, independent
+install confidence, Web Design Skill UX validation, and GTFS-RT adoption
+roadmap pack is tracked at
+`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`, and
+source-of-truth docs now point to it as the active post-110 execution track.
+Phase 111 added no release action, retained evidence, consumer status change,
+protected-path write, external contact, or stronger public claim. Phase 112 is
+active for public release artifact and claim blocking audit. Continue to Phase
+112; do not stop after roadmap activation or a release recommendation.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

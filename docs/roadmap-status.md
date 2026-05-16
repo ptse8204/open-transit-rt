@@ -8,10 +8,12 @@ It does not claim CAL-ITP/Caltrans compliance, consumer acceptance, agency endor
 
 ## What To Do Next
 
-Phase 111 is active for goal activation and the Phase 111-132 public release,
+Phase 111 is complete for goal activation and the Phase 111-132 public release,
 independent install confidence, Web Design Skill UX validation, and GTFS-RT
-adoption roadmap pack. The roadmap lives at
+adoption roadmap pack. The closeout handoff is
+[`docs/handoffs/phase-111.md`](handoffs/phase-111.md), and the roadmap lives at
 [`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`](roadmaps/post-110-goal-public-release-install-ux/README.md).
+Phase 112 is active for public release artifact and claim blocking audit.
 Phase 115 is authorized to attempt public `v0.1.0-rc.1` release-candidate
 publication only if release gates pass and authenticated tooling is available.
 If release credentials, tooling, source-archive review, protected-path review,

@@ -620,14 +620,18 @@ consumer status change, external contact, production-readiness claim,
 compliance claim, hosted-service claim, vendor claim, hardware claim,
 SLA/uptime claim, public-launch claim, or ETA-quality claim.
 The authorized Phase 91-110 post-90 roadmap is closed.
-Phase 111 is active for goal activation and the public release / install /
-UX / GTFS-RT adoption roadmap pack. The active Phase 111-132 roadmap lives at
-`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`. Phase 115
-is the first phase authorized to attempt public `v0.1.0-rc.1` publication, and
-only if gates pass and authenticated tooling is available; blocked publication
-must be recorded truthfully without faking release, evidence, acceptance,
-compliance, production readiness, SLA/uptime, vendor compatibility, hardware
-certification, or production-grade ETA quality.
+Phase 111 -- Goal Activation And Public Release Roadmap Pack is complete, with
+closeout at `docs/handoffs/phase-111.md`: the Phase 111-132 public release,
+independent install confidence, Web Design Skill UX validation, and GTFS-RT
+adoption roadmap pack is now tracked at
+`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`, and
+source-of-truth docs point to it as the active post-110 execution track. Phase
+111 added no tag, GitHub Release, package publication, image publication,
+retained evidence, consumer status change, external contact, protected-path
+write, release-readiness claim, compliance claim, production-readiness claim,
+hosted-service claim, vendor claim, hardware claim, SLA/uptime claim,
+public-launch claim, or ETA-quality claim. Phase 112 is active for public
+release artifact and claim blocking audit.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

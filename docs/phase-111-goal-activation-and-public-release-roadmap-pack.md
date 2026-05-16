@@ -364,3 +364,8 @@ Proceed to checkpoint 000003 commit, then checkpoint 000004 closeout.
 Next checkpoint:
 Phase 111 -- Checkpoint 000004: close goal activation and public release
 roadmap pack review.
+
+## Closeout
+
+Phase 111 is closed by `docs/handoffs/phase-111.md`. Continue immediately to
+Phase 112.
