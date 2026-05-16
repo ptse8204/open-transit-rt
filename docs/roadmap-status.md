@@ -96,7 +96,12 @@ pairing. Phase 126 is complete for Operator Assistant Safe Command Expansion;
 the closeout handoff is [`docs/handoffs/phase-126.md`](handoffs/phase-126.md).
 The repo now has a bounded server-owned Operator Assistant safe-command
 catalog for implemented and future private dry-run/status command definitions.
-Phase 127 is active for Small-Host Deployment And Upgrade UX Hardening.
+Phase 127 is complete for Small-Host Deployment And Upgrade UX Hardening; the
+closeout handoff is [`docs/handoffs/phase-127.md`](handoffs/phase-127.md).
+The private Maintenance Center now includes a read-only small-host readiness
+panel for preflight, off-host validation, resource budget, recovery path, and
+upgrade stop-point review. Phase 128 is active for Contributor And Agency
+Evaluator Adoption Kit.
 This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root

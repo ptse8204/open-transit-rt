@@ -344,3 +344,84 @@ Proceed to checkpoint 000003 commit.
 Next checkpoint:
 Phase 127 -- Checkpoint 000004: close small host deployment and upgrade ux
 hardening review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 127 -- Checkpoint 000004: close small host deployment and upgrade ux
+hardening review.
+
+Goal status:
+Active. Phase 127 is closed and the goal continues to Phase 128.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, UI/UX, Web Design Skill, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, Release, Install Confidence,
+Connector, and GTFS-RT Domain roles are simulated by the Master Agent.
+
+Closeout summary:
+Phase 127 added a private read-only `small_host_readiness` Maintenance Center
+panel and aligned the small-agency maintenance guide. It improves small-host
+preflight and recovery review without adding browser-executed deployment,
+backup, restore, migration, service-control, package, rollback, release,
+evidence, or consumer-status actions.
+
+Changed files:
+`docs/handoffs/phase-127.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`; and this phase
+report.
+
+Validation run:
+Full Phase 127 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+No Phase 127 check remains blocked.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 127 remains bounded to private small-host deployment and upgrade UX
+guidance and makes no stable release readiness, deployment success, production
+readiness, compliance, adoption, agency approval, consumer acceptance,
+consumer ingestion/listing/display, final-root readiness, hosted service
+availability, paid support, SLA/uptime, vendor compatibility, hardware
+certification, production AVL reliability, production-grade ETA quality,
+real-world ETA accuracy, or consumer display claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No release action was taken.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+The Web Design Skill was used for the private Maintenance Center UX change.
+
+Master review:
+Approved. Phase 127 closes with tested small-host readiness UX.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 128.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 128.
+
+Next checkpoint:
+Phase 128 -- Checkpoint 000001: add contributor and agency evaluator adoption
+kit plan.

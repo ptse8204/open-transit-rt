@@ -263,8 +263,13 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 126 is complete for Operator Assistant Safe Command Expansion. The
   closeout lives at `docs/handoffs/phase-126.md`. `internal/admincontrol` now
   has a bounded server-owned Operator Assistant safe-command catalog for
-  implemented and future private dry-run/status command definitions. Phase 127
-  is active for Small-Host Deployment And Upgrade UX Hardening.
+  implemented and future private dry-run/status command definitions.
+- Phase 127 is complete for Small-Host Deployment And Upgrade UX Hardening.
+  The closeout lives at `docs/handoffs/phase-127.md`. The private Maintenance
+  Center now includes a read-only small-host readiness panel for preflight,
+  off-host validation, resource budget, recovery path, and upgrade stop-point
+  review. Phase 128 is active for Contributor And Agency Evaluator Adoption
+  Kit.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

@@ -481,8 +481,12 @@ stale/indefinite alerts, entity scoping, and cancellation pairing. Phase 126
 -- Operator Assistant Safe Command Expansion is complete, with closeout at
 `docs/handoffs/phase-126.md`: `internal/admincontrol` now has a bounded
 server-owned Operator Assistant safe-command catalog for implemented and
-future private dry-run/status command definitions. Phase 127 is active for
-Small-Host Deployment And Upgrade UX Hardening.
+future private dry-run/status command definitions. Phase 127 -- Small-Host
+Deployment And Upgrade UX Hardening is complete, with closeout at
+`docs/handoffs/phase-127.md`: the private Maintenance Center now includes a
+read-only small-host readiness panel for preflight, off-host validation,
+resource budget, recovery path, and upgrade stop-point review. Phase 128 is
+active for Contributor And Agency Evaluator Adoption Kit.
 Do not stop after publication, download replay, install confidence, or UX
 validation; continue through Phase 132.
 
