@@ -44,6 +44,7 @@ Do not post tokens, DB URLs, private keys, admin URLs with secrets, private port
 ## Contributor And Support Docs
 
 - [Contributing](../CONTRIBUTING.md)
+- [Evaluator And Contributor Kit](../docs/adoption/evaluator-and-contributor-kit.md)
 - [Code Of Conduct](../CODE_OF_CONDUCT.md)
 - [Support Boundaries](../docs/support-boundaries.md)
 - [Governance](../docs/governance.md)

@@ -144,3 +144,88 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 128 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 128 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 128 implemented the public-safe evaluator and contributor kit.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Documentation / IA, Claim-Boundary,
+Security/Auth, Data/Migration, Release, Install Confidence, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+`docs/adoption/evaluator-and-contributor-kit.md`, `README.md`,
+`docs/README.md`, `CONTRIBUTING.md`, `wiki/support-and-contribute.md`,
+`docs/agency-feedback-template.md`, and this phase report.
+
+Implementation summary:
+Added a no-claim Evaluator And Contributor Kit under `docs/adoption/` and
+linked it from the README, docs home, CONTRIBUTING guide, wiki support page,
+and agency feedback template. The kit consolidates local evaluator paths,
+release-candidate install trial guidance, synthetic connector review paths,
+feedback template guidance, demo links, first-contribution examples, required
+checks, and explicit boundaries. It does not collect feedback, contact
+external parties, create evidence, touch consumer statuses, add issue-template
+automation, or imply adoption/support/compliance/production claims.
+
+Validation run:
+`git diff --check` passed. `scripts/check-consumer-tracker.sh` passed.
+Protected-path git status returned no output. `make audit-product-acceptance`
+passed. `make audit-final-claim-review` passed. `make check` passed.
+
+Blocked checks:
+None for this checkpoint. Full Phase 128 validation is scheduled for
+checkpoint 000003.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. The new kit explicitly
+states evaluation, feedback, stars, discussions, issues, and PRs are useful
+project signals but not proof of adoption, compliance, production readiness,
+consumer acceptance, hosted availability, SLA coverage, or vendor/hardware
+compatibility.
+
+Security/auth status:
+No auth, CSRF, credential, token, private payload, support bundle, retained
+evidence, public route, or browser behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 128 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Not used for checkpoint 000002 because the implementation was public docs and
+navigation only; it did not touch a visual UI surface.
+
+Master review:
+Approved for full validation. The implementation improves adoption support
+without making adoption or support claims.
+
+Required edits:
+Run checkpoint 000003 full validation and patch any repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 128 -- Checkpoint 000003: run validation and patch required gaps.

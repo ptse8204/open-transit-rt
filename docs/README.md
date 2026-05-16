@@ -25,6 +25,7 @@ Use the same order in the README, wiki, docs, GitHub Pages, and private UI:
 ## Public User Docs
 
 - [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
+- [Evaluator And Contributor Kit](adoption/evaluator-and-contributor-kit.md)
 - [Small Agency Quick Start](../wiki/small-agency-quick-start.md)
 - [Browser-First Setup](../wiki/browser-first-setup.md)
 - [No Command Line First Run](tutorials/no-cli-agency-first-run.md)
@@ -103,6 +104,7 @@ state is intentionally excluded from public archives.
 ## Contributor Docs
 
 - [Contributing](../CONTRIBUTING.md)
+- [Evaluator And Contributor Kit](adoption/evaluator-and-contributor-kit.md)
 - [Governance](governance.md)
 - [Extension Governance](extension-governance.md)
 - [Contributor First Issues](contributor-first-issues.md)

@@ -23,6 +23,9 @@ Beginner-safe issues should be small, self-contained, and avoid changing public 
 For a step-by-step first-issue path, see
 [Contributor First Issues](docs/contributor-first-issues.md). Connector authors
 should also read [Contributing Connectors](docs/connectors/contributing-connectors.md).
+Agency evaluators and contributors who want a combined no-claim trial,
+feedback, demo, and first-contribution path should use the
+[Evaluator And Contributor Kit](docs/adoption/evaluator-and-contributor-kit.md).
 
 ## First PR Checklist
 

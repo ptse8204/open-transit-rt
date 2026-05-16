@@ -22,6 +22,11 @@ production-grade ETA quality. See the
 [download replay](docs/release-download-replay-v0.1.0-rc.1.md), and
 [public install confidence](docs/public-install-confidence-v0.1.0-rc.1.md).
 
+Agency evaluators and new contributors can start with the
+[Evaluator And Contributor Kit](docs/adoption/evaluator-and-contributor-kit.md).
+The kit provides no-claim trial paths, demo links, feedback guidance, and first
+contribution ideas.
+
 ## Start In The Browser
 
 No-developer review should start from the private local URL provided by a

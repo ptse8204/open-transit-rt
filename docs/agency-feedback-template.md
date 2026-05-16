@@ -5,6 +5,9 @@ public-safe. Do not include secrets, private logs, raw telemetry, tokens, portal
 credentials, private ticket links, private GTFS, screenshots with private data,
 or unredacted operator artifacts.
 
+For the full no-claim evaluator path, demo links, and first-contribution map,
+see [Evaluator And Contributor Kit](adoption/evaluator-and-contributor-kit.md).
+
 ## Feedback Metadata
 
 | Field | Response |
@@ -129,4 +132,3 @@ evidence:
 - production multi-tenant hosting;
 - production-grade ETA quality;
 - vendor or hardware compatibility.
-
