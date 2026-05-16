@@ -300,3 +300,81 @@ Proceed to checkpoint 000003 commit.
 Next checkpoint:
 Phase 126 -- Checkpoint 000004: close operator assistant safe command
 expansion review.
+
+## Checkpoint 000004 -- close operator assistant safe command expansion review
+
+Status:
+Complete. Phase 126 is closed.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Closeout summary:
+Phase 126 added a bounded, server-owned Operator Assistant command catalog in
+`internal/admincontrol` and documented the safe-command model. The catalog is
+definition-only and keeps future command surfacing constrained to explicit
+execution modes, role requirements, auth and CSRF expectations, request
+limits, dry-run behavior, supported inputs, side-effect scope, claim flags, and
+protected-path status.
+
+Changed files:
+`docs/handoffs/phase-126.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`; and this phase
+report.
+
+Validation run:
+Full Phase 126 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+No Phase 126 check remains blocked.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 126 remains bounded to safe command definitions and makes no stable
+release readiness, production readiness, compliance, adoption, agency
+approval, consumer acceptance, consumer ingestion/listing/display,
+final-root readiness, hosted service availability, paid support, SLA/uptime,
+vendor compatibility, hardware certification, production AVL reliability,
+production-grade ETA quality, real-world ETA accuracy, consumer display, or
+real-world command-safety claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No release action was taken.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+No visual UX changed in Phase 126.
+
+Master review:
+Approved. Phase 126 closes with tested safe-command catalog definitions.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 127.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 127.
+
+Next checkpoint:
+Phase 127 -- Checkpoint 000001: add small host deployment and upgrade ux
+hardening plan.

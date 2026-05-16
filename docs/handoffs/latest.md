@@ -478,7 +478,11 @@ Phase 125 -- Alerts And Service Disruption Operations V2 is complete, with
 closeout at `docs/handoffs/phase-125.md`: the private Alerts Console now has a
 read-only Service Disruption Review for active/draft disruptions,
 stale/indefinite alerts, entity scoping, and cancellation pairing. Phase 126
-is active for Operator Assistant Safe Command Expansion.
+-- Operator Assistant Safe Command Expansion is complete, with closeout at
+`docs/handoffs/phase-126.md`: `internal/admincontrol` now has a bounded
+server-owned Operator Assistant safe-command catalog for implemented and
+future private dry-run/status command definitions. Phase 127 is active for
+Small-Host Deployment And Upgrade UX Hardening.
 Do not stop after publication, download replay, install confidence, or UX
 validation; continue through Phase 132.
 
