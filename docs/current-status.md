@@ -713,8 +713,13 @@ Phase 122 -- GTFS-RT Fixture Library And Edge-Case Coverage is complete, with
 closeout at `docs/handoffs/phase-122.md`: `testdata/gtfsrt-conformance`
 contains a synthetic fixture suite manifest, README, and required-case tests
 for midnight rollover, frequency service, canceled trips, stale telemetry,
-unknown vehicles, and malformed realtime messages. Phase 123 is active for
-Vehicle AVL connector starter kits.
+unknown vehicles, and malformed realtime messages. Phase 123 -- Vehicle AVL
+Connector Starter Kits is complete, with closeout at
+`docs/handoffs/phase-123.md`: the repo now has a disabled-by-default
+synthetic webhook-sidecar connector example, a Vehicle AVL starter-kit matrix,
+and updated connector hub/workbench tests requiring the sixth committed
+example manifest. Phase 124 is active for Realtime QA ETA Backtesting And
+Prediction Confidence V3.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

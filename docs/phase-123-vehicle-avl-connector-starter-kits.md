@@ -322,3 +322,73 @@ Proceed to checkpoint 000003 commit.
 
 Next checkpoint:
 Phase 123 -- Checkpoint 000004: close vehicle avl connector starter kits review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 123 -- Checkpoint 000004: close Vehicle AVL connector starter kits
+review.
+
+Goal status:
+Active. Phase 123 is closed and the goal continues to Phase 124.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+`docs/handoffs/phase-123.md`, `docs/handoffs/latest.md`,
+`docs/current-status.md`, `docs/roadmap-status.md`,
+`docs/open-transit-rt-master-planner-remaining-work.md`, and this phase
+report.
+
+Validation run:
+Full Phase 123 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+No Phase 123 check remains blocked.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 123 remains bounded to synthetic/local connector starter kits and makes
+no stronger public claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No release action was taken.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete.
+
+Master review:
+Approved. Phase 123 closes with a test-validated webhook-sidecar starter kit
+and starter-kit matrix.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 124.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 124.
+
+Next checkpoint:
+Phase 124 -- Checkpoint 000001: add realtime QA ETA backtesting and prediction
+confidence V3 plan.

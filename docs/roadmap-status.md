@@ -77,8 +77,13 @@ and edge-case coverage; the closeout handoff is
 [`docs/handoffs/phase-122.md`](handoffs/phase-122.md). The repo now has a
 synthetic GTFS-RT fixture-suite manifest and tests for midnight rollover,
 frequency service, canceled trips, stale telemetry, unknown vehicles, and
-malformed realtime messages. Phase 123 is active for Vehicle AVL connector
-starter kits. This release remains a candidate for
+malformed realtime messages. Phase 123 is complete for Vehicle AVL connector
+starter kits; the closeout handoff is
+[`docs/handoffs/phase-123.md`](handoffs/phase-123.md). The repo now has a
+disabled-by-default synthetic webhook-sidecar connector example, a Vehicle AVL
+starter-kit matrix, and updated connector hub/workbench tests requiring the
+sixth committed example manifest. Phase 124 is active for Realtime QA ETA
+Backtesting And Prediction Confidence V3. This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,
