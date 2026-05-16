@@ -143,3 +143,92 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 132 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 132 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 132 added the final public release/install/UX roadmap closeout
+artifact.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Release/Supply-Chain, Install Confidence,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+`docs/final-public-release-install-ux-roadmap-closeout.md` and this phase
+report.
+
+Implementation summary:
+Added a consolidated Phase 111-132 closeout artifact covering phase status,
+public rc1 publication, published download replay, public fresh-clone install
+confidence, Web Design Skill UX reviews, GTFS-RT gap improvements,
+validation, blockers, protected-path status, consumer tracker status, claim
+boundaries, checkpoint commits, and remaining recommended next steps.
+
+Validation run:
+Scoped source review covered Phase 111-131 handoffs, the public rc1 release
+status artifact, release download replay artifact, public install-confidence
+artifact, Phase 114 and Phase 118 Web Design Skill UX artifacts, GTFS-RT
+handoffs for Phases 120-125, support/adoption handoffs for Phases 126-129,
+the Phase 130 rc2 gate, and the Phase 131 optional evidence gate refresh.
+
+Blocked checks:
+Final full validation is scheduled for checkpoint 000003. The closeout
+artifact records existing blockers for published rc1 source-archive `make
+check`, public rc2 publication authorization, optional evidence gates,
+final-root readiness, consumer statuses, and stronger public claims.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The artifact records that all seven targets remain
+exactly `prepared`.
+
+Claim-boundary status:
+The artifact allows only the public `v0.1.0-rc.1` release-candidate wording
+for local/self-hosted evaluation and explicitly forbids stable release,
+production readiness, compliance, adoption, agency approval, consumer
+submission/review/acceptance/ingestion/listing/display, final-root readiness,
+hosted service, paid support, SLA/uptime, vendor compatibility, hardware
+certification, production AVL reliability, production-grade ETA quality, and
+real-world ETA accuracy claims without future retained evidence.
+
+Security/auth status:
+No auth, CSRF, credential, token, private payload, external contact, public
+route, or retained private artifact behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 132 made no tag, release,
+package, image, or public announcement.
+
+Install confidence status:
+Phase 117 public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+No new visual UI was changed in checkpoint 000002. The closeout artifact
+records the prior required Web Design Skill usage for Phases 114 and 118, plus
+the Phase 125 and Phase 127 visual-surface usages.
+
+Master review:
+Approved for final validation. The closeout artifact consolidates committed
+records without changing evidence, consumer, release, or claim state.
+
+Required edits:
+Run checkpoint 000003 validation and patch only repo-caused documentation or
+validation failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 132 -- Checkpoint 000003: run validation and patch required gaps.
