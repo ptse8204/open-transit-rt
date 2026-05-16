@@ -1,0 +1,161 @@
+# Phase 131 -- Optional Evidence Gate Refresh Blocker-Only
+
+## Goal
+
+Refresh optional evidence gates as blocker-only so future maintainers can see
+which stronger evidence tracks remain authorization-gated.
+
+Phase 131 is not an evidence collection, final-root fetch, consumer-status
+movement, compliance, adoption, production readiness, public launch, hosted
+service, SLA, vendor compatibility, hardware certification, or ETA-quality
+proof phase.
+
+## Current Repo Context
+
+- Phase 109 added the future evidence intake gate pack.
+- Phase 115 published the public `v0.1.0-rc.1` prerelease for
+  local/self-hosted evaluation.
+- Phase 116 verified the published release downloads and recorded the
+  published rc1 source-archive `make check` blocker.
+- Phase 117 established public fresh-clone install confidence for the rc1 tag.
+- Phase 130 prepared a local rc2 gate but did not create a public rc2 tag or
+  GitHub Release.
+
+## Scope
+
+- Re-read optional evidence gates and refresh their current blocker-only
+  status.
+- Record exact missing authorization, intake, artifact, and claim preconditions.
+- Preserve protected evidence paths and consumer tracker status.
+- Continue safe downstream closeout after recording blockers truthfully.
+
+## Explicit Non-Scope
+
+Do not:
+
+- collect evidence;
+- contact agencies, vendors, consumers, portals, reviewers, or external
+  services;
+- fetch final roots or run public-root validation;
+- move consumer statuses;
+- write protected evidence paths;
+- use real credentials, private URLs, private correspondence, private payloads,
+  or personal data;
+- create tags, releases, public announcements, compliance packets, pilot
+  artifacts, retained evidence packets, or stronger product claims.
+
+## Protected Paths
+
+Do not modify, reformat, delete, stage, or generate files under:
+
+- `docs/evidence/captured/**`
+- `docs/evidence/consumer-submissions/status.json`
+- `docs/evidence/consumer-submissions/current/**`
+- `docs/evidence/consumer-submissions/artifacts/**`
+- `docs/evidence/consumer-submissions/packets/**`
+
+The consumer tracker must remain exactly seven targets in order and all
+`prepared`.
+
+## Deliverables
+
+- Optional evidence gate refresh artifact.
+- `docs/handoffs/phase-131.md`
+- Source-of-truth status updates for Phase 131 closeout.
+
+## Implementation Plan
+
+1. Add this Phase 131 plan and commit checkpoint 000001.
+2. Inspect future evidence, consumer-submission, redaction, final-root,
+   compliance, and claim-boundary docs.
+3. Record blocker-only status for final-root, consumer submission, real agency
+   pilot, real vendor/device AVL, real-world ETA-quality study, compliance
+   packet, and hosted operations/SLA/production-readiness evidence gates.
+4. Run validation with protected-path and prepared-only consumer tracker
+   checks; patch only repo-caused documentation gaps.
+5. Close Phase 131 with handoff/status docs and continue immediately to Phase
+   132.
+
+## Checkpoint Plan
+
+- `Phase 131 -- Checkpoint 000001: add optional evidence gate refresh blocker only plan`
+- `Phase 131 -- Checkpoint 000002: implement or audit primary scoped work`
+- `Phase 131 -- Checkpoint 000003: run validation and patch required gaps`
+- `Phase 131 -- Checkpoint 000004: close optional evidence gate refresh blocker only review`
+
+## Checkpoint Report -- 000001
+
+Checkpoint:
+Phase 131 -- Checkpoint 000001: add optional evidence gate refresh blocker
+only plan.
+
+Goal status:
+Active. Phase 130 is closed and Phase 131 has started.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Release/Supply-Chain, Install Confidence,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+`docs/phase-131-optional-evidence-gate-refresh-blocker-only.md`.
+
+Validation run:
+Initial inspection reviewed the Phase 131 prompt, the Phase 109 optional
+evidence gate closeout, the current Phase 130 closeout, the post-110
+Master/sub-agent manual, the validation and claim-boundary guide, the future
+evidence intake gate pack, and the evidence redaction policy.
+
+Blocked checks:
+Evidence-gate refresh artifact creation and validation are scheduled for later
+Phase 131 checkpoints.
+
+Protected path status:
+No protected evidence path is part of the plan. The plan forbids protected
+path writes.
+
+Consumer tracker status:
+The consumer tracker is not part of the plan. The seven targets must remain in
+order and exactly `prepared`.
+
+Claim-boundary status:
+The plan explicitly forbids stable release readiness, production readiness,
+compliance, adoption, agency approval, consumer submission/review/acceptance,
+consumer ingestion/listing/display, final-root readiness, hosted service
+availability, paid support, SLA/uptime, vendor compatibility, hardware
+certification, production AVL reliability, production-grade ETA quality, and
+real-world ETA accuracy claims.
+
+Security/auth status:
+The plan does not add public routes, credential handling, token handling,
+private payload handling, evidence collection, external contact, release
+publication, or retained private artifacts.
+
+Data/migration status:
+No migration, durable state, dependency, or Go module change is planned.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 131 performs no publication
+work.
+
+Install confidence status:
+Phase 117 public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Not used for checkpoint 000001 because Phase 131 is blocker-only process
+documentation and does not touch a visual UI surface.
+
+Master review:
+Approved. The plan scopes Phase 131 to blocker-only evidence-gate refresh
+without evidence collection, status movement, protected-path writes, or
+stronger claims.
+
+Required edits:
+Commit checkpoint 000001, then run the scoped evidence-gate refresh audit.
+
+Decision:
+Proceed to checkpoint 000001 validation and commit.
+
+Next checkpoint:
+Phase 131 -- Checkpoint 000002: implement or audit primary scoped work.
