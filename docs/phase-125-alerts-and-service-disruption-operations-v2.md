@@ -227,3 +227,81 @@ Proceed to checkpoint 000002 commit.
 
 Next checkpoint:
 Phase 125 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 125 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Phase 125 implementation passed full validation.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+This phase report.
+
+Validation run:
+`git status --short` was clean at checkpoint start. `git diff --check`
+passed. `python3 -m json.tool docs/evidence/consumer-submissions/status.json`
+passed. `scripts/check-consumer-tracker.sh` passed. `make check` passed.
+`make audit-product-acceptance` passed. `make audit-final-claim-review`
+passed. `docker compose -f deploy/docker-compose.yml config` passed. `make
+validate` passed. `make test` passed. `make gtfsrt-conformance` passed. `make
+adapter-conformance` passed. `make external-connection-check` passed. `go test
+./cmd/feed-alerts ./internal/alerts ./internal/feed/alerts` passed.
+
+Blocked checks:
+None. The full Phase 125 validation set passed.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Claim audits passed. Phase 125 remains bounded to private alerts operations
+review and makes no consumer display, agency approval, public launch,
+compliance, production readiness, real-world disruption handling quality,
+SLA/uptime, hosted-service, vendor compatibility, hardware certification,
+consumer ingestion, or release-readiness claim.
+
+Security/auth status:
+No route auth, CSRF behavior, credential handling, token handling, public
+exposure, private payload handling, or operator command behavior was changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 125 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+The Web Design Skill was used for the Phase 125 UX surface change. No browser
+screenshot pass was required because the change is a server-rendered private
+table row addition covered by HTML tests.
+
+Master review:
+Approved. Full validation passed with no blocked checks.
+
+Required edits:
+Close Phase 125 with handoff and status updates.
+
+Decision:
+Proceed to checkpoint 000003 commit.
+
+Next checkpoint:
+Phase 125 -- Checkpoint 000004: close alerts and service disruption
+operations V2 review.
