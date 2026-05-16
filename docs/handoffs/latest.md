@@ -404,9 +404,15 @@ passed from a clean commit, local app release-candidate diagnostics passed
 where run, `docs/release-status-v0.1.0-rc.1.md` records exact status, and
 publication remains blocked by source archive public-distribution review
 because the archive contains tracked protected evidence and
-consumer-submission paths. Phase 113 is active for fresh clone install harness
-and release dry run. Continue to Phase 113; do not stop after release blocking
-audit or a release recommendation.
+consumer-submission paths. Phase 113 -- Fresh Clone Install Harness And
+Release Dry Run is complete, with closeout at `docs/handoffs/phase-113.md`:
+the repo now has a repeatable install-confidence harness, local fresh-clone
+replay passed `make check`, bootstrap preflight, local app startup, and five
+local public feed fetches, and local source archive replay passed archive
+listing, extraction, `make check`, and bootstrap preflight. Phase 114 is
+active for Web Design Skill UX audit and control-plane polish. Continue to
+Phase 114; do not stop after install confidence, release blocking audit, or a
+release recommendation.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

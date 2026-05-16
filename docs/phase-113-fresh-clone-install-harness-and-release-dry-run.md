@@ -347,3 +347,85 @@ Proceed to checkpoint 000003 commit, then checkpoint 000004 closeout dry runs.
 Next checkpoint:
 Phase 113 -- Checkpoint 000004: close fresh clone install harness and release
 dry run review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 113 -- Checkpoint 000004: close fresh clone install harness and release
+dry run review.
+
+Goal status:
+Active. Phase 113 is closed and the goal continues to Phase 114.
+
+Sub-agents used or simulated:
+Install Confidence sub-agent recommendations were incorporated. QA,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration,
+Release/Supply-Chain, Implementation, and Web Design Skill roles were
+simulated or deferred according to Phase 113 scope.
+
+Changed files:
+`docs/install-confidence-v0.1.0-rc.1.md`; `docs/handoffs/phase-113.md`;
+`docs/handoffs/latest.md`; `docs/current-status.md`;
+`docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-113-fresh-clone-install-harness-and-release-dry-run.md`.
+
+Validation run:
+The local fresh-clone install-confidence run passed with local app startup and
+five local public feed fetches enabled. The local source archive replay passed
+archive listing, extraction, `make check`, and bootstrap preflight. `make
+test-install-confidence`, `make check`, `make validate`, `make test`, compose
+config, product acceptance audit, final claim audit, JSON parse,
+prepared-only tracker assertion, protected-path status check, and `git diff
+--check` passed in Phase 113. After closeout docs were updated, focused
+docs/protected-path validation is rerun before the checkpoint 000004 commit.
+
+Blocked checks:
+Public release publication remains blocked by the Phase 112 source archive
+public-distribution review. Published release download replay and independent
+public install confidence remain downstream phases.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 113 records bounded local install diagnostics only and makes no stronger
+public claim.
+
+Security/auth status:
+No runtime route, auth behavior, credential handling, token handling,
+external contact, public exposure, or private payload handling changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was added.
+
+Release/publication status:
+No release action was taken. Publication remains blocked by the Phase 112
+public-distribution review.
+
+Install confidence status:
+Local fresh-clone and local source-archive replay diagnostics passed for the
+bounded Phase 113 scope.
+
+Web design skill status:
+Phase 114 starts next and must use the Web Design Skill for UX review and
+control-plane polish.
+
+Master review:
+Approved. The Phase 113 harness closes the archive replay friction and records
+local install confidence without overclaiming or committing raw cached output.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 114.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 114.
+
+Next checkpoint:
+Phase 114 -- Checkpoint 000001: add Web Design Skill UX audit and control
+plane polish plan.

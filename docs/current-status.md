@@ -637,8 +637,18 @@ Release, package publication, image publication, retained evidence, consumer
 status change, external contact, protected-path write, release-readiness
 claim, compliance claim, production-readiness claim, hosted-service claim,
 vendor claim, hardware claim, SLA/uptime claim, public-launch claim, or
-ETA-quality claim. Phase 113 is active for fresh clone install harness and
-release dry run.
+ETA-quality claim. Phase 113 -- Fresh Clone Install Harness And Release Dry
+Run is complete, with closeout at `docs/handoffs/phase-113.md`: the repo now
+has a repeatable install-confidence harness, the local fresh-clone replay
+passed `make check`, bootstrap preflight, local app startup, and five local
+public feed fetches, and the local source archive replay passed archive
+listing, extraction, `make check`, and bootstrap preflight. The bounded report
+is `docs/install-confidence-v0.1.0-rc.1.md`. Phase 113 added no release
+action, retained evidence, consumer status change, external contact,
+protected-path write, production-readiness claim, compliance claim,
+hosted-service claim, vendor claim, hardware claim, SLA/uptime claim,
+public-launch claim, or ETA-quality claim. Phase 114 is active for Web Design
+Skill UX audit and control-plane polish.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

@@ -181,8 +181,12 @@ The first instruction in this workstream was to make the Codex instructions expa
   The closeout lives at `docs/handoffs/phase-112.md`;
   `docs/release-status-v0.1.0-rc.1.md` records
   `blocked_public_distribution_review` because the source archive contains
-  tracked protected evidence and consumer-submission paths. Phase 113 is active
-  for fresh clone install harness and release dry run. Phase 115 is the first
+  tracked protected evidence and consumer-submission paths.
+- Phase 113 is complete for Fresh Clone Install Harness And Release Dry Run.
+  The closeout lives at `docs/handoffs/phase-113.md`;
+  `docs/install-confidence-v0.1.0-rc.1.md` records bounded local fresh-clone
+  and local source-archive install-confidence passes. Phase 114 is active for
+  Web Design Skill UX audit and control-plane polish. Phase 115 is the first
   phase authorized to attempt public `v0.1.0-rc.1` publication, only if gates
   pass and authenticated tooling is available; blocked publication must be
   recorded truthfully and downstream safe phases must continue.
