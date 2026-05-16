@@ -177,3 +177,87 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 113 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 113 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Install-confidence harness implementation is complete and ready for
+post-commit dry runs.
+
+Sub-agents used or simulated:
+Install Confidence sub-agent recommendations were incorporated. Implementation
+and QA were performed by the Master Agent. Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, Release/Supply-Chain, and Web
+Design Skill roles were simulated or deferred according to Phase 113 scope.
+
+Changed files:
+`Makefile`; `scripts/install-confidence.sh`;
+`scripts/test-install-confidence.sh`;
+`docs/phase-113-fresh-clone-install-harness-and-release-dry-run.md`.
+
+Validation run:
+`make test-install-confidence` passed; `make check` passed; `git diff --check`
+passed. The implementation checkpoint did not run full clone/archive dry runs
+because the harness needs to be committed before a fresh clone of the current
+repository can include the new script and archive-aware `make check` behavior.
+
+Blocked checks:
+Full install-confidence dry runs, `make validate`, `make test`, and compose
+config are scheduled for checkpoint 000003. Release publication, retained
+evidence, external contact, consumer status movement, protected path writes,
+and stronger claims remain out of Phase 113 scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+The harness enforces output under `.cache/install-confidence/**` and rejects
+evidence-like output paths.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets must remain in order and all remain `prepared`.
+
+Claim-boundary status:
+The harness summary states that install-confidence diagnostics are local only
+and not retained evidence, release publication, production readiness,
+compliance proof, consumer acceptance, agency approval, hosted service
+availability, vendor compatibility, SLA/uptime, or ETA-quality proof.
+
+Security/auth status:
+No route, auth behavior, CSRF behavior, credential handling, token handling,
+public exposure, private payload handling, external contact, or command
+execution behavior changed. The harness records bounded local environment
+metadata and stores raw logs only under ignored `.cache`.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, or Go
+module change was added.
+
+Release/publication status:
+No tag, GitHub Release, public package, asset upload, image push, or public
+announcement was created. Publication remains blocked by the Phase 112 source
+archive public-distribution review.
+
+Install confidence status:
+Harness and tests were added. Actual local fresh-clone/archive dry runs are
+scheduled for checkpoint 000003.
+
+Web design skill status:
+No UX artifact was added in Phase 113.
+
+Master review:
+Approved. The implementation addresses archive replay friction by making
+`make check` skip `git diff --check` only when outside a Git worktree, while
+preserving the normal git diff check in repository clones.
+
+Required edits:
+Commit checkpoint 000002, then run fresh-clone and archive-mode install
+confidence diagnostics and record the results.
+
+Decision:
+Proceed to checkpoint 000002 commit, then checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 113 -- Checkpoint 000003: run validation and patch required gaps.
