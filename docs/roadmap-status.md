@@ -82,8 +82,13 @@ starter kits; the closeout handoff is
 [`docs/handoffs/phase-123.md`](handoffs/phase-123.md). The repo now has a
 disabled-by-default synthetic webhook-sidecar connector example, a Vehicle AVL
 starter-kit matrix, and updated connector hub/workbench tests requiring the
-sixth committed example manifest. Phase 124 is active for Realtime QA ETA
-Backtesting And Prediction Confidence V3. This release remains a candidate for
+sixth committed example manifest. Phase 124 is complete for Realtime QA ETA
+Backtesting And Prediction Confidence V3; the closeout handoff is
+[`docs/handoffs/phase-124.md`](handoffs/phase-124.md). Private local
+backtest outputs now include aggregate confidence review, confidence coverage,
+missing confidence, low/medium/high bands, and mean/median/P10/P90 confidence
+for matched, non-stale prediction samples. Phase 125 is active for Alerts And
+Service Disruption Operations V2. This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,

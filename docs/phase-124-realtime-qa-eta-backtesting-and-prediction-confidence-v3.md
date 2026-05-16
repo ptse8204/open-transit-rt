@@ -307,3 +307,72 @@ Proceed to checkpoint 000003 commit.
 Next checkpoint:
 Phase 124 -- Checkpoint 000004: close realtime qa eta backtesting and
 prediction confidence V3 review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 124 -- Checkpoint 000004: close Realtime QA ETA Backtesting And
+Prediction Confidence V3 review.
+
+Goal status:
+Active. Phase 124 is closed and the goal continues to Phase 125.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+`docs/handoffs/phase-124.md`, `docs/handoffs/latest.md`,
+`docs/current-status.md`, `docs/roadmap-status.md`,
+`docs/open-transit-rt-master-planner-remaining-work.md`, and this phase
+report.
+
+Validation run:
+Full Phase 124 validation passed before closeout docs. Focused closeout
+validation passed after closeout docs: `git diff --check`, `make check`,
+`make audit-product-acceptance`, `make audit-final-claim-review`,
+`scripts/check-consumer-tracker.sh`, and protected-path git status.
+
+Blocked checks:
+No Phase 124 check remains blocked.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 124 remains bounded to private/local aggregate diagnostics and makes no
+stronger public claim.
+
+Security/auth status:
+No application security behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No release action was taken.
+
+Install confidence status:
+Public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete.
+
+Master review:
+Approved. Phase 124 closes with test-validated aggregate confidence reporting.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 125.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 125.
+
+Next checkpoint:
+Phase 125 -- Checkpoint 000001: add alerts and service disruption operations
+V2 plan.

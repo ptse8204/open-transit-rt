@@ -250,8 +250,13 @@ The first instruction in this workstream was to make the Codex instructions expa
   lives at `docs/handoffs/phase-123.md`. The repo now has a
   disabled-by-default synthetic webhook-sidecar connector example, a Vehicle
   AVL starter-kit matrix, and updated connector hub/workbench tests requiring
-  the sixth committed example manifest. Phase 124 is active for Realtime QA
-  ETA Backtesting And Prediction Confidence V3.
+  the sixth committed example manifest.
+- Phase 124 is complete for Realtime QA ETA Backtesting And Prediction
+  Confidence V3. The closeout lives at `docs/handoffs/phase-124.md`. Private
+  local backtest outputs now include aggregate confidence review, confidence
+  coverage, missing confidence, low/medium/high bands, and
+  mean/median/P10/P90 confidence for matched, non-stale prediction samples.
+  Phase 125 is active for Alerts And Service Disruption Operations V2.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.
