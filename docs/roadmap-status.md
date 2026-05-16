@@ -53,11 +53,18 @@ A public fresh clone of the rc1 tag passed `make check`, bootstrap preflight,
 pinned validator install, `make validate`, `make test`, local app startup, and
 all five local public feed fetches after the install-confidence harness was
 patched to install validators before validate-enabled trials. Phase 118 is
-active for post-release Web Design Skill UX validation. This release remains a
-candidate for local/self-hosted evaluation only and does not claim stable
-release readiness, production readiness, compliance, adoption, consumer
-acceptance, final-root readiness, hosted service availability, SLA/uptime,
-vendor compatibility, hardware certification, or production-grade ETA quality.
+complete for post-release Web Design Skill UX validation. The closeout handoff
+is [`docs/handoffs/phase-118.md`](handoffs/phase-118.md), and the UX artifact
+is
+[`docs/ux/web-design-skill-review-phase-118.md`](ux/web-design-skill-review-phase-118.md).
+The Web Design Skill was used, the public rc1 local app private Operations
+Console was reviewed through authenticated HTML/JSON routes, and no Phase 118
+code patch was required. Phase 119 is active for public docs, README, and
+quickstart release alignment. This release remains a candidate for
+local/self-hosted evaluation only and does not claim stable release readiness,
+production readiness, compliance, adoption, consumer acceptance, final-root
+readiness, hosted service availability, SLA/uptime, vendor compatibility,
+hardware certification, or production-grade ETA quality.
 
 Phase 110 remains complete for Long-Term Extensibility And Plugin Governance
 in the authorized autonomous Phase 91-110 product roadmap. The closeout

@@ -216,8 +216,15 @@ The first instruction in this workstream was to make the Codex instructions expa
   `make check`, bootstrap preflight, pinned validator install, `make validate`,
   `make test`, local app startup, and all five local public feed fetches after
   the install-confidence harness was patched to install validators before
-  validate-enabled trials. Phase 118 is active for post-release Web Design
-  Skill UX validation.
+  validate-enabled trials.
+- Phase 118 is complete for Post-Release Web Design Skill UX Validation. The
+  closeout lives at `docs/handoffs/phase-118.md`, and the UX artifact lives at
+  `docs/ux/web-design-skill-review-phase-118.md`. The Web Design Skill was
+  used, the public rc1 local app private Operations Console was reviewed
+  through authenticated HTML/JSON routes, no Phase 118 code patch was required,
+  and browser automation/screenshots were unavailable in this session.
+  Phase 119 is active for public docs, README, and quickstart release
+  alignment.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

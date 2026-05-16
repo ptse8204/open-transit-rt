@@ -439,9 +439,15 @@ checked out `497f99a97baff630af147c83a7e1249bb08e32da`, passed `make check`,
 bootstrap preflight, pinned validator install, `make validate`, `make test`,
 local app startup, and all five local public feed fetches after the
 install-confidence harness was patched to run `make validators-install` before
-validate-enabled trials. Phase 118 is active for post-release Web Design Skill
-UX validation. Do not stop after publication, download replay, or install
-confidence; continue through Phase 132.
+validate-enabled trials. Phase 118 -- Post-Release Web Design Skill UX
+Validation is complete, with closeout at `docs/handoffs/phase-118.md` and UX
+artifact at `docs/ux/web-design-skill-review-phase-118.md`: the Web Design
+Skill was used, the public rc1 local app private Operations Console was
+reviewed through authenticated HTML/JSON routes, no Phase 118 code patch was
+required, and browser automation/screenshots were unavailable in this session.
+Phase 119 is active for public docs, README, and quickstart release alignment.
+Do not stop after publication, download replay, install confidence, or UX
+validation; continue through Phase 132.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

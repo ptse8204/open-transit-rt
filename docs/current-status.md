@@ -688,8 +688,13 @@ checked out `497f99a97baff630af147c83a7e1249bb08e32da`, passed `make check`,
 bootstrap preflight, pinned validator install, `make validate`, `make test`,
 local app startup, and all five local public feed fetches after the
 install-confidence harness was patched to install pinned validators before
-validate-enabled trials. Phase 118 is active for post-release Web Design Skill
-UX validation.
+validate-enabled trials. Phase 118 -- Post-Release Web Design Skill UX
+Validation is complete, with closeout at `docs/handoffs/phase-118.md` and UX
+artifact at `docs/ux/web-design-skill-review-phase-118.md`: the Web Design
+Skill was used, the public rc1 local app private Operations Console was
+reviewed through authenticated HTML/JSON routes, no Phase 118 code patch was
+required, and browser automation/screenshots were unavailable in this session.
+Phase 119 is active for public docs, README, and quickstart release alignment.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
