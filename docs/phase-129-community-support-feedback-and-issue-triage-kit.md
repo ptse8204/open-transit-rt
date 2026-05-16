@@ -232,3 +232,78 @@ Proceed to checkpoint 000002 commit.
 
 Next checkpoint:
 Phase 129 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 129 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Full Phase 129 validation passed with no repo-caused failures.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Documentation / IA, Claim-Boundary,
+Security/Auth, Data/Migration, Release, Install Confidence, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+`docs/phase-129-community-support-feedback-and-issue-triage-kit.md`.
+
+Validation run:
+`git status --short` returned clean at validation start. `git diff --check`
+passed. `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json` passed.
+`scripts/check-consumer-tracker.sh` passed. Protected-path git status returned
+no output. All `.github/ISSUE_TEMPLATE/*.yml` files parsed as YAML. `make
+check` passed. `make audit-product-acceptance` passed. `make
+audit-final-claim-review` passed. `make external-connection-check` passed.
+`make adapter-conformance` passed. `make gtfsrt-conformance` passed. `make
+validate` passed. `make test` passed. `docker compose -f
+deploy/docker-compose.yml config` passed. Final `git status --short`, `git
+diff --check`, and protected-path git status returned clean.
+
+Blocked checks:
+None.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. The kit remains community
+best-effort support and triage guidance only.
+
+Security/auth status:
+No auth, CSRF, credential, token, private payload, support bundle, retained
+evidence, public route, or browser behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 129 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Not used for checkpoint 000003 because Phase 129 did not touch a visual UI
+surface.
+
+Master review:
+Approved for Phase 129 closeout.
+
+Required edits:
+None.
+
+Decision:
+Proceed to checkpoint 000003 commit.
+
+Next checkpoint:
+Phase 129 -- Checkpoint 000004: close community support feedback and issue
+triage kit review.
