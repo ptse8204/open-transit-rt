@@ -230,3 +230,80 @@ Proceed to checkpoint 000002 commit.
 
 Next checkpoint:
 Phase 124 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 124 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Phase 124 implementation passed full validation.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+This phase report.
+
+Validation run:
+`git status --short` was clean at checkpoint start. `git diff --check`
+passed. `python3 -m json.tool docs/evidence/consumer-submissions/status.json`
+passed. `scripts/check-consumer-tracker.sh` passed. `make check` passed.
+`make audit-product-acceptance` passed. `make audit-final-claim-review`
+passed. `docker compose -f deploy/docker-compose.yml config` passed. `make
+validate` passed. `make test` passed. `make realtime-quality-backtest`
+passed. `make gtfsrt-conformance` passed. `make adapter-conformance` passed.
+`make external-connection-check` passed.
+
+Blocked checks:
+None. The full Phase 124 validation set passed.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Claim audits passed. Phase 124 remains bounded to private/local aggregate
+diagnostics and makes no production-grade ETA quality, real-world ETA
+accuracy, compliance, consumer acceptance, public launch, release readiness,
+vendor compatibility, hardware certification, hosted service, SLA/uptime, or
+production-readiness claim.
+
+Security/auth status:
+No route auth, CSRF behavior, credential handling, token handling, public
+exposure, private payload handling, or operator command behavior was changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 124 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. Phase 124 did not make
+visual UX changes.
+
+Master review:
+Approved. Full validation passed with no blocked checks.
+
+Required edits:
+Close Phase 124 with handoff and status updates.
+
+Decision:
+Proceed to checkpoint 000003 commit.
+
+Next checkpoint:
+Phase 124 -- Checkpoint 000004: close realtime qa eta backtesting and
+prediction confidence V3 review.
