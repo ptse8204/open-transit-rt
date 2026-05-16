@@ -11,6 +11,10 @@ adapters, validators, monitoring, and consumer workflows, start with the
 [Integration Adapter Kit](../integration-adapter-kit.md). This file remains the
 detailed operator tutorial for `/v1/telemetry` and AVL/device troubleshooting.
 
+For a starter-kit matrix covering CSV replay, GPS/API polling, webhook
+sidecars, synthetic-only telemetry, and vendor-shaped payload transforms, see
+[Vehicle AVL Connector Starter Kits](../connectors/vehicle-avl-starter-kits.md).
+
 The private Connector Workbench at
 `/admin/operations/connectors/workbench` can help an operator choose between
 CSV replay, GPS/API polling, webhook-transform, or synthetic-only telemetry

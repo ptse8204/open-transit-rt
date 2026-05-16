@@ -1,0 +1,25 @@
+{
+  "synthetic_only": true,
+  "source": "synthetic-webhook-sidecar",
+  "received_at": "2026-05-10T17:01:00Z",
+  "observations": [
+    {
+      "agency_id": "agency-demo",
+      "device_id": "device-webhook-1",
+      "vehicle_id": "vehicle-webhook-1",
+      "timestamp": "2026-05-10T17:00:30Z",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "quality": 0.97
+    },
+    {
+      "agency_id": "agency-demo",
+      "device_id": "device-webhook-low-quality",
+      "vehicle_id": "vehicle-webhook-2",
+      "timestamp": "2026-05-10T17:00:20Z",
+      "lat": 34.052,
+      "lon": -118.244,
+      "quality": 0.2
+    }
+  ]
+}

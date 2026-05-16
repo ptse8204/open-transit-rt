@@ -142,3 +142,97 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 123 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 123 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 123 implemented the scoped connector starter-kit work and is
+ready for full checkpoint validation.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+`examples/connectors/telemetry-webhook-sidecar/README.md`,
+`examples/connectors/telemetry-webhook-sidecar/connector.json`,
+`examples/connectors/telemetry-webhook-sidecar/fixtures/webhook.json`,
+`examples/connectors/telemetry-webhook-sidecar/main.go`,
+`examples/connectors/telemetry-webhook-sidecar/main_test.go`,
+`docs/connectors/vehicle-avl-starter-kits.md`,
+`docs/tutorials/device-avl-integration.md`,
+`internal/connectors/examples_test.go`, and
+`internal/connectors/registry_test.go`.
+
+Implementation summary:
+Added a disabled-by-default synthetic webhook sidecar example that reads a
+local fixture, normalizes webhook-style AVL observations through the shared
+telemetry connector SDK, and emits dry-run summaries with `dry_run=true` and
+`network_send=false`. Added a starter-kit matrix covering CSV replay, GPS/API
+polling, webhook sidecars, synthetic-only telemetry, and vendor-shaped payload
+transform examples. Updated connector registry tests for the sixth committed
+example manifest.
+
+Validation run:
+`gofmt` on touched Go files passed. `python3 -m json.tool` passed for the new
+connector manifest and fixture. `go test ./internal/connectors
+./examples/connectors/...` passed. `make test-connector-examples` passed.
+`make external-connection-check` passed. `git diff --check` passed.
+`scripts/check-consumer-tracker.sh` passed.
+
+Blocked checks:
+None for this checkpoint. Full repo validation is scheduled for checkpoint
+000003.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+The starter kit and docs explicitly avoid vendor compatibility, hardware
+certification, production AVL reliability, production readiness, compliance,
+consumer acceptance, hosted service, SLA/uptime, and ETA-quality claims.
+
+Security/auth status:
+The webhook sidecar is local fixture input only, has no listener, no send path,
+no token handling, no private endpoint, and no raw private payload in the
+manifest. Redaction fields cover authorization, signatures, raw payloads,
+private endpoints, and webhook secrets.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 123 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. Phase 123 did not make
+visual UX changes.
+
+Master review:
+Approved for full validation. The implementation closes the webhook-sidecar
+starter-kit gap without expanding beyond synthetic, disabled-by-default, and
+redaction-first connector boundaries.
+
+Required edits:
+Run checkpoint 000003 full validation and patch any repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 123 -- Checkpoint 000003: run validation and patch required gaps.

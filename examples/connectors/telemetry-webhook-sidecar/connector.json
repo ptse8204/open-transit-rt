@@ -1,0 +1,52 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.telemetry-webhook-sidecar",
+  "type": "telemetry_source",
+  "display_name": "Synthetic telemetry webhook sidecar",
+  "description": "Synthetic dry-run sidecar that normalizes local webhook-style AVL observation batches into telemetry ingest payloads.",
+  "mode": {
+    "name": "sidecar_webhook_dry_run",
+    "disabled_by_default": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic webhook observation batch",
+      "description": "Local fixture shaped like a deployment-owned webhook payload without private vendor fields.",
+      "schema": "open-transit-rt.telemetry.synthetic-webhook.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["synthetic_only", "source", "observations", "agency_id", "device_id", "vehicle_id", "timestamp", "lat", "lon", "quality"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Telemetry ingest event",
+      "description": "Dry-run payload compatible with the authenticated telemetry ingest boundary.",
+      "schema": "open-transit-rt.telemetry.event.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 10,
+    "retry_policy": "no retry in dry run",
+    "degraded_state": "no telemetry emitted",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "env_reference_only",
+    "redact_fields": ["authorization", "signature", "raw_payload", "private_endpoint", "webhook_secret"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only"],
+    "not_claimed": ["vendor compatibility", "hardware certification", "production AVL reliability", "consumer acceptance", "compliance", "production readiness"]
+  },
+  "docs_link": "examples/connectors/telemetry-webhook-sidecar/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-webhook-valid",
+      "description": "Valid synthetic webhook observations are normalized in dry-run mode.",
+      "fixture_path": "examples/connectors/telemetry-webhook-sidecar/fixtures/webhook.json",
+      "expected_result": "pass"
+    }
+  ]
+}
