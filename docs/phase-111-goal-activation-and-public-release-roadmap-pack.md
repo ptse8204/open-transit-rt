@@ -266,3 +266,101 @@ Proceed to checkpoint 000002 commit, then checkpoint 000003 validation.
 
 Next checkpoint:
 Phase 111 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 111 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. The roadmap pack and source-of-truth docs are committed through
+checkpoint 000002, and Phase 111 validation has been rerun.
+
+Sub-agents used or simulated:
+Real read-only Release/Supply-Chain, Install Confidence, Web Design Skill UX,
+and GTFS-RT Domain sub-agents were used or still running for downstream audit
+inputs. The Release/Supply-Chain sub-agent reported that `gh` is installed and
+authenticated but source-archive public-distribution review is a likely blocker.
+The Install Confidence sub-agent reported fresh-clone and release-replay
+command plans. The Web Design Skill UX sub-agent reported Phase 114/118 UX
+findings after reading the skill. QA, Documentation / IA, Claim-Boundary,
+Security/Auth, and Data/Migration roles were simulated by the Master Agent for
+the validation checkpoint.
+
+Changed files:
+`README.md`; `docs/README.md`; `docs/current-status.md`;
+`docs/handoffs/latest.md`; `docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/roadmap-status.md`; `docs/phase-111-goal-activation-and-public-release-roadmap-pack.md`;
+tracked files under `docs/roadmaps/post-110-goal-public-release-install-ux/`.
+
+Validation run:
+`git status --short` showed only the expected Phase 111 validation report
+edit after checkpoint 000002; `git diff --check` passed; `make check` passed;
+`make audit-product-acceptance` passed; `make audit-final-claim-review`
+passed; `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null` passed; the exact
+prepared-only consumer tracker assertion passed; and `git status --short --
+docs/evidence/consumer-submissions docs/evidence/captured db/migrations go.mod
+go.sum` returned no output.
+
+Blocked checks:
+`make validate`, `make test`, and `docker compose -f
+deploy/docker-compose.yml config` were not required for this docs-only
+roadmap validation checkpoint. Release publication, retained evidence,
+external contact, consumer status movement, protected evidence writes, and
+stronger claims remain out of Phase 111 scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+protected-path status check returned no output.
+
+Consumer tracker status:
+`docs/evidence/consumer-submissions/status.json` was not edited. The exact
+seven consumer targets remain in order and all remain `prepared`.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. The initial README edit was
+patched because the product acceptance audit correctly flagged phase-history
+wording too high in the public README; the corrected README keeps release
+roadmap detail out of the first-page product path.
+
+Security/auth status:
+No route, auth behavior, CSRF behavior, credential handling, token handling,
+public exposure, private payload handling, external contact, or command
+execution behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was added.
+
+Release/publication status:
+No tag, GitHub Release, public package, asset upload, image push, or public
+announcement was created. The Release/Supply-Chain sub-agent identified
+source-archive protected-path content review as a likely Phase 112/115 blocker
+unless it is explicitly resolved before publication.
+
+Install confidence status:
+No fresh-clone or release-archive replay was performed in Phase 111. The
+Install Confidence sub-agent identified a future archive replay friction:
+GitHub auto archives do not include `.git`, while current `make check` runs
+`git diff --check`.
+
+Web design skill status:
+The Web Design Skill was read by the UX sub-agent. It identified concrete
+safe polish candidates for later phases, including suppressing copy affordance
+for missing feed URLs and clarifying first-run realtime acronyms.
+
+Master review:
+Approved. Validation passed after correcting the public README lead, and no
+protected-path, consumer tracker, claim, security, data, or release boundary
+was crossed.
+
+Required edits:
+Add Phase 111 handoff and closeout status updates in checkpoint 000004.
+
+Decision:
+Proceed to checkpoint 000003 commit, then checkpoint 000004 closeout.
+
+Next checkpoint:
+Phase 111 -- Checkpoint 000004: close goal activation and public release
+roadmap pack review.
