@@ -117,7 +117,11 @@ Evidence Gate Refresh Blocker-Only; the closeout handoff is
 [`docs/handoffs/phase-131.md`](handoffs/phase-131.md). Optional evidence gates
 are refreshed as blocked in
 [`docs/optional-evidence-gate-refresh-phase-131.md`](optional-evidence-gate-refresh-phase-131.md).
-Phase 132 is active for Final Public Release Install UX Roadmap Closeout.
+Phase 132 is complete for Final Public Release Install UX Roadmap Closeout;
+the closeout handoff is
+[`docs/handoffs/phase-132.md`](handoffs/phase-132.md). The final Phase 111-132
+closeout is recorded in
+[`docs/final-public-release-install-ux-roadmap-closeout.md`](final-public-release-install-ux-roadmap-closeout.md).
 This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root

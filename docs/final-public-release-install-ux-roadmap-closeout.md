@@ -49,7 +49,7 @@ blocked unless separately authorized.
 | 129 -- Community Support Feedback And Issue Triage Kit | complete | `docs/handoffs/phase-129.md` |
 | 130 -- Release Candidate Patch Loop And rc2 Gate | complete | `docs/handoffs/phase-130.md` |
 | 131 -- Optional Evidence Gate Refresh Blocker-Only | complete | `docs/handoffs/phase-131.md` |
-| 132 -- Final Public Release Install UX Roadmap Closeout | in closeout | `docs/handoffs/phase-132.md` |
+| 132 -- Final Public Release Install UX Roadmap Closeout | complete | `docs/handoffs/phase-132.md` |
 
 ## Public Release Status
 
@@ -330,7 +330,7 @@ Forbidden without future retained evidence:
 | 129 | `7274a00`, `b61ba09`, `f8d9c0d`, `f2b98e5` |
 | 130 | `3805009`, `c235d41`, `5fcb7a3`, `3769563` |
 | 131 | `efbbaf3`, `79f072e`, `4becb4e`, `bf74c10` |
-| 132 | `2b496f3`; remaining closeout checkpoint commits are recorded in `docs/handoffs/phase-132.md` |
+| 132 | `2b496f3`, `29bbed2`, `990578b`; checkpoint 000004 is recorded in `docs/handoffs/phase-132.md` |
 
 ## Remaining Recommended Next Steps
 

@@ -498,10 +498,13 @@ at `docs/release-candidate-rc2-gate.md`, but no rc2 tag or GitHub Release was
 created. Phase 131 -- Optional Evidence Gate Refresh Blocker-Only is complete,
 with closeout at `docs/handoffs/phase-131.md`: optional evidence gates are
 refreshed as blocked in
-`docs/optional-evidence-gate-refresh-phase-131.md`. Phase 132 is active for
-Final Public Release Install UX Roadmap Closeout.
-Do not stop after publication, download replay, install confidence, or UX
-validation; continue through Phase 132.
+`docs/optional-evidence-gate-refresh-phase-131.md`. Phase 132 -- Final Public
+Release Install UX Roadmap Closeout is complete, with closeout at
+`docs/handoffs/phase-132.md`: the final Phase 111-132 closeout is recorded in
+`docs/final-public-release-install-ux-roadmap-closeout.md`.
+The Phase 111-132 public release, independent install confidence, Web Design
+Skill UX validation, GTFS-RT adoption-support, blocker-gate, and closeout
+roadmap is closed.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

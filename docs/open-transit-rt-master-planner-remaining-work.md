@@ -284,8 +284,11 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 131 is complete for Optional Evidence Gate Refresh Blocker-Only. The
   closeout lives at `docs/handoffs/phase-131.md`. Optional evidence gates are
   refreshed as blocked in
-  `docs/optional-evidence-gate-refresh-phase-131.md`. Phase 132 is active for
-  Final Public Release Install UX Roadmap Closeout.
+  `docs/optional-evidence-gate-refresh-phase-131.md`.
+- Phase 132 is complete for Final Public Release Install UX Roadmap Closeout.
+  The closeout lives at `docs/handoffs/phase-132.md`. The final Phase 111-132
+  closeout is recorded in
+  `docs/final-public-release-install-ux-roadmap-closeout.md`.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.
