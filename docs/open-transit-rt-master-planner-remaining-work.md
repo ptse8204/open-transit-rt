@@ -198,8 +198,17 @@ The first instruction in this workstream was to make the Codex instructions expa
   The annotated tag dereferences to
   `497f99a97baff630af147c83a7e1249bb08e32da`. Phase 115 makes only the
   bounded claim that this is a public release candidate for local/self-hosted
-  evaluation. Phase 116 is active for published release verification and
-  download replay.
+  evaluation.
+- Phase 116 is complete for Published Release Verification And Download
+  Replay. The closeout lives at `docs/handoffs/phase-116.md`, and the replay
+  report lives at `docs/release-download-replay-v0.1.0-rc.1.md`. Uploaded
+  release assets downloaded and matched the published checksum manifest;
+  uploaded and GitHub-generated archives had zero protected-path hits; and
+  extracted published rc1 source archives failed `make check` because the
+  protected consumer tracker is correctly excluded from public archives while
+  the published rc1 tag still requires it. The current repo is patched for
+  future source archives. Phase 117 is active for independent public
+  fresh-clone install confidence.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

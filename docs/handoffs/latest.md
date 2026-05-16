@@ -421,10 +421,19 @@ root `.gitattributes` `export-ignore` policy, release gates passed, and the
 public GitHub prerelease was published at
 `https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1`.
 The annotated tag dereferences to
-`497f99a97baff630af147c83a7e1249bb08e32da`. Phase 116 is active for
-published release verification and download replay, including uploaded asset
-checksum verification and GitHub-generated source archive protected-path
-review. Do not stop after publication; continue through Phase 132.
+`497f99a97baff630af147c83a7e1249bb08e32da`. Phase 116 -- Published Release
+Verification And Download Replay is complete, with closeout at
+`docs/handoffs/phase-116.md` and replay report at
+`docs/release-download-replay-v0.1.0-rc.1.md`: uploaded release assets
+downloaded, published checksum verification passed, uploaded and
+GitHub-generated archives had zero protected-path hits, and the already
+published rc1 extracted source archives failed `make check` because the
+protected consumer tracker is correctly export-ignored while the rc1 tag still
+requires it. The current repo was patched so future source archives skip that
+protected-file check only outside git checkouts with the committed
+`export-ignore` policy. Phase 117 is active for independent public fresh-clone
+install confidence. Do not stop after publication or download replay; continue
+through Phase 132.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

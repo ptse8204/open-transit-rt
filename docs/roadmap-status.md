@@ -35,10 +35,19 @@ artifact is
 The public GitHub prerelease is
 [`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1),
 draft `false`, prerelease `true`, and the tag dereferences to
-`497f99a97baff630af147c83a7e1249bb08e32da`. Phase 116 is active for
-published release verification and download replay. This release remains a
-candidate for local/self-hosted evaluation only and does not claim stable
-release readiness, production readiness, compliance, adoption, consumer
+`497f99a97baff630af147c83a7e1249bb08e32da`. Phase 116 is complete for
+published release verification and download replay. The closeout handoff is
+[`docs/handoffs/phase-116.md`](handoffs/phase-116.md), and the replay report
+is
+[`docs/release-download-replay-v0.1.0-rc.1.md`](release-download-replay-v0.1.0-rc.1.md).
+Uploaded release assets downloaded and matched the published checksum
+manifest, and uploaded/GitHub-generated archives had zero protected-path hits.
+Extracted published rc1 source archives still fail `make check` because the
+protected consumer tracker is correctly excluded while the rc1 tag still
+requires it; the current repo is patched for future archives. Phase 117 is
+active for independent public fresh-clone install confidence. This release
+remains a candidate for local/self-hosted evaluation only and does not claim
+stable release readiness, production readiness, compliance, adoption, consumer
 acceptance, final-root readiness, hosted service availability, SLA/uptime,
 vendor compatibility, hardware certification, or production-grade ETA quality.
 

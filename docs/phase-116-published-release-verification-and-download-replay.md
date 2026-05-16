@@ -362,3 +362,83 @@ Proceed to checkpoint 000003 commit and Phase 116 closeout.
 Next checkpoint:
 Phase 116 -- Checkpoint 000004: close published release verification and
 download replay review.
+
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 116 -- Checkpoint 000004: close published release verification and
+download replay review.
+
+Goal status:
+Active. Phase 116 is closed and Phase 117 starts next.
+
+Sub-agents used or simulated:
+Release/Install Confidence sub-agent recommendations were incorporated. QA,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration,
+Implementation, Web Design Skill, GTFS-RT Domain, and Planning closeout roles
+were simulated by the Master Agent.
+
+Changed files:
+`docs/handoffs/phase-116.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-116-published-release-verification-and-download-replay.md`.
+
+Validation run:
+Closeout relies on checkpoint 000003 full validation. After closeout docs were
+updated, focused docs/protected-path validation is rerun before the checkpoint
+000004 commit.
+
+Blocked checks:
+Published rc1 source archive `make check` replay remains blocked because the
+already published tag predates the archive-aware protected tracker check. This
+is recorded truthfully in the replay report.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 116 records download and archive verification only. It makes no stable,
+production, compliance, adoption, consumer, final-root, hosted-service,
+vendor, SLA, hardware, or ETA-quality claim.
+
+Security/auth status:
+No application route auth, CSRF behavior, credential handling, token handling,
+private payload handling, public exposure, or operator command behavior
+changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, dependency, or Go
+module change was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. No new tag, release, or asset
+upload was created.
+
+Install confidence status:
+Public asset download and checksum verification passed. Published rc1 source
+archive install confidence remains partial because extracted archives fail
+`make check`; Phase 117 is required for independent public fresh-clone install
+confidence.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 118 remains scheduled.
+
+Master review:
+Approved. Phase 116 closes with bounded release download verification, exact
+blocker evidence for rc1 archive replay, and a current-source patch for future
+archives.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 117.
+
+Decision:
+Phase 116 is complete.
+
+Next checkpoint:
+Phase 117 -- Checkpoint 000001: add independent public install confidence
+trial plan.

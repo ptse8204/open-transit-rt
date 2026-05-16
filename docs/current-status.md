@@ -669,8 +669,18 @@ Phase 115 made only the bounded claim that this is a public release candidate
 for local/self-hosted evaluation; it did not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,
-hardware certification, or production-grade ETA quality. Phase 116 is active
-for published release verification and download replay.
+hardware certification, or production-grade ETA quality. Phase 116 -- Published
+Release Verification And Download Replay is complete, with closeout at
+`docs/handoffs/phase-116.md` and replay report at
+`docs/release-download-replay-v0.1.0-rc.1.md`: public uploaded release assets
+downloaded, published checksum verification passed, uploaded and
+GitHub-generated archives had zero protected-path hits, and extracted
+published rc1 source archives failed `make check` because the protected
+consumer tracker is correctly excluded from public source archives while the
+published rc1 tag still requires it. The current repo now makes the consumer
+tracker check archive-aware for future exported archives without weakening the
+mandatory exact prepared-only tracker check in normal git checkouts. Phase 117
+is active for independent public fresh-clone install confidence.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)
