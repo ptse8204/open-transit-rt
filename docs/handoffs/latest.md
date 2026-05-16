@@ -410,9 +410,14 @@ the repo now has a repeatable install-confidence harness, local fresh-clone
 replay passed `make check`, bootstrap preflight, local app startup, and five
 local public feed fetches, and local source archive replay passed archive
 listing, extraction, `make check`, and bootstrap preflight. Phase 114 is
-active for Web Design Skill UX audit and control-plane polish. Continue to
-Phase 114; do not stop after install confidence, release blocking audit, or a
-release recommendation.
+complete for Web Design Skill UX audit and control-plane polish, with closeout
+at `docs/handoffs/phase-114.md`: the Web Design Skill was used, the required
+Phase 114 UX artifact was added, missing feed URL copy affordances no longer
+copy `missing`, and the first-run realtime task now uses plain-language
+Vehicle Positions, Trip Updates, and Alerts labeling. Phase 115 is active for
+the gated public `v0.1.0-rc.1` release-candidate cut. Continue to Phase 115;
+do not stop after install confidence, release blocking audit, UX validation,
+or a release recommendation.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

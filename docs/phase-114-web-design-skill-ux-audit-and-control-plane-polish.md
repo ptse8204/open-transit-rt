@@ -375,3 +375,75 @@ Next checkpoint:
 Phase 114 -- Checkpoint 000004: close web design skill ux audit and control
 plane polish review.
 
+## Checkpoint Report -- 000004
+
+Checkpoint:
+Phase 114 -- Checkpoint 000004: close web design skill ux audit and control
+plane polish review.
+
+Goal status:
+Active. Phase 114 is closed and the goal continues to Phase 115.
+
+Sub-agents used or simulated:
+Web Design Skill UX findings were incorporated and the Web Design Skill was
+used. QA, Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration,
+Release/Supply-Chain, Install Confidence, GTFS-RT Domain, and Implementation
+closeout roles were simulated by the Master Agent.
+
+Changed files:
+`docs/handoffs/phase-114.md`; `docs/handoffs/latest.md`;
+`docs/current-status.md`; `docs/roadmap-status.md`;
+`docs/open-transit-rt-master-planner-remaining-work.md`;
+`docs/phase-114-web-design-skill-ux-audit-and-control-plane-polish.md`.
+
+Validation run:
+Closeout relies on the checkpoint 000003 validation pass. After closeout docs
+were updated, focused docs/protected-path validation is rerun before the
+checkpoint 000004 commit.
+
+Blocked checks:
+Release publication remains blocked by the Phase 112 source archive
+public-distribution review until Phase 115 records the gated release-cut
+outcome.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+Phase 114 records bounded UX review and polish only. It makes no stronger
+public claim.
+
+Security/auth status:
+No runtime route, auth behavior, credential handling, token handling,
+external contact, public exposure, or private payload handling changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was added.
+
+Release/publication status:
+No release action was taken. Phase 115 starts next as the gated public rc1
+release-cut phase.
+
+Install confidence status:
+Phase 113 remains the current install-confidence result.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 118 remains scheduled.
+
+Master review:
+Approved. Phase 114 closes with validated UX polish and no claim-boundary,
+auth, protected-path, or consumer-tracker regression.
+
+Required edits:
+Commit checkpoint 000004, then continue directly to Phase 115.
+
+Decision:
+Proceed to checkpoint 000004 commit and continue to Phase 115.
+
+Next checkpoint:
+Phase 115 -- Checkpoint 000001: add v0.1.0-rc.1 public release cut plan.

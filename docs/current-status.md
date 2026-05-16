@@ -647,8 +647,18 @@ is `docs/install-confidence-v0.1.0-rc.1.md`. Phase 113 added no release
 action, retained evidence, consumer status change, external contact,
 protected-path write, production-readiness claim, compliance claim,
 hosted-service claim, vendor claim, hardware claim, SLA/uptime claim,
-public-launch claim, or ETA-quality claim. Phase 114 is active for Web Design
-Skill UX audit and control-plane polish.
+public-launch claim, or ETA-quality claim.
+Phase 114 -- Web Design Skill UX Audit And Control Plane Polish is complete,
+with closeout at `docs/handoffs/phase-114.md`: the Web Design Skill was used,
+`docs/ux/web-design-skill-review-phase-114.md` was added, missing feed URL
+copy affordances no longer copy `missing`, the first-run missing value display
+now reads `Not configured yet`, and `VP/TU/Alerts` was replaced by
+plain-language realtime feed labeling. Phase 114 added no release action,
+retained evidence, consumer status change, external contact, protected-path
+write, production-readiness claim, compliance claim, hosted-service claim,
+vendor claim, hardware claim, SLA/uptime claim, public-launch claim, or
+ETA-quality claim. Phase 115 is active for gated public `v0.1.0-rc.1`
+release-candidate cut.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

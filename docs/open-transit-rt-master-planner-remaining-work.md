@@ -185,11 +185,16 @@ The first instruction in this workstream was to make the Codex instructions expa
 - Phase 113 is complete for Fresh Clone Install Harness And Release Dry Run.
   The closeout lives at `docs/handoffs/phase-113.md`;
   `docs/install-confidence-v0.1.0-rc.1.md` records bounded local fresh-clone
-  and local source-archive install-confidence passes. Phase 114 is active for
-  Web Design Skill UX audit and control-plane polish. Phase 115 is the first
-  phase authorized to attempt public `v0.1.0-rc.1` publication, only if gates
-  pass and authenticated tooling is available; blocked publication must be
-  recorded truthfully and downstream safe phases must continue.
+  and local source-archive install-confidence passes.
+- Phase 114 is complete for Web Design Skill UX Audit And Control Plane
+  Polish. The closeout lives at `docs/handoffs/phase-114.md`;
+  `docs/ux/web-design-skill-review-phase-114.md` records the skill-backed UX
+  review, missing feed URL copy polish, and plain-language realtime feed
+  labeling. Phase 115 is active for the gated public release-candidate cut
+  and is the first phase authorized to attempt public `v0.1.0-rc.1`
+  publication, only if gates pass and authenticated tooling is available;
+  blocked publication must be recorded truthfully and downstream safe phases
+  must continue.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

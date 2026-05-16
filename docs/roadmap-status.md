@@ -23,7 +23,11 @@ Phase 113 is complete for fresh clone install harness and release dry run.
 The closeout handoff is [`docs/handoffs/phase-113.md`](handoffs/phase-113.md),
 and `docs/install-confidence-v0.1.0-rc.1.md` records bounded local
 fresh-clone and local source-archive install-confidence passes. Phase 114 is
-active for Web Design Skill UX audit and control-plane polish.
+complete for Web Design Skill UX audit and control-plane polish. The closeout
+handoff is [`docs/handoffs/phase-114.md`](handoffs/phase-114.md), and the UX
+artifact is
+[`docs/ux/web-design-skill-review-phase-114.md`](ux/web-design-skill-review-phase-114.md).
+Phase 115 is active for the gated public `v0.1.0-rc.1` release-candidate cut.
 Phase 115 is authorized to attempt public `v0.1.0-rc.1` release-candidate
 publication only if release gates pass and authenticated tooling is available.
 If release credentials, tooling, source-archive review, protected-path review,
