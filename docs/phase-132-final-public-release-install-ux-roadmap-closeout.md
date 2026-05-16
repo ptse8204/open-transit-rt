@@ -232,3 +232,98 @@ Proceed to checkpoint 000002 commit.
 
 Next checkpoint:
 Phase 132 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 132 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Final Phase 132 validation passed after rerunning two initially
+colliding checks sequentially.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Release/Supply-Chain, Install Confidence,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+This phase report.
+
+Validation run:
+`git status --short` returned clean at validation start. `git diff --check`
+passed. `python3 -m json.tool
+docs/evidence/consumer-submissions/status.json >/dev/null` passed.
+`scripts/check-consumer-tracker.sh` passed. Protected-path git status for
+`docs/evidence/consumer-submissions`, `docs/evidence/captured`,
+`db/migrations`, `go.mod`, and `go.sum` returned no output. `make check`
+passed. `make validate` passed. `make test-release-package` passed. An
+initial parallel run of `make test` and `make smoke` failed because their
+`cmd/agency-config` tests collided in shared ignored `.cache` test output
+directories. After clearing only the generated `.cache/*-test` directories and
+rerunning sequentially, `make test` passed and `make smoke` passed. `make
+audit-product-acceptance` passed. `make audit-final-claim-review` passed.
+`make external-connection-check` passed. `make adapter-conformance` passed.
+`make gtfsrt-conformance` passed. `docker compose -f
+deploy/docker-compose.yml config` passed. `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.2
+scripts/audit-release-package.sh` passed. `RUN_LOCAL_APP=true
+RUN_RELEASE_PACKAGE=true RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.2
+OUTPUT_DIR=.cache/phase-132/release-candidate-check FORCE=true
+scripts/release-candidate-check.sh` exited `0` with 36 passed, 0 blockers, 0
+needs_review, and 3 `not_checked` helper rows: `validate`, `test`, and
+`smoke`. Those three rows were run separately and passed.
+
+Blocked checks:
+No final Phase 132 validation check remains blocked. The roadmap still records
+bounded non-validation blockers: published rc1 source-archive `make check`
+replay remains blocked for the already published archive; public rc2
+publication is not authorized; optional evidence gates, final-root readiness,
+consumer status movement, compliance, production readiness, hosted/SLA,
+vendor/hardware, and ETA-quality claims remain unsupported without future
+retained evidence.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Product acceptance and final claim audits passed. Phase 132 remains a final
+roadmap closeout and makes no stable release, final-root, consumer, agency,
+compliance, hosted-service, paid-support, SLA, production, vendor, hardware,
+production AVL reliability, ETA-quality, or real-world ETA accuracy claim.
+
+Security/auth status:
+No auth, CSRF, credential, token, private payload, external contact, public
+route, or retained private artifact behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 132 made no tag, release,
+package, image, or public announcement.
+
+Install confidence status:
+Phase 117 public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+No visual UI was changed in checkpoint 000003. The required prior Web Design
+Skill artifacts remain recorded for Phases 114 and 118.
+
+Master review:
+Approved for Phase 132 closeout.
+
+Required edits:
+None.
+
+Decision:
+Proceed to checkpoint 000003 commit.
+
+Next checkpoint:
+Phase 132 -- Checkpoint 000004: close final public release install ux roadmap
+closeout review.
