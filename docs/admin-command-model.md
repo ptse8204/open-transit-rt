@@ -85,3 +85,23 @@ for the existing validator run workflow. It is a private diagnostic write
 because successful runs may store normal `validation_report` rows. It changes
 no public feed output, creates no retained evidence, and moves no consumer
 status.
+
+## Operator Assistant Catalog
+
+`internal/admincontrol.OperatorAssistantDefinitions()` now exposes a
+server-owned safe-command catalog for operator assistance. It is a bounded
+definition catalog, not browser-provided execution. The current catalog covers:
+
+| Action | Level | Role | Status |
+| --- | --- | --- | --- |
+| `validation_health.refresh` | `read_only_refresh` | `read_only` | implemented private refresh |
+| `alerts.cancellation_reconcile.preview` | `dry_run` | `operator` | disabled-by-default definition |
+| `realtime_quality.backtest.dry_run` | `dry_run` | `operator` | disabled-by-default definition |
+| `connectors.conformance.review` | `dry_run` | `operator` | disabled-by-default definition |
+| `validation_health.run_all` | `reversible_private_change` | `admin` | future/admin definition |
+
+Disabled-by-default definitions do not create new browser routes, do not accept
+browser-supplied command fields, and do not execute arbitrary commands. They
+record the server-owned mappings, role boundary, public-feed impact, private
+impact, rollback/review path, and non-claims that any later implementation
+must preserve.

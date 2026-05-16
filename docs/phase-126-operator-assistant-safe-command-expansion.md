@@ -142,3 +142,90 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 126 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 126 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 126 implemented the scoped safe operator-assistant command
+catalog.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+`internal/admincontrol/model.go`, `internal/admincontrol/model_test.go`,
+`docs/admin-command-model.md`, and this phase report.
+
+Implementation summary:
+Added `OperatorAssistantDefinitions()` and `FindOperatorAssistantDefinition()`
+to expose a server-owned safe-command catalog. The catalog includes the
+implemented `validation_health.refresh`, disabled-by-default dry-run
+definitions for canceled-trip alert reconciliation preview, realtime-quality
+backtesting, connector conformance review, and the existing future/admin
+`validation_health.run_all` definition. The change adds definitions and docs
+only; it does not add browser routes, browser execution, arbitrary command
+fields, shell execution, destructive actions, evidence writes, or consumer
+status changes.
+
+Validation run:
+`gofmt` passed on touched Go files. `git diff --check` passed. `go test
+./internal/admincontrol` passed. `go test ./internal/admincontrol
+./cmd/agency-config -run 'Test(OperatorAssistant|ValidationHealthCommand|OperationsRouteRegistry|OperationsAdminRefresh|Result)'`
+passed. `scripts/check-consumer-tracker.sh` passed.
+
+Blocked checks:
+None for this checkpoint. Full repo validation is scheduled for checkpoint
+000003.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+The catalog definitions explicitly avoid compliance, consumer acceptance,
+consumer display, public launch, hosted availability, production readiness,
+vendor compatibility, hardware certification, SLA, production AVL reliability,
+real-world ETA accuracy, and ETA-quality claims.
+
+Security/auth status:
+No route auth, CSRF behavior, credential handling, token handling, public
+exposure, private payload handling, or operator command behavior was changed.
+The route registry remains unchanged and no browser execution was added.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 126 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. Phase 126 did not make
+visual UX changes.
+
+Master review:
+Approved for full validation. The implementation expands safe command
+definitions without expanding browser command execution.
+
+Required edits:
+Run checkpoint 000003 full validation and patch any repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 126 -- Checkpoint 000003: run validation and patch required gaps.

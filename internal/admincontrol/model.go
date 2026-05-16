@@ -219,3 +219,86 @@ func ValidationHealthRunAllDefinition() Definition {
 		},
 	}
 }
+
+func AlertsCancellationPreviewDefinition() Definition {
+	return Definition{
+		Action:            "alerts.cancellation_reconcile.preview",
+		Label:             "Preview canceled-trip alert reconciliation",
+		LadderLevel:       LevelDryRun,
+		RequiredRole:      "operator",
+		Confirmation:      "Computes a private preview from existing canceled-trip overrides and missing-alert review incidents.",
+		PublicFeedImpact:  "No public feed output changes.",
+		PrivateImpact:     "Writes nothing; reports aggregate preview counts only.",
+		RollbackPath:      "No rollback is required because the preview writes nothing.",
+		DisabledByDefault: true,
+		TechnicalHandoff:  "Use the Alerts Console reconciliation action only after agency review of canceled-trip overrides.",
+		DoesNotProve:      "Does not prove compliance, consumer acceptance, consumer display, public launch, hosted availability, production readiness, vendor compatibility, hardware certification, SLA, or ETA quality.",
+		ServerOwnedMappings: []string{
+			"canceled-trip override lookup",
+			"missing-alert review lookup",
+			"alert entity mapping",
+		},
+	}
+}
+
+func RealtimeQualityBacktestDefinition() Definition {
+	return Definition{
+		Action:            "realtime_quality.backtest.dry_run",
+		Label:             "Run private realtime quality backtest",
+		LadderLevel:       LevelDryRun,
+		RequiredRole:      "operator",
+		Confirmation:      "Runs a bounded private/local aggregate backtest from server-owned or committed synthetic inputs.",
+		PublicFeedImpact:  "No public feed output changes.",
+		PrivateImpact:     "Writes only private aggregate diagnostics under allowed local diagnostic output when explicitly run by an operator.",
+		RollbackPath:      "Remove or supersede private diagnostic output; no public feed rollback is required.",
+		DisabledByDefault: true,
+		TechnicalHandoff:  "Use realtime-quality backtest docs when observed/prediction inputs are missing or blocked.",
+		DoesNotProve:      "Does not prove compliance, consumer acceptance, real-world ETA accuracy, production-grade ETA quality, public launch, hosted availability, production readiness, vendor compatibility, hardware certification, or SLA.",
+		ServerOwnedMappings: []string{
+			"observed event input",
+			"prediction sample input",
+			"diagnostic output guard",
+			"redaction scan",
+		},
+	}
+}
+
+func ConnectorConformanceReviewDefinition() Definition {
+	return Definition{
+		Action:            "connectors.conformance.review",
+		Label:             "Review connector conformance results",
+		LadderLevel:       LevelDryRun,
+		RequiredRole:      "operator",
+		Confirmation:      "Reviews committed synthetic connector manifests and conformance fixture coverage.",
+		PublicFeedImpact:  "No public feed output changes.",
+		PrivateImpact:     "Writes nothing; reads committed synthetic manifests and fixtures only.",
+		RollbackPath:      "No rollback is required because the review writes nothing.",
+		DisabledByDefault: true,
+		TechnicalHandoff:  "Use connector conformance docs if manifests or synthetic fixtures are missing or blocked.",
+		DoesNotProve:      "Does not prove compliance, consumer acceptance, vendor compatibility, hardware certification, public launch, hosted availability, production readiness, SLA, production AVL reliability, or ETA quality.",
+		ServerOwnedMappings: []string{
+			"connector manifest registry",
+			"synthetic fixture paths",
+			"claim boundary lint",
+		},
+	}
+}
+
+func OperatorAssistantDefinitions() []Definition {
+	return []Definition{
+		ValidationHealthRefreshDefinition(),
+		AlertsCancellationPreviewDefinition(),
+		RealtimeQualityBacktestDefinition(),
+		ConnectorConformanceReviewDefinition(),
+		ValidationHealthRunAllDefinition(),
+	}
+}
+
+func FindOperatorAssistantDefinition(action string) (Definition, bool) {
+	for _, definition := range OperatorAssistantDefinitions() {
+		if definition.Action == action {
+			return definition, true
+		}
+	}
+	return Definition{}, false
+}

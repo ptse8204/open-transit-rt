@@ -100,3 +100,68 @@ func TestValidationHealthDefinitionsBounded(t *testing.T) {
 		t.Fatalf("run-all definition does not state private diagnostic write boundary: %+v", runAll)
 	}
 }
+
+func TestOperatorAssistantDefinitionsAreServerOwnedAndBounded(t *testing.T) {
+	definitions := OperatorAssistantDefinitions()
+	wantActions := []string{
+		"validation_health.refresh",
+		"alerts.cancellation_reconcile.preview",
+		"realtime_quality.backtest.dry_run",
+		"connectors.conformance.review",
+		"validation_health.run_all",
+	}
+	if len(definitions) != len(wantActions) {
+		t.Fatalf("definitions = %d, want %d: %+v", len(definitions), len(wantActions), definitions)
+	}
+	seen := map[string]bool{}
+	for i, definition := range definitions {
+		if definition.Action != wantActions[i] {
+			t.Fatalf("definition %d action = %q, want %q", i, definition.Action, wantActions[i])
+		}
+		if seen[definition.Action] {
+			t.Fatalf("duplicate action %q", definition.Action)
+		}
+		seen[definition.Action] = true
+		if definition.Label == "" || definition.RequiredRole == "" || definition.Confirmation == "" || definition.PublicFeedImpact == "" || definition.PrivateImpact == "" || definition.RollbackPath == "" || definition.TechnicalHandoff == "" || definition.DoesNotProve == "" {
+			t.Fatalf("definition has empty required fields: %+v", definition)
+		}
+		if !strings.Contains(definition.PublicFeedImpact, "No public feed output changes") {
+			t.Fatalf("definition %s does not bound public feed impact: %+v", definition.Action, definition)
+		}
+		if !strings.Contains(definition.DoesNotProve, "Does not prove") {
+			t.Fatalf("definition %s does not state non-claims: %+v", definition.Action, definition)
+		}
+		if definition.Action != "validation_health.refresh" && definition.Action != "validation_health.run_all" && !definition.DisabledByDefault {
+			t.Fatalf("future operator assistant action %s must remain disabled by default", definition.Action)
+		}
+		encoded, err := json.Marshal(definition)
+		if err != nil {
+			t.Fatalf("marshal definition %s: %v", definition.Action, err)
+		}
+		lower := strings.ToLower(string(encoded))
+		for _, forbidden := range []string{
+			"raw_command",
+			"validator_command",
+			"argv",
+			"authorization:",
+			"bearer ",
+			"postgres://",
+			"/users/",
+			"consumer accepted",
+			"compliance achieved",
+			"production ready",
+			"vendor compatible",
+			"certified hardware",
+		} {
+			if strings.Contains(lower, forbidden) {
+				t.Fatalf("definition %s contains forbidden %q: %s", definition.Action, forbidden, encoded)
+			}
+		}
+	}
+	if _, ok := FindOperatorAssistantDefinition("alerts.cancellation_reconcile.preview"); !ok {
+		t.Fatal("catalog lookup did not find alerts preview definition")
+	}
+	if _, ok := FindOperatorAssistantDefinition("unknown.action"); ok {
+		t.Fatal("catalog lookup found unknown action")
+	}
+}
