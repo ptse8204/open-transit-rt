@@ -202,3 +202,87 @@ Proceed to checkpoint 000001 validation and commit.
 Next checkpoint:
 Phase 114 -- Checkpoint 000002: implement or audit primary scoped work.
 
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 114 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 114 UX audit and primary polish are implemented.
+
+Sub-agents used or simulated:
+Web Design Skill UX findings from Phase 111 were incorporated. The
+Web Design Skill file was read and applied. Implementation, QA,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration,
+Release/Supply-Chain, Install Confidence, and GTFS-RT Domain roles were
+simulated by the Master Agent for this checkpoint.
+
+Changed files:
+`cmd/agency-config/operations_first_run.go`;
+`cmd/agency-config/operations.go`;
+`cmd/agency-config/operations_admin.js`;
+`cmd/agency-config/operations_admin_test.mjs`;
+`cmd/agency-config/main_test.go`;
+`docs/ux/web-design-skill-review-phase-114.md`;
+`docs/phase-114-web-design-skill-ux-audit-and-control-plane-polish.md`.
+
+Validation run:
+`node --test cmd/agency-config/operations_admin_test.mjs` passed. Focused
+Operations Console Go tests passed. `make agency-app-up` started the local app.
+Authenticated local HTML review confirmed the plain-language realtime label and
+no `data-copy-value="missing"` marker. Playwright CLI captured desktop and
+mobile Operations Console screenshots into ignored `.cache/phase-114-ux/`.
+
+Blocked checks:
+Full baseline validation is scheduled for checkpoint 000003. Public release
+publication remains blocked by the Phase 112 source archive
+public-distribution review. Release publication, retained evidence, external
+contact, consumer status movement, protected path writes, and stronger claims
+remain out of Phase 114 scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets must remain in
+order and all remain `prepared`.
+
+Claim-boundary status:
+The UX artifact and code changes preserve forbidden claim boundaries and make
+no stronger public claim.
+
+Security/auth status:
+No route, auth behavior, CSRF behavior, credential handling, token handling,
+public exposure, private payload handling, external contact, or command
+execution behavior changed. The Playwright auth storage state was local,
+ignored, and not committed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, or Go
+module change was added.
+
+Release/publication status:
+No release action was taken. Publication remains blocked by the Phase 112
+public-distribution review.
+
+Install confidence status:
+No new install-confidence claim was made. Phase 113 remains the current local
+install-confidence result.
+
+Web design skill status:
+Phase 114 used the Web Design Skill and added
+`docs/ux/web-design-skill-review-phase-114.md`.
+
+Master review:
+Approved. The implementation fixes release-relevant copy affordance and
+plain-language label issues while preserving private no-JS-safe behavior.
+
+Required edits:
+Commit checkpoint 000002, then run full Phase 114 validation.
+
+Decision:
+Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 114 -- Checkpoint 000003: run validation and patch required gaps.
+

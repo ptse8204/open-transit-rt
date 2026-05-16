@@ -155,7 +155,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 		firstRunTask(
 			6,
 			"vp_tu_alerts",
-			"VP/TU/Alerts",
+			"Realtime feeds: Vehicle Positions, Trip Updates, Alerts",
 			firstRunRealtimeStatus(page),
 			firstRunRealtimeSignal(page),
 			"Vehicle Positions are the first high-quality realtime output target, while Trip Updates stay behind the prediction adapter and Alerts remain a separate lifecycle feed.",
@@ -320,7 +320,7 @@ func firstRunFeedURLs(page operationsPage) []operationsFirstRunFeedURL {
 
 func firstRunFeedURL(id string, label string, url string, source string, meaning string, nextAction string, docsLink string, doesNotProve string) operationsFirstRunFeedURL {
 	status := checklistStatusMissing
-	copyValue := "missing"
+	copyValue := ""
 	trimmed := strings.TrimSpace(url)
 	if trimmed != "" {
 		status = checklistStatusNeedsReview

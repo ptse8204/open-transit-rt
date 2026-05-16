@@ -79,6 +79,14 @@ test("command result text stays diagnostic", () => {
   assert.doesNotMatch(text.toLowerCase(), /compliant|accepted|production ready|certified/);
 });
 
+test("copyableText rejects missing sentinel values", () => {
+  assert.equal(operations.copyableText("https://feeds.example.org/public/feeds.json", ""), "https://feeds.example.org/public/feeds.json");
+  assert.equal(operations.copyableText("", "https://feeds.example.org/public/gtfs/schedule.zip"), "https://feeds.example.org/public/gtfs/schedule.zip");
+  assert.equal(operations.copyableText("missing", ""), "");
+  assert.equal(operations.copyableText("", "Not configured yet"), "");
+  assert.equal(operations.copyableText("", "unknown"), "");
+});
+
 test("review row filtering keeps local diagnostic language", () => {
   assert.equal(operations.rowMatchesFilterText("Vehicle Positions stale next action", "stale", "needs_action", ""), true);
   assert.equal(operations.rowMatchesFilterText("Schedule configured current", "ok", "needs_action", ""), false);

@@ -1323,6 +1323,11 @@ func TestOperationsLaunchpadJSONShapeFlagsAndNoLeakage(t *testing.T) {
 	if status := firstRunTaskStatus(missing.FirstRun, "metadata"); status == checklistStatusOK {
 		t.Fatalf("missing-data first-run metadata status = ok, want missing/review/blocker/unknown")
 	}
+	for _, row := range missing.FirstRun.FeedURLs {
+		if row.URL == "" && row.CopyValue != "" {
+			t.Fatalf("missing-data first-run feed %s copy value = %q, want empty", row.ID, row.CopyValue)
+		}
+	}
 	assertLaunchpadFlagsFalse(t, missing.ClaimFlags)
 	assertFirstRunFlagsFalse(t, missing.FirstRun.ClaimFlags)
 }
@@ -1345,7 +1350,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "VP/TU/Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1418,7 +1423,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"Five configured feed URLs",
 		"Validation health",
 		"Telemetry",
-		"VP/TU/Alerts",
+		"Realtime feeds: Vehicle Positions, Trip Updates, Alerts",
 		"Readiness",
 		"Connectors",
 		"Support/RC checks",
@@ -7178,8 +7183,14 @@ func assertFirstRunShape(t *testing.T, firstRun operationsFirstRunView) {
 	var gotFeedIDs []string
 	for _, row := range firstRun.FeedURLs {
 		gotFeedIDs = append(gotFeedIDs, row.ID)
-		if row.ID == "" || row.Label == "" || row.Status == "" || row.CopyValue == "" || row.Source == "" || row.Meaning == "" || row.NextAction == "" || row.DocsLink == "" || row.DoesNotProve == "" {
+		if row.ID == "" || row.Label == "" || row.Status == "" || row.Source == "" || row.Meaning == "" || row.NextAction == "" || row.DocsLink == "" || row.DoesNotProve == "" {
 			t.Fatalf("invalid first-run feed URL shape: %+v", row)
+		}
+		if row.URL == "" && row.CopyValue != "" {
+			t.Fatalf("first-run feed %s has missing URL but copy value %q", row.ID, row.CopyValue)
+		}
+		if row.URL != "" && row.CopyValue == "" {
+			t.Fatalf("first-run feed %s has URL but no copy value", row.ID)
 		}
 		if !allowedStatuses[row.Status] {
 			t.Fatalf("first-run feed %q status = %q, want neutral status", row.ID, row.Status)

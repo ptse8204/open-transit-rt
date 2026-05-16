@@ -203,6 +203,17 @@
     region.textContent = message;
   }
 
+  function copyableText(attributeValue, fallbackText) {
+    var text = String(attributeValue || fallbackText || "").trim();
+    if (!text) {
+      return "";
+    }
+    if (/^(missing|not configured|not configured yet|not available|unknown)$/i.test(text)) {
+      return "";
+    }
+    return text;
+  }
+
   function postPrivateCommand(path, fields, fetchImpl) {
     var endpoint = safeAdminPath(path, { method: "POST" });
     if (!endpoint) {
@@ -258,6 +269,12 @@
       if (value.getAttribute("data-copy-ready") === "true") {
         return;
       }
+      var safeText = copyableText(value.getAttribute("data-copy-value"), value.textContent);
+      if (!safeText) {
+        value.setAttribute("data-copy-ready", "false");
+        value.setAttribute("data-copy-unavailable", "true");
+        return;
+      }
       value.setAttribute("data-copy-ready", "true");
       var button = documentRef.createElement("button");
       var status = documentRef.createElement("span");
@@ -273,7 +290,7 @@
       value.insertAdjacentElement("afterend", status);
       value.insertAdjacentElement("afterend", button);
       button.addEventListener("click", function () {
-        var text = value.getAttribute("data-copy-value") || value.textContent || "";
+        var text = copyableText(value.getAttribute("data-copy-value"), value.textContent);
         if (!text) {
           status.textContent = "This value is not marked safe to copy.";
           return;
@@ -402,6 +419,7 @@
     boundedRefreshInterval: boundedRefreshInterval,
     commandRefreshBody: commandRefreshBody,
     commandResultText: commandResultText,
+    copyableText: copyableText,
     init: init,
     isTerminalStatus: isTerminalStatus,
     onReady: onReady,

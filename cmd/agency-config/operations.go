@@ -2235,7 +2235,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .FeedURLs}}<section class="feed-url-card" id="first-run-feed-{{.ID}}" data-copy-card>
 <h3>{{.Label}}</h3>
 <p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span> <code>{{.ID}}</code></p>
-<code class="copy-value" data-copy-value="{{.CopyValue}}">{{.CopyValue}}</code>
+<code class="copy-value" data-copy-value="{{.CopyValue}}">{{if .CopyValue}}{{.CopyValue}}{{else}}Not configured yet{{end}}</code>
 <p><strong>Current link:</strong> {{if .URL}}<a href="{{.URL}}">{{.URL}}</a>{{else}}missing{{end}}</p>
 <p><strong>Next:</strong> {{.NextAction}}</p>
 <p class="muted"><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
