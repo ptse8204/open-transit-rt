@@ -14,7 +14,7 @@ readiness claim.
 - Source package: local `.cache` diagnostic package at
   `.cache/release-package/v0.1.0-rc.1`.
 - Source package commit:
-  `c9fd75765837a5e4812e94b6e91250fd0f3d679b`
+  `ee8e186bcc4c879fa0e64ddfbfe5464f550e66de`
 - Release notes link: local draft at
   `docs/release-notes-v0.1.0-rc.1-draft.md`
 - Current gate references:
@@ -28,7 +28,7 @@ readiness claim.
 - Artifact checksums: local checksum manifest at
   `.cache/release-package/v0.1.0-rc.1/checksums/SHA256SUMS.txt`.
 - Source archive checksum:
-  `0a3e5476983724b82eea65e4654771c88652bf7c6c25faf245c9898525d16069`
+  `5a1caa29e5bf00d5b9fd6303aee6b067a386a9834e3d05a86c263ef8766535bf`
 - SBOM/provenance: local metadata generated under
   `.cache/release-package/v0.1.0-rc.1`; SBOM status `present`.
 - Published Docker image: None.
@@ -86,7 +86,7 @@ maintainer release decision.
   `not_checked` because follow-up `make validate`, `make test`, and `make
   smoke` rows are intentionally outside the bounded helper output.
 - Latest Phase 112 diagnostic:
-  `.cache/release-candidate-check/20260516T022918Z`; helper overall
+  `.cache/release-candidate-check/20260516T023259Z`; helper overall
   `not_checked` with 36 passed rows, 0 blockers, 0 `needs_review` rows, and 3
   intentionally `not_checked` rows.
 - Local release package: generated and audited locally under
@@ -272,7 +272,7 @@ Recorded Phase 112 release artifact audit checks:
 | Check | Result | Scope |
 | --- | --- | --- |
 | `make test-release-package` | passed | Local package helper tests. |
-| `RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true RELEASE_PACKAGE_FORCE=true make release-package` | passed | Local `.cache` source archive, checksum, SBOM, provenance, manifest, and image metadata summary from clean commit `c9fd75765837a5e4812e94b6e91250fd0f3d679b`. |
+| `RELEASE_PACKAGE_VERSION=v0.1.0-rc.1 RELEASE_PACKAGE_OUTPUT_DIR=.cache/release-package/v0.1.0-rc.1 RELEASE_PACKAGE_ALLOW_DIRTY=false RELEASE_PACKAGE_STRICT=true RELEASE_PACKAGE_FORCE=true make release-package` | passed | Local `.cache` source archive, checksum, SBOM, provenance, manifest, and image metadata summary from clean commit `ee8e186bcc4c879fa0e64ddfbfe5464f550e66de`. |
 | `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package` | passed | Local package metadata/checksum/claim-flag audit. Does not clear public distribution of source archive contents. |
 | Source archive protected-path scan | blocked | Archive contains 182 protected-path entries under `docs/evidence/captured/**` and protected `docs/evidence/consumer-submissions/**` areas. |
 | `RUN_LOCAL_APP=true RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 RUN_RELEASE_PACKAGE=true make release-candidate-check` | exited `0`; helper overall `not_checked` | Local app and five-feed diagnostics passed; package audit passed; bounded helper keeps `make validate`, `make test`, and `make smoke` as follow-up rows. |
@@ -289,7 +289,7 @@ Blocked checks and actions:
 
 Release-candidate summary:
 
-- Output summary: `.cache/release-candidate-check/20260516T022918Z`.
+- Output summary: `.cache/release-candidate-check/20260516T023259Z`.
 - Overall status: `not_checked`.
 - Package audit status: passed locally.
 - Claim-boundary result: no retained evidence, consumer status change, image

@@ -16,7 +16,7 @@ certification, or production-grade ETA quality.
 `blocked_public_distribution_review`
 
 The local package helper and package audit passed for a clean local package
-generated from commit `c9fd75765837a5e4812e94b6e91250fd0f3d679b`, but the
+generated from commit `ee8e186bcc4c879fa0e64ddfbfe5464f550e66de`, but the
 source archive public-distribution gate is blocked because the generated source
 archive contains tracked protected evidence and consumer-submission paths.
 
@@ -40,23 +40,23 @@ override the failed source-archive public-distribution review.
 ## Local Package Result
 
 - Package directory: `.cache/release-package/v0.1.0-rc.1`
-- Generated at: `20260516T022744Z`
-- Package commit: `c9fd75765837a5e4812e94b6e91250fd0f3d679b`
+- Generated at: `20260516T023241Z`
+- Package commit: `ee8e186bcc4c879fa0e64ddfbfe5464f550e66de`
 - Dirty checkout: `false`
 - Package helper status: `release_ready`
 - Package audit: passed locally
 - Source archive:
   `.cache/release-package/v0.1.0-rc.1/artifacts/open-transit-rt-v0.1.0-rc.1.source.tar.gz`
 - Source archive SHA-256:
-  `0a3e5476983724b82eea65e4654771c88652bf7c6c25faf245c9898525d16069`
+  `5a1caa29e5bf00d5b9fd6303aee6b067a386a9834e3d05a86c263ef8766535bf`
 - Checksum manifest SHA-256:
-  `ced737ee802f3414424fa556dcb81a2b60d519f5467e1cc33cbb66ee42e878f8`
+  `6f3531b69a3e84879e7d89f5e776781571f3a7f8ed45960800ef9186115086f4`
 - SBOM SHA-256:
-  `6b221c6dd79cc4272957f69d5586272c5414371a9d787f6a7087867939f5fbd3`
+  `180e705ef622c3e559e4e53b374ce33c6c2c7449b56d3baeb2323e7a700d17c6`
 - Provenance SHA-256:
-  `40f9050e7ae845efbde1861eadf6f9c0437a07e09952ca386e98396ba115bd9e`
+  `e8ac054e813f70ac6fec31ea382876575d6f1e50645d3641d77a888d4ae95939`
 - Manifest SHA-256:
-  `a588c99c7f39ad479c25667dd297a3065c3de4f1e278e9fafd31e21fd2b65c91`
+  `0a7b6842a6a1ccd5a756198de735e6710f5ea953618a6c06d9e4a88acfc4d2e8`
 
 The helper's `release_ready` field means the local package structure and
 metadata passed the helper's checks. It does not mean public distribution is
@@ -75,8 +75,8 @@ Source archive counts:
 
 | Item | Count |
 | --- | ---: |
-| Total archive entries | 1262 |
-| Total archive files | 1262 |
+| Total archive entries | 1263 |
+| Total archive files | 1263 |
 | `docs/evidence/**` entries | 215 |
 | `docs/evidence/**` files | 215 |
 | Protected-path entries | 182 |
@@ -112,7 +112,7 @@ content remains the blocking public-distribution issue.
 
 ## Release-Candidate Diagnostic
 
-- Output directory: `.cache/release-candidate-check/20260516T022918Z`
+- Output directory: `.cache/release-candidate-check/20260516T023259Z`
 - Helper exit: `0`
 - Overall status: `not_checked`
 - Counts: 36 passed, 0 blocker, 0 `needs_review`, 3 `not_checked`
@@ -129,7 +129,7 @@ readiness, vendor compatibility, or SLA/uptime.
 
 | Gate | Current status | Evidence |
 | --- | --- | --- |
-| Clean local package generation | passed locally | Package generated from clean commit `c9fd75765837a5e4812e94b6e91250fd0f3d679b`. |
+| Clean local package generation | passed locally | Package generated from clean commit `ee8e186bcc4c879fa0e64ddfbfe5464f550e66de`. |
 | Local package audit | passed locally | `RELEASE_PACKAGE_DIR=.cache/release-package/v0.1.0-rc.1 make audit-release-package`. |
 | Source archive public-distribution review | blocked | Archive contains 182 protected-path entries. |
 | Release notes bounded/truthful | needs_review | Draft refreshed in Phase 112; must be reread before Phase 115. |
