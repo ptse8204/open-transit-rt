@@ -159,3 +159,93 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 131 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 131 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 131 added the optional evidence gate refresh artifact.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, Release/Supply-Chain, Install Confidence,
+Documentation / IA, Claim-Boundary, Security/Auth, Data/Migration, Connector,
+GTFS-RT Domain, and UI/UX roles are simulated by the Master Agent.
+
+Changed files:
+`docs/optional-evidence-gate-refresh-phase-131.md` and this phase report.
+
+Implementation summary:
+Added a blocker-only refresh matrix for final-root evidence, consumer or
+aggregator submission, real agency pilot, real vendor/device AVL, real-world
+ETA-quality study, compliance packet, and hosted operations / paid support /
+SLA / production-readiness gates. The artifact records missing intake,
+authorization, retained artifact, redaction, validation, and claim-target
+preconditions and keeps the next action limited to future scoped intake.
+
+Validation run:
+Scoped source review covered `docs/future-evidence-intake-gate-pack.md`,
+`docs/handoffs/phase-109.md`, `docs/evidence/redaction-policy.md`,
+`docs/evidence/consumer-submissions/README.md`,
+`docs/evidence/consumer-submissions/submission-workflow.md`,
+`docs/agency-owned-domain-readiness.md`,
+`docs/requirements-calitp-compliance.md`, `docs/support-boundaries.md`,
+`docs/adoption/evaluator-and-contributor-kit.md`, and
+`docs/release-status-v0.1.0-rc.1.md`.
+
+Blocked checks:
+None for the documentation artifact. Evidence collection, final-root fetches,
+external contact, consumer status changes, protected evidence writes, real
+credentials, private payloads, private correspondence, compliance evidence,
+pilot evidence, vendor/device evidence, SLA evidence, and stronger claims
+remain blocked by scope.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The artifact records that all seven targets must
+remain exactly `prepared`.
+
+Claim-boundary status:
+The artifact records blocker-only gate status and does not claim final-root
+readiness, consumer submission/review/acceptance/ingestion/listing/display,
+agency adoption, CAL-ITP/Caltrans compliance, hosted service availability,
+paid support, SLA/uptime, production readiness, vendor compatibility, hardware
+certification, production AVL reliability, production-grade ETA quality, or
+real-world ETA accuracy.
+
+Security/auth status:
+No auth, CSRF, credential, token, private payload, external contact, public
+route, or retained private artifact behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, public feed contract, runtime
+behavior, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 131 made no tag, release,
+package, image, or public announcement.
+
+Install confidence status:
+Phase 117 public fresh-clone rc1 install confidence remains passed.
+
+Web design skill status:
+Not used for checkpoint 000002 because Phase 131 did not touch a visual UI
+surface.
+
+Master review:
+Approved for validation. The blocker-only artifact truthfully refreshes future
+evidence gates without moving evidence, consumer, release, or claim state.
+
+Required edits:
+Run checkpoint 000003 validation and patch only repo-caused documentation
+failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 131 -- Checkpoint 000003: run validation and patch required gaps.
