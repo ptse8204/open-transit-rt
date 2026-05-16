@@ -166,3 +166,93 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 127 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 127 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 127 implemented the scoped private Maintenance Center
+small-host readiness UX hardening.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, UI/UX, Web Design Skill, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, Release, Install Confidence,
+Connector, and GTFS-RT Domain roles are simulated by the Master Agent.
+
+Changed files:
+`cmd/agency-config/operations_maintenance.go`,
+`cmd/agency-config/operations.go`, `cmd/agency-config/main_test.go`,
+`docs/tutorials/small-agency-maintenance-guide.md`, and this phase report.
+
+Implementation summary:
+Added a read-only `small_host_readiness` Maintenance Center panel and rendered
+it in the private Maintenance Center HTML. The panel gives a compact
+preflight/recovery checklist for deployment-doctor diagnostics, dry-run feed
+checks, off-host validation choices, resource-budget review, backup/restore
+recovery path, and upgrade stop points. It does not add browser-executed
+deployment actions, backup/restore, migration execution, service control,
+package publication, release actions, evidence writes, or consumer status
+changes. The small-agency maintenance guide now points operators to the new
+panel before upgrade or recovery work.
+
+Validation run:
+`gofmt` passed on touched Go files. `go test ./cmd/agency-config -run
+'TestOperationsMaintenance|TestOperationsNavigation|TestOperationsRouteTitles|TestOperationsConsole'`
+passed. `git diff --check` passed. `scripts/check-consumer-tracker.sh`
+passed. Protected-path git status returned no output.
+
+Blocked checks:
+None for this checkpoint. Full repo validation is scheduled for checkpoint
+000003.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+The new panel explicitly avoids deployment success, production readiness,
+hosted availability, SLA/uptime, release readiness, compliance, final-root
+readiness, consumer acceptance, vendor compatibility, hardware certification,
+and ETA-quality claims.
+
+Security/auth status:
+The Maintenance Center remains private and read-only. No route auth, CSRF
+behavior, credential handling, token handling, public exposure, raw env
+rendering, raw backup rendering, private payload handling, or browser command
+execution behavior was changed.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 127 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+The Web Design Skill was loaded before the UX-facing Maintenance Center
+change. The patch preserves the dense private admin console style, low-radius
+table/panel vocabulary, and claim-boundary copy pattern.
+
+Master review:
+Approved for full validation. The implementation adds explicit small-host UX
+guidance without expanding browser execution or public claims.
+
+Required edits:
+Run checkpoint 000003 full validation and patch any repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 127 -- Checkpoint 000003: run validation and patch required gaps.

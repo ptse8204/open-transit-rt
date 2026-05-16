@@ -36,6 +36,21 @@ claim.
 | Review small-host deployment posture | `/admin/operations/maintenance` | Latest deployment-doctor categories for resources, service dependencies, proxy exposure, Postgres pool budget, backup/restore, and upgrade/rollback checklist. | The resource row recommends off-host validators, DB pool guidance is warning/blocked, proxy exposure needs review, or no deployment-doctor summary exists. |
 | Generate support summary when needed | `/admin/operations/maintenance` | Support-bundle instructions and redaction boundaries. | A maintainer needs private diagnostics for a blocker. |
 
+## Small-Host Preflight
+
+Before upgrading or recovering a small-host deployment, open Maintenance and
+review `Small-Host Readiness` before the detailed infrastructure rows.
+
+The panel is a checklist, not an executor. Use it to confirm that a technical
+helper has a safe sequence for deployment-doctor diagnostics, dry-run feed
+checks, off-host validator choices, resource budget review, backup/restore
+recovery path, and stop points before migration, service restart, package
+switch, rollback, or public-root announcement.
+
+Keep any missing preflight item as needs-review until the deployment owner can
+run the shell diagnostics privately. Do not paste database URLs, token values,
+backup paths, raw logs, or restore targets into browser pages or public docs.
+
 ## How To Read Status Labels
 
 - Ready for local review: the private source record is present and currently

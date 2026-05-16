@@ -8,21 +8,22 @@ import (
 )
 
 type operationsMaintenanceView struct {
-	GeneratedAt      time.Time                        `json:"generated_at"`
-	AgencyID         string                           `json:"agency_id"`
-	Boundary         string                           `json:"boundary"`
-	OverallStatus    string                           `json:"overall_status"`
-	SummaryRows      []operationsMaintenanceRow       `json:"summary_rows"`
-	Diagnostics      operationsMaintenanceDiagnostics `json:"diagnostics"`
-	BackupRestore    operationsMaintenancePanel       `json:"backup_restore"`
-	UpgradeRollback  operationsMaintenancePanel       `json:"upgrade_rollback"`
-	SupportReview    operationsMaintenancePanel       `json:"support_review"`
-	CadencePlan      operationsMaintenancePanel       `json:"cadence_plan"`
-	MonitoringExport operationsMaintenancePanel       `json:"monitoring_export"`
-	Infrastructure   operationsMaintenancePanel       `json:"infrastructure"`
-	Tasks            []operationsMaintenanceTask      `json:"tasks"`
-	SupportSummary   operationsMaintenanceSupport     `json:"support_summary"`
-	ClaimFlags       operationsMaintenanceClaimFlags  `json:"claim_flags"`
+	GeneratedAt        time.Time                        `json:"generated_at"`
+	AgencyID           string                           `json:"agency_id"`
+	Boundary           string                           `json:"boundary"`
+	OverallStatus      string                           `json:"overall_status"`
+	SummaryRows        []operationsMaintenanceRow       `json:"summary_rows"`
+	Diagnostics        operationsMaintenanceDiagnostics `json:"diagnostics"`
+	SmallHostReadiness operationsMaintenancePanel       `json:"small_host_readiness"`
+	BackupRestore      operationsMaintenancePanel       `json:"backup_restore"`
+	UpgradeRollback    operationsMaintenancePanel       `json:"upgrade_rollback"`
+	SupportReview      operationsMaintenancePanel       `json:"support_review"`
+	CadencePlan        operationsMaintenancePanel       `json:"cadence_plan"`
+	MonitoringExport   operationsMaintenancePanel       `json:"monitoring_export"`
+	Infrastructure     operationsMaintenancePanel       `json:"infrastructure"`
+	Tasks              []operationsMaintenanceTask      `json:"tasks"`
+	SupportSummary     operationsMaintenanceSupport     `json:"support_summary"`
+	ClaimFlags         operationsMaintenanceClaimFlags  `json:"claim_flags"`
 }
 
 type operationsMaintenanceRow struct {
@@ -121,19 +122,20 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 	}
 	overall := maintenanceOverall(rows, tasks)
 	return operationsMaintenanceView{
-		GeneratedAt:      page.GeneratedAt,
-		AgencyID:         page.AgencyID,
-		Boundary:         "Private maintenance diagnostics only. This page summarizes configured/nonconfigured signals and next tasks without creating evidence, changing consumer statuses, claiming compliance, claiming production readiness, claiming SLA or uptime coverage, or exposing secret values.",
-		OverallStatus:    overall,
-		SummaryRows:      rows,
-		Diagnostics:      buildOperationsMaintenanceDiagnostics(),
-		BackupRestore:    buildOperationsMaintenanceBackupRestore(),
-		UpgradeRollback:  buildOperationsMaintenanceUpgradeRollback(),
-		SupportReview:    buildOperationsMaintenanceSupportReview(),
-		CadencePlan:      buildOperationsMaintenanceCadencePlan(),
-		MonitoringExport: buildOperationsMaintenanceMonitoringExport(),
-		Infrastructure:   buildOperationsMaintenanceInfrastructureChecks(),
-		Tasks:            tasks,
+		GeneratedAt:        page.GeneratedAt,
+		AgencyID:           page.AgencyID,
+		Boundary:           "Private maintenance diagnostics only. This page summarizes configured/nonconfigured signals and next tasks without creating evidence, changing consumer statuses, claiming compliance, claiming production readiness, claiming SLA or uptime coverage, or exposing secret values.",
+		OverallStatus:      overall,
+		SummaryRows:        rows,
+		Diagnostics:        buildOperationsMaintenanceDiagnostics(),
+		SmallHostReadiness: buildOperationsMaintenanceSmallHostReadiness(),
+		BackupRestore:      buildOperationsMaintenanceBackupRestore(),
+		UpgradeRollback:    buildOperationsMaintenanceUpgradeRollback(),
+		SupportReview:      buildOperationsMaintenanceSupportReview(),
+		CadencePlan:        buildOperationsMaintenanceCadencePlan(),
+		MonitoringExport:   buildOperationsMaintenanceMonitoringExport(),
+		Infrastructure:     buildOperationsMaintenanceInfrastructureChecks(),
+		Tasks:              tasks,
 		SupportSummary: operationsMaintenanceSupport{
 			Status:     operationsStatusDiagnosticOnly,
 			Command:    "make support-bundle",
@@ -158,6 +160,62 @@ func maintenanceTask(id, cadence, task, status, owner, next string) operationsMa
 
 func maintenancePanelRow(id, label, status, signal, operatorStep, helperStep, doesNotProve string) operationsMaintenancePanelRow {
 	return operationsMaintenancePanelRow{ID: id, Label: label, Status: status, CurrentSignal: signal, OperatorStep: operatorStep, TechnicalHelperStep: helperStep, DoesNotProve: doesNotProve}
+}
+
+func buildOperationsMaintenanceSmallHostReadiness() operationsMaintenancePanel {
+	rows := []operationsMaintenancePanelRow{
+		maintenancePanelRow(
+			"small_host_preflight_sequence",
+			"Small-host preflight sequence",
+			operationsStatusNeedsReview,
+			"run deployment doctor, five-feed dry run, validator plan, backup configuration review, and rollback owner review before upgrade",
+			"Use this row as the first stop before changing a small-host deployment.",
+			"Run `make deployment-doctor`, dry-run feed checks, validator/tooling checks, and migration status from an operator shell.",
+			"Preflight sequence guidance does not prove deployment success, production readiness, uptime, SLA coverage, or release readiness.",
+		),
+		maintenancePanelRow(
+			"off_host_validation_choice",
+			"Off-host validation choice",
+			operationsStatusDiagnosticOnly,
+			"prefer off-host or operator-workstation validators when CPU, memory, disk, or Java/Docker headroom is constrained",
+			"Treat missing validator tooling on a tiny host as a planning signal, not as a feed pass.",
+			"Use `docs/deployment/off-host-validation.md` and `make validate-public-feeds` dry runs before relying on public feed URLs.",
+			"Off-host validation guidance does not prove validator-clean feeds, compliance, final-root readiness, or consumer acceptance.",
+		),
+		maintenancePanelRow(
+			"resource_budget_review",
+			"Resource budget review",
+			operationsStatusNeedsReview,
+			"small hosts should keep app DB pools conservative, avoid colocating heavy validators, and reserve headroom for Postgres/PostGIS",
+			"Review whether the deployment is small enough that validator, backup, and import work should run off-host.",
+			"Set a conservative `DB_MAX_CONNS`, review disk/swap/load summaries, and keep raw host output out of browser views.",
+			"Resource-budget review does not prove live capacity, hosted service availability, uptime, SLA coverage, or production readiness.",
+		),
+		maintenancePanelRow(
+			"backup_restore_recovery_path",
+			"Backup/restore recovery path",
+			operationsStatusNeedsReview,
+			"backup target, non-live restore target, restore owner, and post-restore feed checks must be known before upgrade",
+			"Keep recovery marked needs-review until a deployment owner confirms private backup and non-live restore-drill settings.",
+			"Run backup/restore drills outside the browser, against explicit targets, and verify feeds after restore before documenting bounded results.",
+			"Recovery-path guidance does not prove a backup exists, restore succeeded, disaster recovery coverage exists, or evidence was created.",
+		),
+		maintenancePanelRow(
+			"upgrade_recovery_stop_points",
+			"Upgrade recovery stop points",
+			operationsStatusNeedsReview,
+			"stop before migration, service restart, package switch, rollback, or public-root announcement if preflight blockers remain",
+			"Use the browser to see stop points; do not use it to execute upgrade, rollback, migration, or release actions.",
+			"Have a technical helper confirm migration status, rollback target, backup recency, and post-change feed checks before proceeding.",
+			"Stop-point guidance does not prove upgrade success, rollback success, release readiness, production readiness, or hosted availability.",
+		),
+	}
+	return operationsMaintenancePanel{
+		Status:     maintenancePanelOverall(rows),
+		Boundary:   "Small-host readiness is private checklist guidance only. The browser does not execute deployment preflight, validators, backups, restore drills, migrations, service changes, package publication, rollback, or release actions.",
+		NextAction: "Review the sequence before small-host upgrade or recovery work, then run bounded diagnostics from an operator shell when a technical helper is needed.",
+		Rows:       rows,
+	}
 }
 
 func buildOperationsMaintenanceMonitoringExport() operationsMaintenancePanel {

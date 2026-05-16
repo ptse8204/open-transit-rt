@@ -5381,6 +5381,9 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 	if view.Diagnostics.Status != operationsStatusBlocked || len(view.Diagnostics.Rows) != 4 {
 		t.Fatalf("unexpected diagnostics summary: %+v", view.Diagnostics)
 	}
+	if view.SmallHostReadiness.Status != operationsStatusNeedsReview || len(view.SmallHostReadiness.Rows) != 5 {
+		t.Fatalf("unexpected small-host readiness panel: %+v", view.SmallHostReadiness)
+	}
 	if view.BackupRestore.Status != operationsStatusMissing || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Status != operationsStatusNeedsReview || len(view.UpgradeRollback.Rows) != 4 {
 		t.Fatalf("unexpected maintenance panels: backup=%+v upgrade=%+v", view.BackupRestore, view.UpgradeRollback)
 	}
@@ -5394,7 +5397,7 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 		t.Fatalf("unexpected infrastructure panel: %+v", view.Infrastructure)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback_checklist"} {
+	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "small_host_readiness", "small_host_preflight_sequence", "off_host_validation_choice", "resource_budget_review", "backup_restore_recovery_path", "upgrade_recovery_stop_points", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback_checklist"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("maintenance JSON missing %q: %s", want, body)
 		}
@@ -7693,7 +7696,7 @@ func assertOperationsCockpitFlagsFalse(t *testing.T, flags operationsCockpitClai
 
 func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 4 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 10 || len(view.Tasks) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.SmallHostReadiness.Boundary == "" || view.SmallHostReadiness.Status == "" || view.SmallHostReadiness.NextAction == "" || len(view.SmallHostReadiness.Rows) != 5 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 4 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 10 || len(view.Tasks) != 7 {
 		t.Fatalf("invalid maintenance shape: %+v", view)
 	}
 	seen := map[string]bool{}
@@ -7719,6 +7722,7 @@ func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 		name string
 		rows []operationsMaintenancePanelRow
 	}{
+		{name: "small-host", rows: view.SmallHostReadiness.Rows},
 		{name: "backup", rows: view.BackupRestore.Rows},
 		{name: "upgrade", rows: view.UpgradeRollback.Rows},
 		{name: "support", rows: view.SupportReview.Rows},
