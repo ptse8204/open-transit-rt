@@ -485,8 +485,12 @@ future private dry-run/status command definitions. Phase 127 -- Small-Host
 Deployment And Upgrade UX Hardening is complete, with closeout at
 `docs/handoffs/phase-127.md`: the private Maintenance Center now includes a
 read-only small-host readiness panel for preflight, off-host validation,
-resource budget, recovery path, and upgrade stop-point review. Phase 128 is
-active for Contributor And Agency Evaluator Adoption Kit.
+resource budget, recovery path, and upgrade stop-point review. Phase 128 --
+Contributor And Agency Evaluator Adoption Kit is complete, with closeout at
+`docs/handoffs/phase-128.md`: the repo now has a public-safe evaluator and
+contributor kit for no-claim trials, demo paths, feedback guidance, and first
+contributions. Phase 129 is active for Community Support Feedback And Issue
+Triage Kit.
 Do not stop after publication, download replay, install confidence, or UX
 validation; continue through Phase 132.
 

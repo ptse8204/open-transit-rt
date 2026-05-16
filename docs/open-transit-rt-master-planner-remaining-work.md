@@ -268,8 +268,12 @@ The first instruction in this workstream was to make the Codex instructions expa
   The closeout lives at `docs/handoffs/phase-127.md`. The private Maintenance
   Center now includes a read-only small-host readiness panel for preflight,
   off-host validation, resource budget, recovery path, and upgrade stop-point
-  review. Phase 128 is active for Contributor And Agency Evaluator Adoption
-  Kit.
+  review.
+- Phase 128 is complete for Contributor And Agency Evaluator Adoption Kit. The
+  closeout lives at `docs/handoffs/phase-128.md`. The repo now has a
+  public-safe evaluator and contributor kit for no-claim trials, demo paths,
+  feedback guidance, and first contributions. Phase 129 is active for
+  Community Support Feedback And Issue Triage Kit.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.
