@@ -236,3 +236,89 @@ Proceed to checkpoint 000002 commit.
 
 Next checkpoint:
 Phase 123 -- Checkpoint 000003: run validation and patch required gaps.
+
+## Checkpoint Report -- 000003
+
+Checkpoint:
+Phase 123 -- Checkpoint 000003: run validation and patch required gaps.
+
+Goal status:
+Active. Phase 123 implementation passed full validation after patching stale
+admin JSON shape test expectations.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+`cmd/agency-config/main_test.go` and this phase report.
+
+Validation run:
+`git status --short` was clean at checkpoint start. `git diff --check`
+passed. `python3 -m json.tool docs/evidence/consumer-submissions/status.json`
+passed. `scripts/check-consumer-tracker.sh` passed. `make check` passed.
+`make validate` passed. `docker compose -f deploy/docker-compose.yml config`
+passed. `make audit-product-acceptance` passed. `make
+audit-final-claim-review` passed. `make external-connection-check` passed.
+`make adapter-conformance` passed. `make test-connector-examples` passed.
+`make gtfsrt-conformance` passed. `make test` initially failed in
+`cmd/agency-config` because connector hub/workbench tests still expected five
+committed example manifests. After updating those expectations to include
+`example.telemetry-webhook-sidecar`, `go test ./cmd/agency-config` passed and
+`make test` passed.
+
+Blocked checks:
+None. The full Phase 123 validation set passed after the repo-caused test
+expectation patch.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+Claim audits passed. The new connector example remains a synthetic adapter
+contract and does not claim vendor compatibility, hardware certification,
+production AVL reliability, production readiness, compliance, consumer
+acceptance, hosted service, SLA/uptime, production-grade ETA quality, or
+real-world ETA accuracy.
+
+Security/auth status:
+No route auth, CSRF behavior, credential handling, token handling, public
+exposure, private payload handling, or operator command behavior was changed.
+The admin tests now assert that the new manifest is present in private
+connector hub/workbench JSON and HTML while preserving no-form, no-command,
+no-public-route, disabled-by-default, and fail-closed boundaries.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 123 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. Phase 123 did not make
+visual UX changes.
+
+Master review:
+Approved. The stale tests were corrected to align with the new committed
+connector manifest, and all relevant gates passed afterward.
+
+Required edits:
+Close Phase 123 with handoff and status updates.
+
+Decision:
+Proceed to checkpoint 000003 commit.
+
+Next checkpoint:
+Phase 123 -- Checkpoint 000004: close vehicle avl connector starter kits review.

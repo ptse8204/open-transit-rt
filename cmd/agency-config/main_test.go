@@ -2543,7 +2543,7 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 			t.Fatalf("registry entry must remain disabled, fail-closed, and conformance-backed: %+v", entry)
 		}
 	}
-	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("registry ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -2570,7 +2570,7 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Hub", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Telemetry / GPS / AVL source", "Prediction engine", "Validator connector", "Monitoring / export connector", "Consumer / discovery workflow", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "disabled by default", "fail closed", "synthetic cases"} {
+	for _, want := range []string{"Connector Hub", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Telemetry / GPS / AVL source", "Prediction engine", "Validator connector", "Monitoring / export connector", "Consumer / discovery workflow", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "disabled by default", "fail closed", "synthetic cases"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2718,7 +2718,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 			t.Fatalf("manifest row must remain disabled, fail-closed, and conformance-backed: %+v", row)
 		}
 	}
-	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("manifest ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -2742,7 +2742,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Connection Decision Tree", "csv_vehicle_locations", "Redaction-First Templates", "Telemetry Source Template", "send_enabled=false", "public_mutation=false", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "telemetry-missing-required-field", "prediction-timeout", "prediction-public-mutation-attempt", "validator-allowlist", "validator-raw-command", "monitoring-no-send", "monitoring-unredacted-destination", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Manifest Lint Summary", "Positive claim allowlist", "Safe plugin definition", "Synthetic telemetry CSV replay", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Connection Decision Tree", "csv_vehicle_locations", "Redaction-First Templates", "Telemetry Source Template", "send_enabled=false", "public_mutation=false", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "telemetry-missing-required-field", "prediction-timeout", "prediction-public-mutation-attempt", "validator-allowlist", "validator-raw-command", "monitoring-no-send", "monitoring-unredacted-destination", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Manifest Lint Summary", "Positive claim allowlist", "Safe plugin definition", "Synthetic telemetry CSV replay", "Synthetic telemetry webhook sidecar", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -7367,7 +7367,7 @@ func assertOperationsHelpSafeStrings(t *testing.T, body string) {
 
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
-	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 || len(hub.Registry.Entries) != 5 {
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 || len(hub.Registry.Entries) != 6 {
 		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
 	}
 	seenIDs := map[string]bool{}
@@ -7446,7 +7446,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 7 || len(view.Recipes) != 7 || len(view.RedactionTemplates) != 4 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 9 || view.Conformance.CaseCount != 22 || len(view.Conformance.Groups) != 4 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 5 || len(view.ManifestReview.LintChecks) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 7 || len(view.Recipes) != 7 || len(view.RedactionTemplates) != 4 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 9 || view.Conformance.CaseCount != 22 || len(view.Conformance.Groups) != 4 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 6 || len(view.ManifestReview.LintChecks) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenDecisions := map[string]bool{}
