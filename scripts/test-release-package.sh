@@ -8,9 +8,11 @@ python3 - "$ROOT_DIR" <<'PY'
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
+import tarfile
 
 ROOT = pathlib.Path(sys.argv[1]).resolve()
 BASE = ROOT / ".cache" / "release-package-tests"
@@ -40,6 +42,12 @@ def assert_flags_false(data):
         raise AssertionError(f"claim flags are not all false: {flags}")
 
 
+def protected_archive_entries(archive_path):
+    pattern = re.compile(r"(^|/)docs/evidence/(captured|consumer-submissions/(status\.json|current|artifacts|packets))")
+    with tarfile.open(archive_path, "r:gz") as archive:
+        return [member.name for member in archive.getmembers() if pattern.search(member.name)]
+
+
 if BASE.exists():
     shutil.rmtree(BASE)
 BASE.mkdir(parents=True)
@@ -64,6 +72,9 @@ if summary["version"] != "v0.0.0-test" or summary["source_archive"] != "artifact
     raise AssertionError(summary)
 if not (package / "artifacts" / "open-transit-rt-v0.0.0-test.source.tar.gz").exists():
     raise AssertionError("source archive missing")
+protected_hits = protected_archive_entries(package / "artifacts" / "open-transit-rt-v0.0.0-test.source.tar.gz")
+if protected_hits:
+    raise AssertionError(f"source archive contains protected paths: {protected_hits[:10]}")
 run([str(AUDIT)], env={"RELEASE_PACKAGE_DIR": package})
 
 run([str(GENERATE)], env={

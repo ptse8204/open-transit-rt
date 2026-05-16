@@ -392,6 +392,12 @@ Dirty packages are allowed for local diagnostics through the Make target and
 are marked not release-ready. Actual release use should run from a clean
 checkout with strict settings and an audited checksum manifest.
 
+Phase 115 adds a root `.gitattributes` export policy so `git archive HEAD`
+excludes retained/protected evidence and consumer-submission paths from source
+release archives without modifying those protected repository paths. The
+excluded paths remain tracked in the repository where they already existed;
+the policy only controls public source archive distribution.
+
 This decision does not create a hosted service, production image publication,
 production-readiness, compliance, agency adoption, consumer acceptance, vendor
 compatibility, marketplace approval, SLA/uptime, or production-grade ETA claim.

@@ -1,0 +1,9 @@
+/docs/evidence/captured export-ignore
+/docs/evidence/captured/** export-ignore
+/docs/evidence/consumer-submissions/status.json export-ignore
+/docs/evidence/consumer-submissions/current export-ignore
+/docs/evidence/consumer-submissions/current/** export-ignore
+/docs/evidence/consumer-submissions/artifacts export-ignore
+/docs/evidence/consumer-submissions/artifacts/** export-ignore
+/docs/evidence/consumer-submissions/packets export-ignore
+/docs/evidence/consumer-submissions/packets/** export-ignore

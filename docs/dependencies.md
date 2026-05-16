@@ -1150,6 +1150,9 @@ review.
 ### Integration boundary
 - The generator uses `git archive HEAD` for source archives and does not walk
   the working tree.
+- The root `.gitattributes` export policy excludes protected retained-evidence
+  and consumer-submission paths from generated source archives without editing
+  those protected paths.
 - The generator uses `go list -m -json all` for local Go-module SBOM metadata.
 - Optional image metadata is collected only when `RELEASE_PACKAGE_IMAGE_TAG` is
   supplied; no image is built, pushed, signed, or published by default.

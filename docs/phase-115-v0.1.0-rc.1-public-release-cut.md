@@ -198,3 +198,82 @@ Proceed to checkpoint 000001 validation and commit.
 Next checkpoint:
 Phase 115 -- Checkpoint 000002: implement or audit primary scoped work.
 
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 115 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. The source archive public-distribution blocker has a proposed safe
+fix and is ready for post-commit release gate validation.
+
+Sub-agents used or simulated:
+Release/Supply-Chain sub-agent confirmed that a committed root `.gitattributes`
+export policy should exclude protected paths from `git archive HEAD` without
+editing protected paths. Implementation, QA, Documentation / IA,
+Claim-Boundary, Security/Auth, Data/Migration, Install Confidence,
+Web Design Skill, and GTFS-RT Domain roles were simulated by the Master Agent.
+
+Changed files:
+`.gitattributes`; `scripts/test-release-package.sh`; `docs/decisions.md`;
+`docs/dependencies.md`; `docs/release-notes-v0.1.0-rc.1-draft.md`;
+`docs/phase-115-v0.1.0-rc.1-public-release-cut.md`.
+
+Validation run:
+Focused validation is scheduled for checkpoint 000003 because `git archive
+HEAD` will not use the new `.gitattributes` policy until this checkpoint is
+committed. Pre-commit `make check`, consumer tracker assertion, protected-path
+status check, and `git diff --check` are rerun before checkpoint 000002 commit.
+
+Blocked checks:
+Final source archive scan, strict package generation, package audit, full
+release-candidate gates, GitHub auth recheck, tag push, and GitHub Release
+creation are scheduled for checkpoint 000003 after this policy is committed.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched. The
+new export policy affects source archive output only.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and must remain `prepared`.
+
+Claim-boundary status:
+Release notes remain bounded and explicitly withhold publication/release
+claims until Phase 115 gates pass.
+
+Security/auth status:
+No route, auth behavior, CSRF behavior, credential handling, token handling,
+public exposure, private payload handling, external contact, or command
+execution behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, public feed contract, or Go module change
+was added.
+
+Release/publication status:
+No tag, tag push, GitHub Release, asset upload, or public publication action
+was taken in checkpoint 000002.
+
+Install confidence status:
+Phase 113 remains the current local install-confidence result.
+
+Web design skill status:
+Phase 114 Web Design Skill artifact is complete. Phase 115 does not touch UX.
+
+Master review:
+Approved. The implementation resolves the known public-distribution blocker at
+the archive policy layer while preserving protected paths and claim
+boundaries.
+
+Required edits:
+Commit checkpoint 000002, then regenerate and audit the package from committed
+HEAD before deciding whether to publish.
+
+Decision:
+Proceed to checkpoint 000002 commit and checkpoint 000003 release gate
+validation.
+
+Next checkpoint:
+Phase 115 -- Checkpoint 000003: run validation and patch required gaps.
+
