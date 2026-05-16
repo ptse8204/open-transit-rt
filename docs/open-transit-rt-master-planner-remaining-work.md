@@ -256,7 +256,11 @@ The first instruction in this workstream was to make the Codex instructions expa
   local backtest outputs now include aggregate confidence review, confidence
   coverage, missing confidence, low/medium/high bands, and
   mean/median/P10/P90 confidence for matched, non-stale prediction samples.
-  Phase 125 is active for Alerts And Service Disruption Operations V2.
+- Phase 125 is complete for Alerts And Service Disruption Operations V2. The
+  closeout lives at `docs/handoffs/phase-125.md`. The private Alerts Console
+  now has a read-only Service Disruption Review for active/draft disruptions,
+  stale/indefinite alerts, entity scoping, and cancellation pairing. Phase 126
+  is active for Operator Assistant Safe Command Expansion.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

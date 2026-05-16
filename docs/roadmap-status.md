@@ -87,8 +87,13 @@ Backtesting And Prediction Confidence V3; the closeout handoff is
 [`docs/handoffs/phase-124.md`](handoffs/phase-124.md). Private local
 backtest outputs now include aggregate confidence review, confidence coverage,
 missing confidence, low/medium/high bands, and mean/median/P10/P90 confidence
-for matched, non-stale prediction samples. Phase 125 is active for Alerts And
-Service Disruption Operations V2. This release remains a candidate for
+for matched, non-stale prediction samples. Phase 125 is complete for Alerts
+And Service Disruption Operations V2; the closeout handoff is
+[`docs/handoffs/phase-125.md`](handoffs/phase-125.md). The private Alerts
+Console now has a read-only Service Disruption Review for active/draft
+disruptions, stale/indefinite alerts, entity scoping, and cancellation
+pairing. Phase 126 is active for Operator Assistant Safe Command Expansion.
+This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,
