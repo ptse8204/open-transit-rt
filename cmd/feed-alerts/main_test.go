@@ -180,7 +180,7 @@ func TestAlertsConsoleRendersEmptyStateAndRejectsUnauthenticated(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Alerts Console", "Lifecycle Dashboard", "Cancellation Linkage", "Disruption Templates", "Validation And Feed Usefulness", "Claim Flags", "No alerts are recorded", "Operations Console"} {
+	for _, want := range []string{"Alerts Console", "Lifecycle Dashboard", "Service Disruption Review", "Cancellation Linkage", "Disruption Templates", "Validation And Feed Usefulness", "Claim Flags", "No alerts are recorded", "Operations Console"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -233,7 +233,12 @@ func TestAlertsConsoleRendersWorkflowReviewSections(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		"Lifecycle Dashboard",
+		"Service Disruption Review",
 		"draft=1; published=1; archived=0",
+		"active_published=1; draft_waiting=1",
+		"expired_published=0; published_without_active_end=1",
+		"agency_wide_or_unscoped=0; alerts_without_entities=0",
+		"cancellation_reconciler_alerts=1; missing_alert_hint_action=reconcile_then_validate",
 		"Canceled-trip linkage",
 		"1 alerts were created or maintained by the cancellation reconciler.",
 		"Authoring preflight",

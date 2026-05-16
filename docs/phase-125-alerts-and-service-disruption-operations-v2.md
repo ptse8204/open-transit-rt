@@ -140,3 +140,90 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 125 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 125 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 125 implemented the scoped Alerts/service-disruption operations
+review improvement.
+
+Sub-agents used or simulated:
+The agent thread limit prevents new real sub-agents. Context / Repo Truth,
+Planning, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles are simulated by the Master Agent.
+
+Changed files:
+`cmd/feed-alerts/main.go`, `cmd/feed-alerts/main_test.go`, and this phase
+report.
+
+Implementation summary:
+The private Alerts Console now includes a read-only `Service Disruption
+Review` table. It summarizes active published alerts, draft alerts awaiting
+review, expired published alerts, published alerts without end windows,
+agency-wide/unscoped alerts, alerts without entities, and cancellation
+reconciler pairing. The review uses existing private alert records only and
+adds no browser-side network action, public route, external contact, evidence
+write, or consumer-status mutation.
+
+Validation run:
+The Web Design Skill was loaded before editing the Alerts Console UX surface.
+`gofmt` passed on touched Go files. `git diff --check` passed. `go test
+./cmd/feed-alerts ./internal/alerts ./internal/feed/alerts` passed. `make
+gtfsrt-conformance` passed. `scripts/check-consumer-tracker.sh` passed.
+
+Blocked checks:
+None for this checkpoint. Full repo validation is scheduled for checkpoint
+000003.
+
+Protected path status:
+`git status --short -- docs/evidence/consumer-submissions
+docs/evidence/captured db/migrations go.mod go.sum` returned no output. No
+protected evidence path, migration, or module file was modified.
+
+Consumer tracker status:
+`scripts/check-consumer-tracker.sh` reported exactly seven prepared-only
+targets.
+
+Claim-boundary status:
+The new review rows explicitly avoid consumer display, agency approval, public
+launch, compliance, production readiness, real-world disruption handling
+quality, SLA coverage, and consumer ingestion claims.
+
+Security/auth status:
+No route auth, CSRF behavior, credential handling, token handling, public
+exposure, private payload handling, or operator command behavior was changed.
+The new review is rendered only inside the existing authenticated private
+Alerts Console.
+
+Data/migration status:
+No migration, schema, durable state, dependency, or Go module change was made.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 125 did not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed.
+
+Web design skill status:
+The Web Design Skill at `~/.agents/skills/web-design-engineer` was used for
+the Alerts Console UX change. The patch intentionally preserved the existing
+dense private admin table style without adding visual decoration, motion, or
+new browser interactions.
+
+Master review:
+Approved for full validation. The implementation improves service-disruption
+review while preserving authenticated, private, bounded-alerts operations.
+
+Required edits:
+Run checkpoint 000003 full validation and patch any repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit.
+
+Next checkpoint:
+Phase 125 -- Checkpoint 000003: run validation and patch required gaps.

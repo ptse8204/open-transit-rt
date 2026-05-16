@@ -400,6 +400,7 @@ type alertConsolePage struct {
 	CSRFToken      string
 	Error          string
 	LifecycleRows  []alertConsoleReviewRow
+	ServiceRows    []alertConsoleReviewRow
 	DisruptionRows []alertDisruptionTemplateRow
 	ValidationRows []alertConsoleReviewRow
 	UsefulnessRows []alertConsoleReviewRow
@@ -558,6 +559,7 @@ func (h *handler) renderAlertsConsole(w http.ResponseWriter, r *http.Request, pr
 		CSRFToken:      alertCSRFToken(h.csrfSecret, principal),
 		Error:          formError,
 		LifecycleRows:  alertLifecycleRows(alerts, now),
+		ServiceRows:    alertServiceDisruptionRows(alerts, now),
 		DisruptionRows: alertDisruptionTemplates(),
 		ValidationRows: alertValidationRows(alerts),
 		UsefulnessRows: alertUsefulnessRows(alerts, now),
@@ -575,62 +577,29 @@ func (h *handler) renderAlertsConsole(w http.ResponseWriter, r *http.Request, pr
 }
 
 func alertLifecycleRows(alerts []domainalerts.Alert, now time.Time) []alertConsoleReviewRow {
-	counts := map[string]int{}
-	activePublished := 0
-	upcomingPublished := 0
-	expiredPublished := 0
-	reconciledCancellation := 0
-	operatorAuthored := 0
-	agencyWide := 0
-	indefinitePublished := 0
-	for _, alert := range alerts {
-		counts[alert.Status]++
-		if alert.SourceType == domainalerts.SourceCancellationReconciler {
-			reconciledCancellation++
-		}
-		if alert.SourceType == "" || alert.SourceType == domainalerts.SourceOperator {
-			operatorAuthored++
-		}
-		if len(alert.Entities) == 0 {
-			agencyWide++
-		}
-		if alert.Status == domainalerts.StatusPublished && alert.ActiveEnd == nil {
-			indefinitePublished++
-		}
-		if alert.Status != domainalerts.StatusPublished {
-			continue
-		}
-		switch alertWindowState(alert, now) {
-		case "active":
-			activePublished++
-		case "upcoming":
-			upcomingPublished++
-		case "expired":
-			expiredPublished++
-		}
-	}
+	counts := alertOperationCounts(alerts, now)
 	return []alertConsoleReviewRow{
 		{
 			ID:           "lifecycle_counts",
 			Label:        "Lifecycle counts",
 			Status:       alertReviewStatus(len(alerts) > 0),
-			Signal:       fmt.Sprintf("draft=%d; published=%d; archived=%d; active_published=%d; upcoming_published=%d; expired_published=%d", counts[domainalerts.StatusDraft], counts[domainalerts.StatusPublished], counts[domainalerts.StatusArchived], activePublished, upcomingPublished, expiredPublished),
+			Signal:       fmt.Sprintf("draft=%d; published=%d; archived=%d; active_published=%d; upcoming_published=%d; expired_published=%d", counts.status[domainalerts.StatusDraft], counts.status[domainalerts.StatusPublished], counts.status[domainalerts.StatusArchived], counts.activePublished, counts.upcomingPublished, counts.expiredPublished),
 			NextAction:   "Review draft alerts, publish only agency-approved messages, and archive expired or resolved alerts.",
 			DoesNotProve: "Lifecycle counts do not prove consumer display, public launch, or operational completeness.",
 		},
 		{
 			ID:           "cancellation_linkage",
 			Label:        "Canceled-trip linkage",
-			Status:       alertReviewStatus(reconciledCancellation > 0),
-			Signal:       fmt.Sprintf("%d alerts were created or maintained by the cancellation reconciler.", reconciledCancellation),
+			Status:       alertReviewStatus(counts.reconciledCancellation > 0),
+			Signal:       fmt.Sprintf("%d alerts were created or maintained by the cancellation reconciler.", counts.reconciledCancellation),
 			NextAction:   "Use the reconciliation action only after cancellation overrides are reviewed; then validate Trip Updates and Alerts together.",
 			DoesNotProve: "A reconciled cancellation alert does not prove consumer ingestion, rider display, or real disruption handling quality.",
 		},
 		{
 			ID:           "authoring_review",
 			Label:        "Operator-authored alerts",
-			Status:       alertReviewStatus(operatorAuthored > 0),
-			Signal:       fmt.Sprintf("%d alerts are operator-authored or source-unlabeled.", operatorAuthored),
+			Status:       alertReviewStatus(counts.operatorAuthored > 0),
+			Signal:       fmt.Sprintf("%d alerts are operator-authored or source-unlabeled.", counts.operatorAuthored),
 			NextAction:   "Confirm header text, affected entities, active window, cause/effect, and archive policy before publishing.",
 			DoesNotProve: "Operator-authored alert records do not prove agency approval or compliance.",
 		},
@@ -638,11 +607,95 @@ func alertLifecycleRows(alerts []domainalerts.Alert, now time.Time) []alertConso
 			ID:           "authoring_preflight",
 			Label:        "Authoring preflight",
 			Status:       "review_required",
-			Signal:       fmt.Sprintf("agency_wide_or_unscoped=%d; published_without_active_end=%d", agencyWide, indefinitePublished),
+			Signal:       fmt.Sprintf("agency_wide_or_unscoped=%d; published_without_active_end=%d", counts.agencyWide, counts.indefinitePublished),
 			NextAction:   "Avoid agency-wide or indefinite alerts unless the disruption truly applies agency-wide; invalid RFC3339 windows are ignored by the form parser, so review saved windows before publishing.",
 			DoesNotProve: "Preflight guidance does not prove alert correctness, agency approval, consumer display, or compliance.",
 		},
 	}
+}
+
+func alertServiceDisruptionRows(alerts []domainalerts.Alert, now time.Time) []alertConsoleReviewRow {
+	counts := alertOperationCounts(alerts, now)
+	staleNeedsReview := counts.expiredPublished + counts.indefinitePublished
+	scopeNeedsReview := counts.agencyWide + counts.alertsWithoutEntities
+	return []alertConsoleReviewRow{
+		{
+			ID:           "active_disruption_review",
+			Label:        "Active disruption review",
+			Status:       alertReviewStatus(counts.activePublished > 0 || counts.status[domainalerts.StatusDraft] > 0),
+			Signal:       fmt.Sprintf("active_published=%d; draft_waiting=%d; validation_after_change=required", counts.activePublished, counts.status[domainalerts.StatusDraft]),
+			NextAction:   "For each active disruption, confirm the affected entity, active window, Trip Updates relationship, and post-change Alerts validation.",
+			DoesNotProve: "Active disruption review does not prove consumer display, agency approval, public launch, or compliance.",
+		},
+		{
+			ID:           "stale_or_indefinite_review",
+			Label:        "Stale or indefinite alert review",
+			Status:       alertReviewStatus(staleNeedsReview == 0 && len(alerts) > 0),
+			Signal:       fmt.Sprintf("expired_published=%d; published_without_active_end=%d", counts.expiredPublished, counts.indefinitePublished),
+			NextAction:   "Archive expired alerts and add bounded end times unless an agency-wide open-ended disruption is intentionally reviewed.",
+			DoesNotProve: "A clear stale-alert review does not prove operational completeness, consumer display, or SLA coverage.",
+		},
+		{
+			ID:           "entity_scope_review",
+			Label:        "Affected entity scope review",
+			Status:       alertReviewStatus(scopeNeedsReview == 0 && len(alerts) > 0),
+			Signal:       fmt.Sprintf("agency_wide_or_unscoped=%d; alerts_without_entities=%d", counts.agencyWide, counts.alertsWithoutEntities),
+			NextAction:   "Prefer route, stop, or trip selectors when the disruption is not truly agency-wide.",
+			DoesNotProve: "Entity scope review does not prove alert correctness, consumer display, or compliance.",
+		},
+		{
+			ID:           "cancellation_pairing_review",
+			Label:        "Cancellation pairing review",
+			Status:       alertReviewStatus(counts.reconciledCancellation > 0),
+			Signal:       fmt.Sprintf("cancellation_reconciler_alerts=%d; missing_alert_hint_action=reconcile_then_validate", counts.reconciledCancellation),
+			NextAction:   "When canceled Trip Updates are present, reconcile canceled-trip alerts and validate both Trip Updates and Alerts.",
+			DoesNotProve: "Cancellation pairing review does not prove real-world disruption handling quality or consumer ingestion.",
+		},
+	}
+}
+
+type alertOperationSummary struct {
+	status                 map[string]int
+	activePublished        int
+	upcomingPublished      int
+	expiredPublished       int
+	reconciledCancellation int
+	operatorAuthored       int
+	agencyWide             int
+	alertsWithoutEntities  int
+	indefinitePublished    int
+}
+
+func alertOperationCounts(alerts []domainalerts.Alert, now time.Time) alertOperationSummary {
+	counts := alertOperationSummary{status: map[string]int{}}
+	for _, alert := range alerts {
+		counts.status[alert.Status]++
+		if alert.SourceType == domainalerts.SourceCancellationReconciler {
+			counts.reconciledCancellation++
+		}
+		if alert.SourceType == "" || alert.SourceType == domainalerts.SourceOperator {
+			counts.operatorAuthored++
+		}
+		if len(alert.Entities) == 0 {
+			counts.agencyWide++
+			counts.alertsWithoutEntities++
+		}
+		if alert.Status == domainalerts.StatusPublished && alert.ActiveEnd == nil {
+			counts.indefinitePublished++
+		}
+		if alert.Status != domainalerts.StatusPublished {
+			continue
+		}
+		switch alertWindowState(alert, now) {
+		case "active":
+			counts.activePublished++
+		case "upcoming":
+			counts.upcomingPublished++
+		case "expired":
+			counts.expiredPublished++
+		}
+	}
+	return counts
 }
 
 func alertWindowState(alert domainalerts.Alert, now time.Time) string {
@@ -847,6 +900,10 @@ th{background:#f6f8fa}.warning{background:#fff8c5;padding:.5rem} label{display:b
 <h2>Lifecycle Dashboard</h2>
 <table><thead><tr><th>Review</th><th>Status</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
 {{range .LifecycleRows}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h2>Service Disruption Review</h2>
+<table><thead><tr><th>Review</th><th>Status</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ServiceRows}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h2>Cancellation Linkage</h2>
 <p class="warning">Use this only after canceled-trip overrides are reviewed. It creates or updates cancellation alerts from existing private overrides and links matching missing-alert review incidents; it does not contact consumers or prove display.</p>
