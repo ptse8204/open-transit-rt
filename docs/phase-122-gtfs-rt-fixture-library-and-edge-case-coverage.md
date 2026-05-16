@@ -139,3 +139,92 @@ Proceed to checkpoint 000001 validation and commit.
 
 Next checkpoint:
 Phase 122 -- Checkpoint 000002: implement or audit primary scoped work.
+
+## Checkpoint Report -- 000002
+
+Checkpoint:
+Phase 122 -- Checkpoint 000002: implement or audit primary scoped work.
+
+Goal status:
+Active. Phase 122 implemented a synthetic GTFS-RT fixture suite and manifest
+validator.
+
+Sub-agents used or simulated:
+The agent thread limit still prevents new real sub-agents. Context / Repo
+Truth, Implementation, QA, GTFS-RT Domain, Connector, Claim-Boundary,
+Security/Auth, Data/Migration, Documentation / IA, Web Design Skill, Release,
+and Install Confidence roles were simulated by the Master Agent.
+
+Changed files:
+`testdata/gtfsrt-conformance/README.md`;
+`testdata/gtfsrt-conformance/suite.json`;
+`internal/gtfsrtconformance/fixtures.go`;
+`internal/gtfsrtconformance/fixtures_test.go`;
+`Makefile`;
+`docs/phase-122-gtfs-rt-fixture-library-and-edge-case-coverage.md`.
+
+Validation run:
+Passed:
+
+- `gofmt -w internal/gtfsrtconformance`
+- `go test ./internal/gtfsrtconformance ./cmd/gtfsrt-conformance`
+- `make gtfsrt-conformance`
+- `python3 -m json.tool testdata/gtfsrt-conformance/suite.json`
+- `git diff --check`
+- `make check`
+- protected-path git status check
+
+Blocked checks:
+Full Phase 122 validation, connector validation, and claim audits are
+scheduled for checkpoint 000003.
+
+Protected path status:
+No protected evidence path was edited, generated, reformatted, or touched.
+
+Consumer tracker status:
+The tracker was not edited. The exact seven consumer targets remain in order
+and all remain `prepared`.
+
+Claim-boundary status:
+The fixture suite is synthetic/local, has all-false claim flags, and records
+explicit "does not prove" language for every case. It does not claim
+compliance, consumer acceptance, production readiness, SLA/uptime, vendor
+compatibility, hardware certification, production-grade ETA quality, or
+real-world ETA accuracy.
+
+Security/auth status:
+Fixture validation rejects evidence-like suite paths and evidence-like
+references. No route auth, CSRF, credential handling, token handling, public
+exposure, private payload handling, or operator command behavior changed.
+
+Data/migration status:
+No migration, schema, durable state, runtime dependency, or Go module change
+was added.
+
+Release/publication status:
+The public rc1 prerelease remains published. Phase 122 does not create or
+modify a release.
+
+Install confidence status:
+Phase 117 public fresh-clone install confidence remains passed. The changed
+fixture library is current-source hardening and is not part of the published
+rc1 tag.
+
+Web design skill status:
+Phase 118 Web Design Skill artifact remains complete. CP000002 did not change
+visual UI templates.
+
+Master review:
+Approved. The fixture suite covers midnight rollover, frequency service,
+canceled trips, stale telemetry, unknown vehicles, and malformed realtime
+messages across Vehicle Positions, Trip Updates, and Alerts.
+
+Required edits:
+Commit checkpoint 000002, then run Phase 122 validation and patch any
+repo-caused failures.
+
+Decision:
+Proceed to checkpoint 000002 commit and checkpoint 000003 validation.
+
+Next checkpoint:
+Phase 122 -- Checkpoint 000003: run validation and patch required gaps.

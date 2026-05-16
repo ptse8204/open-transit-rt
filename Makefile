@@ -58,7 +58,7 @@ check:
 	@echo "Running lightweight no-network/no-Docker/no-validator-install checks..."
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git diff --check; else echo "Skipping git diff --check outside a git worktree."; fi
 	@scripts/check-consumer-tracker.sh >/dev/null
-	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json testdata/telemetry-simulator/*.json; do python3 -m json.tool "$$f" >/dev/null; done
+	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json testdata/gtfsrt-conformance/*.json testdata/telemetry-simulator/*.json; do python3 -m json.tool "$$f" >/dev/null; done
 	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/install-confidence.sh scripts/test-install-confidence.sh scripts/release-candidate-check.sh scripts/oci-reference-check.sh scripts/validate-public-feeds.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/check-consumer-tracker.sh scripts/test-product-acceptance.sh scripts/audit-operations-route-inventory.sh scripts/test-operations-route-inventory.sh; do sh -n "$$s"; done
 	@scripts/bootstrap-dev.sh --help >/dev/null
 	@scripts/agency-local-app.sh --help >/dev/null

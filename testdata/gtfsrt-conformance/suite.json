@@ -1,0 +1,217 @@
+{
+  "schema_version": "open-transit-rt.gtfsrt_fixture_suite.v1",
+  "synthetic_only": true,
+  "boundary": "Synthetic/local GTFS-RT fixture metadata only. This suite does not contact consumers, write evidence, change consumer status, or prove compliance, consumer acceptance, production readiness, SLA/uptime, vendor compatibility, hardware certification, production-grade ETA quality, or real-world ETA accuracy.",
+  "claim_flags": {
+    "external_evidence_created": false,
+    "consumer_statuses_changed": false,
+    "compliance_claimed": false,
+    "consumer_acceptance_claimed": false,
+    "production_readiness_claimed": false,
+    "sla_claimed": false,
+    "uptime_guarantee_claimed": false,
+    "vendor_compatibility_claimed": false,
+    "hardware_certification_claimed": false,
+    "production_grade_eta_claimed": false,
+    "real_world_eta_accuracy_claimed": false,
+    "stable_release_readiness_claimed": false
+  },
+  "cases": [
+    {
+      "id": "vp-midnight-rollover-with-start-date",
+      "feed_type": "vehicle_positions",
+      "family": "midnight_rollover",
+      "scenario": "after_midnight_trip_descriptor_identity",
+      "expected_status": "ok",
+      "assertions": [
+        "header_full_dataset",
+        "vehicle_id_present",
+        "position_valid",
+        "vehicle_timestamp_present",
+        "trip_descriptor_start_date_present"
+      ],
+      "references": [
+        "testdata/gtfs/after-midnight",
+        "testdata/replay/after-midnight-service.json"
+      ],
+      "does_not_prove": "Does not prove real-world overnight reliability, consumer display, compliance, or production readiness."
+    },
+    {
+      "id": "vp-frequency-service-unscheduled",
+      "feed_type": "vehicle_positions",
+      "family": "frequency_service",
+      "scenario": "frequency_non_exact_trip_descriptor_review",
+      "expected_status": "needs_review",
+      "assertions": [
+        "header_full_dataset",
+        "trip_descriptor_schedule_relationship_reviewed",
+        "start_date_or_start_time_present",
+        "frequency_window_referenced"
+      ],
+      "references": [
+        "testdata/gtfs/frequency-based",
+        "testdata/replay/frequency-non-exact-window.json"
+      ],
+      "does_not_prove": "Does not prove consumer interpretation of frequency trips or production readiness."
+    },
+    {
+      "id": "vp-stale-telemetry-suppressed",
+      "feed_type": "vehicle_positions",
+      "family": "stale_telemetry",
+      "scenario": "suppressed_vehicle_after_stale_threshold",
+      "expected_status": "ok",
+      "assertions": [
+        "stale_reason_recorded",
+        "suppressed_vehicle_not_emitted",
+        "review_summary_counts_suppression"
+      ],
+      "references": [
+        "testdata/telemetry/stale-vehicle.json",
+        "testdata/replay/stale-telemetry-withheld.json"
+      ],
+      "does_not_prove": "Does not prove production AVL reliability, SLA, uptime, or vendor compatibility."
+    },
+    {
+      "id": "vp-unknown-vehicle-no-trip-descriptor",
+      "feed_type": "vehicle_positions",
+      "family": "unknown_vehicle",
+      "scenario": "vehicle_position_without_assignment_trip_descriptor",
+      "expected_status": "ok",
+      "assertions": [
+        "vehicle_position_may_emit_without_trip",
+        "trip_descriptor_omitted",
+        "omission_reason_no_assignment"
+      ],
+      "references": [
+        "testdata/telemetry/unmatched-vehicle.json",
+        "testdata/replay/ambiguous-assignment-visible.json"
+      ],
+      "does_not_prove": "Does not prove consumer display, assignment quality, or production readiness."
+    },
+    {
+      "id": "vp-malformed-coordinate-fails",
+      "feed_type": "vehicle_positions",
+      "family": "malformed_realtime",
+      "scenario": "invalid_latitude_or_longitude",
+      "expected_status": "failed",
+      "assertions": [
+        "payload_parseable",
+        "vehicle_position_coordinates_invalid",
+        "entity_id_unique"
+      ],
+      "references": [
+        "testdata/adapter-conformance/fixtures/telemetry-invalid-coordinate.json"
+      ],
+      "does_not_prove": "Does not prove real device behavior or vendor compatibility."
+    },
+    {
+      "id": "tu-canceled-trip-no-stop-times",
+      "feed_type": "trip_updates",
+      "family": "canceled_trip",
+      "scenario": "canceled_trip_without_stop_time_updates",
+      "expected_status": "ok",
+      "assertions": [
+        "trip_update_payload",
+        "trip_id_present",
+        "start_date_present",
+        "schedule_relationship_canceled"
+      ],
+      "references": [
+        "testdata/replay/cancellation-alert-linkage.json"
+      ],
+      "does_not_prove": "Does not prove consumer display, agency approval, compliance, or production readiness."
+    },
+    {
+      "id": "tu-missing-start-date-needs-review",
+      "feed_type": "trip_updates",
+      "family": "midnight_rollover",
+      "scenario": "missing_start_date_repeated_trip_ambiguity",
+      "expected_status": "needs_review",
+      "assertions": [
+        "trip_update_trip_identity",
+        "trip_update_start_date_missing",
+        "after_midnight_ambiguity_review"
+      ],
+      "references": [
+        "testdata/gtfs/after-midnight"
+      ],
+      "does_not_prove": "Does not prove ETA quality, real-world accuracy, or consumer display."
+    },
+    {
+      "id": "tu-low-confidence-withheld",
+      "feed_type": "trip_updates",
+      "family": "stale_telemetry",
+      "scenario": "low_confidence_or_stale_prediction_withheld",
+      "expected_status": "ok",
+      "assertions": [
+        "withheld_reason_recorded",
+        "no_invented_eta",
+        "prediction_adapter_boundary_preserved"
+      ],
+      "references": [
+        "testdata/replay/low-confidence-trip-updates-withheld.json",
+        "testdata/adapter-conformance/fixtures/prediction-low-confidence.json"
+      ],
+      "does_not_prove": "Does not prove production-grade ETA quality or real-world ETA accuracy."
+    },
+    {
+      "id": "tu-malformed-payload-fails",
+      "feed_type": "trip_updates",
+      "family": "malformed_realtime",
+      "scenario": "missing_trip_identity",
+      "expected_status": "failed",
+      "assertions": [
+        "trip_update_payload",
+        "trip_update_trip_identity_missing",
+        "entity_id_present"
+      ],
+      "references": [
+        "testdata/adapter-conformance/fixtures/prediction-malformed.json"
+      ],
+      "does_not_prove": "Does not prove external predictor behavior or production readiness."
+    },
+    {
+      "id": "alerts-canceled-service-linked",
+      "feed_type": "alerts",
+      "family": "canceled_trip",
+      "scenario": "canceled_service_alert_informed_entity",
+      "expected_status": "ok",
+      "assertions": [
+        "alert_header_text_present",
+        "alert_informed_entity_present",
+        "active_period_present"
+      ],
+      "references": [
+        "testdata/replay/cancellation-alert-linkage.json"
+      ],
+      "does_not_prove": "Does not prove agency approval, consumer display, public launch, compliance, or production readiness."
+    },
+    {
+      "id": "alerts-missing-active-period-review",
+      "feed_type": "alerts",
+      "family": "malformed_realtime",
+      "scenario": "missing_active_period",
+      "expected_status": "needs_review",
+      "assertions": [
+        "alert_header_text_present",
+        "alert_informed_entity_present",
+        "alert_active_period_missing"
+      ],
+      "references": [],
+      "does_not_prove": "Does not prove consumer interpretation or compliance."
+    },
+    {
+      "id": "alerts-missing-header-text-fails",
+      "feed_type": "alerts",
+      "family": "malformed_realtime",
+      "scenario": "missing_header_text",
+      "expected_status": "failed",
+      "assertions": [
+        "alert_header_text_missing",
+        "entity_id_unique"
+      ],
+      "references": [],
+      "does_not_prove": "Does not prove alert lifecycle quality or production readiness."
+    }
+  ]
+}
