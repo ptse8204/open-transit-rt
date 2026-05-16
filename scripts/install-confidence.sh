@@ -14,6 +14,7 @@ FORCE="${INSTALL_CONFIDENCE_FORCE:-false}"
 RUN_LOCAL_APP="${INSTALL_CONFIDENCE_RUN_LOCAL_APP:-false}"
 RUN_VALIDATE="${INSTALL_CONFIDENCE_RUN_VALIDATE:-false}"
 RUN_TEST="${INSTALL_CONFIDENCE_RUN_TEST:-false}"
+RUN_VALIDATORS_INSTALL="${INSTALL_CONFIDENCE_RUN_VALIDATORS_INSTALL:-$RUN_VALIDATE}"
 
 usage() {
   cat <<'EOF'
@@ -27,6 +28,9 @@ Environment:
   INSTALL_CONFIDENCE_OUTPUT_DIR    Output under .cache/install-confidence/<timestamp> by default.
   INSTALL_CONFIDENCE_FORCE         true|false; allow replacing an existing output dir.
   INSTALL_CONFIDENCE_RUN_LOCAL_APP true|false; run make agency-app-up and five local feed fetches.
+  INSTALL_CONFIDENCE_RUN_VALIDATORS_INSTALL
+                                    true|false; run make validators-install before validation.
+                                    Default matches INSTALL_CONFIDENCE_RUN_VALIDATE.
   INSTALL_CONFIDENCE_RUN_VALIDATE  true|false; run make validate.
   INSTALL_CONFIDENCE_RUN_TEST      true|false; run make test.
 
@@ -68,6 +72,7 @@ bool_arg() {
 
 bool_arg INSTALL_CONFIDENCE_FORCE "$FORCE"
 bool_arg INSTALL_CONFIDENCE_RUN_LOCAL_APP "$RUN_LOCAL_APP"
+bool_arg INSTALL_CONFIDENCE_RUN_VALIDATORS_INSTALL "$RUN_VALIDATORS_INSTALL"
 bool_arg INSTALL_CONFIDENCE_RUN_VALIDATE "$RUN_VALIDATE"
 bool_arg INSTALL_CONFIDENCE_RUN_TEST "$RUN_TEST"
 
@@ -187,6 +192,12 @@ overall="passed"
 run_step "make-check" "make check" "make check" || overall="failed"
 run_step "bootstrap-check" "scripts/bootstrap-dev.sh --check" "scripts/bootstrap-dev.sh --check" || overall="failed"
 
+if [ "$RUN_VALIDATORS_INSTALL" = "true" ]; then
+  run_step "validators-install" "make validators-install" "make validators-install" || overall="failed"
+else
+  status_line "validators_install" "not_checked" "INSTALL_CONFIDENCE_RUN_VALIDATORS_INSTALL=false"
+fi
+
 if [ "$RUN_VALIDATE" = "true" ]; then
   run_step "make-validate" "make validate" "make validate" || overall="failed"
 else
@@ -235,6 +246,7 @@ fi
   printf -- '- Ref: `%s`\n' "$REF"
   printf -- '- Overall status: `%s`\n' "$overall"
   printf -- '- Run local app: `%s`\n' "$RUN_LOCAL_APP"
+  printf -- '- Run validators install: `%s`\n' "$RUN_VALIDATORS_INSTALL"
   printf -- '- Run validate: `%s`\n' "$RUN_VALIDATE"
   printf -- '- Run test: `%s`\n\n' "$RUN_TEST"
   printf 'This is a local install-confidence diagnostic only. It is not retained evidence, release publication, production readiness, compliance proof, consumer acceptance, agency approval, hosted service availability, vendor compatibility, SLA/uptime, or ETA-quality proof.\n\n'
