@@ -397,9 +397,16 @@ roadmap pack is tracked at
 `docs/roadmaps/post-110-goal-public-release-install-ux/README.md`, and
 source-of-truth docs now point to it as the active post-110 execution track.
 Phase 111 added no release action, retained evidence, consumer status change,
-protected-path write, external contact, or stronger public claim. Phase 112 is
-active for public release artifact and claim blocking audit. Continue to Phase
-112; do not stop after roadmap activation or a release recommendation.
+protected-path write, external contact, or stronger public claim. Phase 112 --
+Public Release Artifact And Claim Blocking Audit is complete, with closeout at
+`docs/handoffs/phase-112.md`: local rc1 package generation and package audit
+passed from a clean commit, local app release-candidate diagnostics passed
+where run, `docs/release-status-v0.1.0-rc.1.md` records exact status, and
+publication remains blocked by source archive public-distribution review
+because the archive contains tracked protected evidence and
+consumer-submission paths. Phase 113 is active for fresh clone install harness
+and release dry run. Continue to Phase 113; do not stop after release blocking
+audit or a release recommendation.
 
 Phase 61 added the roadmap pack, replaced stale "not Phase 61" source-of-truth
 wording, improved `/admin/operations` with agency-first action cards, and

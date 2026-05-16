@@ -13,7 +13,13 @@ independent install confidence, Web Design Skill UX validation, and GTFS-RT
 adoption roadmap pack. The closeout handoff is
 [`docs/handoffs/phase-111.md`](handoffs/phase-111.md), and the roadmap lives at
 [`docs/roadmaps/post-110-goal-public-release-install-ux/README.md`](roadmaps/post-110-goal-public-release-install-ux/README.md).
-Phase 112 is active for public release artifact and claim blocking audit.
+Phase 112 is complete for public release artifact and claim blocking audit.
+The closeout handoff is [`docs/handoffs/phase-112.md`](handoffs/phase-112.md),
+and `docs/release-status-v0.1.0-rc.1.md` records the current status:
+`blocked_public_distribution_review`. Local package generation and audit
+passed from a clean commit, but publication remains blocked because the source
+archive contains tracked protected evidence and consumer-submission paths.
+Phase 113 is active for fresh clone install harness and release dry run.
 Phase 115 is authorized to attempt public `v0.1.0-rc.1` release-candidate
 publication only if release gates pass and authenticated tooling is available.
 If release credentials, tooling, source-archive review, protected-path review,

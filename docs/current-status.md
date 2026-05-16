@@ -626,12 +626,19 @@ independent install confidence, Web Design Skill UX validation, and GTFS-RT
 adoption roadmap pack is now tracked at
 `docs/roadmaps/post-110-goal-public-release-install-ux/README.md`, and
 source-of-truth docs point to it as the active post-110 execution track. Phase
-111 added no tag, GitHub Release, package publication, image publication,
-retained evidence, consumer status change, external contact, protected-path
-write, release-readiness claim, compliance claim, production-readiness claim,
-hosted-service claim, vendor claim, hardware claim, SLA/uptime claim,
-public-launch claim, or ETA-quality claim. Phase 112 is active for public
-release artifact and claim blocking audit.
+112 -- Public Release Artifact And Claim Blocking Audit is complete, with
+closeout at `docs/handoffs/phase-112.md`: the local rc1 package generation and
+package audit passed from a clean commit, local app release-candidate
+diagnostics passed where run, `docs/release-status-v0.1.0-rc.1.md` records
+the exact status, and publication remains blocked by source archive
+public-distribution review because the archive contains tracked protected
+evidence and consumer-submission paths. Phase 112 added no tag, GitHub
+Release, package publication, image publication, retained evidence, consumer
+status change, external contact, protected-path write, release-readiness
+claim, compliance claim, production-readiness claim, hosted-service claim,
+vendor claim, hardware claim, SLA/uptime claim, public-launch claim, or
+ETA-quality claim. Phase 113 is active for fresh clone install harness and
+release dry run.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

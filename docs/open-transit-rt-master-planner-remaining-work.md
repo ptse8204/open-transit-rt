@@ -176,11 +176,16 @@ The first instruction in this workstream was to make the Codex instructions expa
   The closeout lives at `docs/handoffs/phase-111.md`; the Phase 111-132 public
   release, independent install confidence, Web Design Skill UX validation, and
   GTFS-RT adoption roadmap pack is tracked at
-  `docs/roadmaps/post-110-goal-public-release-install-ux/README.md`. Phase 112
-  is active for public release artifact and claim blocking audit. Phase 115 is
-  the first phase authorized to attempt public `v0.1.0-rc.1` publication, only
-  if gates pass and authenticated tooling is available; blocked publication
-  must be recorded truthfully and downstream safe phases must continue.
+  `docs/roadmaps/post-110-goal-public-release-install-ux/README.md`.
+- Phase 112 is complete for Public Release Artifact And Claim Blocking Audit.
+  The closeout lives at `docs/handoffs/phase-112.md`;
+  `docs/release-status-v0.1.0-rc.1.md` records
+  `blocked_public_distribution_review` because the source archive contains
+  tracked protected evidence and consumer-submission paths. Phase 113 is active
+  for fresh clone install harness and release dry run. Phase 115 is the first
+  phase authorized to attempt public `v0.1.0-rc.1` publication, only if gates
+  pass and authenticated tooling is available; blocked publication must be
+  recorded truthfully and downstream safe phases must continue.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.

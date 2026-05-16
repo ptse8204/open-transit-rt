@@ -372,3 +372,8 @@ Proceed to checkpoint 000003 commit, then checkpoint 000004 closeout.
 Next checkpoint:
 Phase 112 -- Checkpoint 000004: close public release artifact and claim
 blocking audit review.
+
+## Closeout
+
+Phase 112 is closed by `docs/handoffs/phase-112.md`. Continue immediately to
+Phase 113.
