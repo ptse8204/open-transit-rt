@@ -72,8 +72,13 @@ the closeout handoff is
 [`docs/handoffs/phase-121.md`](handoffs/phase-121.md). The repo now has an
 offline GTFS-RT protobuf conformance library, CLI, and
 `make gtfsrt-conformance` target for local Vehicle Positions, Trip Updates,
-and Alerts artifact review. Phase 122 is active for GTFS-RT fixture library
-and edge-case coverage. This release remains a candidate for
+and Alerts artifact review. Phase 122 is complete for GTFS-RT fixture library
+and edge-case coverage; the closeout handoff is
+[`docs/handoffs/phase-122.md`](handoffs/phase-122.md). The repo now has a
+synthetic GTFS-RT fixture-suite manifest and tests for midnight rollover,
+frequency service, canceled trips, stale telemetry, unknown vehicles, and
+malformed realtime messages. Phase 123 is active for Vehicle AVL connector
+starter kits. This release remains a candidate for
 local/self-hosted evaluation only and does not claim stable release readiness,
 production readiness, compliance, adoption, consumer acceptance, final-root
 readiness, hosted service availability, SLA/uptime, vendor compatibility,

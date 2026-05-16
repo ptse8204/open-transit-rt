@@ -709,7 +709,12 @@ omission reasons. Phase 121 -- GTFS-RT Interoperability Conformance Harness is
 complete, with closeout at `docs/handoffs/phase-121.md`: the repo now has an
 offline GTFS-RT protobuf conformance library, CLI, and `make gtfsrt-conformance`
 target for local Vehicle Positions, Trip Updates, and Alerts artifact review.
-Phase 122 is active for GTFS-RT fixture library and edge-case coverage.
+Phase 122 -- GTFS-RT Fixture Library And Edge-Case Coverage is complete, with
+closeout at `docs/handoffs/phase-122.md`: `testdata/gtfsrt-conformance`
+contains a synthetic fixture suite manifest, README, and required-case tests
+for midnight rollover, frequency service, canceled trips, stale telemetry,
+unknown vehicles, and malformed realtime messages. Phase 123 is active for
+Vehicle AVL connector starter kits.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
 tracks remain separated by their phase gates and claim boundaries. Use the canonical
 [Review And Recommendations](roadmap-status.md#review-and-recommendations)

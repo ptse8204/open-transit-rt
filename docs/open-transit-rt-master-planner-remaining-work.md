@@ -239,8 +239,13 @@ The first instruction in this workstream was to make the Codex instructions expa
   closeout lives at `docs/handoffs/phase-121.md`. The repo now has an offline
   GTFS-RT protobuf conformance library, CLI, and `make gtfsrt-conformance`
   target for local Vehicle Positions, Trip Updates, and Alerts artifact
-  review. Phase 122 is active for GTFS-RT Fixture Library And Edge-Case
-  Coverage.
+  review.
+- Phase 122 is complete for GTFS-RT Fixture Library And Edge-Case Coverage.
+  The closeout lives at `docs/handoffs/phase-122.md`.
+  `testdata/gtfsrt-conformance` contains a synthetic fixture suite manifest,
+  README, and required-case tests for midnight rollover, frequency service,
+  canceled trips, stale telemetry, unknown vehicles, and malformed realtime
+  messages. Phase 123 is active for Vehicle AVL Connector Starter Kits.
 - The previous Phase 74 connector-maturity slot has been addressed by Phase
   101 for synthetic/local connector maturity; real vendor/device proof remains
   separately authorization-gated.
