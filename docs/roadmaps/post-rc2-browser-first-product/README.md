@@ -112,6 +112,15 @@ AI-agent-only docs, handoffs, prompt files, roadmap packs, and phase ledgers.
 The stable branch remains a filtered product branch, not a stable release or
 production-readiness claim.
 
+## Phase 13 Report
+
+Phase 13 keeps Go tests in CI because `go test ./...` passed locally and
+remains useful. The GitHub Actions repair changes the default workflow into a
+fast PR/push path with Go tests, `make check`, the consumer tracker script, and
+the final claim audit. Validator-heavy, connector, conformance, product
+acceptance, and release-package checks move to a manual release-gates workflow.
+`docs/ci.md` explains when to use each path.
+
 ## Phase Acceptance Rule
 
 Do not accept a phase until:

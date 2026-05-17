@@ -53,6 +53,7 @@ first.
 - [Dependencies](dependencies.md)
 - [Decisions](decisions.md)
 - [Branching And Release Policy](branching-and-release-policy.md)
+- [Continuous Integration](ci.md)
 - [Known Gaps](repo-gaps.md)
 - [Release Process](release-process.md)
 - [Release Checklist](release-checklist.md)

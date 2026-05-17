@@ -1,14 +1,18 @@
-name: Local checks
+name: Fast CI
 
 on:
   pull_request:
   push:
     branches:
       - main
+      - stable
+
+permissions:
+  contents: read
 
 jobs:
-  test:
-    name: Go and connector checks
+  fast-checks:
+    name: Go tests and repo guardrails
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -22,37 +26,11 @@ jobs:
       - name: Run Go tests
         run: go test ./...
 
-      - name: Check external connector manifests
-        run: make external-connection-check
-
-      - name: Run adapter conformance
-        run: make adapter-conformance
-
-      - name: Test connector examples
-        run: make test-connector-examples
-
-      - name: Validate consumer tracker JSON
-        run: python3 -m json.tool docs/evidence/consumer-submissions/status.json >/dev/null
+      - name: Run lightweight repo check
+        run: make check
 
       - name: Verify prepared-only consumer tracker
-        run: |
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
+        run: scripts/check-consumer-tracker.sh
 
-          expected = [
-              "Google Maps",
-              "Apple Maps",
-              "Transit App",
-              "Bing Maps",
-              "Moovit",
-              "Mobility Database",
-              "transit.land",
-          ]
-
-          data = json.loads(Path("docs/evidence/consumer-submissions/status.json").read_text())
-          records = data.get("targets", [])
-          seen = {row["target"]: row.get("status") for row in records}
-          assert list(seen) == expected, seen
-          assert all(seen[name] == "prepared" for name in expected), seen
-          PY
+      - name: Run final claim audit
+        run: make audit-final-claim-review
