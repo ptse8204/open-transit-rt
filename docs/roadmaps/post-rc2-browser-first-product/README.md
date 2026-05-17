@@ -20,6 +20,8 @@ Use these files together:
   commands.
 - [UI Audit](ui-audit.md): Phase 01 route inventory, workflow gaps, language
   issues, and browser-first information architecture.
+- [Closeout](closeout.md): completed phase commits, validation, changed
+  behavior, remaining limits, and next recommended path.
 
 ## Phase 01 Status
 
@@ -132,6 +134,14 @@ checked all five public feed URLs, and confirmed unauthenticated
 The Web Design Engineer skill was loaded before writing the acceptance record.
 It shaped the report toward a role and workflow summary rather than a raw
 diagnostic dump, with local route details kept under `.cache/`.
+
+## Phase 15 Report
+
+Phase 15 closes the roadmap in [Closeout](closeout.md), updates current status
+and latest handoff, records final validation, and recommends a release-candidate
+gate followed by stable branch review and external connector runtime
+integration work. Optional evidence tracks remain separately authorization
+gated.
 
 ## Phase Acceptance Rule
 

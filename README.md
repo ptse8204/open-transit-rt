@@ -232,6 +232,9 @@ Use the role-based docs index first:
 - [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
 - [Operations Console Tour](wiki/operations-console-tour.md)
 - [Evaluator And Contributor Kit](docs/adoption/evaluator-and-contributor-kit.md)
+- [Product Acceptance](docs/product-acceptance/post-rc2-browser-first-acceptance.md)
+- [Branching And Release Policy](docs/branching-and-release-policy.md)
+- [Continuous Integration](docs/ci.md)
 
 ## Contributing
 

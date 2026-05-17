@@ -10,6 +10,24 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
+Post-rc2 Browser-First Product Roadmap phases 01 through 15 are complete.
+The closeout is recorded at
+`docs/roadmaps/post-rc2-browser-first-product/closeout.md`.
+
+The Operations Console is now a browser-first local/self-hosted evaluation
+surface for normal agency workflows after a technical helper starts the local
+app. The final acceptance walkthrough verified 23 private Operations Console
+routes, GTFS Studio, Alerts Console, all five public feed URLs, and the
+unauthenticated admin boundary. It is still a local/self-hosted evaluation
+workflow, not production readiness, compliance, adoption, consumer acceptance,
+hosted service availability, vendor compatibility, SLA/uptime, AVL reliability,
+or ETA-quality proof.
+
+The recommended next step is a release-candidate gate for the post-rc2
+browser-first changes, then maintainer review of the filtered `stable` branch
+automation and a separate external connector runtime integration roadmap.
+Optional evidence tracks remain separately authorization-gated.
+
 Post-132 release publication is complete for `v0.1.0-rc.2`.
 Open Transit RT v0.1.0-rc.2 is a public release candidate for local/self-hosted evaluation.
 It is not a stable release and does not prove production readiness, compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, vendor compatibility, hardware certification, SLA/uptime, production AVL reliability, production-grade ETA quality, or real-world ETA accuracy.

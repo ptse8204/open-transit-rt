@@ -9,6 +9,34 @@ continuation context is indexed from
 
 ## Active Phase
 
+Post-rc2 Browser-First Product Roadmap phases 01 through 15 are complete.
+The closeout is `docs/roadmaps/post-rc2-browser-first-product/closeout.md`.
+
+The current `main` branch contains separate commits for every roadmap
+phase. The `stable` branch was initialized as a filtered product branch
+from the `v0.1.0-rc.2` baseline, and
+`.github/workflows/update-stable.yml` defines the non-force-push filter
+automation for future main-to-stable updates.
+
+Normal agency workflows are now reachable from the browser after a technical
+helper starts the app. Phase 14 verified 23 private Operations Console routes,
+GTFS Studio, Alerts Console, all five public feed URLs, and unauthenticated
+admin `401`. Remaining command-line work is technical-helper or maintainer
+work: startup/shutdown, validator installation, deployment operations, release
+gates, real secrets, and any evidence or consumer workflow.
+
+Recommended next work: run a release-candidate gate for these post-rc2 product
+changes, review/push the filtered stable branch if desired, and then start a
+separate external connector runtime integration roadmap. Optional evidence
+tracks remain separately authorization-gated and require retained
+target-originated evidence rules.
+
+Unsupported claims remain unsupported: no CAL-ITP/Caltrans compliance,
+production readiness, agency adoption, consumer acceptance, final-root
+readiness, hosted service availability, vendor compatibility, hardware
+certification, SLA/uptime, production AVL reliability, production-grade ETA
+quality, or real-world ETA accuracy is proven.
+
 Post-132 rc2 publication is complete. Open Transit RT v0.1.0-rc.2 is a public release candidate for local/self-hosted evaluation.
 It is not a stable release and does not prove production readiness, compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, vendor compatibility, hardware certification, SLA/uptime, production AVL reliability, production-grade ETA quality, or real-world ETA accuracy.
 The GitHub prerelease is published at
