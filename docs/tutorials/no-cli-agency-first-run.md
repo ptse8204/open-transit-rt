@@ -139,6 +139,12 @@ For the broader private realtime review, open:
 /admin/operations/prediction-lab
 ```
 
+On Realtime Center, use **Feed Usefulness Details** to review Vehicle
+Positions publishing counts and omitted trip-descriptor reasons, Trip Updates
+generated versus withheld/fallback reasons, and Alerts lifecycle gaps. Use
+**Synthetic / Local Replay Guide** to start with browser fixture previews
+before asking a technical helper for local replay commands.
+
 ## 5. Review GTFS Quality And Validators
 
 Open:

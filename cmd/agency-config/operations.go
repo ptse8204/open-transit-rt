@@ -1142,6 +1142,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedReadiness = buildOperationsFeedReadiness(page)
 	page.FeedHealth = buildOperationsFeedHealth(page)
+	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page, r.URL.Query().Get("scenario"))
 	page.Realtime = buildOperationsRealtime(page)
 	page.PredictionLab = buildPredictionLab(page)
 	page.Maintenance = buildOperationsMaintenance(page)
@@ -1151,7 +1152,6 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ValidationCenter = buildOperationsValidationCenter(page)
 	page.Checklist = buildOperatorChecklist(page)
 	page.FirstRun = buildOperationsFirstRun(page)
-	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page, r.URL.Query().Get("scenario"))
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
@@ -1906,6 +1906,24 @@ func staleThreshold() time.Duration {
 		return defaultStaleSeconds * time.Second
 	}
 	return time.Duration(seconds) * time.Second
+}
+
+func suppressStaleVehicleAfter() time.Duration {
+	defaultSeconds := 300
+	raw := strings.TrimSpace(os.Getenv("SUPPRESS_STALE_VEHICLE_AFTER_SECONDS"))
+	if raw == "" {
+		return time.Duration(defaultSeconds) * time.Second
+	}
+	seconds, err := strconv.Atoi(raw)
+	if err != nil || seconds <= 0 {
+		return time.Duration(defaultSeconds) * time.Second
+	}
+	threshold := staleThreshold()
+	duration := time.Duration(seconds) * time.Second
+	if duration < threshold {
+		return threshold
+	}
+	return duration
 }
 
 func feedOrder(feedType string) int {
@@ -3833,6 +3851,21 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Feed</th><th>Score</th><th>Current signal</th><th>Helpful signal</th><th>Needs review</th><th>Consumer-safe behavior</th><th>Next action</th><th>Details</th><th>Boundary</th></tr></thead><tbody>
 {{range .Realtime.Usefulness.Rows}}<tr><td>{{.Label}}</td><td>{{.Score}} / 3<br><span class="status-chip status-{{statusClass .ScoreLabel}}">{{.ScoreLabel}}</span></td><td>{{.CurrentSignal}}</td><td>{{.HelpfulSignal}}</td><td>{{.NeedsReviewSignal}}</td><td>{{.ConsumerSafeBehavior}}</td><td>{{.NextAction}}</td><td>{{range .Details}}<span class="pill">{{.Label}}: {{.Count}}</span> {{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Feed Usefulness Details</h3>
+<p>Use these rows to separate what looks healthy, what needs attention, and what is not proven by local realtime signals.</p>
+{{range .Realtime.Publishing}}
+<section class="card" id="realtime-publishing-{{.ID}}">
+<h4>{{.Label}}</h4>
+<p class="status"><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p><strong>Healthy when:</strong> {{.WhatLooksHealthy}}</p>
+<p><strong>Needs attention:</strong> {{.NeedsAttention}}</p>
+<p><strong>Not proven:</strong> {{.NotProven}}</p>
+<p><strong>Next action:</strong> {{.NextAction}}</p>
+<table><thead><tr><th>Signal</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
+{{range .Signals}}<tr><td>{{.Label}}</td><td>{{.Value}}</td><td>{{.Meaning}}</td></tr>{{end}}
+</tbody></table>
+</section>
+{{end}}
 <h3>Freshness And Lifecycle Review</h3>
 <table><thead><tr><th>Area</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .Realtime.Usefulness.Freshness}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
@@ -3840,6 +3873,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Consumer-Safe Omission Rules</h3>
 <table><thead><tr><th>Condition</th><th>Safe behavior</th><th>Review step</th><th>Boundary</th></tr></thead><tbody>
 {{range .Realtime.Usefulness.OmissionRules}}<tr><td>{{.Condition}}</td><td>{{.SafeBehavior}}</td><td>{{.ReviewStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Synthetic / Local Replay Guide</h3>
+<section class="card">
+<p class="status"><span class="status-chip status-{{statusClass .Realtime.ReplayGuidance.Status}}">{{.Realtime.ReplayGuidance.Status}}</span></p>
+<p>{{.Realtime.ReplayGuidance.Summary}}</p>
+<p><strong>Start in browser:</strong> <a href="{{.Realtime.ReplayGuidance.BrowserStart}}">{{.Realtime.ReplayGuidance.BrowserStart}}</a></p>
+<p><strong>Local replay:</strong> {{.Realtime.ReplayGuidance.LocalReplay}}</p>
+<p><strong>Review after replay:</strong> {{.Realtime.ReplayGuidance.ReviewAfter}}</p>
+<p class="muted">{{.Realtime.ReplayGuidance.Boundary}}</p>
+</section>
+<table><thead><tr><th>Step</th><th>Action</th><th>Safe boundary</th></tr></thead><tbody>
+{{range .Realtime.ReplayGuidance.Steps}}<tr><td>{{.Label}}</td><td>{{.Action}}</td><td>{{.SafeBoundary}}</td></tr>{{end}}
 </tbody></table>
 <h3>Needs Operator Review</h3>
 <table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>

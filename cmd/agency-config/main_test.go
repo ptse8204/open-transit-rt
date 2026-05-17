@@ -5986,9 +5986,31 @@ func TestOperationsConsoleRendersDemoStateWithSafeTelemetryDiagnostics(t *testin
 }
 
 func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
+	t.Setenv("SUPPRESS_STALE_VEHICLE_AFTER_SECONDS", "120")
 	now := time.Now().UTC().Truncate(time.Second)
+	store := feedHealthTestStore(t)
+	store.tripDiagnostics = compliance.TripUpdatesDiagnosticsSummary{
+		Recorded:            true,
+		SnapshotAt:          now,
+		AdapterName:         "deterministic",
+		DiagnosticsStatus:   "recorded",
+		DiagnosticsReason:   "partial_predictions",
+		ActiveFeedVersionID: "feed-v1",
+		Metrics: prediction.Metrics{
+			EligiblePredictionCandidates: 2,
+			TripUpdatesEmitted:           1,
+			UnknownAssignments:           1,
+			AmbiguousAssignments:         1,
+			StaleTelemetryRows:           1,
+			WithheldByReason: map[string]int{
+				prediction.ReasonBelowConfidenceThreshold: 1,
+				prediction.ReasonStaleTelemetry:           1,
+			},
+			CancellationAlertLinksMissing: 1,
+		},
+	}
 	srv := newOperationsTestHandler(&handler{
-		store: feedHealthTestStore(t),
+		store: store,
 		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{
 			{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
 			{AgencyID: "demo-agency", DeviceID: "device-2", VehicleID: "bus-2", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
@@ -6042,7 +6064,7 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "Realtime Feed Usefulness Review", "Freshness And Lifecycle Review", "Consumer-Safe Omission Rules", "Vehicle Positions usefulness", "Trip Updates usefulness", "Alerts usefulness", "Consumer-safe behavior", "emitted from", "valid empty/fallback output", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
+	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "Realtime Feed Usefulness Review", "Feed Usefulness Details", "Healthy when", "Needs attention", "Not proven", "Vehicle Positions publishing review", "Vehicle count", "Estimated Vehicle Positions rows", "Suppressed vehicles", "Trip descriptor coverage", "Why not published", "Trip Updates publishing review", "Prediction source", "Fallback reason", "Low-confidence handling", "Withheld reason: below_confidence_threshold", "Alerts lifecycle review", "Active alerts", "Stale alerts", "Missing cancellation links", "Service disruption review", "Synthetic / Local Replay Guide", "Preview a scenario in the browser", "Freshness And Lifecycle Review", "Consumer-Safe Omission Rules", "Vehicle Positions usefulness", "Trip Updates usefulness", "Alerts usefulness", "Consumer-safe behavior", "emitted from", "valid empty/fallback output", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -6066,8 +6088,26 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	if view.Usefulness.Status == "" || len(view.Usefulness.Rows) != 3 || len(view.Usefulness.Freshness) != 5 || len(view.Usefulness.OmissionRules) != 4 || view.Usefulness.Boundary == "" {
 		t.Fatalf("unexpected realtime usefulness shape: %+v", view.Usefulness)
 	}
+	if len(view.Publishing) != 3 || view.ReplayGuidance.Status == "" || view.ReplayGuidance.BrowserStart != "/admin/operations/telemetry-simulator" || len(view.ReplayGuidance.Steps) != 3 || view.ReplayGuidance.Boundary == "" {
+		t.Fatalf("unexpected realtime publishing/replay shape: publishing=%+v replay=%+v", view.Publishing, view.ReplayGuidance)
+	}
 	if view.Issues[0].Severity == "" || view.Issues[0].NextAction == "" || view.Guidance[0].DoesNotProve == "" {
 		t.Fatalf("realtime review guidance is not actionable: issues=%+v guidance=%+v", view.Issues, view.Guidance)
+	}
+	seenPublishing := map[string]operationsRealtimeFeedReview{}
+	for _, row := range view.Publishing {
+		seenPublishing[row.ID] = row
+		if row.Label == "" || row.Status == "" || row.WhatLooksHealthy == "" || row.NeedsAttention == "" || row.NotProven == "" || row.NextAction == "" || len(row.Signals) == 0 {
+			t.Fatalf("publishing review row is not actionable: %+v", row)
+		}
+		for _, signal := range row.Signals {
+			if signal.Label == "" || signal.Value == "" || signal.Meaning == "" {
+				t.Fatalf("publishing signal missing operator wording: row=%+v signal=%+v", row, signal)
+			}
+		}
+	}
+	if seenPublishing["vehicle_positions"].Signals[4].Label != "Suppressed vehicles" || seenPublishing["trip_updates"].Signals[0].Label != "Prediction source" || seenPublishing["alerts"].Signals[2].Label != "Missing cancellation links" {
+		t.Fatalf("publishing review rows missing expected feed-specific signals: %+v", seenPublishing)
 	}
 	for _, row := range view.Usefulness.Rows {
 		if row.ID == "" || row.Label == "" || row.ScoreLabel == "" || row.CurrentSignal == "" || row.HelpfulSignal == "" || row.NeedsReviewSignal == "" || row.ConsumerSafeBehavior == "" || row.NextAction == "" || row.DoesNotProve == "" {

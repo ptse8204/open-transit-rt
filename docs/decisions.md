@@ -639,3 +639,24 @@ systems, change consumer status, or turn local review into approval,
 compliance, consumer acceptance, production readiness, vendor compatibility, or
 ETA-quality proof. Raw validator samples stay out of the Workbench JSON
 companion; deeper issue analysis stays on the authenticated GTFS Quality page.
+
+## ADR-0048 -- Keep realtime usefulness review private and read-only
+
+Phase 05 adds feed-specific usefulness details and synthetic/local replay
+guidance to the private Realtime Center. Vehicle Positions review summarizes
+visible vehicle counts, estimated published rows, stale/unmatched/suppressed
+vehicles, trip descriptor coverage, and why rows were not published. Trip
+Updates review summarizes generated versus withheld output, prediction source,
+fallback reason, stale/ambiguous inputs, and low-confidence handling. Alerts
+review keeps lifecycle work in the Alerts Console while surfacing active,
+stale, cancellation-link, disruption-link, and service-disruption review prompts.
+
+This is a browser-first operator review layer only. It does not change
+`/v1/telemetry`, matching, public GTFS-Realtime serialization, Trip Updates
+adapter contracts, Alerts authoring, validator execution, evidence records,
+consumer status, or release state. Local replay guidance starts with browser
+fixture previews and keeps real sends, tokens, generated `.cache` diagnostics,
+and private database access under operator or technical-helper control. These
+signals do not prove compliance, consumer display, public launch, SLA, uptime,
+production readiness, vendor compatibility, hardware certification, production
+AVL reliability, production-grade ETA quality, or real-world ETA accuracy.
