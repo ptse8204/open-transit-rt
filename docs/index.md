@@ -54,6 +54,7 @@ first.
 - [Decisions](decisions.md)
 - [Branching And Release Policy](branching-and-release-policy.md)
 - [Continuous Integration](ci.md)
+- [Product Acceptance](product-acceptance/post-rc2-browser-first-acceptance.md)
 - [Known Gaps](repo-gaps.md)
 - [Release Process](release-process.md)
 - [Release Checklist](release-checklist.md)

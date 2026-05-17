@@ -121,6 +121,18 @@ the final claim audit. Validator-heavy, connector, conformance, product
 acceptance, and release-package checks move to a manual release-gates workflow.
 `docs/ci.md` explains when to use each path.
 
+## Phase 14 Report
+
+Phase 14 started the local evaluator stack with `make agency-app-up`, walked 23
+private Operations Console routes, verified GTFS Studio and Alerts Console,
+checked all five public feed URLs, and confirmed unauthenticated
+`/admin/operations` returns `401`. The acceptance record is
+`docs/product-acceptance/post-rc2-browser-first-acceptance.md`.
+
+The Web Design Engineer skill was loaded before writing the acceptance record.
+It shaped the report toward a role and workflow summary rather than a raw
+diagnostic dump, with local route details kept under `.cache/`.
+
 ## Phase Acceptance Rule
 
 Do not accept a phase until:
