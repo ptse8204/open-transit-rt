@@ -1151,7 +1151,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ValidationCenter = buildOperationsValidationCenter(page)
 	page.Checklist = buildOperatorChecklist(page)
 	page.FirstRun = buildOperationsFirstRun(page)
-	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page)
+	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page, r.URL.Query().Get("scenario"))
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
@@ -3904,7 +3904,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>What am I seeing?</strong> The page is a read-only guide to committed synthetic scenarios and fixed operator-shell commands.</p>
 <p><strong>Is this bad?</strong> It is not bad for browser review, but missing fixtures block safe synthetic telemetry practice.</p>
 <p><strong>What should I do next?</strong> Restore committed simulator fixtures or copy a fixed command into an operator shell after the local app and credentials are ready.</p>
-<p><strong>Can I do it in the browser?</strong> No. The browser shows commands and boundaries only; it does not send telemetry or collect tokens.</p>
+<p><strong>Can I do it in the browser?</strong> You can preview committed synthetic fixture summaries here. Sending telemetry and handling tokens stay outside the browser.</p>
 <p><strong>When do I need a technical helper?</strong> Use one for local app startup, shell environment setup, seeded credentials, matcher diagnostics, or failed simulator commands.</p>
 <p><strong>What this does not prove:</strong> Synthetic telemetry does not prove real fleet reliability, vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, or ETA quality.</p>
 </section>
@@ -3916,6 +3916,25 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </div>
 <p><strong>First local/synthetic dry-run safety check:</strong> start with a command containing <code>DRY_RUN=true</code>. This previews committed synthetic payload shape only and does not test a live vendor, live AVL API, real device, or public feed consumer.</p>
 {{if .TelemetrySimulator.LoadError}}<p class="bad">{{.TelemetrySimulator.LoadError}}. Next action: confirm the committed scenario fixtures are present before running simulator commands.</p>{{end}}
+<h3>Browser Dry-Run Preview</h3>
+<form method="get" action="/admin/operations/telemetry-simulator">
+<label for="telemetry_simulator_scenario">Synthetic scenario</label>
+<select id="telemetry_simulator_scenario" name="scenario">
+{{range .TelemetrySimulator.Scenarios}}<option value="{{.Name}}"{{if eq .Name $.TelemetrySimulator.SelectedScenario}} selected{{end}}>{{.Name}}</option>{{end}}
+</select>
+<button type="submit">Preview synthetic dry run</button>
+</form>
+<table><tbody>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .TelemetrySimulator.DryRunPreview.Status}}">{{.TelemetrySimulator.DryRunPreview.Status}}</span></td></tr>
+<tr><th>Scenario</th><td>{{.TelemetrySimulator.DryRunPreview.ScenarioID}}</td></tr>
+<tr><th>Current signal</th><td>{{.TelemetrySimulator.DryRunPreview.CurrentSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.TelemetrySimulator.DryRunPreview.NextAction}}</td></tr>
+<tr><th>Boundary</th><td>{{.TelemetrySimulator.DryRunPreview.Boundary}}</td></tr>
+<tr><th>Does not prove</th><td>{{.TelemetrySimulator.DryRunPreview.DoesNotProve}}</td></tr>
+</tbody></table>
+{{if .TelemetrySimulator.DryRunPreview.Events}}<table><caption>Redacted synthetic event preview</caption><thead><tr><th>Event</th><th>Agency</th><th>Device</th><th>Vehicle</th><th>Timestamp</th><th>Location summary</th><th>Motion summary</th><th>Trip hint</th><th>Expected statuses</th></tr></thead><tbody>
+{{range .TelemetrySimulator.DryRunPreview.Events}}<tr><td>{{.Label}}</td><td>{{.AgencyID}}</td><td>{{.DeviceID}}</td><td>{{.VehicleID}}</td><td>{{.Timestamp}}</td><td>{{.LocationSummary}}</td><td>{{.MotionSummary}}</td><td>{{if .TripHint}}{{.TripHint}}{{else}}none{{end}}</td><td>HTTP {{range .ExpectedHTTPStatus}}<span class="pill">{{.}}</span> {{end}}<br>ingest {{range .ExpectedIngestStatuses}}<span class="pill">{{.}}</span> {{end}}</td></tr>{{end}}
+</tbody></table>{{end}}
 <h3>Operator Commands</h3>
 <table><thead><tr><th>Command</th><th>What it does</th><th>Operator prep</th><th>Failure next action</th><th>Does not prove</th></tr></thead><tbody>
 {{range .TelemetrySimulator.Commands}}<tr><td><code>{{.CommandLine}}</code></td><td>{{.WhatItDoes}}</td><td>{{.OperatorPrep}}</td><td>{{.FailureNextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
@@ -3940,7 +3959,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>production_grade_eta_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
 <tr><th><code>compliance_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ComplianceClaimed}}</td></tr>
 </tbody></table>
-<p class="muted">Use the device page for credential rotation, the simulator guide for synthetic <code>/v1/telemetry</code> sends, and the telemetry page for accepted-event freshness. Keep simulator diagnostics local/private unless a future evidence-specific authorization and redaction process exists.</p>
+<p class="muted">Use the device page for credential rotation, the browser preview for synthetic fixture shape, the fixed simulator commands for private shell dry-runs or intentional local sends, and the telemetry page for accepted-event freshness. Keep simulator diagnostics local/private unless a future evidence-specific authorization and redaction process exists.</p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -4179,7 +4198,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "setup"}}
 {{template "layoutStart" .}}
-<h2>Advanced Setup Details</h2>
+<h2>Setup Details</h2>
 {{if .SetupNotice}}<p class="ok">{{.SetupNotice}}</p>{{end}}
 {{if .SetupError}}<p class="bad">{{.SetupError}}</p>{{end}}
 <p><a href="/admin/operations/setup-wizard">Return to Agency Setup</a> · <a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
@@ -4232,7 +4251,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>Source: feed discovery and the existing GTFS importer. Browser import is admin-only, size-limited, temporary-file based, and uses the same validation and publish pipeline as the CLI import path.</p>
 <table><tbody>
 <tr><th>Browser import</th><td><a href="/admin/operations/gtfs-import">Import a GTFS ZIP by upload or safe URL</a>.</td></tr>
-<tr><th>CLI ZIP import</th><td>Use the existing GTFS import flow documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
+<tr><th>Large or scripted import help</th><td>Use browser import for normal agency ZIP or safe URL imports. Ask a technical helper only for unusually large, scripted, or recovery imports documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
 <tr><th>Typed authoring</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> for draft authoring and publish.</td></tr>
 <tr><th>Validation triage</th><td>Use <code>docs/tutorials/gtfs-validation-triage.md</code> and the validation form below.</td></tr>
 <tr><th>GTFS quality triage</th><td><a href="/admin/operations/gtfs-quality">Review canonical validator and internal importer actions</a>.</td></tr>
@@ -4267,7 +4286,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Device bindings</th><td>{{if .DeviceError}}{{.DeviceError}}{{else}}{{len .Devices}} binding records{{end}}</td></tr>
 <tr><th>Latest telemetry</th><td>{{if .TelemetryError}}{{.TelemetryError}}{{else if .TelemetryUpdatedAt}}{{formatTimePtr .TelemetryUpdatedAt}}{{else}}not observed yet{{end}}</td></tr>
 <tr><th>Stale telemetry</th><td>{{if .TelemetryError}}not available{{else}}{{.StaleCount}} stale latest rows using threshold {{.StaleThreshold}}{{end}}</td></tr>
-<tr><th>Next action</th><td><a href="/admin/operations/devices">Manage device bindings</a>; use <code>scripts/device-onboarding.sh sample --dry-run</code> or <code>simulate --dry-run</code> to preview helper calls.</td></tr>
+<tr><th>Next action</th><td><a href="/admin/operations/devices">Manage device bindings</a>; open <a href="/admin/operations/telemetry-simulator">Telemetry Simulator</a> to preview synthetic fixture shape in the browser before a technical helper runs any private shell dry-run.</td></tr>
 </tbody></table>
 
 <h2>Alerts, Overrides, Consumers, Evidence</h2>

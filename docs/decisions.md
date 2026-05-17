@@ -602,3 +602,23 @@ systems, change consumer status, prove CAL-ITP/Caltrans compliance, prove
 production readiness, prove consumer acceptance, prove vendor compatibility,
 provide hosted service availability, or make SLA or production-grade ETA
 claims.
+
+## ADR-0046 -- Browser telemetry dry runs are fixture previews only
+
+Phase 03 adds a browser dry-run preview to the private Telemetry Simulator.
+The preview reads committed synthetic fixture metadata and renders a redacted
+event summary for the selected scenario. It does not execute shell commands,
+send telemetry, collect device tokens, read `.cache` diagnostics, write
+database rows, or contact external systems.
+
+Intentional telemetry sends remain outside the browser and use the existing
+authenticated `/v1/telemetry` boundary from an operator or technical-helper
+environment. One-time device tokens may be created or rotated through the
+private Devices & Tokens page, but secure storage and installation on devices
+or adapters remain operator-owned.
+
+The preview exists to reduce command-line dependence for normal review: a
+nontechnical agency user can inspect the synthetic scenario shape and expected
+statuses from the browser after startup. It is not a vendor test, hardware
+certification, real fleet reliability test, production AVL proof, consumer
+acceptance signal, compliance proof, or production-grade ETA quality proof.

@@ -282,7 +282,7 @@ func operationsHelpRoleTours() []operationsHelpRoleTour {
 			"Technical helper",
 			"Someone who can run local setup, validators, support bundle review, device setup, connector dry-runs, and deployment diagnostics.",
 			"/admin/operations/setup",
-			"Advanced Setup Details, GTFS Workbench, Validation Health, Devices, Connectors, Maintenance",
+			"Setup Details, GTFS Workbench, Validation Health, Devices, Connectors, Maintenance",
 			"Use existing private admin routes and documented commands only; keep secrets and raw outputs out of browser guidance.",
 			"Escalate to a maintainer before evidence retention, release packaging, portal work, public-root proof, or schema-changing work.",
 			"Does not prove production readiness, vendor fit, hardware certification, release readiness, or external acceptance.",

@@ -789,7 +789,7 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		"Advanced Setup Details",
+		"Setup Details",
 		"Return to Agency Setup",
 		"Setup Diagnostics",
 		"Role Visibility",
@@ -6734,9 +6734,15 @@ func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testi
 	body := rr.Body.String()
 	for _, want := range []string{
 		"Telemetry Simulator Guide",
-		"viewing this page executes no command",
+		"can preview committed synthetic fixture metadata but executes no command",
 		"reads no private diagnostics",
 		"collects no device token",
+		"Browser Dry-Run Preview",
+		"Preview synthetic dry run",
+		"ready_for_browser_preview",
+		"Redacted synthetic event preview",
+		"synthetic point",
+		"This browser page never asks for, stores, displays, or posts device credentials.",
 		"on-route",
 		"stale",
 		"out-of-order",
@@ -6759,7 +6765,7 @@ func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testi
 		}
 	}
 	for _, forbidden := range []string{
-		"<form",
+		`method="post"`,
 		"name=\"device_token\"",
 		"DEVICE_TOKEN=",
 		"Authorization:",
@@ -6807,6 +6813,15 @@ func TestOperationsTelemetrySimulatorJSONIsPrivateBoundedAndNoExecution(t *testi
 	if view.Scenarios[0].Name != "on-route" || !view.Scenarios[0].DefaultLocal {
 		t.Fatalf("first scenario = %+v, want default on-route first", view.Scenarios[0])
 	}
+	if view.SelectedScenario != "on-route" {
+		t.Fatalf("selected scenario = %q, want on-route", view.SelectedScenario)
+	}
+	if view.DryRunPreview.Status != "ready_for_browser_preview" || view.DryRunPreview.ScenarioID != "on-route" || len(view.DryRunPreview.Events) == 0 {
+		t.Fatalf("invalid dry-run preview: %+v", view.DryRunPreview)
+	}
+	if !strings.Contains(view.DryRunPreview.Boundary, "does not execute shell commands") {
+		t.Fatalf("dry-run boundary should explicitly avoid shell execution: %+v", view.DryRunPreview)
+	}
 	flags := view.ClaimFlags
 	if flags.BackendCommandExecutionEnabled || flags.TelemetrySentByWebRequest || flags.DeviceTokenCollectedByBrowser || flags.CacheDiagnosticsReadEnabled ||
 		flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed ||
@@ -6839,6 +6854,34 @@ func TestOperationsTelemetrySimulatorJSONIsPrivateBoundedAndNoExecution(t *testi
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("public simulator route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsTelemetrySimulatorBrowserDryRunSelectionIsPreviewOnly(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/telemetry-simulator.json?scenario=stale", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var view operationsTelemetrySimulatorView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode simulator JSON: %v: %s", err, rr.Body.String())
+	}
+	if view.SelectedScenario != "stale" || view.DryRunPreview.ScenarioID != "stale" {
+		t.Fatalf("scenario selection did not drive preview: selected=%q preview=%+v", view.SelectedScenario, view.DryRunPreview)
+	}
+	if view.DryRunPreview.Status != "ready_for_browser_preview" || len(view.DryRunPreview.Events) == 0 {
+		t.Fatalf("dry-run preview should be ready with redacted events: %+v", view.DryRunPreview)
+	}
+	payload := rr.Body.String()
+	for _, forbidden := range []string{"\"payload\"", "\"lat\"", "\"lon\"", "DEVICE_TOKEN=", "Authorization:", "Bearer ", "token_hash", "private_debug", "vendor_id", "backend_command_execution_enabled\":true", "telemetry_sent_by_web_request\":true"} {
+		if strings.Contains(payload, forbidden) {
+			t.Fatalf("browser preview exposed forbidden field, secret-like text, or command/send flag %q: %s", forbidden, payload)
+		}
 	}
 }
 

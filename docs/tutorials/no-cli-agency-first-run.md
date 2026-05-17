@@ -167,15 +167,18 @@ Open:
 /admin/operations/telemetry-simulator
 ```
 
-Device Credentials shows device bindings, token status without token values,
+Devices & Tokens shows device bindings, token status without token values,
 vehicle binding, and latest token use. Telemetry Freshness shows latest
 accepted telemetry time, assignment state, match confidence or unknown reason
-when available, and stale telemetry state. Telemetry Simulator shows safe
-synthetic scenarios and technical-helper commands.
+when available, and stale telemetry state. Telemetry Simulator shows a
+browser-only synthetic dry-run preview for committed fixture summaries, plus
+fixed technical-helper commands for private shell dry-runs or intentional local
+sends.
 
-Token creation and simulator sending may still need a technical helper because
-device tokens must stay in the operator shell and should not be stored in the
-browser after creation.
+Token creation can happen from the private Devices & Tokens page for admins,
+but the one-time token must still be stored outside the browser after
+creation. Simulator sending may still need a technical helper because device
+tokens stay in the operator shell and are not collected by the browser preview.
 
 ## 7. Review Connectors
 
@@ -216,13 +219,15 @@ Open:
 /admin/operations/help
 ```
 
-Operations Console Help explains Start Here, Device Credentials, Telemetry
+Help & Tutorials explains Start Here, Devices & Tokens, Telemetry
 Freshness, Telemetry Simulator, Connector Tests, Maintenance Center, GTFS,
 GTFS Realtime, validators, readiness, and evidence boundaries.
 
-The app shell groups routes as Start Here, Schedule, Realtime, Connectors,
-Health, Maintain, and Learn. GTFS Studio and Alerts Console remain separate
-private admin surfaces when linked from the Operations Console.
+The app shell groups routes as Start Here, Setup, GTFS Workbench, Feed Health,
+Validation, Realtime, Devices / AVL, Prediction / ETA Lab, Connectors, Alerts,
+Readiness, Maintenance, Help / Tutorials, and Support / Troubleshooting. GTFS
+Studio and Alerts Console remain separate private tools when linked from the
+Operations Console.
 
 ## What Still Needs A Technical Helper
 
@@ -233,7 +238,8 @@ Use a technical helper for:
 - installing pinned validators, Java, Docker, or off-host validation tooling;
 - large GTFS imports or rollback execution when browser rollback is not
   implemented;
-- private device-token handling and secure token storage;
+- secure storage of one-time device tokens after browser rotation/rebind;
+- simulator sends that require private shell credentials;
 - GPS/AVL adapter development;
 - `make oci-reference-check`, `make validate-public-feeds`, or support-bundle
   runs when a local shell is needed;
