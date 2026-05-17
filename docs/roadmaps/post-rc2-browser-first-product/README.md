@@ -93,6 +93,16 @@ records off screen, requires captions or transcripts before publication, and
 keeps large video binaries outside the repository unless separately
 authorized. The static `site/video.html` page now points to the detailed guide.
 
+## Phase 11 Report
+
+Phase 11 separates AI-agent and Codex continuation material from the normal
+human reading path. The new `docs/agent/` hub indexes handoffs, roadmap packs,
+prompt files, and historical phase ledgers while keeping canonical paths such
+as `docs/handoffs/latest.md` in place for compatibility. `docs/index.md`,
+`docs/README.md`, `docs/codex-task.md`, `docs/conversation-summary.md`, and
+`docs/handoffs/latest.md` now tell human readers to start with browser-first
+guides instead of agent handoffs.
+
 ## Phase Acceptance Rule
 
 Do not accept a phase until:

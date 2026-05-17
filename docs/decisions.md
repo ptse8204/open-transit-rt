@@ -751,3 +751,19 @@ finished video binaries should stay outside git unless a maintainer explicitly
 authorizes release assets or another storage path. Recording workflows must use
 local/demo or public-safe data, avoid secrets and private records, add captions
 or transcripts before publication, and preserve all unsupported-claim limits.
+
+## ADR-0054 -- Index AI-agent docs separately from human docs
+
+Phase 11 adds `docs/agent/` as the explicit hub for Codex continuation context,
+including handoffs, roadmap packs, prompt files, and historical phase ledgers.
+The canonical historical files stay in their current locations so old links,
+scripts, and release records keep working, but the normal reader path now
+points agency staff and technical helpers to `README.md`, `docs/index.md`,
+tutorials, connector docs, wiki pages, and the static site before agent
+history.
+
+This is a documentation separation, not a product or evidence status change.
+It does not delete history, move protected evidence, change consumer tracker
+state, create evidence packets, or make any compliance, production readiness,
+consumer acceptance, hosted service, vendor compatibility, SLA, AVL
+reliability, or ETA-quality claim.

@@ -62,6 +62,10 @@ AI-agent, Codex, and phase-history files are implementation context, not the
 first path for human users. They are still useful when an agent needs the
 project contract or latest handoff:
 
+- [AI-Agent Documentation Hub](agent/README.md)
+- [Agent Handoffs Index](agent/handoffs/README.md)
+- [Agent Roadmaps Index](agent/roadmaps/README.md)
+- [Agent Prompts Index](agent/prompts/README.md)
 - [AGENTS.md](../AGENTS.md)
 - [Codex Task Brief](codex-task.md)
 - [Conversation Summary](conversation-summary.md)

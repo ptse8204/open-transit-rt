@@ -1,5 +1,9 @@
 # Codex Task Brief
 
+This is AI-agent context, not a human-facing product guide. Human readers
+should start with the [Docs Index](index.md) or the [README](../README.md).
+Agents should start with the [AI-Agent Documentation](agent/README.md).
+
 Use this repo as the starting point.
 
 ## Goal

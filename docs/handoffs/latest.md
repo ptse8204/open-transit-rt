@@ -2,6 +2,11 @@
 
 This file is the source of truth for the next Codex instance.
 
+Human readers should not need this file for normal setup or product
+evaluation. Start with the [Docs Index](../index.md). Codex and maintainer
+continuation context is indexed from
+[AI-Agent Documentation](../agent/README.md).
+
 ## Active Phase
 
 Post-132 rc2 publication is complete. Open Transit RT v0.1.0-rc.2 is a public release candidate for local/self-hosted evaluation.

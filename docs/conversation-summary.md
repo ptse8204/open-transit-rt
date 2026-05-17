@@ -1,5 +1,10 @@
 # Conversation Summary
 
+This is historical AI-agent context, not a current product guide. Human readers
+should start with the [Docs Index](index.md) or the [README](../README.md).
+Agents should use the [AI-Agent Documentation](agent/README.md) hub for current
+read order.
+
 ## Overall conclusion
 
 The best opening product is **not** a full Swiftly/Passio/Connexionz replacement. The best wedge is:
