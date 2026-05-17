@@ -2,9 +2,9 @@
 
 This checklist is for production-directed pilots. Completing it is not the same as proving full production readiness for every agency.
 
-For the Phase 11 evidence separation between repo capability, deployment/operator proof, and third-party confirmation, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
+For the evidence separation between repo capability, deployment/operator proof, and third-party confirmation, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
 
-For the Phase 17 pilot operations profile, see [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md).
+For the pilot operations profile, see [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md).
 
 ## Runtime Configuration
 

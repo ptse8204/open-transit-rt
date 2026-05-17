@@ -1,7 +1,7 @@
 # Telemetry Simulator And Device Trial
 
-This tutorial covers the synthetic telemetry simulator added in Phase 44.
-It sends synthetic events through the real authenticated `POST /v1/telemetry`
+This tutorial covers the synthetic telemetry simulator. It sends synthetic
+events through the real authenticated `POST /v1/telemetry`
 ingest path. It is for local/reference diagnostics only.
 
 It does not create evidence packets, change consumer statuses, prove vendor

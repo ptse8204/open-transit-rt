@@ -60,7 +60,7 @@ Do not treat demo metadata as agency-approved. Record approval for each field be
 | License URL |  |  |  |  |
 | Public feed root |  |  |  |  |
 
-The public feed root must be handled carefully. If no agency-owned or agency-approved root exists, final public-feed review is limited to local/demo or pilot evidence. That does not prove agency-domain production readiness; Phase 23 remains closed as blocker-documented until final-root evidence exists.
+The public feed root must be handled carefully. If no agency-owned or agency-approved root exists, final public-feed review is limited to local/demo or pilot evidence. That does not prove agency-domain production readiness until final-root evidence exists.
 
 ## Import And Publish Path
 
@@ -126,13 +126,13 @@ Review the five public feed URLs together:
 /public/gtfsrt/alerts.pb
 ```
 
-For Phase 24, the key real-agency schedule checks are `feeds.json` and `schedule.zip`. Realtime feed quality still depends on telemetry, matching, Trip Updates behavior, and Alerts operations.
+The key real-agency schedule checks are `feeds.json` and `schedule.zip`. Realtime feed quality still depends on telemetry, matching, Trip Updates behavior, and Alerts operations.
 
-Tie this review back to Phase 23:
+Tie this review back to the final-root boundary:
 
 - If the root is local, it is local demo/evaluation evidence only.
 - If the root is the existing DuckDNS pilot, it remains hosted/operator pilot evidence only.
-- If the root is agency-owned or agency-approved, collect the Phase 23-style domain, TLS, public fetch, validator, and approval evidence before claiming agency-domain production proof.
+- If the root is agency-owned or agency-approved, collect domain, TLS, public fetch, validator, and approval evidence before claiming agency-domain production proof.
 
 ## Evidence Packet Template
 

@@ -1,6 +1,6 @@
 # Operator Smoke And Support Bundle
 
-This tutorial explains the Phase 41 operator smoke and support bundle helpers.
+This tutorial explains the operator smoke and support bundle helpers.
 They are local/reference diagnostics, not evidence packets. They do not create
 external evidence, final-root evidence, consumer submission artifacts, agency
 approval evidence, CAL-ITP/Caltrans compliance proof, vendor compatibility
@@ -142,7 +142,7 @@ When validation API calls run, the scripts use only allowlisted bodies:
 Only summary fields are stored by default: feed type, validator ID, status,
 error count, warning count, info count, validator name, and validator version.
 
-For the Phase 46 validator-health flow, use:
+For the validator-health flow, use:
 
 ```bash
 make validator-health
@@ -164,7 +164,7 @@ rejects `docs/evidence` and evidence-like output paths even when custom output
 directories are allowed. These files are private diagnostics only, not evidence
 packets or consumer submission artifacts.
 
-For the Phase 47 local notification draft, use:
+For the local notification draft, use:
 
 ```bash
 make operations-notify
@@ -196,7 +196,7 @@ proof.
 
 ## Synthetic Telemetry Simulator
 
-Use the Phase 44 simulator when you want to send synthetic events through the
+Use the telemetry simulator when you want to send synthetic events through the
 real authenticated ingest path instead of only testing AVL transform shape:
 
 ```bash
@@ -247,9 +247,9 @@ Do not share or commit:
 ## Relationship To Evidence
 
 Smoke output and support bundles are private operator diagnostics by default.
-They are not evidence packets. A future evidence phase would need to review,
-redact, retain, inventory, and claim-map specific artifacts before any output
-could support stronger public claims.
+They are not evidence packets. A future authorized evidence workflow would need
+to review, redact, retain, inventory, and claim-map specific artifacts before
+any output could support stronger public claims.
 
 Do not change consumer statuses from these commands. All seven consumer and
 aggregator targets remain `prepared` unless retained target-originated evidence

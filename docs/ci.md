@@ -3,19 +3,18 @@
 CI is split into a fast path for pull requests and pushes, plus a manual
 release-gate path for validator-heavy checks.
 
-## Phase 13 Evaluation
+## Current Fast CI Baseline
 
-Phase 13 did not reproduce a broken `go test ./...` result locally:
+The current repository baseline keeps `go test ./...` in the fast path:
 
 ```bash
 go test ./...
 ```
 
-passed across the repository. The Go test workflow is useful and should stay.
-The old workflow was still worth repairing because it did not match the current
-repo stage: it ran connector checks in the default path, duplicated consumer
-tracker logic inline, and did not run `make check` or
-`make audit-final-claim-review`.
+It has passed across the repository in local verification. The Go test
+workflow is useful and should stay. Fast CI also runs the repository's
+lightweight checks and claim/consumer tracker audits so contributors see the
+same baseline locally and in GitHub Actions.
 
 ## Fast CI
 

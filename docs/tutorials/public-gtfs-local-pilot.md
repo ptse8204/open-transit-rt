@@ -1,6 +1,6 @@
 # Public GTFS Local/Pilot Runbook
 
-This guide explains how to repeat a Phase 33-style public GTFS local/pilot run.
+This guide explains how to repeat a public GTFS local/pilot run.
 
 It is for development and evaluation only. It does not imply agency approval, official feed status, consumer acceptance, Caltrans/CAL-ITP compliance, production readiness, real realtime data, or ETA-quality proof.
 
@@ -110,7 +110,7 @@ Record the checksum in the evidence packet.
 
 The local agency ID must match the GTFS `agency_id` that will be imported.
 
-For example, the Phase 33 LA Metro run used `LACMTA` locally. That local setup was for evidence only and did not imply LA Metro approval.
+For example, a prior LA Metro-shaped local run used `LACMTA` locally. That local setup was for evidence only and did not imply LA Metro approval.
 
 Do not reuse production credentials, tokens, or private operator data.
 

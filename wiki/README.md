@@ -84,5 +84,5 @@ or approval, consumer acceptance, final-root readiness, hosted SaaS,
 production readiness, vendor compatibility, SLA coverage, uptime, production
 AVL reliability, or production-grade ETA quality.
 
-For deeper implementation notes, release-candidate checks, and AI-agent
-handoffs, use the [Docs Index](../docs/index.md).
+For maintainer implementation notes, release checks, and project-history
+records, use the [Docs Index](../docs/index.md).
