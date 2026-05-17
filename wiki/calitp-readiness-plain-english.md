@@ -9,14 +9,19 @@ CAL-ITP/Caltrans compliant.
 
 ## What The Software Helps With
 
-- stable public feed paths for static GTFS and GTFS Realtime;
-- `feeds.json` discovery metadata;
-- Vehicle Positions, Trip Updates, and Alerts feed publication paths;
+- public feed URLs for `feeds.json`, static GTFS, Vehicle Positions, Trip
+  Updates, and Alerts;
+- static GTFS import, review, quality guidance, and validation triage;
+- Vehicle Positions review with telemetry/device state and conservative
+  assignment signals;
+- Trip Updates review through the pluggable prediction boundary;
+- Alerts feed and alert lifecycle review;
 - license and technical-contact metadata workflows;
 - validator workflow records;
-- readiness and scorecard views;
+- uptime and operations signals through local feed-health, reliability, and
+  maintenance views;
 - prepared consumer/aggregator packet records;
-- local `.cache` readiness gap summaries.
+- connector and support-bundle review paths.
 
 ## What A Deployment Still Owns
 
@@ -26,18 +31,23 @@ A real public deployment still needs deployment-specific work:
 - current agency-approved license and contact metadata;
 - validator runs against the deployed feeds;
 - monitoring, backups, restore practice, and incident handling;
-- provider or regional source-of-truth pages;
+- provider or regional official feed listing pages;
 - consumer or aggregator submissions when the agency chooses that path.
 
 ## Readiness Matrix
 
-| Area | UI signal you can review | Missing deployment evidence before stronger claims |
+| Area | UI signal you can review | Missing deployment evidence before outside approval, compliance, production, or consumer-acceptance claims |
 | --- | --- | --- |
-| Static GTFS | Browser import, active schedule, public `schedule.zip`, GTFS quality guidance, and validator-health rows. | Agency-approved final dataset, public HTTPS fetch proof, current validator record, license/contact approval, and source-of-truth website listing. |
+| Public feed URLs | Readiness workflow map, Feeds page, Feed Health, and `/public/feeds.json` review. | Final-root or official feed listing, public HTTPS fetch proof, target-specific review, and consumer-originated outcomes. |
+| Static GTFS | Browser import, active schedule, public `schedule.zip`, GTFS quality guidance, and validator-health rows. | Agency-approved final dataset, public HTTPS fetch proof, current validator record, license/contact approval, and official feed listing. |
 | Vehicle Positions | Public Vehicle Positions feed path, feed-health row, telemetry freshness, and readiness row. | Real device telemetry, deployed-feed validator result, stale/unmatched handling review, and operations monitoring proof. |
 | Trip Updates | Public Trip Updates feed path, prediction adapter boundary, feed-health row, and readiness row. | Real operating-data coverage, deployed-feed validator result, agency review of conservative predictions, and consumer acceptance if claimed. |
 | Alerts | Public Alerts feed path, alert lifecycle capability, feed-health row, and readiness row. | Operator alert workflow proof, deployed-feed validator result, live alert lifecycle evidence, and consumer acceptance if claimed. |
-| Discovery and consumers | `feeds.json`, metadata workflow, prepared consumer/aggregator records, and readiness status. | Provider or regional website listing, target-specific submission/review records, and target-originated acceptance/ingestion/listing/display proof. |
+| Validation | Validation Health, Validation Center, GTFS Quality, and GTFS-RT conformance checks. | Current deployed validator records and any required external reviewer records. |
+| License and contact | Setup, Feeds, and readiness metadata rows. | Agency-approved open license and monitored public technical contact. |
+| Uptime and operations | Feed Health, Reliability, Maintenance, and support-bundle guidance. | Deployment monitoring, incident response, backup/restore practice, and any SLA/uptime evidence if claimed. |
+| Telemetry and devices | Devices, Telemetry, Telemetry Simulator, Realtime Center, and Vehicle Positions review. | Real device configuration, operational telemetry coverage, and production AVL reliability proof if claimed. |
+| Consumer preparedness | Consumers page, prepared tracker, connector catalog, and readiness row. | Provider or regional website listing, target-specific submission/review records, and target-originated acceptance/ingestion/listing/display proof. |
 
 ## Claims To Avoid
 

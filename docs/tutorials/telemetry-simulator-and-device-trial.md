@@ -118,6 +118,40 @@ Current synthetic scenarios live under `testdata/telemetry-simulator/`:
 Some scenarios require a reference deployment with a matching synthetic feed
 and device binding. Each fixture has a `requires` list.
 
+## Realtime Center Review
+
+After using the browser dry-run preview or a local technical-helper replay,
+open:
+
+```text
+/admin/operations/realtime
+```
+
+Start with **Feed Usefulness Details**:
+
+- Vehicle Positions publishing review shows vehicle count, estimated published
+  rows, stale vehicles, unmatched vehicles, suppressed vehicles, trip
+  descriptor coverage, and why rows were not published.
+- Trip Updates publishing review shows prediction source, generated count,
+  eligible candidates, withheld totals, fallback reason, stale telemetry,
+  ambiguous assignments, and low-confidence handling.
+- Alerts lifecycle review points operators to active alerts, stale alerts,
+  missing cancellation/disruption links, and service disruption review in the
+  Alerts Console.
+
+Then review **Synthetic / Local Replay Guide** for the safe order:
+
+1. preview committed fixture metadata in the browser;
+2. ask a technical helper to run fixed local replay commands only when
+   credentials and private database access are needed;
+3. return to Realtime Center, Feed Health, Prediction & ETA Lab, Validator
+   Health, and Alerts Console.
+
+These browser rows are local diagnostics. They do not prove vendor
+compatibility, hardware certification, production AVL reliability,
+consumer display, public launch, compliance, SLA, uptime, production
+readiness, production-grade ETA quality, or real-world ETA accuracy.
+
 ## Private Diagnostics
 
 Diagnostics default to:

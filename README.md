@@ -1,57 +1,81 @@
 # Open Transit RT
 
-Open Transit RT is an MIT-licensed open-source backend for small transit
-agencies, civic technologists, and developer integrators who want a
-self-hosted path for GTFS and GTFS Realtime operations.
-
-The product path is: import or author static GTFS, publish GTFS and all three
-GTFS Realtime feed types, ingest vehicle telemetry through documented
-boundaries, monitor feed health, review CAL-ITP-style readiness, and keep
-stronger deployment or consumer claims separate from local evaluation.
+Open Transit RT is an MIT-licensed, self-hosted transit data backend for small
+agencies and civic technology teams. It helps you import or author GTFS,
+ingest vehicle telemetry, publish GTFS Realtime feeds, review feed health, and
+prepare for public-data workflows from a browser after a technical helper
+starts the local app.
 
 Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
 
-Public release candidate:
-[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1).
-Use it for local/self-hosted evaluation only. It is not a stable release and
-does not prove production readiness, compliance, adoption, consumer acceptance,
-hosted service availability, vendor compatibility, SLA/uptime, or
+Current public release candidate:
+[`v0.1.0-rc.2`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2).
+Use it for local or self-hosted evaluation. It is not a stable release and it
+does not prove production readiness, compliance, agency adoption, consumer
+acceptance, hosted service availability, vendor compatibility, SLA/uptime, or
 production-grade ETA quality. See the
-[release status](docs/release-status-v0.1.0-rc.1.md),
-[download replay](docs/release-download-replay-v0.1.0-rc.1.md), and
-[public install confidence](docs/public-install-confidence-v0.1.0-rc.1.md).
+[release status](docs/release-status-v0.1.0-rc.2.md) and
+[download replay](docs/release-download-replay-v0.1.0-rc.2.md).
 
-Agency evaluators and new contributors can start with the
-[Evaluator And Contributor Kit](docs/adoption/evaluator-and-contributor-kit.md).
-The kit provides no-claim trial paths, demo links, feedback guidance, and first
-contribution ideas.
+## Who It Is For
 
-## Start In The Browser
+Open Transit RT is for:
 
-No-developer review should start from the private local URL provided by a
-technical helper, normally:
+- small agencies that want a practical path from GTFS to GTFS Realtime;
+- technical helpers running a local or self-hosted evaluator;
+- connector developers adapting GPS, AVL, CSV, prediction, validator, or
+  monitoring systems;
+- maintainers improving an open-source transit backend.
+
+It is not a rider app, fare system, CAD/dispatch system, hosted SaaS product,
+or proof that any agency, vendor, consumer, or regulator has accepted a feed.
+
+## Normal User Flow
+
+After a technical helper starts the app, agency staff should start here:
 
 ```text
 http://localhost:8080/admin/operations
 ```
 
-Click **Agency Operations Cockpit / Start Here** first. It shows setup
-progress, primary action cards, ordered first-run tasks, the five configured
-feed URLs, maintenance tasks, and what each page does not prove.
+Then follow this order in the browser:
 
-## Browser-First Product Path
+1. Open **Agency Operations Cockpit / Start Here**.
+2. Review agency setup and publication metadata.
+3. Import or review GTFS.
+4. Check the five feed URLs.
+5. Review feed health and validation.
+6. Connect or review vehicle telemetry.
+7. Review connectors, readiness, maintenance, and help.
+8. Read what the local review does not prove before making external claims.
 
-Use this order across the README, wiki, docs, GitHub Pages, and private UI:
+The key private pages are:
 
-1. Start in the browser.
-2. Open **Agency Operations Cockpit / Start Here**.
-3. Review setup.
-4. Import or review GTFS.
-5. Check the five configured feed URLs.
-6. Review feed health, readiness, validation, telemetry, connectors, and
-   maintenance.
-7. Understand what remains before deployment or stronger claims.
+```text
+/admin/operations
+/admin/operations/setup-wizard
+/admin/operations/gtfs-workbench
+/admin/operations/gtfs-import
+/admin/operations/feeds
+/admin/operations/feed-health
+/admin/operations/validation-center
+/admin/operations/realtime
+/admin/operations/devices
+/admin/operations/telemetry
+/admin/operations/connectors
+/admin/operations/connectors/workbench
+/admin/operations/readiness
+/admin/operations/maintenance
+/admin/operations/help
+```
+
+GTFS Studio and the Alerts Console are also private admin tools:
+
+```text
+/admin/gtfs-studio
+/admin/alerts/console
+```
 
 ## Technical Helper Startup
 
@@ -60,35 +84,19 @@ From a clean checkout:
 ```bash
 git clone https://github.com/ptse8204/open-transit-rt.git
 cd open-transit-rt
-git checkout v0.1.0-rc.1
+git checkout v0.1.0-rc.2
 make check
 make agency-app-up
 ```
 
-These commands are startup and health-check steps for a technical helper. They
-are not the first step for no-developer review. The helper should leave the app
-running and provide the private local browser URL and any local admin-token
-instructions printed by `make agency-app-up`.
-
-The local app root normally responds at:
-
-```text
-http://localhost:8080
-```
-
-Open the private Operations Console:
-
-```text
-http://localhost:8080/admin/operations
-```
-
-Stop the local app with:
+Give agency staff the private browser URL printed by the startup command. Stop
+the local app with:
 
 ```bash
 make agency-app-down
 ```
 
-For validation-heavy local trials, run:
+For a validation-heavy local trial:
 
 ```bash
 make validators-install
@@ -96,140 +104,37 @@ make validate
 make test
 ```
 
-The public fresh-clone rc1 trial passed this path with local app startup and
-all five local public feed fetches. The published source archive is available
-for inspection, but extracted rc1 source archives have a known `make check`
-limitation because protected consumer-tracker state is intentionally excluded
-from public archives.
+Detailed guides:
 
-## What You Can Do In The UI
+- [Small Agency Quick Start](wiki/small-agency-quick-start.md)
+- [Browser-First Setup](wiki/browser-first-setup.md)
+- [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
+- [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
 
-- Review agency and publication metadata.
-- Follow Agency Setup progress, review blocks, diagnostics, and role guidance.
-- Import GTFS through browser upload or safe URL import.
-- Inspect `/public/feeds.json`, schedule, Vehicle Positions, Trip Updates, and
-  Alerts paths.
-- Review feed health and validation health.
-- Review GTFS quality guidance.
-- Bind or review device/telemetry state.
-- Try synthetic telemetry through documented commands.
-- Review Connector Hub and connector test guidance.
-- Review CAL-ITP-style readiness and Help.
-- Use the Maintenance Center to see weekly/monthly tasks and technical-helper
-  cases.
+## Import GTFS
 
-## Private Operations Route Map
-
-These private browser routes are the acceptance-critical navigation surface:
+Use the browser first:
 
 ```text
-/admin/operations
-/admin/operations/launchpad
-/admin/operations/setup-wizard
-/admin/operations/setup
-/admin/operations/gtfs-workbench
 /admin/operations/gtfs-import
-/admin/operations/feeds
-/admin/operations/feed-health
-/admin/operations/gtfs-quality
-/admin/operations/validation-health
-/admin/operations/realtime
-/admin/operations/prediction-lab
-/admin/operations/devices
-/admin/operations/telemetry
-/admin/operations/telemetry-simulator
-/admin/operations/connectors
-/admin/operations/connectors/workbench
-/admin/operations/connectors/tests
-/admin/operations/validation-center
-/admin/operations/readiness
-/admin/operations/checklist
-/admin/operations/reliability
-/admin/operations/maintenance
-/admin/operations/access
-/admin/operations/audit
-/admin/operations/help
-/admin/operations/consumers
-/admin/operations/evidence
-```
-
-Additional private diagnostic and compatibility routes remain available for
-operators who need the broader workflow:
-
-```text
-/admin/gtfs-studio
-/admin/alerts/console
-```
-
-The app shell groups these routes as Start Here, Schedule, Realtime, Connectors,
-Health, Maintain, and Learn. GTFS Studio and Alerts Console are marked as
-separate private admin surfaces when linked from the Operations Console.
-
-## 30-Minute Local Demo
-
-Use the local app package when a technical helper can start the product shape
-quickly:
-
-```bash
-make agency-app-up
-```
-
-Then start no-developer review from:
-
-```text
-http://localhost:8080/admin/operations
-```
-
-Follow **Agency Operations Cockpit / Start Here**. The local package imports
-the committed demo GTFS fixture, publishes local feed paths, and prints the
-next private UI and token instructions.
-
-Detailed guide: [Small Agency Quick Start](wiki/small-agency-quick-start.md).
-
-## Browser-First GTFS Review
-
-Use the browser path first when possible:
-
-```text
 /admin/operations/gtfs-workbench
-/admin/operations/gtfs-import
-/admin/operations/feed-health
 /admin/operations/gtfs-quality
 /admin/operations/validation-center
-/admin/operations/validation-health
-/admin/operations/realtime
-/admin/operations/maintenance
 ```
 
-The private UI can import/review GTFS, show active feed version and source
-details, inspect feed health, explain validator state, review telemetry
-readiness, and show the next maintenance action. See
-[No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md) and
-[Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md).
+The GTFS Workbench shows required files, row counts, service dates, route/stop
+coverage, import history, active feed version, validation issues, and safe next
+actions.
 
-Use the reusable onboarding helper only as a technical-helper fallback for a
-scripted public GTFS ZIP import path:
+For a scripted fallback with a public GTFS ZIP:
 
 ```bash
 make agency-pilot-up AGENCY_ID=agency GTFS_URL=https://example.org/gtfs.zip
 ```
 
-Then review the private UI:
-
-- `/admin/operations`
-- `/admin/operations/gtfs-workbench`
-- `/admin/operations/gtfs-import`
-- `/admin/operations/feed-health`
-- `/admin/operations/readiness`
-- `/admin/operations/realtime`
-- `/admin/operations/connectors`
-- `/admin/operations/connectors/workbench`
-
-Detailed guide: [Reusable Agency Onboarding](docs/tutorials/reusable-agency-onboarding.md).
-
 ## Public Feed URLs
 
-An active local or deployment instance exposes these anonymous feed paths:
+An active local or deployment instance exposes:
 
 ```text
 /public/feeds.json
@@ -242,46 +147,65 @@ An active local or deployment instance exposes these anonymous feed paths:
 Admin, debug, validation, scorecard, device, evidence, and authoring routes
 must stay private and authenticated.
 
-## Connect Telemetry / GPS / AVL
+## Connect Vehicle Data
 
-Vehicle, GPS, AVL, CSV, or sidecar sources should transform observations into
-the authenticated telemetry boundary:
+Connector review starts in the browser:
 
 ```text
-POST /v1/telemetry
-Bearer device token required
-JSON telemetry payload required
+/admin/operations/connectors
+/admin/operations/connectors/workbench
+/admin/operations/connectors/tests
 ```
+
+The connector catalog covers:
+
+- Vehicle / GPS / AVL connectors: CSV replay adapter, HTTP polling adapter,
+  webhook sidecar adapter, generic JSON transform adapter, vendor-shaped
+  synthetic examples, and authenticated `POST /v1/telemetry`.
+- Prediction connectors: deterministic built-in predictor, external HTTP
+  predictor adapter, shadow-mode predictor, fail-closed behavior, and
+  TheTransitClock candidate notes only.
+- Validator connectors: MobilityData static GTFS validator, MobilityData GTFS
+  Realtime validator, allowlisted validator IDs, and private validation health.
+- Monitoring/export connectors: local health summaries, operations notify
+  draft, monitoring/export helper, and deployment-owned monitoring boundary.
+- Consumer/discovery connectors: `/public/feeds.json`, static GTFS URL,
+  Vehicle Positions URL, Trip Updates URL, Alerts URL, and prepared packet
+  review without submission or acceptance claims.
+- Future connector extension model: manifest-based sidecars, no arbitrary
+  dynamic backend plugin loading, and conformance tests required.
 
 Start with:
 
+- [Connector Catalog](docs/connectors/catalog.md)
 - [Connector Cookbook](wiki/connector-cookbook.md)
 - [Integration Adapter Kit](docs/integration-adapter-kit.md)
 - [Device And AVL Integration](docs/tutorials/device-avl-integration.md)
 - [External Adapter Conformance](docs/tutorials/external-adapter-conformance.md)
 
-## Readiness And Validation
+## Review Readiness
 
-Open Transit RT supports CAL-ITP-style readiness workflows through private UI
-and local checks. Use:
+Open Transit RT supports CAL-ITP-style readiness workflows. In the browser,
+review:
 
-- `/admin/operations/feed-health`
-- `/admin/operations/validation-health`
-- `/admin/operations/readiness`
+```text
+/admin/operations/feed-health
+/admin/operations/validation-health
+/admin/operations/readiness
+```
+
+The readiness page covers public feed URLs, static GTFS, Vehicle Positions,
+Trip Updates, Alerts, validation, license/contact metadata, operations signals,
+telemetry/device state, and consumer preparedness. Each area explains what the
+local review helps prepare and what it does not prove.
+
+More detail:
+
 - [CAL-ITP Readiness Plain English](wiki/calitp-readiness-plain-english.md)
-- [Release-Candidate Readiness](docs/release-candidate-readiness.md)
+- [CAL-ITP-Style Readiness Checklist](docs/tutorials/calitp-readiness-checklist.md)
 - [External Connection Readiness](docs/external-connection-readiness.md)
-- [Off-Host Public Feed Validation](docs/deployment/off-host-validation.md)
-- [OCI Reference Check](docs/deployment/oci-reference-check.md)
-- [Product Screenshots](docs/assets/product-screenshots/README.md)
-- [Product Diagrams](docs/assets/product-diagrams/README.md)
 
-Validator output, readiness rows, and release-candidate checks are supporting
-signals. They are not compliance or consumer-acceptance proof by themselves.
-Screenshots and diagrams are local/demo documentation aids only, not retained
-evidence or production/adoption/compliance proof.
-
-## What This Does Not Prove
+## What Is Not Proven Yet
 
 Local evaluation does not prove:
 
@@ -293,32 +217,21 @@ Local evaluation does not prove:
 - production readiness;
 - vendor compatibility or hardware certification;
 - SLA or uptime coverage;
-- production-grade ETA quality.
+- production AVL reliability;
+- production-grade ETA quality or real-world ETA accuracy.
 
 Formal external evidence is optional and future. It is not required for local
 evaluation or open-source contribution.
 
 ## Documentation
 
-- [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
-- [Small Agency Quick Start](wiki/small-agency-quick-start.md)
-- [Browser-First Setup](wiki/browser-first-setup.md)
-- [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
-- [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
-- [Operations Console Tour](wiki/operations-console-tour.md)
+Use the role-based docs index first:
+
+- [Docs Index](docs/index.md)
 - [Wiki Home](wiki/README.md)
-- [Documentation Home](docs/README.md)
-- [Architecture](docs/architecture.md)
-- [Dependencies](docs/dependencies.md)
-- [Public Docs And Site Freeze Checklist](docs/public-docs-site-freeze-checklist.md)
-- [Contributor First Issues](docs/contributor-first-issues.md)
-- [Contributing Connectors](docs/connectors/contributing-connectors.md)
-- [Current Status](docs/current-status.md)
-- [Latest Handoff](docs/handoffs/latest.md)
-- [Phase 111-132 Public Release / Install / UX Roadmap](docs/roadmaps/post-110-goal-public-release-install-ux/README.md)
-- [Phase 61+ Product Roadmap](docs/roadmaps/agency-first-connector-platform/README.md)
-- [Adoption Productization Roadmap](docs/roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md)
-- [Consumer-Grade Control Plane Proposed/Authorized Roadmap Pack](docs/roadmaps/consumer-grade-control-plane/README.md)
+- [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
+- [Operations Console Tour](wiki/operations-console-tour.md)
+- [Evaluator And Contributor Kit](docs/adoption/evaluator-and-contributor-kit.md)
 
 ## Contributing
 
@@ -326,7 +239,9 @@ Agencies and contributors can help by trying the local workflow, testing with a
 public GTFS ZIP, improving docs, adding synthetic connector examples, and
 reporting exact blockers.
 
-See [How Agencies Can Help](wiki/how-agencies-can-help.md) and
-[CONTRIBUTING.md](CONTRIBUTING.md). First-time contributors should start with
-[Contributor First Issues](docs/contributor-first-issues.md); connector authors
-should start with [Contributing Connectors](docs/connectors/contributing-connectors.md).
+Start with:
+
+- [How Agencies Can Help](wiki/how-agencies-can-help.md)
+- [Contributing](CONTRIBUTING.md)
+- [Contributor First Issues](docs/contributor-first-issues.md)
+- [Contributing Connectors](docs/connectors/contributing-connectors.md)

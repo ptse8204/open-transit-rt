@@ -594,6 +594,16 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 			t.Fatalf("feeds body overclaims or leaks %q: %s", forbidden, body)
 		}
 	}
+
+	urlOnlyDiscovery := validationHealthTestDiscovery(time.Date(2026, 5, 11, 12, 0, 0, 0, time.UTC))
+	urlOnlyDiscovery.PublicBaseURL = "https://feeds.example.org"
+	urlOnlyDiscovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true}
+	urlOnly := buildOperationsFeedReadiness(operationsPage{Discovery: urlOnlyDiscovery})
+	for _, row := range urlOnly.Rows {
+		if row.ID != "feeds_json" && row.Status == operationsStatusReady {
+			t.Fatalf("feed URL row %s status = ready with URL-only metadata, want validation/feed-health review first: %+v", row.ID, row)
+		}
+	}
 }
 
 func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
@@ -614,7 +624,7 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 		t.Fatalf("audit status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Audit Log", "Recent scoped audit metadata", "Visible rows", "2 of the latest 50", "actor=2; reason=1; old=1; new=2", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
+	for _, want := range []string{"Audit History", "Recent scoped audit metadata", "Visible rows", "2 of the latest 50", "actor=2; reason=1; old=1; new=2", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("audit body missing %q: %s", want, body)
 		}
@@ -789,7 +799,7 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		"Advanced Setup Details",
+		"Setup Details",
 		"Return to Agency Setup",
 		"Setup Diagnostics",
 		"Role Visibility",
@@ -880,12 +890,18 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 		t.Fatalf("readiness v2 html did not escape script-like metadata: %s", body)
 	}
 	for _, want := range []string{
-		"Readiness Checklist V2",
-		"Private authenticated readiness checklist v2 only",
+		"Readiness",
+		"Private authenticated readiness checklist only",
+		"CAL-ITP-Style Readiness Workflow Map",
+		"Public feed URLs",
+		"Static GTFS",
+		"License and contact metadata",
+		"Uptime and operations signals",
+		"Consumer preparedness",
 		"Readiness item",
 		"Current signal",
 		"What this means",
-		"Why it matters",
+		"What this helps with",
 		"What to do next",
 		"What it does not prove",
 		"Feed discovery and metadata",
@@ -953,11 +969,24 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 	if readiness.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", readiness.AgencyID)
 	}
+	metadataGapDiscovery := store.discovery
+	metadataGapDiscovery.Readiness.LicenseComplete = false
+	metadataGapDiscovery.Readiness.ContactComplete = false
+	focusByID := map[string]operationsReadinessV2Focus{}
+	for _, focus := range readinessV2FocusAreas(operationsPage{Discovery: metadataGapDiscovery}) {
+		focusByID[focus.ID] = focus
+	}
+	if focusByID["public_feed_urls"].Status != checklistStatusOK {
+		t.Fatalf("public URL focus status = %q, want ok when URL/feed listing signals are complete", focusByID["public_feed_urls"].Status)
+	}
+	if focusByID["license_contact"].Status != checklistStatusNeedsReview {
+		t.Fatalf("license/contact focus status = %q, want needs_review when metadata is incomplete", focusByID["license_contact"].Status)
+	}
 	var top map[string]json.RawMessage
 	if err := json.Unmarshal(rr.Body.Bytes(), &top); err != nil {
 		t.Fatalf("decode readiness v2 top-level: %v", err)
 	}
-	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "rows": true, "counts": true, "claim_flags": true}
+	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "focus_areas": true, "rows": true, "counts": true, "claim_flags": true}
 	for key := range top {
 		if !wantTop[key] {
 			t.Fatalf("readiness JSON should return only the v2 model, unexpected top-level key %q in %s", key, rr.Body.String())
@@ -1147,7 +1176,7 @@ func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T)
 		t.Fatalf("html Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Operator Checklist", "This checklist is private operator diagnostics", "not evidence", "not an evidence packet", "not compliance proof", "not agency approval", "not consumer acceptance", "not production readiness", "Setup", "Feeds", "Validation", "Telemetry", "Operations", "Consumer Workflow", "Placeholder-like", "Pilot/reference root", "No final-root evidence"} {
+	for _, want := range []string{"Readiness Checklist", "This checklist is private operator diagnostics", "not evidence", "not an evidence packet", "not compliance proof", "not agency approval", "not consumer acceptance", "not production readiness", "Setup", "Feeds", "Validation", "Telemetry", "Operations", "Consumer Workflow", "Placeholder-like", "Pilot/reference root", "No final-root evidence"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1350,7 +1379,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Support/RC checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1870,7 +1899,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 				ValidatorName: compliance.CanonicalStaticValidatorName,
 				Status:        "warning",
 				WarningCount:  1,
-				Report:        map[string]any{"notices": []any{map[string]any{"code": "stop_time_missing_time", "severity": "WARNING", "sample": "route review only"}}},
+				Report:        map[string]any{"raw_report": map[string]any{"notices": []any{map[string]any{"code": "stop_time_missing_time", "severity": "WARNING", "file": "stop_times.txt", "message": "route review only"}}}},
 			},
 		}},
 	}
@@ -1893,7 +1922,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
+	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
@@ -1914,10 +1943,59 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &decoded); err != nil {
 		t.Fatalf("decode workbench JSON: %v\n%s", err, rr.Body.String())
 	}
-	for _, key := range []string{"generated_at", "agency_id", "boundary", "active_feed_version", "import", "version_comparison", "quality", "validation_health", "preview", "draft_review", "schedule_history", "feed_output", "actions", "claim_flags"} {
+	for _, key := range []string{"generated_at", "agency_id", "boundary", "review_summary", "active_feed_version", "import", "version_comparison", "issue_triage", "quality", "validation_health", "preview", "draft_review", "schedule_history", "feed_output", "actions", "claim_flags"} {
 		if _, ok := decoded[key]; !ok {
 			t.Fatalf("workbench JSON missing %q: %#v", key, decoded)
 		}
+	}
+	reviewSummary, ok := decoded["review_summary"].([]any)
+	if !ok || len(reviewSummary) != 7 {
+		t.Fatalf("review_summary = %#v, want seven staff-facing rows", decoded["review_summary"])
+	}
+	seenReviewIDs := map[string]bool{}
+	for _, item := range reviewSummary {
+		row, ok := item.(map[string]any)
+		if !ok {
+			t.Fatalf("review summary row = %#v, want object", item)
+		}
+		id, _ := row["id"].(string)
+		seenReviewIDs[id] = true
+		for _, key := range []string{"label", "status", "plain_language", "suggested_review", "does_not_prove"} {
+			if strings.TrimSpace(fmt.Sprint(row[key])) == "" {
+				t.Fatalf("review summary %s missing %s: %#v", id, key, row)
+			}
+		}
+	}
+	for _, id := range []string{"required_files", "row_counts", "service_dates", "route_stop_trip_review", "import_history", "what_changed", "issue_triage"} {
+		if !seenReviewIDs[id] {
+			t.Fatalf("review_summary missing %s in %#v", id, reviewSummary)
+		}
+	}
+	issueTriage, ok := decoded["issue_triage"].(map[string]any)
+	if !ok {
+		t.Fatalf("issue_triage = %#v, want object", decoded["issue_triage"])
+	}
+	if issueTriage["status"] != "needs_review" || issueTriage["displayed_rows"] != float64(1) || issueTriage["total_rows"] != float64(1) {
+		t.Fatalf("issue_triage status/counts = %#v, want one needs_review row", issueTriage)
+	}
+	issueRows, ok := issueTriage["rows"].([]any)
+	if !ok || len(issueRows) != 1 {
+		t.Fatalf("issue_triage rows = %#v, want one row", issueTriage["rows"])
+	}
+	issueRow, ok := issueRows[0].(map[string]any)
+	if !ok {
+		t.Fatalf("issue_triage row = %#v, want object", issueRows[0])
+	}
+	for _, key := range []string{"severity", "source_label", "family", "codes", "count", "likely_owner", "plain_english_meaning", "suggested_fix_path", "safe_next_action", "verify_with", "does_not_prove"} {
+		if strings.TrimSpace(fmt.Sprint(issueRow[key])) == "" {
+			t.Fatalf("issue_triage row missing %s: %#v", key, issueRow)
+		}
+	}
+	if _, ok := issueRow["samples"]; ok {
+		t.Fatalf("issue_triage row exposed raw samples: %#v", issueRow)
+	}
+	if !strings.Contains(fmt.Sprint(issueRow["likely_owner"]), "Schedule planner") || !strings.Contains(fmt.Sprint(issueRow["safe_next_action"]), "Before validation") {
+		t.Fatalf("issue_triage row missing owner or safe next action wording: %#v", issueRow)
 	}
 	flags, ok := decoded["claim_flags"].(map[string]any)
 	if !ok {
@@ -2526,7 +2604,21 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 	for _, category := range hub.Categories {
 		ids = append(ids, category.ID)
 	}
-	wantIDs := []string{"telemetry_source", "prediction_engine", "validator", "monitoring_export", "consumer_discovery"}
+	if len(hub.Catalog) != 28 {
+		t.Fatalf("catalog rows = %d, want 28", len(hub.Catalog))
+	}
+	wantCatalogIDs := []string{"csv_replay_adapter", "http_polling_adapter", "webhook_sidecar_adapter", "generic_json_transform_adapter", "vendor_shaped_synthetic_examples", "authenticated_telemetry_post", "deterministic_builtin_predictor", "external_http_predictor_adapter", "shadow_mode_predictor", "fail_closed_predictor_behavior", "thetransitclock_candidate_notes", "mobilitydata_static_gtfs_validator", "mobilitydata_gtfs_realtime_validator", "allowlisted_validator_ids", "private_validation_health", "local_health_summaries", "operations_notify_draft", "monitoring_export_helper", "deployment_owned_monitoring_boundary", "public_feeds_json", "static_gtfs_url", "vehicle_positions_url", "trip_updates_url", "alerts_url", "consumer_packet_preparedness", "manifest_based_sidecars", "no_dynamic_backend_plugin_loading", "conformance_tests_required"}
+	var gotCatalogIDs []string
+	for _, row := range hub.Catalog {
+		gotCatalogIDs = append(gotCatalogIDs, row.ID)
+		if row.Group == "" || row.Label == "" || row.Status == "" || row.StartWith == "" || row.BrowserReview == "" || row.FirstSafeCheck == "" || row.DoesNotProve == "" || len(row.DocsLinks) == 0 {
+			t.Fatalf("invalid catalog row: %+v", row)
+		}
+	}
+	if strings.Join(gotCatalogIDs, ",") != strings.Join(wantCatalogIDs, ",") {
+		t.Fatalf("catalog ids = %v, want %v", gotCatalogIDs, wantCatalogIDs)
+	}
+	wantIDs := []string{"telemetry_source", "prediction", "validator", "monitoring_export", "consumer_discovery", "future_extension_model"}
 	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
 		t.Fatalf("category ids = %v, want %v", ids, wantIDs)
 	}
@@ -2543,7 +2635,7 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 			t.Fatalf("registry entry must remain disabled, fail-closed, and conformance-backed: %+v", entry)
 		}
 	}
-	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("registry ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -2570,7 +2662,7 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Hub", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Telemetry / GPS / AVL source", "Prediction engine", "Validator connector", "Monitoring / export connector", "Consumer / discovery workflow", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "disabled by default", "fail closed", "synthetic cases"} {
+	for _, want := range []string{"Connector Hub", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2676,7 +2768,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 	if view.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
 	}
-	wantRecipes := []string{"csv_telemetry_sandbox", "api_polling_recipe", "webhook_transform_boundary", "synthetic_only", "predictor_sidecar", "monitoring_export", "public_feed_url_verification"}
+	wantRecipes := []string{"csv_telemetry_sandbox", "api_polling_recipe", "webhook_transform_boundary", "synthetic_only", "predictor_sidecar", "monitoring_export", "public_feed_url_verification", "consumer_discovery_metadata"}
 	var gotRecipes []string
 	for _, recipe := range view.Recipes {
 		gotRecipes = append(gotRecipes, recipe.ID)
@@ -2684,7 +2776,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 	if strings.Join(gotRecipes, ",") != strings.Join(wantRecipes, ",") {
 		t.Fatalf("recipe ids = %v, want %v", gotRecipes, wantRecipes)
 	}
-	wantDecisionRows := []string{"csv_vehicle_locations", "gps_polling_api", "avl_can_post", "synthetic_only", "prediction_sidecar", "monitoring_export", "off_host_validation"}
+	wantDecisionRows := []string{"csv_vehicle_locations", "gps_polling_api", "avl_can_post", "synthetic_only", "prediction_sidecar", "monitoring_export", "off_host_validation", "consumer_discovery_metadata"}
 	var gotDecisionRows []string
 	for _, row := range view.DecisionTree {
 		gotDecisionRows = append(gotDecisionRows, row.ID)
@@ -2692,7 +2784,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 	if strings.Join(gotDecisionRows, ",") != strings.Join(wantDecisionRows, ",") {
 		t.Fatalf("decision row ids = %v, want %v", gotDecisionRows, wantDecisionRows)
 	}
-	wantTemplates := []string{"telemetry_source", "prediction_sidecar", "validator_off_host", "monitoring_export"}
+	wantTemplates := []string{"telemetry_source", "prediction_sidecar", "validator_off_host", "monitoring_export", "consumer_discovery"}
 	var gotTemplates []string
 	for _, row := range view.RedactionTemplates {
 		gotTemplates = append(gotTemplates, row.ID)
@@ -2718,7 +2810,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 			t.Fatalf("manifest row must remain disabled, fail-closed, and conformance-backed: %+v", row)
 		}
 	}
-	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("manifest ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -2742,7 +2834,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Connection Decision Tree", "csv_vehicle_locations", "Redaction-First Templates", "Telemetry Source Template", "send_enabled=false", "public_mutation=false", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "telemetry-missing-required-field", "prediction-timeout", "prediction-public-mutation-attempt", "validator-allowlist", "validator-raw-command", "monitoring-no-send", "monitoring-unredacted-destination", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Manifest Lint Summary", "Positive claim allowlist", "Safe plugin definition", "Synthetic telemetry CSV replay", "Synthetic telemetry webhook sidecar", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Connection Decision Tree", "csv_vehicle_locations", "consumer_discovery_metadata", "Redaction-First Templates", "Telemetry Source Template", "Consumer Discovery Template", "send_enabled=false", "public_mutation=false", "submit_enabled=false", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "Consumer / Discovery Guide", "prepared_packet_review", "no_submit_no_status_mutation", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "telemetry-missing-required-field", "prediction-timeout", "prediction-public-mutation-attempt", "validator-allowlist", "validator-raw-command", "monitoring-no-send", "monitoring-unredacted-destination", "consumer-discovery-feed-url-metadata", "consumer-discovery-status-mutation-blocked", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "I want feed discovery metadata", "Example Manifest Registry Review", "Manifest Lint Summary", "Positive claim allowlist", "Safe plugin definition", "Synthetic telemetry CSV replay", "Synthetic telemetry webhook sidecar", "Synthetic consumer discovery metadata", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2851,6 +2943,7 @@ func TestConnectorTestsJSONShapeFlagsAndCommands(t *testing.T) {
 		"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
 		"go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance",
 		"go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+		"go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
 		"make test-connector-examples",
 	}
 	var gotCommands []string
@@ -2873,7 +2966,7 @@ func TestConnectorTestsHTMLInstructionsOnly(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Test Instructions", "make external-connection-check", "make adapter-conformance", "make test-connector-examples", "Telemetry connector cases", "Prediction connector cases", "Validator connector cases", "Monitoring/export connector cases", "does not execute commands", "read manifest-provided commands"} {
+	for _, want := range []string{"Connector Test Instructions", "make external-connection-check", "make adapter-conformance", "make test-connector-examples", "Telemetry connector cases", "Prediction connector cases", "Validator connector cases", "Monitoring/export connector cases", "Consumer/discovery connector cases", "consumer_discovery", "does not execute commands", "read manifest-provided commands"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -3012,15 +3105,15 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		`aria-label="Operations Console sections"`,
 		"Start Here",
 		`href="/admin/operations" aria-current="page">Start Here</a>`,
-		`href="/admin/operations/devices">Device Credentials</a>`,
+		`href="/admin/operations/devices">Devices &amp; Tokens</a>`,
 		`href="/admin/operations/telemetry-simulator">Telemetry Simulator</a>`,
-		"Schedule",
+		"GTFS Workbench",
 		"Realtime",
 		`href="/admin/operations/prediction-lab">Prediction &amp; ETA Lab</a>`,
 		"Connectors",
-		"Health",
-		"Maintain",
-		"Learn",
+		"Feed Health",
+		"Maintenance",
+		"Help / Tutorials",
 		`href="/admin/operations" aria-current="page"`,
 	} {
 		if !strings.Contains(body, want) {
@@ -3184,14 +3277,14 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 	}{
 		{path: "/admin/operations", title: "Agency Operations Cockpit / Start Here"},
 		{path: "/admin/operations/gtfs-workbench", title: "GTFS Workbench"},
-		{path: "/admin/operations/gtfs-import", title: "Browser GTFS Import"},
+		{path: "/admin/operations/gtfs-import", title: "Import GTFS"},
 		{path: "/admin/operations/prediction-lab", title: "Prediction &amp; ETA Lab"},
 		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
-		{path: "/admin/operations/devices", title: "Device Credentials"},
+		{path: "/admin/operations/devices", title: "Devices &amp; Tokens"},
 		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
 		{path: "/admin/operations/access", title: "Access &amp; Roles"},
-		{path: "/admin/operations/audit", title: "Audit Log"},
-		{path: "/admin/operations/help", title: "Operations Console Help"},
+		{path: "/admin/operations/audit", title: "Audit History"},
+		{path: "/admin/operations/help", title: "Help &amp; Tutorials"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
@@ -3386,7 +3479,7 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		"Operations Console Help",
+		"Help &amp; Tutorials",
 		`id="help-gtfs"`,
 		`id="help-gtfs_rt"`,
 		`id="help-connectors"`,
@@ -3552,8 +3645,8 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`<header class="operations-header" role="banner">`,
 		`<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`,
 		`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
-		`<section class="nav-group" aria-labelledby="nav-group-maintain">`,
-		`<p id="nav-group-maintain" class="nav-group-label">Maintain</p>`,
+		`<section class="nav-group" aria-labelledby="nav-group-maintenance">`,
+		`<p id="nav-group-maintenance" class="nav-group-label">Maintenance</p>`,
 		`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 		`<script src="/admin/operations/assets/operations.js" defer></script>`,
 		`</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>`,
@@ -3715,7 +3808,7 @@ func TestOperationsCoreRoutesUseSharedAppShellAndDesignTokens(t *testing.T) {
 			body := rr.Body.String()
 			for _, want := range []string{
 				`<header class="operations-header" role="banner">`,
-				`Private operations control plane`,
+				`Private agency operations`,
 				`class="app-breadcrumb"`,
 				`class="app-meta"`,
 				`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
@@ -3749,8 +3842,8 @@ func TestOperationsConsoleDesignSystemAvoidsFragileDecoration(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		`Draft Schedule Editor <span class="nav-surface">admin surface</span>`,
-		`Alerts <span class="nav-surface">admin surface</span>`,
+		`Draft Schedule Editor <span class="nav-surface">separate tool</span>`,
+		`Alerts Console <span class="nav-surface">separate tool</span>`,
 		`Ready for local review`,
 		`Copy These Five Configured Feed URLs`,
 	} {
@@ -5037,7 +5130,7 @@ func TestValidationCenterHTMLPlainLanguageReadOnlyAndNoLeakage(t *testing.T) {
 		"Validator Health",
 		"GTFS Quality Summary",
 		"Prepared Consumer Tracker",
-		"Claim Flags",
+		"Advanced Safety Details",
 		"read-only",
 		"does not run validators",
 		"prepared only",
@@ -5937,9 +6030,31 @@ func TestOperationsConsoleRendersDemoStateWithSafeTelemetryDiagnostics(t *testin
 }
 
 func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
+	t.Setenv("SUPPRESS_STALE_VEHICLE_AFTER_SECONDS", "120")
 	now := time.Now().UTC().Truncate(time.Second)
+	store := feedHealthTestStore(t)
+	store.tripDiagnostics = compliance.TripUpdatesDiagnosticsSummary{
+		Recorded:            true,
+		SnapshotAt:          now,
+		AdapterName:         "deterministic",
+		DiagnosticsStatus:   "recorded",
+		DiagnosticsReason:   "partial_predictions",
+		ActiveFeedVersionID: "feed-v1",
+		Metrics: prediction.Metrics{
+			EligiblePredictionCandidates: 2,
+			TripUpdatesEmitted:           1,
+			UnknownAssignments:           1,
+			AmbiguousAssignments:         1,
+			StaleTelemetryRows:           1,
+			WithheldByReason: map[string]int{
+				prediction.ReasonBelowConfidenceThreshold: 1,
+				prediction.ReasonStaleTelemetry:           1,
+			},
+			CancellationAlertLinksMissing: 1,
+		},
+	}
 	srv := newOperationsTestHandler(&handler{
-		store: feedHealthTestStore(t),
+		store: store,
 		devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{
 			{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
 			{AgencyID: "demo-agency", DeviceID: "device-2", VehicleID: "bus-2", Status: "active", ValidFrom: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
@@ -5993,7 +6108,7 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "Realtime Feed Usefulness Review", "Freshness And Lifecycle Review", "Consumer-Safe Omission Rules", "Vehicle Positions usefulness", "Trip Updates usefulness", "Alerts usefulness", "Consumer-safe behavior", "emitted from", "valid empty/fallback output", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
+	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "Realtime Feed Usefulness Review", "Feed Usefulness Details", "Healthy when", "Needs attention", "Not proven", "Vehicle Positions publishing review", "Vehicle count", "Estimated Vehicle Positions rows", "Suppressed vehicles", "Trip descriptor coverage", "Why not published", "Trip Updates publishing review", "Prediction source", "Fallback reason", "Low-confidence handling", "Withheld reason: below_confidence_threshold", "Alerts lifecycle review", "Active alerts", "Stale alerts", "Missing cancellation links", "Service disruption review", "Synthetic / Local Replay Guide", "Preview a scenario in the browser", "Freshness And Lifecycle Review", "Consumer-Safe Omission Rules", "Vehicle Positions usefulness", "Trip Updates usefulness", "Alerts usefulness", "Consumer-safe behavior", "emitted from", "valid empty/fallback output", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -6017,8 +6132,26 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	if view.Usefulness.Status == "" || len(view.Usefulness.Rows) != 3 || len(view.Usefulness.Freshness) != 5 || len(view.Usefulness.OmissionRules) != 4 || view.Usefulness.Boundary == "" {
 		t.Fatalf("unexpected realtime usefulness shape: %+v", view.Usefulness)
 	}
+	if len(view.Publishing) != 3 || view.ReplayGuidance.Status == "" || view.ReplayGuidance.BrowserStart != "/admin/operations/telemetry-simulator" || len(view.ReplayGuidance.Steps) != 3 || view.ReplayGuidance.Boundary == "" {
+		t.Fatalf("unexpected realtime publishing/replay shape: publishing=%+v replay=%+v", view.Publishing, view.ReplayGuidance)
+	}
 	if view.Issues[0].Severity == "" || view.Issues[0].NextAction == "" || view.Guidance[0].DoesNotProve == "" {
 		t.Fatalf("realtime review guidance is not actionable: issues=%+v guidance=%+v", view.Issues, view.Guidance)
+	}
+	seenPublishing := map[string]operationsRealtimeFeedReview{}
+	for _, row := range view.Publishing {
+		seenPublishing[row.ID] = row
+		if row.Label == "" || row.Status == "" || row.WhatLooksHealthy == "" || row.NeedsAttention == "" || row.NotProven == "" || row.NextAction == "" || len(row.Signals) == 0 {
+			t.Fatalf("publishing review row is not actionable: %+v", row)
+		}
+		for _, signal := range row.Signals {
+			if signal.Label == "" || signal.Value == "" || signal.Meaning == "" {
+				t.Fatalf("publishing signal missing operator wording: row=%+v signal=%+v", row, signal)
+			}
+		}
+	}
+	if seenPublishing["vehicle_positions"].Signals[4].Label != "Suppressed vehicles" || seenPublishing["trip_updates"].Signals[0].Label != "Prediction source" || seenPublishing["alerts"].Signals[2].Label != "Missing cancellation links" {
+		t.Fatalf("publishing review rows missing expected feed-specific signals: %+v", seenPublishing)
 	}
 	for _, row := range view.Usefulness.Rows {
 		if row.ID == "" || row.Label == "" || row.ScoreLabel == "" || row.CurrentSignal == "" || row.HelpfulSignal == "" || row.NeedsReviewSignal == "" || row.ConsumerSafeBehavior == "" || row.NextAction == "" || row.DoesNotProve == "" {
@@ -6734,9 +6867,15 @@ func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testi
 	body := rr.Body.String()
 	for _, want := range []string{
 		"Telemetry Simulator Guide",
-		"viewing this page executes no command",
+		"can preview committed synthetic fixture metadata but executes no command",
 		"reads no private diagnostics",
 		"collects no device token",
+		"Browser Dry-Run Preview",
+		"Preview synthetic dry run",
+		"ready_for_browser_preview",
+		"Redacted synthetic event preview",
+		"synthetic point",
+		"This browser page never asks for, stores, displays, or posts device credentials.",
 		"on-route",
 		"stale",
 		"out-of-order",
@@ -6759,7 +6898,7 @@ func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testi
 		}
 	}
 	for _, forbidden := range []string{
-		"<form",
+		`method="post"`,
 		"name=\"device_token\"",
 		"DEVICE_TOKEN=",
 		"Authorization:",
@@ -6807,6 +6946,15 @@ func TestOperationsTelemetrySimulatorJSONIsPrivateBoundedAndNoExecution(t *testi
 	if view.Scenarios[0].Name != "on-route" || !view.Scenarios[0].DefaultLocal {
 		t.Fatalf("first scenario = %+v, want default on-route first", view.Scenarios[0])
 	}
+	if view.SelectedScenario != "on-route" {
+		t.Fatalf("selected scenario = %q, want on-route", view.SelectedScenario)
+	}
+	if view.DryRunPreview.Status != "ready_for_browser_preview" || view.DryRunPreview.ScenarioID != "on-route" || len(view.DryRunPreview.Events) == 0 {
+		t.Fatalf("invalid dry-run preview: %+v", view.DryRunPreview)
+	}
+	if !strings.Contains(view.DryRunPreview.Boundary, "does not execute shell commands") {
+		t.Fatalf("dry-run boundary should explicitly avoid shell execution: %+v", view.DryRunPreview)
+	}
 	flags := view.ClaimFlags
 	if flags.BackendCommandExecutionEnabled || flags.TelemetrySentByWebRequest || flags.DeviceTokenCollectedByBrowser || flags.CacheDiagnosticsReadEnabled ||
 		flags.ExternalEvidenceCreated || flags.ConsumerStatusesChanged || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed ||
@@ -6839,6 +6987,34 @@ func TestOperationsTelemetrySimulatorJSONIsPrivateBoundedAndNoExecution(t *testi
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("public simulator route status = %d, want 404", rr.Code)
+	}
+}
+
+func TestOperationsTelemetrySimulatorBrowserDryRunSelectionIsPreviewOnly(t *testing.T) {
+	handler := newOperationsTestHandler(&handler{store: &fakePublicationStore{}}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/telemetry-simulator.json?scenario=stale", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var view operationsTelemetrySimulatorView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode simulator JSON: %v: %s", err, rr.Body.String())
+	}
+	if view.SelectedScenario != "stale" || view.DryRunPreview.ScenarioID != "stale" {
+		t.Fatalf("scenario selection did not drive preview: selected=%q preview=%+v", view.SelectedScenario, view.DryRunPreview)
+	}
+	if view.DryRunPreview.Status != "ready_for_browser_preview" || len(view.DryRunPreview.Events) == 0 {
+		t.Fatalf("dry-run preview should be ready with redacted events: %+v", view.DryRunPreview)
+	}
+	payload := rr.Body.String()
+	for _, forbidden := range []string{"\"payload\"", "\"lat\"", "\"lon\"", "DEVICE_TOKEN=", "Authorization:", "Bearer ", "token_hash", "private_debug", "vendor_id", "backend_command_execution_enabled\":true", "telemetry_sent_by_web_request\":true"} {
+		if strings.Contains(payload, forbidden) {
+			t.Fatalf("browser preview exposed forbidden field, secret-like text, or command/send flag %q: %s", forbidden, payload)
+		}
 	}
 }
 
@@ -6958,6 +7134,8 @@ func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
 		"transit.land",
 		"not_started",
 		"docs/evidence tracker",
+		"Runtime deployment note is",
+		"docs tracker status remains",
 		"Requires separate written authorization",
 		"consumer_statuses_changed",
 		"consumer_submission_claimed",
@@ -7370,8 +7548,23 @@ func assertOperationsHelpSafeStrings(t *testing.T, body string) {
 
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
-	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 || len(hub.Registry.Entries) != 6 {
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 7 {
 		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
+	}
+	seenCatalogIDs := map[string]bool{}
+	for _, row := range hub.Catalog {
+		if row.ID == "" || row.Group == "" || row.Label == "" || row.Status == "" || row.StartWith == "" || row.BrowserReview == "" || row.FirstSafeCheck == "" || row.DoesNotProve == "" || len(row.DocsLinks) == 0 {
+			t.Fatalf("invalid connector catalog row shape: %+v", row)
+		}
+		if seenCatalogIDs[row.ID] {
+			t.Fatalf("duplicate connector catalog id %q", row.ID)
+		}
+		seenCatalogIDs[row.ID] = true
+		for _, link := range row.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("catalog row %s has unsafe docs link %q", row.ID, link)
+			}
+		}
 	}
 	seenIDs := map[string]bool{}
 	for _, category := range hub.Categories {
@@ -7420,7 +7613,7 @@ func assertConnectorHubFlagsFalse(t *testing.T, flags connectorHubClaimFlags) {
 
 func assertConnectorTestsShape(t *testing.T, view connectorTestsView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Commands) != 8 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Commands) != 9 {
 		t.Fatalf("invalid connector tests top-level shape: %+v", view)
 	}
 	seenIDs := map[string]bool{}
@@ -7449,7 +7642,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 7 || len(view.Recipes) != 7 || len(view.RedactionTemplates) != 4 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 9 || view.Conformance.CaseCount != 22 || len(view.Conformance.Groups) != 4 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 6 || len(view.ManifestReview.LintChecks) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 8 || len(view.Recipes) != 8 || len(view.RedactionTemplates) != 5 || len(view.DryRunCommands) != 5 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ConsumerGuide.Title == "" || len(view.ConsumerGuide.Rows) != 3 || len(view.ConsumerGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 12 || view.Conformance.CaseCount != 25 || len(view.Conformance.Groups) != 5 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 7 || len(view.ManifestReview.LintChecks) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenDecisions := map[string]bool{}
@@ -7582,6 +7775,7 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	}
 	assertConnectorWorkbenchGuideShape(t, "prediction", view.PredictionGuide)
 	assertConnectorWorkbenchGuideShape(t, "monitoring", view.MonitoringGuide)
+	assertConnectorWorkbenchGuideShape(t, "consumer", view.ConsumerGuide)
 	assertConnectorWorkbenchConformanceShape(t, view.Conformance)
 }
 
@@ -7614,9 +7808,9 @@ func assertConnectorWorkbenchGuideShape(t *testing.T, label string, guide connec
 
 func assertConnectorWorkbenchConformanceShape(t *testing.T, view connectorWorkbenchConformanceView) {
 	t.Helper()
-	wantCases := map[string]int{"telemetry": 10, "prediction": 7, "validator": 2, "monitoring": 3}
+	wantCases := map[string]int{"telemetry": 10, "prediction": 7, "validator": 2, "monitoring": 3, "consumer_discovery": 3}
 	seen := map[string]bool{}
-	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 9 || view.CaseCount != 22 || len(view.Groups) != 4 || len(view.RunnerCommands) != 4 {
+	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 12 || view.CaseCount != 25 || len(view.Groups) != 5 || len(view.RunnerCommands) != 4 {
 		t.Fatalf("invalid connector workbench conformance view: %+v", view)
 	}
 	for _, command := range view.RunnerCommands {
@@ -8020,8 +8214,32 @@ func assertValidationCenterSafeStrings(t *testing.T, body string) {
 
 func assertReadinessV2Shape(t *testing.T, readiness operationsReadinessV2View) {
 	t.Helper()
-	if readiness.GeneratedAt.IsZero() || readiness.AgencyID == "" || readiness.Boundary == "" || len(readiness.Rows) != 11 || readiness.Counts.Rows != 11 {
+	if readiness.GeneratedAt.IsZero() || readiness.AgencyID == "" || readiness.Boundary == "" || len(readiness.FocusAreas) != 10 || len(readiness.Rows) != 11 || readiness.Counts.Rows != 11 {
 		t.Fatalf("invalid readiness v2 shape: %+v", readiness)
+	}
+	wantFocusIDs := []string{"public_feed_urls", "static_gtfs", "vehicle_positions", "trip_updates", "alerts", "validation", "license_contact", "uptime_operations", "telemetry_device_state", "consumer_preparedness"}
+	var gotFocusIDs []string
+	for _, focus := range readiness.FocusAreas {
+		gotFocusIDs = append(gotFocusIDs, focus.ID)
+		if focus.ID == "" || focus.Label == "" || focus.Status == "" || focus.WhatThisHelpsWith == "" || focus.PrimarySignal == "" || focus.NextAction == "" || focus.WhatItDoesNotProve == "" || len(focus.RowIDs) == 0 || len(focus.AdminLinks) == 0 || len(focus.DocsLinks) == 0 {
+			t.Fatalf("invalid readiness focus area: %+v", focus)
+		}
+		for _, link := range focus.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("focus %s has unsafe admin link %q", focus.ID, link)
+			}
+		}
+		for _, link := range focus.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("focus %s has unsafe docs link %q", focus.ID, link)
+			}
+			if _, err := os.Stat(filepath.Join("..", "..", link)); err != nil {
+				t.Fatalf("focus %s docs link %q should exist: %v", focus.ID, link, err)
+			}
+		}
+	}
+	if strings.Join(gotFocusIDs, ",") != strings.Join(wantFocusIDs, ",") {
+		t.Fatalf("focus ids = %v, want %v", gotFocusIDs, wantFocusIDs)
 	}
 	wantIDs := []string{"discovery_metadata", "feed_health", "static_gtfs_quality", "vehicle_positions", "trip_updates", "alerts", "validation_health", "operations_reliability", "telemetry_devices", "operations_scorecard", "consumer_prepared_tracker"}
 	var gotIDs []string

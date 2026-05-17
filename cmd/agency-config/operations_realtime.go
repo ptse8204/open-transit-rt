@@ -20,6 +20,8 @@ type operationsRealtimeView struct {
 	Summary        operationsRealtimeSummary      `json:"summary"`
 	Feeds          []operationsRealtimeFeedStatus `json:"feeds"`
 	Usefulness     operationsRealtimeUsefulness   `json:"usefulness"`
+	Publishing     []operationsRealtimeFeedReview `json:"publishing_review"`
+	ReplayGuidance operationsRealtimeReplayGuide  `json:"replay_guidance"`
 	Fleet          []operationsRealtimeFleetRow   `json:"fleet"`
 	Issues         []operationsRealtimeIssue      `json:"issues"`
 	Guidance       []operationsRealtimeGuidance   `json:"guidance"`
@@ -64,6 +66,40 @@ type operationsRealtimeUsefulnessScore struct {
 	NextAction           string      `json:"next_action"`
 	DoesNotProve         string      `json:"does_not_prove"`
 	Details              []countView `json:"details,omitempty"`
+}
+
+type operationsRealtimeFeedReview struct {
+	ID               string                               `json:"id"`
+	Label            string                               `json:"label"`
+	Status           string                               `json:"status"`
+	WhatLooksHealthy string                               `json:"what_looks_healthy"`
+	NeedsAttention   string                               `json:"needs_attention"`
+	NotProven        string                               `json:"not_proven"`
+	NextAction       string                               `json:"next_action"`
+	Signals          []operationsRealtimePublishingSignal `json:"signals"`
+}
+
+type operationsRealtimePublishingSignal struct {
+	Label   string `json:"label"`
+	Value   string `json:"value"`
+	Meaning string `json:"meaning"`
+}
+
+type operationsRealtimeReplayGuide struct {
+	Status       string                         `json:"status"`
+	Summary      string                         `json:"summary"`
+	BrowserStart string                         `json:"browser_start"`
+	LocalReplay  string                         `json:"local_replay"`
+	ReviewAfter  string                         `json:"review_after"`
+	Boundary     string                         `json:"boundary"`
+	Steps        []operationsRealtimeReplayStep `json:"steps"`
+}
+
+type operationsRealtimeReplayStep struct {
+	ID           string `json:"id"`
+	Label        string `json:"label"`
+	Action       string `json:"action"`
+	SafeBoundary string `json:"safe_boundary"`
 }
 
 type operationsRealtimeFreshnessReview struct {
@@ -184,6 +220,8 @@ func buildOperationsRealtime(page operationsPage) operationsRealtimeView {
 		Summary:        summary,
 		Feeds:          feeds,
 		Usefulness:     buildRealtimeUsefulnessReview(page, summary, fleet, feeds),
+		Publishing:     buildRealtimePublishingReview(page, summary, fleet, feeds),
+		ReplayGuidance: buildRealtimeReplayGuide(page),
 		Fleet:          fleet,
 		Issues:         realtimeOperatorIssues(page, summary, fleet, feeds),
 		Guidance:       realtimeQualityGuidance(page, summary, feeds),
@@ -275,6 +313,203 @@ func realtimeFeedStatusByID(feeds []operationsRealtimeFeedStatus) map[string]ope
 		out[feed.ID] = feed
 	}
 	return out
+}
+
+func buildRealtimePublishingReview(page operationsPage, summary operationsRealtimeSummary, fleet []operationsRealtimeFleetRow, feeds []operationsRealtimeFeedStatus) []operationsRealtimeFeedReview {
+	feedByID := realtimeFeedStatusByID(feeds)
+	return []operationsRealtimeFeedReview{
+		vehiclePositionsPublishingReview(page, summary, fleet, feedByID["vehicle_positions"]),
+		tripUpdatesPublishingReview(page, feedByID["trip_updates"]),
+		alertsPublishingReview(page, feedByID["alerts"]),
+	}
+}
+
+func vehiclePositionsPublishingReview(page operationsPage, summary operationsRealtimeSummary, fleet []operationsRealtimeFleetRow, feed operationsRealtimeFeedStatus) operationsRealtimeFeedReview {
+	suppressAfter := suppressStaleVehicleAfter()
+	seenVehicles := 0
+	publishedVehicles := 0
+	suppressedVehicles := 0
+	unmatchedVehicles := 0
+	lowConfidenceVehicles := 0
+	for _, row := range fleet {
+		if row.Freshness == "not seen" {
+			continue
+		}
+		seenVehicles++
+		if suppressAfter > 0 && time.Duration(row.AgeSeconds)*time.Second > suppressAfter {
+			suppressedVehicles++
+			continue
+		}
+		publishedVehicles++
+		if !isRealtimeMatched(row) {
+			unmatchedVehicles++
+		}
+		if isRealtimeLowConfidence(row.Confidence) {
+			lowConfidenceVehicles++
+		}
+	}
+	tripDescriptorsOmitted := max(0, publishedVehicles-summary.MatchedAssignments)
+	status := checklistStatusOK
+	switch {
+	case seenVehicles == 0:
+		status = checklistStatusMissing
+	case suppressedVehicles > 0 || unmatchedVehicles > 0 || summary.StaleTelemetryRows > 0 || lowConfidenceVehicles > 0 || realtimeFeedNeedsReview(feed.State):
+		status = checklistStatusNeedsReview
+	}
+	coverage := "not available"
+	if publishedVehicles > 0 {
+		coverage = fmt.Sprintf("%d of %d publishable vehicle rows have trip descriptors", summary.MatchedAssignments, publishedVehicles)
+	}
+	return operationsRealtimeFeedReview{
+		ID:               "vehicle_positions",
+		Label:            "Vehicle Positions publishing review",
+		Status:           status,
+		WhatLooksHealthy: fmt.Sprintf("%d latest vehicle row(s), %d estimated in Vehicle Positions, %s.", seenVehicles, publishedVehicles, coverage),
+		NeedsAttention:   "Review any suppressed, stale, unmatched, low-confidence, or assignment-mismatch rows before relying on public vehicle movement.",
+		NotProven:        "This private review does not prove production AVL reliability, vendor compatibility, hardware certification, consumer display, compliance, SLA, uptime, or production readiness.",
+		NextAction:       "Open Telemetry Freshness and Feed Health, then inspect why omitted vehicles or trip descriptors stayed out of the public feed.",
+		Signals: []operationsRealtimePublishingSignal{
+			{"Vehicle count", strconv.Itoa(seenVehicles), "Latest accepted telemetry vehicles visible to this private console."},
+			{"Estimated Vehicle Positions rows", strconv.Itoa(publishedVehicles), "Vehicles not older than the stale suppression threshold."},
+			{"Stale vehicles", strconv.Itoa(summary.StaleTelemetryRows), "Vehicles older than the matching stale threshold; trip descriptors should stay unknown or omitted."},
+			{"Unmatched vehicles", strconv.Itoa(unmatchedVehicles), "Telemetry rows without a publishable trip assignment."},
+			{"Suppressed vehicles", strconv.Itoa(suppressedVehicles), "Vehicles old enough to be omitted from Vehicle Positions entirely."},
+			{"Trip descriptor coverage", coverage, "How many estimated Vehicle Positions rows include a trip descriptor."},
+			{"Why not published", vehiclePositionsNotPublishedReason(suppressedVehicles, unmatchedVehicles, tripDescriptorsOmitted, lowConfidenceVehicles), "Reasons this page can infer without exposing raw payloads or private debug blobs."},
+		},
+	}
+}
+
+func vehiclePositionsNotPublishedReason(suppressedVehicles int, unmatchedVehicles int, tripDescriptorsOmitted int, lowConfidenceVehicles int) string {
+	reasons := []string{}
+	if suppressedVehicles > 0 {
+		reasons = append(reasons, fmt.Sprintf("%d suppressed stale vehicle(s)", suppressedVehicles))
+	}
+	if unmatchedVehicles > 0 {
+		reasons = append(reasons, fmt.Sprintf("%d unmatched vehicle(s)", unmatchedVehicles))
+	}
+	if tripDescriptorsOmitted > 0 {
+		reasons = append(reasons, fmt.Sprintf("%d trip descriptor(s) omitted", tripDescriptorsOmitted))
+	}
+	if lowConfidenceVehicles > 0 {
+		reasons = append(reasons, fmt.Sprintf("%d low-confidence assignment(s)", lowConfidenceVehicles))
+	}
+	if len(reasons) == 0 {
+		return "No suppressed vehicles or omitted trip descriptors are visible in this bounded summary."
+	}
+	return strings.Join(reasons, "; ")
+}
+
+func tripUpdatesPublishingReview(page operationsPage, feed operationsRealtimeFeedStatus) operationsRealtimeFeedReview {
+	quality := page.TripUpdatesQuality
+	status := checklistStatusMissing
+	emitted := 0
+	eligible := 0
+	withheld := 0
+	source := "not recorded"
+	latest := quality.Message
+	if quality.Recorded {
+		status = checklistStatusOK
+		emitted = quality.TripUpdatesEmitted
+		eligible = quality.EligiblePredictionCandidates
+		withheld = countViewTotal(quality.WithheldByReason)
+		source = firstNonEmpty(quality.AdapterName, "not available")
+		latest = fmt.Sprintf("%s/%s at %s", quality.DiagnosticsStatus, quality.DiagnosticsReason, formatTimeForText(quality.SnapshotAt))
+		if emitted == 0 || withheld > 0 || quality.UnknownAssignments > 0 || quality.AmbiguousAssignments > 0 || quality.StaleTelemetryRows > 0 || quality.CancellationAlertLinksMissing > 0 || realtimeFeedNeedsReview(feed.State) {
+			status = checklistStatusNeedsReview
+		}
+	}
+	signals := []operationsRealtimePublishingSignal{
+		{"Prediction source", source, "Trip Updates remain behind the prediction adapter boundary."},
+		{"Generated", strconv.Itoa(emitted), "Trip Updates emitted by the latest recorded diagnostics."},
+		{"Eligible candidates", strconv.Itoa(eligible), "In-service prediction candidates considered safe enough to evaluate."},
+		{"Withheld total", strconv.Itoa(withheld), "Rows withheld by explicit conservative reason."},
+		{"Fallback reason", firstNonEmpty(quality.DiagnosticsReason, quality.Message, "not recorded"), "Why the latest diagnostic result generated, withheld, or fell back."},
+		{"Stale telemetry", strconv.Itoa(quality.StaleTelemetryRows), "Stale telemetry rows should not produce invented ETA certainty."},
+		{"Ambiguous assignments", strconv.Itoa(quality.AmbiguousAssignments), "Ambiguous assignment rows are withheld instead of guessed."},
+		{"Low-confidence handling", tripUpdatesLowConfidenceHandling(quality.WithheldByReason), "Low-confidence predictor output remains withheld or falls back closed."},
+	}
+	for _, reason := range quality.WithheldByReason {
+		signals = append(signals, operationsRealtimePublishingSignal{
+			Label:   "Withheld reason: " + reason.Label,
+			Value:   strconv.Itoa(reason.Count),
+			Meaning: "Specific conservative Trip Updates withholding reason from the latest diagnostics.",
+		})
+	}
+	return operationsRealtimeFeedReview{
+		ID:               "trip_updates",
+		Label:            "Trip Updates publishing review",
+		Status:           status,
+		WhatLooksHealthy: fmt.Sprintf("%d generated from %d eligible candidate(s); latest diagnostics: %s.", emitted, eligible, latest),
+		NeedsAttention:   "Review generated versus withheld counts, fallback reason, stale telemetry, ambiguous assignments, low-confidence handling, and prediction source before relying on ETA-like output.",
+		NotProven:        "This review does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
+		NextAction:       "Open Prediction & ETA Lab for withheld reasons, adapter diagnostics, future-stop coverage, and backtest guidance.",
+		Signals:          signals,
+	}
+}
+
+func tripUpdatesLowConfidenceHandling(reasons []countView) string {
+	for _, reason := range reasons {
+		lower := strings.ToLower(reason.Label)
+		if strings.Contains(lower, "low") && strings.Contains(lower, "confidence") {
+			return fmt.Sprintf("%d low-confidence output(s) withheld", reason.Count)
+		}
+	}
+	return "No explicit low-confidence withheld row is recorded; keep reviewing confidence thresholds and unknown assignments."
+}
+
+func alertsPublishingReview(page operationsPage, feed operationsRealtimeFeedStatus) operationsRealtimeFeedReview {
+	status := checklistStatusNeedsReview
+	if !realtimeFeedNeedsReview(feed.State) && page.TripUpdatesQuality.CancellationAlertLinksMissing == 0 {
+		status = checklistStatusOK
+	}
+	if strings.TrimSpace(feed.State) == "" || feed.State == "not available yet" {
+		status = checklistStatusMissing
+	}
+	return operationsRealtimeFeedReview{
+		ID:               "alerts",
+		Label:            "Alerts lifecycle review",
+		Status:           status,
+		WhatLooksHealthy: "Alerts feed metadata and validator/feed-health rows are visible, and cancellation alert linkage has no recorded missing rows.",
+		NeedsAttention:   "Active alert counts and stale alert details remain in the Alerts Console; review missing cancellation/disruption links before relying on cancellation messaging.",
+		NotProven:        "This review does not prove agency approval, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
+		NextAction:       "Open the Alerts Console for active, stale, planned, archived, cancellation, and disruption review, then check Alerts feed health and validation.",
+		Signals: []operationsRealtimePublishingSignal{
+			{"Active alerts", "review in Alerts Console", "The Realtime Center links to the lifecycle surface instead of duplicating alert authoring state."},
+			{"Stale alerts", "review in Alerts Console", "Archive or update stale alert records in the dedicated Alerts workflow."},
+			{"Missing cancellation links", strconv.Itoa(page.TripUpdatesQuality.CancellationAlertLinksMissing), "Canceled Trip Updates that still need an Alerts lifecycle review."},
+			{"Missing disruption links", "not automatically inferred", "Service disruptions require operator-authored alert review; telemetry alone does not publish alerts."},
+			{"Service disruption review", firstNonEmpty(feed.LatestSignal, "no Alerts feed signal"), "Use feed health plus Alerts Console before sharing alert status."},
+		},
+	}
+}
+
+func countViewTotal(rows []countView) int {
+	total := 0
+	for _, row := range rows {
+		total += row.Count
+	}
+	return total
+}
+
+func buildRealtimeReplayGuide(page operationsPage) operationsRealtimeReplayGuide {
+	status := checklistStatusNeedsReview
+	if len(page.TelemetrySimulator.Scenarios) > 0 {
+		status = checklistStatusOK
+	}
+	return operationsRealtimeReplayGuide{
+		Status:       status,
+		Summary:      fmt.Sprintf("%d committed synthetic simulator scenario(s) are available for local browser review.", len(page.TelemetrySimulator.Scenarios)),
+		BrowserStart: "/admin/operations/telemetry-simulator",
+		LocalReplay:  "Use the browser dry-run preview first; a technical helper may run fixed local simulator or realtime-quality commands when credentials and private DB access are needed.",
+		ReviewAfter:  "After replay, return to Realtime Center, Feed Health, Prediction & ETA Lab, Validation Health, and Alerts Console.",
+		Boundary:     "Replay guidance is local/synthetic review only. The browser does not execute shell commands, collect tokens, send telemetry, create evidence, contact external systems, prove vendor compatibility, prove production AVL reliability, or prove ETA quality.",
+		Steps: []operationsRealtimeReplayStep{
+			{"browser_preview", "Preview a scenario in the browser", "Open Telemetry Simulator and choose on-route, stale, low-quality GPS, after-midnight, or block-transition fixture metadata.", "Preview only; no telemetry send, no token collection, and no command execution."},
+			{"local_send", "Run local synthetic send only when appropriate", "A technical helper can use the fixed simulator command with deployment-owned tokens when intentional local ingest is required.", "Keep tokens outside browser notes and do not commit generated `.cache` diagnostics."},
+			{"realtime_review", "Review realtime feed usefulness", "Check Vehicle Positions publishing review, Trip Updates withheld reasons, Alerts lifecycle review, and GTFS-Realtime validator health.", "Healthy local signals do not prove external approval, consumer display, production readiness, or real-world accuracy."},
+		},
+	}
 }
 
 func vehiclePositionsUsefulnessScore(page operationsPage, summary operationsRealtimeSummary, feed operationsRealtimeFeedStatus) operationsRealtimeUsefulnessScore {

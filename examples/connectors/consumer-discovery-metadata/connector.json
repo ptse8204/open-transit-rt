@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.consumer-discovery-metadata",
+  "type": "consumer_discovery",
+  "display_name": "Synthetic consumer discovery metadata",
+  "description": "Synthetic dry-run connector that reviews public feed metadata without submission or status mutation.",
+  "mode": {
+    "name": "offline_metadata_dry_run",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic public feed metadata",
+      "description": "Local fixture with public feed URL and license metadata fields.",
+      "schema": "open-transit-rt.public-feeds.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["synthetic_only", "feed_base_url", "static_gtfs_url", "vehicle_positions_url", "trip_updates_url", "alerts_url", "license_url"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Consumer discovery readiness decision",
+      "description": "Dry-run metadata decision with no submission, no status mutation, and no evidence write.",
+      "schema": "open-transit-rt.consumer-discovery.decision.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 5,
+    "retry_policy": "operator rerun only",
+    "degraded_state": "metadata not prepared",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "none",
+    "redact_fields": ["operator_email", "portal_url", "private_note", "target_specific_instruction"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["consumer submission", "consumer acceptance", "consumer listing", "consumer display", "status transition", "compliance", "production readiness"]
+  },
+  "docs_link": "examples/connectors/consumer-discovery-metadata/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-consumer-discovery-metadata",
+      "description": "Valid synthetic feed metadata is reviewed in dry-run mode without submission or status mutation.",
+      "fixture_path": "examples/connectors/consumer-discovery-metadata/fixtures/feeds.json",
+      "expected_result": "pass"
+    }
+  ]
+}

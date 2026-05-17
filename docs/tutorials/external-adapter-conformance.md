@@ -2,8 +2,8 @@
 
 The adapter conformance suite is an offline synthetic check for connector
 quality. It validates the manifest contract and representative failure cases
-for telemetry sources, prediction sidecars, validator wrappers, and monitoring
-exports.
+for telemetry sources, prediction sidecars, validator wrappers, monitoring
+exports, and consumer/discovery metadata.
 
 Run the full suite:
 
@@ -33,6 +33,7 @@ go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance
 go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance
 go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance
 go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance
+go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance
 go run ./cmd/adapter-conformance manifest --suite testdata/adapter-conformance
 ```
 
@@ -58,6 +59,11 @@ The suite does not run validators and does not accept raw validator commands.
 
 Monitoring cases cover redaction, no-send defaults, and unredacted-destination
 blocking. The suite does not send notifications or create SLA/uptime evidence.
+
+Consumer/discovery cases cover public feed URL metadata, status-mutation
+blocking, and submission-automation blocking. The suite does not submit to
+consumers, contact portals, create retained evidence, or move prepared-only
+consumer tracker status.
 
 For operator-facing redaction templates and source-shape decisions, see
 [Redaction-First Connector Recipes](../connectors/redaction-first-recipes.md).

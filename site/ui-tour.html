@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Transit RT UI Tour</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="ui-tour.html">UI Tour</a>
+      <a href="connectors.html">Connectors</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="video.html">Video Guide</a>
+      <a href="../README.md">README</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <p class="tag">UI tour</p>
+  <h1>What agency staff see after startup</h1>
+  <p class="lead">These generated browser captures show the intended private Operations Console flow. They are documentation aids, not retained evidence and not proof of external approval.</p>
+
+  <section class="grid" aria-label="Generated Operations Console captures">
+    <article class="capture">
+      <div class="browser">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations</span></div>
+        <div class="browser-body">
+          <h3>Start Here</h3>
+          <div class="screen-grid"><div class="side-rail"><div class="rail-item"></div><div class="rail-item"></div><div class="rail-item"></div></div><div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div></div>
+        </div>
+      </div>
+      <p><strong>Use it for:</strong> setup progress, first-run tasks, feed URLs, and next actions.</p>
+    </article>
+    <article class="capture">
+      <div class="browser">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/gtfs-workbench</span></div>
+        <div class="browser-body">
+          <h3>GTFS Workbench</h3>
+          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
+        </div>
+      </div>
+      <p><strong>Use it for:</strong> required files, row counts, service dates, import history, and validation issue triage.</p>
+    </article>
+    <article class="capture">
+      <div class="browser">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/feed-health</span></div>
+        <div class="browser-body">
+          <h3>Feed Health</h3>
+          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
+        </div>
+      </div>
+      <p><strong>Use it for:</strong> `feeds.json`, schedule, Vehicle Positions, Trip Updates, and Alerts review.</p>
+    </article>
+    <article class="capture">
+      <div class="browser">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/realtime</span></div>
+        <div class="browser-body">
+          <h3>Realtime Center</h3>
+          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
+        </div>
+      </div>
+      <p><strong>Use it for:</strong> Vehicle Positions usefulness, Trip Updates withholding, Alerts lifecycle review, and synthetic replay guidance.</p>
+    </article>
+    <article class="capture">
+      <div class="browser">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/connectors</span></div>
+        <div class="browser-body">
+          <h3>Connector Hub</h3>
+          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
+        </div>
+      </div>
+      <p><strong>Use it for:</strong> telemetry, prediction, validator, monitoring/export, and discovery connector choices.</p>
+    </article>
+    <article class="capture">
+      <div class="browser">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/readiness</span></div>
+        <div class="browser-body">
+          <h3>Readiness</h3>
+          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
+        </div>
+      </div>
+      <p><strong>Use it for:</strong> local CAL-ITP-style readiness review and what each signal does not prove.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>Tour Script</h2>
+    <ol>
+      <li>Open <code>/admin/operations</code> and identify the first next action.</li>
+      <li>Open GTFS Workbench and explain active schedule status.</li>
+      <li>Open Feed Health and review the five feed paths.</li>
+      <li>Open Realtime Center and explain withheld or stale outputs.</li>
+      <li>Open Connector Hub and choose the closest connector category.</li>
+      <li>Open Readiness and read the "does not prove" language before any outside claim.</li>
+    </ol>
+    <p>For actual screenshot capture rules, see <a href="../docs/assets/product-screenshots/README.md">Product Screenshots</a>.</p>
+  </section>
+</main>
+</body>
+</html>

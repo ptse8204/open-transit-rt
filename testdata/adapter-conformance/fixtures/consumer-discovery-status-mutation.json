@@ -1,0 +1,11 @@
+{
+  "synthetic_only": true,
+  "scenario": "status-mutation-blocked",
+  "agency_id": "demo-agency",
+  "prepared_only": true,
+  "requested_status": "prepared_only_review",
+  "status_mutation": true,
+  "expected_decision": "reject",
+  "network_send": false,
+  "evidence_write": false
+}

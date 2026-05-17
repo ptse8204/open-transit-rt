@@ -3,7 +3,7 @@
 This tutorial starts the current Open Transit RT development environment on one
 machine. It is local-dev only and uses seeded demo credentials. For a fixed
 release-candidate checkout, use
-[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1)
+[`v0.1.0-rc.2`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2)
 and follow the fresh-clone path in the README or
 [Small Agency Quick Start](../../wiki/small-agency-quick-start.md).
 

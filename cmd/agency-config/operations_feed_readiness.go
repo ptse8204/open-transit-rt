@@ -130,9 +130,11 @@ func feedReadinessRowStatus(page operationsPage, id string, url string) string {
 			return operationsStatusReady
 		}
 	default:
-		if feed, ok := feedHealthMetadata(page, id); ok && strings.TrimSpace(feed.CanonicalPublicURL) != "" {
-			return operationsStatusReady
+		feed, ok := feedHealthMetadata(page, id)
+		if !ok || strings.TrimSpace(feed.CanonicalPublicURL) == "" {
+			return operationsStatusMissing
 		}
+		return feedHealthStatus(page, id, feed, ok, feedHealthValidationRow(page, id), feedHealthReliabilityRow(page, id))
 	}
 	return operationsStatusNeedsReview
 }
@@ -263,7 +265,7 @@ func feedReadinessSourceOfTruthGuidance(page operationsPage) []operationsFeedRea
 			metadataSignal,
 			"Confirm agency name, license URL, and monitored technical contact are understandable before any future external sharing.",
 			"Update publication metadata through existing server-owned configuration paths; do not paste credentials or private contacts into evidence packets.",
-			"docs/publication-configuration.md",
+			"docs/release-candidate-readiness.md",
 			"Does not prove legal approval, managed support, compliance, consumer review, or target listing.",
 		),
 		feedReadinessGuide(
@@ -292,7 +294,7 @@ func feedReadinessOffHostGuidance(page operationsPage) []operationsFeedReadiness
 			feedReadinessValidationContext(page, "schedule"),
 			"Use the private validation center first. If the host lacks tooling, ask a technical helper to run the allowlisted static validator off-host.",
 			"Keep off-host outputs local or in ignored .cache paths unless an authorized evidence gate specifies retention.",
-			"docs/validator-tooling.md",
+			"docs/dependencies.md",
 			"Does not prove a validator-clean public feed, compliance, consumer review, or source-of-truth listing.",
 		),
 		feedReadinessGuide(
@@ -312,7 +314,7 @@ func feedReadinessOffHostGuidance(page operationsPage) []operationsFeedReadiness
 			"off-host validation remains guidance only",
 			"Treat missing local validator tooling as a reason to use documented off-host validation, not as a pass.",
 			"Use a workstation or CI environment with pinned validators; keep stdout, stderr, private paths, and raw reports out of HTML.",
-			"docs/validation-guidance.md",
+			"docs/tutorials/gtfs-validation-triage.md",
 			"Does not prove hosted service availability, SLA, uptime, release readiness, or public launch.",
 		),
 	}
@@ -337,7 +339,7 @@ func feedReadinessDocsPortalGuidance(page operationsPage) []operationsFeedReadin
 			fmt.Sprintf("%d of %d expected feed URL rows are rendered", len(feedReadinessRows(page)), expectedFeedReadinessRows(page)),
 			"Copy URLs only from the private configured feed URL review after metadata and validation context are reviewed.",
 			"Do not automate portal uploads or external network sends from this browser page.",
-			"docs/wiki/Small-Agency-Quick-Start.md",
+			"docs/tutorials/self-hosted-operator-trial.md",
 			"Does not prove a target received, reviewed, listed, displayed, or ingested a feed.",
 		),
 		feedReadinessGuide(

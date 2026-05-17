@@ -6,9 +6,12 @@
     "testdata/connectors/valid/valid-prediction.json",
     "testdata/connectors/valid/valid-validator.json",
     "testdata/connectors/valid/valid-monitoring-export.json",
+    "testdata/connectors/valid/valid-consumer-discovery.json",
     "examples/connectors/telemetry-http-poller/connector.json",
     "examples/connectors/telemetry-csv-replay/connector.json",
+    "examples/connectors/telemetry-webhook-sidecar/connector.json",
     "examples/connectors/predictor-sidecar-stub/connector.json",
+    "examples/connectors/consumer-discovery-metadata/connector.json",
     "examples/connectors/monitoring-export/connector.json",
     "examples/connectors/validator-allowlist/connector.json"
   ],
@@ -34,6 +37,9 @@
     {"id": "validator-raw-command", "type": "validator", "scenario": "raw-command", "fixture": "fixtures/validator-raw-command.json", "expected_outcome": "reject", "assertions": ["offline", "command_blocked"], "synthetic_only": true},
     {"id": "monitoring-redaction", "type": "monitoring", "scenario": "redaction", "fixture": "fixtures/monitoring-redaction.json", "expected_outcome": "redact", "assertions": ["offline", "redacted"], "synthetic_only": true},
     {"id": "monitoring-no-send", "type": "monitoring", "scenario": "no-send", "fixture": "fixtures/monitoring-no-send.json", "expected_outcome": "no_send", "assertions": ["offline", "no_send"], "synthetic_only": true},
-    {"id": "monitoring-unredacted-destination", "type": "monitoring", "scenario": "unredacted-destination", "fixture": "fixtures/monitoring-unredacted-destination.json", "expected_outcome": "no_send", "assertions": ["offline", "redacted", "no_send"], "synthetic_only": true}
+    {"id": "monitoring-unredacted-destination", "type": "monitoring", "scenario": "unredacted-destination", "fixture": "fixtures/monitoring-unredacted-destination.json", "expected_outcome": "no_send", "assertions": ["offline", "redacted", "no_send"], "synthetic_only": true},
+    {"id": "consumer-discovery-feed-url-metadata", "type": "consumer_discovery", "scenario": "feed-url-metadata", "fixture": "fixtures/consumer-discovery-feed-url-metadata.json", "expected_outcome": "allow", "assertions": ["offline", "prepared_only"], "synthetic_only": true},
+    {"id": "consumer-discovery-status-mutation-blocked", "type": "consumer_discovery", "scenario": "status-mutation-blocked", "fixture": "fixtures/consumer-discovery-status-mutation.json", "expected_outcome": "reject", "assertions": ["offline", "status_mutation_blocked"], "synthetic_only": true},
+    {"id": "consumer-discovery-submission-automation-blocked", "type": "consumer_discovery", "scenario": "submission-automation-blocked", "fixture": "fixtures/consumer-discovery-submission-automation.json", "expected_outcome": "reject", "assertions": ["offline", "submission_blocked"], "synthetic_only": true}
   ]
 }

@@ -33,13 +33,13 @@ evidence, vendor credentials, real AVL hardware, or production hosting to run a
 local evaluation.
 
 Use the public release candidate when you want a fixed starting point:
-[`v0.1.0-rc.1`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.1).
+[`v0.1.0-rc.2`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2).
 It is for local/self-hosted evaluation only, not a stable or production-ready
 release.
 
 ## Start In The Browser
 
-No-developer review starts from the private local URL provided by a technical
+Agency staff review starts from the private local URL provided by a technical
 helper, normally:
 
 ```text
@@ -47,7 +47,7 @@ http://localhost:8080/admin/operations
 ```
 
 Look for **Agency Operations Cockpit / Start Here** at the top of the
-Operations Console. It shows a no-developer browser path, a technical-helper
+Operations Console. It shows an agency-staff browser path, a technical-helper
 path, ordered first-run tasks, and the five public feed URLs.
 
 ## Browser-First Product Path
@@ -61,7 +61,8 @@ Use this order during the local evaluation:
 5. Check the five public feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
-7. Understand what remains before deployment or stronger claims.
+7. Understand what remains before outside approval, compliance, production, or
+   consumer-acceptance claims.
 
 ## Technical Helper Startup
 
@@ -70,14 +71,14 @@ From a clean checkout:
 ```bash
 git clone https://github.com/ptse8204/open-transit-rt.git
 cd open-transit-rt
-git checkout v0.1.0-rc.1
+git checkout v0.1.0-rc.2
 make check
 make agency-app-up
 ```
 
 `make agency-app-up` starts the local evaluator package, imports the committed
 small GTFS fixture, publishes local feed paths, and prints the local app URL.
-These are technical-helper startup steps, not no-developer evaluator steps.
+These are technical-helper startup steps, not agency staff review steps.
 The private Operations Console URL is normally:
 
 ```text
@@ -102,12 +103,9 @@ make validate
 make test
 ```
 
-The public fresh-clone rc1 install-confidence trial passed `make check`,
-bootstrap preflight, pinned validator install, `make validate`, `make test`,
-local app startup, and all five local public feed fetches. Prefer the git clone
-path for evaluation. The published source archive has a known `make check`
-limitation because protected consumer-tracker state is intentionally excluded
-from public archives.
+The rc2 release-candidate download replay and archive install-confidence trial
+passed local startup and all five local public feed fetches. Prefer the git
+clone path for evaluation when you want the clearest troubleshooting path.
 
 ## Private Operations Route Map
 
@@ -180,8 +178,9 @@ The local demo normally exposes:
 In the Operations Console, the Agency Operations Cockpit / Start Here path and
 Feed Health show the configured URLs. The local URLs are useful for local
 evaluation; a public deployment still needs stable HTTPS hosting,
-source-of-truth listing, validation records, and any authorized evidence
-required for stronger claims.
+official feed listing, validation records, and any authorized evidence
+required for outside approval, compliance, production, or consumer-acceptance
+claims.
 
 ## Review Feed Health
 

@@ -45,6 +45,9 @@ testing a prediction sidecar, checking validators, or exporting monitoring
 summaries. The browser pages are guidance only; they do not execute connector
 commands or contact external systems.
 
+For the single category matrix, use the
+[Connector Catalog](../docs/connectors/catalog.md).
+
 ## Practical Recipes
 
 | Recipe | Start with | Verify with | What it does not prove |
@@ -54,6 +57,7 @@ commands or contact external systems.
 | I need predictions | Keep Trip Updates behind `internal/prediction.Adapter` or an external sidecar boundary | `make adapter-conformance` | Production-grade ETA quality |
 | I need validation checks | Use server-owned allowlisted validator IDs | `/admin/operations/validation-health` | CAL-ITP/Caltrans compliance |
 | I need monitoring/export | Keep redacted summaries local until a separate sharing decision exists | `examples/connectors/monitoring-export` | SLA, uptime, or notification delivery |
+| I need feed discovery metadata | Use `examples/connectors/consumer-discovery-metadata` and keep packet status prepared-only | `go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance` | Submission, review, acceptance, ingestion, listing, display, compliance, or public launch |
 | I need a redaction-first starting point | Use `docs/connectors/redaction-first-recipes.md` and the Workbench decision tree | `make external-connection-check` and `make adapter-conformance` | Real integration proof or production readiness |
 
 The release-candidate path should also review feed-consumer URL and metadata
@@ -67,8 +71,11 @@ target statuses.
 | --- | --- |
 | `examples/connectors/telemetry-http-poller` | Synthetic HTTP polling shape that normalizes observations without sending by default |
 | `examples/connectors/telemetry-csv-replay` | Synthetic CSV replay shape for local adapter development |
+| `examples/connectors/telemetry-webhook-sidecar` | Synthetic webhook-style transform before authenticated telemetry ingest |
 | `examples/connectors/predictor-sidecar-stub` | Prediction sidecar boundary stub without production ETA claims |
+| `examples/connectors/validator-allowlist` | Server-owned validator ID allowlist without raw command execution |
 | `examples/connectors/monitoring-export` | Redacted monitoring/export summary that does not send by default |
+| `examples/connectors/consumer-discovery-metadata` | Prepared-only feed URL metadata review without submission or status mutation |
 
 Run:
 
@@ -93,7 +100,7 @@ prediction remains the default.
 
 Use the generic external HTTP adapter only when explicitly configured. Shadow
 mode is appropriate for evaluation because it keeps public Trip Updates output
-on the deterministic path while recording bounded diagnostics.
+on the deterministic path while recording limited diagnostics.
 Fail-closed mode is appropriate only when valid empty/adapted Trip Updates and
 diagnostics are acceptable for the review. External predictor output must be
 validated before serialization.

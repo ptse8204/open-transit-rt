@@ -1,9 +1,10 @@
 # Agency First Run
 
-This guide is for a small agency evaluator who wants to see Open Transit RT
-run locally without learning every backend service first. For the
-browser-first operator path, also read
-[No Command Line First Run](no-cli-agency-first-run.md).
+Start here instead if you are agency staff reviewing the product from the
+browser: [No Command Line First Run](no-cli-agency-first-run.md).
+
+This guide is technical-helper detail for starting Open Transit RT locally and
+understanding the startup output without learning every backend service first.
 
 The local package is a demo/evaluation flow. It is not hosted SaaS, not a production deployment, and not proof that Google Maps, Apple Maps, Transit App, or any other consumer has accepted the feeds.
 

@@ -54,6 +54,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .app-breadcrumb{font-size:var(--font-small);margin:0 0 var(--space-3);color:var(--color-muted)}
 .app-meta{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0;color:var(--color-muted)}
 .app-meta span{display:inline-flex;align-items:center;gap:var(--space-1)}
+.page-next-action{border:1px solid #94b8c2;background:#f0f8f8;border-radius:var(--radius-2);padding:var(--space-3);margin:var(--space-4) 0 0}
+.page-next-action p{margin:.25rem 0}
 .scope-banner{border:1px solid var(--color-border);border-radius:var(--radius-2);background:var(--color-surface-muted);padding:var(--space-3);margin:var(--space-4) 0 0}
 .scope-banner h2{font-size:1rem;margin:0 0 var(--space-2);letter-spacing:0}
 .scope-banner p{margin:.35rem 0}

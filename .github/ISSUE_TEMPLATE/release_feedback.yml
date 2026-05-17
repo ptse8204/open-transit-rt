@@ -1,5 +1,5 @@
 name: Release-candidate feedback
-description: Share public-safe feedback about v0.1.0-rc.1 install, download, or local evaluation.
+description: Share public-safe feedback about v0.1.0-rc.2 install, download, or local evaluation.
 title: "[Release feedback]: "
 labels:
   - readiness
@@ -8,15 +8,15 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this template for public-safe feedback about the `v0.1.0-rc.1` release candidate. Do not paste tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, raw support bundles, or unredacted operator artifacts.
+        Use this template for public-safe feedback about the `v0.1.0-rc.2` release candidate. Do not paste tokens, DB URLs, private keys, admin URLs with secrets, private portal screenshots, private ticket links, raw logs with credentials, raw support bundles, or unredacted operator artifacts.
 
-        Release-candidate feedback helps decide whether docs patches, current-source fixes, or an rc2 gate review are needed. It does not prove production readiness, compliance, hosted service availability, SLA coverage, consumer acceptance, or stable release readiness.
+        Release-candidate feedback helps decide whether docs patches, current-source fixes, or a future release-candidate review are needed. It does not prove production readiness, compliance, hosted service availability, SLA coverage, consumer acceptance, or stable release readiness.
   - type: dropdown
     id: trial_type
     attributes:
       label: Trial type
       options:
-        - Fresh clone of v0.1.0-rc.1
+        - Fresh clone of v0.1.0-rc.2
         - GitHub Release download
         - Source archive inspection
         - Local app startup
@@ -33,7 +33,7 @@ body:
       label: Commands or browser path reviewed
       description: Include exact public-safe commands, route paths, or docs links.
       placeholder: |
-        git checkout v0.1.0-rc.1
+        git checkout v0.1.0-rc.2
         make check
         make agency-app-up
         /admin/operations
@@ -67,5 +67,5 @@ body:
           required: true
         - label: This feedback does not claim production readiness, compliance, hosted availability, SLA coverage, consumer acceptance, or stable release readiness.
           required: true
-        - label: I understand this feedback may inform docs/current-source fixes or rc2 gate review, but does not promise a new release candidate.
+        - label: I understand this feedback may inform docs/current-source fixes or a future release-candidate review, but does not promise a new release candidate.
           required: true

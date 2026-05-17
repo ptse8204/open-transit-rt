@@ -11,7 +11,7 @@ compliance, or prove production readiness.
   Console;
 - a daily operator needs to rehearse schedule, realtime, alerts, and recovery
   checks;
-- a technical helper needs bounded context without secrets or raw private
+- a technical helper needs limited context without secrets or raw private
   output;
 - an integrator wants to map an external data idea to synthetic/local adapter
   boundaries first.
@@ -59,7 +59,7 @@ The scenario definitions also live in
 
 ## Technical-Helper Handoff
 
-Collect only bounded context:
+Collect only limited context:
 
 - current private console page;
 - visible blocker text;

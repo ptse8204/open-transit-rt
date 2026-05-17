@@ -1,6 +1,10 @@
 # Local Quickstart
 
-Use this path when you want to run Open Transit RT on your machine.
+Start here instead if you are evaluating the product from the browser:
+[Small Agency Quick Start](small-agency-quick-start.md).
+
+Use this path when you want the older development quickstart for running Open
+Transit RT on your machine.
 
 ➡️ Prefer to see the full flow first? Go to the [Agency Demo](agency-demo.md).
 

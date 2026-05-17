@@ -42,7 +42,7 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-DEFAULT_DOCS="README.md:docs/README.md:docs/current-status.md:docs/backlog.md:docs/open-questions.md:docs/roadmap-to-calitp-compliance-and-gap-closure.md:docs/roadmap-status.md:docs/public-launch-checklist.md:docs/public-share-copy.md:docs/california-readiness-summary.md:docs/compliance-evidence-checklist.md:docs/handoffs/latest.md"
+DEFAULT_DOCS="README.md:docs/README.md:docs/index.md:docs/current-status.md:docs/backlog.md:docs/open-questions.md:docs/roadmap-to-calitp-compliance-and-gap-closure.md:docs/roadmap-status.md:docs/public-launch-checklist.md:docs/public-share-copy.md:docs/california-readiness-summary.md:docs/compliance-evidence-checklist.md:docs/handoffs/latest.md"
 
 python3 - "$ROOT_DIR" \
   "${FINAL_CLAIM_REVIEW_DOCS:-$DEFAULT_DOCS}" \

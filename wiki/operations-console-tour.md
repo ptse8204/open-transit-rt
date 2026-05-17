@@ -22,20 +22,21 @@ site:
 5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
-7. Understand what remains before deployment or stronger claims.
+7. Understand what remains before outside approval, compliance, production, or
+   consumer-acceptance claims.
 
 ## Home
 
 The home page starts with **Agency Operations Cockpit / Start Here**. Use it
 as the first-run acceptance cockpit. It shows:
 
-- no-developer and technical-helper paths;
+- agency-staff and technical-helper paths;
 - ordered first-run tasks;
 - five copyable configured feed URLs;
 - links into browser GTFS import, feed health, telemetry, readiness, and
   Connector Hub;
 - local demo / deployment / evidence boundary;
-- all-false claim flags.
+- a safety summary showing that no external claim was created.
 
 The shared app shell groups private routes as Start Here, Schedule, Realtime,
 Connectors, Health, Maintain, and Learn. Links to GTFS Studio and Alerts

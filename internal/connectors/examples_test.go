@@ -13,6 +13,7 @@ import (
 func TestExampleConnectorManifestsAndFixtures(t *testing.T) {
 	root := filepath.Join("..", "..")
 	expected := []string{
+		"consumer-discovery-metadata",
 		"monitoring-export",
 		"predictor-sidecar-stub",
 		"telemetry-csv-replay",

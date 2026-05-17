@@ -240,9 +240,9 @@ The evidence packet should include:
 - validator summary or blockers;
 - telemetry dry-run summary;
 - admin/private boundary summary;
-- claim boundary.
+- what the local review does not prove.
 
-## Suggested claim boundary
+## Suggested Wording For What This Does Not Prove
 
 Use wording like:
 

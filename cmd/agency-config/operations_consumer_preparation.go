@@ -67,7 +67,7 @@ type operationsConsumerPreparationClaimFlags struct {
 }
 
 func buildOperationsConsumerPreparation(page operationsPage) operationsConsumerPreparationView {
-	targets, preparedCount := consumerPreparationTargets(page.Consumers)
+	targets, preparedCount := consumerPreparationTargets(page.Consumers, page.RuntimeConsumers)
 	status := operationsStatusNeedsReview
 	if preparedCount == expectedConsumerPreparedTargets && len(targets) == expectedConsumerPreparedTargets {
 		status = operationsStatusReady
@@ -86,7 +86,11 @@ func buildOperationsConsumerPreparation(page operationsPage) operationsConsumerP
 	}
 }
 
-func consumerPreparationTargets(rows []consumerStatusView) ([]operationsConsumerPreparationTarget, int) {
+func consumerPreparationTargets(rows []consumerStatusView, runtimeRows []consumerStatusView) ([]operationsConsumerPreparationTarget, int) {
+	runtimeByName := map[string]consumerStatusView{}
+	for _, row := range runtimeRows {
+		runtimeByName[strings.ToLower(strings.TrimSpace(row.Name))] = row
+	}
 	targets := make([]operationsConsumerPreparationTarget, 0, len(rows))
 	preparedCount := 0
 	for _, row := range rows {
@@ -94,15 +98,20 @@ func consumerPreparationTargets(rows []consumerStatusView) ([]operationsConsumer
 		if strings.EqualFold(status, "prepared") {
 			preparedCount++
 		}
+		runtimeObserved := "No runtime deployment workflow record is visible for this target."
+		if runtime, ok := runtimeByName[strings.ToLower(strings.TrimSpace(row.Name))]; ok {
+			runtimeObserved = fmt.Sprintf("Runtime deployment note is %q; docs tracker status remains %q until separately authorized target-originated evidence exists.", firstNonEmpty(runtime.Status, "unknown"), firstNonEmpty(status, "unknown"))
+		}
 		targets = append(targets, operationsConsumerPreparationTarget{
-			ID:           consumerPreparationID(row.Name),
-			Name:         row.Name,
-			Status:       firstNonEmpty(status, "unknown"),
-			CurrentPath:  row.CurrentPath,
-			PacketPath:   row.PacketPath,
-			Meaning:      "Prepared means the repository has a target-specific packet record path and current pointer for future review.",
-			NextAction:   "Review feed URLs and source-of-truth metadata privately; do not submit or change status without separate written authorization.",
-			DoesNotProve: "Does not prove submission, review, acceptance, ingestion, listing, display, target approval, compliance, or public launch.",
+			ID:              consumerPreparationID(row.Name),
+			Name:            row.Name,
+			Status:          firstNonEmpty(status, "unknown"),
+			CurrentPath:     row.CurrentPath,
+			PacketPath:      row.PacketPath,
+			Meaning:         "Prepared means the repository has a target-specific packet record path and current pointer for future review.",
+			NextAction:      "Review feed URLs and source-of-truth metadata privately; do not submit or change status without separate written authorization.",
+			DoesNotProve:    "Does not prove submission, review, acceptance, ingestion, listing, display, target approval, compliance, or public launch.",
+			RuntimeObserved: runtimeObserved,
 		})
 	}
 	return targets, preparedCount

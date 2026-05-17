@@ -3,7 +3,8 @@
 Open Transit RT is a backend toolkit for publishing transit data feeds. It is
 designed around a plain lifecycle: prepare a schedule, publish stable feed
 paths, ingest authenticated vehicle observations, match conservatively, and
-review readiness without turning local diagnostics into stronger claims.
+review readiness without turning local diagnostics into outside approval,
+compliance, production, or consumer-acceptance claims.
 
 ![Illustrative data-flow diagram showing GTFS import, GTFS Studio drafts, vehicle telemetry, Open Transit RT state, validation, and public feed outputs.](assets/data-flow-through-system.png)
 

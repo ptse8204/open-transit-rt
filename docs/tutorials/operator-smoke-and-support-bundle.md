@@ -171,7 +171,7 @@ make operations-notify
 ```
 
 This reads existing validator-health and deployment-doctor summaries from
-`.cache`, writes a bounded private draft under `.cache/operations-notify/`, and
+`.cache`, writes a limited private draft under `.cache/operations-notify/`, and
 does not send to webhook, email, consumers, an agency, or a public service.
 `scripts/operations-notify.sh --dry-run` writes the same five local draft files
 without requiring sources, network, webhook, email, database, Docker, admin

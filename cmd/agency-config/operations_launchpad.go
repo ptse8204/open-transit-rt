@@ -183,7 +183,7 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 			"decision_gate",
 			"Decision gate",
 			checklistStatusNeedsReview,
-			"claim flags remain false and no approval or compliance outcome is recorded by this launchpad",
+			"advanced safety checks remain negative and no approval or compliance outcome is recorded by this launchpad",
 			[]string{"Decide whether to continue local hardening, pause for missing inputs, or request a separate evidence intake.", "Do not move consumer statuses or publish stronger wording from this page."},
 			[]string{"docs/roadmaps/agency-first-connector-platform/README.md", "docs/open-questions.md", "docs/phase-60-final-claim-review-and-public-closeout.md"},
 			[]string{"make audit-final-claim-review"},

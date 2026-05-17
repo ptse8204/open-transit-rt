@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Transit RT Connector Catalog</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="ui-tour.html">UI Tour</a>
+      <a href="connectors.html">Connectors</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="video.html">Video Guide</a>
+      <a href="../README.md">README</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <p class="tag">Connector catalog</p>
+  <h1>Choose a local connector shape before real integration work.</h1>
+  <p class="lead">Open Transit RT connectors are sidecars, command adapters, manifests, or connector processes. They are not arbitrary dynamic backend code, and the examples here are synthetic or disabled by default.</p>
+  <p class="notice">These paths do not prove compliance, production readiness, consumer acceptance, vendor compatibility, hardware certification, hosted service availability, SLA coverage, production AVL reliability, production-grade ETA quality, or real-world ETA accuracy.</p>
+
+  <section class="grid" aria-label="Connector categories">
+    <article class="card"><span class="tag">Vehicle / GPS / AVL</span><h3>Bring observations to telemetry</h3><p>CSV replay adapter, HTTP polling adapter, webhook sidecar adapter, generic JSON transform adapter, vendor-shaped synthetic examples, and authenticated <code>POST /v1/telemetry</code>.</p></article>
+    <article class="card"><span class="tag">Prediction</span><h3>Keep ETA work replaceable</h3><p>Deterministic built-in predictor, external HTTP predictor adapter, shadow-mode predictor, fail-closed behavior, and TheTransitClock candidate notes only.</p></article>
+    <article class="card"><span class="tag">Validator</span><h3>Run allowlisted checks</h3><p>MobilityData static GTFS validator, MobilityData GTFS Realtime validator, allowlisted validator IDs, and private validation health.</p></article>
+    <article class="card"><span class="tag">Monitoring / Export</span><h3>Export local health safely</h3><p>Local health summaries, operations notify draft, monitoring/export helper, and deployment-owned monitoring boundary.</p></article>
+    <article class="card"><span class="tag">Consumer / Discovery</span><h3>Review feed metadata</h3><p><code>/public/feeds.json</code>, static GTFS URL, Vehicle Positions URL, Trip Updates URL, Alerts URL, and draft packet review without submission or acceptance claims.</p></article>
+    <article class="card"><span class="tag">Future Extension Model</span><h3>Prefer manifests and sidecars</h3><p>Manifest-based sidecars, no arbitrary dynamic backend plugin loading, and conformance tests required.</p></article>
+  </section>
+
+  <section>
+    <h2>Copyable Starting Points</h2>
+    <table>
+      <thead><tr><th>Need</th><th>Start with</th><th>First local check</th></tr></thead>
+      <tbody>
+        <tr><td>CSV replay</td><td><code>examples/connectors/telemetry-csv-replay</code></td><td><code>make test-connector-examples</code></td></tr>
+        <tr><td>GPS/API polling</td><td><code>examples/connectors/telemetry-http-poller</code></td><td><code>make external-connection-check</code></td></tr>
+        <tr><td>Webhook sidecar</td><td><code>examples/connectors/telemetry-webhook-sidecar</code></td><td><code>go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance</code></td></tr>
+        <tr><td>Generic JSON transform</td><td><code>internal/connectors</code> and telemetry examples</td><td><code>make adapter-conformance</code></td></tr>
+        <tr><td>Prediction sidecar</td><td><code>examples/connectors/predictor-sidecar-stub</code></td><td><code>go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance</code></td></tr>
+        <tr><td>Validator allowlist</td><td><code>examples/connectors/validator-allowlist</code></td><td><code>go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance</code></td></tr>
+        <tr><td>Monitoring/export</td><td><code>examples/connectors/monitoring-export</code></td><td><code>go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance</code></td></tr>
+        <tr><td>Consumer discovery</td><td><code>examples/connectors/consumer-discovery-metadata</code></td><td><code>go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Browser Review</h2>
+    <p>After a technical helper starts the app, review connector choices in the private Operations Console.</p>
+    <details open>
+      <summary><code>/admin/operations/connectors</code></summary>
+      <p>Connector category catalog and committed manifest registry.</p>
+    </details>
+    <details>
+      <summary><code>/admin/operations/connectors/workbench</code></summary>
+      <p>Recipe chooser, redaction templates, preview rows, and conformance coverage.</p>
+    </details>
+    <details>
+      <summary><code>/admin/operations/connectors/tests</code></summary>
+      <p>Fixed local checks for a technical helper to run outside the browser.</p>
+    </details>
+  </section>
+
+  <section>
+    <h2>Detailed Docs</h2>
+    <ul>
+      <li><a href="../docs/connectors/catalog.md">Connector Catalog</a></li>
+      <li><a href="../docs/connectors/plugin-contract.md">Plugin Contract</a></li>
+      <li><a href="../wiki/connector-cookbook.md">Connector Cookbook</a></li>
+      <li><a href="../docs/tutorials/external-adapter-conformance.md">External Adapter Conformance</a></li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

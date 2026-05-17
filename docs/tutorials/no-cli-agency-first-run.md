@@ -29,7 +29,8 @@ progress, action cards, next actions, and claim boundaries in one place.
 
 ## Browser-First Product Path
 
-Use this order before interpreting readiness or asking for stronger claims:
+Use this order before interpreting readiness or making outside approval,
+compliance, production, or consumer-acceptance claims:
 
 1. Start in the browser.
 2. Open **Agency Operations Cockpit / Start Here**.
@@ -38,7 +39,8 @@ Use this order before interpreting readiness or asking for stronger claims:
 5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
-7. Understand what remains before deployment or stronger claims.
+7. Understand what remains before outside approval, compliance, production, or
+   consumer-acceptance claims.
 
 ## 1. Open Agency Operations Cockpit / Start Here
 
@@ -77,6 +79,12 @@ current import path can provide it.
 
 After import, review:
 
+- the GTFS Workbench **Agency Review Summary**, which explains required files,
+  row counts, service dates, routes/stops/trips, import history, what changed,
+  and validation triage in one table;
+- the GTFS Workbench **Validation Issue Triage**, which shows likely owner,
+  plain-English meaning, suggested fix path, safe next action, and what the
+  row does not prove;
 - routes, stops, trips, stop times, and shapes counts;
 - validation/import warnings grouped by file;
 - GTFS quality next actions;
@@ -133,6 +141,12 @@ For the broader private realtime review, open:
 /admin/operations/prediction-lab
 ```
 
+On Realtime Center, use **Feed Usefulness Details** to review Vehicle
+Positions publishing counts and omitted trip-descriptor reasons, Trip Updates
+generated versus withheld/fallback reasons, and Alerts lifecycle gaps. Use
+**Synthetic / Local Replay Guide** to start with browser fixture previews
+before asking a technical helper for local replay commands.
+
 ## 5. Review GTFS Quality And Validators
 
 Open:
@@ -146,6 +160,12 @@ Open:
 
 GTFS Quality explains likely owners, affected files, what to fix first,
 verification steps, and escalation triggers.
+
+GTFS Workbench is the staff review page for the active schedule. Start with
+Agency Review Summary and Validation Issue Triage before using the technical
+preview tables. The Workbench remains read-only: it does not import, edit,
+publish, run validators, execute rollback, create evidence, contact external
+systems, or change consumer status.
 
 Validator Health distinguishes:
 
@@ -167,15 +187,18 @@ Open:
 /admin/operations/telemetry-simulator
 ```
 
-Device Credentials shows device bindings, token status without token values,
+Devices & Tokens shows device bindings, token status without token values,
 vehicle binding, and latest token use. Telemetry Freshness shows latest
 accepted telemetry time, assignment state, match confidence or unknown reason
-when available, and stale telemetry state. Telemetry Simulator shows safe
-synthetic scenarios and technical-helper commands.
+when available, and stale telemetry state. Telemetry Simulator shows a
+browser-only synthetic dry-run preview for committed fixture summaries, plus
+fixed technical-helper commands for private shell dry-runs or intentional local
+sends.
 
-Token creation and simulator sending may still need a technical helper because
-device tokens must stay in the operator shell and should not be stored in the
-browser after creation.
+Token creation can happen from the private Devices & Tokens page for admins,
+but the one-time token must still be stored outside the browser after
+creation. Simulator sending may still need a technical helper because device
+tokens stay in the operator shell and are not collected by the browser preview.
 
 ## 7. Review Connectors
 
@@ -186,7 +209,7 @@ Open:
 /admin/operations/connectors/tests
 ```
 
-Open Transit RT connectors are bounded adapters, manifests, sidecars, or
+Open Transit RT connectors are explicit adapters, manifests, sidecars, or
 connector processes. They are not arbitrary dynamic backend plugins.
 
 Use connector pages to understand telemetry, predictor, validator,
@@ -216,13 +239,15 @@ Open:
 /admin/operations/help
 ```
 
-Operations Console Help explains Start Here, Device Credentials, Telemetry
+Help & Tutorials explains Start Here, Devices & Tokens, Telemetry
 Freshness, Telemetry Simulator, Connector Tests, Maintenance Center, GTFS,
 GTFS Realtime, validators, readiness, and evidence boundaries.
 
-The app shell groups routes as Start Here, Schedule, Realtime, Connectors,
-Health, Maintain, and Learn. GTFS Studio and Alerts Console remain separate
-private admin surfaces when linked from the Operations Console.
+The app shell groups routes as Start Here, Setup, GTFS Workbench, Feed Health,
+Validation, Realtime, Devices / AVL, Prediction / ETA Lab, Connectors, Alerts,
+Readiness, Maintenance, Help / Tutorials, and Support / Troubleshooting. GTFS
+Studio and Alerts Console remain separate private tools when linked from the
+Operations Console.
 
 ## What Still Needs A Technical Helper
 
@@ -233,7 +258,8 @@ Use a technical helper for:
 - installing pinned validators, Java, Docker, or off-host validation tooling;
 - large GTFS imports or rollback execution when browser rollback is not
   implemented;
-- private device-token handling and secure token storage;
+- secure storage of one-time device tokens after browser rotation/rebind;
+- simulator sends that require private shell credentials;
 - GPS/AVL adapter development;
 - `make oci-reference-check`, `make validate-public-feeds`, or support-bundle
   runs when a local shell is needed;

@@ -6,6 +6,10 @@ by an operator, and redaction-first. They do not prove vendor compatibility,
 hardware certification, production AVL reliability, consumer display,
 compliance, production readiness, hosted operation, SLA/uptime, or ETA quality.
 
+For the full connector category matrix, including prediction, validators,
+monitoring/export, consumer/discovery, and future extension rules, see
+[Connector Catalog](catalog.md).
+
 ## Starter Matrix
 
 | Pattern | Starter kit | Use when | Default behavior |

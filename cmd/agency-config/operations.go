@@ -420,12 +420,14 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 		}
 		h.renderGTFSWorkbenchJSON(w, r)
 	case "checklist":
+		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		h.renderOperationsChecklist(w, r)
 	case "checklist.json":
+		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -1140,6 +1142,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Reliability, page.ReliabilityError = h.reliabilitySummary(r, principal.AgencyID, now)
 	page.FeedReadiness = buildOperationsFeedReadiness(page)
 	page.FeedHealth = buildOperationsFeedHealth(page)
+	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page, r.URL.Query().Get("scenario"))
 	page.Realtime = buildOperationsRealtime(page)
 	page.PredictionLab = buildPredictionLab(page)
 	page.Maintenance = buildOperationsMaintenance(page)
@@ -1149,7 +1152,6 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ValidationCenter = buildOperationsValidationCenter(page)
 	page.Checklist = buildOperatorChecklist(page)
 	page.FirstRun = buildOperationsFirstRun(page)
-	page.TelemetrySimulator = buildOperationsTelemetrySimulator(page)
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorHub = buildConnectorHub(page)
@@ -1906,6 +1908,24 @@ func staleThreshold() time.Duration {
 	return time.Duration(seconds) * time.Second
 }
 
+func suppressStaleVehicleAfter() time.Duration {
+	defaultSeconds := 300
+	raw := strings.TrimSpace(os.Getenv("SUPPRESS_STALE_VEHICLE_AFTER_SECONDS"))
+	if raw == "" {
+		return time.Duration(defaultSeconds) * time.Second
+	}
+	seconds, err := strconv.Atoi(raw)
+	if err != nil || seconds <= 0 {
+		return time.Duration(defaultSeconds) * time.Second
+	}
+	threshold := staleThreshold()
+	duration := time.Duration(seconds) * time.Second
+	if duration < threshold {
+		return threshold
+	}
+	return duration
+}
+
 func feedOrder(feedType string) int {
 	switch feedType {
 	case "schedule":
@@ -2014,6 +2034,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 	"gtfsQualityVerifyWith":    gtfsQualityVerifyWith,
 	"gtfsQualityEscalation":    gtfsQualityEscalation,
 	"gtfsQualityGuidanceClass": gtfsQualityGuidanceClass,
+	"operationsPageNextAction": operationsPageNextAction,
 }).Parse(`
 {{define "layoutStart"}}
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title>
@@ -2021,10 +2042,14 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <a class="skip-link" href="#operations-main">Skip to main content</a>
 <a class="skip-link" href="#operations-nav">Skip to section navigation</a>
 <header class="operations-header" role="banner">
-<p class="app-kicker">Private operations control plane</p>
+<p class="app-kicker">Private agency operations</p>
 <p class="app-breadcrumb"><a href="/admin/operations">Operations Console</a> / {{.Title}}</p>
 <h1 id="operations-page-title">{{.Title}}</h1>
 <p class="app-meta"><span>Agency: <strong>{{.AgencyID}}</strong></span><span>environment: <span class="pill">{{.EnvironmentLabel}}</span></span><span>generated: {{formatTime .GeneratedAt}}</span></p>
+<section class="page-next-action" aria-labelledby="page-next-action-heading">
+<h2 id="page-next-action-heading">What to do next</h2>
+<p>{{operationsPageNextAction .Section}}</p>
+</section>
 <section class="scope-banner" aria-labelledby="agency-scope-heading">
 <h2 id="agency-scope-heading">Agency scope</h2>
 <dl class="scope-grid">
@@ -2042,7 +2067,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">
 {{range .NavGroups}}<section class="nav-group" aria-labelledby="nav-group-{{.ID}}">
 <p id="nav-group-{{.ID}}" class="nav-group-label">{{.Label}}</p>
-<div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .ExternalAdminSurface}} <span class="nav-surface">admin surface</span>{{end}}</a>{{end}}</div>
+<div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .ExternalAdminSurface}} <span class="nav-surface">separate tool</span>{{end}}</a>{{end}}</div>
 </section>{{end}}
 </nav>
 {{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
@@ -2081,7 +2106,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "audit"}}
 {{template "layoutStart" .}}
-<h2>Audit Log</h2>
+<h2>Audit History</h2>
 <p class="warning">{{.Audit.Boundary}}</p>
 <p><a href="/admin/operations/audit.json">Export private audit JSON</a> · <a href="/admin/operations/access">Open Access &amp; Roles</a></p>
 <table><tbody>
@@ -2103,7 +2128,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "help"}}
 {{template "layoutStart" .}}
-<h2>Operations Console Help</h2>
+<h2>Help &amp; Tutorials</h2>
 <p class="warning">{{.Help.Boundary}}</p>
 <div class="card-grid" aria-label="Help empty or blocked state guidance">
 <section class="card empty-state">
@@ -2185,7 +2210,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>
 </section>{{end}}
 </div>
-<h3>Claim Flags</h3>
+<h3>Advanced Safety Details</h3>
 <table><tbody>
 <tr><th><code>backend_command_execution_enabled</code></th><td>{{.Help.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
 <tr><th><code>cache_diagnostics_read</code></th><td>{{.Help.ClaimFlags.CacheDiagnosticsRead}}</td></tr>
@@ -2246,7 +2271,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .Tasks}}<tr><td>{{.Order}}</td><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td><a href="{{.UILink}}">{{.UILink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <details>
-<summary>Claim flags for this first-run guide</summary>
+<summary>Advanced safety details for this first-run guide</summary>
 <table><tbody>
 <tr><th><code>backend_command_execution_enabled</code></th><td>{{.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
 <tr><th><code>cache_diagnostics_read</code></th><td>{{.ClaimFlags.CacheDiagnosticsRead}}</td></tr>
@@ -2322,19 +2347,19 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 <h2>Dashboard Sections</h2>
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
-<tr><td>Private agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
+<tr><td>Agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
 <tr><td>Setup wizard</td><td>{{len .SetupWizard.Stages}} staged setup rows</td><td>{{formatTime .SetupWizard.GeneratedAt}}</td><td><a href="/admin/operations/setup-wizard">open wizard</a> · <a href="/admin/operations/setup-wizard.json">export JSON</a></td></tr>
 <tr><td>Connector Hub</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
 <tr><td>GTFS Workbench</td><td>{{.GTFSWorkbench.ActiveFeedVersion.Status}} active schedule; {{.GTFSWorkbench.Import.Status}} import history</td><td>{{formatTime .GTFSWorkbench.GeneratedAt}}</td><td><a href="/admin/operations/gtfs-workbench">review schedule workbench</a> · <a href="/admin/operations/gtfs-workbench.json">export JSON</a></td></tr>
-<tr><td>Browser GTFS import</td><td>admin-only ZIP upload or URL import</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/gtfs-import">import GTFS with validation feedback</a></td></tr>
+<tr><td>Import GTFS</td><td>admin-only ZIP upload or URL import</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/gtfs-import">import GTFS with validation feedback</a></td></tr>
 <tr><td>Feed health dashboard</td><td>{{len .FeedHealth.Rows}} plain-language rows</td><td>{{formatTime .FeedHealth.GeneratedAt}}</td><td><a href="/admin/operations/feed-health">open feed health</a> · <a href="/admin/operations/feed-health.json">export JSON</a></td></tr>
-<tr><td>Private operator checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
+<tr><td>Readiness checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
 <tr><td>GTFS quality triage</td><td>{{.GTFSQuality.Canonical.Status}} static validator; {{.GTFSQuality.InternalImporter.Status}} internal importer</td><td>{{formatTimePtr .GTFSQuality.Canonical.ValidationTimestamp}}</td><td><a href="/admin/operations/gtfs-quality">review GTFS validator notices and operator actions</a></td></tr>
 <tr><td>Validator health</td><td>{{.ValidationHealth.OverallStatus}} overall; tooling {{.ValidationHealth.ToolingStatus}}</td><td>{{formatTime .ValidationHealth.GeneratedAt}}</td><td><a href="/admin/operations/validation-health">review private validator diagnostics</a> · <a href="/admin/operations/validation-health.json">JSON</a></td></tr>
 <tr><td>Operations reliability</td><td>{{.Reliability.OverallStatus}} overall</td><td>{{formatTime .Reliability.GeneratedAt}}</td><td><a href="/admin/operations/reliability">review private reliability diagnostics</a> · <a href="/admin/operations/reliability.json">JSON</a></td></tr>
 <tr><td>Maintenance center</td><td>{{.Maintenance.OverallStatus}} overall</td><td>{{formatTime .Maintenance.GeneratedAt}}</td><td><a href="/admin/operations/maintenance">review maintenance tasks</a> · <a href="/admin/operations/maintenance.json">JSON</a></td></tr>
-<tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessV2.Rows}} checklist v2 rows</td><td>{{formatTime .ReadinessV2.GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a> · <a href="/admin/operations/readiness.json">export JSON</a></td></tr>
+<tr><td>CAL-ITP-style readiness workflow</td><td>{{len .ReadinessV2.Rows}} readiness rows</td><td>{{formatTime .ReadinessV2.GeneratedAt}}</td><td><a href="/admin/operations/readiness">review readiness gaps and next actions</a> · <a href="/admin/operations/readiness.json">export JSON</a></td></tr>
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Telemetry simulator guide</td><td>{{if .TelemetrySimulator.LoadError}}{{.TelemetrySimulator.LoadError}}{{else}}{{len .TelemetrySimulator.Scenarios}} synthetic scenarios{{end}}</td><td>{{formatTime .TelemetrySimulator.GeneratedAt}}</td><td><a href="/admin/operations/telemetry-simulator">review simulator commands</a> · <a href="/admin/operations/telemetry-simulator.json">export JSON</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
@@ -2352,8 +2377,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "launchpad"}}
 {{template "layoutStart" .}}
-<h2>Private Agency Launchpad</h2>
-<p class="warning">This launchpad is private operator diagnostics. It creates no evidence, contacts no external party, changes no consumer status, and records no approval, compliance, public launch, hosted service, vendor, SLA, or production-grade ETA claim.</p>
+<h2>Agency Launchpad</h2>
+<p class="warning">This page is a private planning view for operators. It creates no evidence, contacts no external party, changes no consumer status, and records no approval, compliance, public launch, hosted service, vendor, SLA, or production-grade ETA claim.</p>
 <p><a href="/admin/operations/launchpad.json">Export private launchpad JSON</a> · <a href="/admin/operations/checklist">Open private checklist</a> · <a href="/admin/operations/readiness">Open readiness review</a></p>
 {{template "firstRunPanel" .FirstRun}}
 <table><tbody>
@@ -2491,6 +2516,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>external_evidence_created</code></th><td>{{.ConnectorHub.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>compliance_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ComplianceClaimed}}</td></tr>
 <tr><th><code>production_readiness_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
+</tbody></table>
+<h3>Connector Catalog</h3>
+<p>Use this catalog to choose a starter shape, copy the matching example or contract, and run the first local check before any deployment-owned integration work.</p>
+<table><thead><tr><th>Category</th><th>Connector</th><th>Status</th><th>Start with</th><th>Browser review</th><th>First safe check</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+{{range .ConnectorHub.Catalog}}
+<tr>
+<td>{{.Group}}</td>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.StartWith}}</td>
+<td>{{.BrowserReview}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
 </tbody></table>
 <div class="card-grid" aria-label="Connector categories">
 {{range .ConnectorHub.Categories}}
@@ -2721,6 +2762,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 </tbody></table>
 <p><strong>Docs:</strong> {{range .ConnectorWorkbench.MonitoringGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
+<h3>{{.ConnectorWorkbench.ConsumerGuide.Title}}</h3>
+<p class="warning">{{.ConnectorWorkbench.ConsumerGuide.Boundary}}</p>
+<table><thead><tr><th>Recipe</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.ConsumerGuide.Rows}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.WhatThisIs}}</td>
+<td>{{range .Inputs}}{{.}}<br>{{end}}</td>
+<td>{{range .Outputs}}{{.}}<br>{{end}}</td>
+<td>{{.FailureBehavior}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .ReviewLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<p><strong>Docs:</strong> {{range .ConnectorWorkbench.ConsumerGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
 <h3>Synthetic Conformance Viewer</h3>
 <p class="warning">{{.ConnectorWorkbench.Conformance.Boundary}}</p>
 <table><tbody>
@@ -2895,10 +2954,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted">{{.GTFSWorkbench.FeedOutput.ClaimBoundary}}</p>
 </section>
 </div>
+<h3>Agency Review Summary</h3>
+<table><thead><tr><th>Review area</th><th>Status</th><th>Plain-language summary</th><th>Suggested review</th><th>Does not prove</th></tr></thead><tbody>
+{{range .GTFSWorkbench.ReviewSummary}}<tr id="gtfs-review-summary-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.PlainLanguage}}</td><td>{{.SuggestedReview}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h3>Next Operator Actions</h3>
 <table><thead><tr><th>Step</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Console</th><th>Boundary</th></tr></thead><tbody>
 {{range .GTFSWorkbench.Actions}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.AdminLink}}</a>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
+<h3>Validation Issue Triage</h3>
+<p class="warning">{{.GTFSWorkbench.IssueTriage.Boundary}}</p>
+<table><tbody>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .GTFSWorkbench.IssueTriage.Status}}">{{.GTFSWorkbench.IssueTriage.Status}}</span></td></tr>
+<tr><th>Current signal</th><td>{{.GTFSWorkbench.IssueTriage.CurrentSignal}}</td></tr>
+<tr><th>Rows shown</th><td>{{.GTFSWorkbench.IssueTriage.DisplayedRows}} of {{.GTFSWorkbench.IssueTriage.TotalRows}}{{if .GTFSWorkbench.IssueTriage.HiddenRows}}; {{.GTFSWorkbench.IssueTriage.HiddenRows}} hidden by cap{{end}}</td></tr>
+</tbody></table>
+{{if .GTFSWorkbench.IssueTriage.Rows}}<table><thead><tr><th>Severity</th><th>Source</th><th>Issue family</th><th>Likely owner</th><th>Plain-English meaning</th><th>Suggested fix path</th><th>Safe next action</th><th>Verify with</th><th>Does not prove</th></tr></thead><tbody>
+{{range .GTFSWorkbench.IssueTriage.Rows}}<tr><td>{{.Severity}}</td><td>{{.SourceLabel}}</td><td>{{.Family}}<br><span class="muted">{{join .Codes ", "}} · {{.Count}} notice(s)</span></td><td>{{.LikelyOwner}}</td><td>{{.PlainEnglishMeaning}}</td><td>{{.SuggestedFixPath}}</td><td>{{.SafeNextAction}}</td><td>{{.VerifyWith}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>{{else}}<p class="muted">No sanitized validator/importer issue rows are available for this active schedule yet.</p>{{end}}
 <h3>Import Change Signals</h3>
 <table><thead><tr><th>Review item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .GTFSWorkbench.Import.Diff}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
@@ -3025,7 +3098,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Trip ID</th><th>Start</th><th>End</th><th>Headway seconds</th><th>Exact times</th></tr></thead><tbody>
 {{range .GTFSWorkbench.Preview.Frequencies}}<tr><td><code>{{.TripID}}</code></td><td>{{.StartTime}}</td><td>{{.EndTime}}</td><td>{{.HeadwaySecs}}</td><td>{{.ExactTimes}}</td></tr>{{end}}
 </tbody></table>{{end}}
-<h3>Claim Flags</h3>
+<h3>Advanced Safety Details</h3>
 <table><tbody>
 <tr><th><code>automatic_gtfs_edit_enabled</code></th><td>{{.GTFSWorkbench.ClaimFlags.AutomaticGTFSEditEnabled}}</td></tr>
 <tr><th><code>schedule_published_from_workbench</code></th><td>{{.GTFSWorkbench.ClaimFlags.SchedulePublishedFromWorkbench}}</td></tr>
@@ -3048,7 +3121,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "gtfs-import"}}
 {{template "layoutStart" .}}
-<h2>Browser GTFS Import</h2>
+<h2>Import GTFS</h2>
 <p class="warning">Private admin-only import path. Raw GTFS ZIP bytes are written to temporary runtime storage for the import attempt and then removed. This page creates no retained evidence, contacts no consumers, records no agency approval, and makes no CAL-ITP/Caltrans compliance, public launch, hosted-service, vendor compatibility, production-readiness, or production-grade ETA claim.</p>
 {{if .GTFSImportNotice}}<p class="ok">{{.GTFSImportNotice}}</p>{{end}}
 {{if .GTFSImportError}}<p class="bad">{{.GTFSImportError}}</p>{{end}}
@@ -3149,20 +3222,35 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "readiness"}}
 {{template "layoutStart" .}}
-<h2>Readiness Checklist V2</h2>
+<h2>Readiness</h2>
 <p class="warning">{{.ReadinessV2.Boundary}}</p>
 <p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p><a href="/admin/operations/feed-health">Open plain-language feed health</a> · <a href="/admin/operations/feed-health.json">Export private feed health JSON</a></p>
 <p><a href="/admin/operations/readiness.json">Export private readiness v2 JSON</a> · <a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a> · <a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
-<p class="muted">Each Readiness item card explains the current private signal, why it matters, the next operator action, and the boundary around stronger claims. Consumer tracker states remain prepared unless retained target-originated evidence supports a target-specific change. Claim flags are available in the private JSON export and remain false.</p>
-<div class="card-grid" aria-label="Readiness checklist v2 rows">
+<p class="muted">Start with the workflow map, then open each Readiness item card for the underlying private signals. Consumer tracker states remain prepared unless retained target-originated evidence supports a target-specific change. Advanced safety details are available in the private JSON export and remain negative.</p>
+<h3>CAL-ITP-Style Readiness Workflow Map</h3>
+<p>This map shows what local browser review helps prepare and what it does not prove.</p>
+<table><thead><tr><th>Area</th><th>Status</th><th>What this helps with</th><th>Primary signal</th><th>Next action</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+{{range .ReadinessV2.FocusAreas}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.WhatThisHelpsWith}}</td>
+<td>{{.PrimarySignal}}</td>
+<td>{{.NextAction}}</td>
+<td>{{.WhatItDoesNotProve}}</td>
+<td>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}Rows: {{join .RowIDs ", "}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<div class="card-grid" aria-label="Readiness checklist rows">
 {{range .ReadinessV2.Rows}}
 <section class="card">
 <h3>{{.ReadinessItem}}</h3>
 <p class="status">Status <span class="pill">{{.Status}}</span></p>
 <p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
 <p><strong>What this means:</strong> {{.WhatThisMeans}}</p>
-<p><strong>Why it matters:</strong> {{.WhyItMatters}}</p>
+<p><strong>What this helps with:</strong> {{.WhyItMatters}}</p>
 <p><strong>What to do next:</strong> {{.WhatToDoNext}}</p>
 <p><strong>What it does not prove:</strong> {{.WhatItDoesNotProve}}</p>
 <p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>
@@ -3250,7 +3338,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Target</th><th>Status</th><th>Source</th><th>Updated</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .ValidationCenter.ConsumerTracker}}<tr><td>{{.Target}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td>{{.UpdatedAt}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
-<h3>Claim Flags</h3>
+<h3>Advanced Safety Details</h3>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.ValidationCenter.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>final_root_evidence_created</code></th><td>{{.ValidationCenter.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
@@ -3392,7 +3480,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Gate</th><th>Current status</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .FeedReadiness.FutureChecklist}}<tr id="feed-readiness-future-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .CurrentStatus}}">{{.CurrentStatus}}</span></td><td>{{.NextAction}}</td><td>{{.Boundary}}</td></tr>{{end}}
 </tbody></table>
-<details><summary>Claim flags for this feed readiness review</summary>
+<details><summary>Advanced safety details for this feed readiness review</summary>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.FeedReadiness.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>final_root_evidence_created</code></th><td>{{.FeedReadiness.ClaimFlags.FinalRootEvidenceCreated}}</td></tr>
@@ -3471,7 +3559,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Private Fix Checklist</h3>
 <pre>{{.Checklist}}</pre>
 {{end}}
-<h3>Claim Flags</h3>
+<h3>Advanced Safety Details</h3>
 <table><tbody>
 <tr><th><code>automatic_gtfs_edit_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.AutomaticGTFSEditEnabled}}</td></tr>
 <tr><th><code>draft_mutation_enabled</code></th><td>{{.GTFSQualityGuidance.ClaimFlags.DraftMutationEnabled}}</td></tr>
@@ -3754,7 +3842,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><code>{{.CommandLine}}</code></td><td>{{.ExpectedResult}}</td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
 </tbody></table>
-<h3>Claim Flags</h3>
+<h3>Advanced Safety Details</h3>
 <table><tbody>
 <tr><th><code>browser_predictor_run_enabled</code></th><td>{{.PredictionLab.ClaimFlags.BrowserPredictorRunEnabled}}</td></tr>
 <tr><th><code>external_network_contacted</code></th><td>{{.PredictionLab.ClaimFlags.ExternalNetworkContacted}}</td></tr>
@@ -3812,6 +3900,21 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Feed</th><th>Score</th><th>Current signal</th><th>Helpful signal</th><th>Needs review</th><th>Consumer-safe behavior</th><th>Next action</th><th>Details</th><th>Boundary</th></tr></thead><tbody>
 {{range .Realtime.Usefulness.Rows}}<tr><td>{{.Label}}</td><td>{{.Score}} / 3<br><span class="status-chip status-{{statusClass .ScoreLabel}}">{{.ScoreLabel}}</span></td><td>{{.CurrentSignal}}</td><td>{{.HelpfulSignal}}</td><td>{{.NeedsReviewSignal}}</td><td>{{.ConsumerSafeBehavior}}</td><td>{{.NextAction}}</td><td>{{range .Details}}<span class="pill">{{.Label}}: {{.Count}}</span> {{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>Feed Usefulness Details</h3>
+<p>Use these rows to separate what looks healthy, what needs attention, and what is not proven by local realtime signals.</p>
+{{range .Realtime.Publishing}}
+<section class="card" id="realtime-publishing-{{.ID}}">
+<h4>{{.Label}}</h4>
+<p class="status"><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p><strong>Healthy when:</strong> {{.WhatLooksHealthy}}</p>
+<p><strong>Needs attention:</strong> {{.NeedsAttention}}</p>
+<p><strong>Not proven:</strong> {{.NotProven}}</p>
+<p><strong>Next action:</strong> {{.NextAction}}</p>
+<table><thead><tr><th>Signal</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
+{{range .Signals}}<tr><td>{{.Label}}</td><td>{{.Value}}</td><td>{{.Meaning}}</td></tr>{{end}}
+</tbody></table>
+</section>
+{{end}}
 <h3>Freshness And Lifecycle Review</h3>
 <table><thead><tr><th>Area</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .Realtime.Usefulness.Freshness}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
@@ -3819,6 +3922,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Consumer-Safe Omission Rules</h3>
 <table><thead><tr><th>Condition</th><th>Safe behavior</th><th>Review step</th><th>Boundary</th></tr></thead><tbody>
 {{range .Realtime.Usefulness.OmissionRules}}<tr><td>{{.Condition}}</td><td>{{.SafeBehavior}}</td><td>{{.ReviewStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Synthetic / Local Replay Guide</h3>
+<section class="card">
+<p class="status"><span class="status-chip status-{{statusClass .Realtime.ReplayGuidance.Status}}">{{.Realtime.ReplayGuidance.Status}}</span></p>
+<p>{{.Realtime.ReplayGuidance.Summary}}</p>
+<p><strong>Start in browser:</strong> <a href="{{.Realtime.ReplayGuidance.BrowserStart}}">{{.Realtime.ReplayGuidance.BrowserStart}}</a></p>
+<p><strong>Local replay:</strong> {{.Realtime.ReplayGuidance.LocalReplay}}</p>
+<p><strong>Review after replay:</strong> {{.Realtime.ReplayGuidance.ReviewAfter}}</p>
+<p class="muted">{{.Realtime.ReplayGuidance.Boundary}}</p>
+</section>
+<table><thead><tr><th>Step</th><th>Action</th><th>Safe boundary</th></tr></thead><tbody>
+{{range .Realtime.ReplayGuidance.Steps}}<tr><td>{{.Label}}</td><td>{{.Action}}</td><td>{{.SafeBoundary}}</td></tr>{{end}}
 </tbody></table>
 <h3>Needs Operator Review</h3>
 <table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
@@ -3835,7 +3950,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .Realtime.Fleet}}<tr><td>{{.VehicleID}}</td><td>{{.DeviceID}}</td><td><span class="status-chip status-{{statusClass .Freshness}}">{{.Freshness}}</span></td><td>{{.ObservedAt}}</td><td>{{.AgeSeconds}}</td><td>{{if .AssignmentState}}{{.AssignmentState}}{{else}}not available{{end}}{{if .DegradedState}} / {{.DegradedState}}{{end}}{{if .AssignmentSource}}<br><span class="muted">source: {{.AssignmentSource}}</span>{{end}}</td><td>{{.RouteID}}</td><td>{{.TripID}}</td><td>{{.Confidence}}</td><td>{{join .ReasonCodes ", "}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 {{end}}
-<h3>Claim Flags</h3>
+<h3>Advanced Safety Details</h3>
 <table><tbody>
 <tr><th><code>browser_telemetry_send_enabled</code></th><td>{{.Realtime.ClaimFlags.BrowserTelemetrySendEnabled}}</td></tr>
 <tr><th><code>backend_command_execution_enabled</code></th><td>{{.Realtime.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
@@ -3897,7 +4012,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>What am I seeing?</strong> The page is a read-only guide to committed synthetic scenarios and fixed operator-shell commands.</p>
 <p><strong>Is this bad?</strong> It is not bad for browser review, but missing fixtures block safe synthetic telemetry practice.</p>
 <p><strong>What should I do next?</strong> Restore committed simulator fixtures or copy a fixed command into an operator shell after the local app and credentials are ready.</p>
-<p><strong>Can I do it in the browser?</strong> No. The browser shows commands and boundaries only; it does not send telemetry or collect tokens.</p>
+<p><strong>Can I do it in the browser?</strong> You can preview committed synthetic fixture summaries here. Sending telemetry and handling tokens stay outside the browser.</p>
 <p><strong>When do I need a technical helper?</strong> Use one for local app startup, shell environment setup, seeded credentials, matcher diagnostics, or failed simulator commands.</p>
 <p><strong>What this does not prove:</strong> Synthetic telemetry does not prove real fleet reliability, vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, or ETA quality.</p>
 </section>
@@ -3909,6 +4024,25 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </div>
 <p><strong>First local/synthetic dry-run safety check:</strong> start with a command containing <code>DRY_RUN=true</code>. This previews committed synthetic payload shape only and does not test a live vendor, live AVL API, real device, or public feed consumer.</p>
 {{if .TelemetrySimulator.LoadError}}<p class="bad">{{.TelemetrySimulator.LoadError}}. Next action: confirm the committed scenario fixtures are present before running simulator commands.</p>{{end}}
+<h3>Browser Dry-Run Preview</h3>
+<form method="get" action="/admin/operations/telemetry-simulator">
+<label for="telemetry_simulator_scenario">Synthetic scenario</label>
+<select id="telemetry_simulator_scenario" name="scenario">
+{{range .TelemetrySimulator.Scenarios}}<option value="{{.Name}}"{{if eq .Name $.TelemetrySimulator.SelectedScenario}} selected{{end}}>{{.Name}}</option>{{end}}
+</select>
+<button type="submit">Preview synthetic dry run</button>
+</form>
+<table><tbody>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .TelemetrySimulator.DryRunPreview.Status}}">{{.TelemetrySimulator.DryRunPreview.Status}}</span></td></tr>
+<tr><th>Scenario</th><td>{{.TelemetrySimulator.DryRunPreview.ScenarioID}}</td></tr>
+<tr><th>Current signal</th><td>{{.TelemetrySimulator.DryRunPreview.CurrentSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.TelemetrySimulator.DryRunPreview.NextAction}}</td></tr>
+<tr><th>Boundary</th><td>{{.TelemetrySimulator.DryRunPreview.Boundary}}</td></tr>
+<tr><th>Does not prove</th><td>{{.TelemetrySimulator.DryRunPreview.DoesNotProve}}</td></tr>
+</tbody></table>
+{{if .TelemetrySimulator.DryRunPreview.Events}}<table><caption>Redacted synthetic event preview</caption><thead><tr><th>Event</th><th>Agency</th><th>Device</th><th>Vehicle</th><th>Timestamp</th><th>Location summary</th><th>Motion summary</th><th>Trip hint</th><th>Expected statuses</th></tr></thead><tbody>
+{{range .TelemetrySimulator.DryRunPreview.Events}}<tr><td>{{.Label}}</td><td>{{.AgencyID}}</td><td>{{.DeviceID}}</td><td>{{.VehicleID}}</td><td>{{.Timestamp}}</td><td>{{.LocationSummary}}</td><td>{{.MotionSummary}}</td><td>{{if .TripHint}}{{.TripHint}}{{else}}none{{end}}</td><td>HTTP {{range .ExpectedHTTPStatus}}<span class="pill">{{.}}</span> {{end}}<br>ingest {{range .ExpectedIngestStatuses}}<span class="pill">{{.}}</span> {{end}}</td></tr>{{end}}
+</tbody></table>{{end}}
 <h3>Operator Commands</h3>
 <table><thead><tr><th>Command</th><th>What it does</th><th>Operator prep</th><th>Failure next action</th><th>Does not prove</th></tr></thead><tbody>
 {{range .TelemetrySimulator.Commands}}<tr><td><code>{{.CommandLine}}</code></td><td>{{.WhatItDoes}}</td><td>{{.OperatorPrep}}</td><td>{{.FailureNextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
@@ -3918,7 +4052,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Scenario</th><th>Purpose</th><th>Events</th><th>Requirements</th><th>Expected statuses</th><th>Commands</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .TelemetrySimulator.Scenarios}}<tr><td>{{.Name}}{{if .DefaultLocal}}<br><span class="pill">default local</span>{{end}}<br><span class="muted">reference: {{.ReferenceTime}}</span></td><td>{{.Description}}</td><td>{{.EventCount}}{{if .EventLabels}}<br><span class="muted">{{join .EventLabels ", "}}</span>{{end}}</td><td>{{if .Requires}}{{range .Requires}}<span class="pill">{{.}}</span> {{end}}{{else}}none recorded{{end}}</td><td>HTTP {{range .ExpectedHTTPStatus}}<span class="pill">{{.}}</span> {{end}}<br>ingest {{if .ExpectedIngestState}}{{range .ExpectedIngestState}}<span class="pill">{{.}}</span> {{end}}{{else}}not recorded{{end}}</td><td>{{range .Commands}}<code>{{.CommandLine}}</code><br>{{end}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>{{end}}
-<h3>Claim Flags</h3>
+<h3>Advanced Safety Details</h3>
 <table><tbody>
 <tr><th><code>backend_command_execution_enabled</code></th><td>{{.TelemetrySimulator.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
 <tr><th><code>telemetry_sent_by_web_request</code></th><td>{{.TelemetrySimulator.ClaimFlags.TelemetrySentByWebRequest}}</td></tr>
@@ -3933,20 +4067,20 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>production_grade_eta_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
 <tr><th><code>compliance_claimed</code></th><td>{{.TelemetrySimulator.ClaimFlags.ComplianceClaimed}}</td></tr>
 </tbody></table>
-<p class="muted">Use the device page for credential rotation, the simulator guide for synthetic <code>/v1/telemetry</code> sends, and the telemetry page for accepted-event freshness. Keep simulator diagnostics local/private unless a future evidence-specific authorization and redaction process exists.</p>
+<p class="muted">Use the device page for credential rotation, the browser preview for synthetic fixture shape, the fixed simulator commands for private shell dry-runs or intentional local sends, and the telemetry page for accepted-event freshness. Keep simulator diagnostics local/private unless a future evidence-specific authorization and redaction process exists.</p>
 {{template "layoutEnd" .}}
 {{end}}
 
 {{define "devices"}}
 {{template "layoutStart" .}}
-<h2>Device Credentials</h2>
+<h2>Devices &amp; Tokens</h2>
 <p class="warning">Device tokens are secrets. Store a one-time token immediately; it will not be shown again by this console.</p>
 <p class="warning">Private device credential diagnostics only. Viewing or rotating credentials creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
 <p>The supported browser flow is rotate/rebind. If a device has no credential yet, this uses the existing rebind API path.</p>
 <div class="card-grid" aria-label="Device credential empty or blocked state guidance">
 <section class="card empty-state">
 <h3>If no devices are listed</h3>
-<p><strong>What am I seeing?</strong> Device Credentials shows configured device-to-vehicle bindings, token status dates, latest accepted telemetry, and assignment context.</p>
+<p><strong>What am I seeing?</strong> Devices &amp; Tokens shows configured device-to-vehicle bindings, token status dates, latest accepted telemetry, and assignment context.</p>
 <p><strong>Is this bad?</strong> It is expected before first setup, but it blocks live telemetry and useful Vehicle Positions until at least one credential is installed and reporting.</p>
 <p><strong>What should I do next?</strong> Ask an admin to rotate or create the first device token, install it on the device or simulator, then check Telemetry Freshness.</p>
 <p><strong>Can I do it in the browser?</strong> Admins can rotate or rebind one-time credentials in the browser; read-only users can review status only.</p>
@@ -4121,8 +4255,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .Consumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Notes}}</td></tr>{{end}}
 </tbody></table>
 <h3>Target Boundary Review</h3>
-<table><thead><tr><th>Target</th><th>Status</th><th>Current record</th><th>Packet path</th><th>Meaning</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
-{{range .ConsumerPreparation.Targets}}<tr id="consumer-prepared-{{.ID}}"><td>{{.Name}}</td><td>{{.Status}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>Target</th><th>Status</th><th>Current record</th><th>Packet path</th><th>Meaning</th><th>Runtime note</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ConsumerPreparation.Targets}}<tr id="consumer-prepared-{{.ID}}"><td>{{.Name}}</td><td>{{.Status}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Meaning}}</td><td>{{.RuntimeObserved}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Future Authorization Gates</h3>
 <table><thead><tr><th>Gate</th><th>Status</th><th>Required before action</th><th>Blocked in this track</th><th>Does not prove now</th></tr></thead><tbody>
@@ -4133,7 +4267,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .ConsumerPreparation.Separations}}<tr id="consumer-separation-{{.ID}}"><td>{{.Label}}</td><td>{{.Boundary}}</td><td>{{.OperatorHandling}}</td></tr>{{end}}
 </tbody></table>
 <details>
-<summary>Claim flags for this consumer packet review</summary>
+<summary>Advanced safety details for this consumer packet review</summary>
 <table><tbody>
 <tr><th><code>consumer_statuses_changed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
 <tr><th><code>consumer_submission_claimed</code></th><td>{{.ConsumerPreparation.ClaimFlags.ConsumerSubmissionClaimed}}</td></tr>
@@ -4172,7 +4306,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "setup"}}
 {{template "layoutStart" .}}
-<h2>Advanced Setup Details</h2>
+<h2>Setup Details</h2>
 {{if .SetupNotice}}<p class="ok">{{.SetupNotice}}</p>{{end}}
 {{if .SetupError}}<p class="bad">{{.SetupError}}</p>{{end}}
 <p><a href="/admin/operations/setup-wizard">Return to Agency Setup</a> · <a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
@@ -4225,7 +4359,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>Source: feed discovery and the existing GTFS importer. Browser import is admin-only, size-limited, temporary-file based, and uses the same validation and publish pipeline as the CLI import path.</p>
 <table><tbody>
 <tr><th>Browser import</th><td><a href="/admin/operations/gtfs-import">Import a GTFS ZIP by upload or safe URL</a>.</td></tr>
-<tr><th>CLI ZIP import</th><td>Use the existing GTFS import flow documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
+<tr><th>Large or scripted import help</th><td>Use browser import for normal agency ZIP or safe URL imports. Ask a technical helper only for unusually large, scripted, or recovery imports documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
 <tr><th>Typed authoring</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> for draft authoring and publish.</td></tr>
 <tr><th>Validation triage</th><td>Use <code>docs/tutorials/gtfs-validation-triage.md</code> and the validation form below.</td></tr>
 <tr><th>GTFS quality triage</th><td><a href="/admin/operations/gtfs-quality">Review canonical validator and internal importer actions</a>.</td></tr>
@@ -4260,7 +4394,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Device bindings</th><td>{{if .DeviceError}}{{.DeviceError}}{{else}}{{len .Devices}} binding records{{end}}</td></tr>
 <tr><th>Latest telemetry</th><td>{{if .TelemetryError}}{{.TelemetryError}}{{else if .TelemetryUpdatedAt}}{{formatTimePtr .TelemetryUpdatedAt}}{{else}}not observed yet{{end}}</td></tr>
 <tr><th>Stale telemetry</th><td>{{if .TelemetryError}}not available{{else}}{{.StaleCount}} stale latest rows using threshold {{.StaleThreshold}}{{end}}</td></tr>
-<tr><th>Next action</th><td><a href="/admin/operations/devices">Manage device bindings</a>; use <code>scripts/device-onboarding.sh sample --dry-run</code> or <code>simulate --dry-run</code> to preview helper calls.</td></tr>
+<tr><th>Next action</th><td><a href="/admin/operations/devices">Manage device bindings</a>; open <a href="/admin/operations/telemetry-simulator">Telemetry Simulator</a> to preview synthetic fixture shape in the browser before a technical helper runs any private shell dry-run.</td></tr>
 </tbody></table>
 
 <h2>Alerts, Overrides, Consumers, Evidence</h2>
@@ -4275,7 +4409,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "checklist"}}
 {{template "layoutStart" .}}
-<h2>Private Operator Checklist</h2>
+<h2>Readiness Checklist</h2>
 <p class="warning">This checklist is private operator diagnostics. It is not evidence, not an evidence packet, not compliance proof, not agency approval, not consumer acceptance, and not production readiness.</p>
 <p><a href="/admin/operations/checklist.json">Export private checklist JSON</a> · <a href="/admin/operations/gtfs-quality">Open GTFS quality triage</a> · <a href="/admin/operations/validation-health">Open validator health diagnostics</a></p>
 <table><tbody>

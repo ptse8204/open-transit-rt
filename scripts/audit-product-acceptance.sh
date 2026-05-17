@@ -42,7 +42,7 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-DEFAULT_DOCS="README.md:wiki/README.md:wiki/small-agency-quick-start.md:wiki/browser-first-setup.md:wiki/operations-console-tour.md:wiki/can-my-agency-use-this.md:wiki/agency-demo.md:wiki/agency-adoption-checklist.md:wiki/connector-cookbook.md:wiki/calitp-readiness-plain-english.md:wiki/readiness-and-evidence.md:wiki/deployment-guide.md:wiki/how-agencies-can-help.md:wiki/support-and-contribute.md:docs/README.md:docs/tutorials/small-agency-acceptance-script.md:docs/tutorials/agency-first-run.md:docs/tutorials/reusable-agency-onboarding.md:docs/tutorials/self-hosted-operator-trial.md:docs/tutorials/agency-launchpad.md:docs/release-candidate-readiness.md:docs/requirements-calitp-compliance.md"
+DEFAULT_DOCS="README.md:wiki/README.md:wiki/small-agency-quick-start.md:wiki/browser-first-setup.md:wiki/operations-console-tour.md:wiki/can-my-agency-use-this.md:wiki/agency-demo.md:wiki/agency-adoption-checklist.md:wiki/connector-cookbook.md:wiki/calitp-readiness-plain-english.md:wiki/readiness-and-evidence.md:wiki/deployment-guide.md:wiki/how-agencies-can-help.md:wiki/support-and-contribute.md:docs/README.md:docs/index.md:docs/tutorials/small-agency-acceptance-script.md:docs/tutorials/agency-first-run.md:docs/tutorials/reusable-agency-onboarding.md:docs/tutorials/self-hosted-operator-trial.md:docs/tutorials/agency-launchpad.md:docs/release-candidate-readiness.md:docs/requirements-calitp-compliance.md"
 
 python3 - "$ROOT_DIR" \
   "${PRODUCT_ACCEPTANCE_PUBLIC_DOCS:-$DEFAULT_DOCS}" \
@@ -205,16 +205,28 @@ def check_front_doors():
     )
 
     docs_home = read_text("docs/README.md")
-    maintainer_index = docs_home.find("## Maintainer Docs And History")
-    if maintainer_index == -1:
-        record_failure("docs home is missing Maintainer Docs And History section")
+    require_contains(docs_home, "[Docs Index](index.md)", "docs home points to the role-based docs index")
+    docs_index = read_text("docs/index.md")
+    for heading in (
+        "## New Users",
+        "## Agency Staff",
+        "## Technical Helpers",
+        "## Connector Developers",
+        "## Maintainers",
+        "## AI Agents",
+    ):
+        require_contains(docs_index, heading, f"docs index includes {heading}")
+    maintainer_index = docs_index.find("## Maintainers")
+    ai_index = docs_index.find("## AI Agents")
+    if maintainer_index == -1 or ai_index == -1:
+        record_failure("docs index is missing maintainer or AI-agent sections")
     else:
-        before = docs_home[:maintainer_index].lower()
-        after = docs_home[maintainer_index:].lower()
-        if "phase history" in after and "phase history" not in before:
-            record_pass("docs home keeps phase history in maintainer/history section")
+        before = docs_index[:maintainer_index].lower()
+        after = docs_index[maintainer_index:].lower()
+        if "phase" in after and "codex" in after and "phase" not in before:
+            record_pass("docs index keeps phase/Codex history out of the new-user path")
         else:
-            record_failure("docs home does not keep phase history in maintainer/history section")
+            record_failure("docs index does not separate human-start docs from phase/Codex history")
 
 
 def check_required_pages():
@@ -229,7 +241,14 @@ def check_required_pages():
     require_contains(cookbook, "## Practical Recipes", "connector cookbook has practical recipes")
 
     readiness = read_text("wiki/calitp-readiness-plain-english.md")
-    require_contains(readiness, "| UI signal you can review | Missing deployment evidence before stronger claims |", "plain-English readiness guide distinguishes UI signal from missing deployment evidence")
+    require_any(
+        readiness,
+        [
+            "| UI signal you can review | Missing deployment evidence before stronger claims |",
+            "| UI signal you can review | Missing deployment evidence before outside approval, compliance, production, or consumer-acceptance claims |",
+        ],
+        "plain-English readiness guide distinguishes UI signal from missing deployment evidence",
+    )
 
     requirements = read_text("docs/requirements-calitp-compliance.md")
     require_contains(requirements, "Software capability exists for GTFS import/publication", "requirements doc identifies software capability")

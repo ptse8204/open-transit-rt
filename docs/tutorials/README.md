@@ -1,6 +1,9 @@
 # Tutorials
 
-These command-level tutorials are internal maintainer references. Public-facing versions live in [`/wiki`](../../wiki/README.md).
+Start here instead if you are choosing a guide by role:
+[Docs Index](../index.md). These command-level tutorials remain detailed
+references for technical helpers and maintainers. Public-facing versions live
+in [`/wiki`](../../wiki/README.md).
 
 They document what the current repo can run today. They do not claim hosted production readiness, consumer acceptance, or completed CAL-ITP/Caltrans compliance.
 
@@ -21,6 +24,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md): send synthetic telemetry through real authenticated ingest for local/reference diagnostics.
 - [Prediction And ETA Lab](prediction-eta-lab.md): review private deterministic, shadow, withheld-output, and aggregate backtest diagnostics without making ETA-quality claims.
 - [Staff Training Demo Kit](staff-training-demo-kit.md): run local/synthetic role paths, demo scenarios, recovery drills, trainer scripts, and technical-helper handoffs without creating evidence or adoption claims.
+- [Video Recording Guide](video-recording-guide.md): record short local/demo tutorials without secrets, raw private data, or unsupported claims.
 - [Real Agency GTFS Onboarding](real-agency-gtfs-onboarding.md): prepare, validate, review, and publish a real agency GTFS ZIP safely.
 - [Public GTFS Local/Pilot Runbook](public-gtfs-local-pilot.md): repeat a real public GTFS local/pilot run without implying agency approval.
 - [GTFS Validation Triage](gtfs-validation-triage.md): understand common import and validation failures and use the authenticated admin GTFS quality triage UI safely.

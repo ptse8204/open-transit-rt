@@ -24,11 +24,13 @@ type operationsTelemetrySimulatorView struct {
 	AgencyID           string                            `json:"agency_id"`
 	Boundary           string                            `json:"boundary"`
 	ScenarioDir        string                            `json:"scenario_dir"`
+	SelectedScenario   string                            `json:"selected_scenario"`
 	TargetRules        []string                          `json:"target_rules"`
 	CredentialHandling []string                          `json:"credential_handling"`
 	DiagnosticsPolicy  string                            `json:"diagnostics_policy"`
 	LoadError          string                            `json:"load_error,omitempty"`
 	Scenarios          []operationsTelemetryScenario     `json:"scenarios"`
+	DryRunPreview      operationsTelemetryDryRunPreview  `json:"dry_run_preview"`
 	Commands           []operationsTelemetryCommand      `json:"commands"`
 	ClaimFlags         operationsTelemetrySimulatorClaim `json:"claim_flags"`
 }
@@ -44,10 +46,34 @@ type operationsTelemetryScenario struct {
 	Requires            []string                     `json:"requires"`
 	ExpectedHTTPStatus  []int                        `json:"expected_http_statuses"`
 	ExpectedIngestState []string                     `json:"expected_ingest_statuses"`
+	EventPreviews       []operationsTelemetryEvent   `json:"event_previews"`
 	DefaultLocal        bool                         `json:"default_local"`
 	NextAction          string                       `json:"next_action"`
 	Commands            []operationsTelemetryCommand `json:"commands"`
 	DoesNotProve        string                       `json:"does_not_prove"`
+}
+
+type operationsTelemetryDryRunPreview struct {
+	Status        string                     `json:"status"`
+	ScenarioID    string                     `json:"scenario_id"`
+	CurrentSignal string                     `json:"current_signal"`
+	Events        []operationsTelemetryEvent `json:"events"`
+	NextAction    string                     `json:"next_action"`
+	Boundary      string                     `json:"boundary"`
+	DoesNotProve  string                     `json:"does_not_prove"`
+}
+
+type operationsTelemetryEvent struct {
+	Label                  string   `json:"label"`
+	AgencyID               string   `json:"agency_id"`
+	DeviceID               string   `json:"device_id"`
+	VehicleID              string   `json:"vehicle_id"`
+	Timestamp              string   `json:"timestamp"`
+	LocationSummary        string   `json:"location_summary"`
+	MotionSummary          string   `json:"motion_summary"`
+	TripHint               string   `json:"trip_hint,omitempty"`
+	ExpectedHTTPStatus     []int    `json:"expected_http_statuses"`
+	ExpectedIngestStatuses []string `json:"expected_ingest_statuses"`
 }
 
 type operationsTelemetryCommand struct {
@@ -85,9 +111,23 @@ type telemetrySimulatorFixture struct {
 }
 
 type telemetrySimulatorFixtureEvent struct {
-	Label                  string   `json:"label"`
-	ExpectedHTTPStatuses   []int    `json:"expected_http_statuses"`
-	ExpectedIngestStatuses []string `json:"expected_ingest_statuses"`
+	Label                  string                           `json:"label"`
+	Payload                telemetrySimulatorFixturePayload `json:"payload"`
+	ExpectedHTTPStatuses   []int                            `json:"expected_http_statuses"`
+	ExpectedIngestStatuses []string                         `json:"expected_ingest_statuses"`
+}
+
+type telemetrySimulatorFixturePayload struct {
+	AgencyID  string   `json:"agency_id"`
+	DeviceID  string   `json:"device_id"`
+	VehicleID string   `json:"vehicle_id"`
+	Timestamp string   `json:"timestamp"`
+	Lat       *float64 `json:"lat"`
+	Lon       *float64 `json:"lon"`
+	Bearing   *float64 `json:"bearing"`
+	SpeedMPS  *float64 `json:"speed_mps"`
+	AccuracyM *float64 `json:"accuracy_m"`
+	TripHint  string   `json:"trip_hint"`
 }
 
 func (h *handler) renderTelemetrySimulator(w http.ResponseWriter, r *http.Request) {
@@ -110,18 +150,20 @@ func (h *handler) renderTelemetrySimulatorJSON(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, page.TelemetrySimulator)
 }
 
-func buildOperationsTelemetrySimulator(page operationsPage) operationsTelemetrySimulatorView {
+func buildOperationsTelemetrySimulator(page operationsPage, selectedScenario string) operationsTelemetrySimulatorView {
 	scenarios, err := loadTelemetrySimulatorScenarios()
+	selectedScenario = telemetrySimulatorSelectedScenario(selectedScenario)
 	view := operationsTelemetrySimulatorView{
-		GeneratedAt: page.GeneratedAt,
-		AgencyID:    page.AgencyID,
-		Boundary:    "Private authenticated simulator guide only; viewing this page executes no command, sends no telemetry, reads no private diagnostics, collects no device token, creates no evidence, and changes no consumer status.",
-		ScenarioDir: telemetrySimulatorScenarioDir,
+		GeneratedAt:      page.GeneratedAt,
+		AgencyID:         page.AgencyID,
+		Boundary:         "Private authenticated simulator guide only; viewing this page can preview committed synthetic fixture metadata but executes no command, sends no telemetry, reads no private diagnostics, collects no device token, creates no evidence, and changes no consumer status.",
+		ScenarioDir:      telemetrySimulatorScenarioDir,
+		SelectedScenario: selectedScenario,
 		TargetRules: []string{
 			"Every send uses the authenticated POST /v1/telemetry boundary; the simulator must not write directly to telemetry tables.",
 			"Loopback local sends may use the seeded demo credential from the operator shell.",
 			"Reference deployments use operator-owned private credentials outside the browser and should target the deployment's private/admin-safe telemetry base URL.",
-			"Dry runs preview the synthetic scenario shape without sending telemetry.",
+			"Browser dry-run previews show committed synthetic fixture summaries only; shell dry-runs preview the full synthetic scenario shape without sending telemetry.",
 		},
 		CredentialHandling: []string{
 			"Use the Devices page to rotate or bind credentials; store the one-time value outside this repo.",
@@ -141,6 +183,7 @@ func buildOperationsTelemetrySimulator(page operationsPage) operationsTelemetryS
 	if err != nil {
 		view.LoadError = err.Error()
 	}
+	view.DryRunPreview = telemetrySimulatorDryRunPreview(scenarios, selectedScenario, err)
 	return view
 }
 
@@ -186,6 +229,7 @@ func loadTelemetrySimulatorScenarios() ([]operationsTelemetryScenario, error) {
 			Requires:            cleanLaunchpadList(fixture.Requires),
 			ExpectedHTTPStatus:  telemetrySimulatorExpectedHTTPStatuses(fixture.Events),
 			ExpectedIngestState: telemetrySimulatorExpectedIngestStatuses(fixture.Events),
+			EventPreviews:       telemetrySimulatorEventPreviews(fixture.Events),
 			DefaultLocal:        name == telemetrySimulatorDefaultScenario,
 			NextAction:          telemetrySimulatorNextAction(name, fixture.Requires),
 			Commands:            telemetrySimulatorScenarioCommands(name),
@@ -215,6 +259,86 @@ func telemetrySimulatorEventLabels(events []telemetrySimulatorFixtureEvent) []st
 		}
 	}
 	return labels
+}
+
+func telemetrySimulatorEventPreviews(events []telemetrySimulatorFixtureEvent) []operationsTelemetryEvent {
+	out := make([]operationsTelemetryEvent, 0, len(events))
+	for _, event := range events {
+		payload := event.Payload
+		out = append(out, operationsTelemetryEvent{
+			Label:                  strings.TrimSpace(event.Label),
+			AgencyID:               strings.TrimSpace(payload.AgencyID),
+			DeviceID:               strings.TrimSpace(payload.DeviceID),
+			VehicleID:              strings.TrimSpace(payload.VehicleID),
+			Timestamp:              strings.TrimSpace(payload.Timestamp),
+			LocationSummary:        telemetrySimulatorLocationSummary(payload),
+			MotionSummary:          telemetrySimulatorMotionSummary(payload),
+			TripHint:               strings.TrimSpace(payload.TripHint),
+			ExpectedHTTPStatus:     append([]int(nil), event.ExpectedHTTPStatuses...),
+			ExpectedIngestStatuses: cleanLaunchpadList(event.ExpectedIngestStatuses),
+		})
+	}
+	return out
+}
+
+func telemetrySimulatorLocationSummary(payload telemetrySimulatorFixturePayload) string {
+	if payload.Lat == nil || payload.Lon == nil {
+		return "not included in fixture preview"
+	}
+	return fmt.Sprintf("synthetic point %.5f, %.5f", *payload.Lat, *payload.Lon)
+}
+
+func telemetrySimulatorMotionSummary(payload telemetrySimulatorFixturePayload) string {
+	var parts []string
+	if payload.SpeedMPS != nil {
+		parts = append(parts, fmt.Sprintf("speed %.1f m/s", *payload.SpeedMPS))
+	}
+	if payload.Bearing != nil {
+		parts = append(parts, fmt.Sprintf("bearing %.0f", *payload.Bearing))
+	}
+	if payload.AccuracyM != nil {
+		parts = append(parts, fmt.Sprintf("accuracy %.0f m", *payload.AccuracyM))
+	}
+	if len(parts) == 0 {
+		return "no speed, bearing, or accuracy preview"
+	}
+	return strings.Join(parts, "; ")
+}
+
+func telemetrySimulatorSelectedScenario(candidate string) string {
+	candidate = strings.TrimSpace(candidate)
+	if candidate == "" {
+		return telemetrySimulatorDefaultScenario
+	}
+	return candidate
+}
+
+func telemetrySimulatorDryRunPreview(scenarios []operationsTelemetryScenario, selected string, loadErr error) operationsTelemetryDryRunPreview {
+	preview := operationsTelemetryDryRunPreview{
+		Status:        "blocked",
+		ScenarioID:    selected,
+		CurrentSignal: "scenario metadata is not available",
+		NextAction:    "Restore committed simulator fixtures, then return to this page and preview a synthetic scenario.",
+		Boundary:      "Browser dry-run preview reads committed fixture metadata only. It does not execute shell commands, send telemetry, read .cache diagnostics, collect tokens, or write database rows.",
+		DoesNotProve:  "A browser dry-run preview does not prove real vendor compatibility, hardware certification, production fleet reliability, real service telemetry quality, production-grade ETA quality, consumer acceptance, public launch, or CAL-ITP/Caltrans compliance.",
+	}
+	if loadErr != nil {
+		preview.CurrentSignal = loadErr.Error()
+		return preview
+	}
+	for _, scenario := range scenarios {
+		if scenario.Name == selected {
+			preview.Status = "ready_for_browser_preview"
+			preview.ScenarioID = scenario.Name
+			preview.CurrentSignal = fmt.Sprintf("%d committed synthetic event previews for %s", len(scenario.EventPreviews), scenario.Name)
+			preview.Events = append([]operationsTelemetryEvent(nil), scenario.EventPreviews...)
+			preview.NextAction = "Review this redacted synthetic preview in the browser, then ask a technical helper to run the shell dry-run before any intentional local send."
+			return preview
+		}
+	}
+	preview.CurrentSignal = fmt.Sprintf("unknown synthetic scenario %q", selected)
+	preview.NextAction = "Choose one of the listed committed scenarios and preview again."
+	return preview
 }
 
 func telemetrySimulatorExpectedHTTPStatuses(events []telemetrySimulatorFixtureEvent) []int {

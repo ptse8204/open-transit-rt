@@ -188,7 +188,7 @@ preparedness rows. This page is read-only for launchpad review and should be
 used to decide what remains blocked, missing, or ready for a later operator
 decision.
 
-For a bounded private preflight summary, run:
+For a private preflight summary, run:
 
 ```bash
 make release-candidate-check
@@ -267,7 +267,7 @@ Use this private gate before proceeding:
 | Readiness | `/admin/operations/readiness` has been reviewed through the private admin boundary. |
 | Connectors | Local connector and adapter conformance checks pass for the intended boundary. |
 | Support bundle | A private redaction-safe bundle exists when maintainers need diagnostics. |
-| Claims | All claim flags remain `false`. |
+| Claims | The output shows that no external claim was created. |
 
 If any row is blocked, stop and fix the blocker or record the next action in
 private operator notes. Do not convert this launchpad output into external

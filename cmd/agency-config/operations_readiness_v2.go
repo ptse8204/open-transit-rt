@@ -11,12 +11,26 @@ import (
 )
 
 type operationsReadinessV2View struct {
-	GeneratedAt time.Time                   `json:"generated_at"`
-	AgencyID    string                      `json:"agency_id"`
-	Boundary    string                      `json:"boundary"`
-	Rows        []operationsReadinessV2Row  `json:"rows"`
-	Counts      operationsReadinessV2Counts `json:"counts"`
-	ClaimFlags  operationsReadinessV2Claims `json:"claim_flags"`
+	GeneratedAt time.Time                    `json:"generated_at"`
+	AgencyID    string                       `json:"agency_id"`
+	Boundary    string                       `json:"boundary"`
+	FocusAreas  []operationsReadinessV2Focus `json:"focus_areas"`
+	Rows        []operationsReadinessV2Row   `json:"rows"`
+	Counts      operationsReadinessV2Counts  `json:"counts"`
+	ClaimFlags  operationsReadinessV2Claims  `json:"claim_flags"`
+}
+
+type operationsReadinessV2Focus struct {
+	ID                 string   `json:"id"`
+	Label              string   `json:"label"`
+	Status             string   `json:"status"`
+	WhatThisHelpsWith  string   `json:"what_this_helps_with"`
+	PrimarySignal      string   `json:"primary_signal"`
+	NextAction         string   `json:"next_action"`
+	WhatItDoesNotProve string   `json:"what_it_does_not_prove"`
+	RowIDs             []string `json:"row_ids"`
+	AdminLinks         []string `json:"admin_links"`
+	DocsLinks          []string `json:"docs_links"`
 }
 
 type operationsReadinessV2Row struct {
@@ -219,10 +233,151 @@ func buildOperationsReadinessV2(page operationsPage) operationsReadinessV2View {
 	return operationsReadinessV2View{
 		GeneratedAt: page.GeneratedAt,
 		AgencyID:    page.AgencyID,
-		Boundary:    "Private authenticated readiness checklist v2 only; viewing it creates no evidence, changes no consumer status, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, uptime, production-readiness, consumer-acceptance, or production-grade ETA outcome.",
+		Boundary:    "Private authenticated readiness checklist only; viewing it creates no evidence, changes no consumer status, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, uptime, production-readiness, consumer-acceptance, or production-grade ETA outcome.",
+		FocusAreas:  readinessV2FocusAreas(page),
 		Rows:        rows,
 		Counts:      readinessV2Counts(rows),
 		ClaimFlags:  operationsReadinessV2Claims{},
+	}
+}
+
+func readinessV2FocusAreas(page operationsPage) []operationsReadinessV2Focus {
+	return []operationsReadinessV2Focus{
+		readinessV2Focus(
+			"public_feed_urls",
+			"Public feed URLs",
+			readinessV2PublicFeedURLStatus(page),
+			"Helps operators confirm feeds.json, static GTFS, Vehicle Positions, Trip Updates, and Alerts have configured URLs before sharing them.",
+			readinessV2PublicFeedURLSignal(page),
+			readinessV2PublicFeedURLNext(page),
+			"Does not prove final-root ownership, source-of-truth listing, consumer ingestion, public launch, compliance, or production readiness.",
+			[]string{"discovery_metadata", "feed_health"},
+			[]string{"/admin/operations/feeds", "/admin/operations/feed-health"},
+			[]string{"docs/release-candidate-readiness.md", "docs/requirements-calitp-compliance.md"},
+		),
+		readinessV2Focus(
+			"static_gtfs",
+			"Static GTFS",
+			readinessV2GTFSQualityStatus(page),
+			"Helps operators review schedule import, active feed version, required files, service dates, and validation triage.",
+			readinessV2GTFSQualitySignal(page),
+			readinessV2GTFSQualityNext(page),
+			"Does not prove validator-clean production data, agency approval, consumer acceptance, compliance, or final-root readiness.",
+			[]string{"static_gtfs_quality"},
+			[]string{"/admin/operations/gtfs-workbench", "/admin/operations/gtfs-quality", "/admin/operations/validation-health"},
+			[]string{"docs/tutorials/gtfs-validation-triage.md", "docs/requirements-2a-2f.md"},
+		),
+		readinessV2Focus(
+			"vehicle_positions",
+			"Vehicle Positions",
+			readinessV2FeedRowStatus(page, "vehicle_positions"),
+			"Helps operators review the first public GTFS-Realtime target with telemetry freshness, assignment confidence, and feed-health context.",
+			readinessV2FeedRowSignal(page, "vehicle_positions"),
+			readinessV2RealtimeNext(page, "vehicle_positions"),
+			"Does not prove production AVL reliability, vendor compatibility, hardware certification, consumer display, compliance, or production readiness.",
+			[]string{"vehicle_positions", "telemetry_devices"},
+			[]string{"/admin/operations/realtime", "/admin/operations/telemetry", "/admin/operations/devices"},
+			[]string{"docs/requirements-2a-2f.md", "docs/tutorials/device-avl-integration.md"},
+		),
+		readinessV2Focus(
+			"trip_updates",
+			"Trip Updates",
+			readinessV2FeedRowStatus(page, "trip_updates"),
+			"Helps operators keep the prediction boundary visible while reviewing generated, withheld, stale, ambiguous, and low-confidence Trip Updates behavior.",
+			readinessV2TripUpdatesSignal(page),
+			readinessV2RealtimeNext(page, "trip_updates"),
+			"Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, compliance, or production readiness.",
+			[]string{"trip_updates"},
+			[]string{"/admin/operations/realtime", "/admin/operations/prediction-lab", "/admin/operations/feed-health"},
+			[]string{"docs/requirements-trip-updates.md", "docs/tutorials/prediction-eta-lab.md"},
+		),
+		readinessV2Focus(
+			"alerts",
+			"Alerts",
+			readinessV2FeedRowStatus(page, "alerts"),
+			"Helps operators verify the Alerts feed URL, feed-health row, and service-disruption review path.",
+			readinessV2FeedRowSignal(page, "alerts"),
+			readinessV2RealtimeNext(page, "alerts"),
+			"Does not prove agency-reviewed alert content, consumer display, compliance, public launch, or production readiness.",
+			[]string{"alerts"},
+			[]string{"/admin/operations/realtime", "/admin/alerts/console", "/admin/operations/feed-health"},
+			[]string{"docs/requirements-calitp-compliance.md"},
+		),
+		readinessV2Focus(
+			"validation",
+			"Validation",
+			readinessV2NormalizeStatus(page.ValidationHealth.OverallStatus),
+			"Helps operators see static and realtime validator tooling, latest records, stale checks, blockers, and next actions.",
+			readinessV2ValidationSignal(page),
+			readinessV2ValidationNext(page),
+			"Does not prove validator-clean public feeds, compliance, consumer acceptance, public fetch success, or agency approval.",
+			[]string{"validation_health", "static_gtfs_quality"},
+			[]string{"/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/gtfs-quality"},
+			[]string{"docs/tutorials/gtfs-validation-triage.md", "docs/dependencies.md"},
+		),
+		readinessV2Focus(
+			"license_contact",
+			"License and contact metadata",
+			readinessV2LicenseContactStatus(page),
+			"Helps operators verify open-license and technical-contact fields before any future public feed review.",
+			readinessV2LicenseContactSignal(page),
+			readinessV2LicenseContactNext(page),
+			"Does not prove legal approval, managed support, consumer acceptance, compliance, or source-of-truth listing.",
+			[]string{"discovery_metadata"},
+			[]string{"/admin/operations/setup", "/admin/operations/feeds"},
+			[]string{"docs/requirements-calitp-compliance.md", "docs/release-candidate-readiness.md"},
+		),
+		readinessV2Focus(
+			"uptime_operations",
+			"Uptime and operations signals",
+			readinessV2NormalizeStatus(page.Reliability.OverallStatus),
+			"Helps operators review local feed-health, reliability, maintenance, and incident signals before routine operations.",
+			readinessV2ReliabilitySignal(page),
+			readinessV2ReliabilityNext(page),
+			"Does not prove uptime, SLA coverage, hosted service availability, managed support, compliance, or production readiness.",
+			[]string{"operations_reliability", "operations_scorecard"},
+			[]string{"/admin/operations/reliability", "/admin/operations/maintenance", "/admin/operations/feed-health"},
+			[]string{"docs/runbooks/small-agency-pilot-operations.md", "docs/runbooks/monitoring-and-alerting.md"},
+		),
+		readinessV2Focus(
+			"telemetry_device_state",
+			"Telemetry and device state",
+			readinessV2TelemetryDeviceStatus(page),
+			"Helps operators review device bindings, accepted observations, stale handling, and conservative assignment behavior.",
+			readinessV2TelemetryDeviceSignal(page),
+			readinessV2TelemetryDeviceNext(page),
+			"Does not prove real fleet reliability, vendor AVL compatibility, hardware certification, production AVL coverage, compliance, or consumer acceptance.",
+			[]string{"telemetry_devices", "vehicle_positions"},
+			[]string{"/admin/operations/devices", "/admin/operations/telemetry", "/admin/operations/telemetry-simulator"},
+			[]string{"docs/tutorials/telemetry-simulator-and-device-trial.md", "docs/connectors/catalog.md"},
+		),
+		readinessV2Focus(
+			"consumer_preparedness",
+			"Consumer preparedness",
+			readinessV2ConsumerStatus(page),
+			"Helps operators keep prepared packet records, public feed metadata, and external-target boundaries visible without moving statuses.",
+			readinessV2ConsumerSignal(page),
+			readinessV2ConsumerNext(page),
+			"Does not prove submission, review, acceptance, ingestion, listing, display, compliance, consumer approval, or public launch.",
+			[]string{"consumer_prepared_tracker", "discovery_metadata"},
+			[]string{"/admin/operations/consumers", "/admin/operations/readiness"},
+			[]string{"docs/consumer-submission-evidence.md", "docs/evidence/consumer-submissions/README.md"},
+		),
+	}
+}
+
+func readinessV2Focus(id, label, status, helpsWith, signal, next, boundary string, rowIDs, adminLinks, docsLinks []string) operationsReadinessV2Focus {
+	return operationsReadinessV2Focus{
+		ID:                 firstNonEmpty(id, "readiness_focus"),
+		Label:              firstNonEmpty(label, "Readiness focus"),
+		Status:             readinessV2NormalizeStatus(status),
+		WhatThisHelpsWith:  firstNonEmpty(helpsWith, "Helps operators review local readiness signals."),
+		PrimarySignal:      firstNonEmpty(signal, "unknown"),
+		NextAction:         firstNonEmpty(next, "Review the linked private Operations Console page."),
+		WhatItDoesNotProve: firstNonEmpty(boundary, privateBoundary()),
+		RowIDs:             cleanLaunchpadList(rowIDs),
+		AdminLinks:         safeAdminLinks(adminLinks),
+		DocsLinks:          safeDocsLinks(docsLinks),
 	}
 }
 
@@ -321,6 +476,80 @@ func readinessV2DiscoveryNext(page operationsPage) string {
 		return "Enter operator-confirmed open license and monitored technical contact metadata."
 	}
 	return "Keep metadata current and review feed-specific health rows before stronger workflow decisions."
+}
+
+func readinessV2PublicFeedURLStatus(page operationsPage) string {
+	if page.DiscoveryError != "" || strings.TrimSpace(page.Discovery.PublicBaseURL) == "" {
+		return checklistStatusMissing
+	}
+	if page.Discovery.Readiness.AllRequiredFeedsListed && page.Discovery.Readiness.HTTPSURLs && page.Discovery.Readiness.Discoverable {
+		return checklistStatusOK
+	}
+	return checklistStatusNeedsReview
+}
+
+func readinessV2PublicFeedURLSignal(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	return strings.Join([]string{
+		fmt.Sprintf("public feed root: %s", firstNonEmpty(page.Discovery.PublicBaseURL, "missing")),
+		fmt.Sprintf("%d feed records are listed", len(page.Discovery.Feeds)),
+		readinessV2BoolPhrase(page.Discovery.Readiness.AllRequiredFeedsListed, "all required feeds are listed", "one or more required feeds are missing"),
+		readinessV2BoolPhrase(page.Discovery.Readiness.HTTPSURLs, "public feed URLs use HTTPS", "one or more public feed URLs are not HTTPS"),
+		readinessV2BoolPhrase(page.Discovery.Readiness.Discoverable, "feeds.json is discoverable", "feeds.json discoverability needs review"),
+	}, "; ")
+}
+
+func readinessV2PublicFeedURLNext(page operationsPage) string {
+	if page.DiscoveryError != "" || strings.TrimSpace(page.Discovery.PublicBaseURL) == "" {
+		return "Set publication metadata so feeds.json and the four feed URLs can be reviewed in the browser."
+	}
+	if !page.Discovery.Readiness.AllRequiredFeedsListed {
+		return "List schedule, Vehicle Positions, Trip Updates, and Alerts in feeds.json before external review."
+	}
+	if !page.Discovery.Readiness.HTTPSURLs || !page.Discovery.Readiness.Discoverable {
+		return "Review public base and feed URLs, then keep final-root conclusions separate until retained proof exists."
+	}
+	return "Open Feed URLs and Feed Health to review validation and freshness context before sharing configured URLs."
+}
+
+func readinessV2LicenseContactStatus(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return checklistStatusMissing
+	}
+	if page.Discovery.Readiness.LicenseComplete && page.Discovery.Readiness.ContactComplete {
+		return checklistStatusOK
+	}
+	return checklistStatusNeedsReview
+}
+
+func readinessV2LicenseContactSignal(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	parts := []string{
+		"agency name: " + firstNonEmpty(page.Discovery.AgencyName, "missing"),
+		readinessV2BoolPhrase(page.Discovery.Readiness.LicenseComplete, "license metadata is present", "license metadata is incomplete"),
+		readinessV2BoolPhrase(page.Discovery.Readiness.ContactComplete, "technical contact is present", "technical contact is missing"),
+	}
+	if strings.TrimSpace(page.Discovery.License.URL) != "" {
+		parts = append(parts, "license URL is configured")
+	}
+	return strings.Join(parts, "; ")
+}
+
+func readinessV2LicenseContactNext(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return "Bootstrap publication metadata after importing or publishing a schedule feed."
+	}
+	if !page.Discovery.Readiness.LicenseComplete {
+		return "Add an operator-reviewed open-license name and URL before external feed review."
+	}
+	if !page.Discovery.Readiness.ContactComplete {
+		return "Add a monitored technical contact before external feed review."
+	}
+	return "Keep license and technical contact metadata current with operator review."
 }
 
 func readinessV2FeedHealthStatus(page operationsPage) string {

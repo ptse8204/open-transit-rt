@@ -577,3 +577,207 @@ configured values, and native details. The frontend layer is not a public API,
 evidence collector, consumer submission system, hosted SaaS surface,
 production-readiness proof, vendor compatibility proof, SLA proof, or
 production-grade ETA proof.
+
+## ADR-0045 -- Keep the Operations Console information architecture route-driven
+
+The post-rc2 Operations Console uses a central route registry for product
+navigation, page titles, grouping, private/no-store posture, and stable route
+inventory. Phase 02 reorganizes the console around agency tasks: Start Here,
+Setup, GTFS Workbench, Feed Health, Validation, Realtime, Devices / AVL,
+Prediction / ETA Lab, Connectors, Alerts, Readiness, Maintenance, Help /
+Tutorials, and Support / Troubleshooting.
+
+Route paths remain stable so existing operator links, tests, JSON companions,
+and local runbooks do not break. Labels may become more user-facing, but route
+inventory and access rules must stay explicit in code and tests.
+
+Each page includes a visible "What to do next" action, and separate private
+tools such as GTFS Studio and the Alerts Console are marked as separate tools
+instead of hidden diagnostics. The console remains Go server-rendered HTML with
+buildless progressive enhancement only. With JavaScript disabled, pages must
+still render useful tables, links, forms, and native disclosure controls.
+
+This information architecture does not create evidence, contact outside
+systems, change consumer status, prove CAL-ITP/Caltrans compliance, prove
+production readiness, prove consumer acceptance, prove vendor compatibility,
+provide hosted service availability, or make SLA or production-grade ETA
+claims.
+
+## ADR-0046 -- Browser telemetry dry runs are fixture previews only
+
+Phase 03 adds a browser dry-run preview to the private Telemetry Simulator.
+The preview reads committed synthetic fixture metadata and renders a redacted
+event summary for the selected scenario. It does not execute shell commands,
+send telemetry, collect device tokens, read `.cache` diagnostics, write
+database rows, or contact external systems.
+
+Intentional telemetry sends remain outside the browser and use the existing
+authenticated `/v1/telemetry` boundary from an operator or technical-helper
+environment. One-time device tokens may be created or rotated through the
+private Devices & Tokens page, but secure storage and installation on devices
+or adapters remain operator-owned.
+
+The preview exists to reduce command-line dependence for normal review: a
+nontechnical agency user can inspect the synthetic scenario shape and expected
+statuses from the browser after startup. It is not a vendor test, hardware
+certification, real fleet reliability test, production AVL proof, consumer
+acceptance signal, compliance proof, or production-grade ETA quality proof.
+
+## ADR-0047 -- Keep GTFS Workbench read-only while adding staff-facing review
+
+Phase 04 adds Agency Review Summary and Validation Issue Triage to the private
+GTFS Workbench. The summary gives staff one browser-first view of required
+files, row counts, service dates, core route/stop/trip coverage, import
+history, active-vs-previous change signals, and current issue triage. The issue
+triage reuses sanitized GTFS quality groups and shows likely owner,
+plain-English meaning, suggested fix path, safe next action, and verification
+path.
+
+The Workbench remains read-only. It does not import GTFS, edit drafts, publish
+schedules, run validators, execute rollback, create evidence, contact external
+systems, change consumer status, or turn local review into approval,
+compliance, consumer acceptance, production readiness, vendor compatibility, or
+ETA-quality proof. Raw validator samples stay out of the Workbench JSON
+companion; deeper issue analysis stays on the authenticated GTFS Quality page.
+
+## ADR-0048 -- Keep realtime usefulness review private and read-only
+
+Phase 05 adds feed-specific usefulness details and synthetic/local replay
+guidance to the private Realtime Center. Vehicle Positions review summarizes
+visible vehicle counts, estimated published rows, stale/unmatched/suppressed
+vehicles, trip descriptor coverage, and why rows were not published. Trip
+Updates review summarizes generated versus withheld output, prediction source,
+fallback reason, stale/ambiguous inputs, and low-confidence handling. Alerts
+review keeps lifecycle work in the Alerts Console while surfacing active,
+stale, cancellation-link, disruption-link, and service-disruption review prompts.
+
+This is a browser-first operator review layer only. It does not change
+`/v1/telemetry`, matching, public GTFS-Realtime serialization, Trip Updates
+adapter contracts, Alerts authoring, validator execution, evidence records,
+consumer status, or release state. Local replay guidance starts with browser
+fixture previews and keeps real sends, tokens, generated `.cache` diagnostics,
+and private database access under operator or technical-helper control. These
+signals do not prove compliance, consumer display, public launch, SLA, uptime,
+production readiness, vendor compatibility, hardware certification, production
+AVL reliability, production-grade ETA quality, or real-world ETA accuracy.
+
+## ADR-0049 -- Treat connectors as a catalog plus conformance contract
+
+Phase 06 adds one connector catalog across README, docs, private UI, examples,
+and static site source. The catalog spells out Vehicle / GPS / AVL,
+Prediction, Validator, Monitoring/export, Consumer/discovery, and Future
+extension model paths, then maps each one to a copy/adapt starter and first
+local check.
+
+Connectors remain manifest-described sidecars or command adapters. Open
+Transit RT still does not support arbitrary dynamic backend plugin loading.
+Runtime interfaces stay explicit: authenticated `/v1/telemetry`, the
+prediction adapter boundary, server-owned validator IDs, redacted monitoring
+summaries, and public feed URL metadata.
+
+Consumer/discovery is now covered by a synthetic example and adapter
+conformance cases for feed URL metadata, submission blocking, and status
+mutation blocking. This closes the gap where the manifest type existed but had
+no copyable example or conformance group.
+
+Connector checks remain local quality signals only. They do not contact
+external systems, create evidence, move consumer status, prove compliance,
+prove production readiness, prove consumer acceptance, prove vendor
+compatibility, prove hardware certification, provide hosted service
+availability, provide SLA coverage, prove production AVL reliability, or prove
+production-grade ETA quality.
+
+## ADR-0050 -- Keep CAL-ITP-style readiness as a browser workflow map
+
+Phase 07 adds a ten-area readiness workflow map to the private Operations
+Console. The map organizes public feed URLs, static GTFS, Vehicle Positions,
+Trip Updates, Alerts, validation, license/contact metadata, uptime and
+operations signals, telemetry/device state, and consumer preparedness before
+the detailed readiness cards.
+
+URL readiness and license/contact readiness are intentionally separate. A
+configured public URL does not become externally ready merely because it is
+present, and complete metadata does not prove final-root ownership, legal
+approval, consumer review, or compliance. Feed URL review now depends on
+validation or feed-health context before showing a ready status.
+
+Consumer preparedness remains prepared-only. Runtime consumer workflow notes
+can be displayed to operators, but they do not override the seven prepared docs
+tracker targets or move any protected evidence status. The readiness page is a
+private, read-only review surface; it does not contact external systems,
+create evidence, change consumer status, prove CAL-ITP/Caltrans compliance,
+prove production readiness, prove consumer acceptance, prove hosted service
+availability, prove SLA or uptime, prove vendor or hardware compatibility, or
+prove ETA quality.
+
+## ADR-0051 -- Make human docs role-based before phase history
+
+Phase 08 makes `README.md`, `docs/index.md`, `docs/README.md`, and the wiki
+home point readers to task-based guides before maintainer phase ledgers. The
+normal reader path is: understand the product, try it locally, open the private
+browser UI, import GTFS, check feed URLs and feed health, connect vehicle data,
+review readiness, and understand unsupported claims.
+
+Long phase files, Codex task briefs, handoffs, and roadmap packs remain
+discoverable for maintainers and AI agents, but they are no longer presented
+as the first path for new users or agency staff. This keeps project history
+available without making human readers interpret implementation ledgers before
+they can evaluate the product.
+
+## ADR-0052 -- Keep the public site static, local, and claim-safe
+
+Phase 09 adds a static public site source under `site/` with a shared local CSS
+file, a concise homepage, generated UI tour captures, connector catalog,
+CAL-ITP-style readiness explainer, and video tutorial overview page. The site
+uses plain HTML, CSS, and a small local script for role tabs. It adds no
+external scripts, tracking, analytics, external fonts, or hosted-service
+claims.
+
+Generated browser captures are documentation aids only. They are not retained
+evidence and do not prove public deployment, compliance, consumer acceptance,
+agency adoption, production readiness, hosted service availability, SLA/uptime,
+vendor compatibility, production AVL reliability, or ETA quality.
+
+## ADR-0053 -- Keep tutorial video files out of the repository by default
+
+Phase 10 adds `docs/tutorials/video-recording-guide.md` and expands the static
+site video page with public-safe recording storyboards. The guide standardizes
+six short tutorial scripts: overview, local setup, browser-first GTFS import,
+feed health/readiness review, connector/AVL overview, and maintenance/support
+workflow.
+
+The repository stores scripts, checklists, and publication rules only. Raw or
+finished video binaries should stay outside git unless a maintainer explicitly
+authorizes release assets or another storage path. Recording workflows must use
+local/demo or public-safe data, avoid secrets and private records, add captions
+or transcripts before publication, and preserve all unsupported-claim limits.
+
+## ADR-0054 -- Index AI-agent docs separately from human docs
+
+Phase 11 adds `docs/agent/` as the explicit hub for Codex continuation context,
+including handoffs, roadmap packs, prompt files, and historical phase ledgers.
+The canonical historical files stay in their current locations so old links,
+scripts, and release records keep working, but the normal reader path now
+points agency staff and technical helpers to `README.md`, `docs/index.md`,
+tutorials, connector docs, wiki pages, and the static site before agent
+history.
+
+This is a documentation separation, not a product or evidence status change.
+It does not delete history, move protected evidence, change consumer tracker
+state, create evidence packets, or make any compliance, production readiness,
+consumer acceptance, hosted service, vendor compatibility, SLA, AVL
+reliability, or ETA-quality claim.
+
+## ADR-0055 -- Keep stable as a filtered product branch
+
+Phase 12 introduces a `stable` branch policy and a GitHub Actions workflow that
+filters `main` into `stable` while excluding AI-agent-only docs. The workflow
+uses `.github/stable-sync-excludes.txt`, supports manual dry runs, commits only
+when the filtered tree changes, and pushes without force. If the remote stable
+branch diverges, the push should fail for maintainer review.
+
+The branch is a product/user-facing source branch, not a stable release. It
+does not publish a tag, contact external systems, create evidence, change
+consumer tracker status, prove compliance, prove production readiness, prove
+consumer acceptance, provide hosted service availability, prove vendor or
+hardware compatibility, provide SLA coverage, or prove AVL/ETA quality.

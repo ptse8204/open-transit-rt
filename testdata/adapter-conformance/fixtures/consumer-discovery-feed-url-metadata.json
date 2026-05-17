@@ -1,0 +1,17 @@
+{
+  "synthetic_only": true,
+  "scenario": "feed-url-metadata",
+  "agency_id": "demo-agency",
+  "prepared_only": true,
+  "feed_urls": {
+    "feeds_json": "https://example.org/open-transit-rt/public/feeds.json",
+    "static_gtfs": "https://example.org/open-transit-rt/public/gtfs/schedule.zip",
+    "vehicle_positions": "https://example.org/open-transit-rt/public/gtfsrt/vehicle_positions.pb",
+    "trip_updates": "https://example.org/open-transit-rt/public/gtfsrt/trip_updates.pb",
+    "alerts": "https://example.org/open-transit-rt/public/gtfsrt/alerts.pb"
+  },
+  "license_url": "https://example.org/open-transit-rt/license",
+  "network_send": false,
+  "status_mutation": false,
+  "evidence_write": false
+}

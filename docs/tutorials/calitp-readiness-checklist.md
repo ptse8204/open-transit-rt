@@ -1,6 +1,6 @@
 # CAL-ITP / Caltrans Readiness Checklist
 
-This checklist uses evidence-bounded language. The repository supports the technical foundations for California transit data readiness, but a specific deployment must provide validation, hosting, metadata, operations, and consumer evidence before stronger compliance claims are appropriate.
+This checklist uses careful claim language. The repository supports the technical foundations for California transit data readiness, but a specific deployment must provide validation, hosting, metadata, operations, and consumer evidence before stronger compliance claims are appropriate.
 
 The Phase 11 evidence package is [Compliance Evidence Checklist](../compliance-evidence-checklist.md). Use it when deciding whether a claim is repo-proven, deployment-dependent, or dependent on third-party confirmation.
 
@@ -28,21 +28,25 @@ Operations Console:
 /admin/operations/readiness
 ```
 
-It shows each area below with a status source, current evidence/signal, next
-action, and claim boundary. The page supports CAL-ITP-style readiness
+It starts with a workflow map and then shows detailed readiness cards. Each
+area has a status source, current signal, what the local review helps prepare,
+next action, and what the local review does not prove. The page supports CAL-ITP-style readiness
 workflows; it does not claim CAL-ITP/Caltrans compliance.
 
 | Area | Current repo support | Evidence still needed for a deployment |
 | --- | --- | --- |
+| Public feed URLs | `/public/feeds.json`, `/public/gtfs/schedule.zip`, Vehicle Positions, Trip Updates, and Alerts URL review | Public HTTPS fetch proof, official feed listing, and target-specific review |
 | Static GTFS URL | `/public/gtfs/schedule.zip` from active published GTFS | Public HTTPS fetch proof, current active feed, validator result |
 | Vehicle Positions URL | `/public/gtfsrt/vehicle_positions.pb` | Public HTTPS fetch proof, fresh telemetry, validator result |
 | Trip Updates URL | `/public/gtfsrt/trip_updates.pb` through prediction adapter | Public HTTPS fetch proof, validation, coverage and quality review |
 | Alerts URL | `/public/gtfsrt/alerts.pb` from persisted published alerts | Public HTTPS fetch proof, validation, alert lifecycle operations |
 | Discovery metadata | `/public/feeds.json` | Complete license/contact data and stable canonical URLs |
-| Validation workflow | `/admin/validation/run` with allowlisted validators | Latest canonical validator results for each feed |
+| Validation workflow | `/admin/operations/validation-center` and `/admin/operations/validation-health` with allowlisted validators | Latest canonical validator results for each feed |
 | License/contact workflow | `feed_config` and `published_feed` metadata | Agency-approved open license and technical contact |
+| Uptime/operations signals | Feed Health, Reliability, Maintenance, and support-bundle guidance | Deployment monitoring, incident response, backup/restore practice, and any SLA/uptime records if claimed |
+| Telemetry/device state | Devices, Telemetry, Telemetry Simulator, Realtime Center, and Vehicle Positions review | Real device setup, operational telemetry coverage, and production AVL reliability proof if claimed |
 | Consumer workflow records | `consumer_ingestion` records | Actual submissions, responses, and acceptance evidence |
-| Scorecard | `/admin/compliance/scorecard` | Current production-mode scorecard with supporting validation records |
+| Scorecard | `/admin/operations/readiness` and `/admin/compliance/scorecard` | Current deployment-specific scorecard with supporting validation records |
 
 ## Operations Console Workflow
 
@@ -55,9 +59,11 @@ runs the synthetic AVL dry-run, and then reviews this page, see
 [Self-Hosted Operator Trial](self-hosted-operator-trial.md).
 
 1. Open `/admin/operations/readiness` through the private admin boundary.
-2. Review the ten rows for URL, feed, metadata, validation, telemetry,
-   operations, and consumer packet gaps.
-3. Use the row-level next actions to move missing items into recorded state.
+2. Review the workflow map for public feed URLs, static GTFS, Vehicle
+   Positions, Trip Updates, Alerts, validation, license/contact metadata,
+   uptime/operations signals, telemetry/device state, and consumer
+   preparedness.
+3. Open the detailed readiness cards for the current signal and next action.
 4. Run validators or operational helpers from their existing workflows; the
    readiness page itself is read-only.
 5. Keep any deployment output private until reviewed against
@@ -108,15 +114,17 @@ For a real agency deployment, collect:
 
 ## Consumer Ingestion
 
-The repo stores consumer-ingestion workflow records for:
+The repo stores prepared-only docs tracker targets for:
 
 - Google Maps
 - Apple Maps
 - Transit App
 - Bing Maps
 - Moovit
+- Mobility Database
+- transit.land
 
-It does not call external consumer submission APIs and it does not prove acceptance. Mobility Database and transit.land may be tracked as workflow records when an operator adds them, but they are not API integrations. Record consumer status only when the agency or operator has real evidence for that deployment.
+It does not call external consumer submission APIs and it does not prove acceptance. Runtime consumer workflow records are local deployment notes only; they do not override the docs tracker prepared state. Record consumer status only when the agency or operator has real evidence for that deployment.
 
 ## Marketplace Gap
 

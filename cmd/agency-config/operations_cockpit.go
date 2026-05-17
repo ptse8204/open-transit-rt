@@ -277,7 +277,7 @@ func telemetrySimulatorSignal(page operationsPage) string {
 	if page.TelemetrySimulator.LoadError != "" {
 		return page.TelemetrySimulator.LoadError
 	}
-	return fmt.Sprintf("%d committed synthetic scenarios; browser execution disabled", len(page.TelemetrySimulator.Scenarios))
+	return fmt.Sprintf("%d committed synthetic scenarios; browser dry-run preview available; live sends disabled", len(page.TelemetrySimulator.Scenarios))
 }
 
 func realtimeStatus(page operationsPage) string {
