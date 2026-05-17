@@ -723,3 +723,17 @@ discoverable for maintainers and AI agents, but they are no longer presented
 as the first path for new users or agency staff. This keeps project history
 available without making human readers interpret implementation ledgers before
 they can evaluate the product.
+
+## ADR-0052 -- Keep the public site static, local, and claim-safe
+
+Phase 09 adds a static public site source under `site/` with a shared local CSS
+file, a concise homepage, generated UI tour captures, connector catalog,
+CAL-ITP-style readiness explainer, and video tutorial overview page. The site
+uses plain HTML, CSS, and a small local script for role tabs. It adds no
+external scripts, tracking, analytics, external fonts, or hosted-service
+claims.
+
+Generated browser captures are documentation aids only. They are not retained
+evidence and do not prove public deployment, compliance, consumer acceptance,
+agency adoption, production readiness, hosted service availability, SLA/uptime,
+vendor compatibility, production AVL reliability, or ETA quality.

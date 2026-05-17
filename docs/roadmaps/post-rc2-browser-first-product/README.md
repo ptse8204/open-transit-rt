@@ -75,6 +75,15 @@ claims; `docs/index.md` separates new users, agency staff, technical helpers,
 connector developers, maintainers, and AI agents; and the wiki home now points
 readers to task guides before project history.
 
+## Phase 09 Report
+
+The Web Design Engineer skill was loaded before the Phase 09 website work. It
+shaped the static site toward a concise public product explainer with a shared
+local CSS system, role tabs, flow cards, generated browser-capture panels, and
+no external scripts, tracking, analytics, or external fonts. The site pages
+stay documentation-only and repeat unsupported-claim limits instead of
+marketing proof language.
+
 ## Phase Acceptance Rule
 
 Do not accept a phase until:

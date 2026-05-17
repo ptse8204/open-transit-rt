@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Transit RT</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="ui-tour.html">UI Tour</a>
+      <a href="connectors.html">Connectors</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="video.html">Video Guide</a>
+      <a href="../README.md">README</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Self-hosted GTFS and GTFS Realtime</p>
+      <h1>Open Transit RT</h1>
+      <p class="lead">A browser-first, open-source transit data backend for small agencies. After a technical helper starts the app, agency staff can review setup, import GTFS, check feeds, connect vehicle data, and review readiness from the Operations Console.</p>
+      <div class="actions">
+        <a class="button primary" href="../README.md">Try Locally</a>
+        <a class="button" href="ui-tour.html">See The UI Tour</a>
+        <a class="button" href="connectors.html">Browse Connectors</a>
+      </div>
+      <p class="notice">Local/self-hosted evaluation does not prove CAL-ITP/Caltrans compliance, production readiness, agency adoption, consumer acceptance, hosted service availability, vendor compatibility, SLA/uptime, production AVL reliability, or ETA quality.</p>
+    </div>
+    <div class="browser" aria-label="Generated browser capture of the Operations Console">
+      <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations</span></div>
+      <div class="browser-body">
+        <p class="tag">Generated browser capture</p>
+        <h2>Agency Operations Cockpit / Start Here</h2>
+        <div class="screen-grid">
+          <div class="side-rail">
+            <div class="rail-item"></div>
+            <div class="rail-item"></div>
+            <div class="rail-item"></div>
+            <div class="rail-item"></div>
+          </div>
+          <div class="screen-table">
+            <div class="screen-row"></div>
+            <div class="screen-row"></div>
+            <div class="screen-row"></div>
+            <div class="screen-row"></div>
+            <div class="screen-row"></div>
+          </div>
+        </div>
+        <p class="muted">Illustrative local/demo UI capture, not retained evidence.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="flow-heading">
+    <h2 id="flow-heading">Essential Workflow</h2>
+    <div class="grid">
+      <article class="flow-card">
+        <span class="step">1. Try locally</span>
+        <h3>Technical helper starts the app</h3>
+        <p>Run <code>make check</code> and <code>make agency-app-up</code>, then share the private local Operations Console URL.</p>
+        <a href="../wiki/small-agency-quick-start.md">Quick start</a>
+      </article>
+      <article class="flow-card">
+        <span class="step">2. Start in browser</span>
+        <h3>Open the cockpit</h3>
+        <p>Agency staff begin at <code>/admin/operations</code> and follow visible next actions.</p>
+        <a href="ui-tour.html">View the tour</a>
+      </article>
+      <article class="flow-card">
+        <span class="step">3. Import GTFS</span>
+        <h3>Use GTFS Workbench</h3>
+        <p>Review required files, row counts, service dates, import history, and validation guidance.</p>
+        <a href="../docs/tutorials/gtfs-validation-triage.md">GTFS triage</a>
+      </article>
+      <article class="flow-card">
+        <span class="step">4. Review feed health</span>
+        <h3>Check five feed paths</h3>
+        <p>Review <code>feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</p>
+        <a href="readiness.html">Readiness flow</a>
+      </article>
+      <article class="flow-card">
+        <span class="step">5. Connect vehicle data</span>
+        <h3>Pick a connector shape</h3>
+        <p>Start with CSV replay, polling, webhook sidecar, generic JSON transform, or authenticated telemetry POST.</p>
+        <a href="connectors.html">Connector catalog</a>
+      </article>
+      <article class="flow-card">
+        <span class="step">6. Maintain the system</span>
+        <h3>Review readiness and support</h3>
+        <p>Use Maintenance, Help, and readiness pages to see what is working and what still needs attention.</p>
+        <a href="video.html">Video scripts</a>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="role-heading">
+    <h2 id="role-heading">Choose Your Role</h2>
+    <div class="role-tabs" role="tablist" aria-label="Role navigation">
+      <button type="button" role="tab" aria-selected="true" data-role-tab="manager">Agency Manager</button>
+      <button type="button" role="tab" aria-selected="false" data-role-tab="operations">Operations Staff</button>
+      <button type="button" role="tab" aria-selected="false" data-role-tab="helper">Technical Helper</button>
+      <button type="button" role="tab" aria-selected="false" data-role-tab="connector">Connector Developer</button>
+      <button type="button" role="tab" aria-selected="false" data-role-tab="maintainer">Maintainer</button>
+    </div>
+    <article class="role-panel" data-role-panel="manager">
+      <h3>Agency Manager</h3>
+      <p>Decide whether local evaluation fits your agency and what outside evidence would still be needed before public claims.</p>
+      <a href="../wiki/can-my-agency-use-this.md">Can my agency use this?</a>
+    </article>
+    <article class="role-panel" data-role-panel="operations" hidden>
+      <h3>Operations Staff</h3>
+      <p>Start from the browser, review setup, import status, feed health, realtime state, readiness, and maintenance tasks.</p>
+      <a href="../docs/tutorials/no-cli-agency-first-run.md">No command-line first run</a>
+    </article>
+    <article class="role-panel" data-role-panel="helper" hidden>
+      <h3>Technical Helper</h3>
+      <p>Start the local app, run validation-heavy checks when useful, and help with deployment-owned setup.</p>
+      <a href="../docs/tutorials/self-hosted-operator-trial.md">Self-hosted operator trial</a>
+    </article>
+    <article class="role-panel" data-role-panel="connector" hidden>
+      <h3>Connector Developer</h3>
+      <p>Adapt telemetry, predictor, validator, monitoring, or consumer/discovery workflows through explicit adapter boundaries.</p>
+      <a href="connectors.html">Connector catalog</a>
+    </article>
+    <article class="role-panel" data-role-panel="maintainer" hidden>
+      <h3>Maintainer</h3>
+      <p>Use the docs index, release status, decisions, and route audits before changing product contracts.</p>
+      <a href="../docs/index.md">Docs index</a>
+    </article>
+  </section>
+</main>
+<script>
+  document.documentElement.classList.add('js');
+  const tabs = Array.from(document.querySelectorAll('[data-role-tab]'));
+  const panels = Array.from(document.querySelectorAll('[data-role-panel]'));
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const role = tab.getAttribute('data-role-tab');
+      tabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+      panels.forEach((panel) => {
+        panel.hidden = panel.getAttribute('data-role-panel') !== role;
+      });
+    });
+  });
+</script>
+</body>
+</html>

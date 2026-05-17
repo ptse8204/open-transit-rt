@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Transit RT Video Tutorial Guide</title>
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="ui-tour.html">UI Tour</a>
+      <a href="connectors.html">Connectors</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="video.html">Video Guide</a>
+      <a href="../README.md">README</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <p class="tag">Video tutorial workflow</p>
+  <h1>Record short demos from the same browser-first path.</h1>
+  <p class="lead">This page gives maintainers a public-safe outline for recording walkthroughs after a local demo app starts. Do not commit large video files here; publish finished media only through an authorized release or docs workflow.</p>
+
+  <section class="grid">
+    <article class="flow-card">
+      <span class="step">3 minutes</span>
+      <h3>Overview</h3>
+      <p>Show what Open Transit RT is, who it is for, Start Here, the five feed paths, connectors, readiness, and what local review does not prove.</p>
+    </article>
+    <article class="flow-card">
+      <span class="step">10 minutes</span>
+      <h3>Local setup</h3>
+      <p>Show a technical helper starting the app, then switch to browser-only agency review.</p>
+    </article>
+    <article class="flow-card">
+      <span class="step">6 minutes</span>
+      <h3>GTFS import</h3>
+      <p>Open GTFS Import, GTFS Workbench, GTFS Quality, and Validation Center.</p>
+    </article>
+    <article class="flow-card">
+      <span class="step">6 minutes</span>
+      <h3>Feed health and readiness</h3>
+      <p>Review feed health, validation health, readiness areas, and consumer preparedness limits.</p>
+    </article>
+    <article class="flow-card">
+      <span class="step">5 minutes</span>
+      <h3>Connector and AVL overview</h3>
+      <p>Show connector categories, workbench recipes, and authenticated telemetry boundary.</p>
+    </article>
+    <article class="flow-card">
+      <span class="step">5 minutes</span>
+      <h3>Maintenance and support</h3>
+      <p>Show Maintenance, Help, support bundle guidance, and what requires a technical helper.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>Recording Checklist</h2>
+    <table>
+      <thead><tr><th>Step</th><th>Check</th></tr></thead>
+      <tbody>
+        <tr><td>Start local app</td><td>Use a clean local demo and public-safe seed data.</td></tr>
+        <tr><td>Avoid secrets</td><td>Do not show bearer tokens, private URLs, DB URLs, raw logs, private portal records, or private tickets.</td></tr>
+        <tr><td>Use browser route order</td><td>Start Here, GTFS, feeds, realtime, connectors, readiness, maintenance, help.</td></tr>
+        <tr><td>Add captions</td><td>Write a transcript or captions before publishing.</td></tr>
+        <tr><td>Store video outside repo</td><td>Keep large binaries out of git unless separately authorized.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <p class="notice">This page is a tutorial plan only. It does not prove production readiness, compliance, consumer acceptance, hosted service availability, vendor compatibility, SLA/uptime, or ETA quality.</p>
+</main>
+</body>
+</html>
