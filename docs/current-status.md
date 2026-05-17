@@ -28,6 +28,11 @@ browser-first changes, then maintainer review of the filtered `stable` branch
 automation and a separate external connector runtime integration roadmap.
 Optional evidence tracks remain separately authorization-gated.
 
+Post-closeout CI follow-up `d8dfc3b` fixed telemetry simulator tests for the
+declared Go `1.23.2` toolchain used by GitHub Actions. Remote `main` Fast CI
+passed after the fix, the stable-update workflow passed, and remote `stable`
+was updated to filtered commit `cf51dd7` without AI-agent-only docs.
+
 Post-132 release publication is complete for `v0.1.0-rc.2`.
 Open Transit RT v0.1.0-rc.2 is a public release candidate for local/self-hosted evaluation.
 It is not a stable release and does not prove production readiness, compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, vendor compatibility, hardware certification, SLA/uptime, production AVL reliability, production-grade ETA quality, or real-world ETA accuracy.
