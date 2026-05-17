@@ -25,18 +25,28 @@ admin `401`. Remaining command-line work is technical-helper or maintainer
 work: startup/shutdown, validator installation, deployment operations, release
 gates, real secrets, and any evidence or consumer workflow.
 
-Recommended next work: run a release-candidate gate for these post-rc2 product
-changes, review/push the filtered stable branch if desired, and then start a
-separate external connector runtime integration roadmap. Optional evidence
+Post-rc2 polish Phases A through E are complete for browser-first workflow
+recheck, human docs/site link review, stable branch filtering hardening, CI
+status polish, and the focused external connector runtime integration roadmap.
+The roadmap lives at
+`docs/roadmaps/external-connector-runtime-integration/README.md` with the
+phase plan at
+`docs/roadmaps/external-connector-runtime-integration/phase-plan.md`.
+
+Recommended next work: start Phase 01 of the external connector runtime
+roadmap, or run the manual release gates and filtered stable update first if
+the maintainer wants another release-candidate review. Optional evidence
 tracks remain separately authorization-gated and require retained
 target-originated evidence rules.
 
 Post-closeout CI follow-up `d8dfc3b` fixed telemetry simulator tests for the
 declared Go `1.23.2` toolchain used in GitHub Actions. The repaired `main`
 Fast CI run passed, the update-stable workflow passed, and remote `stable`
-advanced to filtered commit `cf51dd7`. The stable branch filter check confirmed
-that AI-agent-only docs, handoffs, prompts, roadmap packs, Codex task brief,
-and conversation summary are absent from `stable`.
+advanced to filtered commit `cf51dd7`. Post-rc2 polish then added a local
+stable-filter checker, hardened the update-stable workflow guards, clarified
+Fast CI and manual release-gate status, and kept AI-agent-only docs, handoffs,
+prompts, roadmap packs, Codex task files, conversation summaries, and phase
+ledgers out of the filtered stable branch contract.
 
 Unsupported claims remain unsupported: no CAL-ITP/Caltrans compliance,
 production readiness, agency adoption, consumer acceptance, final-root
