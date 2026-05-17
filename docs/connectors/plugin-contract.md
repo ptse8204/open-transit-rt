@@ -68,6 +68,9 @@ collector, or consumer submission tool.
 
 ## Connector Types
 
+For a copy/adapt matrix across all categories, see
+[Connector Catalog](catalog.md).
+
 `telemetry_source`: Transforms external observations into the authenticated
 `POST /v1/telemetry` payload. It must fail closed and must not emit fake
 vehicle state when upstream data is malformed, stale, future-dated, wrong
@@ -131,13 +134,14 @@ default changes.
 
 ## Conformance
 
-Each connector manifest lists synthetic conformance cases. Phase 101 V2
-coverage includes additional telemetry missing-field and invalid-coordinate
-cases, prediction missing Vehicle Positions reference and public-mutation
-attempt cases, validator command-blocking behavior, and monitoring
-unredacted-destination blocking. Passing conformance is a local quality signal
-only. It is not compliance proof, consumer acceptance, vendor compatibility,
-production AVL reliability, or production ETA-quality evidence.
+Each connector manifest lists synthetic conformance cases. Current coverage
+includes telemetry missing-field and invalid-coordinate cases, prediction
+missing Vehicle Positions reference and public-mutation attempt cases,
+validator command-blocking behavior, monitoring unredacted-destination
+blocking, and consumer/discovery no-submit and no-status-mutation cases.
+Passing conformance is a local quality signal only. It is not compliance
+proof, consumer acceptance, vendor compatibility, production AVL reliability,
+or production ETA-quality evidence.
 
 ## Compatibility And Deprecation
 

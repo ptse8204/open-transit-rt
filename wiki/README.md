@@ -131,7 +131,7 @@ as separate private admin surfaces.
 | Keep the system healthy week to week | [Small Agency Maintenance Guide](../docs/tutorials/small-agency-maintenance-guide.md) |
 | Understand what to click in the private UI | [Operations Console Tour](operations-console-tour.md) |
 | Use your own public GTFS ZIP | [Agency Evaluation Checklist](agency-adoption-checklist.md) |
-| Connect GPS, AVL, CSV, or sidecar telemetry | [Connector Cookbook](connector-cookbook.md) |
+| Connect GPS, AVL, CSV, prediction, validator, monitoring, or discovery systems | [Connector Catalog](../docs/connectors/catalog.md) and [Connector Cookbook](connector-cookbook.md) |
 | Review release-candidate and connector maturity | [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations) |
 | Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](calitp-readiness-plain-english.md) |
 | Understand readiness and evidence boundaries | [Readiness And Evidence](readiness-and-evidence.md) |

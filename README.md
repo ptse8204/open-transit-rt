@@ -242,6 +242,32 @@ must stay private and authenticated.
 
 ## Connect Telemetry / GPS / AVL
 
+Connector review starts in the browser:
+
+```text
+/admin/operations/connectors
+/admin/operations/connectors/workbench
+/admin/operations/connectors/tests
+```
+
+The connector catalog covers:
+
+- Vehicle / GPS / AVL connectors: CSV replay adapter, HTTP polling adapter,
+  webhook sidecar adapter, generic JSON transform adapter, vendor-shaped
+  synthetic examples, and authenticated `POST /v1/telemetry`.
+- Prediction connectors: deterministic built-in predictor, external HTTP
+  predictor adapter, shadow-mode predictor, fail-closed behavior, and
+  TheTransitClock candidate notes only.
+- Validator connectors: MobilityData static GTFS validator, MobilityData GTFS
+  Realtime validator, allowlisted validator IDs, and private validation health.
+- Monitoring/export connectors: local health summaries, operations notify
+  draft, monitoring/export helper, and deployment-owned monitoring boundary.
+- Consumer/discovery connectors: `/public/feeds.json`, static GTFS URL,
+  Vehicle Positions URL, Trip Updates URL, Alerts URL, and prepared packet
+  review without submission or acceptance claims.
+- Future connector extension model: manifest-based sidecars, no arbitrary
+  dynamic backend plugin loading, and conformance tests required.
+
 Vehicle, GPS, AVL, CSV, or sidecar sources should transform observations into
 the authenticated telemetry boundary:
 
@@ -253,6 +279,7 @@ JSON telemetry payload required
 
 Start with:
 
+- [Connector Catalog](docs/connectors/catalog.md)
 - [Connector Cookbook](wiki/connector-cookbook.md)
 - [Integration Adapter Kit](docs/integration-adapter-kit.md)
 - [Device And AVL Integration](docs/tutorials/device-avl-integration.md)
@@ -310,6 +337,7 @@ evaluation or open-source contribution.
 - [Dependencies](docs/dependencies.md)
 - [Public Docs And Site Freeze Checklist](docs/public-docs-site-freeze-checklist.md)
 - [Contributor First Issues](docs/contributor-first-issues.md)
+- [Connector Catalog](docs/connectors/catalog.md)
 - [Contributing Connectors](docs/connectors/contributing-connectors.md)
 - [Current Status](docs/current-status.md)
 - [Latest Handoff](docs/handoffs/latest.md)

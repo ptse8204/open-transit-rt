@@ -13,10 +13,12 @@ reliability proof, consumer acceptance, compliance proof, or release proof.
 - Prediction sidecar stubs that use the documented adapter boundary.
 - Validator allowlist examples that reject raw command injection.
 - Monitoring/export examples that redact destinations and default to no-send.
+- Consumer/discovery metadata examples that keep public feed URL review
+  prepared-only with no submission or status mutation.
 - Manifest lint improvements using committed synthetic fixtures.
 - Adapter conformance cases for malformed, stale, future, wrong-agency,
   unknown-device, low-quality, duplicate, out-of-order, missing-reference,
-  public-mutation, timeout, or redaction failures.
+  public-mutation, timeout, redaction, no-submit, or status-mutation failures.
 
 ## Required Boundaries
 
@@ -43,6 +45,7 @@ Connector work usually touches one or more of:
 - `testdata/adapter-conformance/...`
 - `docs/integration-adapter-kit.md`
 - `docs/connectors/plugin-contract.md`
+- `docs/connectors/catalog.md`
 - `docs/connectors/redaction-first-recipes.md`
 - `docs/tutorials/external-adapter-conformance.md`
 - `wiki/connector-cookbook.md`
@@ -79,8 +82,8 @@ make audit-final-claim-review
 
 In the PR, state:
 
-- connector shape: telemetry, prediction, validator, monitoring, consumer
-  metadata, or docs-only;
+- connector shape: telemetry, prediction, validator, monitoring/export,
+  consumer/discovery, future extension model, or docs-only;
 - whether it is synthetic/local only;
 - fixtures added or updated;
 - checks run;

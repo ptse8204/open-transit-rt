@@ -2517,6 +2517,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>compliance_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ComplianceClaimed}}</td></tr>
 <tr><th><code>production_readiness_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
 </tbody></table>
+<h3>Connector Catalog</h3>
+<p>Use this catalog to choose a starter shape, copy the matching example or contract, and run the first local check before any deployment-owned integration work.</p>
+<table><thead><tr><th>Category</th><th>Connector</th><th>Status</th><th>Start with</th><th>Browser review</th><th>First safe check</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+{{range .ConnectorHub.Catalog}}
+<tr>
+<td>{{.Group}}</td>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.StartWith}}</td>
+<td>{{.BrowserReview}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
 <div class="card-grid" aria-label="Connector categories">
 {{range .ConnectorHub.Categories}}
 <section class="card">
@@ -2746,6 +2762,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 </tbody></table>
 <p><strong>Docs:</strong> {{range .ConnectorWorkbench.MonitoringGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
+<h3>{{.ConnectorWorkbench.ConsumerGuide.Title}}</h3>
+<p class="warning">{{.ConnectorWorkbench.ConsumerGuide.Boundary}}</p>
+<table><thead><tr><th>Recipe</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+{{range .ConnectorWorkbench.ConsumerGuide.Rows}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.WhatThisIs}}</td>
+<td>{{range .Inputs}}{{.}}<br>{{end}}</td>
+<td>{{range .Outputs}}{{.}}<br>{{end}}</td>
+<td>{{.FailureBehavior}}</td>
+<td><code>{{.FirstSafeCheck}}</code></td>
+<td>{{.DoesNotProve}}</td>
+<td>{{range .ReviewLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<p><strong>Docs:</strong> {{range .ConnectorWorkbench.ConsumerGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
 <h3>Synthetic Conformance Viewer</h3>
 <p class="warning">{{.ConnectorWorkbench.Conformance.Boundary}}</p>
 <table><tbody>

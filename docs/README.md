@@ -60,6 +60,7 @@ helper, and what the local evaluation does not prove.
 ## Integrator Docs
 
 - [Integration Adapter Kit](integration-adapter-kit.md)
+- [Connector Catalog](connectors/catalog.md)
 - [Connector Plugin Contract](connectors/plugin-contract.md)
 - [Contributing Connectors](connectors/contributing-connectors.md)
 - [Extension Governance](extension-governance.md)
@@ -75,8 +76,8 @@ helper, and what the local evaluation does not prove.
 External-connection maturity means synthetic/local review of telemetry to
 `POST /v1/telemetry`, predictor adapters behind `internal/prediction.Adapter`,
 validator tooling, monitoring/export surfaces, feed-consumer URL/metadata
-expectations, and redaction checks. Real vendor proof remains optional
-evidence only when authorized.
+expectations, future manifest-based sidecars, and redaction checks. Real
+vendor proof remains optional evidence only when authorized.
 
 ## Release-Candidate Docs
 

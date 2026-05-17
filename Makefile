@@ -529,6 +529,10 @@ validate:
 	@test -f examples/connectors/predictor-sidecar-stub/connector.json
 	@test -f examples/connectors/predictor-sidecar-stub/main.go
 	@test -f examples/connectors/predictor-sidecar-stub/fixtures/prediction-input.json
+	@test -f examples/connectors/consumer-discovery-metadata/README.md
+	@test -f examples/connectors/consumer-discovery-metadata/connector.json
+	@test -f examples/connectors/consumer-discovery-metadata/main.go
+	@test -f examples/connectors/consumer-discovery-metadata/fixtures/feeds.json
 	@test -f examples/connectors/monitoring-export/README.md
 	@test -f examples/connectors/monitoring-export/connector.json
 	@test -f examples/connectors/monitoring-export/main.go
@@ -558,6 +562,9 @@ validate:
 	@test -f testdata/adapter-conformance/fixtures/monitoring-redaction.json
 	@test -f testdata/adapter-conformance/fixtures/monitoring-no-send.json
 	@test -f testdata/adapter-conformance/fixtures/monitoring-unredacted-destination.json
+	@test -f testdata/adapter-conformance/fixtures/consumer-discovery-feed-url-metadata.json
+	@test -f testdata/adapter-conformance/fixtures/consumer-discovery-status-mutation.json
+	@test -f testdata/adapter-conformance/fixtures/consumer-discovery-submission-automation.json
 	@for f in testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json; do python3 -m json.tool "$$f" >/dev/null; done
 	@test -f testdata/telemetry-simulator/README.md
 	@test -f testdata/telemetry-simulator/on-route.json

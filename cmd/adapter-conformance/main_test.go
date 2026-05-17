@@ -16,6 +16,7 @@ func TestAdapterConformanceCommandsPassSyntheticSuite(t *testing.T) {
 		{"prediction", "--suite", "testdata/adapter-conformance"},
 		{"validator", "--suite", "testdata/adapter-conformance"},
 		{"monitoring", "--suite", "testdata/adapter-conformance"},
+		{"consumer_discovery", "--suite", "testdata/adapter-conformance"},
 		{"run", "--suite", "testdata/adapter-conformance"},
 	} {
 		t.Run(strings.Join(args, "_"), func(t *testing.T) {
@@ -34,10 +35,11 @@ func TestAdapterConformanceV2ScenarioCoverage(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := map[string][]string{
-		"telemetry":  {"malformed", "stale", "future", "wrong-agency", "unknown-device", "low-quality", "duplicate", "out-of-order", "missing-required-field", "invalid-coordinate"},
-		"prediction": {"timeout", "malformed", "stale", "wrong-agency", "low-confidence", "missing-vehicle-positions-ref", "public-mutation-attempt"},
-		"validator":  {"allowlist", "raw-command"},
-		"monitoring": {"redaction", "no-send", "unredacted-destination"},
+		"telemetry":          {"malformed", "stale", "future", "wrong-agency", "unknown-device", "low-quality", "duplicate", "out-of-order", "missing-required-field", "invalid-coordinate"},
+		"prediction":         {"timeout", "malformed", "stale", "wrong-agency", "low-confidence", "missing-vehicle-positions-ref", "public-mutation-attempt"},
+		"validator":          {"allowlist", "raw-command"},
+		"monitoring":         {"redaction", "no-send", "unredacted-destination"},
+		"consumer_discovery": {"feed-url-metadata", "status-mutation-blocked", "submission-automation-blocked"},
 	}
 	for caseType, scenarios := range want {
 		if !sameStrings(requiredScenarios[caseType], scenarios) {

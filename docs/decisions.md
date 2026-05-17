@@ -660,3 +660,29 @@ and private database access under operator or technical-helper control. These
 signals do not prove compliance, consumer display, public launch, SLA, uptime,
 production readiness, vendor compatibility, hardware certification, production
 AVL reliability, production-grade ETA quality, or real-world ETA accuracy.
+
+## ADR-0049 -- Treat connectors as a catalog plus conformance contract
+
+Phase 06 adds one connector catalog across README, docs, private UI, examples,
+and static site source. The catalog spells out Vehicle / GPS / AVL,
+Prediction, Validator, Monitoring/export, Consumer/discovery, and Future
+extension model paths, then maps each one to a copy/adapt starter and first
+local check.
+
+Connectors remain manifest-described sidecars or command adapters. Open
+Transit RT still does not support arbitrary dynamic backend plugin loading.
+Runtime interfaces stay explicit: authenticated `/v1/telemetry`, the
+prediction adapter boundary, server-owned validator IDs, redacted monitoring
+summaries, and public feed URL metadata.
+
+Consumer/discovery is now covered by a synthetic example and adapter
+conformance cases for feed URL metadata, submission blocking, and status
+mutation blocking. This closes the gap where the manifest type existed but had
+no copyable example or conformance group.
+
+Connector checks remain local quality signals only. They do not contact
+external systems, create evidence, move consumer status, prove compliance,
+prove production readiness, prove consumer acceptance, prove vendor
+compatibility, prove hardware certification, provide hosted service
+availability, provide SLA coverage, prove production AVL reliability, or prove
+production-grade ETA quality.

@@ -32,6 +32,7 @@ Use the existing boundary that matches the system being integrated:
 | Send device, GPS, or AVL observations | Transform to `POST /v1/telemetry` | [Device And AVL Integration](tutorials/device-avl-integration.md) |
 | Demonstrate an AVL transform without sending data | `cmd/avl-vendor-adapter --dry-run` with synthetic fixtures | [AVL fixture manifest](../testdata/avl-vendor/README.md) |
 | Validate an external connector manifest | Sidecar/manifest contract and local checks | [Connector Plugin Contract](connectors/plugin-contract.md), [External Connection Readiness](external-connection-readiness.md) |
+| Choose a connector category and copy/adapt starter | Vehicle/GPS/AVL, prediction, validator, monitoring/export, consumer/discovery, and future extension model catalog | [Connector Catalog](connectors/catalog.md) |
 | Choose a local/synthetic connector recipe in the private browser UI | `/admin/operations/connectors/workbench` | [Connector Plugin Contract](connectors/plugin-contract.md), [External Adapter Conformance](tutorials/external-adapter-conformance.md) |
 | Choose redaction-first connector templates | Source-shape decision tree and no-send templates | [Redaction-First Connector Recipes](connectors/redaction-first-recipes.md) |
 | Run synthetic adapter conformance | Offline synthetic conformance suite | [External Adapter Conformance](tutorials/external-adapter-conformance.md) |
@@ -102,13 +103,15 @@ For contributor workflow, fixture boundaries, and PR expectations, see
 
 ## Generic Connector Examples
 
-Stage 5 adds generic connector examples under `examples/connectors/` for:
+Generic connector examples live under `examples/connectors/` for:
 
 - telemetry HTTP poller shape;
 - telemetry CSV replay shape;
+- telemetry webhook sidecar shape;
 - prediction sidecar stub shape;
 - validator allowlist shape;
-- monitoring/export summary shape.
+- monitoring/export summary shape;
+- consumer/discovery metadata shape.
 
 Telemetry examples share a small stdlib-only SDK-style helper under
 `examples/connectors/sdk/telemetry` for synthetic dry-run normalization,
@@ -132,6 +135,12 @@ The monitoring/export example uses `examples/connectors/sdk/monitoring` for
 redacted no-send batches with status mutation and evidence writes disabled. It
 does not prove notification delivery, SLA coverage, uptime, hosted service
 availability, or production readiness.
+
+The consumer discovery metadata example prepares local feed URL metadata while
+keeping submission, status mutation, network send, and evidence-write flags
+disabled. It does not prove consumer submission, review, acceptance,
+ingestion, listing, display, compliance, public launch, or production
+readiness.
 
 These examples use synthetic fixtures only and are included in local manifest
 and conformance checks. They are developer examples, not real vendor adapters,

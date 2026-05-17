@@ -29,9 +29,11 @@ destinations. These are fail-closed local checks, not real integration proof.
 | --- | --- | --- |
 | `connectors/telemetry-http-poller` | A synthetic sidecar that normalizes source observations before telemetry ingest | No real source polling, credentials, network send, or vendor compatibility |
 | `connectors/telemetry-csv-replay` | A synthetic CSV replay adapter for local development | No production import workflow or realtime data proof |
+| `connectors/telemetry-webhook-sidecar` | A synthetic webhook-style transform before authenticated telemetry ingest | No live receiver, external send, hardware certification, or vendor compatibility |
 | `connectors/predictor-sidecar-stub` | The Trip Updates predictor sidecar boundary | No production-grade ETA quality or named predictor compatibility |
 | `connectors/validator-allowlist` | Server-owned validator ID allowlist decision | No validator-clean result, compliance proof, or consumer acceptance |
 | `connectors/monitoring-export` | Redacted monitoring/export summary shape | No notification delivery, monitoring service, SLA, or evidence creation |
+| `connectors/consumer-discovery-metadata` | Prepared-only feed URL metadata review | No consumer submission, review, acceptance, ingestion, listing, display, compliance, or public launch |
 
 Telemetry examples share a small SDK-style helper under
 `connectors/sdk/telemetry` for dry-run normalization, fail-closed drop reasons,
@@ -48,6 +50,11 @@ no-send output, no status mutation, and no evidence writes. The validator
 example uses allowlisted validator ID/feed-type pairings plus safe fixture
 references and rejects raw validator command patterns.
 
+The consumer discovery metadata example reviews `/public/feeds.json`, static
+GTFS, Vehicle Positions, Trip Updates, Alerts, and license/contact fields
+while keeping submission, status mutation, network send, and evidence writes
+disabled.
+
 ## Fixture Boundary
 
 Examples use synthetic fixtures only. Do not add real device tokens, API keys,
@@ -58,6 +65,7 @@ details.
 ## Related Docs
 
 - [Integration Adapter Kit](../docs/integration-adapter-kit.md)
+- [Connector Catalog](../docs/connectors/catalog.md)
 - [Connector Plugin Contract](../docs/connectors/plugin-contract.md)
 - [Contributing Connectors](../docs/connectors/contributing-connectors.md)
 - [Redaction-First Connector Recipes](../docs/connectors/redaction-first-recipes.md)

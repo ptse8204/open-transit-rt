@@ -21,6 +21,7 @@ production-grade ETA claims.
 | External prediction sidecar | `internal/prediction.Adapter` shadow/fail-closed boundary | `go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance` | Output is stale, malformed, wrong-agency, low-confidence, lacks Vehicle Positions reference, or attempts public mutation. |
 | Monitoring/export summaries | Redacted no-send monitoring/export adapter | `go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance` | Destination, contact address, token, private endpoint, or unredacted incident detail appears in output. |
 | Off-host validation | Server-owned validator IDs and operator-run tooling | `go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance` | A raw validator command, private artifact path, or unsupported validator ID is required. |
+| Consumer/discovery metadata | Prepared-only public feed URL metadata review | `go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance` | Submission automation, consumer status mutation, portal contact, retained evidence write, or acceptance wording appears. |
 
 ## Templates
 
@@ -72,6 +73,20 @@ Monitoring/export template:
 - Default: `send_by_default=false` and destination redacted in examples.
 - Fail closed: block export when destination, token, private endpoint, or
   unredacted incident detail appears.
+
+Consumer/discovery template:
+
+- Allowed fields: public feed base URL, static GTFS URL, Vehicle Positions
+  URL, Trip Updates URL, Alerts URL, license URL, and technical contact role.
+- Redact fields: operator email address, portal URL, private review notes, and
+  target-specific instructions.
+- Blocked fields: submission status mutation, consumer acceptance flag, portal
+  credentials, target-originated evidence write, and automatic contact flag.
+- Default: `submit_enabled=false`, `status_mutation=false`,
+  `network_send=false`, and `evidence_write=false`.
+- Fail closed: block connector behavior when submission automation, consumer
+  status mutation, external portal contact, retained evidence write, or
+  acceptance wording appears.
 
 ## Local Checks
 

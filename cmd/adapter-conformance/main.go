@@ -47,6 +47,11 @@ var requiredScenarios = map[string][]string{
 		"no-send",
 		"unredacted-destination",
 	},
+	"consumer_discovery": {
+		"feed-url-metadata",
+		"status-mutation-blocked",
+		"submission-automation-blocked",
+	},
 }
 
 type suite struct {
@@ -83,7 +88,7 @@ func run(args []string, stdout io.Writer, stderr io.Writer) int {
 
 	command := args[0]
 	switch command {
-	case "run", "manifest", "telemetry", "prediction", "validator", "monitoring":
+	case "run", "manifest", "telemetry", "prediction", "validator", "monitoring", "consumer_discovery":
 	default:
 		fmt.Fprintf(stderr, "unknown command %q\n", command)
 		usage(stderr)
@@ -135,6 +140,7 @@ func usage(w io.Writer) {
   adapter-conformance prediction --suite testdata/adapter-conformance
   adapter-conformance validator --suite testdata/adapter-conformance
   adapter-conformance monitoring --suite testdata/adapter-conformance
+  adapter-conformance consumer_discovery --suite testdata/adapter-conformance
   adapter-conformance run --suite testdata/adapter-conformance
 
 Offline only: validates synthetic fixtures and connector manifests without
@@ -366,6 +372,17 @@ func requiredAssertions(tc testCase) error {
 			required = []string{"offline", "no_send"}
 		case "unredacted-destination":
 			required = []string{"offline", "redacted", "no_send"}
+		default:
+			required = []string{"offline"}
+		}
+	case "consumer_discovery":
+		switch tc.Scenario {
+		case "feed-url-metadata":
+			required = []string{"offline", "prepared_only"}
+		case "status-mutation-blocked":
+			required = []string{"offline", "status_mutation_blocked"}
+		case "submission-automation-blocked":
+			required = []string{"offline", "submission_blocked"}
 		default:
 			required = []string{"offline"}
 		}

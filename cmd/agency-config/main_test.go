@@ -2575,7 +2575,21 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 	for _, category := range hub.Categories {
 		ids = append(ids, category.ID)
 	}
-	wantIDs := []string{"telemetry_source", "prediction_engine", "validator", "monitoring_export", "consumer_discovery"}
+	if len(hub.Catalog) != 28 {
+		t.Fatalf("catalog rows = %d, want 28", len(hub.Catalog))
+	}
+	wantCatalogIDs := []string{"csv_replay_adapter", "http_polling_adapter", "webhook_sidecar_adapter", "generic_json_transform_adapter", "vendor_shaped_synthetic_examples", "authenticated_telemetry_post", "deterministic_builtin_predictor", "external_http_predictor_adapter", "shadow_mode_predictor", "fail_closed_predictor_behavior", "thetransitclock_candidate_notes", "mobilitydata_static_gtfs_validator", "mobilitydata_gtfs_realtime_validator", "allowlisted_validator_ids", "private_validation_health", "local_health_summaries", "operations_notify_draft", "monitoring_export_helper", "deployment_owned_monitoring_boundary", "public_feeds_json", "static_gtfs_url", "vehicle_positions_url", "trip_updates_url", "alerts_url", "consumer_packet_preparedness", "manifest_based_sidecars", "no_dynamic_backend_plugin_loading", "conformance_tests_required"}
+	var gotCatalogIDs []string
+	for _, row := range hub.Catalog {
+		gotCatalogIDs = append(gotCatalogIDs, row.ID)
+		if row.Group == "" || row.Label == "" || row.Status == "" || row.StartWith == "" || row.BrowserReview == "" || row.FirstSafeCheck == "" || row.DoesNotProve == "" || len(row.DocsLinks) == 0 {
+			t.Fatalf("invalid catalog row: %+v", row)
+		}
+	}
+	if strings.Join(gotCatalogIDs, ",") != strings.Join(wantCatalogIDs, ",") {
+		t.Fatalf("catalog ids = %v, want %v", gotCatalogIDs, wantCatalogIDs)
+	}
+	wantIDs := []string{"telemetry_source", "prediction", "validator", "monitoring_export", "consumer_discovery", "future_extension_model"}
 	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
 		t.Fatalf("category ids = %v, want %v", ids, wantIDs)
 	}
@@ -2592,7 +2606,7 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 			t.Fatalf("registry entry must remain disabled, fail-closed, and conformance-backed: %+v", entry)
 		}
 	}
-	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("registry ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -2619,7 +2633,7 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Hub", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Telemetry / GPS / AVL source", "Prediction engine", "Validator connector", "Monitoring / export connector", "Consumer / discovery workflow", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "disabled by default", "fail closed", "synthetic cases"} {
+	for _, want := range []string{"Connector Hub", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2725,7 +2739,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 	if view.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
 	}
-	wantRecipes := []string{"csv_telemetry_sandbox", "api_polling_recipe", "webhook_transform_boundary", "synthetic_only", "predictor_sidecar", "monitoring_export", "public_feed_url_verification"}
+	wantRecipes := []string{"csv_telemetry_sandbox", "api_polling_recipe", "webhook_transform_boundary", "synthetic_only", "predictor_sidecar", "monitoring_export", "public_feed_url_verification", "consumer_discovery_metadata"}
 	var gotRecipes []string
 	for _, recipe := range view.Recipes {
 		gotRecipes = append(gotRecipes, recipe.ID)
@@ -2733,7 +2747,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 	if strings.Join(gotRecipes, ",") != strings.Join(wantRecipes, ",") {
 		t.Fatalf("recipe ids = %v, want %v", gotRecipes, wantRecipes)
 	}
-	wantDecisionRows := []string{"csv_vehicle_locations", "gps_polling_api", "avl_can_post", "synthetic_only", "prediction_sidecar", "monitoring_export", "off_host_validation"}
+	wantDecisionRows := []string{"csv_vehicle_locations", "gps_polling_api", "avl_can_post", "synthetic_only", "prediction_sidecar", "monitoring_export", "off_host_validation", "consumer_discovery_metadata"}
 	var gotDecisionRows []string
 	for _, row := range view.DecisionTree {
 		gotDecisionRows = append(gotDecisionRows, row.ID)
@@ -2741,7 +2755,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 	if strings.Join(gotDecisionRows, ",") != strings.Join(wantDecisionRows, ",") {
 		t.Fatalf("decision row ids = %v, want %v", gotDecisionRows, wantDecisionRows)
 	}
-	wantTemplates := []string{"telemetry_source", "prediction_sidecar", "validator_off_host", "monitoring_export"}
+	wantTemplates := []string{"telemetry_source", "prediction_sidecar", "validator_off_host", "monitoring_export", "consumer_discovery"}
 	var gotTemplates []string
 	for _, row := range view.RedactionTemplates {
 		gotTemplates = append(gotTemplates, row.ID)
@@ -2767,7 +2781,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 			t.Fatalf("manifest row must remain disabled, fail-closed, and conformance-backed: %+v", row)
 		}
 	}
-	wantRegistryIDs := []string{"example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("manifest ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -2791,7 +2805,7 @@ func TestConnectorWorkbenchHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Workbench", "Connection Decision Tree", "csv_vehicle_locations", "Redaction-First Templates", "Telemetry Source Template", "send_enabled=false", "public_mutation=false", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "telemetry-missing-required-field", "prediction-timeout", "prediction-public-mutation-attempt", "validator-allowlist", "validator-raw-command", "monitoring-no-send", "monitoring-unredacted-destination", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "Example Manifest Registry Review", "Manifest Lint Summary", "Positive claim allowlist", "Safe plugin definition", "Synthetic telemetry CSV replay", "Synthetic telemetry webhook sidecar", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
+	for _, want := range []string{"Connector Workbench", "Connection Decision Tree", "csv_vehicle_locations", "consumer_discovery_metadata", "Redaction-First Templates", "Telemetry Source Template", "Consumer Discovery Template", "send_enabled=false", "public_mutation=false", "submit_enabled=false", "Recipe Chooser", "Dry-Run Command Cards", "Synthetic Telemetry Normalization Preview", "Webhook And AVL Transform Boundaries", "Prediction Sidecar Guide", "external_http_shadow", "Vehicle Positions stay independent", "Monitoring Export Guide", "no_send_export_batch", "Consumer / Discovery Guide", "prepared_packet_review", "no_submit_no_status_mutation", "network_send=false", "Synthetic Conformance Viewer", "adapter-conformance-full", "telemetry-malformed", "telemetry-missing-required-field", "prediction-timeout", "prediction-public-mutation-attempt", "validator-allowlist", "validator-raw-command", "monitoring-no-send", "monitoring-unredacted-destination", "consumer-discovery-feed-url-metadata", "consumer-discovery-status-mutation-blocked", "Receiver is deployment-owned", "Transform before telemetry ingest", "Credentials stay server-owned", "Review before any intentional send", "I have a CSV of vehicle locations", "I have a GPS API", "I have an AVL source that can POST", "I want synthetic telemetry only", "I want an external predictor", "I want monitoring summaries", "I want off-host validation", "I want feed discovery metadata", "Example Manifest Registry Review", "Manifest Lint Summary", "Positive claim allowlist", "Safe plugin definition", "Synthetic telemetry CSV replay", "Synthetic telemetry webhook sidecar", "Synthetic consumer discovery metadata", "device-low", "low quality", "network send enabled: false", "disabled by default", "fail closed", "does not upload manifests"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2900,6 +2914,7 @@ func TestConnectorTestsJSONShapeFlagsAndCommands(t *testing.T) {
 		"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
 		"go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance",
 		"go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+		"go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
 		"make test-connector-examples",
 	}
 	var gotCommands []string
@@ -2922,7 +2937,7 @@ func TestConnectorTestsHTMLInstructionsOnly(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Test Instructions", "make external-connection-check", "make adapter-conformance", "make test-connector-examples", "Telemetry connector cases", "Prediction connector cases", "Validator connector cases", "Monitoring/export connector cases", "does not execute commands", "read manifest-provided commands"} {
+	for _, want := range []string{"Connector Test Instructions", "make external-connection-check", "make adapter-conformance", "make test-connector-examples", "Telemetry connector cases", "Prediction connector cases", "Validator connector cases", "Monitoring/export connector cases", "Consumer/discovery connector cases", "consumer_discovery", "does not execute commands", "read manifest-provided commands"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -7502,8 +7517,23 @@ func assertOperationsHelpSafeStrings(t *testing.T, body string) {
 
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
-	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Categories) != 5 || len(hub.Registry.Entries) != 6 {
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 7 {
 		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
+	}
+	seenCatalogIDs := map[string]bool{}
+	for _, row := range hub.Catalog {
+		if row.ID == "" || row.Group == "" || row.Label == "" || row.Status == "" || row.StartWith == "" || row.BrowserReview == "" || row.FirstSafeCheck == "" || row.DoesNotProve == "" || len(row.DocsLinks) == 0 {
+			t.Fatalf("invalid connector catalog row shape: %+v", row)
+		}
+		if seenCatalogIDs[row.ID] {
+			t.Fatalf("duplicate connector catalog id %q", row.ID)
+		}
+		seenCatalogIDs[row.ID] = true
+		for _, link := range row.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("catalog row %s has unsafe docs link %q", row.ID, link)
+			}
+		}
 	}
 	seenIDs := map[string]bool{}
 	for _, category := range hub.Categories {
@@ -7552,7 +7582,7 @@ func assertConnectorHubFlagsFalse(t *testing.T, flags connectorHubClaimFlags) {
 
 func assertConnectorTestsShape(t *testing.T, view connectorTestsView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Commands) != 8 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Commands) != 9 {
 		t.Fatalf("invalid connector tests top-level shape: %+v", view)
 	}
 	seenIDs := map[string]bool{}
@@ -7581,7 +7611,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 7 || len(view.Recipes) != 7 || len(view.RedactionTemplates) != 4 || len(view.DryRunCommands) != 4 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 9 || view.Conformance.CaseCount != 22 || len(view.Conformance.Groups) != 4 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 6 || len(view.ManifestReview.LintChecks) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 8 || len(view.Recipes) != 8 || len(view.RedactionTemplates) != 5 || len(view.DryRunCommands) != 5 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ConsumerGuide.Title == "" || len(view.ConsumerGuide.Rows) != 3 || len(view.ConsumerGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 12 || view.Conformance.CaseCount != 25 || len(view.Conformance.Groups) != 5 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 7 || len(view.ManifestReview.LintChecks) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenDecisions := map[string]bool{}
@@ -7714,6 +7744,7 @@ func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	}
 	assertConnectorWorkbenchGuideShape(t, "prediction", view.PredictionGuide)
 	assertConnectorWorkbenchGuideShape(t, "monitoring", view.MonitoringGuide)
+	assertConnectorWorkbenchGuideShape(t, "consumer", view.ConsumerGuide)
 	assertConnectorWorkbenchConformanceShape(t, view.Conformance)
 }
 
@@ -7746,9 +7777,9 @@ func assertConnectorWorkbenchGuideShape(t *testing.T, label string, guide connec
 
 func assertConnectorWorkbenchConformanceShape(t *testing.T, view connectorWorkbenchConformanceView) {
 	t.Helper()
-	wantCases := map[string]int{"telemetry": 10, "prediction": 7, "validator": 2, "monitoring": 3}
+	wantCases := map[string]int{"telemetry": 10, "prediction": 7, "validator": 2, "monitoring": 3, "consumer_discovery": 3}
 	seen := map[string]bool{}
-	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 9 || view.CaseCount != 22 || len(view.Groups) != 4 || len(view.RunnerCommands) != 4 {
+	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 12 || view.CaseCount != 25 || len(view.Groups) != 5 || len(view.RunnerCommands) != 4 {
 		t.Fatalf("invalid connector workbench conformance view: %+v", view)
 	}
 	for _, command := range view.RunnerCommands {

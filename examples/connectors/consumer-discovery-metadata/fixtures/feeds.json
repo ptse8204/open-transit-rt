@@ -1,0 +1,16 @@
+{
+  "synthetic_only": true,
+  "agency_id": "demo-agency",
+  "feed_base_url": "https://example.org/open-transit-rt",
+  "static_gtfs_url": "https://example.org/open-transit-rt/public/gtfs/schedule.zip",
+  "vehicle_positions_url": "https://example.org/open-transit-rt/public/gtfsrt/vehicle_positions.pb",
+  "trip_updates_url": "https://example.org/open-transit-rt/public/gtfsrt/trip_updates.pb",
+  "alerts_url": "https://example.org/open-transit-rt/public/gtfsrt/alerts.pb",
+  "license_url": "https://example.org/open-transit-rt/license",
+  "technical_contact_role": "deployment owner",
+  "prepared_only": true,
+  "submit_enabled": false,
+  "status_mutation": false,
+  "network_send": false,
+  "evidence_write": false
+}

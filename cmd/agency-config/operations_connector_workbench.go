@@ -34,6 +34,7 @@ type connectorWorkbenchView struct {
 	WebhookBoundary    connectorWorkbenchWebhookBoundary     `json:"webhook_boundary"`
 	PredictionGuide    connectorWorkbenchGuide               `json:"prediction_guide"`
 	MonitoringGuide    connectorWorkbenchGuide               `json:"monitoring_guide"`
+	ConsumerGuide      connectorWorkbenchGuide               `json:"consumer_guide"`
 	Conformance        connectorWorkbenchConformanceView     `json:"conformance"`
 	ManifestReview     connectorWorkbenchManifestReview      `json:"manifest_review"`
 	ClaimFlags         connectorWorkbenchClaimFlags          `json:"claim_flags"`
@@ -402,6 +403,22 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 				[]string{"examples/connectors/validator-allowlist/README.md", "docs/tutorials/gtfs-validation-triage.md"},
 				[]string{"example.validator-allowlist"},
 			),
+			connectorWorkbenchRecipeView(
+				"consumer_discovery_metadata",
+				"I want feed discovery metadata",
+				"Review public feed URLs and metadata without submitting to consumers or changing prepared-only statuses.",
+				"covered",
+				"Use the consumer discovery metadata example to review /public/feeds.json, feed URLs, license/contact fields, no-submit behavior, and no status mutation.",
+				[]string{"configured public feed base URL", "license/contact metadata", "operator shell for local checks"},
+				"Private console review plus operator shell for local checks.",
+				"go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
+				"Discovery metadata is present and consumer submission/status mutation flags remain blocked.",
+				"Keep all external submission, portal contact, and consumer tracker movement authorization-gated.",
+				"Consumer submission, review, acceptance, ingestion, listing, display, compliance, public launch, or production readiness.",
+				[]string{"/admin/operations/feeds", "/admin/operations/consumers", "/admin/operations/readiness"},
+				[]string{"examples/connectors/consumer-discovery-metadata/README.md", "docs/connectors/catalog.md", "docs/consumer-submission-evidence.md"},
+				[]string{"example.consumer-discovery-metadata", "example.consumer-discovery"},
+			),
 		},
 		RedactionTemplates: connectorWorkbenchRedactionTemplates(),
 		DryRunCommands:     connectorWorkbenchDryRunCommands(),
@@ -409,6 +426,7 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 		WebhookBoundary:    connectorWorkbenchWebhookBoundaryView(),
 		PredictionGuide:    connectorWorkbenchPredictionGuideView(),
 		MonitoringGuide:    connectorWorkbenchMonitoringGuideView(),
+		ConsumerGuide:      connectorWorkbenchConsumerGuideView(),
 		Conformance:        buildConnectorWorkbenchConformanceView(),
 		ManifestReview: connectorWorkbenchManifestReview{
 			Title:            "Example Manifest Registry Review",
@@ -501,6 +519,17 @@ func connectorWorkbenchDecisionTreeRows() []connectorWorkbenchDecisionRow {
 			[]string{"examples/connectors/validator-allowlist/README.md", "docs/tutorials/gtfs-validation-triage.md"},
 			"Validator-clean proof, CAL-ITP/Caltrans compliance, consumer acceptance, public launch, or production readiness.",
 		),
+		connectorWorkbenchDecisionRowView(
+			"consumer_discovery_metadata",
+			"Feed URL and discovery metadata are ready for local review.",
+			"Use the consumer discovery metadata example to review /public/feeds.json, static GTFS, Vehicle Positions, Trip Updates, Alerts, license/contact metadata, and prepared packet boundaries.",
+			"Offline metadata adapter; no portal automation, consumer contact, consumer tracker mutation, or evidence write.",
+			"go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
+			"Stop if a connector needs to submit to a consumer, mutate status, contact a portal, retain target evidence, or claim acceptance.",
+			"/admin/operations/consumers",
+			[]string{"docs/connectors/catalog.md", "examples/connectors/consumer-discovery-metadata/README.md", "docs/consumer-submission-evidence.md"},
+			"Consumer submission, review, acceptance, ingestion, listing, display, compliance, public launch, or production readiness.",
+		),
 	}
 }
 
@@ -581,6 +610,20 @@ func connectorWorkbenchRedactionTemplates() []connectorWorkbenchRedactionTemplat
 			"SLA coverage, uptime guarantee, hosted service availability, retained evidence, compliance, or production readiness.",
 			[]string{"docs/tutorials/self-hosted-operations-notifications.md", "examples/connectors/monitoring-export/README.md"},
 		),
+		connectorWorkbenchRedactionTemplateView(
+			"consumer_discovery",
+			"Consumer Discovery Template",
+			"Public feed metadata, prepared packet review, and discovery URL checks.",
+			"Public URL metadata plus private operator review notes; treat packet-preparation details as private until separately authorized.",
+			[]string{"public feed base URL", "static GTFS URL", "Vehicle Positions URL", "Trip Updates URL", "Alerts URL", "license URL", "technical contact role"},
+			[]string{"operator email address", "portal URL", "private review note", "target-specific instruction"},
+			[]string{"submission status mutation", "consumer acceptance flag", "portal credentials", "target-originated evidence write", "automatic contact flag"},
+			"submit_enabled=false and status_mutation=false in examples.",
+			"Block when submission automation, consumer status mutation, private portal data, or unsupported acceptance wording appears.",
+			"go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
+			"Consumer submission, review, acceptance, ingestion, listing, display, compliance, public launch, or production readiness.",
+			[]string{"docs/connectors/catalog.md", "docs/consumer-submission-evidence.md", "docs/evidence/consumer-submissions/README.md"},
+		),
 	}
 }
 
@@ -646,6 +689,17 @@ func connectorWorkbenchDryRunCommands() []connectorWorkbenchDryRun {
 			"Fix the example or fixture without adding network sends, private payloads, credentials, or stronger claims.",
 			"Real integration proof, production readiness, vendor compatibility, compliance, consumer acceptance, or retained evidence.",
 			[]string{"examples/README.md", "docs/integration-adapter-kit.md"},
+		),
+		connectorWorkbenchDryRunView(
+			"consumer-discovery-conformance",
+			"Consumer discovery conformance cases",
+			"go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
+			"Operator shell outside the browser.",
+			"consumer discovery cases under testdata/adapter-conformance/fixtures",
+			"Public feed metadata, no-submit behavior, and no status mutation remain offline and prepared-only.",
+			"Review the consumer discovery fixture or manifest boundary without changing consumer tracker status.",
+			"Consumer submission, review, acceptance, ingestion, listing, display, compliance, or public launch.",
+			[]string{"docs/connectors/catalog.md", "docs/consumer-submission-evidence.md"},
 		),
 	}
 }
@@ -835,6 +889,55 @@ func connectorWorkbenchMonitoringGuideView() connectorWorkbenchGuide {
 	}
 }
 
+func connectorWorkbenchConsumerGuideView() connectorWorkbenchGuide {
+	return connectorWorkbenchGuide{
+		Title:    "Consumer / Discovery Guide",
+		Boundary: "Consumer discovery connector review only. These rows prepare local feed URL and metadata review; they do not submit to consumers, contact portals, change consumer statuses, create retained evidence, or prove acceptance.",
+		Rows: []connectorWorkbenchGuideRow{
+			connectorWorkbenchGuideRowView(
+				"public_feeds_metadata",
+				"/public/feeds.json metadata",
+				"available",
+				"Review the feed metadata document that points to static GTFS, Vehicle Positions, Trip Updates, and Alerts URLs for this deployment.",
+				[]string{"public feed base URL", "static GTFS URL", "Vehicle Positions URL", "Trip Updates URL", "Alerts URL", "license/contact metadata"},
+				[]string{"local feed metadata review", "missing-field diagnostics", "prepared-only next action"},
+				"Missing URL or metadata fields remain blockers; the connector must not create external submissions or status transitions.",
+				"make smoke",
+				"Consumer ingestion, listing, display, acceptance, compliance, public launch, or production readiness.",
+				[]string{"/admin/operations/feeds", "/admin/operations/readiness"},
+				[]string{"docs/connectors/catalog.md", "docs/release-candidate-readiness.md"},
+			),
+			connectorWorkbenchGuideRowView(
+				"prepared_packet_review",
+				"Prepared packet review",
+				"prepared_only",
+				"Review packet preparedness while preserving the seven prepared-only consumer targets and protected evidence boundaries.",
+				[]string{"prepared target list", "feed URL metadata", "validation summary", "claim-boundary wording"},
+				[]string{"private preparedness summary", "operator next action", "no status mutation"},
+				"Do not move a target without retained target-originated evidence and separate authorization.",
+				"scripts/check-consumer-tracker.sh",
+				"Consumer submission, review, acceptance, ingestion, listing, display, compliance, or public launch.",
+				[]string{"/admin/operations/consumers", "/admin/operations/readiness"},
+				[]string{"docs/consumer-submission-evidence.md", "docs/evidence/consumer-submissions/README.md"},
+			),
+			connectorWorkbenchGuideRowView(
+				"no_submit_no_status_mutation",
+				"No-submit and no-status-mutation behavior",
+				"covered",
+				"Run the consumer discovery conformance cases to verify connector examples remain offline and prepared-only.",
+				[]string{"synthetic discovery metadata fixture", "status-mutation blocking fixture", "submission-automation blocking fixture"},
+				[]string{"offline decision", "blocked unsafe flags", "no evidence write"},
+				"Reject connector behavior that submits to consumers, mutates target status, writes evidence, or claims acceptance.",
+				"go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
+				"Consumer acceptance, consumer display, compliance, public launch, production readiness, or target-originated evidence.",
+				[]string{"/admin/operations/connectors/tests", "/admin/operations/consumers"},
+				[]string{"docs/connectors/catalog.md", "docs/tutorials/external-adapter-conformance.md"},
+			),
+		},
+		DocsLinks: safeDocsLinks([]string{"docs/connectors/catalog.md", "docs/consumer-submission-evidence.md", "docs/evidence/consumer-submissions/README.md"}),
+	}
+}
+
 func connectorWorkbenchGuideRowView(id string, label string, status string, what string, inputs []string, outputs []string, failure string, check string, doesNotProve string, reviewLinks []string, docsLinks []string) connectorWorkbenchGuideRow {
 	return connectorWorkbenchGuideRow{
 		ID:              firstNonEmpty(id, "connector-guide-row"),
@@ -924,14 +1027,14 @@ func connectorWorkbenchConformanceCommands() []connectorWorkbenchDryRun {
 		),
 		connectorWorkbenchDryRunView(
 			"adapter-conformance-validator-monitoring",
-			"Validator and monitoring cases",
-			"go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance && go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
+			"Validator, monitoring, and discovery cases",
+			"make adapter-conformance",
 			"Operator shell outside the browser.",
-			"validator and monitoring cases under testdata/adapter-conformance/fixtures",
-			"Validator IDs stay allowlisted and monitoring/export stays redacted and no-send.",
-			"Fix server-owned validator IDs, redaction expectations, or no-send defaults in committed synthetic fixtures.",
-			"Validator-clean feeds, compliance, SLA/uptime proof, hosted service availability, production readiness, or retained evidence.",
-			[]string{"docs/tutorials/gtfs-validation-triage.md", "docs/tutorials/self-hosted-operations-notifications.md"},
+			"validator, monitoring, and consumer discovery cases under testdata/adapter-conformance/fixtures",
+			"Validator IDs stay allowlisted, monitoring/export stays redacted/no-send, and discovery stays prepared-only without status mutation.",
+			"Fix server-owned validator IDs, redaction expectations, no-send defaults, or consumer discovery boundaries in committed synthetic fixtures.",
+			"Validator-clean feeds, compliance, SLA/uptime proof, hosted service availability, consumer acceptance, production readiness, or retained evidence.",
+			[]string{"docs/connectors/catalog.md", "docs/tutorials/gtfs-validation-triage.md", "docs/tutorials/self-hosted-operations-notifications.md"},
 		),
 	}
 }
@@ -988,6 +1091,13 @@ func connectorWorkbenchCaseGroups(cases []connectorWorkbenchSuiteCase) []connect
 			required: []string{"redaction", "no-send", "unredacted-destination"},
 			command:  "go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
 			boundary: "SLA coverage, uptime guarantee, hosted service availability, production readiness, or retained evidence.",
+		},
+		{
+			id:       "consumer_discovery",
+			label:    "Consumer/discovery connector cases",
+			required: []string{"feed-url-metadata", "status-mutation-blocked", "submission-automation-blocked"},
+			command:  "go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance",
+			boundary: "Consumer submission, review, acceptance, ingestion, listing, display, compliance, public launch, or production readiness.",
 		},
 	}
 	byType := map[string][]connectorWorkbenchSuiteCase{}

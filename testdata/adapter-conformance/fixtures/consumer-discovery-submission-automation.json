@@ -1,0 +1,12 @@
+{
+  "synthetic_only": true,
+  "scenario": "submission-automation-blocked",
+  "agency_id": "demo-agency",
+  "prepared_only": true,
+  "submit_enabled": true,
+  "portal_contact": false,
+  "expected_decision": "reject",
+  "network_send": false,
+  "status_mutation": false,
+  "evidence_write": false
+}
