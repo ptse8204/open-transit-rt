@@ -1,6 +1,7 @@
 # Repo Gaps
 
-This document is the current gap list after Phase 34.
+This document is the conservative product and evidence gap inventory after the
+`v0.1.0-rc.2` local/self-hosted evaluation release candidate.
 
 Historical note: the original version of this file described starter-repo gaps
 before Phases 0 through 33. Those starter scaffolding items are no longer the
@@ -11,9 +12,9 @@ one-command local bootstrap flows, integration fixtures, `docs/decisions.md`,
 Use these files for current status before starting work:
 
 - `docs/current-status.md`
-- `docs/roadmap-status.md`
-- `docs/handoffs/latest.md`
-- `docs/future-roadmap-post-outcome-c.md`
+- `docs/release-candidate-readiness.md`
+- `docs/release-status-v0.1.0-rc.2.md`
+- `docs/ci.md`
 
 Phase 54 refreshed official-source requirement mappings only. Phase 55 added a
 local compliance/readiness packet generator and audit guard only. Neither phase
@@ -58,9 +59,9 @@ themselves.
 
 ## Current Product And Operations Gaps
 
-- No public release / release-candidate gate yet. The next product gate should
-  be `v0.1.0-rc.1` before any full `v0.1.0` tag.
-- Clean-checkout release-candidate readiness still needs one repeatable run
+- No full `v0.1.0` production release gate yet. The current `v0.1.0-rc.2`
+  release candidate is for local/self-hosted evaluation only.
+- Full-release readiness still needs one repeatable clean-checkout run
   that covers `make check`, `make validate`, `make test`, local app startup,
   a public GTFS trial when allowed, five public feed fetches, validator health,
   telemetry simulator, connector/adaptor conformance, and final claim audit.
@@ -88,10 +89,10 @@ themselves.
 - Production multi-tenant hosting proof.
 - Marketplace/vendor-equivalent service packaging and support commitments.
 
-The current action-oriented review lives in
-[Roadmap Status: Review And Recommendations](roadmap-status.md#review-and-recommendations).
-It treats real pilots, final-root proof, consumer submission, and vendor proof
-as optional evidence tracks only when authorized.
+The current action-oriented review lives in the role-based docs index, current
+status summary, and release status docs. Real pilots, final-root proof,
+consumer submission, and vendor proof remain optional evidence tracks only when
+authorized.
 
 ## Claim Boundary
 

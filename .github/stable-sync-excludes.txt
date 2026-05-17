@@ -6,6 +6,7 @@
 
 .cache/
 .DS_Store
+AGENTS.md
 docs/agent/
 docs/handoffs/
 docs/prompts/
@@ -14,9 +15,13 @@ docs/codex-task.md
 docs/conversation-summary.md
 docs/codex-*.md
 docs/codex-*.txt
+docs/codex-*.yaml
+docs/codex-*.yml
 docs/phase-*.md
+docs/*phase-*.md
+docs/**/*phase-*.md
 docs/phase-plan.md
 docs/phase-plan-production-closure.md
 docs/open-transit-rt-master-planner-remaining-work.md
-docs/roadmap-status.md
-docs/roadmap-post-phase-14.md
+docs/*roadmap*.md
+docs/track-b-*.md

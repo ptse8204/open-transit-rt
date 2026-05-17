@@ -75,9 +75,7 @@ and consumer acceptance are not required to use or improve the software; they
 are future evidence milestones only for agencies that choose public launch or
 compliance claims.
 
-The current default next step is product quality and external-connection
-maturity through the
-[Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
-path after the public `v0.1.0-rc.2` release candidate. Real pilots,
-final-root proof, consumer submission, and vendor proof remain optional
-evidence tracks only when authorized.
+The current default next step after the public `v0.1.0-rc.2` release candidate
+is product quality and external-connection maturity. Real pilots, final-root
+proof, consumer submission, and vendor proof remain optional evidence tracks
+only when authorized.

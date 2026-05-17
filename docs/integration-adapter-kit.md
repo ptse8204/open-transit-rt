@@ -9,15 +9,15 @@ not prove certified vendor compatibility, production AVL reliability,
 production-grade ETA quality, consumer acceptance, CAL-ITP/Caltrans compliance,
 agency adoption, hosted SaaS availability, or final-root proof.
 
-The Phase 61+ agency-first roadmap makes external connection quality part of
+The agency-first product direction makes external connection quality part of
 the default productization path.
 The intended integration shape is sidecar plus manifest plus conformance
 testing, not arbitrary dynamic plugin loading. These contracts help operators
 evaluate adapters safely; they do not create evidence or prove third-party
 compatibility.
 
-For the current post-60 scorecard and release-candidate next steps, use
-[Roadmap Status: Review And Recommendations](roadmap-status.md#review-and-recommendations).
+For current release-candidate status and next steps, use
+[Current Status](current-status.md) and [Release Status v0.1.0-rc.2](release-status-v0.1.0-rc.2.md).
 
 ## Adapter Decision Tree
 

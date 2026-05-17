@@ -111,6 +111,28 @@ Detailed guides:
 - [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
 - [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
 
+## CI And Validation
+
+Fast GitHub Actions run the same lightweight baseline contributors should run
+before opening a PR:
+
+```bash
+go test ./...
+make check
+scripts/check-consumer-tracker.sh
+make audit-final-claim-review
+```
+
+The Go version follows `go.mod`; GitHub Actions reads it with
+`actions/setup-go` and `go-version-file: go.mod`. Validator-heavy checks,
+`make smoke`, connector conformance, GTFS-RT conformance, the standalone
+product-acceptance gate, and release-package audits stay in the manual
+release-gates workflow because they need pinned validators or broader
+release-candidate context. The product-acceptance audit also runs inside
+`make check`.
+
+See [Continuous Integration](docs/ci.md) for the exact workflow split.
+
 ## Import GTFS
 
 Use the browser first:

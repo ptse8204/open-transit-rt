@@ -39,24 +39,40 @@ The workflow:
 - can be run manually with `workflow_dispatch`;
 - has a `dry_run` input for previewing the filtered update;
 - uses `.github/stable-sync-excludes.txt` to remove AI-agent-only docs;
+- records the remote `stable` tip before filtering;
+- runs `scripts/check-stable-filter.sh` against the filtered tree;
 - commits only when the filtered tree changes;
+- re-checks the remote `stable` tip immediately before pushing;
 - pushes with a normal `git push origin HEAD:stable`;
 - does not force-push.
 
-If the remote `stable` branch has diverged, the push should fail instead of
-rewriting history. A maintainer must then inspect the branch and decide how to
-reconcile it.
+If the remote `stable` branch changes during the run, or if its tip does not
+look automation-managed, the workflow fails instead of rewriting history. A
+maintainer must then inspect the branch and decide how to reconcile it.
+
+Local verification:
+
+```bash
+make check-stable-filter
+```
+
+This check requires a full git checkout with local `stable` and
+`origin/stable` refs unless `scripts/check-stable-filter.sh` is run with
+`--skip-ref-check` from the GitHub Actions workflow.
 
 ## Stable Branch Exclusions
 
 The stable branch excludes:
 
+- root `AGENTS.md`;
 - `docs/agent/**`;
 - `docs/handoffs/**`;
 - `docs/prompts/**`;
 - `docs/roadmaps/**`;
 - root `docs/phase-*.md` phase ledgers;
-- Codex task, conversation summary, master planner, and roadmap-status files;
+- nested/root phase-ledger docs;
+- Codex task, Codex prompt/backlog files, conversation summary, master planner,
+  roadmap-status, roadmap planning, and track planning files;
 - ignored local cache output.
 
 The stable branch preserves:

@@ -180,7 +180,7 @@ func TestAlertsConsoleRendersEmptyStateAndRejectsUnauthenticated(t *testing.T) {
 		t.Fatalf("status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Alerts Console", "Lifecycle Dashboard", "Service Disruption Review", "Cancellation Linkage", "Disruption Templates", "Validation And Feed Usefulness", "Claim Flags", "No alerts are recorded", "Operations Console"} {
+	for _, want := range []string{`<html lang="en">`, `<meta name="viewport" content="width=device-width, initial-scale=1">`, `<link rel="icon" href="data:,">`, "Alerts Console", "Lifecycle Dashboard", "Service Disruption Review", "Cancellation Linkage", "Disruption Templates", "Validation And Feed Usefulness", "Claim Flags", "No alerts are recorded", "Operations Console"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}

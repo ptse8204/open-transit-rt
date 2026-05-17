@@ -23,15 +23,26 @@ workflow, not production readiness, compliance, adoption, consumer acceptance,
 hosted service availability, vendor compatibility, SLA/uptime, AVL reliability,
 or ETA-quality proof.
 
-The recommended next step is a release-candidate gate for the post-rc2
-browser-first changes, then maintainer review of the filtered `stable` branch
-automation and a separate external connector runtime integration roadmap.
+Post-rc2 polish Phases A through E are complete for browser-first workflow
+recheck, human docs/site link review, stable branch filtering hardening, CI
+status polish, and the next focused external connector runtime integration
+roadmap. The current product-quality next step is to start Phase 01 of that
+main-only maintainer roadmap, or run the manual release gates and stable update
+workflow first if the maintainer wants another release-candidate review.
+Stable branch users should start with the Connector Catalog and Integration
+Adapter Kit because roadmap packs are filtered from `stable` by design.
 Optional evidence tracks remain separately authorization-gated.
 
 Post-closeout CI follow-up `d8dfc3b` fixed telemetry simulator tests for the
 declared Go `1.23.2` toolchain used by GitHub Actions. Remote `main` Fast CI
 passed after the fix, the stable-update workflow passed, and remote `stable`
 was updated to filtered commit `cf51dd7` without AI-agent-only docs.
+
+The post-rc2 polish hardening added a local stable-filter checker, made Fast CI
+documentation explicit, and kept `make smoke`, validator-heavy checks,
+connector conformance, GTFS-RT conformance, product-acceptance gate review,
+and release-package audits in manual release-gates context. The Go version
+continues to follow `go.mod`.
 
 Post-132 release publication is complete for `v0.1.0-rc.2`.
 Open Transit RT v0.1.0-rc.2 is a public release candidate for local/self-hosted evaluation.
@@ -789,9 +800,8 @@ Release Install UX Roadmap Closeout is complete, with closeout at
 `docs/handoffs/phase-132.md`: the final Phase 111-132 closeout is recorded in
 `docs/final-public-release-install-ux-roadmap-closeout.md`.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
-tracks remain separated by their phase gates and claim boundaries. Use the canonical
-[Review And Recommendations](roadmap-status.md#review-and-recommendations)
-section for the current scorecard, risks, and next-step sequence.
+tracks remain separated by their gates and claim boundaries. Use the role-based
+docs index and the current status summary for risks and next-step sequence.
 
 Future release-candidate gate cleanup should start from a clean checkout and cover
 `make check`, `make validate`, `make test`, local app startup, the browser

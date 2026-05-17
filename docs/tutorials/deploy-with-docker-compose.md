@@ -7,7 +7,7 @@ This guide describes the current repository-supported Compose paths.
 
 This is suitable as a small-agency pilot shape, not a complete hosted production package.
 
-For the Phase 17 production-directed pilot operations profile, use [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md). That profile covers systemd/Caddy deployment, scheduled validators, backup/restore, monitoring, scorecard export, and evidence refresh.
+For the production-directed pilot operations profile, use [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md). That profile covers systemd/Caddy deployment, scheduled validators, backup/restore, monitoring, scorecard export, and evidence refresh.
 
 ![Agency deployment](../assets/agency-deployment.png)
 
@@ -58,7 +58,7 @@ The local app profile uses `deploy/Dockerfile.local` and `deploy/Caddyfile.local
 
 ## Docker Image Publishing Decision
 
-Phase 66 keeps Docker image distribution source/local-only. The repo supports
+Docker image distribution remains source/local-only. The repo supports
 local builds from a reviewed checkout or source tag; it does not publish a
 registry app image and does not ask operators to pull one from a registry.
 
@@ -238,7 +238,7 @@ curl -fsS -o /tmp/alerts.pb "$PUBLIC_BASE_URL/public/gtfsrt/alerts.pb"
 
 Set `PUBLIC_BASE_URL` to the agency’s actual feed host before running these checks. Do not claim consumer acceptance until the agency has evidence from the specific consumer.
 
-## Phase 17 Evidence Refresh
+## Evidence Refresh
 
 Deployment helper outputs should use these names in the private operator evidence directory:
 

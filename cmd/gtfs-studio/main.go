@@ -436,8 +436,19 @@ type entityPage struct {
 }
 
 var pages = template.Must(template.New("pages").Parse(`
+{{define "head"}}
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,">
+<style>
+html{box-sizing:border-box}*,*:before,*:after{box-sizing:inherit}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:min(2rem,4vw);line-height:1.4;color:#1f2933;overflow-wrap:anywhere}
+nav{display:flex;flex-wrap:wrap;gap:.5rem 1rem;margin:.75rem 0} table{border-collapse:collapse;width:100%;max-width:100%;display:block;overflow-x:auto;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
+th{background:#f6f8fa} form{max-width:48rem;margin:1rem 0} label{display:block;margin:.35rem 0} input,select,textarea{width:min(100%,22rem);min-width:0;padding:.35rem;font:inherit} button{font:inherit}
+pre{max-width:100%;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#f6f8fa;border:1px solid #d8dee4;padding:.75rem}
+</style>
+{{end}}
+
 {{define "drafts"}}
-<!doctype html><title>GTFS Studio</title><h1>GTFS Studio</h1>
+<!doctype html><html lang="en"><head>{{template "head" .}}<title>GTFS Studio</title></head><body><main><h1>GTFS Studio</h1>
 <nav><a href="/admin/operations">Operations Console</a></nav>
 <p>Agency: {{.AgencyID}}</p>
 <p>GTFS Studio edits draft schedule rows separately from the active published feed. Creating or publishing a draft does not prove agency approval, compliance, consumer acceptance, production readiness, or public launch.</p>
@@ -454,10 +465,11 @@ var pages = template.Must(template.New("pages").Parse(`
 {{range .Drafts}}<tr><td><a href="/admin/gtfs-studio/drafts/{{.ID}}">{{.Name}}</a></td><td>{{.Status}}</td><td>{{.BaseFeedVersionID}}</td><td>{{.LastPublishedFeedVersionID}}</td><td>{{.LatestPublishStatus}} {{.LatestPublishID}}</td></tr>{{end}}
 </tbody></table>
 {{if .IncludeDiscarded}}<p>Showing discarded drafts.</p>{{else}}<p>Discarded drafts are hidden. Add <code>include_discarded=1</code> to include them.</p>{{end}}
+</main></body></html>
 {{end}}
 
 {{define "summary"}}
-<!doctype html><title>Draft {{.ID}}</title><h1>{{.Name}}</h1>
+<!doctype html><html lang="en"><head>{{template "head" .}}<title>Draft {{.ID}}</title></head><body><main><h1>{{.Name}}</h1>
 <nav><a href="/admin/operations">Operations Console</a> <a href="/admin/gtfs-studio">GTFS Studio</a></nav>
 <dl>
 <dt>Status</dt><dd>{{.Status}}</dd>
@@ -483,10 +495,11 @@ var pages = template.Must(template.New("pages").Parse(`
 </nav>
 {{if .CanPublish}}<form method="post" action="{{.ID}}/publish"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="notes" placeholder="operator review notes"><button>Publish after review</button></form>{{else}}<p>Publishing is available only to admin roles.</p>{{end}}
 {{if .CanEdit}}<form method="post" action="{{.ID}}/discard"><input type="hidden" name="csrf_token" value="{{.CSRFToken}}"><input name="reason" placeholder="discard reason"><button>Discard draft</button></form>{{else}}<p>Draft discard is available only to editor and admin roles.</p>{{end}}
+</main></body></html>
 {{end}}
 
 {{define "entity"}}
-<!doctype html><title>{{.Entity}}</title><h1>{{.Entity}}</h1>
+<!doctype html><html lang="en"><head>{{template "head" .}}<title>{{.Entity}}</title></head><body><main><h1>{{.Entity}}</h1>
 <nav><a href="/admin/operations">Operations Console</a> <a href="/admin/gtfs-studio">GTFS Studio</a></nav>
 <p>Minimal operational row editor for {{.Entity}}.</p>
 <pre>{{printf "%+v" .Payload}}</pre>
@@ -495,6 +508,7 @@ var pages = template.Must(template.New("pages").Parse(`
 {{range .Fields}}<label>{{.}} <input name="{{.}}"></label><br>{{end}}
 <button>Save row</button>
 </form>
+</main></body></html>
 {{end}}
 `))
 

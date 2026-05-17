@@ -113,6 +113,5 @@ vendor compatibility, or production-grade ETA quality.
 - Do not call diagrams evidence.
 - Do not add agency logos, vendor logos, real transit photos, private URLs,
   private identifiers, emails, IPs, tokens, or secrets.
-- Link to the canonical
-  [Review And Recommendations](../../roadmap-status.md#review-and-recommendations)
+- Link to the role-based [Docs Index](../../index.md) or a task-specific guide
   instead of duplicating the full scorecard in every doc.

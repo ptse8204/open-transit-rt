@@ -7,8 +7,9 @@ The preferred integration shape is sidecar plus manifest plus conformance
 tests. Connectors do not load as dynamic Go plugins, do not bypass auth, and do
 not change core database state directly.
 
-For the current product-quality scorecard, see
-[Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations).
+For current product status and release-candidate boundaries, see
+[Current Status](../docs/current-status.md) and
+[Release Status v0.1.0-rc.2](../docs/release-status-v0.1.0-rc.2.md).
 
 ## Bring Your Own GPS Source
 

@@ -3,19 +3,22 @@
 CI is split into a fast path for pull requests and pushes, plus a manual
 release-gate path for validator-heavy checks.
 
-## Phase 13 Evaluation
+## Current Fast CI Baseline
 
-Phase 13 did not reproduce a broken `go test ./...` result locally:
+The current repository baseline keeps `go test ./...` in the fast path:
 
 ```bash
 go test ./...
 ```
 
-passed across the repository. The Go test workflow is useful and should stay.
-The old workflow was still worth repairing because it did not match the current
-repo stage: it ran connector checks in the default path, duplicated consumer
-tracker logic inline, and did not run `make check` or
-`make audit-final-claim-review`.
+It has passed across the repository in local verification. The Go test
+workflow is useful and should stay. Fast CI also runs the repository's
+lightweight checks and claim/consumer tracker audits so contributors see the
+same baseline locally and in GitHub Actions.
+
+GitHub Actions uses `actions/setup-go@v5` with `go-version-file: go.mod`.
+`go.mod` currently declares `go 1.23.2` and does not set a separate
+`toolchain` directive.
 
 ## Fast CI
 
@@ -33,6 +36,9 @@ make audit-final-claim-review
 
 This path avoids validator installation, Docker, external services, and
 release packaging so normal PR feedback stays focused and repeatable.
+`make check` also runs no-network repository guardrails, internal link checks,
+final-claim/product-acceptance audits, and a stable-branch filter simulation
+with branch-ref checks skipped.
 
 ## Manual Release Gates
 
@@ -55,6 +61,28 @@ make audit-release-package
 Validator-heavy checks stay out of Fast CI because they depend on pinned
 validator tooling and can be slower or more environment-sensitive. They remain
 available for release-candidate review.
+
+`make smoke` belongs in this manual workflow, after validator installation,
+because it starts with `scripts/check-validators.sh`. It should not become a
+required pull-request check unless the GitHub Actions runner has stable pinned
+validator setup and the extra runtime cost is intentional.
+
+The release-gates workflow is not required for every pull request. Run it
+manually when preparing or reviewing a release candidate, or when a change
+touches validator, connector, GTFS-RT conformance, product-acceptance, or
+release-package behavior.
+
+## Workflow Syntax Checks
+
+When `actionlint` is available locally, use:
+
+```bash
+actionlint .github/workflows/*.yml
+```
+
+Without `actionlint`, the minimum local syntax pass is to parse the workflow
+YAML files and run the fast baseline. GitHub Actions remains the source of
+truth for remote workflow execution.
 
 ## Local Full Checks
 

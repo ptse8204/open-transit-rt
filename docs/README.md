@@ -9,6 +9,7 @@ Most agency users should not need the phase ledgers, handoffs, or Codex task
 briefs. Those files remain available for maintainers and AI agents so project
 history is not lost, but the normal path starts with the browser-first guides.
 
-AI-agent and Codex continuation material is indexed from:
-
-- [AI-Agent Documentation](agent/README.md)
+AI-agent and Codex continuation material remains on `main` under `docs/agent/`,
+`docs/handoffs/`, `docs/prompts/`, and `docs/roadmaps/`. Those paths are
+filtered out of `stable`; human readers should continue through the role-based
+docs index above.

@@ -47,8 +47,8 @@ Current evidence includes local validation/demo workflows and the OCI DuckDNS pi
 4. Review public feed URLs, validation records, and Operations Console setup status.
 5. Test device telemetry or the documented AVL/vendor dry-run path with
    synthetic or public-safe data.
-6. Review the
-   [canonical recommendations](roadmap-status.md#review-and-recommendations).
+6. Review the role-based [Docs Index](index.md) and current status summary for
+   next actions.
 7. Use the [Agency Pilot Program](agency-pilot-program.md) only if a real
    pilot is explicitly authorized.
 

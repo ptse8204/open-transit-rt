@@ -50,7 +50,7 @@ jobs:
 
       - name: Resolve source commit
         run: |
-          git fetch origin main --prune
+          git fetch origin --prune '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
           source_commit="$(git rev-parse "${SOURCE_REF}^{commit}")"
           echo "SOURCE_COMMIT=${source_commit}" >> "$GITHUB_ENV"
           echo "Resolved source ${SOURCE_REF} to ${source_commit}"
@@ -60,9 +60,24 @@ jobs:
           rm -rf ../stable-source ../stable-target
           git worktree add ../stable-source "$SOURCE_COMMIT"
           if git ls-remote --exit-code --heads origin stable >/dev/null 2>&1; then
-            git fetch origin stable:refs/remotes/origin/stable
-            git worktree add -B stable ../stable-target origin/stable
+            git fetch origin '+refs/heads/stable:refs/remotes/origin/stable'
+            stable_base="$(git rev-parse refs/remotes/origin/stable)"
+            stable_subject="$(git log -1 --format=%s "$stable_base")"
+            case "$stable_subject" in
+              "Update stable branch from "*|"Initialize stable branch with filtered product files")
+                ;;
+              *)
+                echo "Remote stable tip does not look automation-managed: $stable_subject" >&2
+                echo "Inspect stable manually before rewriting it through the filter workflow." >&2
+                exit 1
+                ;;
+            esac
+            echo "STABLE_EXISTS=true" >> "$GITHUB_ENV"
+            echo "STABLE_BASE=${stable_base}" >> "$GITHUB_ENV"
+            git worktree add -B stable ../stable-target "$stable_base"
           else
+            echo "STABLE_EXISTS=false" >> "$GITHUB_ENV"
+            echo "STABLE_BASE=" >> "$GITHUB_ENV"
             git worktree add -B stable ../stable-target "$SOURCE_COMMIT"
           fi
 
@@ -81,13 +96,15 @@ jobs:
             docs/prompts \
             docs/roadmaps \
             docs/codex-task.md \
-            docs/conversation-summary.md
+            docs/conversation-summary.md \
+            AGENTS.md
           do
             if [ -e "$path" ]; then
               echo "Filtered stable branch still contains $path" >&2
               exit 1
             fi
           done
+          ../stable-source/scripts/check-stable-filter.sh --source ../stable-source --stable-tree ../stable-target --skip-ref-check
 
       - name: Commit filtered stable tree
         run: |
@@ -113,5 +130,17 @@ jobs:
       - name: Push stable branch
         if: env.DRY_RUN != 'true' && env.STABLE_CHANGED == 'true'
         run: |
+          if [ "$STABLE_EXISTS" = "true" ]; then
+            git fetch origin '+refs/heads/stable:refs/remotes/origin/stable'
+            current_stable="$(git rev-parse refs/remotes/origin/stable)"
+            if [ "$current_stable" != "$STABLE_BASE" ]; then
+              echo "Remote stable changed from $STABLE_BASE to $current_stable during this run." >&2
+              echo "Failing without push; rerun after inspecting stable." >&2
+              exit 1
+            fi
+          elif git ls-remote --exit-code --heads origin stable >/dev/null 2>&1; then
+            echo "Remote stable was created during this run. Failing without push." >&2
+            exit 1
+          fi
           cd ../stable-target
           git push origin HEAD:stable

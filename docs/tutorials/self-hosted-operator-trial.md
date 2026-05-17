@@ -6,8 +6,8 @@ handling, and the synthetic AVL adapter dry-run.
 
 It is an operator trial checklist, not evidence. Operator output stays
 local/private by default. Logs, screenshots, validator output, copied
-summaries, and support notes must not be committed unless a later evidence
-phase reviews, redacts, and retains them.
+summaries, and support notes must not be committed unless a later authorized
+evidence workflow reviews, redacts, and retains them.
 
 This trial does not prove agency approval, agency adoption, consumer
 acceptance, final-root proof, CAL-ITP/Caltrans compliance, hosted SaaS
@@ -28,8 +28,8 @@ ETA quality.
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md)
 - [Evidence Redaction Policy](../evidence/redaction-policy.md)
 
-Maintainer phase handoffs remain available under `docs/handoffs/` for project
-history, but they are not required to run this operator trial.
+Maintainer project-history records remain available under `docs/handoffs/`,
+but they are not required to run this operator trial.
 
 ## 1. Prepare The Deployment Path
 
@@ -214,8 +214,8 @@ Use trial output only to decide what to fix next:
 - fix GTFS import or validator blockers;
 - configure private device credentials before sending real telemetry;
 - review readiness rows and row-level next actions;
-- keep support notes private until a future evidence phase approves redaction
-  and retention.
+- keep support notes private until a future authorized evidence workflow
+  approves redaction and retention.
 
 Do not create external evidence packets, final-root evidence, consumer
 submission artifacts, target-originated artifact directories, or stronger

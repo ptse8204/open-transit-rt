@@ -2,7 +2,7 @@
 
 This checklist uses careful claim language. The repository supports the technical foundations for California transit data readiness, but a specific deployment must provide validation, hosting, metadata, operations, and consumer evidence before stronger compliance claims are appropriate.
 
-The Phase 11 evidence package is [Compliance Evidence Checklist](../compliance-evidence-checklist.md). Use it when deciding whether a claim is repo-proven, deployment-dependent, or dependent on third-party confirmation.
+Use [Compliance Evidence Checklist](../compliance-evidence-checklist.md) when deciding whether a claim is repo-proven, deployment-dependent, or dependent on third-party confirmation.
 
 ## Current Claim Boundaries
 

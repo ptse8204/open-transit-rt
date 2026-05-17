@@ -19,8 +19,8 @@ local/self-hosted evaluation:
 Do not treat this first RC as a full `v0.1.0` release gate or production
 readiness proof.
 
-Phase 72 completed the bounded hardening review for `v0.1.0-rc.1`; see
-[`docs/phase-72-v0.1.0-rc.1-release-candidate-hardening.md`](phase-72-v0.1.0-rc.1-release-candidate-hardening.md).
+The bounded hardening review for `v0.1.0-rc.1` is retained in project-history
+records on `main`.
 Phase 115 published the public rc1 prerelease, Phase 116 verified release
 downloads and recorded the source-archive `make check` limitation, and
 Phase 117 verified public fresh-clone install confidence.

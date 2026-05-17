@@ -272,10 +272,10 @@ func feedReadinessSourceOfTruthGuidance(page operationsPage) []operationsFeedRea
 			"screenshot_and_diagram_policy",
 			"Screenshot and diagram policy",
 			operationsStatusBlocked,
-			"retained screenshot capture is outside Phase 87",
+			"retained screenshot capture is not part of normal operator review",
 			"Use diagrams or annotated text cards for operator docs when screenshots are stale or unavailable.",
-			"Capture portal screenshots, DNS screenshots, or private tickets only in a separately authorized evidence phase with redaction review.",
-			"docs/phase-74-github-pages-and-agency-ui-product-polish.md",
+			"Capture portal screenshots, DNS screenshots, or private tickets only in a separately authorized evidence workflow with redaction review.",
+			"docs/assets/product-screenshots/README.md",
 			"Does not create retained evidence, final-root proof, consumer proof, or public launch proof.",
 		),
 	}
@@ -347,9 +347,9 @@ func feedReadinessDocsPortalGuidance(page operationsPage) []operationsFeedReadin
 			"Future operator checklist",
 			operationsStatusNeedsReview,
 			"optional evidence gates remain separate",
-			"Use this page as a private preflight before deciding whether a separately authorized evidence phase is worth starting.",
+			"Use this page as a private preflight before deciding whether a separately authorized evidence workflow is worth starting.",
 			"Future final-root, consumer submission, agency pilot, vendor/device AVL, ETA quality, and compliance gates require separate written authorization.",
-			"docs/open-transit-rt-master-planner-remaining-work.md",
+			"docs/open-questions.md",
 			"Does not create evidence, move consumer status, approve a release, or complete public launch.",
 		),
 	}
@@ -400,7 +400,7 @@ func expectedFeedReadinessRows(page operationsPage) int {
 func feedReadinessFutureGates() []operationsFeedReadinessFutureGate {
 	boundary := "Requires separate written authorization before collection, retention, portal contact, status movement, or stronger public wording."
 	return []operationsFeedReadinessFutureGate{
-		{ID: "source_of_truth_listing", Label: "Source-of-truth website listing", CurrentStatus: operationsStatusBlocked, NextAction: "Prepare a checklist only; do not fetch or retain final-root proof in Phase 87.", Boundary: boundary},
+		{ID: "source_of_truth_listing", Label: "Source-of-truth website listing", CurrentStatus: operationsStatusBlocked, NextAction: "Prepare a checklist only; do not fetch or retain final-root proof during normal operator review.", Boundary: boundary},
 		{ID: "final_root_proof", Label: "Final-root evidence", CurrentStatus: operationsStatusBlocked, NextAction: "Keep final-root proof as a future optional evidence gate.", Boundary: boundary},
 		{ID: "consumer_packet_use", Label: "Prepared consumer packet use", CurrentStatus: operationsStatusBlocked, NextAction: "Keep packet records prepared-only and do not modify protected packet/status files.", Boundary: boundary},
 		{ID: "off_host_validation", Label: "Off-host validation record", CurrentStatus: operationsStatusNeedsReview, NextAction: "Document how an operator may run validation from their environment without turning output into retained evidence.", Boundary: boundary},

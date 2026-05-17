@@ -19,7 +19,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Agency Launchpad](agency-launchpad.md): run a private authenticated launchpad workflow across setup, GTFS, metadata, feeds, telemetry, validators, readiness, connector conformance, support bundle, and decision gate.
 - [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md): run strict smoke checks and collect redaction-safe diagnostics without creating evidence.
 - [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md): run read-only reference deployment diagnostics without creating evidence.
-- [Phase 46 Validator Automation And Health Gates](../phase-46-validator-automation-and-health-gates.md): review private validator tooling, artifact, stale-result, and next-action diagnostics without creating evidence.
+- [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md): review validator tooling, artifact, stale-result, and next-action diagnostics without creating evidence.
 - [Self-Hosted Operations Notifications](self-hosted-operations-notifications.md): draft a private local notification summary from existing diagnostics without sending anything.
 - [Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md): send synthetic telemetry through real authenticated ingest for local/reference diagnostics.
 - [Prediction And ETA Lab](prediction-eta-lab.md): review private deterministic, shadow, withheld-output, and aggregate backtest diagnostics without making ETA-quality claims.
@@ -35,7 +35,7 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Agency Demo Flow](agency-demo-flow.md): run the executable agency/evaluator demo.
 - [Deploy With Docker Compose](deploy-with-docker-compose.md): understand the current deployment path.
 - [Production Checklist](production-checklist.md): review operational work still needed for a real deployment.
-- [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md): run the Phase 17 pilot operations profile.
+- [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md): run the pilot operations profile.
 - [OCI/OCL Reference Deployment](../deployment/oci-reference-deployment.md): reuse the self-hosted reference server pattern.
 - [CAL-ITP Readiness Checklist](calitp-readiness-checklist.md): track readiness without overclaiming compliance.
 
@@ -46,9 +46,7 @@ For self-hosted deployment planning, see
 [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md),
 [Self-Hosted Operations Notifications](self-hosted-operations-notifications.md),
 [Small-Agency Pilot Operations](../runbooks/small-agency-pilot-operations.md),
-the [Self-Hosted Agency Reuse Master Plan](../master-plan-self-hosted-agency-reuse.md),
-and the closed [OCI/OCL Reference Deployment Productization](../phase-36-oci-reference-deployment-productization.md)
-phase notes.
+and the [Self-Hosted Agency Reuse Master Plan](../master-plan-self-hosted-agency-reuse.md).
 
 For broader navigation, see [Docs Home](../README.md). For detailed evidence boundaries, see [Compliance Evidence Checklist](../compliance-evidence-checklist.md).
 
