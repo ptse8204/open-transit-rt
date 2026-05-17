@@ -1069,15 +1069,15 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 		PrincipalRoles:   safePrincipalRoles(principal.Roles),
 		Links: []evidenceLink{
 			{Label: "OCI hosted evidence packet", Path: "docs/evidence/captured/oci-pilot/2026-04-24/README.md", UpdatedAt: "2026-04-24"},
-			{Label: "Phase 23 agency-owned domain blocker", Path: "docs/agency-owned-domain-readiness.md", UpdatedAt: "Phase 23"},
-			{Label: "Real-agency GTFS evidence scaffold", Path: "docs/evidence/real-agency-gtfs/README.md", UpdatedAt: "Phase 24"},
-			{Label: "Device/AVL evidence scaffold", Path: "docs/evidence/device-avl/README.md", UpdatedAt: "Phase 25"},
+			{Label: "Agency-owned domain blocker", Path: "docs/agency-owned-domain-readiness.md", UpdatedAt: "historical blocker note"},
+			{Label: "Real-agency GTFS evidence scaffold", Path: "docs/evidence/real-agency-gtfs/README.md", UpdatedAt: "evidence scaffold"},
+			{Label: "Device/AVL evidence scaffold", Path: "docs/evidence/device-avl/README.md", UpdatedAt: "evidence scaffold"},
 			{Label: "Consumer submission tracker", Path: "docs/evidence/consumer-submissions/README.md", UpdatedAt: "2026-04-26"},
 			{Label: "Consumer packet status JSON", Path: "docs/evidence/consumer-submissions/status.json", UpdatedAt: "2026-04-27"},
-			{Label: "California readiness summary", Path: "docs/california-readiness-summary.md", UpdatedAt: "Phase 20"},
+			{Label: "California readiness summary", Path: "docs/california-readiness-summary.md", UpdatedAt: "readiness mapping"},
 			{Label: "Compliance evidence checklist", Path: "docs/compliance-evidence-checklist.md", UpdatedAt: "repo docs"},
-			{Label: "Small-agency pilot operations runbook", Path: "docs/runbooks/small-agency-pilot-operations.md", UpdatedAt: "Phase 17"},
-			{Label: "Evidence redaction policy", Path: "docs/evidence/redaction-policy.md", UpdatedAt: "Phase 15"},
+			{Label: "Small-agency pilot operations runbook", Path: "docs/runbooks/small-agency-pilot-operations.md", UpdatedAt: "operations runbook"},
+			{Label: "Evidence redaction policy", Path: "docs/evidence/redaction-policy.md", UpdatedAt: "repo policy"},
 		},
 		EvidenceUpdatedAt: "2026-04-26",
 	}
@@ -1557,7 +1557,7 @@ func setupSteps(page operationsPage) []setupStepView {
 			Name:       "Consumer packet/status review",
 			Status:     countStatus(len(page.Consumers), "prepared docs tracker targets"),
 			Source:     "docs/evidence tracker",
-			Evidence:   "Phase 20 docs tracker records prepared packets only.",
+			Evidence:   "Docs tracker records prepared packets only.",
 			NextAction: "Review packet paths and submission workflow; do not change statuses without target-originated evidence.",
 			ActionURL:  "/admin/operations/consumers",
 		},
@@ -2037,7 +2037,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 	"operationsPageNextAction": operationsPageNextAction,
 }).Parse(`
 {{define "layoutStart"}}
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>{{.Title}}</title>
 <style>{{operationsCSS}}</style></head><body>
 <a class="skip-link" href="#operations-main">Skip to main content</a>
 <a class="skip-link" href="#operations-nav">Skip to section navigation</a>
@@ -2314,7 +2314,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <section class="card" id="role-entry-agency-evaluator"><h3>I am evaluating an agency</h3><p><strong>First step:</strong> <a href="/admin/operations/setup-wizard">Review setup progress</a>.</p><p><strong>Done when:</strong> local/private next actions and missing evidence gates are clear.</p><p><strong>Boundary:</strong> local review does not prove agency approval, compliance, or public launch.</p></section>
 <section class="card" id="role-entry-operations-staff"><h3>I run daily operations</h3><p><strong>First step:</strong> <a href="/admin/operations/realtime">Check today&apos;s realtime state</a>.</p><p><strong>Done when:</strong> stale devices, Vehicle Positions, Trip Updates, Alerts, and feed freshness have next actions.</p><p><strong>Boundary:</strong> local health does not prove SLA, uptime, or production readiness.</p></section>
 <section class="card" id="role-entry-technical-helper"><h3>I am helping technically</h3><p><strong>First step:</strong> <a href="/admin/operations/gtfs-workbench">Review current schedule</a>.</p><p><strong>Done when:</strong> active-vs-draft schedule state, validation meaning, import review, and rollback limits are understood.</p><p><strong>Boundary:</strong> browser review does not silently edit GTFS or prove schedule correctness.</p></section>
-<section class="card" id="role-entry-release-reviewer"><h3>I am reviewing release state</h3><p><strong>First step:</strong> <a href="/admin/operations/validation-center">Review validation blockers</a>.</p><p><strong>Done when:</strong> <code>needs_review</code>, package/tag blockers, and prepared-only consumer state are visible.</p><p><strong>Boundary:</strong> diagnostics do not create a release-ready claim.</p></section>
+<section class="card" id="role-entry-readiness-reviewer"><h3>I am reviewing validation and readiness</h3><p><strong>First step:</strong> <a href="/admin/operations/validation-center">Review validation blockers</a>.</p><p><strong>Done when:</strong> feed-health gaps, validation next actions, and prepared-only consumer records are visible.</p><p><strong>Boundary:</strong> private diagnostics do not prove outside readiness or approval.</p></section>
 <section class="card" id="role-entry-connector-evaluator"><h3>I am evaluating connectors</h3><p><strong>First step:</strong> <a href="/admin/operations/connectors/workbench">Choose connector recipe</a>.</p><p><strong>Done when:</strong> the first local/synthetic safety check and redaction boundary are clear.</p><p><strong>Boundary:</strong> synthetic checks do not prove live vendor or device compatibility.</p></section>
 </section>
 {{template "firstRunPanel" .FirstRun}}
@@ -2363,8 +2363,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>Telemetry freshness</td><td>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} vehicles; {{.StaleCount}} stale{{end}}</td><td>{{formatTimePtr .TelemetryUpdatedAt}}</td><td><a href="/admin/operations/telemetry">inspect vehicle freshness</a></td></tr>
 <tr><td>Telemetry simulator guide</td><td>{{if .TelemetrySimulator.LoadError}}{{.TelemetrySimulator.LoadError}}{{else}}{{len .TelemetrySimulator.Scenarios}} synthetic scenarios{{end}}</td><td>{{formatTime .TelemetrySimulator.GeneratedAt}}</td><td><a href="/admin/operations/telemetry-simulator">review simulator commands</a> · <a href="/admin/operations/telemetry-simulator.json">export JSON</a></td></tr>
 <tr><td>Trip Updates quality</td><td>{{if .TripUpdatesQuality.Recorded}}{{.TripUpdatesQuality.DiagnosticsStatus}} / {{.TripUpdatesQuality.DiagnosticsReason}}{{else}}{{.TripUpdatesQuality.Message}}{{end}}</td><td>{{formatTimePtr .TripUpdatesQuality.SnapshotAt}}</td><td><a href="/admin/operations/feeds">review realtime quality summary</a></td></tr>
-<tr><td>Scorecard</td><td>{{if .Scorecard}}{{.Scorecard.OverallStatus}}{{else}}{{.ScorecardError}}{{end}}</td><td>{{formatTimePtr .ScorecardUpdatedAt}}</td><td><a href="/admin/operations/evidence">find scorecard evidence</a></td></tr>
-<tr><td>Consumer status</td><td>{{if .ConsumerError}}{{.ConsumerError}}{{else}}{{len .Consumers}} targets shown{{end}}</td><td>{{formatTimePtr .ConsumersUpdatedAt}}</td><td><a href="/admin/operations/consumers">review evidence-only statuses</a></td></tr>
+<tr><td>Scorecard</td><td>{{if .Scorecard}}{{.Scorecard.OverallStatus}}{{else}}{{.ScorecardError}}{{end}}</td><td>{{formatTimePtr .ScorecardUpdatedAt}}</td><td><a href="/admin/operations/evidence">review supporting records</a></td></tr>
+<tr><td>Consumer status</td><td>{{if .ConsumerError}}{{.ConsumerError}}{{else}}{{len .Consumers}} targets shown{{end}}</td><td>{{formatTimePtr .ConsumersUpdatedAt}}</td><td><a href="/admin/operations/consumers">review prepared-only records</a></td></tr>
 <tr><td>Evidence links</td><td>repo documentation links</td><td>{{.EvidenceUpdatedAt}}</td><td><a href="/admin/operations/evidence">open evidence index</a></td></tr>
 </tbody></table>
 
@@ -4243,7 +4243,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{define "consumers"}}
 {{template "layoutStart" .}}
 <h2>Prepared Consumer Packet Tracker</h2>
-<p class="muted">The Phase 20 docs/evidence tracker is the source for prepared packet state. These statuses are not submission, review, acceptance, or ingestion evidence.</p>
+<p class="muted">The docs/evidence tracker is the source for prepared packet state. These statuses are not submission, review, acceptance, or ingestion evidence.</p>
 {{if .ConsumerError}}<p class="warning">{{.ConsumerError}}. The docs/evidence tracker guidance remains visible below.</p>{{end}}
 <section class="panel warning-panel" aria-labelledby="consumer-prepared-only-heading">
 <h3 id="consumer-prepared-only-heading">Prepared-Only Consumer Packet Explanation</h3>
@@ -4400,7 +4400,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h2>Alerts, Overrides, Consumers, Evidence</h2>
 <table><tbody>
 <tr><th>Alerts</th><td>Source: feed discovery and Alerts Console. <a href="/admin/alerts/console">Create, publish, or archive alerts</a>. Alerts feed availability does not prove consumer acceptance.</td></tr>
-<tr><th>Manual overrides/review</th><td>Deferred in Phase 26 because a safe browser view would need carefully bounded summaries and must avoid raw diagnostics or new mutation semantics.</td></tr>
+<tr><th>Manual overrides/review</th><td>Not exposed from this setup page. Use current review pages for bounded summaries; future override views must avoid raw diagnostics and new mutation semantics unless they are deliberately designed.</td></tr>
 <tr><th>Consumer packets</th><td>Source: docs/evidence tracker. <a href="/admin/operations/consumers">Review all seven prepared packet records</a>; prepared is not submitted or accepted.</td></tr>
 <tr><th>Evidence/readiness</th><td>Source: evidence links. <a href="/admin/operations/evidence">Open evidence link index</a>.</td></tr>
 </tbody></table>

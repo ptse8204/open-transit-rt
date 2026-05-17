@@ -1,6 +1,6 @@
 # Post-rc2 Browser-First Product Acceptance
 
-Date: 2026-05-17 UTC / 2026-05-16 Pacific
+Date: 2026-05-17 UTC / 2026-05-17 Pacific
 
 This acceptance review checks whether a small-agency user can use the browser
 for normal Operations Console work after a technical helper starts the local
@@ -76,6 +76,28 @@ Additional browser surfaces returned `200`:
 
 The unauthenticated check returned `401` for `/admin/operations`, preserving the
 private admin boundary.
+
+## Post-rc2 Polish Recheck
+
+On 2026-05-17, the local app was rebuilt and the browser-first route walkthrough
+was repeated after copy and responsive-layout polish. The recheck confirmed:
+
+- all 23 Operations Console routes listed above returned authenticated `200`;
+- GTFS Studio and the Alerts Console returned authenticated `200`;
+- unauthenticated `/admin/operations` returned `401`;
+- a local Playwright run loaded all 25 private browser routes at desktop
+  `1280x900` and
+  mobile `390x844` viewports, for 50 checked route/viewport pairs;
+- the local browser sweep reported no missing page title/H1, page-level
+  horizontal overflow on the checked routes, console errors, stale internal route
+  wording, or favicon 404s;
+- the normal operator path now uses agency workflow wording instead of
+  release/phase planning phrasing.
+
+This recheck remains local/self-hosted evaluation only. It does not create
+external evidence, contact external systems, move consumer status, or prove any
+unsupported compliance, production, consumer, vendor, SLA, hardware, AVL, or ETA
+claim.
 
 ## Public Feed Checks
 

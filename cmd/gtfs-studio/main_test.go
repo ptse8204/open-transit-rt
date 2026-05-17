@@ -31,8 +31,15 @@ func TestDraftListHidesDiscardedByDefault(t *testing.T) {
 		t.Fatalf("includeDiscarded = true, want false by default")
 	}
 	body := resp.Body.String()
-	if !strings.Contains(body, "Active") {
-		t.Fatalf("body missing active draft: %s", body)
+	for _, want := range []string{
+		`<html lang="en">`,
+		`<meta name="viewport" content="width=device-width, initial-scale=1">`,
+		`<link rel="icon" href="data:,">`,
+		"Active",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body missing %q: %s", want, body)
+		}
 	}
 	if strings.Contains(body, "draft-discarded") || strings.Contains(body, ">Discarded<") {
 		t.Fatalf("body includes discarded draft by default: %s", body)

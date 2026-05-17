@@ -185,7 +185,7 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 			checklistStatusNeedsReview,
 			"advanced safety checks remain negative and no approval or compliance outcome is recorded by this launchpad",
 			[]string{"Decide whether to continue local hardening, pause for missing inputs, or request a separate evidence intake.", "Do not move consumer statuses or publish stronger wording from this page."},
-			[]string{"docs/roadmaps/agency-first-connector-platform/README.md", "docs/open-questions.md", "docs/phase-60-final-claim-review-and-public-closeout.md"},
+			[]string{"docs/index.md", "docs/open-questions.md", "docs/branching-and-release-policy.md"},
 			[]string{"make audit-final-claim-review"},
 			[]string{"/admin/operations/checklist.json", "/admin/operations/launchpad.json"},
 			"The decision gate records no approval outcome, compliance outcome, public launch outcome, or production readiness outcome.",
@@ -202,7 +202,7 @@ func buildAgencyLaunchpad(page operationsPage) agencyLaunchpadView {
 		DecisionNotes: []agencyLaunchpadDecision{
 			{Label: "Continue", Status: checklistStatusNeedsReview, CurrentSignal: "product quality and external connection maturity work can continue inside normal repo checks", NextAction: "Use normal development checkpoints and baseline checks.", Boundary: "Continue is an internal maintainer choice, not public launch or production readiness."},
 			{Label: "Pause", Status: checklistStatusNeedsReview, CurrentSignal: "missing authorization, public-safe retention, or real deployment inputs should stop evidence-like work", NextAction: "Record blockers in docs or open questions without collecting retained artifacts.", Boundary: "Pause does not create evidence or imply failure of a public obligation."},
-			{Label: "Evidence intake", Status: checklistStatusBlocked, CurrentSignal: "no intake exists in this launchpad", NextAction: "Define authorization, retention, redaction, claim target, allowed tools, and stop conditions before any evidence track.", Boundary: "No intake means no evidence phase."},
+			{Label: "Evidence intake", Status: checklistStatusBlocked, CurrentSignal: "no intake exists in this launchpad", NextAction: "Define authorization, retention, redaction, claim target, allowed tools, and stop conditions before any evidence track.", Boundary: "No intake means no evidence workflow."},
 		},
 	}
 }

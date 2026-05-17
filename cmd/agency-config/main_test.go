@@ -447,7 +447,7 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
 	}
-	for _, want := range []string{"I am evaluating an agency", "I run daily operations", "I am helping technically", "I am reviewing release state", "I am evaluating connectors"} {
+	for _, want := range []string{"I am evaluating an agency", "I run daily operations", "I am helping technically", "I am reviewing validation and readiness", "I am evaluating connectors"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("role entry body does not contain %q: %s", want, body)
 		}
@@ -1379,7 +1379,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Support/RC checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1455,7 +1455,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"Realtime feeds: Vehicle Positions, Trip Updates, Alerts",
 		"Readiness",
 		"Connectors",
-		"Support/RC checks",
+		"Maintenance and support checks",
 		"Copy These Five Configured Feed URLs",
 		"https://pilot.example.org/public/feeds.json",
 		"https://pilot.example.org/public/gtfs/schedule.zip",
@@ -3640,6 +3640,7 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 	for _, want := range []string{
 		`<html lang="en">`,
 		`<meta name="viewport" content="width=device-width, initial-scale=1">`,
+		`<link rel="icon" href="data:,">`,
 		`class="skip-link" href="#operations-main"`,
 		`class="skip-link" href="#operations-nav"`,
 		`<header class="operations-header" role="banner">`,
@@ -7323,7 +7324,7 @@ func assertFirstRunShape(t *testing.T, firstRun operationsFirstRunView) {
 		t.Fatalf("invalid first-run top-level shape: %+v", firstRun)
 	}
 	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
-	wantTaskIDs := []string{"metadata", "gtfs", "five_feed_urls", "validation_health", "telemetry", "vp_tu_alerts", "readiness", "connectors", "support_rc_checks"}
+	wantTaskIDs := []string{"metadata", "gtfs", "five_feed_urls", "validation_health", "telemetry", "vp_tu_alerts", "readiness", "connectors", "support_checks"}
 	var gotTaskIDs []string
 	for index, task := range firstRun.Tasks {
 		gotTaskIDs = append(gotTaskIDs, task.ID)

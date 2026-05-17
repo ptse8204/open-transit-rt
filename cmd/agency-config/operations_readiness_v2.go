@@ -119,7 +119,7 @@ func buildOperationsReadinessV2(page operationsPage) operationsReadinessV2View {
 			readinessV2FeedHealthNext(page),
 			"Does not prove service-level or uptime proof, consumer acceptance, public launch completion, production readiness, or compliance.",
 			[]string{"/admin/operations/feed-health", "/admin/operations/validation-health", "/admin/operations/reliability"},
-			[]string{"docs/phase-63-feed-health-and-readiness-ux.md", "docs/requirements-2a-2f.md"},
+			[]string{"docs/tutorials/no-cli-agency-first-run.md", "docs/requirements-2a-2f.md"},
 		),
 		readinessV2Row(
 			"static_gtfs_quality",

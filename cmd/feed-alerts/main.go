@@ -886,11 +886,12 @@ var alertConsoleTemplate = template.Must(template.New("alerts-console").Funcs(te
 		}
 		return t.UTC().Format(time.RFC3339)
 	},
-}).Parse(`<!doctype html><html><head><meta charset="utf-8"><title>Alerts Console</title>
+}).Parse(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="data:,"><title>Alerts Console</title>
 <style>
-body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:2rem;line-height:1.4;color:#1f2933}
-nav a{margin-right:1rem} table{border-collapse:collapse;width:100%;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
-th{background:#f6f8fa}.warning{background:#fff8c5;padding:.5rem} label{display:block;margin:.35rem 0} input,textarea,select{min-width:22rem;max-width:100%;padding:.35rem}
+html{box-sizing:border-box}*,*:before,*:after{box-sizing:inherit}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:min(2rem,4vw);line-height:1.4;color:#1f2933;overflow-wrap:anywhere}
+nav{display:flex;flex-wrap:wrap;gap:.5rem 1rem} nav a{margin-right:0} table{border-collapse:collapse;width:100%;max-width:100%;display:block;overflow-x:auto;margin:1rem 0} th,td{border:1px solid #d8dee4;padding:.45rem;text-align:left;vertical-align:top}
+th{background:#f6f8fa}.warning{background:#fff8c5;padding:.5rem} form{max-width:48rem} label{display:block;margin:.35rem 0} input,textarea,select{width:min(100%,22rem);min-width:0;padding:.35rem;font:inherit} textarea{min-height:5rem} button{font:inherit}
 </style></head><body>
 <h1>Alerts Console</h1>
 <p>Agency: <strong>{{.AgencyID}}</strong></p>

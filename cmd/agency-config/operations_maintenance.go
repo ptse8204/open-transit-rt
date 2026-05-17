@@ -273,7 +273,7 @@ func buildOperationsMaintenanceBackupRestore() operationsMaintenancePanel {
 			maintenanceEnvStatus("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"),
 			maintenanceEnvPresenceSignal("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"),
 			"Keep backup configuration marked missing until a deployment owner supplies a private backup target.",
-			"Configure backup output outside the browser and keep backup contents out of docs/evidence unless a separate evidence phase is authorized.",
+			"Configure backup output outside the browser and keep backup contents out of docs/evidence unless a separate retained-evidence workflow is authorized.",
 			"Configuration presence does not prove a successful backup exists.",
 		),
 		maintenancePanelRow(
@@ -383,7 +383,7 @@ func buildOperationsMaintenanceSupportReview() operationsMaintenancePanel {
 			"evidence_boundary",
 			"Evidence boundary",
 			operationsStatusReady,
-			"support bundles stay outside docs/evidence unless a separate retained-evidence phase is authorized",
+			"support bundles stay outside docs/evidence unless a separate retained-evidence workflow is authorized",
 			"Do not rename support bundles as evidence or attach them to consumer packet records by default.",
 			"Follow the evidence redaction policy only after separate written maintainer approval for retained evidence.",
 			"Support diagnostics do not prove final-root readiness, deployment proof, compliance, or consumer acceptance.",
