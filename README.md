@@ -294,12 +294,18 @@ and local checks. Use:
 - `/admin/operations/validation-health`
 - `/admin/operations/readiness`
 - [CAL-ITP Readiness Plain English](wiki/calitp-readiness-plain-english.md)
+- [CAL-ITP-Style Readiness Checklist](docs/tutorials/calitp-readiness-checklist.md)
 - [Release-Candidate Readiness](docs/release-candidate-readiness.md)
 - [External Connection Readiness](docs/external-connection-readiness.md)
 - [Off-Host Public Feed Validation](docs/deployment/off-host-validation.md)
 - [OCI Reference Check](docs/deployment/oci-reference-check.md)
 - [Product Screenshots](docs/assets/product-screenshots/README.md)
 - [Product Diagrams](docs/assets/product-diagrams/README.md)
+
+The readiness page groups review into public feed URLs, static GTFS, Vehicle
+Positions, Trip Updates, Alerts, validation, license/contact metadata,
+operations signals, telemetry/device state, and consumer preparedness. Each
+area explains what the browser review helps prepare and what it does not prove.
 
 Validator output, readiness rows, and release-candidate checks are supporting
 signals. They are not compliance or consumer-acceptance proof by themselves.

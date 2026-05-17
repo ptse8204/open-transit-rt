@@ -3227,7 +3227,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><a href="/admin/operations/checklist">Open private operator checklist</a> · <a href="/admin/operations/checklist.json">Export private checklist JSON</a></p>
 <p><a href="/admin/operations/feed-health">Open plain-language feed health</a> · <a href="/admin/operations/feed-health.json">Export private feed health JSON</a></p>
 <p><a href="/admin/operations/readiness.json">Export private readiness v2 JSON</a> · <a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a> · <a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
-<p class="muted">Each Readiness item card explains the current private signal, why it matters, the next operator action, and the boundary around stronger claims. Consumer tracker states remain prepared unless retained target-originated evidence supports a target-specific change. Advanced safety details are available in the private JSON export and remain negative.</p>
+<p class="muted">Start with the workflow map, then open each Readiness item card for the underlying private signals. Consumer tracker states remain prepared unless retained target-originated evidence supports a target-specific change. Advanced safety details are available in the private JSON export and remain negative.</p>
+<h3>CAL-ITP-Style Readiness Workflow Map</h3>
+<p>This map shows what local browser review helps prepare and what it does not prove.</p>
+<table><thead><tr><th>Area</th><th>Status</th><th>What this helps with</th><th>Primary signal</th><th>Next action</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+{{range .ReadinessV2.FocusAreas}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
+<td>{{.Status}}</td>
+<td>{{.WhatThisHelpsWith}}</td>
+<td>{{.PrimarySignal}}</td>
+<td>{{.NextAction}}</td>
+<td>{{.WhatItDoesNotProve}}</td>
+<td>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}Rows: {{join .RowIDs ", "}}</td>
+</tr>
+{{end}}
+</tbody></table>
 <div class="card-grid" aria-label="Readiness checklist rows">
 {{range .ReadinessV2.Rows}}
 <section class="card">
@@ -3235,7 +3250,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="status">Status <span class="pill">{{.Status}}</span></p>
 <p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
 <p><strong>What this means:</strong> {{.WhatThisMeans}}</p>
-<p><strong>Why it matters:</strong> {{.WhyItMatters}}</p>
+<p><strong>What this helps with:</strong> {{.WhyItMatters}}</p>
 <p><strong>What to do next:</strong> {{.WhatToDoNext}}</p>
 <p><strong>What it does not prove:</strong> {{.WhatItDoesNotProve}}</p>
 <p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>
@@ -4240,8 +4255,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .Consumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Notes}}</td></tr>{{end}}
 </tbody></table>
 <h3>Target Boundary Review</h3>
-<table><thead><tr><th>Target</th><th>Status</th><th>Current record</th><th>Packet path</th><th>Meaning</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
-{{range .ConsumerPreparation.Targets}}<tr id="consumer-prepared-{{.ID}}"><td>{{.Name}}</td><td>{{.Status}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>Target</th><th>Status</th><th>Current record</th><th>Packet path</th><th>Meaning</th><th>Runtime note</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+{{range .ConsumerPreparation.Targets}}<tr id="consumer-prepared-{{.ID}}"><td>{{.Name}}</td><td>{{.Status}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Meaning}}</td><td>{{.RuntimeObserved}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Future Authorization Gates</h3>
 <table><thead><tr><th>Gate</th><th>Status</th><th>Required before action</th><th>Blocked in this track</th><th>Does not prove now</th></tr></thead><tbody>

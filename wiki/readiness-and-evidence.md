@@ -7,7 +7,10 @@ For agency-facing wording without compliance jargon, start with
 
 For the browser path, open `/admin/operations/readiness` after following
 [Small Agency Quick Start](small-agency-quick-start.md). The UI shows readiness
-signals and missing evidence separately.
+signals and missing evidence separately. The workflow map covers public feed
+URLs, static GTFS, Vehicle Positions, Trip Updates, Alerts, validation,
+license/contact metadata, uptime and operations signals, telemetry/device
+state, and consumer preparedness.
 
 ## What Open Transit RT Can Support
 
@@ -16,7 +19,7 @@ signals and missing evidence separately.
 - private Operations Console feed health and readiness rows
 - validation workflow records
 - license and technical contact metadata
-- compliance scorecard snapshots
+- deployment-specific scorecard snapshots
 - consumer-ingestion workflow records
 
 ## Evidence Needed For Stronger Claims

@@ -686,3 +686,26 @@ prove production readiness, prove consumer acceptance, prove vendor
 compatibility, prove hardware certification, provide hosted service
 availability, provide SLA coverage, prove production AVL reliability, or prove
 production-grade ETA quality.
+
+## ADR-0050 -- Keep CAL-ITP-style readiness as a browser workflow map
+
+Phase 07 adds a ten-area readiness workflow map to the private Operations
+Console. The map organizes public feed URLs, static GTFS, Vehicle Positions,
+Trip Updates, Alerts, validation, license/contact metadata, uptime and
+operations signals, telemetry/device state, and consumer preparedness before
+the detailed readiness cards.
+
+URL readiness and license/contact readiness are intentionally separate. A
+configured public URL does not become externally ready merely because it is
+present, and complete metadata does not prove final-root ownership, legal
+approval, consumer review, or compliance. Feed URL review now depends on
+validation or feed-health context before showing a ready status.
+
+Consumer preparedness remains prepared-only. Runtime consumer workflow notes
+can be displayed to operators, but they do not override the seven prepared docs
+tracker targets or move any protected evidence status. The readiness page is a
+private, read-only review surface; it does not contact external systems,
+create evidence, change consumer status, prove CAL-ITP/Caltrans compliance,
+prove production readiness, prove consumer acceptance, prove hosted service
+availability, prove SLA or uptime, prove vendor or hardware compatibility, or
+prove ETA quality.

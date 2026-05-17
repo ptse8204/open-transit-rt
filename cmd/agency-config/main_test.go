@@ -594,6 +594,16 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 			t.Fatalf("feeds body overclaims or leaks %q: %s", forbidden, body)
 		}
 	}
+
+	urlOnlyDiscovery := validationHealthTestDiscovery(time.Date(2026, 5, 11, 12, 0, 0, 0, time.UTC))
+	urlOnlyDiscovery.PublicBaseURL = "https://feeds.example.org"
+	urlOnlyDiscovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true}
+	urlOnly := buildOperationsFeedReadiness(operationsPage{Discovery: urlOnlyDiscovery})
+	for _, row := range urlOnly.Rows {
+		if row.ID != "feeds_json" && row.Status == operationsStatusReady {
+			t.Fatalf("feed URL row %s status = ready with URL-only metadata, want validation/feed-health review first: %+v", row.ID, row)
+		}
+	}
 }
 
 func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
@@ -882,10 +892,16 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 	for _, want := range []string{
 		"Readiness",
 		"Private authenticated readiness checklist only",
+		"CAL-ITP-Style Readiness Workflow Map",
+		"Public feed URLs",
+		"Static GTFS",
+		"License and contact metadata",
+		"Uptime and operations signals",
+		"Consumer preparedness",
 		"Readiness item",
 		"Current signal",
 		"What this means",
-		"Why it matters",
+		"What this helps with",
 		"What to do next",
 		"What it does not prove",
 		"Feed discovery and metadata",
@@ -953,11 +969,24 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 	if readiness.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", readiness.AgencyID)
 	}
+	metadataGapDiscovery := store.discovery
+	metadataGapDiscovery.Readiness.LicenseComplete = false
+	metadataGapDiscovery.Readiness.ContactComplete = false
+	focusByID := map[string]operationsReadinessV2Focus{}
+	for _, focus := range readinessV2FocusAreas(operationsPage{Discovery: metadataGapDiscovery}) {
+		focusByID[focus.ID] = focus
+	}
+	if focusByID["public_feed_urls"].Status != checklistStatusOK {
+		t.Fatalf("public URL focus status = %q, want ok when URL/feed listing signals are complete", focusByID["public_feed_urls"].Status)
+	}
+	if focusByID["license_contact"].Status != checklistStatusNeedsReview {
+		t.Fatalf("license/contact focus status = %q, want needs_review when metadata is incomplete", focusByID["license_contact"].Status)
+	}
 	var top map[string]json.RawMessage
 	if err := json.Unmarshal(rr.Body.Bytes(), &top); err != nil {
 		t.Fatalf("decode readiness v2 top-level: %v", err)
 	}
-	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "rows": true, "counts": true, "claim_flags": true}
+	wantTop := map[string]bool{"generated_at": true, "agency_id": true, "boundary": true, "focus_areas": true, "rows": true, "counts": true, "claim_flags": true}
 	for key := range top {
 		if !wantTop[key] {
 			t.Fatalf("readiness JSON should return only the v2 model, unexpected top-level key %q in %s", key, rr.Body.String())
@@ -7105,6 +7134,8 @@ func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
 		"transit.land",
 		"not_started",
 		"docs/evidence tracker",
+		"Runtime deployment note is",
+		"docs tracker status remains",
 		"Requires separate written authorization",
 		"consumer_statuses_changed",
 		"consumer_submission_claimed",
@@ -8183,8 +8214,32 @@ func assertValidationCenterSafeStrings(t *testing.T, body string) {
 
 func assertReadinessV2Shape(t *testing.T, readiness operationsReadinessV2View) {
 	t.Helper()
-	if readiness.GeneratedAt.IsZero() || readiness.AgencyID == "" || readiness.Boundary == "" || len(readiness.Rows) != 11 || readiness.Counts.Rows != 11 {
+	if readiness.GeneratedAt.IsZero() || readiness.AgencyID == "" || readiness.Boundary == "" || len(readiness.FocusAreas) != 10 || len(readiness.Rows) != 11 || readiness.Counts.Rows != 11 {
 		t.Fatalf("invalid readiness v2 shape: %+v", readiness)
+	}
+	wantFocusIDs := []string{"public_feed_urls", "static_gtfs", "vehicle_positions", "trip_updates", "alerts", "validation", "license_contact", "uptime_operations", "telemetry_device_state", "consumer_preparedness"}
+	var gotFocusIDs []string
+	for _, focus := range readiness.FocusAreas {
+		gotFocusIDs = append(gotFocusIDs, focus.ID)
+		if focus.ID == "" || focus.Label == "" || focus.Status == "" || focus.WhatThisHelpsWith == "" || focus.PrimarySignal == "" || focus.NextAction == "" || focus.WhatItDoesNotProve == "" || len(focus.RowIDs) == 0 || len(focus.AdminLinks) == 0 || len(focus.DocsLinks) == 0 {
+			t.Fatalf("invalid readiness focus area: %+v", focus)
+		}
+		for _, link := range focus.AdminLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("focus %s has unsafe admin link %q", focus.ID, link)
+			}
+		}
+		for _, link := range focus.DocsLinks {
+			if !strings.HasPrefix(link, "docs/") {
+				t.Fatalf("focus %s has unsafe docs link %q", focus.ID, link)
+			}
+			if _, err := os.Stat(filepath.Join("..", "..", link)); err != nil {
+				t.Fatalf("focus %s docs link %q should exist: %v", focus.ID, link, err)
+			}
+		}
+	}
+	if strings.Join(gotFocusIDs, ",") != strings.Join(wantFocusIDs, ",") {
+		t.Fatalf("focus ids = %v, want %v", gotFocusIDs, wantFocusIDs)
 	}
 	wantIDs := []string{"discovery_metadata", "feed_health", "static_gtfs_quality", "vehicle_positions", "trip_updates", "alerts", "validation_health", "operations_reliability", "telemetry_devices", "operations_scorecard", "consumer_prepared_tracker"}
 	var gotIDs []string
