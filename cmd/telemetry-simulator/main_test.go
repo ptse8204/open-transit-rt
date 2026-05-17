@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +16,7 @@ func TestRunDryRunWritesPrivateDiagnosticsWithoutToken(t *testing.T) {
 	outDir := cacheTestDir(t)
 	var stdout, stderr strings.Builder
 
-	err := run(t.Context(), []string{
+	err := run(context.Background(), []string{
 		"--scenario", filepath.Join("..", "..", "testdata", "telemetry-simulator", "on-route.json"),
 		"--target", "http://reference.example.test",
 		"--device-token", "",
@@ -70,7 +71,7 @@ func TestRunPostsThroughAuthenticatedTelemetryEndpoint(t *testing.T) {
 	defer server.Close()
 
 	var stdout, stderr strings.Builder
-	err := run(t.Context(), []string{
+	err := run(context.Background(), []string{
 		"--scenario", filepath.Join("..", "..", "testdata", "telemetry-simulator", "on-route.json"),
 		"--target", server.URL,
 		"--device-token", token,
@@ -169,7 +170,7 @@ func TestRunBatchScenarioCountsAndTimings(t *testing.T) {
 
 	outDir := filepath.Join(baseDir, "diagnostics")
 	var stdout, stderr strings.Builder
-	err := run(t.Context(), []string{
+	err := run(context.Background(), []string{
 		"--scenario", scenarioPath,
 		"--target", server.URL,
 		"--device-token", "synthetic-test-token",
