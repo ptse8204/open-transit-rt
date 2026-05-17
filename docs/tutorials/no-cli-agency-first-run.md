@@ -77,6 +77,12 @@ current import path can provide it.
 
 After import, review:
 
+- the GTFS Workbench **Agency Review Summary**, which explains required files,
+  row counts, service dates, routes/stops/trips, import history, what changed,
+  and validation triage in one table;
+- the GTFS Workbench **Validation Issue Triage**, which shows likely owner,
+  plain-English meaning, suggested fix path, safe next action, and what the
+  row does not prove;
 - routes, stops, trips, stop times, and shapes counts;
 - validation/import warnings grouped by file;
 - GTFS quality next actions;
@@ -146,6 +152,12 @@ Open:
 
 GTFS Quality explains likely owners, affected files, what to fix first,
 verification steps, and escalation triggers.
+
+GTFS Workbench is the staff review page for the active schedule. Start with
+Agency Review Summary and Validation Issue Triage before using the bounded
+preview tables. The Workbench remains read-only: it does not import, edit,
+publish, run validators, execute rollback, create evidence, contact external
+systems, or change consumer status.
 
 Validator Health distinguishes:
 

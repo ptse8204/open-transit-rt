@@ -2902,10 +2902,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted">{{.GTFSWorkbench.FeedOutput.ClaimBoundary}}</p>
 </section>
 </div>
+<h3>Agency Review Summary</h3>
+<table><thead><tr><th>Review area</th><th>Status</th><th>Plain-language summary</th><th>Suggested review</th><th>Does not prove</th></tr></thead><tbody>
+{{range .GTFSWorkbench.ReviewSummary}}<tr id="gtfs-review-summary-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.PlainLanguage}}</td><td>{{.SuggestedReview}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h3>Next Operator Actions</h3>
 <table><thead><tr><th>Step</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Console</th><th>Boundary</th></tr></thead><tbody>
 {{range .GTFSWorkbench.Actions}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.AdminLink}}</a>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
+<h3>Validation Issue Triage</h3>
+<p class="warning">{{.GTFSWorkbench.IssueTriage.Boundary}}</p>
+<table><tbody>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .GTFSWorkbench.IssueTriage.Status}}">{{.GTFSWorkbench.IssueTriage.Status}}</span></td></tr>
+<tr><th>Current signal</th><td>{{.GTFSWorkbench.IssueTriage.CurrentSignal}}</td></tr>
+<tr><th>Rows shown</th><td>{{.GTFSWorkbench.IssueTriage.DisplayedRows}} of {{.GTFSWorkbench.IssueTriage.TotalRows}}{{if .GTFSWorkbench.IssueTriage.HiddenRows}}; {{.GTFSWorkbench.IssueTriage.HiddenRows}} hidden by cap{{end}}</td></tr>
+</tbody></table>
+{{if .GTFSWorkbench.IssueTriage.Rows}}<table><thead><tr><th>Severity</th><th>Source</th><th>Issue family</th><th>Likely owner</th><th>Plain-English meaning</th><th>Suggested fix path</th><th>Safe next action</th><th>Verify with</th><th>Does not prove</th></tr></thead><tbody>
+{{range .GTFSWorkbench.IssueTriage.Rows}}<tr><td>{{.Severity}}</td><td>{{.SourceLabel}}</td><td>{{.Family}}<br><span class="muted">{{join .Codes ", "}} · {{.Count}} notice(s)</span></td><td>{{.LikelyOwner}}</td><td>{{.PlainEnglishMeaning}}</td><td>{{.SuggestedFixPath}}</td><td>{{.SafeNextAction}}</td><td>{{.VerifyWith}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>{{else}}<p class="muted">No sanitized validator/importer issue rows are available for this active schedule yet.</p>{{end}}
 <h3>Import Change Signals</h3>
 <table><thead><tr><th>Review item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .GTFSWorkbench.Import.Diff}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}

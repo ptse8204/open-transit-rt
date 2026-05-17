@@ -622,3 +622,20 @@ nontechnical agency user can inspect the synthetic scenario shape and expected
 statuses from the browser after startup. It is not a vendor test, hardware
 certification, real fleet reliability test, production AVL proof, consumer
 acceptance signal, compliance proof, or production-grade ETA quality proof.
+
+## ADR-0047 -- Keep GTFS Workbench read-only while adding staff-facing review
+
+Phase 04 adds Agency Review Summary and Validation Issue Triage to the private
+GTFS Workbench. The summary gives staff one browser-first view of required
+files, row counts, service dates, core route/stop/trip coverage, import
+history, active-vs-previous change signals, and current issue triage. The issue
+triage reuses sanitized GTFS quality groups and shows likely owner,
+plain-English meaning, suggested fix path, safe next action, and verification
+path.
+
+The Workbench remains read-only. It does not import GTFS, edit drafts, publish
+schedules, run validators, execute rollback, create evidence, contact external
+systems, change consumer status, or turn local review into approval,
+compliance, consumer acceptance, production readiness, vendor compatibility, or
+ETA-quality proof. Raw validator samples stay out of the Workbench JSON
+companion; deeper issue analysis stays on the authenticated GTFS Quality page.

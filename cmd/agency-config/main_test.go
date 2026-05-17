@@ -1870,7 +1870,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 				ValidatorName: compliance.CanonicalStaticValidatorName,
 				Status:        "warning",
 				WarningCount:  1,
-				Report:        map[string]any{"notices": []any{map[string]any{"code": "stop_time_missing_time", "severity": "WARNING", "sample": "route review only"}}},
+				Report:        map[string]any{"raw_report": map[string]any{"notices": []any{map[string]any{"code": "stop_time_missing_time", "severity": "WARNING", "file": "stop_times.txt", "message": "route review only"}}}},
 			},
 		}},
 	}
@@ -1893,7 +1893,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
+	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
@@ -1914,10 +1914,59 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &decoded); err != nil {
 		t.Fatalf("decode workbench JSON: %v\n%s", err, rr.Body.String())
 	}
-	for _, key := range []string{"generated_at", "agency_id", "boundary", "active_feed_version", "import", "version_comparison", "quality", "validation_health", "preview", "draft_review", "schedule_history", "feed_output", "actions", "claim_flags"} {
+	for _, key := range []string{"generated_at", "agency_id", "boundary", "review_summary", "active_feed_version", "import", "version_comparison", "issue_triage", "quality", "validation_health", "preview", "draft_review", "schedule_history", "feed_output", "actions", "claim_flags"} {
 		if _, ok := decoded[key]; !ok {
 			t.Fatalf("workbench JSON missing %q: %#v", key, decoded)
 		}
+	}
+	reviewSummary, ok := decoded["review_summary"].([]any)
+	if !ok || len(reviewSummary) != 7 {
+		t.Fatalf("review_summary = %#v, want seven staff-facing rows", decoded["review_summary"])
+	}
+	seenReviewIDs := map[string]bool{}
+	for _, item := range reviewSummary {
+		row, ok := item.(map[string]any)
+		if !ok {
+			t.Fatalf("review summary row = %#v, want object", item)
+		}
+		id, _ := row["id"].(string)
+		seenReviewIDs[id] = true
+		for _, key := range []string{"label", "status", "plain_language", "suggested_review", "does_not_prove"} {
+			if strings.TrimSpace(fmt.Sprint(row[key])) == "" {
+				t.Fatalf("review summary %s missing %s: %#v", id, key, row)
+			}
+		}
+	}
+	for _, id := range []string{"required_files", "row_counts", "service_dates", "route_stop_trip_review", "import_history", "what_changed", "issue_triage"} {
+		if !seenReviewIDs[id] {
+			t.Fatalf("review_summary missing %s in %#v", id, reviewSummary)
+		}
+	}
+	issueTriage, ok := decoded["issue_triage"].(map[string]any)
+	if !ok {
+		t.Fatalf("issue_triage = %#v, want object", decoded["issue_triage"])
+	}
+	if issueTriage["status"] != "needs_review" || issueTriage["displayed_rows"] != float64(1) || issueTriage["total_rows"] != float64(1) {
+		t.Fatalf("issue_triage status/counts = %#v, want one needs_review row", issueTriage)
+	}
+	issueRows, ok := issueTriage["rows"].([]any)
+	if !ok || len(issueRows) != 1 {
+		t.Fatalf("issue_triage rows = %#v, want one row", issueTriage["rows"])
+	}
+	issueRow, ok := issueRows[0].(map[string]any)
+	if !ok {
+		t.Fatalf("issue_triage row = %#v, want object", issueRows[0])
+	}
+	for _, key := range []string{"severity", "source_label", "family", "codes", "count", "likely_owner", "plain_english_meaning", "suggested_fix_path", "safe_next_action", "verify_with", "does_not_prove"} {
+		if strings.TrimSpace(fmt.Sprint(issueRow[key])) == "" {
+			t.Fatalf("issue_triage row missing %s: %#v", key, issueRow)
+		}
+	}
+	if _, ok := issueRow["samples"]; ok {
+		t.Fatalf("issue_triage row exposed raw samples: %#v", issueRow)
+	}
+	if !strings.Contains(fmt.Sprint(issueRow["likely_owner"]), "Schedule planner") || !strings.Contains(fmt.Sprint(issueRow["safe_next_action"]), "Before validation") {
+		t.Fatalf("issue_triage row missing owner or safe next action wording: %#v", issueRow)
 	}
 	flags, ok := decoded["claim_flags"].(map[string]any)
 	if !ok {

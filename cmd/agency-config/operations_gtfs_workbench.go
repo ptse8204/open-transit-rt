@@ -35,20 +35,31 @@ type gtfsScheduleHistoryReader interface {
 }
 
 type operationsGTFSWorkbenchView struct {
-	GeneratedAt       time.Time                         `json:"generated_at"`
-	AgencyID          string                            `json:"agency_id"`
-	Boundary          string                            `json:"boundary"`
-	ActiveFeedVersion operationsGTFSActiveFeedVersion   `json:"active_feed_version"`
-	Import            operationsGTFSImportSummary       `json:"import"`
-	VersionComparison operationsGTFSVersionComparison   `json:"version_comparison"`
-	Quality           operationsGTFSQualitySummary      `json:"quality"`
-	ValidationHealth  operationsGTFSValidationSummary   `json:"validation_health"`
-	Preview           operationsGTFSPreviewSummary      `json:"preview"`
-	DraftReview       operationsGTFSDraftReviewSummary  `json:"draft_review"`
-	ScheduleHistory   operationsGTFSScheduleHistory     `json:"schedule_history"`
-	FeedOutput        operationsGTFSFeedOutputSummary   `json:"feed_output"`
-	Actions           []operationsGTFSWorkbenchAction   `json:"actions"`
-	ClaimFlags        operationsGTFSWorkbenchClaimFlags `json:"claim_flags"`
+	GeneratedAt       time.Time                          `json:"generated_at"`
+	AgencyID          string                             `json:"agency_id"`
+	Boundary          string                             `json:"boundary"`
+	ReviewSummary     []operationsGTFSReviewSummaryRow   `json:"review_summary"`
+	ActiveFeedVersion operationsGTFSActiveFeedVersion    `json:"active_feed_version"`
+	Import            operationsGTFSImportSummary        `json:"import"`
+	VersionComparison operationsGTFSVersionComparison    `json:"version_comparison"`
+	IssueTriage       operationsGTFSWorkbenchIssueTriage `json:"issue_triage"`
+	Quality           operationsGTFSQualitySummary       `json:"quality"`
+	ValidationHealth  operationsGTFSValidationSummary    `json:"validation_health"`
+	Preview           operationsGTFSPreviewSummary       `json:"preview"`
+	DraftReview       operationsGTFSDraftReviewSummary   `json:"draft_review"`
+	ScheduleHistory   operationsGTFSScheduleHistory      `json:"schedule_history"`
+	FeedOutput        operationsGTFSFeedOutputSummary    `json:"feed_output"`
+	Actions           []operationsGTFSWorkbenchAction    `json:"actions"`
+	ClaimFlags        operationsGTFSWorkbenchClaimFlags  `json:"claim_flags"`
+}
+
+type operationsGTFSReviewSummaryRow struct {
+	ID              string `json:"id"`
+	Label           string `json:"label"`
+	Status          string `json:"status"`
+	PlainLanguage   string `json:"plain_language"`
+	SuggestedReview string `json:"suggested_review"`
+	DoesNotProve    string `json:"does_not_prove"`
 }
 
 type operationsGTFSActiveFeedVersion struct {
@@ -98,6 +109,30 @@ type operationsGTFSChangeRow struct {
 	CurrentSignal string `json:"current_signal"`
 	NextAction    string `json:"next_action"`
 	ClaimBoundary string `json:"claim_boundary"`
+}
+
+type operationsGTFSWorkbenchIssueTriage struct {
+	Status        string                         `json:"status"`
+	CurrentSignal string                         `json:"current_signal"`
+	DisplayedRows int                            `json:"displayed_rows"`
+	TotalRows     int                            `json:"total_rows"`
+	HiddenRows    int                            `json:"hidden_rows"`
+	Boundary      string                         `json:"boundary"`
+	Rows          []operationsGTFSWorkbenchIssue `json:"rows"`
+}
+
+type operationsGTFSWorkbenchIssue struct {
+	Severity            string   `json:"severity"`
+	SourceLabel         string   `json:"source_label"`
+	Family              string   `json:"family"`
+	Codes               []string `json:"codes"`
+	Count               int      `json:"count"`
+	LikelyOwner         string   `json:"likely_owner"`
+	PlainEnglishMeaning string   `json:"plain_english_meaning"`
+	SuggestedFixPath    string   `json:"suggested_fix_path"`
+	SafeNextAction      string   `json:"safe_next_action"`
+	VerifyWith          string   `json:"verify_with"`
+	DoesNotProve        string   `json:"does_not_prove"`
 }
 
 type operationsGTFSVersionComparison struct {
@@ -318,9 +353,208 @@ func (h *handler) buildGTFSWorkbenchView(r *http.Request, page operationsPage) o
 	view.DraftReview = h.buildGTFSDraftReviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.ScheduleHistory = h.buildGTFSScheduleHistory(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.VersionComparison = h.buildGTFSVersionComparison(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID, view.ScheduleHistory)
+	view.IssueTriage = buildGTFSWorkbenchIssueTriage(page.GTFSQualityGuidance.FixPlanner)
 	view.FeedOutput = buildGTFSWorkbenchFeedOutput(page.Discovery)
 	view.Actions = buildGTFSWorkbenchActions(view, page)
+	view.ReviewSummary = buildGTFSWorkbenchReviewSummary(view)
 	return view
+}
+
+func buildGTFSWorkbenchReviewSummary(view operationsGTFSWorkbenchView) []operationsGTFSReviewSummaryRow {
+	boundary := "This summary is private operator guidance only. It does not approve the schedule, prove the validator has no remaining notices, prove agency approval, prove consumer acceptance, or prove compliance."
+	return []operationsGTFSReviewSummaryRow{
+		{
+			ID:              "required_files",
+			Label:           "Required files",
+			Status:          gtfsWorkbenchRequiredFilesStatus(view.Preview.RequiredFiles),
+			PlainLanguage:   gtfsWorkbenchRequiredFilesSummary(view.Preview.RequiredFiles),
+			SuggestedReview: "Start with blocked required files before reviewing route, stop, trip, service, or realtime behavior.",
+			DoesNotProve:    boundary,
+		},
+		{
+			ID:              "row_counts",
+			Label:           "Row counts",
+			Status:          view.Preview.Status,
+			PlainLanguage:   gtfsWorkbenchRowCountSummary(view.Preview.Counts),
+			SuggestedReview: "Compare row counts against the agency's expected service size, then review capped table previews below.",
+			DoesNotProve:    boundary,
+		},
+		{
+			ID:              "service_dates",
+			Label:           "Service dates",
+			Status:          gtfsWorkbenchServiceDateStatus(view.Preview),
+			PlainLanguage:   gtfsWorkbenchServiceDateSummary(view.Preview),
+			SuggestedReview: "Confirm weekday service, exceptions, holidays, and after-midnight service with the schedule owner.",
+			DoesNotProve:    boundary,
+		},
+		{
+			ID:              "route_stop_trip_review",
+			Label:           "Routes, stops, and trips",
+			Status:          gtfsWorkbenchCoreTableStatus(view.Preview.Counts),
+			PlainLanguage:   gtfsWorkbenchCoreTableSummary(view.Preview.Counts),
+			SuggestedReview: "Use the bounded route, stop, and trip previews to decide whether the source GTFS owner, GIS owner, or operations staff should review the data.",
+			DoesNotProve:    boundary,
+		},
+		{
+			ID:              "import_history",
+			Label:           "Import history",
+			Status:          view.Import.Status,
+			PlainLanguage:   gtfsWorkbenchImportHistorySummary(view.Import),
+			SuggestedReview: "Review the latest and previous imports before treating the active schedule as the right local version.",
+			DoesNotProve:    boundary,
+		},
+		{
+			ID:              "what_changed",
+			Label:           "What changed",
+			Status:          view.VersionComparison.Status,
+			PlainLanguage:   view.VersionComparison.CurrentSignal,
+			SuggestedReview: "Review file-level and entity-level diffs before relying on route, stop, trip, service, or frequency changes.",
+			DoesNotProve:    boundary,
+		},
+		{
+			ID:              "issue_triage",
+			Label:           "Issue triage",
+			Status:          view.IssueTriage.Status,
+			PlainLanguage:   view.IssueTriage.CurrentSignal,
+			SuggestedReview: "Assign each issue to the likely data owner, fix the source GTFS or reviewed draft, then rerun validation through the allowlisted path.",
+			DoesNotProve:    boundary,
+		},
+	}
+}
+
+func gtfsWorkbenchRequiredFilesStatus(files []operationsGTFSRequiredFileStatus) string {
+	if len(files) == 0 {
+		return "missing"
+	}
+	status := "ok"
+	for _, file := range files {
+		switch file.Status {
+		case "blocked":
+			return "blocked"
+		case "optional":
+			if status == "ok" {
+				status = "needs_review"
+			}
+		}
+	}
+	return status
+}
+
+func gtfsWorkbenchRequiredFilesSummary(files []operationsGTFSRequiredFileStatus) string {
+	if len(files) == 0 {
+		return "Required file checks are not available until an active schedule preview can load."
+	}
+	var blocked, optional, ok int
+	for _, file := range files {
+		switch file.Status {
+		case "blocked":
+			blocked++
+		case "optional":
+			optional++
+		default:
+			ok++
+		}
+	}
+	return fmt.Sprintf("%d required or expected file checks are ready, %d are blocked, and %d optional file checks need context.", ok, blocked, optional)
+}
+
+func gtfsWorkbenchRowCountSummary(counts compliance.GTFSSchedulePreviewCounts) string {
+	if counts.Routes+counts.Stops+counts.Trips+counts.StopTimes+counts.Calendar+counts.CalendarDates+counts.ShapePoints+counts.Frequencies == 0 {
+		return "No schedule row counts are available yet."
+	}
+	return fmt.Sprintf("%d routes, %d stops, %d trips, %d stop times, %d calendar rows, %d exceptions, %d shape points, and %d frequency rows are stored for the active schedule preview.", counts.Routes, counts.Stops, counts.Trips, counts.StopTimes, counts.Calendar, counts.CalendarDates, counts.ShapePoints, counts.Frequencies)
+}
+
+func gtfsWorkbenchServiceDateStatus(preview operationsGTFSPreviewSummary) string {
+	if preview.Counts.Calendar+preview.Counts.CalendarDates == 0 {
+		return "blocked"
+	}
+	return "needs_review"
+}
+
+func gtfsWorkbenchServiceDateSummary(preview operationsGTFSPreviewSummary) string {
+	if len(preview.Calendar) == 0 {
+		if preview.Counts.CalendarDates > 0 {
+			return fmt.Sprintf("No bounded calendar rows are visible, but %d calendar exception rows are stored.", preview.Counts.CalendarDates)
+		}
+		return "No service calendar rows are visible in the active preview."
+	}
+	start := preview.Calendar[0].StartDate
+	end := preview.Calendar[0].EndDate
+	for _, row := range preview.Calendar[1:] {
+		if row.StartDate != "" && (start == "" || row.StartDate < start) {
+			start = row.StartDate
+		}
+		if row.EndDate != "" && (end == "" || row.EndDate > end) {
+			end = row.EndDate
+		}
+	}
+	return fmt.Sprintf("%d service calendar rows are stored with %d exception rows; bounded preview service dates run from %s to %s.", preview.Counts.Calendar, preview.Counts.CalendarDates, firstNonEmpty(start, "not visible"), firstNonEmpty(end, "not visible"))
+}
+
+func gtfsWorkbenchCoreTableStatus(counts compliance.GTFSSchedulePreviewCounts) string {
+	if counts.Routes == 0 || counts.Stops == 0 || counts.Trips == 0 || counts.StopTimes == 0 {
+		return "blocked"
+	}
+	return "needs_review"
+}
+
+func gtfsWorkbenchCoreTableSummary(counts compliance.GTFSSchedulePreviewCounts) string {
+	if counts.Routes+counts.Stops+counts.Trips+counts.StopTimes == 0 {
+		return "Route, stop, trip, and stop-time counts are not available yet."
+	}
+	return fmt.Sprintf("The active preview has %d route rows, %d stop rows, %d trip rows, and %d stop-time rows.", counts.Routes, counts.Stops, counts.Trips, counts.StopTimes)
+}
+
+func gtfsWorkbenchImportHistorySummary(summary operationsGTFSImportSummary) string {
+	if len(summary.History) == 0 {
+		return "No import history rows are available in this runtime."
+	}
+	if summary.Latest == nil {
+		return fmt.Sprintf("%d import history rows are available, but no latest import row was selected.", len(summary.History))
+	}
+	return fmt.Sprintf("Latest import %d is %s for feed version %s, with %d errors, %d warnings, and %d earlier import rows visible.", summary.Latest.ID, summary.Latest.Status, firstNonEmpty(summary.Latest.FeedVersionID, "not linked"), summary.Latest.ErrorCount, summary.Latest.WarningCount, len(summary.History)-1)
+}
+
+func buildGTFSWorkbenchIssueTriage(planner operationsGTFSQualityFixPlanner) operationsGTFSWorkbenchIssueTriage {
+	const limit = 8
+	triage := operationsGTFSWorkbenchIssueTriage{
+		Status:        planner.Status,
+		CurrentSignal: planner.Summary,
+		TotalRows:     planner.TotalRows,
+		Boundary:      "Issue triage rows are sanitized operator guidance only. They do not edit GTFS, mutate drafts, publish schedules, run validators, prove compliance, prove consumer acceptance, prove agency approval, or prove production readiness.",
+	}
+	if triage.Status == "" {
+		triage.Status = "unknown"
+	}
+	rows := planner.Rows
+	if len(rows) > limit {
+		triage.HiddenRows = len(rows) - limit
+		rows = rows[:limit]
+	}
+	for _, row := range rows {
+		triage.Rows = append(triage.Rows, operationsGTFSWorkbenchIssue{
+			Severity:            row.Severity,
+			SourceLabel:         row.SourceLabel,
+			Family:              row.Family,
+			Codes:               append([]string(nil), row.Codes...),
+			Count:               row.Count,
+			LikelyOwner:         row.LikelyOwner,
+			PlainEnglishMeaning: row.IssueSummary,
+			SuggestedFixPath:    row.SafeFixSuggestion,
+			SafeNextAction:      row.BeforeValidationPlan,
+			VerifyWith:          row.VerifyWith,
+			DoesNotProve:        triage.Boundary,
+		})
+	}
+	triage.DisplayedRows = len(triage.Rows)
+	if planner.HiddenRows > 0 {
+		triage.HiddenRows += planner.HiddenRows
+	}
+	if triage.TotalRows == 0 {
+		triage.CurrentSignal = "No grouped GTFS quality issue rows are available from the current validator/importer records."
+	}
+	return triage
 }
 
 func buildGTFSActiveFeedVersion(discovery compliance.FeedDiscovery) operationsGTFSActiveFeedVersion {

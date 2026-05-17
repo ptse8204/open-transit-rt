@@ -4,13 +4,20 @@ This guide explains common GTFS import and validation issues in plain language. 
 
 Importer errors are produced by Open Transit RT before activation. Canonical validator errors come from external validator tooling. Both matter, but neither proves consumer acceptance.
 
-The authenticated Operations Console also has `/admin/operations/gtfs-quality`
-for private operator triage. It separates canonical MobilityData static
-validator output from Open Transit RT internal import validation, caps issue
-groups and samples, and shows next actions without exposing raw reports,
-stdout, stderr, argv, private paths, or evidence artifacts. The page is an
-admin/operator diagnostic surface only; it is not a public unauthenticated
-route.
+The authenticated Operations Console has two private review surfaces for this
+work:
+
+- `/admin/operations/gtfs-workbench` is the staff-facing schedule review page.
+  It starts with an Agency Review Summary and Validation Issue Triage before
+  showing bounded technical preview tables.
+- `/admin/operations/gtfs-quality` is the deeper operator triage page. It
+  separates canonical MobilityData static validator output from Open Transit RT
+  internal import validation, caps issue groups and samples, and shows next
+  actions without exposing raw reports, stdout, stderr, argv, private paths, or
+  evidence artifacts.
+
+Both pages are authenticated admin/operator surfaces only; they are not public
+unauthenticated routes.
 
 ## Status Words
 
@@ -70,8 +77,19 @@ diagnostic/supporting signal only.
 8. If the latest static validator result predates the active schedule feed
    version or timestamp, treat it as `needs_review` and rerun after operator
    approval.
+9. Use `/admin/operations/gtfs-workbench` when the reviewer needs the schedule
+   story in one place: required files, row counts, service dates, core
+   route/stop/trip counts, import history, active-vs-previous change summary,
+   and sanitized issue triage.
 
 ## Operations Console Fix Paths
+
+The private `/admin/operations/gtfs-workbench` page now adds a concise
+Validation Issue Triage table beside the schedule review summary. It reuses
+sanitized GTFS quality groups and shows likely owner, plain-English meaning,
+suggested fix path, safe next action, verification path, and a clear boundary
+for what the row does not prove. It does not expose raw samples in the
+Workbench JSON companion.
 
 The private `/admin/operations/gtfs-quality` page now adds operator fix
 guidance to each capped issue group:
