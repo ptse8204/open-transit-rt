@@ -789,9 +789,8 @@ Release Install UX Roadmap Closeout is complete, with closeout at
 `docs/handoffs/phase-132.md`: the final Phase 111-132 closeout is recorded in
 `docs/final-public-release-install-ux-roadmap-closeout.md`.
 Release-cut cleanup, postponed connector maturity claims, and optional evidence
-tracks remain separated by their phase gates and claim boundaries. Use the canonical
-[Review And Recommendations](roadmap-status.md#review-and-recommendations)
-section for the current scorecard, risks, and next-step sequence.
+tracks remain separated by their gates and claim boundaries. Use the role-based
+docs index and the current status summary for risks and next-step sequence.
 
 Future release-candidate gate cleanup should start from a clean checkout and cover
 `make check`, `make validate`, `make test`, local app startup, the browser

@@ -30,6 +30,23 @@ For a new Codex session, read in this order:
 - [Prompts](prompts/README.md): Codex kickoff prompts and truthfulness guards.
 - [History](history/README.md): phase-ledger inventory and stale-doc handling.
 
+## Stable Branch Boundary
+
+The `stable` branch is filtered for product/user-facing source and docs. It
+intentionally omits `AGENTS.md`, `docs/agent/**`, `docs/handoffs/**`,
+`docs/prompts/**`, `docs/roadmaps/**`, Codex task files, conversation
+summaries, phase ledgers, and roadmap planning packs.
+
+Run this local check before changing the filter workflow or exclude list:
+
+```bash
+make check-stable-filter
+```
+
+That check simulates the filtered tree, verifies preserved product paths,
+verifies AI-agent-only paths are absent, checks dry-run/no-force-push workflow
+guards, and confirms the consumer tracker remains seven prepared-only targets.
+
 ## Human-Facing Boundary
 
 Do not make agency users read this area to understand the product. When an

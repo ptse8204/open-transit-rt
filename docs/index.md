@@ -62,19 +62,13 @@ first.
 ## AI Agents
 
 AI-agent, Codex, and phase-history files are implementation context, not the
-first path for human users. They are still useful when an agent needs the
-project contract or latest handoff:
+first path for human users. On `main`, agents can read `AGENTS.md`,
+`docs/agent/README.md`, `docs/codex-task.md`, `docs/conversation-summary.md`,
+`docs/handoffs/latest.md`, and the roadmap packs under `docs/roadmaps/`.
 
-- [AI-Agent Documentation Hub](agent/README.md)
-- [Agent Handoffs Index](agent/handoffs/README.md)
-- [Agent Roadmaps Index](agent/roadmaps/README.md)
-- [Agent Prompts Index](agent/prompts/README.md)
-- [AGENTS.md](../AGENTS.md)
-- [Codex Task Brief](codex-task.md)
-- [Conversation Summary](conversation-summary.md)
-- [Latest Handoff](handoffs/latest.md)
-- [Post-rc2 Browser-First Product Roadmap](roadmaps/post-rc2-browser-first-product/README.md)
-- [Agency-First Connector Platform Roadmap](roadmaps/agency-first-connector-platform/README.md)
+Those paths are intentionally filtered out of `stable`, so this human docs
+index does not link to them directly. Use `stable` for product source,
+examples, tests, release docs, website files, and practical human guides.
 
 ## What This Index Does Not Prove
 

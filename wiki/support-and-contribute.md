@@ -49,7 +49,7 @@ Do not post tokens, DB URLs, private keys, admin URLs with secrets, private port
 - [Code Of Conduct](../CODE_OF_CONDUCT.md)
 - [Support Boundaries](../docs/support-boundaries.md)
 - [Governance](../docs/governance.md)
-- [Roadmap Status](../docs/roadmap-status.md)
+- [Docs Index](../docs/index.md)
 
 ## Keep Exploring
 
