@@ -116,7 +116,7 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 		maintenanceTask("weekly_validators", "weekly", "Review validator health and stale reports.", cockpitValidationStatus(page), "agency operator or technical helper", "Open Validator Health; use off-host validation when the server is too small."),
 		maintenanceTask("weekly_telemetry", "weekly", "Review telemetry freshness, stale rows, and assignment confidence.", cockpitTelemetryStatus(page), "agency operator", "Open Devices and Telemetry."),
 		maintenanceTask("weekly_alerts", "weekly", "Check whether active alerts need to be created, updated, or archived.", alertStatus(page), "agency operator", "Open the Alerts Console and Alerts feed row."),
-		maintenanceTask("monthly_gtfs_update", "monthly", "Import updated GTFS and review counts, quality, validators, and feed health.", cockpitActiveFeedStatus(page), "schedule owner with agency operator", "Open Browser GTFS Import."),
+		maintenanceTask("monthly_gtfs_update", "monthly", "Import updated GTFS and review counts, quality, validators, and feed health.", cockpitActiveFeedStatus(page), "schedule owner with agency operator", "Open Import GTFS."),
 		maintenanceTask("monthly_backup_restore", "monthly", "Confirm backup and restore-drill configuration presence.", maintenanceBackupTaskStatus(), "technical helper", "Configure private backup/restore values and keep secret values out of docs."),
 		maintenanceTask("as_needed_support_summary", "as needed", "Generate a local support bundle only when a technical helper needs diagnostics.", operationsStatusDiagnosticOnly, "technical helper", "Run the support-bundle helper from an operator shell and redact before sharing."),
 	}

@@ -1086,7 +1086,7 @@ func (h *handler) buildGTFSImportSummary(ctx context.Context, agencyID string, a
 	if len(summary.History) == 0 {
 		summary.Status = "missing"
 		summary.NextAction = "Import a GTFS ZIP or publish a GTFS Studio draft before schedule review."
-		summary.Diff = []operationsGTFSChangeRow{gtfsWorkbenchChangeRow("Latest import", "missing", "No GTFS import record is stored for this agency.", "Use Browser GTFS Import for a ZIP upload or safe URL import.", summary.ClaimBoundary)}
+		summary.Diff = []operationsGTFSChangeRow{gtfsWorkbenchChangeRow("Latest import", "missing", "No GTFS import record is stored for this agency.", "Use Import GTFS for a ZIP upload or safe URL import.", summary.ClaimBoundary)}
 		return summary
 	}
 	latest := summary.History[0]

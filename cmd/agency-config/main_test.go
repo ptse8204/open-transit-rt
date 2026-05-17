@@ -614,7 +614,7 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 		t.Fatalf("audit status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Audit Log", "Recent scoped audit metadata", "Visible rows", "2 of the latest 50", "actor=2; reason=1; old=1; new=2", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
+	for _, want := range []string{"Audit History", "Recent scoped audit metadata", "Visible rows", "2 of the latest 50", "actor=2; reason=1; old=1; new=2", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("audit body missing %q: %s", want, body)
 		}
@@ -880,8 +880,8 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 		t.Fatalf("readiness v2 html did not escape script-like metadata: %s", body)
 	}
 	for _, want := range []string{
-		"Readiness Checklist V2",
-		"Private authenticated readiness checklist v2 only",
+		"Readiness",
+		"Private authenticated readiness checklist only",
 		"Readiness item",
 		"Current signal",
 		"What this means",
@@ -1147,7 +1147,7 @@ func TestOperationsChecklistRoutesArePrivateScopedAndDeterministic(t *testing.T)
 		t.Fatalf("html Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Operator Checklist", "This checklist is private operator diagnostics", "not evidence", "not an evidence packet", "not compliance proof", "not agency approval", "not consumer acceptance", "not production readiness", "Setup", "Feeds", "Validation", "Telemetry", "Operations", "Consumer Workflow", "Placeholder-like", "Pilot/reference root", "No final-root evidence"} {
+	for _, want := range []string{"Readiness Checklist", "This checklist is private operator diagnostics", "not evidence", "not an evidence packet", "not compliance proof", "not agency approval", "not consumer acceptance", "not production readiness", "Setup", "Feeds", "Validation", "Telemetry", "Operations", "Consumer Workflow", "Placeholder-like", "Pilot/reference root", "No final-root evidence"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1350,7 +1350,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Private Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Support/RC checks", "Claim flags for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Support/RC checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -3012,15 +3012,15 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		`aria-label="Operations Console sections"`,
 		"Start Here",
 		`href="/admin/operations" aria-current="page">Start Here</a>`,
-		`href="/admin/operations/devices">Device Credentials</a>`,
+		`href="/admin/operations/devices">Devices &amp; Tokens</a>`,
 		`href="/admin/operations/telemetry-simulator">Telemetry Simulator</a>`,
-		"Schedule",
+		"GTFS Workbench",
 		"Realtime",
 		`href="/admin/operations/prediction-lab">Prediction &amp; ETA Lab</a>`,
 		"Connectors",
-		"Health",
-		"Maintain",
-		"Learn",
+		"Feed Health",
+		"Maintenance",
+		"Help / Tutorials",
 		`href="/admin/operations" aria-current="page"`,
 	} {
 		if !strings.Contains(body, want) {
@@ -3184,14 +3184,14 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 	}{
 		{path: "/admin/operations", title: "Agency Operations Cockpit / Start Here"},
 		{path: "/admin/operations/gtfs-workbench", title: "GTFS Workbench"},
-		{path: "/admin/operations/gtfs-import", title: "Browser GTFS Import"},
+		{path: "/admin/operations/gtfs-import", title: "Import GTFS"},
 		{path: "/admin/operations/prediction-lab", title: "Prediction &amp; ETA Lab"},
 		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
-		{path: "/admin/operations/devices", title: "Device Credentials"},
+		{path: "/admin/operations/devices", title: "Devices &amp; Tokens"},
 		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
 		{path: "/admin/operations/access", title: "Access &amp; Roles"},
-		{path: "/admin/operations/audit", title: "Audit Log"},
-		{path: "/admin/operations/help", title: "Operations Console Help"},
+		{path: "/admin/operations/audit", title: "Audit History"},
+		{path: "/admin/operations/help", title: "Help &amp; Tutorials"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
@@ -3386,7 +3386,7 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		"Operations Console Help",
+		"Help &amp; Tutorials",
 		`id="help-gtfs"`,
 		`id="help-gtfs_rt"`,
 		`id="help-connectors"`,
@@ -3552,8 +3552,8 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`<header class="operations-header" role="banner">`,
 		`<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`,
 		`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
-		`<section class="nav-group" aria-labelledby="nav-group-maintain">`,
-		`<p id="nav-group-maintain" class="nav-group-label">Maintain</p>`,
+		`<section class="nav-group" aria-labelledby="nav-group-maintenance">`,
+		`<p id="nav-group-maintenance" class="nav-group-label">Maintenance</p>`,
 		`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 		`<script src="/admin/operations/assets/operations.js" defer></script>`,
 		`</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>`,
@@ -3715,7 +3715,7 @@ func TestOperationsCoreRoutesUseSharedAppShellAndDesignTokens(t *testing.T) {
 			body := rr.Body.String()
 			for _, want := range []string{
 				`<header class="operations-header" role="banner">`,
-				`Private operations control plane`,
+				`Private agency operations`,
 				`class="app-breadcrumb"`,
 				`class="app-meta"`,
 				`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
@@ -3749,8 +3749,8 @@ func TestOperationsConsoleDesignSystemAvoidsFragileDecoration(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		`Draft Schedule Editor <span class="nav-surface">admin surface</span>`,
-		`Alerts <span class="nav-surface">admin surface</span>`,
+		`Draft Schedule Editor <span class="nav-surface">separate tool</span>`,
+		`Alerts Console <span class="nav-surface">separate tool</span>`,
 		`Ready for local review`,
 		`Copy These Five Configured Feed URLs`,
 	} {
@@ -5037,7 +5037,7 @@ func TestValidationCenterHTMLPlainLanguageReadOnlyAndNoLeakage(t *testing.T) {
 		"Validator Health",
 		"GTFS Quality Summary",
 		"Prepared Consumer Tracker",
-		"Claim Flags",
+		"Advanced Safety Details",
 		"read-only",
 		"does not run validators",
 		"prepared only",

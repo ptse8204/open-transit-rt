@@ -577,3 +577,28 @@ configured values, and native details. The frontend layer is not a public API,
 evidence collector, consumer submission system, hosted SaaS surface,
 production-readiness proof, vendor compatibility proof, SLA proof, or
 production-grade ETA proof.
+
+## ADR-0045 -- Keep the Operations Console information architecture route-driven
+
+The post-rc2 Operations Console uses a central route registry for product
+navigation, page titles, grouping, private/no-store posture, and stable route
+inventory. Phase 02 reorganizes the console around agency tasks: Start Here,
+Setup, GTFS Workbench, Feed Health, Validation, Realtime, Devices / AVL,
+Prediction / ETA Lab, Connectors, Alerts, Readiness, Maintenance, Help /
+Tutorials, and Support / Troubleshooting.
+
+Route paths remain stable so existing operator links, tests, JSON companions,
+and local runbooks do not break. Labels may become more user-facing, but route
+inventory and access rules must stay explicit in code and tests.
+
+Each page includes a visible "What to do next" action, and separate private
+tools such as GTFS Studio and the Alerts Console are marked as separate tools
+instead of hidden diagnostics. The console remains Go server-rendered HTML with
+buildless progressive enhancement only. With JavaScript disabled, pages must
+still render useful tables, links, forms, and native disclosure controls.
+
+This information architecture does not create evidence, contact outside
+systems, change consumer status, prove CAL-ITP/Caltrans compliance, prove
+production readiness, prove consumer acceptance, prove vendor compatibility,
+provide hosted service availability, or make SLA or production-grade ETA
+claims.

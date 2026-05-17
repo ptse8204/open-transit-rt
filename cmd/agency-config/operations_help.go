@@ -258,7 +258,7 @@ func operationsHelpRoleTours() []operationsHelpRoleTour {
 			"Director or manager",
 			"Someone checking whether the agency has a clear operational path and knows which work needs staff or technical support.",
 			"/admin/operations/launchpad",
-			"Private Launchpad, Readiness, Consumers, Maintenance, Evidence",
+			"Agency Launchpad, Readiness, Consumer Preparation, Maintenance, Evidence Guidance",
 			"Confirm the team knows the next private task, current blockers, and which outside claims remain unavailable.",
 			"Ask for technical help when a blocker needs data import, feed validation tooling, deployment checks, or redaction review.",
 			"Does not prove adoption, approval, compliance, public launch, managed service, or support coverage.",
@@ -728,7 +728,7 @@ func operationsHelpSectionLabel(section string) string {
 	case "telemetry-simulator":
 		return "Telemetry Simulator"
 	case "devices":
-		return "Device Credentials"
+		return "Devices & Tokens"
 	case "readiness":
 		return "readiness"
 	case "checklist":
@@ -742,7 +742,7 @@ func operationsHelpSectionLabel(section string) string {
 	case "evidence":
 		return "evidence"
 	case "help":
-		return "Operations Console Help"
+		return "Help & Tutorials"
 	default:
 		return "this section"
 	}

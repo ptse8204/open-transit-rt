@@ -219,7 +219,7 @@ func buildOperationsReadinessV2(page operationsPage) operationsReadinessV2View {
 	return operationsReadinessV2View{
 		GeneratedAt: page.GeneratedAt,
 		AgencyID:    page.AgencyID,
-		Boundary:    "Private authenticated readiness checklist v2 only; viewing it creates no evidence, changes no consumer status, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, uptime, production-readiness, consumer-acceptance, or production-grade ETA outcome.",
+		Boundary:    "Private authenticated readiness checklist only; viewing it creates no evidence, changes no consumer status, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, uptime, production-readiness, consumer-acceptance, or production-grade ETA outcome.",
 		Rows:        rows,
 		Counts:      readinessV2Counts(rows),
 		ClaimFlags:  operationsReadinessV2Claims{},
