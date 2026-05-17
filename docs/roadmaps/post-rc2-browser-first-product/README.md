@@ -84,6 +84,15 @@ no external scripts, tracking, analytics, or external fonts. The site pages
 stay documentation-only and repeat unsupported-claim limits instead of
 marketing proof language.
 
+## Phase 10 Report
+
+Phase 10 adds a repeatable video recording workflow for maintainers. The guide
+uses the same browser-first route order as the product UI, includes six
+storyboards, requires public-safe local/demo data, keeps tokens and private
+records off screen, requires captions or transcripts before publication, and
+keeps large video binaries outside the repository unless separately
+authorized. The static `site/video.html` page now points to the detailed guide.
+
 ## Phase Acceptance Rule
 
 Do not accept a phase until:

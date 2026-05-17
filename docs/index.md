@@ -17,6 +17,7 @@ first.
 - [No Command Line First Run](tutorials/no-cli-agency-first-run.md)
 - [GTFS Validation Triage](tutorials/gtfs-validation-triage.md)
 - [Small Agency Maintenance Guide](tutorials/small-agency-maintenance-guide.md)
+- [Video Recording Guide](tutorials/video-recording-guide.md)
 - [CAL-ITP Readiness Plain English](../wiki/calitp-readiness-plain-english.md)
 - [CAL-ITP-Style Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Readiness And Evidence](../wiki/readiness-and-evidence.md)

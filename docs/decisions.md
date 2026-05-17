@@ -737,3 +737,17 @@ Generated browser captures are documentation aids only. They are not retained
 evidence and do not prove public deployment, compliance, consumer acceptance,
 agency adoption, production readiness, hosted service availability, SLA/uptime,
 vendor compatibility, production AVL reliability, or ETA quality.
+
+## ADR-0053 -- Keep tutorial video files out of the repository by default
+
+Phase 10 adds `docs/tutorials/video-recording-guide.md` and expands the static
+site video page with public-safe recording storyboards. The guide standardizes
+six short tutorial scripts: overview, local setup, browser-first GTFS import,
+feed health/readiness review, connector/AVL overview, and maintenance/support
+workflow.
+
+The repository stores scripts, checklists, and publication rules only. Raw or
+finished video binaries should stay outside git unless a maintainer explicitly
+authorizes release assets or another storage path. Recording workflows must use
+local/demo or public-safe data, avoid secrets and private records, add captions
+or transcripts before publication, and preserve all unsupported-claim limits.
