@@ -767,3 +767,17 @@ It does not delete history, move protected evidence, change consumer tracker
 state, create evidence packets, or make any compliance, production readiness,
 consumer acceptance, hosted service, vendor compatibility, SLA, AVL
 reliability, or ETA-quality claim.
+
+## ADR-0055 -- Keep stable as a filtered product branch
+
+Phase 12 introduces a `stable` branch policy and a GitHub Actions workflow that
+filters `main` into `stable` while excluding AI-agent-only docs. The workflow
+uses `.github/stable-sync-excludes.txt`, supports manual dry runs, commits only
+when the filtered tree changes, and pushes without force. If the remote stable
+branch diverges, the push should fail for maintainer review.
+
+The branch is a product/user-facing source branch, not a stable release. It
+does not publish a tag, contact external systems, create evidence, change
+consumer tracker status, prove compliance, prove production readiness, prove
+consumer acceptance, provide hosted service availability, prove vendor or
+hardware compatibility, provide SLA coverage, or prove AVL/ETA quality.

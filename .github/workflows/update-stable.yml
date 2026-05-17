@@ -1,0 +1,117 @@
+name: Update stable branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Source ref to filter into stable
+        required: true
+        default: main
+      dry_run:
+        description: Preview changes without pushing stable
+        required: true
+        type: boolean
+        default: true
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stable-branch-sync
+  cancel-in-progress: false
+
+jobs:
+  update-stable:
+    name: Filter main into stable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Choose source and mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "SOURCE_REF=${{ inputs.source_ref }}" >> "$GITHUB_ENV"
+            echo "DRY_RUN=${{ inputs.dry_run }}" >> "$GITHUB_ENV"
+          else
+            echo "SOURCE_REF=${GITHUB_SHA}" >> "$GITHUB_ENV"
+            echo "DRY_RUN=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve source commit
+        run: |
+          git fetch origin main --prune
+          source_commit="$(git rev-parse "${SOURCE_REF}^{commit}")"
+          echo "SOURCE_COMMIT=${source_commit}" >> "$GITHUB_ENV"
+          echo "Resolved source ${SOURCE_REF} to ${source_commit}"
+
+      - name: Prepare source and stable worktrees
+        run: |
+          rm -rf ../stable-source ../stable-target
+          git worktree add ../stable-source "$SOURCE_COMMIT"
+          if git ls-remote --exit-code --heads origin stable >/dev/null 2>&1; then
+            git fetch origin stable:refs/remotes/origin/stable
+            git worktree add -B stable ../stable-target origin/stable
+          else
+            git worktree add -B stable ../stable-target "$SOURCE_COMMIT"
+          fi
+
+      - name: Copy product files and remove AI-agent docs
+        run: |
+          find ../stable-target -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          rsync -a \
+            --exclude .git \
+            --exclude-from ../stable-source/.github/stable-sync-excludes.txt \
+            ../stable-source/ ../stable-target/
+
+          cd ../stable-target
+          for path in \
+            docs/agent \
+            docs/handoffs \
+            docs/prompts \
+            docs/roadmaps \
+            docs/codex-task.md \
+            docs/conversation-summary.md
+          do
+            if [ -e "$path" ]; then
+              echo "Filtered stable branch still contains $path" >&2
+              exit 1
+            fi
+          done
+
+      - name: Commit filtered stable tree
+        run: |
+          cd ../stable-target
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Stable branch is already current."
+            echo "STABLE_CHANGED=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          git commit -m "Update stable branch from ${SOURCE_COMMIT}"
+          echo "STABLE_CHANGED=true" >> "$GITHUB_ENV"
+
+      - name: Report dry run
+        if: env.DRY_RUN == 'true'
+        run: |
+          cd ../stable-target
+          echo "Dry run only. Stable branch was not pushed."
+          git --no-pager log --oneline -3
+          git --no-pager diff --stat HEAD~1..HEAD || true
+
+      - name: Push stable branch
+        if: env.DRY_RUN != 'true' && env.STABLE_CHANGED == 'true'
+        run: |
+          cd ../stable-target
+          git push origin HEAD:stable

@@ -103,6 +103,15 @@ as `docs/handoffs/latest.md` in place for compatibility. `docs/index.md`,
 `docs/handoffs/latest.md` now tell human readers to start with browser-first
 guides instead of agent handoffs.
 
+## Phase 12 Report
+
+Phase 12 defines `main`, `stable`, and `gh-pages` branch roles in
+`docs/branching-and-release-policy.md`. It adds a non-force-push stable sync
+workflow with a dry-run dispatch mode and an explicit exclude list for
+AI-agent-only docs, handoffs, prompt files, roadmap packs, and phase ledgers.
+The stable branch remains a filtered product branch, not a stable release or
+production-readiness claim.
+
 ## Phase Acceptance Rule
 
 Do not accept a phase until:

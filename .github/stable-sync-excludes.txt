@@ -1,0 +1,22 @@
+# Files and directories excluded from the filtered stable branch.
+#
+# The stable branch is for product/user-facing source, docs, examples, tests,
+# release docs, and the public site. It intentionally omits AI-agent-only
+# planning, handoff, prompt, and phase-ledger material.
+
+.cache/
+.DS_Store
+docs/agent/
+docs/handoffs/
+docs/prompts/
+docs/roadmaps/
+docs/codex-task.md
+docs/conversation-summary.md
+docs/codex-*.md
+docs/codex-*.txt
+docs/phase-*.md
+docs/phase-plan.md
+docs/phase-plan-production-closure.md
+docs/open-transit-rt-master-planner-remaining-work.md
+docs/roadmap-status.md
+docs/roadmap-post-phase-14.md
