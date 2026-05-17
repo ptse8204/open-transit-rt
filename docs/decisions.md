@@ -781,3 +781,18 @@ does not publish a tag, contact external systems, create evidence, change
 consumer tracker status, prove compliance, prove production readiness, prove
 consumer acceptance, provide hosted service availability, prove vendor or
 hardware compatibility, provide SLA coverage, or prove AVL/ETA quality.
+
+## ADR-0056 -- Split fast CI from manual release gates
+
+Phase 13 keeps `go test ./...` in GitHub Actions after local evaluation passed.
+The previous workflow was useful, but it mixed default connector checks with
+missing repo guardrails. The fast workflow now runs Go tests, `make check`, the
+consumer tracker script, and `make audit-final-claim-review` for pull requests
+and pushes to `main` or `stable`.
+
+Validator installation, `make validate`, `make smoke`, connector conformance,
+GTFS-RT conformance, product acceptance, and release-package audit move to a
+manual release-gates workflow. This keeps PR feedback repeatable while keeping
+release-candidate checks available without implying production readiness,
+compliance, consumer acceptance, hosted service availability, vendor
+compatibility, SLA coverage, AVL reliability, or ETA quality.

@@ -1,0 +1,58 @@
+name: Manual release gates
+
+on:
+  workflow_dispatch:
+    inputs:
+      install_validators:
+        description: Install pinned validators before validator-heavy checks
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  release-gates:
+    name: Validator and release-candidate checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run fast baseline first
+        run: |
+          go test ./...
+          make check
+          scripts/check-consumer-tracker.sh
+          make audit-final-claim-review
+
+      - name: Install pinned validators
+        if: inputs.install_validators
+        run: make validators-install
+
+      - name: Run validator-heavy checks
+        if: inputs.install_validators
+        run: |
+          make validate
+          make smoke
+
+      - name: Run connector and feed conformance checks
+        run: |
+          make external-connection-check
+          make adapter-conformance
+          make test-connector-examples
+          make gtfsrt-conformance
+
+      - name: Run product acceptance audit
+        run: make audit-product-acceptance
+
+      - name: Generate and audit local release package
+        run: |
+          RELEASE_PACKAGE_ALLOW_DIRTY=true make release-package
+          make audit-release-package
