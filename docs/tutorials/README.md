@@ -1,6 +1,9 @@
 # Tutorials
 
-These command-level tutorials are internal maintainer references. Public-facing versions live in [`/wiki`](../../wiki/README.md).
+Start here instead if you are choosing a guide by role:
+[Docs Index](../index.md). These command-level tutorials remain detailed
+references for technical helpers and maintainers. Public-facing versions live
+in [`/wiki`](../../wiki/README.md).
 
 They document what the current repo can run today. They do not claim hosted production readiness, consumer acceptance, or completed CAL-ITP/Caltrans compliance.
 

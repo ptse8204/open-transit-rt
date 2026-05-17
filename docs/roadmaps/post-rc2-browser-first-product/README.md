@@ -65,6 +65,16 @@ telemetry/device state, and consumer preparedness. It keeps URL readiness
 separate from license/contact readiness and keeps prepared consumer tracker
 records separate from runtime workflow notes.
 
+## Phase 08 Report
+
+The Web Design Engineer skill was loaded before the Phase 08 documentation
+cleanup. It shaped the work toward a plain, role-based reading path instead of
+a large internal route ledger: the README now starts with audience, normal
+browser flow, GTFS import, feed URLs, connectors, readiness, and unsupported
+claims; `docs/index.md` separates new users, agency staff, technical helpers,
+connector developers, maintainers, and AI agents; and the wiki home now points
+readers to task guides before project history.
+
 ## Phase Acceptance Rule
 
 Do not accept a phase until:

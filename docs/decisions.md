@@ -709,3 +709,17 @@ create evidence, change consumer status, prove CAL-ITP/Caltrans compliance,
 prove production readiness, prove consumer acceptance, prove hosted service
 availability, prove SLA or uptime, prove vendor or hardware compatibility, or
 prove ETA quality.
+
+## ADR-0051 -- Make human docs role-based before phase history
+
+Phase 08 makes `README.md`, `docs/index.md`, `docs/README.md`, and the wiki
+home point readers to task-based guides before maintainer phase ledgers. The
+normal reader path is: understand the product, try it locally, open the private
+browser UI, import GTFS, check feed URLs and feed health, connect vehicle data,
+review readiness, and understand unsupported claims.
+
+Long phase files, Codex task briefs, handoffs, and roadmap packs remain
+discoverable for maintainers and AI agents, but they are no longer presented
+as the first path for new users or agency staff. This keeps project history
+available without making human readers interpret implementation ledgers before
+they can evaluate the product.

@@ -78,6 +78,6 @@ compliance claims.
 The current default next step is product quality and external-connection
 maturity through the
 [Review And Recommendations](../docs/roadmap-status.md#review-and-recommendations)
-path, including `v0.1.0-rc.1` readiness before any full `v0.1.0` release.
-Real pilots, final-root proof, consumer submission, and vendor proof remain
-optional evidence tracks only when authorized.
+path after the public `v0.1.0-rc.2` release candidate. Real pilots,
+final-root proof, consumer submission, and vendor proof remain optional
+evidence tracks only when authorized.

@@ -30,7 +30,7 @@ notification.txt
 The draft begins with `DRAFT — NOT SENT`. It is meant for private operator
 review before deciding what to do next.
 
-`summary.json` includes a bounded `health_digest` object and
+`summary.json` includes a limited `health_digest` object and
 `channel_guidance` object. The digest is a local template with severity, loaded
 source counts, blocked/needs-review counts, capped next actions, and explicit
 "does not prove" wording. Channel guidance records only booleans such as
@@ -118,7 +118,7 @@ create evidence, or prove hosted monitoring.
 ## What To Review
 
 Open `summary.md` for a short operator view. Use `summary.json` for local
-automation that needs the bounded schema. Use `notification.txt` only as an
+automation that needs the stable schema. Use `notification.txt` only as an
 unsent draft for an operator to review.
 
 The draft summarizes:
@@ -127,7 +127,7 @@ The draft summarizes:
 - public feed and deployment-doctor blocker counts;
 - capped next actions;
 - omitted item counts through `overflow_count`;
-- false claim flags.
+- a safety section showing that no external claim was created.
 
 It does not copy raw reports, private paths, source JSON, evidence packets,
 consumer submissions, tokens, webhook values, email recipients, cookies,

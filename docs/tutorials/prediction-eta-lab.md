@@ -52,7 +52,7 @@ Use **Why ETAs Are Missing** to identify the first likely owner:
 - future-stop availability;
 - alert lifecycle for canceled trips.
 
-Use **External Predictor Shadow Review** only as bounded shadow/fail-closed
+Use **External Predictor Shadow Review** only as limited shadow/fail-closed
 diagnostics. The page does not start a sidecar, test a URL, reveal credentials,
 or claim named predictor support.
 

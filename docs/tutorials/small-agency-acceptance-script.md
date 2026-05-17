@@ -12,7 +12,7 @@ ETA-quality claim.
 ## Technical Helper Startup
 
 The shell commands are for a technical helper who can clone the repo, run local
-checks, and start Docker-backed services. They are not no-developer evaluator
+checks, and start Docker-backed services. They are not agency staff review
 steps.
 
 ```bash
@@ -23,7 +23,7 @@ make agency-app-up
 ```
 
 The helper provides the private local browser URL and any local admin-token
-instructions printed by `make agency-app-up`. No-developer evaluators start in a
+instructions printed by `make agency-app-up`. Agency staff start in a
 private browser window at:
 
 ```text
@@ -41,13 +41,13 @@ make agency-app-down
 | Step | Expected UI result | Common blocker | What to do next | CLI fallback | What this does not prove |
 | --- | --- | --- | --- | --- | --- |
 | Open the provided private local URL | The private console loads at `/admin/operations` and shows **Agency Operations Cockpit / Start Here** near the top. | Docker is not running, port `8080` is busy, the local proxy did not start, or local auth instructions were missed. | Ask the technical helper to run `make agency-app-logs` and `scripts/bootstrap-dev.sh --check`, then retry from the provided private URL. | `docker compose -f deploy/docker-compose.yml ps` | Local startup and console access do not prove hosted service availability, public launch, or agency approval. |
-| Confirm the Operations Console path is `/admin/operations` | The private browser path remains `/admin/operations`; do not start from shell commands during no-developer review. | Browser is at the site root or another page. | Navigate to the provided `/admin/operations` URL. | `make agency-app-logs` | Reaching a private local route does not prove public deployment readiness. |
+| Confirm the Operations Console path is `/admin/operations` | The private browser path remains `/admin/operations`; agency staff should not start from shell commands. | Browser is at the site root or another page. | Navigate to the provided `/admin/operations` URL. | `make agency-app-logs` | Reaching a private local route does not prove public deployment readiness. |
 | Review Agency Operations Cockpit / Start Here | The page shows setup progress, primary action cards, current signals, next actions, and what each card does not prove. | Older checkout or browser cache. | Refresh and ask the technical helper to confirm the provided private URL is running the current checkpoint or evaluation build. | `/admin/operations.json` | Cockpit visibility does not prove adoption, compliance, hosted service, or production readiness. |
-| Confirm Agency Operations Cockpit / Start Here tasks are visible | The Agency Operations Cockpit / Start Here path shows no-developer and developer paths, ordered first-run tasks, and five feed URLs. | Browser cache or an older checkout. | Refresh and ask the technical helper to confirm the current checkout is serving the provided private URL. | `go test ./cmd/agency-config -run FirstRun` | Visibility does not prove evidence intake or compliance. |
+| Confirm Agency Operations Cockpit / Start Here tasks are visible | The Agency Operations Cockpit / Start Here path shows agency-staff and technical-helper paths, ordered first-run tasks, and five feed URLs. | Browser cache or an older checkout. | Refresh and ask the technical helper to confirm the current checkout is serving the provided private URL. | `go test ./cmd/agency-config -run FirstRun` | Visibility does not prove evidence intake or compliance. |
 | Open setup wizard at `/admin/operations/setup-wizard` | The wizard lists agency profile, publication metadata, GTFS, feeds, telemetry, validators, connectors, and readiness. | Auth role is missing or agency query conflicts with the authenticated agency. | Remove conflicting `agency_id` query or use the local token for the seeded agency. | Review `/admin/operations/setup-wizard.json` if HTML rendering is unclear. | The wizard is a private guide, not agency approval. |
 | Enter or review publication metadata | Setup pages show public base URL, feed base URL, license, contact, and environment state. | Read-only role cannot submit changes. | Use an admin role for changes, or keep the row marked missing/review-needed. | `make agency-app-up` seeds local demo metadata. | Metadata completeness does not prove final-root ownership. |
 | Import GTFS through browser upload or safe URL import | `/admin/operations/gtfs-import` shows upload and URL import options for admins, plus validation feedback after import. | Read-only role, large file, private URL, invalid ZIP, or import validation errors. | Use an admin role, fix the ZIP/source URL, then review GTFS Quality. | Use the documented GTFS import CLI path for large or scripted imports. | Import success does not prove validator-clean status or agency approval. |
-| Check `/public/feeds.json` | The local feed discovery document is reachable from the local app. | Local app not started or publication metadata missing. | Return to Agency Operations Cockpit / Start Here and Feed Health. | `curl http://localhost:8080/public/feeds.json` | Local discovery does not prove source-of-truth website listing. |
+| Check `/public/feeds.json` | The local feed discovery document is reachable from the local app. | Local app not started or publication metadata missing. | Return to Agency Operations Cockpit / Start Here and Feed Health. | `curl http://localhost:8080/public/feeds.json` | Local discovery does not prove an official public feed listing. |
 | Check `/public/gtfs/schedule.zip` | The local schedule ZIP endpoint returns a GTFS ZIP. | No active schedule feed or app startup failed. | Import/publish GTFS, then retry. | `curl -I http://localhost:8080/public/gtfs/schedule.zip` | A schedule URL does not prove open-license publication or consumer acceptance. |
 | Check `/public/gtfsrt/vehicle_positions.pb` | The Vehicle Positions protobuf endpoint is reachable. | No telemetry, stale telemetry, or local realtime service not ready. | Review telemetry and feed health. | `curl -I http://localhost:8080/public/gtfsrt/vehicle_positions.pb` | Reachability does not prove real AVL reliability. |
 | Check `/public/gtfsrt/trip_updates.pb` | The Trip Updates protobuf endpoint is reachable. | Prediction diagnostics missing or no active schedule/telemetry context. | Review feed health and Trip Updates quality rows. | `curl -I http://localhost:8080/public/gtfsrt/trip_updates.pb` | Reachability does not prove production-grade ETA quality. |

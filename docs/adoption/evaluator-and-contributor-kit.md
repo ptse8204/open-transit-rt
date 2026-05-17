@@ -15,7 +15,7 @@ production-grade ETA quality.
 | Path | Best for | Time box | Start here | Output |
 | --- | --- | --- | --- | --- |
 | Local browser evaluation | Non-developer agency review with a technical helper | 30-60 minutes | `make agency-app-up`, then `/admin/operations` | Public-safe notes about setup, GTFS import, feed health, telemetry, connectors, readiness, and maintenance clarity |
-| Release-candidate install trial | Technical helper checking rc1 installability | 60-120 minutes | `git checkout v0.1.0-rc.1`, `make check`, `make agency-app-up` | Exact commands, environment blockers, and public-safe install notes |
+| Release-candidate install trial | Technical helper checking the current release candidate | 60-120 minutes | Use the release candidate linked from `README.md`, then run `make check` and `make agency-app-up` | Exact commands, environment blockers, and public-safe install notes |
 | Synthetic connector review | Integrator or vendor-adjacent contributor using fake data | 30-90 minutes | `docs/connectors/vehicle-avl-starter-kits.md` | Synthetic fixture, manifest, docs, or conformance feedback |
 | First contribution | New contributor | 30-120 minutes | `docs/contributor-first-issues.md` | Small docs fix, synthetic fixture, focused test, connector manifest edit, or troubleshooting improvement |
 | Feedback-only review | Agency or evaluator without code changes | 15-45 minutes | `docs/agency-feedback-template.md` | Public-safe feedback with private values removed |
@@ -69,8 +69,8 @@ production-grade ETA quality.
   `docs/tutorials/telemetry-simulator-and-device-trial.md`
 - Small agency maintenance guide:
   `docs/tutorials/small-agency-maintenance-guide.md`
-- Public rc1 install confidence:
-  `docs/public-install-confidence-v0.1.0-rc.1.md`
+- Current release-candidate status:
+  `docs/release-status-v0.1.0-rc.2.md`
 
 ## Feedback Templates
 

@@ -100,7 +100,7 @@ prediction remains the default.
 
 Use the generic external HTTP adapter only when explicitly configured. Shadow
 mode is appropriate for evaluation because it keeps public Trip Updates output
-on the deterministic path while recording bounded diagnostics.
+on the deterministic path while recording limited diagnostics.
 Fail-closed mode is appropriate only when valid empty/adapted Trip Updates and
 diagnostics are acceptable for the review. External predictor output must be
 validated before serialization.

@@ -1,5 +1,11 @@
 # Release-Candidate Readiness
 
+Current reader note: for the published `v0.1.0-rc.2` release-candidate status,
+start with [Release Status v0.1.0-rc.2](release-status-v0.1.0-rc.2.md) and
+[Release Download Replay v0.1.0-rc.2](release-download-replay-v0.1.0-rc.2.md).
+This file remains as maintainer preflight history and still references earlier
+rc1 review work.
+
 ## Purpose
 
 `make release-candidate-check` is a local preflight for maintainers who want to

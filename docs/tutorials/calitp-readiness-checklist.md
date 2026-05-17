@@ -1,6 +1,6 @@
 # CAL-ITP / Caltrans Readiness Checklist
 
-This checklist uses evidence-bounded language. The repository supports the technical foundations for California transit data readiness, but a specific deployment must provide validation, hosting, metadata, operations, and consumer evidence before stronger compliance claims are appropriate.
+This checklist uses careful claim language. The repository supports the technical foundations for California transit data readiness, but a specific deployment must provide validation, hosting, metadata, operations, and consumer evidence before stronger compliance claims are appropriate.
 
 The Phase 11 evidence package is [Compliance Evidence Checklist](../compliance-evidence-checklist.md). Use it when deciding whether a claim is repo-proven, deployment-dependent, or dependent on third-party confirmation.
 
@@ -30,12 +30,12 @@ Operations Console:
 
 It starts with a workflow map and then shows detailed readiness cards. Each
 area has a status source, current signal, what the local review helps prepare,
-next action, and claim boundary. The page supports CAL-ITP-style readiness
+next action, and what the local review does not prove. The page supports CAL-ITP-style readiness
 workflows; it does not claim CAL-ITP/Caltrans compliance.
 
 | Area | Current repo support | Evidence still needed for a deployment |
 | --- | --- | --- |
-| Public feed URLs | `/public/feeds.json`, `/public/gtfs/schedule.zip`, Vehicle Positions, Trip Updates, and Alerts URL review | Public HTTPS fetch proof, source-of-truth listing, and target-specific review |
+| Public feed URLs | `/public/feeds.json`, `/public/gtfs/schedule.zip`, Vehicle Positions, Trip Updates, and Alerts URL review | Public HTTPS fetch proof, official feed listing, and target-specific review |
 | Static GTFS URL | `/public/gtfs/schedule.zip` from active published GTFS | Public HTTPS fetch proof, current active feed, validator result |
 | Vehicle Positions URL | `/public/gtfsrt/vehicle_positions.pb` | Public HTTPS fetch proof, fresh telemetry, validator result |
 | Trip Updates URL | `/public/gtfsrt/trip_updates.pb` through prediction adapter | Public HTTPS fetch proof, validation, coverage and quality review |

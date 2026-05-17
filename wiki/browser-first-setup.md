@@ -12,11 +12,11 @@ make check
 make agency-app-up
 ```
 
-These are startup and health-check commands, not no-developer evaluator steps.
+These are startup and health-check commands, not agency staff review steps.
 The helper should leave the app running and provide the private local browser
 URL and any local admin-token instructions printed by `make agency-app-up`.
 
-No-developer evaluators start from the provided private local URL, normally:
+Agency staff start from the provided private local URL, normally:
 
 ```text
 http://localhost:8080/admin/operations
@@ -35,7 +35,8 @@ Treat it as the single first-run cockpit. It groups the path into:
 5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
-7. Understand what remains before deployment or stronger claims.
+7. Understand what remains before outside approval, compliance, production, or
+   consumer-acceptance claims.
 
 Each row shows status, current signal, what it means, next action, UI link,
 docs link, and what the row does not prove.
@@ -45,7 +46,7 @@ Connectors, Health, Maintain, and Learn. GTFS Studio and Alerts Console are
 shown as separate private admin surfaces when linked from the Operations
 Console.
 
-## No Developer Today
+## Agency Staff Review Without Command-Line Work
 
 Use this path when you only want to review the product from a browser. Start
 from the private local URL provided by the technical helper:

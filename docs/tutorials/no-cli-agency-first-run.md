@@ -29,7 +29,8 @@ progress, action cards, next actions, and claim boundaries in one place.
 
 ## Browser-First Product Path
 
-Use this order before interpreting readiness or asking for stronger claims:
+Use this order before interpreting readiness or making outside approval,
+compliance, production, or consumer-acceptance claims:
 
 1. Start in the browser.
 2. Open **Agency Operations Cockpit / Start Here**.
@@ -38,7 +39,8 @@ Use this order before interpreting readiness or asking for stronger claims:
 5. Check the five configured feed URLs.
 6. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
-7. Understand what remains before deployment or stronger claims.
+7. Understand what remains before outside approval, compliance, production, or
+   consumer-acceptance claims.
 
 ## 1. Open Agency Operations Cockpit / Start Here
 
@@ -160,7 +162,7 @@ GTFS Quality explains likely owners, affected files, what to fix first,
 verification steps, and escalation triggers.
 
 GTFS Workbench is the staff review page for the active schedule. Start with
-Agency Review Summary and Validation Issue Triage before using the bounded
+Agency Review Summary and Validation Issue Triage before using the technical
 preview tables. The Workbench remains read-only: it does not import, edit,
 publish, run validators, execute rollback, create evidence, contact external
 systems, or change consumer status.
@@ -207,7 +209,7 @@ Open:
 /admin/operations/connectors/tests
 ```
 
-Open Transit RT connectors are bounded adapters, manifests, sidecars, or
+Open Transit RT connectors are explicit adapters, manifests, sidecars, or
 connector processes. They are not arbitrary dynamic backend plugins.
 
 Use connector pages to understand telemetry, predictor, validator,

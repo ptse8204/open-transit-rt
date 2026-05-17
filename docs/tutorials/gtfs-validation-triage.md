@@ -9,7 +9,7 @@ work:
 
 - `/admin/operations/gtfs-workbench` is the staff-facing schedule review page.
   It starts with an Agency Review Summary and Validation Issue Triage before
-  showing bounded technical preview tables.
+  showing limited technical preview tables.
 - `/admin/operations/gtfs-quality` is the deeper operator triage page. It
   separates canonical MobilityData static validator output from Open Transit RT
   internal import validation, caps issue groups and samples, and shows next
