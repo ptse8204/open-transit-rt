@@ -31,6 +31,13 @@ separate external connector runtime integration roadmap. Optional evidence
 tracks remain separately authorization-gated and require retained
 target-originated evidence rules.
 
+Post-closeout CI follow-up `d8dfc3b` fixed telemetry simulator tests for the
+declared Go `1.23.2` toolchain used in GitHub Actions. The repaired `main`
+Fast CI run passed, the update-stable workflow passed, and remote `stable`
+advanced to filtered commit `cf51dd7`. The stable branch filter check confirmed
+that AI-agent-only docs, handoffs, prompts, roadmap packs, Codex task brief,
+and conversation summary are absent from `stable`.
+
 Unsupported claims remain unsupported: no CAL-ITP/Caltrans compliance,
 production readiness, agency adoption, consumer acceptance, final-root
 readiness, hosted service availability, vendor compatibility, hardware

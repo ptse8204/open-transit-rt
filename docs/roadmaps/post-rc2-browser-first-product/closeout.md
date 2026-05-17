@@ -77,6 +77,12 @@ Phase 13 keeps `go test ./...` in Fast CI and adds a manual release-gates
 workflow for validator-heavy checks, connector/conformance checks, product
 acceptance, and release-package audit. See [Continuous Integration](../../ci.md).
 
+Post-closeout CI follow-up `d8dfc3b` replaced Go 1.24-era `t.Context()` test
+calls with explicit `context.Background()` so GitHub Actions can run the repo's
+declared Go `1.23.2` toolchain. The follow-up Fast CI run on `main` passed,
+and the update-stable workflow updated remote `stable` to `cf51dd7` with the
+same clean-docs filter.
+
 ## Connector Support
 
 Connector support is documented in README, docs, website, and UI for:
