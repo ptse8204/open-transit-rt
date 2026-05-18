@@ -204,12 +204,12 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 	return operationsFirstRunView{
 		GeneratedAt:                         page.GeneratedAt,
 		AgencyID:                            page.AgencyID,
-		Boundary:                            "Agency Operations Cockpit / Start Here is a private authenticated first-run guide. It is GET-only, reads existing private records, runs no commands, creates no retained evidence, changes no consumer status, and makes no approval, compliance, public-launch, hosted-service, vendor, SLA, or ETA-quality claim.",
+		Boundary:                            "Start Here is a private authenticated first-run guide. It is GET-only, reads existing private records, runs no commands, creates no retained evidence, changes no consumer status, and makes no approval, compliance, public-launch, hosted-service, vendor, SLA, or ETA-quality claim.",
 		LocalDemoDeploymentEvidenceBoundary: "Local demo checks show local wiring only. Deployment checks review a target environment only. Evidence requires a separate authorized intake with retention, redaction, and claim mapping; this page creates none of that.",
 		Paths: []operationsFirstRunPath{
 			firstRunPath(
 				"no_developer",
-				"No-developer path",
+				"Normal browser path",
 				"Use the private browser console; admin-only buttons remain on their existing pages and read-only users can still review status.",
 				"An operator can complete the visible path with guided setup, browser GTFS import, device binding, validator health, feed health, readiness, and connector review pages.",
 				"Open the setup wizard, then return here after each source record changes.",

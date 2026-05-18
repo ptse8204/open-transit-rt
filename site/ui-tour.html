@@ -23,7 +23,7 @@
 <main>
   <p class="tag">UI tour</p>
   <h1>What agency staff see after startup</h1>
-  <p class="lead">These generated browser captures show the intended private Operations Console flow. They are documentation aids, not retained evidence and not proof of external approval.</p>
+  <p class="lead">After the technical helper starts the local app, staff open the local sign-in page and use the private Operations Console without tokens, curl, DevTools, or browser extensions. These captures are documentation aids, not retained evidence and not proof of external approval.</p>
 
   <section class="grid" aria-label="Generated Operations Console captures">
     <article class="capture">
@@ -34,7 +34,7 @@
           <div class="screen-grid"><div class="side-rail"><div class="rail-item"></div><div class="rail-item"></div><div class="rail-item"></div></div><div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div></div>
         </div>
       </div>
-      <p><strong>Use it for:</strong> setup progress, first-run tasks, feed URLs, and next actions.</p>
+      <p><strong>Use it for:</strong> the next-action queue, current status, feed URL copy, and help handoff.</p>
     </article>
     <article class="capture">
       <div class="browser">
@@ -54,13 +54,13 @@
           <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
         </div>
       </div>
-      <p><strong>Use it for:</strong> `feeds.json`, schedule, Vehicle Positions, Trip Updates, and Alerts review.</p>
+      <p><strong>Use it for:</strong> feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts review.</p>
     </article>
     <article class="capture">
       <div class="browser">
         <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/realtime</span></div>
         <div class="browser-body">
-          <h3>Realtime Center</h3>
+          <h3>Realtime</h3>
           <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
         </div>
       </div>
@@ -91,10 +91,11 @@
   <section>
     <h2>Tour Script</h2>
     <ol>
-      <li>Open <code>/admin/operations</code> and identify the first next action.</li>
+      <li>Open <code>/admin/local-login</code>, choose <strong>Start setup</strong>, and land on <code>/admin/operations</code>.</li>
+      <li>Use the Start, Setup, GTFS, Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help groups to find the right page.</li>
       <li>Open GTFS Workbench and explain active schedule status.</li>
       <li>Open Feed Health and review the five feed paths.</li>
-      <li>Open Realtime Center and explain withheld or stale outputs.</li>
+      <li>Open Realtime and explain withheld or stale outputs.</li>
       <li>Open Connector Hub and choose the closest connector category.</li>
       <li>Open Readiness and read the "does not prove" language before any outside claim.</li>
     </ol>

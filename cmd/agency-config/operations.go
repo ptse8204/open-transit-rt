@@ -2067,7 +2067,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">
 {{range .NavGroups}}<section class="nav-group" aria-labelledby="nav-group-{{.ID}}">
 <p id="nav-group-{{.ID}}" class="nav-group-label">{{.Label}}</p>
+<details class="nav-group-details"{{if .Current}} open{{end}}>
+<summary>Show pages</summary>
 <div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .ExternalAdminSurface}} <span class="nav-surface">separate tool</span>{{end}}</a>{{end}}</div>
+</details>
 </section>{{end}}
 </nav>
 {{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
@@ -2238,8 +2241,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 
 {{define "firstRunPanel"}}
-<section class="hero" aria-labelledby="first-run-heading">
-<h2 id="first-run-heading">Start Here: First Actions</h2>
+<section class="section-note" aria-labelledby="first-run-heading">
+<h2 id="first-run-heading">First-run details</h2>
 <p>{{.Boundary}}</p>
 <p class="muted">{{.LocalDemoDeploymentEvidenceBoundary}}</p>
 <p><strong>Task status:</strong> {{.Counts.Tasks}} tasks · ok {{index .Counts.Statuses "ok"}} · needs review {{index .Counts.Statuses "needs_review"}} · missing {{index .Counts.Statuses "missing"}} · blocked {{index .Counts.Statuses "blocked"}} · unknown {{index .Counts.Statuses "unknown"}}</p>
@@ -2247,14 +2250,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .Paths}}<section class="card path-card path-{{.ID}}" id="first-run-path-{{.ID}}">
 <h3>{{.Label}}</h3>
 <p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
-<p><strong>What it means:</strong> {{.Meaning}}</p>
-<p><strong>First action:</strong> {{.FirstAction}}</p>
-<p><strong>Console:</strong> <a href="{{.UILink}}">{{.UILink}}</a></p>
-<p><strong>Docs:</strong> <code>{{.DocsLink}}</code></p>
-<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p>{{.Meaning}}</p>
+<p><a class="action-link" href="{{.UILink}}">{{.FirstAction}}</a></p>
+<p class="muted">{{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
-<h3>Copy These Five Configured Feed URLs</h3>
+<h3>Copy Feed URLs</h3>
 <p class="section-note">Use these configured local/reference paths for private review. Missing stays missing until publication metadata or feed records exist.</p>
 <div class="feed-copy-grid" aria-label="Copyable configured feed URLs">
 {{range .FeedURLs}}<section class="feed-url-card" id="first-run-feed-{{.ID}}" data-copy-card>
@@ -2266,10 +2267,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted"><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
-<h3>First-Run Acceptance Tasks</h3>
+<h3>First-Run Tasks</h3>
+<div class="status-grid" aria-label="First-run tasks">
+{{range .Tasks}}<section class="status-tile" id="first-run-task-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.CurrentSignal}}</p>
+<p><a href="{{.UILink}}">{{.NextAction}}</a></p>
+<p class="muted">{{.DoesNotProve}}</p>
+</section>{{end}}
+</div>
+<details>
+<summary>Detailed first-run task table</summary>
 <table><thead><tr><th>Order</th><th>Task</th><th>Status</th><th>Current signal</th><th>What it means</th><th>Next action</th><th>Console</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
 {{range .Tasks}}<tr><td>{{.Order}}</td><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td><a href="{{.UILink}}">{{.UILink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+</details>
 <details>
 <summary>Advanced safety details for this first-run guide</summary>
 <table><tbody>
@@ -2306,46 +2319,65 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{define "dashboard"}}
 {{template "layoutStart" .}}
 <div class="hero start-here">
-<h2>Agency Operations Cockpit / Start Here</h2>
+<h2>What needs attention first</h2>
 <p>{{.Cockpit.Boundary}}</p>
-<p><a href="/admin/operations.json">Export private cockpit JSON</a> · <a href="/admin/operations/maintenance">Open maintenance center</a></p>
+<p class="compact-actions"><a href="/admin/operations/setup-wizard">Start setup</a><a href="/admin/operations/feed-health">Check feeds</a><a href="/admin/operations/help">Get help</a><a href="/admin/operations.json">Export private JSON</a></p>
 </div>
-<section class="card-grid" aria-label="Role-based task entry points">
-<section class="card" id="role-entry-agency-evaluator"><h3>I am evaluating an agency</h3><p><strong>First step:</strong> <a href="/admin/operations/setup-wizard">Review setup progress</a>.</p><p><strong>Done when:</strong> local/private next actions and missing evidence gates are clear.</p><p><strong>Boundary:</strong> local review does not prove agency approval, compliance, or public launch.</p></section>
-<section class="card" id="role-entry-operations-staff"><h3>I run daily operations</h3><p><strong>First step:</strong> <a href="/admin/operations/realtime">Check today&apos;s realtime state</a>.</p><p><strong>Done when:</strong> stale devices, Vehicle Positions, Trip Updates, Alerts, and feed freshness have next actions.</p><p><strong>Boundary:</strong> local health does not prove SLA, uptime, or production readiness.</p></section>
-<section class="card" id="role-entry-technical-helper"><h3>I am helping technically</h3><p><strong>First step:</strong> <a href="/admin/operations/gtfs-workbench">Review current schedule</a>.</p><p><strong>Done when:</strong> active-vs-draft schedule state, validation meaning, import review, and rollback limits are understood.</p><p><strong>Boundary:</strong> browser review does not silently edit GTFS or prove schedule correctness.</p></section>
-<section class="card" id="role-entry-readiness-reviewer"><h3>I am reviewing validation and readiness</h3><p><strong>First step:</strong> <a href="/admin/operations/validation-center">Review validation blockers</a>.</p><p><strong>Done when:</strong> feed-health gaps, validation next actions, and prepared-only consumer records are visible.</p><p><strong>Boundary:</strong> private diagnostics do not prove outside readiness or approval.</p></section>
-<section class="card" id="role-entry-connector-evaluator"><h3>I am evaluating connectors</h3><p><strong>First step:</strong> <a href="/admin/operations/connectors/workbench">Choose connector recipe</a>.</p><p><strong>Done when:</strong> the first local/synthetic safety check and redaction boundary are clear.</p><p><strong>Boundary:</strong> synthetic checks do not prove live vendor or device compatibility.</p></section>
+<section aria-labelledby="action-queue-heading">
+<h2 id="action-queue-heading">Next actions</h2>
+<div class="action-grid">
+{{range .Cockpit.ActionQueue}}<section class="action-card" id="cockpit-action-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p class="status"><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.Signal}}</p>
+<p><a class="action-link" href="{{.AdminLink}}">{{.ActionLabel}}</a></p>
+<p class="muted">{{.HelpNeeded}}</p>
+<p class="muted">{{.DoesNotProve}}</p>
+</section>{{end}}
+</div>
 </section>
-{{template "firstRunPanel" .FirstRun}}
-{{template "contextHelpPanel" .}}
-<h2>Setup Progress</h2>
-<table><thead><tr><th>ID</th><th>Area</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
-{{range .Cockpit.SetupProgress}}<tr id="cockpit-progress-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td><a href="{{.AdminLink}}">{{.NextAction}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
-</tbody></table>
-<h2>Primary Actions</h2>
+<section aria-labelledby="current-status-heading">
+<h2 id="current-status-heading">Current status</h2>
+<div class="status-grid">
+{{range .Cockpit.SetupProgress}}<section class="status-tile" id="cockpit-progress-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.CurrentSignal}}</p>
+<p><a href="{{.AdminLink}}">{{.NextAction}}</a></p>
+<p class="muted">{{.DoesNotProve}}</p>
+</section>{{end}}
+</div>
+</section>
+<section aria-labelledby="primary-actions-heading">
+<h2 id="primary-actions-heading">More actions</h2>
 <div class="card-grid" aria-label="Primary agency operations actions">
 {{range .Cockpit.PrimaryCards}}<section class="card" id="cockpit-card-{{.ID}}">
 <h3>{{.Label}}</h3>
 <p class="status"><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
-<p><strong>Current signal:</strong> {{.CurrentSignal}}</p>
-<p><strong>What should I do next?</strong> <a href="{{.AdminLink}}">{{.NextAction}}</a></p>
-<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
-{{if .DocsLinks}}<p>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</p>{{end}}
+<p>{{.CurrentSignal}}</p>
+<p><a href="{{.AdminLink}}">{{.NextAction}}</a></p>
+<p class="muted">{{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
-<h2>Readiness</h2>
+</section>
+<section aria-labelledby="readiness-summary-heading">
+<h2 id="readiness-summary-heading">Readiness summary</h2>
 {{if .DiscoveryError}}<p class="warning">{{.DiscoveryError}}. Next action: bootstrap publication metadata after a feed is available.</p>{{else}}
 <p>Active GTFS feed version: {{if .ActiveFeedVersion}}<strong>{{.ActiveFeedVersion}}</strong>{{else}}not available{{end}}</p>
-<table><tbody>
-<tr><th>Configured public route URLs</th><td>{{if .Discovery.Readiness.AllRequiredFeedsListed}}listed{{else}}missing or incomplete{{end}}</td></tr>
-<tr><th>License</th><td>{{if .Discovery.Readiness.LicenseComplete}}complete{{else}}missing{{end}}</td></tr>
-<tr><th>Contact</th><td>{{if .Discovery.Readiness.ContactComplete}}complete{{else}}missing{{end}}</td></tr>
-<tr><th>HTTPS URLs</th><td>{{if .Discovery.Readiness.HTTPSURLs}}yes{{else}}not all HTTPS; local/dev URLs may be HTTP{{end}}</td></tr>
-<tr><th>Canonical validation</th><td>{{if .Discovery.Readiness.CanonicalValidationComplete}}current passed/warning records exist{{else}}not complete{{end}}</td></tr>
-</tbody></table>{{end}}
-
-<h2>Dashboard Sections</h2>
+<div class="status-grid">
+<section class="status-tile"><h3>Feed URLs</h3><p>{{if .Discovery.Readiness.AllRequiredFeedsListed}}Listed{{else}}Missing or incomplete{{end}}</p></section>
+<section class="status-tile"><h3>License</h3><p>{{if .Discovery.Readiness.LicenseComplete}}Complete{{else}}Missing{{end}}</p></section>
+<section class="status-tile"><h3>Contact</h3><p>{{if .Discovery.Readiness.ContactComplete}}Complete{{else}}Missing{{end}}</p></section>
+<section class="status-tile"><h3>Validation</h3><p>{{if .Discovery.Readiness.CanonicalValidationComplete}}Recorded{{else}}Not complete{{end}}</p></section>
+</div>{{end}}
+</section>
+{{template "contextHelpPanel" .}}
+<details>
+<summary>Feed URLs and first-run details</summary>
+{{template "firstRunPanel" .FirstRun}}
+</details>
+<details>
+<summary>All console areas</summary>
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
 <tr><td>Agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
 <tr><td>Setup wizard</td><td>{{len .SetupWizard.Stages}} staged setup rows</td><td>{{formatTime .SetupWizard.GeneratedAt}}</td><td><a href="/admin/operations/setup-wizard">open wizard</a> · <a href="/admin/operations/setup-wizard.json">export JSON</a></td></tr>
@@ -2367,10 +2399,16 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>Consumer status</td><td>{{if .ConsumerError}}{{.ConsumerError}}{{else}}{{len .Consumers}} targets shown{{end}}</td><td>{{formatTimePtr .ConsumersUpdatedAt}}</td><td><a href="/admin/operations/consumers">review prepared-only records</a></td></tr>
 <tr><td>Evidence links</td><td>repo documentation links</td><td>{{.EvidenceUpdatedAt}}</td><td><a href="/admin/operations/evidence">open evidence index</a></td></tr>
 </tbody></table>
+</details>
 
-<h2>Configured Feed URLs</h2>
+<details>
+<summary>Configured feed URL table</summary>
 {{if .DiscoveryError}}<p>No public feed metadata is available yet.</p>{{else}}{{template "feedTable" .}}{{end}}
+</details>
+<details>
+<summary>Trip Updates details</summary>
 {{template "tripUpdatesQuality" .}}
+</details>
 <p class="muted">Validation and public fetch records are supporting evidence only. They are not consumer acceptance or CAL-ITP/Caltrans compliance by themselves.</p>
 {{template "layoutEnd" .}}
 {{end}}
@@ -3857,7 +3895,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "realtime"}}
 {{template "layoutStart" .}}
-<h2>Realtime Operations Center</h2>
+<h2>Realtime</h2>
 <p class="warning">{{.Realtime.Boundary}}</p>
 <p><a href="/admin/operations/realtime.json">Export private realtime JSON</a> · <a href="/admin/operations/telemetry">Open telemetry freshness</a> · <a href="/admin/operations/devices">Open device credentials</a> · <a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p>
 <div class="card-grid" aria-label="Realtime status summary">
@@ -4149,7 +4187,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "maintenance"}}
 {{template "layoutStart" .}}
-<h2>Maintenance Center</h2>
+<h2>Maintenance</h2>
 <p class="warning">{{.Maintenance.Boundary}}</p>
 <div class="card-grid" aria-label="Maintenance empty or blocked state guidance">
 <section class="card empty-state">

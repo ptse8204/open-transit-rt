@@ -485,7 +485,11 @@ func TestLocalAdminLoginRejectsMissingAndTamperedState(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	state := extractLocalLoginState(t, rr.Body.String())
-	tampered := state[:len(state)-1] + "0"
+	replacement := "0"
+	if strings.HasSuffix(state, replacement) {
+		replacement = "1"
+	}
+	tampered := state[:len(state)-1] + replacement
 	req = httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/local-login", strings.NewReader("state="+url.QueryEscape(tampered)))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr = httptest.NewRecorder()
@@ -628,14 +632,14 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "<title>Agency Operations Cockpit / Start Here</title>", `<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`, "No-developer path", "Technical-helper path", "Copy These Five Configured Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "<title>Start Here</title>", `<h1 id="operations-page-title">Start Here</h1>`, "Normal browser path", "Technical-helper path", "Copy Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
 	}
-	for _, want := range []string{"I am evaluating an agency", "I run daily operations", "I am helping technically", "I am reviewing validation and readiness", "I am evaluating connectors"} {
+	for _, want := range []string{"What needs attention first", "Next actions", "Start setup", "Import GTFS", "Check feeds", "Connect vehicles", "Review readiness", "Get help"} {
 		if !strings.Contains(body, want) {
-			t.Fatalf("role entry body does not contain %q: %s", want, body)
+			t.Fatalf("action-first body does not contain %q: %s", want, body)
 		}
 	}
 }
@@ -903,6 +907,14 @@ func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	if view.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
 	}
+	wantActions := []string{"start_setup", "import_gtfs", "check_feeds", "connect_vehicles", "review_realtime", "review_connectors", "review_readiness", "get_help"}
+	var gotActions []string
+	for _, action := range view.ActionQueue {
+		gotActions = append(gotActions, action.ID)
+	}
+	if strings.Join(gotActions, ",") != strings.Join(wantActions, ",") {
+		t.Fatalf("actions = %v, want %v", gotActions, wantActions)
+	}
 	wantCards := []string{"import_update_gtfs", "review_feed_health", "review_gtfs_quality", "run_review_validator_health", "manage_devices_vehicles", "synthetic_telemetry", "realtime_feed_state", "manage_alerts", "connector_readiness", "maintenance_tasks", "support_summary"}
 	var gotCards []string
 	for _, card := range view.PrimaryCards {
@@ -945,9 +957,12 @@ func TestOperationsCockpitHTMLShowsNoCLIPrimaryFlow(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		"Agency Operations Cockpit",
-		"Setup Progress",
-		"Primary Actions",
+		"Start Here",
+		"Next actions",
+		"Current status",
+		"More actions",
+		`id="cockpit-action-start_setup"`,
+		`id="cockpit-action-check_feeds"`,
 		`id="cockpit-card-import_update_gtfs"`,
 		`id="cockpit-card-review_feed_health"`,
 		`id="cockpit-card-review_gtfs_quality"`,
@@ -955,7 +970,7 @@ func TestOperationsCockpitHTMLShowsNoCLIPrimaryFlow(t *testing.T) {
 		`id="cockpit-card-manage_devices_vehicles"`,
 		`id="cockpit-card-realtime_feed_state"`,
 		`id="cockpit-card-maintenance_tasks"`,
-		"What should I do next?",
+		"Review readiness",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("cockpit HTML missing %q: %s", want, body)
@@ -1565,7 +1580,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Launchpad", "Agency Operations Cockpit / Start Here", "First-Run Acceptance Tasks", "Copy These Five Configured Feed URLs", "No-developer path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Agency Launchpad", "First-run details", "First-Run Tasks", "Copy Feed URLs", "Normal browser path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1623,16 +1638,17 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		t.Fatalf("dashboard did not escape script-like metadata: %s", body)
 	}
 	for _, want := range []string{
-		"Agency Operations Cockpit / Start Here",
-		"I am evaluating an agency",
-		"Check today&apos;s realtime state",
-		"Choose connector recipe",
+		"Start Here",
+		"What needs attention first",
+		"Next actions",
+		"Review realtime",
+		"Review connectors",
 		"Task status:",
-		"No-developer path",
+		"Normal browser path",
 		"Technical-helper path",
 		`class="feed-copy-grid"`,
 		`class="status-chip status-needs-review"`,
-		"First-Run Acceptance Tasks",
+		"First-Run Tasks",
 		"Metadata",
 		"GTFS",
 		"Five configured feed URLs",
@@ -1642,7 +1658,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"Readiness",
 		"Connectors",
 		"Maintenance and support checks",
-		"Copy These Five Configured Feed URLs",
+		"Copy Feed URLs",
 		"https://pilot.example.org/public/feeds.json",
 		"https://pilot.example.org/public/gtfs/schedule.zip",
 		"https://pilot.example.org/public/gtfsrt/vehicle_positions.pb",
@@ -1658,7 +1674,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 			t.Fatalf("dashboard body missing %q: %s", want, body)
 		}
 	}
-	startHereIndex := strings.Index(body, "Start Here: First Actions")
+	startHereIndex := strings.Index(body, "What needs attention first")
 	helpIndex := strings.Index(body, "Help for Start Here")
 	if startHereIndex < 0 || helpIndex < 0 || startHereIndex > helpIndex {
 		t.Fatalf("dashboard should show Start Here before contextual help: start=%d help=%d body=%s", startHereIndex, helpIndex, body)
@@ -3295,11 +3311,11 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 		`href="/admin/operations/telemetry-simulator">Telemetry Simulator</a>`,
 		"GTFS Workbench",
 		"Realtime",
-		`href="/admin/operations/prediction-lab">Prediction &amp; ETA Lab</a>`,
+		`href="/admin/operations/prediction-lab">Prediction Lab</a>`,
 		"Connectors",
-		"Feed Health",
+		"Feeds",
 		"Maintenance",
-		"Help / Tutorials",
+		"Help",
 		`href="/admin/operations" aria-current="page"`,
 	} {
 		if !strings.Contains(body, want) {
@@ -3461,16 +3477,16 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 		path  string
 		title string
 	}{
-		{path: "/admin/operations", title: "Agency Operations Cockpit / Start Here"},
+		{path: "/admin/operations", title: "Start Here"},
 		{path: "/admin/operations/gtfs-workbench", title: "GTFS Workbench"},
 		{path: "/admin/operations/gtfs-import", title: "Import GTFS"},
-		{path: "/admin/operations/prediction-lab", title: "Prediction &amp; ETA Lab"},
+		{path: "/admin/operations/prediction-lab", title: "Prediction Lab"},
 		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
 		{path: "/admin/operations/devices", title: "Devices &amp; Tokens"},
 		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
 		{path: "/admin/operations/access", title: "Access &amp; Roles"},
 		{path: "/admin/operations/audit", title: "Audit History"},
-		{path: "/admin/operations/help", title: "Help &amp; Tutorials"},
+		{path: "/admin/operations/help", title: "Help"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
@@ -3486,7 +3502,7 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 				}
 			}
 			if tc.path == "/admin/operations" {
-				firstClick := strings.Index(body, `<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`)
+				firstClick := strings.Index(body, `<h1 id="operations-page-title">Start Here</h1>`)
 				helpPanel := strings.Index(body, `class="context-help"`)
 				if firstClick < 0 || helpPanel < 0 || firstClick > helpPanel {
 					t.Fatalf("Start Here label should appear before contextual help: firstClick=%d helpPanel=%d body=%s", firstClick, helpPanel, body)
@@ -3830,7 +3846,7 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`class="skip-link" href="#operations-main"`,
 		`class="skip-link" href="#operations-nav"`,
 		`<header class="operations-header" role="banner">`,
-		`<h1 id="operations-page-title">Agency Operations Cockpit / Start Here</h1>`,
+		`<h1 id="operations-page-title">Start Here</h1>`,
 		`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
 		`<section class="nav-group" aria-labelledby="nav-group-maintenance">`,
 		`<p id="nav-group-maintenance" class="nav-group-label">Maintenance</p>`,
@@ -3920,7 +3936,7 @@ func TestOperationsProgressiveReviewToolsRenderWithNoJSFallback(t *testing.T) {
 			want: []string{
 				`data-copy-card`,
 				`class="copy-value" data-copy-value=`,
-				`Copy These Five Configured Feed URLs`,
+				`Copy Feed URLs`,
 			},
 		},
 		{
@@ -4030,9 +4046,9 @@ func TestOperationsConsoleDesignSystemAvoidsFragileDecoration(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		`Draft Schedule Editor <span class="nav-surface">separate tool</span>`,
-		`Alerts Console <span class="nav-surface">separate tool</span>`,
+		`Alerts <span class="nav-surface">separate tool</span>`,
 		`Ready for local review`,
-		`Copy These Five Configured Feed URLs`,
+		`Copy Feed URLs`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("design-system route marker missing %q: %s", want, body)
@@ -6295,7 +6311,7 @@ func TestRealtimeOperationsCenterPrivateReadOnlyFleetOverview(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"Realtime Operations Center", "Fleet Freshness", "Realtime Feed Usefulness Review", "Feed Usefulness Details", "Healthy when", "Needs attention", "Not proven", "Vehicle Positions publishing review", "Vehicle count", "Estimated Vehicle Positions rows", "Suppressed vehicles", "Trip descriptor coverage", "Why not published", "Trip Updates publishing review", "Prediction source", "Fallback reason", "Low-confidence handling", "Withheld reason: below_confidence_threshold", "Alerts lifecycle review", "Active alerts", "Stale alerts", "Missing cancellation links", "Service disruption review", "Synthetic / Local Replay Guide", "Preview a scenario in the browser", "Freshness And Lifecycle Review", "Consumer-Safe Omission Rules", "Vehicle Positions usefulness", "Trip Updates usefulness", "Alerts usefulness", "Consumer-safe behavior", "emitted from", "valid empty/fallback output", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
+	for _, want := range []string{"Realtime", "Fleet Freshness", "Realtime Feed Usefulness Review", "Feed Usefulness Details", "Healthy when", "Needs attention", "Not proven", "Vehicle Positions publishing review", "Vehicle count", "Estimated Vehicle Positions rows", "Suppressed vehicles", "Trip descriptor coverage", "Why not published", "Trip Updates publishing review", "Prediction source", "Fallback reason", "Low-confidence handling", "Withheld reason: below_confidence_threshold", "Alerts lifecycle review", "Active alerts", "Stale alerts", "Missing cancellation links", "Service disruption review", "Synthetic / Local Replay Guide", "Preview a scenario in the browser", "Freshness And Lifecycle Review", "Consumer-Safe Omission Rules", "Vehicle Positions usefulness", "Trip Updates usefulness", "Alerts usefulness", "Consumer-safe behavior", "emitted from", "valid empty/fallback output", "Needs Operator Review", "Realtime Quality Guidance", "Out-of-order or low-quality GPS", "Trip Updates withheld or fallback", "bus-1", "bus-2", "bus-3", "fresh", "stale", "not seen", "keep trip descriptors unknown", "Vehicle Positions", "Trip Updates", "Alerts"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -8033,10 +8049,22 @@ func assertConnectorWorkbenchFlagsFalse(t *testing.T, flags connectorWorkbenchCl
 
 func assertOperationsCockpitShape(t *testing.T, view operationsCockpitView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.SetupProgress) != 8 || len(view.PrimaryCards) != 11 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.ActionQueue) != 8 || len(view.SetupProgress) != 8 || len(view.PrimaryCards) != 11 {
 		t.Fatalf("invalid cockpit shape: %+v", view)
 	}
 	seen := map[string]bool{}
+	for _, action := range view.ActionQueue {
+		if action.ID == "" || action.Label == "" || action.Status == "" || action.Signal == "" || action.ActionLabel == "" || action.AdminLink == "" || action.HelpNeeded == "" || action.DoesNotProve == "" {
+			t.Fatalf("invalid cockpit action: %+v", action)
+		}
+		if seen["action:"+action.ID] {
+			t.Fatalf("duplicate cockpit action id %q", action.ID)
+		}
+		seen["action:"+action.ID] = true
+		if !strings.HasPrefix(action.AdminLink, "/admin/") {
+			t.Fatalf("unsafe action admin link %q", action.AdminLink)
+		}
+	}
 	for _, row := range view.SetupProgress {
 		if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.NextAction == "" || row.AdminLink == "" || row.DoesNotProve == "" {
 			t.Fatalf("invalid cockpit progress row: %+v", row)
