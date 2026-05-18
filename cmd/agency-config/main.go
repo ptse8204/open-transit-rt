@@ -86,6 +86,7 @@ type handler struct {
 	ready      pinger
 	admin      adminAuth
 	csrfSecret string
+	localLogin *localAdminLogin
 	cache      *scheduleZIPCache
 	realtime   realtimeArtifactSource
 }
@@ -135,13 +136,16 @@ func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, st
 		stateRepo = state.NewPostgresRepository(pool)
 		gtfsImporter = gtfs.NewImportService(pool)
 	}
-	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: os.Getenv("CSRF_SECRET"), cache: newScheduleZIPCache(), realtime: realtime}
+	csrfSecret := os.Getenv("CSRF_SECRET")
+	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: csrfSecret, localLogin: newLocalAdminLoginFromEnv(agencyID, csrfSecret), cache: newScheduleZIPCache(), realtime: realtime}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
 	mux.HandleFunc("/public/gtfs/schedule.zip", h.publicScheduleZIP)
 	mux.HandleFunc("/public/feeds.json", h.publicFeedsJSON)
 	mux.HandleFunc("/public/agencies/", h.publicAgencyRoute)
+	mux.HandleFunc("/admin/local-login", h.localAdminLogin)
+	mux.HandleFunc("/admin/local-login/", h.localAdminLogin)
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	mux.Handle("/admin/operations/assets/operations.js", adminRead(http.HandlerFunc(h.operationsAsset)))
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))

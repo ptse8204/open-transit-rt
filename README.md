@@ -36,10 +36,17 @@ or proof that any agency, vendor, consumer, or regulator has accepted a feed.
 After a technical helper starts the app, agency staff should start here:
 
 ```text
+http://localhost:8080/admin/local-login
+```
+
+Select **Start setup**. The local-only page creates a short private browser
+session and sends you to:
+
+```text
 http://localhost:8080/admin/operations
 ```
 
-Then follow this order in the browser:
+Then follow this order:
 
 1. Open **Agency Operations Cockpit / Start Here**.
 2. Review agency setup and publication metadata.
@@ -89,8 +96,9 @@ make check
 make agency-app-up
 ```
 
-Give agency staff the private browser URL printed by the startup command. Stop
-the local app with:
+Give agency staff the local browser setup URL printed by the startup command.
+They do not need a raw admin token for normal browser review. Stop the local
+app with:
 
 ```bash
 make agency-app-down

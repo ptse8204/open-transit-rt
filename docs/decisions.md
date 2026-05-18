@@ -796,3 +796,22 @@ manual release-gates workflow. This keeps PR feedback repeatable while keeping
 release-candidate checks available without implying production readiness,
 compliance, consumer acceptance, hosted service availability, vendor
 compatibility, SLA coverage, AVL reliability, or ETA quality.
+
+## ADR-0057 -- Add a local-only browser admin handoff
+
+Browser-first local evaluation must not require normal users to generate JWTs,
+paste cookies, use DevTools, install header extensions, or run curl after a
+technical helper starts the app. The local Compose package therefore enables a
+narrow `/admin/local-login` handoff route that is disabled by default outside
+local/demo configuration and unavailable in `APP_ENV=production`.
+
+The handoff creates a short-lived signed `admin_session` cookie for the seeded
+local demo admin user. It never renders the raw JWT, uses a one-time signed form
+state, requires a localhost/loopback Host, and relies on the existing admin
+middleware for every private Operations Console route. Bearer-token admin API
+auth remains supported for technical checks. Unsafe cookie-authenticated admin
+POSTs still require CSRF through the existing middleware.
+
+The local reverse proxy binds to `127.0.0.1:8080` for the demo app package.
+Production deployments must keep using deployment-owned admin access controls,
+real secrets, HTTPS/TLS, and network boundaries.

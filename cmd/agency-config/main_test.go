@@ -352,6 +352,192 @@ func TestOperationsConsoleRejectsUnauthenticatedAccess(t *testing.T) {
 	}
 }
 
+func TestLocalAdminLoginCreatesBrowserSessionWithoutTokenExposure(t *testing.T) {
+	handler := newLocalAdminLoginTestHandler(t, "dev", "true")
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:8080/admin/local-login", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("GET status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Set-Cookie"); got != "" {
+		t.Fatalf("GET set cookie %q, want none", got)
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, "Start setup") || !strings.Contains(body, "Local demo sign-in") {
+		t.Fatalf("GET body missing local sign-in UI: %s", body)
+	}
+	if strings.Contains(body, "eyJ") || strings.Contains(body, "admin_session=") || strings.Contains(body, "Bearer ") {
+		t.Fatalf("GET body exposed token-like text: %s", body)
+	}
+	state := extractLocalLoginState(t, body)
+
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/local-login", strings.NewReader("state="+url.QueryEscape(state)))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusSeeOther {
+		t.Fatalf("POST status = %d, want 303: %s", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Location"); got != "/admin/operations" {
+		t.Fatalf("Location = %q, want /admin/operations", got)
+	}
+	cookies := rr.Result().Cookies()
+	if len(cookies) != 1 || cookies[0].Name != "admin_session" {
+		t.Fatalf("cookies = %#v, want one admin_session cookie", cookies)
+	}
+	session := cookies[0]
+	if !session.HttpOnly || session.Path != "/admin" || session.SameSite != http.SameSiteLaxMode || session.MaxAge <= 0 {
+		t.Fatalf("session cookie missing safe attributes: %#v", session)
+	}
+	if strings.Contains(rr.Body.String(), session.Value) || strings.Contains(rr.Body.String(), "Bearer ") {
+		t.Fatalf("POST body exposed token-like text: %s", rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:8080/admin/operations", nil)
+	req.AddCookie(session)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("authenticated operations status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/local-login", strings.NewReader("state="+url.QueryEscape(state)))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("reused state status = %d, want 403", rr.Code)
+	}
+}
+
+func TestLocalAdminLoginIsDisabledOutsideLocalDemo(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		appEnv  string
+		enabled string
+		target  string
+	}{
+		{name: "production", appEnv: "production", enabled: "true", target: "http://localhost:8080/admin/local-login"},
+		{name: "flag disabled", appEnv: "dev", enabled: "false", target: "http://localhost:8080/admin/local-login"},
+		{name: "non local host", appEnv: "dev", enabled: "true", target: "http://example.com/admin/local-login"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			handler := newLocalAdminLoginTestHandler(t, tc.appEnv, tc.enabled)
+			req := httptest.NewRequest(http.MethodGet, tc.target, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusNotFound {
+				t.Fatalf("status = %d, want 404: %s", rr.Code, rr.Body.String())
+			}
+			if got := rr.Header().Get("Set-Cookie"); got != "" {
+				t.Fatalf("disabled route set cookie %q", got)
+			}
+		})
+	}
+}
+
+func TestLocalAdminLoginAcceptsLoopbackHostsAndExactRouteOnly(t *testing.T) {
+	for _, target := range []string{
+		"http://localhost:8080/admin/local-login",
+		"http://127.0.0.1:8080/admin/local-login",
+		"http://[::1]:8080/admin/local-login",
+	} {
+		t.Run(target, func(t *testing.T) {
+			handler := newLocalAdminLoginTestHandler(t, "dev", "true")
+			req := httptest.NewRequest(http.MethodGet, target, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want 200 for %s: %s", rr.Code, target, rr.Body.String())
+			}
+		})
+	}
+
+	handler := newLocalAdminLoginTestHandler(t, "dev", "true")
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:8080/admin/local-login/extra", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("subroute status = %d, want 404", rr.Code)
+	}
+}
+
+func TestLocalAdminLoginRejectsMissingAndTamperedState(t *testing.T) {
+	handler := newLocalAdminLoginTestHandler(t, "dev", "true")
+	for _, body := range []string{
+		"",
+		"state=not-a-valid-state",
+	} {
+		req := httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/local-login", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("body %q status = %d, want 403", body, rr.Code)
+		}
+		if got := rr.Header().Get("Set-Cookie"); got != "" {
+			t.Fatalf("rejected POST set cookie %q", got)
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:8080/admin/local-login", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	state := extractLocalLoginState(t, rr.Body.String())
+	tampered := state[:len(state)-1] + "0"
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/local-login", strings.NewReader("state="+url.QueryEscape(tampered)))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("tampered state status = %d, want 403", rr.Code)
+	}
+	if got := rr.Header().Get("Set-Cookie"); got != "" {
+		t.Fatalf("tampered POST set cookie %q", got)
+	}
+}
+
+func TestLocalAdminLoginPreservesBearerAndCookieCSRFBehavior(t *testing.T) {
+	handler := newLocalAdminLoginTestHandler(t, "dev", "true")
+	cfg := auth.JWTConfig{Secrets: []string{"test-admin-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour}
+	signer, err := auth.NewSigner(cfg)
+	if err != nil {
+		t.Fatalf("signer: %v", err)
+	}
+	token, _, err := signer.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign bearer token: %v", err)
+	}
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:8080/admin/operations", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: "invalid-cookie-token"})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("bearer-auth operations status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+
+	session := localAdminLoginSessionCookie(t, handler)
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/operations/validation-health/refresh.json", strings.NewReader("action=refresh"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(session)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("cookie POST without CSRF status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/publication/bootstrap", strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(session)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("cookie bootstrap POST without CSRF status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+}
+
 func TestAgencyConfigAdminAgencyBoundaries(t *testing.T) {
 	store := &fakePublicationStore{
 		scorecard: compliance.Scorecard{AgencyID: "agency-a", OverallStatus: compliance.StatusYellow},
@@ -4037,7 +4223,7 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	}
 	caddyText := string(caddy)
 	caddyLines := nonCommentCaddyLines(caddyText)
-	if !containsString(caddyLines, "@local_root {") || !containsString(caddyLines, "path /") || !containsString(caddyLines, `respond @local_root "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200`) {
+	if !containsString(caddyLines, "@local_root {") || !containsString(caddyLines, "path /") || !containsString(caddyLines, `respond @local_root "Open Transit RT local app is running. Start local browser setup at /admin/local-login. Public feeds are under /public/ and admin routes require auth." 200`) {
 		t.Fatalf("local Caddyfile missing exact root 200 handler:\n%s", caddyText)
 	}
 	if !containsString(caddyLines, `respond "not found" 404`) {
@@ -9487,6 +9673,78 @@ func newOperationsTestHandler(h *handler, admin adminAuth) http.Handler {
 	}))
 	mux.Handle("/admin/operations/", adminRead(http.HandlerFunc(h.operationsRoot)))
 	return mux
+}
+
+func newLocalAdminLoginTestHandler(t *testing.T, appEnv string, enabled string) http.Handler {
+	t.Helper()
+	t.Setenv("APP_ENV", appEnv)
+	t.Setenv("AGENCY_ID", "demo-agency")
+	t.Setenv("ADMIN_JWT_SECRET", "test-admin-secret")
+	t.Setenv("ADMIN_JWT_ISSUER", "test-issuer")
+	t.Setenv("ADMIN_JWT_AUDIENCE", "test-audience")
+	t.Setenv("CSRF_SECRET", "test-csrf")
+	t.Setenv("LOCAL_ADMIN_LOGIN_ENABLED", enabled)
+	t.Setenv("LOCAL_ADMIN_SESSION_TTL", "2h")
+	t.Setenv("LOCAL_ADMIN_SUBJECT", "admin@example.com")
+	cfg := auth.JWTConfig{Secrets: []string{"test-admin-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour}
+	verifier, err := auth.NewVerifier(cfg)
+	if err != nil {
+		t.Fatalf("verifier: %v", err)
+	}
+	admin := auth.NewMiddleware(verifier, auth.StaticRoleStore{Roles: []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly}}, "test-csrf")
+	return newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		admin,
+		&fakeRealtimeArtifacts{},
+	)
+}
+
+func extractLocalLoginState(t *testing.T, body string) string {
+	t.Helper()
+	prefix := `name="state" value="`
+	start := strings.Index(body, prefix)
+	if start < 0 {
+		t.Fatalf("local login body missing state input: %s", body)
+	}
+	start += len(prefix)
+	end := strings.Index(body[start:], `"`)
+	if end < 0 {
+		t.Fatalf("local login body state input is not closed: %s", body)
+	}
+	state := body[start : start+end]
+	if state == "" {
+		t.Fatalf("local login state is empty")
+	}
+	return state
+}
+
+func localAdminLoginSessionCookie(t *testing.T, handler http.Handler) *http.Cookie {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:8080/admin/local-login", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("GET local login status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	state := extractLocalLoginState(t, rr.Body.String())
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:8080/admin/local-login", strings.NewReader("state="+url.QueryEscape(state)))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusSeeOther {
+		t.Fatalf("POST local login status = %d, want 303: %s", rr.Code, rr.Body.String())
+	}
+	for _, cookie := range rr.Result().Cookies() {
+		if cookie.Name == "admin_session" {
+			return cookie
+		}
+	}
+	t.Fatalf("local login did not set admin_session cookie")
+	return nil
 }
 
 type fakeGTFSImportRunner struct {

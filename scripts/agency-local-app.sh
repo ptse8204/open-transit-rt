@@ -256,14 +256,18 @@ Public feed URLs:
   Trip Updates protobuf:      $FEED_ROOT/gtfsrt/trip_updates.pb
   Alerts protobuf:            $FEED_ROOT/gtfsrt/alerts.pb
 
-Operations Console URL:
+Local browser setup URL:
+  $PUBLIC_ROOT/admin/local-login
+
+Operations Console URL after sign-in:
   $PUBLIC_ROOT/admin/operations
 
 GTFS Studio/admin URL:
   $PUBLIC_ROOT/admin/gtfs-studio
 
-Admin token instructions:
-  Generate a local admin token only when you need one:
+Technical admin token fallback:
+  Normal browser users should use the local setup URL above. Generate a local
+  admin token only when a technical check specifically needs Bearer auth:
     docker compose -f deploy/docker-compose.yml --profile app exec -T agency-config /app/bin/admin-token -sub $ADMIN_SUBJECT -agency-id $AGENCY_ID
 
   Use the printed token as:
@@ -284,17 +288,18 @@ Validation:
   $validation
 
 Exact next action:
-  Open $FEED_ROOT/feeds.json, then run make telemetry-simulator to send synthetic telemetry through real ingest.
+  Open $PUBLIC_ROOT/admin/local-login and select Start setup.
 
 Copy/paste support summary:
   generated_at=$generated_at
   feed_root=$FEED_ROOT
+  local_setup_url=$PUBLIC_ROOT/admin/local-login
   admin_url=$PUBLIC_ROOT/admin/operations
   gtfs_studio_url=$PUBLIC_ROOT/admin/gtfs-studio
   app_profile=$PROFILE
   status=running
   log_location="make agency-app-logs"
-  next_action="Open $FEED_ROOT/feeds.json, then run make telemetry-simulator"
+  next_action="Open $PUBLIC_ROOT/admin/local-login and select Start setup"
 
 Local scope:
   http://localhost:8080 is local-demo packaging only. Admin/debug routes may be proxied locally, but they still require auth. Production deployments need HTTPS/TLS and deployment-owned admin network controls.
