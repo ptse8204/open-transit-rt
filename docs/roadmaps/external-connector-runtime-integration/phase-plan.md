@@ -46,12 +46,12 @@ Ecosystem references for connector direction:
   <https://github.com/MobilityData/gtfs-validator> and
   <https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator>
 - Open-source ecosystem projects to evaluate without compatibility claims:
-  <https://github.com/opentripplanner/OpenTripPlanner>,
+  <https://docs.opentripplanner.org/en/latest/>,
   <https://github.com/OneBusAway/onebusaway-application-modules>, and
-  <https://github.com/TheTransitClock/transitime>
+  <https://thetransitclock.github.io/>
 - Discovery and extension references:
   <https://www.transit.land/documentation/rest-api/feeds>,
-  <https://mobilitydatabase.org/faq>,
+  <https://mobilitydatabase.org/about>,
   <https://gtfs.org/community/extensions/overview/>,
   <https://gtfs.org/documentation/schedule/reference/>, and
   <https://gtfsride.org/>

@@ -35,19 +35,19 @@
   </section>
 
   <section aria-labelledby="today-heading">
-    <h2 id="today-heading">Works Today</h2>
+    <h2 id="today-heading">Works Today / Local-Supported</h2>
     <div class="grid">
-      <article class="card"><h3>Vehicle telemetry</h3><p>CSV replay, HTTP polling, webhook sidecar, generic JSON transform, and authenticated <code>POST /v1/telemetry</code>.</p></article>
-      <article class="card"><h3>Prediction</h3><p>Deterministic built-in prediction plus an external HTTP predictor adapter and shadow mode where configured.</p></article>
-      <article class="card"><h3>Validation</h3><p>Server-owned MobilityData static GTFS and GTFS Realtime validator wrappers when tooling is installed.</p></article>
-      <article class="card"><h3>Monitoring</h3><p>Local health summaries, monitoring/export helper, and no-send notification drafts.</p></article>
+      <article class="card"><h3>Vehicle data</h3><p>CSV replay, HTTP polling, webhook sidecar, generic JSON transform, and authenticated <code>POST /v1/telemetry</code>.</p></article>
+      <article class="card"><h3>Prediction</h3><p>Deterministic built-in predictor plus external HTTP predictor adapter and shadow mode.</p></article>
+      <article class="card"><h3>Validation</h3><p>MobilityData static GTFS and GTFS Realtime validator wrappers when tooling is installed.</p></article>
+      <article class="card"><h3>Monitoring</h3><p>Monitoring/export helper and local health summaries.</p></article>
       <article class="card"><h3>Discovery</h3><p><code>/public/feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts URLs.</p></article>
       <article class="card"><h3>Conformance</h3><p>Local synthetic fixtures and adapter checks for telemetry, prediction, validators, monitoring, and discovery.</p></article>
     </div>
   </section>
 
   <section aria-labelledby="planned-heading">
-    <h2 id="planned-heading">Planned Or Candidate</h2>
+    <h2 id="planned-heading">Planned / Candidate</h2>
     <table>
       <thead><tr><th>Candidate</th><th>Why it matters</th><th>Status</th></tr></thead>
       <tbody>
@@ -59,6 +59,21 @@
         <tr><td>Transitland / Mobility Database readiness</td><td>Discovery preparation needs stable URLs and metadata.</td><td>No submission or listing claim.</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section aria-labelledby="ecosystem-heading">
+    <h2 id="ecosystem-heading">Ecosystem References</h2>
+    <p>These references ground the roadmap. They do not mean Open Transit RT claims support for those systems.</p>
+    <ul class="link-list">
+      <li><a href="https://gtfs.org/documentation/realtime/reference/">GTFS Realtime reference</a></li>
+      <li><a href="https://github.com/MobilityData/gtfs-validator">MobilityData GTFS Schedule Validator</a></li>
+      <li><a href="https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator">MobilityData GTFS Realtime validator package</a></li>
+      <li><a href="https://docs.opentripplanner.org/en/latest/">OpenTripPlanner documentation</a></li>
+      <li><a href="https://github.com/OneBusAway/onebusaway-application-modules">OneBusAway</a></li>
+      <li><a href="https://thetransitclock.github.io/">TheTransitClock</a></li>
+      <li><a href="https://www.transit.land/documentation/rest-api/feeds">Transitland feeds API</a></li>
+      <li><a href="https://mobilitydatabase.org/about">Mobility Database</a></li>
+    </ul>
   </section>
 
   <section aria-labelledby="where-heading">

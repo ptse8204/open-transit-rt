@@ -42,7 +42,7 @@ and technical helpers while keeping external systems outside the core domain:
 
 ## Ecosystem Alignment
 
-Current local-supported connector paths:
+Works today / local-supported:
 
 - CSV replay telemetry adapter.
 - HTTP polling telemetry adapter.
@@ -60,7 +60,7 @@ Current local-supported connector paths:
 - Trip Updates URL.
 - Alerts URL.
 
-Roadmap-only candidates:
+Planned / candidate:
 
 - TheTransitClock behind `internal/prediction.Adapter`; no compatibility or
   ETA-quality claim.
@@ -79,11 +79,11 @@ Grounding references:
   and [best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/).
 - [MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator)
   and [GTFS Realtime validator package](https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator).
-- [OpenTripPlanner](https://github.com/opentripplanner/OpenTripPlanner),
+- [OpenTripPlanner docs](https://docs.opentripplanner.org/en/latest/),
   [OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
-  and [TheTransitClock](https://github.com/TheTransitClock/transitime).
+  and [TheTransitClock](https://thetransitclock.github.io/).
 - [Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds)
-  and [Mobility Database FAQ](https://mobilitydatabase.org/faq).
+  and [Mobility Database](https://mobilitydatabase.org/about).
 - [GTFS extensions overview](https://gtfs.org/community/extensions/overview/),
   [GTFS schedule reference](https://gtfs.org/documentation/schedule/reference/),
   and [GTFS-ride](https://gtfsride.org/).

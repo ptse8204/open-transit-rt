@@ -156,36 +156,52 @@ Connector review starts in the browser:
 /admin/operations/connectors/tests
 ```
 
-Supported local connector paths include:
+### Works Today / Local-Supported
 
-- Vehicle / GPS / AVL connectors: CSV replay adapter, HTTP polling adapter,
-  webhook sidecar adapter, generic JSON transform adapter, vendor-shaped
-  synthetic examples, and authenticated `POST /v1/telemetry`.
-- Prediction connectors: deterministic built-in predictor, external HTTP
-  predictor adapter, shadow-mode predictor, fail-closed behavior, and
-  TheTransitClock candidate notes only.
-- Validator connectors: MobilityData static GTFS validator, MobilityData GTFS
-  Realtime validator, allowlisted validator IDs, and private validation health.
-- Monitoring/export connectors: local health summaries, operations notify
-  draft, monitoring/export helper, and deployment-owned monitoring boundary.
-- Consumer/discovery connectors: `/public/feeds.json`, static GTFS URL,
-  Vehicle Positions URL, Trip Updates URL, Alerts URL, and prepared packet
-  review without submission or acceptance claims.
-- Extension model: manifest-based sidecars, no arbitrary dynamic backend plugin
-  loading, and conformance tests required.
+- CSV replay telemetry adapter.
+- HTTP polling telemetry adapter.
+- Webhook sidecar telemetry adapter.
+- Generic JSON transform adapter.
+- Authenticated `POST /v1/telemetry`.
+- Deterministic built-in predictor.
+- External HTTP predictor adapter and shadow mode.
+- MobilityData static GTFS validator wrapper.
+- MobilityData GTFS Realtime validator wrapper.
+- Monitoring/export helper.
+- `/public/feeds.json` discovery metadata.
+- Static GTFS URL.
+- Vehicle Positions URL.
+- Trip Updates URL.
+- Alerts URL.
 
-Roadmap candidates, with no compatibility claim yet:
+### Planned / Candidate
+
+These are roadmap items only. They are not compatibility or production claims.
 
 - TheTransitClock candidate behind `internal/prediction.Adapter`.
 - Real vendor AVL payload adapters behind `/v1/telemetry`.
 - SIRI / GTFS-RT bridge for agencies with SIRI-like realtime systems.
-- GTFS-Flex, GTFS-ride, GTFS-Pathways, and GTFS-Fares v2 QA helpers.
+- GTFS-Flex / demand-response QA.
+- GTFS-ride / ridership analytics QA.
+- GTFS-Pathways accessibility metadata QA.
+- GTFS-Fares v2 fare metadata QA.
 - OpenTripPlanner and OneBusAway compatibility checks.
 - MobilityData validator report explanation in the browser.
 - Transitland and Mobility Database discovery-readiness review.
 
+Ecosystem references:
+[MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator),
+[MobilityData GTFS Realtime validator package](https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator),
+[GTFS Realtime reference](https://gtfs.org/documentation/realtime/reference/),
+[OpenTripPlanner docs](https://docs.opentripplanner.org/en/latest/),
+[OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
+[TheTransitClock](https://thetransitclock.github.io/),
+[Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds),
+and [Mobility Database](https://mobilitydatabase.org/about).
+
 Start with:
 
+- [Connector Support](https://ptse8204.github.io/open-transit-rt/connector-support.html)
 - [Connector Catalog](docs/connectors/catalog.md)
 - [Connector Cookbook](wiki/connector-cookbook.md)
 - [Integration Adapter Kit](docs/integration-adapter-kit.md)
