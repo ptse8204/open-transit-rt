@@ -25,11 +25,11 @@
     <div>
       <p class="eyebrow">Self-hosted GTFS and GTFS Realtime</p>
       <h1>Open Transit RT</h1>
-      <p class="lead">A browser-first, open-source transit data backend for small agencies. After a technical helper starts the app, agency staff can review setup, import GTFS, check feeds, connect vehicle data, and review readiness from the Operations Console.</p>
+      <p class="lead">A browser-first, open-source transit data backend for small agencies. A technical helper starts the app once; agency staff sign in locally and use action pages to import GTFS, check feeds, connect vehicles, and review readiness.</p>
       <div class="actions">
-        <a class="button primary" href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">Try Locally</a>
-        <a class="button" href="ui-tour.html">See The UI Tour</a>
-        <a class="button" href="connectors.html">Browse Connectors</a>
+        <a class="button primary" href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">Start Local Trial</a>
+        <a class="button" href="video.html">Watch Tutorial</a>
+        <a class="button" href="ui-tour.html">Tour The UI</a>
       </div>
       <p class="notice">Local/self-hosted evaluation does not prove CAL-ITP/Caltrans compliance, production readiness, agency adoption, consumer acceptance, hosted service availability, vendor compatibility, SLA/uptime, production AVL reliability, or ETA quality.</p>
     </div>
@@ -37,7 +37,7 @@
       <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations</span></div>
       <div class="browser-body">
         <p class="tag">Generated browser capture</p>
-        <h2>Agency Operations Cockpit / Start Here</h2>
+        <h2>Start Here</h2>
         <div class="screen-grid">
           <div class="side-rail">
             <div class="rail-item"></div>
@@ -59,28 +59,28 @@
   </section>
 
   <section aria-labelledby="flow-heading">
-    <h2 id="flow-heading">Essential Workflow</h2>
+    <h2 id="flow-heading">Get To Useful Work</h2>
     <div class="grid">
       <article class="flow-card">
-        <span class="step">1. Try locally</span>
-        <h3>Technical helper starts the app</h3>
-        <p>Run <code>make check</code> and <code>make agency-app-up</code>, then share the private local Operations Console URL.</p>
+        <span class="step">1. Start app</span>
+        <h3>Helper starts local services</h3>
+        <p>Run the documented startup command and share the local setup URL.</p>
         <a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/small-agency-quick-start.md">Quick start</a>
       </article>
       <article class="flow-card">
-        <span class="step">2. Start in browser</span>
-        <h3>Open the cockpit</h3>
-        <p>Agency staff begin at <code>/admin/operations</code> and follow visible next actions.</p>
+        <span class="step">2. Sign in</span>
+        <h3>Open the local browser handoff</h3>
+        <p>Agency staff choose <strong>Start setup</strong>. No manual token handling is needed for normal review.</p>
         <a href="ui-tour.html">View the tour</a>
       </article>
       <article class="flow-card">
         <span class="step">3. Import GTFS</span>
-        <h3>Use GTFS Workbench</h3>
-        <p>Review required files, row counts, service dates, import history, and validation guidance.</p>
+        <h3>Review the schedule</h3>
+        <p>Check required files, row counts, service dates, import history, and validation guidance.</p>
         <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/gtfs-validation-triage.md">GTFS triage</a>
       </article>
       <article class="flow-card">
-        <span class="step">4. Review feed health</span>
+        <span class="step">4. Check feeds</span>
         <h3>Check five feed paths</h3>
         <p>Review <code>feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</p>
         <a href="readiness.html">Readiness flow</a>
@@ -88,14 +88,14 @@
       <article class="flow-card">
         <span class="step">5. Connect vehicle data</span>
         <h3>Pick a connector shape</h3>
-        <p>Start with CSV replay, polling, webhook sidecar, generic JSON transform, or authenticated telemetry POST.</p>
+        <p>Start with CSV replay, polling, webhook sidecar, JSON transform, or authenticated telemetry POST.</p>
         <a href="connectors.html">Connector catalog</a>
       </article>
       <article class="flow-card">
-        <span class="step">6. Maintain the system</span>
-        <h3>Review readiness and support</h3>
-        <p>Use Maintenance, Help, and readiness pages to see what is working and what still needs attention.</p>
-        <a href="video.html">Video scripts</a>
+        <span class="step">6. Get help</span>
+        <h3>See what needs support</h3>
+        <p>Use Readiness, Maintenance, and Help to separate staff actions from technical-helper work.</p>
+        <a href="video.html">Watch tutorial</a>
       </article>
     </div>
   </section>
@@ -111,17 +111,17 @@
     </div>
     <article class="role-panel" data-role-panel="manager">
       <h3>Agency Manager</h3>
-      <p>Decide whether local evaluation fits your agency and what outside evidence would still be needed before public claims.</p>
+      <p>Decide whether a local evaluation is worth trying and what outside evidence would still be needed before public claims.</p>
       <a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/can-my-agency-use-this.md">Can my agency use this?</a>
     </article>
     <article class="role-panel" data-role-panel="operations" hidden>
       <h3>Operations Staff</h3>
-      <p>Start from the browser, review setup, import status, feed health, realtime state, readiness, and maintenance tasks.</p>
+      <p>Start in the browser and review setup, imports, feeds, realtime state, readiness, and maintenance tasks.</p>
       <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/no-cli-agency-first-run.md">No command-line first run</a>
     </article>
     <article class="role-panel" data-role-panel="helper" hidden>
       <h3>Technical Helper</h3>
-      <p>Start the local app, run validation-heavy checks when useful, and help with deployment-owned setup.</p>
+      <p>Start the local app, run deeper checks when useful, and help with deployment-owned setup.</p>
       <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/self-hosted-operator-trial.md">Self-hosted operator trial</a>
     </article>
     <article class="role-panel" data-role-panel="connector" hidden>
@@ -131,7 +131,7 @@
     </article>
     <article class="role-panel" data-role-panel="maintainer" hidden>
       <h3>Maintainer</h3>
-      <p>Use the docs index, release status, decisions, and route audits before changing product contracts.</p>
+      <p>Use the docs index, release status, decisions, and audits before changing product contracts.</p>
       <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs index</a>
     </article>
   </section>
