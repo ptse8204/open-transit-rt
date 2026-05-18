@@ -2046,10 +2046,20 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="app-breadcrumb"><a href="/admin/operations">Operations Console</a> / {{.Title}}</p>
 <h1 id="operations-page-title">{{.Title}}</h1>
 <p class="app-meta"><span>Agency: <strong>{{.AgencyID}}</strong></span><span>environment: <span class="pill">{{.EnvironmentLabel}}</span></span><span>generated: {{formatTime .GeneratedAt}}</span></p>
+{{if ne .Section "dashboard"}}
 <section class="page-next-action" aria-labelledby="page-next-action-heading">
 <h2 id="page-next-action-heading">What to do next</h2>
 <p>{{operationsPageNextAction .Section}}</p>
 </section>
+{{template "agencyScopePanel" .}}
+{{end}}
+</header>
+{{if ne .Section "dashboard"}}{{template "operationsNavPanel" .}}{{end}}
+{{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
+<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">
+{{end}}
+
+{{define "agencyScopePanel"}}
 <section class="scope-banner" aria-labelledby="agency-scope-heading">
 <h2 id="agency-scope-heading">Agency scope</h2>
 <dl class="scope-grid">
@@ -2063,7 +2073,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Next:</strong> {{.AgencyScope.NextAction}}</p>
 <p class="muted"><strong>Does not prove:</strong> {{.AgencyScope.DoesNotProve}}</p>
 </section>
-</header>
+{{end}}
+
+{{define "operationsNavPanel"}}
 <nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">
 {{range .NavGroups}}<section class="nav-group" aria-labelledby="nav-group-{{.ID}}">
 <p id="nav-group-{{.ID}}" class="nav-group-label">{{.Label}}</p>
@@ -2073,8 +2085,6 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </details>
 </section>{{end}}
 </nav>
-{{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
-<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">
 {{end}}
 
 {{define "contextHelpPanel"}}
@@ -2318,26 +2328,60 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "dashboard"}}
 {{template "layoutStart" .}}
-<div class="hero start-here">
-<h2>What needs attention first</h2>
-<p>{{.Cockpit.Boundary}}</p>
-<p class="compact-actions"><a href="/admin/operations/setup-wizard">Start setup</a><a href="/admin/operations/feed-health">Check feeds</a><a href="/admin/operations/help">Get help</a><a href="/admin/operations.json">Export private JSON</a></p>
+<section class="workflow-hero" aria-labelledby="workflow-hero-heading">
+<div>
+<h2 id="workflow-hero-heading">Work through this in order</h2>
+<p>Open the first step that is missing, blocked, or needs review. Use the main button in that step before opening secondary tools.</p>
+<p class="compact-actions"><a class="action-link" href="/admin/operations/setup-wizard">Start setup</a><a class="action-link" href="/admin/operations/gtfs-import">Import GTFS</a><a class="action-link" href="/admin/operations/feed-health">Check feeds</a><a class="action-link secondary-action" href="/admin/operations/help">Get help</a></p>
 </div>
-<section aria-labelledby="action-queue-heading">
-<h2 id="action-queue-heading">Next actions</h2>
-<div class="action-grid">
-{{range .Cockpit.ActionQueue}}<section class="action-card" id="cockpit-action-{{.ID}}">
+<aside class="workflow-summary" aria-label="Current local summary">
+<h3>Current snapshot</h3>
+{{if .DiscoveryError}}<p class="warning">{{.DiscoveryError}}</p>{{else}}
+<dl>
+<div><dt>Active GTFS</dt><dd>{{if .ActiveFeedVersion}}{{.ActiveFeedVersion}}{{else}}Missing{{end}}</dd></div>
+<div><dt>Feed URLs</dt><dd>{{if .Discovery.Readiness.AllRequiredFeedsListed}}Listed{{else}}Needs review{{end}}</dd></div>
+<div><dt>Vehicle data</dt><dd>{{if .TelemetryError}}{{.TelemetryError}}{{else}}{{len .Telemetry}} rows, {{.StaleCount}} stale{{end}}</dd></div>
+<div><dt>Validators</dt><dd>{{.ValidationHealth.OverallStatus}}</dd></div>
+</dl>{{end}}
+</aside>
+</section>
+
+<section aria-labelledby="workflow-heading">
+<h2 id="workflow-heading">Operations workflow</h2>
+<ol class="workflow-steps">
+{{range .Cockpit.ActionQueue}}<li class="workflow-step" id="cockpit-action-{{.ID}}">
+<div class="workflow-step-header">
+<span class="workflow-step-number" aria-hidden="true"></span>
+<div>
 <h3>{{.Label}}</h3>
 <p class="status"><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+</div>
+</div>
 <p>{{.Signal}}</p>
 <p><a class="action-link" href="{{.AdminLink}}">{{.ActionLabel}}</a></p>
-<p class="muted">{{.HelpNeeded}}</p>
-<p class="muted">{{.DoesNotProve}}</p>
-</section>{{end}}
-</div>
+<details>
+<summary>When to get technical help</summary>
+<p>{{.HelpNeeded}}</p>
+<p class="muted"><strong>Limit:</strong> {{.DoesNotProve}}</p>
+</details>
+</li>{{end}}
+</ol>
 </section>
-<section aria-labelledby="current-status-heading">
-<h2 id="current-status-heading">Current status</h2>
+
+<section aria-labelledby="dashboard-tools-heading" class="dashboard-tools">
+<h2 id="dashboard-tools-heading">Tools when you need them</h2>
+<p class="compact-actions"><a href="/admin/operations/connectors">Connectors</a><a href="/admin/operations/validation-health">Validators</a><a href="/admin/operations/help">Help</a><a href="/admin/operations.json">Export JSON</a></p>
+<p class="muted">{{.Cockpit.Boundary}}</p>
+</section>
+
+<details class="dashboard-details">
+<summary>Agency scope and all console pages</summary>
+{{template "agencyScopePanel" .}}
+{{template "operationsNavPanel" .}}
+</details>
+
+<details class="dashboard-details">
+<summary>Current status details</summary>
 <div class="status-grid">
 {{range .Cockpit.SetupProgress}}<section class="status-tile" id="cockpit-progress-{{.ID}}">
 <h3>{{.Label}}</h3>
@@ -2347,9 +2391,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted">{{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
-</section>
-<section aria-labelledby="primary-actions-heading">
-<h2 id="primary-actions-heading">More actions</h2>
+</details>
+
+<details class="dashboard-details">
+<summary>More tools</summary>
 <div class="card-grid" aria-label="Primary agency operations actions">
 {{range .Cockpit.PrimaryCards}}<section class="card" id="cockpit-card-{{.ID}}">
 <h3>{{.Label}}</h3>
@@ -2359,19 +2404,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted">{{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
-</section>
-<section aria-labelledby="readiness-summary-heading">
-<h2 id="readiness-summary-heading">Readiness summary</h2>
-{{if .DiscoveryError}}<p class="warning">{{.DiscoveryError}}. Next action: bootstrap publication metadata after a feed is available.</p>{{else}}
-<p>Active GTFS feed version: {{if .ActiveFeedVersion}}<strong>{{.ActiveFeedVersion}}</strong>{{else}}not available{{end}}</p>
-<div class="status-grid">
-<section class="status-tile"><h3>Feed URLs</h3><p>{{if .Discovery.Readiness.AllRequiredFeedsListed}}Listed{{else}}Missing or incomplete{{end}}</p></section>
-<section class="status-tile"><h3>License</h3><p>{{if .Discovery.Readiness.LicenseComplete}}Complete{{else}}Missing{{end}}</p></section>
-<section class="status-tile"><h3>Contact</h3><p>{{if .Discovery.Readiness.ContactComplete}}Complete{{else}}Missing{{end}}</p></section>
-<section class="status-tile"><h3>Validation</h3><p>{{if .Discovery.Readiness.CanonicalValidationComplete}}Recorded{{else}}Not complete{{end}}</p></section>
-</div>{{end}}
-</section>
+</details>
+
+<details class="dashboard-details">
+<summary>Help topics for this page</summary>
 {{template "contextHelpPanel" .}}
+</details>
 <details>
 <summary>Feed URLs and first-run details</summary>
 {{template "firstRunPanel" .FirstRun}}

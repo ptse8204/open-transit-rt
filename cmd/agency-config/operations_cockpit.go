@@ -112,14 +112,14 @@ func buildOperationsCockpit(page operationsPage) operationsCockpitView {
 
 func cockpitActionQueue(page operationsPage) []operationsCockpitAction {
 	return []operationsCockpitAction{
-		cockpitAction("start_setup", "Start setup", cockpitMetadataStatus(page), cockpitMetadataSignal(page), "Open setup", "/admin/operations/setup-wizard", "Technical help only if deployment settings or real access controls must change.", "Does not prove agency approval or final-root ownership."),
-		cockpitAction("import_gtfs", "Import GTFS", cockpitActiveFeedStatus(page), cockpitActiveFeedSignal(page), "Import GTFS", "/admin/operations/gtfs-import", "Technical help only for source data fixes, large imports, or rollback.", "Does not prove schedule correctness or validator-clean status."),
-		cockpitAction("check_feeds", "Check feeds", cockpitFeedHealthStatus(page), cockpitFeedHealthSignal(page), "Check feeds", "/admin/operations/feed-health", "Technical help only for proxy, DNS, TLS, validator tooling, or off-host checks.", "Does not prove consumer acceptance or compliance."),
-		cockpitAction("connect_vehicles", "Connect vehicles", deviceStatus(page), deviceEvidence(page), "Connect vehicles", "/admin/operations/devices", "Technical help only for device secrets, GPS/AVL adapters, or simulator sends.", "Does not prove vendor compatibility or production AVL reliability."),
-		cockpitAction("review_realtime", "Review realtime", realtimeStatus(page), realtimeSignal(page), "Review realtime", "/admin/operations/realtime", "Technical help only when telemetry, matching, or prediction-adapter diagnostics are unclear.", "Does not prove production-grade ETA quality or consumer display."),
-		cockpitAction("review_connectors", "Review connectors", operationsStatusDiagnosticOnly, fmt.Sprintf("%d connector categories", len(page.ConnectorHub.Categories)), "Review connectors", "/admin/operations/connectors", "Technical help only before real credentials, real vendor payloads, or deployment-owned adapters are introduced.", "Does not prove named vendor compatibility."),
-		cockpitAction("review_readiness", "Review readiness", cockpitReadinessStatus(page), fmt.Sprintf("%d readiness rows", len(page.ReadinessV2.Rows)), "Review readiness", "/admin/operations/readiness", "Technical help only when a missing row needs a private diagnostic or retained evidence intake.", "Does not claim CAL-ITP/Caltrans compliance."),
-		cockpitAction("get_help", "Get help", maintenanceStatusToCockpit(page.Maintenance.OverallStatus), page.Maintenance.OverallStatus, "Get help", "/admin/operations/help", "Use a helper for startup, validators, deployment, secrets, or external integrations.", "Does not prove support, SLA, hosted service, or production readiness."),
+		cockpitAction("start_setup", "Start setup", cockpitMetadataStatus(page), cockpitMetadataSignal(page), "Start setup", "/admin/operations/setup-wizard", "Use a helper only for deployment settings or real access-control changes.", "Does not prove agency approval or final-root ownership."),
+		cockpitAction("import_gtfs", "Import GTFS", cockpitActiveFeedStatus(page), cockpitActiveFeedSignal(page), "Import GTFS", "/admin/operations/gtfs-import", "Use a helper for source data fixes, large imports, or rollback.", "Does not prove schedule correctness or validator-clean status."),
+		cockpitAction("check_feeds", "Check feeds", cockpitFeedHealthStatus(page), cockpitFeedHealthSignal(page), "Check feeds", "/admin/operations/feed-health", "Use a helper for proxy, DNS, TLS, validator tooling, or off-host checks.", "Does not prove consumer acceptance or compliance."),
+		cockpitAction("connect_vehicles", "Connect vehicles", deviceStatus(page), deviceEvidence(page), "Connect vehicles", "/admin/operations/devices", "Use a helper for device secrets, GPS/AVL adapters, simulator sends, or real connector setup.", "Does not prove vendor compatibility or production AVL reliability."),
+		cockpitAction("review_realtime", "Review realtime", realtimeStatus(page), realtimeSignal(page), "Review realtime", "/admin/operations/realtime", "Use a helper when telemetry, matching, or prediction-adapter diagnostics are unclear.", "Does not prove production-grade ETA quality or consumer display."),
+		cockpitAction("fix_issues", "Fix issues", cockpitIssueStatus(page), cockpitIssueSignal(page), "Fix issues", "/admin/operations/gtfs-quality", "Use a helper when validator tooling, source GTFS, or deployment settings must change.", "Does not auto-edit GTFS or prove outside approval."),
+		cockpitAction("share_public_urls", "Share public URLs", cockpitShareURLsStatus(page), cockpitShareURLsSignal(page), "Share URLs", "/admin/operations/feeds", "Use a helper before changing the public root, HTTPS, DNS, or off-host checks.", "Does not prove consumer ingestion, listing, display, or final-root readiness."),
+		cockpitAction("maintain_system", "Maintain system", maintenanceStatusToCockpit(page.Maintenance.OverallStatus), page.Maintenance.OverallStatus, "Maintain", "/admin/operations/maintenance", "Use a helper for backup/restore, support bundles, upgrades, or external diagnostics.", "Does not prove support, SLA, hosted service, or production readiness."),
 	}
 }
 
@@ -238,6 +238,53 @@ func cockpitReadinessStatus(page operationsPage) string {
 		return operationsStatusNeedsReview
 	}
 	return operationsStatusReady
+}
+
+func cockpitIssueStatus(page operationsPage) string {
+	return worstOperationsStatus([]string{
+		gtfsQualityStatus(page),
+		cockpitValidationStatus(page),
+		cockpitReadinessStatus(page),
+	})
+}
+
+func cockpitIssueSignal(page operationsPage) string {
+	return fmt.Sprintf("schedule=%s; validators=%s; readiness=%s", gtfsQualityStatus(page), cockpitValidationStatus(page), cockpitReadinessStatus(page))
+}
+
+func cockpitShareURLsStatus(page operationsPage) string {
+	return worstOperationsStatus([]string{
+		cockpitMetadataStatus(page),
+		cockpitFeedHealthStatus(page),
+	})
+}
+
+func cockpitShareURLsSignal(page operationsPage) string {
+	if page.DiscoveryError != "" {
+		return page.DiscoveryError
+	}
+	return fmt.Sprintf("base=%q; feeds=%d; active schedule=%s", page.Discovery.PublicBaseURL, len(page.Discovery.Feeds), firstNonEmpty(page.ActiveFeedVersion, "missing"))
+}
+
+func worstOperationsStatus(statuses []string) string {
+	seen := map[string]bool{}
+	for _, status := range statuses {
+		seen[status] = true
+	}
+	switch {
+	case seen[operationsStatusBlocked]:
+		return operationsStatusBlocked
+	case seen[operationsStatusMissing]:
+		return operationsStatusMissing
+	case seen[operationsStatusNeedsReview]:
+		return operationsStatusNeedsReview
+	case seen[operationsStatusUnknown]:
+		return operationsStatusUnknown
+	case seen[operationsStatusDiagnosticOnly]:
+		return operationsStatusDiagnosticOnly
+	default:
+		return operationsStatusReady
+	}
 }
 
 func maintenanceStatusToCockpit(status string) string {

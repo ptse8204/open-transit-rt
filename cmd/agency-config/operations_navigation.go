@@ -68,7 +68,7 @@ func operationsPageTitle(section string) string {
 func operationsPageNextAction(section string) string {
 	switch normalizeOperationsNavSection(section) {
 	case "dashboard":
-		return "Use the next-action queue first, then open setup, GTFS import, feed health, vehicles, readiness, or help."
+		return "Follow the workflow in order. Open the first missing, blocked, or needs-review step."
 	case "launchpad":
 		return "Choose the workflow section that matches the current blocker and follow its linked console page."
 	case "setup-wizard", "setup":

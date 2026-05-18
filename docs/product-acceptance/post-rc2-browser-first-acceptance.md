@@ -50,23 +50,21 @@ CSRF, and the local sign-in route is disabled for production mode.
 
 ## Action-First Console Correction
 
-The Operations Console Start page now leads with a next-action queue and short
-current-status cards. The route groups are:
+The Operations Console Start page now opens with one straight-line workflow:
 
-- Start
-- Setup
-- GTFS
-- Feeds
-- Realtime
-- Vehicles
-- Connectors
-- Readiness
-- Maintenance
-- Help
+1. Start setup
+2. Import GTFS
+3. Check feeds
+4. Connect vehicles
+5. Review realtime
+6. Fix issues
+7. Share public URLs
+8. Maintain system
 
-Longer first-run tables, feed URL details, console inventory, and safety flags
-remain available behind details panels for review and audit without forcing a
-normal user to read them before choosing an action.
+Each step shows a short status, one primary action, and a collapsed technical
+help note. Agency scope, route inventory, longer feed details, and safety
+flags remain available behind details panels for review without forcing a
+normal user to read them before choosing the next action.
 
 ## Browser Route Walkthrough
 
@@ -164,13 +162,13 @@ The post-polish correction is complete:
 
 - Local browser admin login / first-run handoff is implemented at
   `/admin/local-login` for local/demo mode and remains production-disabled.
-- Operations Console layout is action-first and uses Start, Setup, GTFS,
-  Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help.
+- Operations Console layout is action-first and starts with the ordered setup
+  workflow before secondary console pages.
 - GitHub Pages is published from `site/` to `gh-pages` with the updated
   website, UI tour, connector catalog, readiness page, and video guide.
 - `site/video.html` embeds
-  `assets/open-transit-rt-browser-first-tutorial.mp4` with captions at
-  `assets/open-transit-rt-browser-first-tutorial.vtt`.
+  `assets/open-transit-rt-interface-tour.mp4` with captions at
+  `assets/open-transit-rt-interface-tour.vtt`.
 - README, website, docs index, and wiki copy now start with the local browser
   handoff and short action flow.
 - Connector support is split into implemented/local-supported paths and

@@ -637,7 +637,7 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
 	}
-	for _, want := range []string{"What needs attention first", "Next actions", "Start setup", "Import GTFS", "Check feeds", "Connect vehicles", "Review readiness", "Get help"} {
+	for _, want := range []string{"Work through this in order", "Operations workflow", "Start setup", "Import GTFS", "Check feeds", "Connect vehicles", "Fix issues", "Share public URLs", "Maintain system"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("action-first body does not contain %q: %s", want, body)
 		}
@@ -907,7 +907,7 @@ func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	if view.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
 	}
-	wantActions := []string{"start_setup", "import_gtfs", "check_feeds", "connect_vehicles", "review_realtime", "review_connectors", "review_readiness", "get_help"}
+	wantActions := []string{"start_setup", "import_gtfs", "check_feeds", "connect_vehicles", "review_realtime", "fix_issues", "share_public_urls", "maintain_system"}
 	var gotActions []string
 	for _, action := range view.ActionQueue {
 		gotActions = append(gotActions, action.ID)
@@ -958,11 +958,14 @@ func TestOperationsCockpitHTMLShowsNoCLIPrimaryFlow(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		"Start Here",
-		"Next actions",
-		"Current status",
-		"More actions",
+		"Operations workflow",
+		"Current status details",
+		"More tools",
 		`id="cockpit-action-start_setup"`,
 		`id="cockpit-action-check_feeds"`,
+		`id="cockpit-action-fix_issues"`,
+		`id="cockpit-action-share_public_urls"`,
+		`id="cockpit-action-maintain_system"`,
 		`id="cockpit-card-import_update_gtfs"`,
 		`id="cockpit-card-review_feed_health"`,
 		`id="cockpit-card-review_gtfs_quality"`,
@@ -970,7 +973,7 @@ func TestOperationsCockpitHTMLShowsNoCLIPrimaryFlow(t *testing.T) {
 		`id="cockpit-card-manage_devices_vehicles"`,
 		`id="cockpit-card-realtime_feed_state"`,
 		`id="cockpit-card-maintenance_tasks"`,
-		"Review readiness",
+		"Agency scope and all console pages",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("cockpit HTML missing %q: %s", want, body)
@@ -1639,10 +1642,12 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 	}
 	for _, want := range []string{
 		"Start Here",
-		"What needs attention first",
-		"Next actions",
+		"Work through this in order",
+		"Operations workflow",
 		"Review realtime",
-		"Review connectors",
+		"Fix issues",
+		"Share public URLs",
+		"Maintain system",
 		"Task status:",
 		"Normal browser path",
 		"Technical-helper path",
@@ -1674,7 +1679,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 			t.Fatalf("dashboard body missing %q: %s", want, body)
 		}
 	}
-	startHereIndex := strings.Index(body, "What needs attention first")
+	startHereIndex := strings.Index(body, "Work through this in order")
 	helpIndex := strings.Index(body, "Help for Start Here")
 	if startHereIndex < 0 || helpIndex < 0 || startHereIndex > helpIndex {
 		t.Fatalf("dashboard should show Start Here before contextual help: start=%d help=%d body=%s", startHereIndex, helpIndex, body)
