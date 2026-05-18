@@ -1,9 +1,10 @@
 package main
 
 type operationsNavGroup struct {
-	ID    string
-	Label string
-	Items []operationsNavItem
+	ID      string
+	Label   string
+	Current bool
+	Items   []operationsNavItem
 }
 
 type operationsNavItem struct {
@@ -42,6 +43,9 @@ func operationsNavGroups(currentSection string) []operationsNavGroup {
 	for groupIndex := range groups {
 		for itemIndex := range groups[groupIndex].Items {
 			groups[groupIndex].Items[itemIndex].Current = groups[groupIndex].Items[itemIndex].Section == current
+			if groups[groupIndex].Items[itemIndex].Current {
+				groups[groupIndex].Current = true
+			}
 		}
 	}
 	return groups
@@ -64,7 +68,7 @@ func operationsPageTitle(section string) string {
 func operationsPageNextAction(section string) string {
 	switch normalizeOperationsNavSection(section) {
 	case "dashboard":
-		return "Review the first action cards, then open the setup page or the highest-priority feed health item."
+		return "Use the next-action queue first, then open setup, GTFS import, feed health, vehicles, readiness, or help."
 	case "launchpad":
 		return "Choose the workflow section that matches the current blocker and follow its linked console page."
 	case "setup-wizard", "setup":

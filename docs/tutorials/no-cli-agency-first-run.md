@@ -21,11 +21,13 @@ deployment. After that, the routine review path should start in the private
 browser UI:
 
 ```text
-/admin/operations
+/admin/local-login
 ```
 
-Use Agency Operations Cockpit / Start Here as the first screen. It shows setup
-progress, action cards, next actions, and claim boundaries in one place.
+Select **Start setup**. In local/demo mode, the page creates a short private
+browser session and opens Agency Operations Cockpit / Start Here. It does not
+show a raw token, require DevTools, require a header extension, or enable
+production login.
 
 ## Browser-First Product Path
 
@@ -33,18 +35,33 @@ Use this order before interpreting readiness or making outside approval,
 compliance, production, or consumer-acceptance claims:
 
 1. Start in the browser.
-2. Open **Agency Operations Cockpit / Start Here**.
-3. Review setup.
-4. Import or review GTFS.
-5. Check the five configured feed URLs.
-6. Review feed health, readiness, validation, telemetry, connectors, and
+2. Open local setup sign-in and select **Start setup**.
+3. Open **Agency Operations Cockpit / Start Here**.
+4. Review setup.
+5. Import or review GTFS.
+6. Check the five configured feed URLs.
+7. Review feed health, readiness, validation, telemetry, connectors, and
    maintenance.
-7. Understand what remains before outside approval, compliance, production, or
+8. Understand what remains before outside approval, compliance, production, or
    consumer-acceptance claims.
 
-## 1. Open Agency Operations Cockpit / Start Here
+## 1. Open Local Setup Sign-In
 
 Go to:
+
+```text
+/admin/local-login
+```
+
+Select **Start setup**. The local browser session is short-lived, HttpOnly, and
+scoped to private admin routes in the local app package, including the
+Operations Console, GTFS Studio, and Alerts Console. If the page is
+unavailable, the app is either not in local/demo mode, the setup flag is off,
+or the browser is not using localhost.
+
+## 2. Open Agency Operations Cockpit / Start Here
+
+After sign-in, the app opens:
 
 ```text
 /admin/operations
@@ -64,7 +81,7 @@ Review:
 Each action card has a current signal, the next action, a private admin link,
 and what the card does not prove.
 
-## 2. Import Or Review GTFS
+## 3. Import Or Review GTFS
 
 Open:
 
@@ -95,7 +112,7 @@ If staged comparison or browser rollback is not available in the current
 runtime, the UI says so instead of pretending rollback exists. A technical
 helper may use the documented CLI rollback path when needed.
 
-## 3. Check The Five Public Feed Paths
+## 4. Check The Five Public Feed Paths
 
 Open:
 
@@ -119,7 +136,7 @@ next action, and what it does not prove.
 
 Use this page before asking a technical helper to run curl commands.
 
-## 4. Understand Realtime Usefulness
+## 5. Understand Realtime Usefulness
 
 Stay on Feed Health and review the realtime usefulness section:
 
@@ -147,7 +164,7 @@ generated versus withheld/fallback reasons, and Alerts lifecycle gaps. Use
 **Synthetic / Local Replay Guide** to start with browser fixture previews
 before asking a technical helper for local replay commands.
 
-## 5. Review GTFS Quality And Validators
+## 6. Review GTFS Quality And Validators
 
 Open:
 
@@ -177,7 +194,7 @@ Admins can request allowlisted server-side validator runs from the browser.
 The browser cannot supply validator commands, paths, URLs, argument lists,
 artifacts, binaries, or timeouts.
 
-## 6. Review Device Credentials, Telemetry Freshness, And Simulator
+## 7. Review Device Credentials, Telemetry Freshness, And Simulator
 
 Open:
 
@@ -200,7 +217,7 @@ but the one-time token must still be stored outside the browser after
 creation. Simulator sending may still need a technical helper because device
 tokens stay in the operator shell and are not collected by the browser preview.
 
-## 7. Review Connectors
+## 8. Review Connectors
 
 Open:
 
@@ -215,7 +232,7 @@ connector processes. They are not arbitrary dynamic backend plugins.
 Use connector pages to understand telemetry, predictor, validator,
 monitoring/export, and discovery boundaries before connecting private systems.
 
-## 8. Review Maintenance Center
+## 9. Review Maintenance Center
 
 Open:
 
@@ -231,7 +248,7 @@ availability, support-summary instructions, and weekly/monthly tasks.
 If a value is not available or not configured, the UI says so. It does not
 turn missing data into OK.
 
-## 9. Review Operations Console Help
+## 10. Review Operations Console Help
 
 Open:
 
@@ -254,6 +271,7 @@ Operations Console.
 Use a technical helper for:
 
 - starting Docker or a server deployment;
+- changing production/admin access configuration;
 - changing DNS, TLS, reverse proxy, firewall, or systemd setup;
 - installing pinned validators, Java, Docker, or off-host validation tooling;
 - large GTFS imports or rollback execution when browser rollback is not

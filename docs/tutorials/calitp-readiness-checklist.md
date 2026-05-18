@@ -44,9 +44,47 @@ workflows; it does not claim CAL-ITP/Caltrans compliance.
 | Validation workflow | `/admin/operations/validation-center` and `/admin/operations/validation-health` with allowlisted validators | Latest canonical validator results for each feed |
 | License/contact workflow | `feed_config` and `published_feed` metadata | Agency-approved open license and technical contact |
 | Uptime/operations signals | Feed Health, Reliability, Maintenance, and support-bundle guidance | Deployment monitoring, incident response, backup/restore practice, and any SLA/uptime records if claimed |
-| Telemetry/device state | Devices, Telemetry, Telemetry Simulator, Realtime Center, and Vehicle Positions review | Real device setup, operational telemetry coverage, and production AVL reliability proof if claimed |
+| Telemetry/device state | Devices, Telemetry, Telemetry Simulator, Realtime, and Vehicle Positions review | Real device setup, operational telemetry coverage, and production AVL reliability proof if claimed |
 | Consumer workflow records | `consumer_ingestion` records | Actual submissions, responses, and acceptance evidence |
 | Scorecard | `/admin/operations/readiness` and `/admin/compliance/scorecard` | Current deployment-specific scorecard with supporting validation records |
+
+## Connector And Ecosystem Readiness
+
+The checklist keeps implemented local support separate from future ecosystem
+candidates.
+
+Implemented or local-supported:
+
+- CSV replay, HTTP polling, webhook sidecar, and generic JSON transform
+  telemetry adapters.
+- Authenticated `POST /v1/telemetry`.
+- Deterministic built-in predictor.
+- External HTTP predictor adapter and shadow mode.
+- MobilityData static GTFS and GTFS Realtime validator wrappers.
+- Monitoring/export helper.
+- `/public/feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and
+  Alerts URLs.
+
+Roadmap-only:
+
+- TheTransitClock candidate behind `internal/prediction.Adapter`.
+- Real vendor AVL payload adapters behind `/v1/telemetry`.
+- SIRI / GTFS-RT bridge candidate.
+- GTFS-Flex / demand-response QA.
+- GTFS-ride / ridership analytics QA.
+- GTFS-Pathways accessibility metadata QA.
+- GTFS-Fares v2 fare metadata QA.
+- OpenTripPlanner and OneBusAway compatibility checks.
+- MobilityData validator UX and report explanation.
+- Transitland and Mobility Database discovery-readiness workflows.
+
+References: [Caltrans California Minimum GTFS Guidelines](https://dot.ca.gov/cal-itp/california-minimum-general-transit-feed-specification-gtfs-guidelines-v2_0),
+[GTFS Realtime reference](https://gtfs.org/documentation/realtime/reference/),
+[GTFS Realtime best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/),
+[MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator),
+[Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds),
+[Mobility Database FAQ](https://mobilitydatabase.org/faq), and
+[GTFS extensions overview](https://gtfs.org/community/extensions/overview/).
 
 ## Operations Console Workflow
 
@@ -61,7 +99,7 @@ runs the synthetic AVL dry-run, and then reviews this page, see
 1. Open `/admin/operations/readiness` through the private admin boundary.
 2. Review the workflow map for public feed URLs, static GTFS, Vehicle
    Positions, Trip Updates, Alerts, validation, license/contact metadata,
-   uptime/operations signals, telemetry/device state, and consumer
+   operations signals, telemetry/device state, and consumer
    preparedness.
 3. Open the detailed readiness cards for the current signal and next action.
 4. Run validators or operational helpers from their existing workflows; the

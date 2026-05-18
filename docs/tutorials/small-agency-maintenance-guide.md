@@ -6,8 +6,13 @@ RT as a self-hosted GTFS and GTFS-Realtime operations platform.
 Use the private browser UI first:
 
 ```text
+/admin/local-login
 /admin/operations/maintenance
 ```
+
+In local/demo mode, select **Start setup** first. Normal browser users do not
+need raw admin tokens, curl, DevTools, or a header extension after the app is
+running.
 
 This guide creates no evidence, contacts no external party, changes no
 consumer status, and makes no compliance, adoption, consumer-acceptance,

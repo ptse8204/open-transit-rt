@@ -21,15 +21,37 @@
   </nav>
 </header>
 <main>
-  <p class="tag">Video tutorial workflow</p>
-  <h1>Record short demos from the same browser-first path.</h1>
-  <p class="lead">This page gives maintainers a public-safe outline for recording walkthroughs after a local demo app starts. Do not commit large video files here; publish finished media only through an authorized release or docs workflow.</p>
+  <p class="tag">Video guide</p>
+  <h1>Watch the local browser handoff.</h1>
+  <p class="lead">This short generated video shows the local/demo flow: a technical helper starts the app, then agency staff sign in and use action-first browser pages. It is not evidence, a production recording, or a compliance claim.</p>
+
+  <section aria-labelledby="video-asset-heading">
+    <h2 id="video-asset-heading">Tutorial Video</h2>
+    <div class="video-frame">
+      <video controls preload="metadata" width="1280" height="720" aria-describedby="video-boundary">
+        <source src="assets/open-transit-rt-browser-first-tutorial.mp4" type="video/mp4">
+        <track src="assets/open-transit-rt-browser-first-tutorial.vtt" kind="captions" srclang="en" label="English" default>
+        Your browser does not support the video element. The transcript is below.
+      </video>
+    </div>
+    <p id="video-boundary" class="notice">This MP4 uses only synthetic slides and local/demo wording. It does not show private agency data, secrets, raw logs, external portals, consumer submissions, or vendor payloads.</p>
+  </section>
+
+  <section aria-labelledby="transcript-heading" class="transcript">
+    <h2 id="transcript-heading">Transcript</h2>
+    <p>Open Transit RT is a browser-first local evaluation tool for small agencies. This tutorial is local demo only, not evidence, and not a compliance claim.</p>
+    <p>A technical helper starts the app. Startup prints a local setup URL, so staff do not need tokens, curl, DevTools, or header extensions.</p>
+    <p>Agency staff open <code>/admin/local-login</code>, choose <strong>Start setup</strong>, and receive a short local browser session for the private Operations Console.</p>
+    <p>Start with actions: Start setup, Import GTFS, Check feeds, Connect vehicles, Review readiness, and Get help. Longer tables remain behind details panels.</p>
+    <p>Review <code>feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts. CAL-ITP-style readiness is local review and does not prove compliance.</p>
+    <p>Use Maintenance and Help for startup, validators, secrets, and deployment work. The tutorial makes no production readiness, consumer acceptance, SLA, vendor, hardware, AVL reliability, or ETA-quality claim.</p>
+  </section>
 
   <section class="grid">
     <article class="flow-card">
       <span class="step">3 minutes</span>
       <h3>Overview</h3>
-      <p>Show what Open Transit RT is, who it is for, Start Here, the five feed paths, connectors, readiness, and what local review does not prove.</p>
+      <p>Show who it is for, Start Here, the five feed paths, connectors, readiness, and what local review does not prove.</p>
     </article>
     <article class="flow-card">
       <span class="step">10 minutes</span>
@@ -60,6 +82,7 @@
 
   <section>
     <h2>Recording Checklist</h2>
+    <p>The included MP4 is a small generated walkthrough. For a real screen recording, use the same safety checklist and publish only through an authorized release or documentation workflow.</p>
     <table>
       <thead><tr><th>Step</th><th>Check</th></tr></thead>
       <tbody>
@@ -76,7 +99,7 @@
     <h2>Detailed Storyboards</h2>
     <details open>
       <summary>Overview</summary>
-      <p>Introduce the product, show Start Here, review the five feed paths, then close with what local review does not prove.</p>
+      <p>Introduce the product, show the local sign-in handoff and Start Here actions, review the five feed paths, then close with what local review does not prove.</p>
     </details>
     <details>
       <summary>Local setup</summary>
@@ -92,7 +115,7 @@
     </details>
     <details>
       <summary>Connector and AVL overview</summary>
-      <p>Show connector categories, Workbench recipes, Telemetry Simulator, and Devices while keeping token values off screen.</p>
+      <p>Show connector categories, Workbench recipes, Telemetry Simulator, and Devices while keeping secrets off screen.</p>
     </details>
     <details>
       <summary>Maintenance and support</summary>
@@ -101,7 +124,7 @@
     <p>Full guide: <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/video-recording-guide.md">Video Recording Guide</a>.</p>
   </section>
 
-  <p class="notice">This page is a tutorial plan only. It does not prove production readiness, compliance, consumer acceptance, hosted service availability, vendor compatibility, SLA/uptime, or ETA quality.</p>
+  <p class="notice">This page and video are tutorial material only. They do not prove production readiness, compliance, consumer acceptance, hosted service availability, vendor compatibility, SLA/uptime, production AVL reliability, or ETA quality.</p>
 </main>
 </body>
 </html>

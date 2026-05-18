@@ -31,6 +31,30 @@ making unsupported external-integration claims.
 | Feed-consumer URL/metadata expectations | Public feed URLs and `/public/feeds.json` metadata can be reviewed locally. | No portal automation, no submissions, and no target status changes. |
 | Redaction | Fixtures, manifests, logs, screenshots, and summaries avoid secrets and private identifiers. | Review before committing any integration material. |
 
+## Ecosystem Direction
+
+Use this split when deciding whether a connector belongs in current support or
+the roadmap.
+
+| Area | Current support | Roadmap direction |
+| --- | --- | --- |
+| Telemetry | CSV replay, HTTP polling, webhook sidecar, JSON transform, and authenticated `POST /v1/telemetry`. | Real vendor AVL payload adapters and SIRI / GTFS-RT bridge candidates behind sidecars only. |
+| Prediction | Deterministic built-in predictor plus external HTTP adapter and shadow mode. | TheTransitClock candidate behind `internal/prediction.Adapter`; no named compatibility or ETA-quality claim. |
+| Validation | MobilityData static GTFS and GTFS Realtime validator wrappers through server-owned allowlisted IDs. | Browser explanation of validator reports and next actions. |
+| Discovery | `/public/feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and Alerts URLs. | Transitland and Mobility Database discovery-readiness workflows without portal automation or status changes. |
+| Consumer behavior | Local/public feed URL review and prepared-only packet records. | OpenTripPlanner and OneBusAway compatibility checks with synthetic/local data only. |
+| GTFS extensions | Base GTFS import, feed metadata, and validation review. | GTFS-Flex, GTFS-ride, GTFS-Pathways, and GTFS-Fares v2 QA investigations. |
+
+Reference links: [GTFS Realtime reference](https://gtfs.org/documentation/realtime/reference/),
+[GTFS Realtime best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/),
+[MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator),
+[Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds),
+[Mobility Database FAQ](https://mobilitydatabase.org/faq),
+[OpenTripPlanner](https://github.com/opentripplanner/OpenTripPlanner),
+[OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
+[TheTransitClock](https://github.com/TheTransitClock/transitime), and
+[GTFS extensions overview](https://gtfs.org/community/extensions/overview/).
+
 ## Readiness Questions
 
 - Is the connector optional and disabled unless the operator configures it?

@@ -33,6 +33,64 @@ Stable branch users should start with the Connector Catalog and Integration
 Adapter Kit because roadmap packs are filtered from `stable` by design.
 Optional evidence tracks remain separately authorization-gated.
 
+Browser-First Access correction Phases 01 through 07 are complete on `main`.
+The correction makes normal local/demo browser access real after startup:
+agency staff can open `/admin/local-login`, choose **Start setup**, and enter
+the private Operations Console without generating tokens, using curl, opening
+DevTools, or installing a header extension. `/admin/operations` remains `401`
+without auth, cookie-auth unsafe POSTs still require CSRF, Bearer-token API
+auth still works, and the local sign-in handoff is production-disabled and
+localhost-only.
+
+The Operations Console Start page is now action-first with Start, Setup, GTFS,
+Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help groups.
+Long route lists, feed details, first-run diagnostics, and caveats are kept
+behind details/help panels so normal users see status and next actions first.
+
+The public GitHub Pages site is published from `site/` to `gh-pages` and is
+live at `https://ptse8204.github.io/open-transit-rt/`. It includes the updated
+website, UI tour, connector catalog, readiness explainer, and video guide. The
+video page embeds the generated public-safe tutorial asset at
+`site/assets/open-transit-rt-browser-first-tutorial.mp4` with captions at
+`site/assets/open-transit-rt-browser-first-tutorial.vtt`. The asset uses
+synthetic slides only and is not evidence, not a production recording, and not
+a compliance claim.
+
+README, website, docs index, and wiki language now prioritize the browser
+handoff and action flow over long route lists or phase history. Connector docs
+now separate implemented/local-supported paths from roadmap-only candidates:
+CSV replay, HTTP polling, webhook sidecar, generic JSON transform,
+authenticated telemetry POST, deterministic prediction, external HTTP
+prediction/shadow mode, MobilityData validator wrappers, monitoring/export,
+`/public/feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and Alerts
+are documented as current local-supported paths. TheTransitClock, real vendor
+AVL payloads, SIRI / GTFS-RT bridge, GTFS-Flex, GTFS-ride, GTFS-Pathways,
+GTFS-Fares v2, OpenTripPlanner, OneBusAway, MobilityData validator UX, and
+Transitland/Mobility Database discovery workflows remain roadmap-only unless a
+future phase implements and tests them.
+
+CAL-ITP-style readiness language remains bounded: Open Transit RT supports
+local/self-hosted evaluation and readiness workflows, but it does not prove
+CAL-ITP/Caltrans compliance, production readiness, agency adoption, consumer
+acceptance, final-root readiness, hosted service availability, vendor
+compatibility, hardware certification, SLA/uptime, production AVL reliability,
+production-grade ETA quality, or real-world ETA accuracy.
+
+Remaining command-line boundaries are technical-helper or maintainer work:
+startup/shutdown, validator installation, release gates, deployment/TLS/DNS,
+real secrets, custom connector deployment, retained evidence, external contact,
+consumer submission, and consumer status movement.
+
+Browser-First Access closeout validation passed on 2026-05-18:
+`git diff --check`, `go test ./...`, `make check`, `make test`,
+`make smoke`, `make check-links`, `make audit-product-acceptance`,
+`make audit-final-claim-review`, `make external-connection-check`,
+`make adapter-conformance`, `make test-connector-examples`,
+`make gtfsrt-conformance`, and `scripts/check-consumer-tracker.sh`.
+Protected evidence paths had no tracked or untracked status in the
+product-acceptance audit, and the consumer tracker remained exactly seven
+prepared-only targets.
+
 Post-closeout CI follow-up `d8dfc3b` fixed telemetry simulator tests for the
 declared Go `1.23.2` toolchain used by GitHub Actions. Remote `main` Fast CI
 passed after the fix, the stable-update workflow passed, and remote `stable`

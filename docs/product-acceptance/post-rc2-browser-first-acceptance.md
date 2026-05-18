@@ -1,6 +1,6 @@
 # Post-rc2 Browser-First Product Acceptance
 
-Date: 2026-05-17 UTC / 2026-05-17 Pacific
+Date: 2026-05-18 UTC / 2026-05-18 Pacific
 
 This acceptance review checks whether a small-agency user can use the browser
 for normal Operations Console work after a technical helper starts the local
@@ -36,6 +36,38 @@ existing local demo database volume, applied migrations, seeded demo agency
 records, imported the sample GTFS feed, bootstrapped publication metadata, and
 verified all five public feed files.
 
+## Browser-First Access Correction
+
+The local/demo app now exposes a localhost-only admin sign-in handoff at
+`/admin/local-login` when explicitly enabled by the local app configuration.
+Normal users open that page, choose **Start setup**, and receive a short browser
+session for the private console. They do not need to generate an admin token,
+paste a cookie, use DevTools, install a header extension, or call curl.
+
+The correction preserves the private boundary: unauthenticated
+`/admin/operations` still returns `401`, cookie-auth unsafe POSTs still require
+CSRF, and the local sign-in route is disabled for production mode.
+
+## Action-First Console Correction
+
+The Operations Console Start page now leads with a next-action queue and short
+current-status cards. The route groups are:
+
+- Start
+- Setup
+- GTFS
+- Feeds
+- Realtime
+- Vehicles
+- Connectors
+- Readiness
+- Maintenance
+- Help
+
+Longer first-run tables, feed URL details, console inventory, and safety flags
+remain available behind details panels for review and audit without forcing a
+normal user to read them before choosing an action.
+
 ## Browser Route Walkthrough
 
 The walkthrough generated an admin token in memory and did not print it. These
@@ -43,7 +75,7 @@ routes returned authenticated `200` and `Cache-Control: no-store`:
 
 | Workflow | Route | Page |
 | --- | --- | --- |
-| Start Here / Dashboard | `/admin/operations` | Agency Operations Cockpit / Start Here |
+| Start Here / Dashboard | `/admin/operations` | Start Here |
 | Setup | `/admin/operations/setup-wizard` | Agency Setup |
 | Setup Details | `/admin/operations/setup` | Setup Details |
 | GTFS Workbench | `/admin/operations/gtfs-workbench` | GTFS Workbench |
@@ -52,18 +84,18 @@ routes returned authenticated `200` and `Cache-Control: no-store`:
 | Feed Health | `/admin/operations/feed-health` | Feed Health |
 | Validation | `/admin/operations/validation-center` | Validation Center |
 | Validator Health | `/admin/operations/validation-health` | Validator Health |
-| Realtime | `/admin/operations/realtime` | Realtime Operations Center |
+| Realtime | `/admin/operations/realtime` | Realtime |
 | Devices / AVL | `/admin/operations/devices` | Devices & Tokens |
 | Telemetry | `/admin/operations/telemetry` | Telemetry Freshness |
 | Telemetry Simulator | `/admin/operations/telemetry-simulator` | Telemetry Simulator |
 | Connectors | `/admin/operations/connectors` | Connector Hub |
 | Connector Workbench | `/admin/operations/connectors/workbench` | Connector Workbench |
 | Connector Checks | `/admin/operations/connectors/tests` | Connector Checks |
-| Prediction / ETA Lab | `/admin/operations/prediction-lab` | Prediction & ETA Lab |
+| Prediction Lab | `/admin/operations/prediction-lab` | Prediction Lab |
 | Readiness | `/admin/operations/readiness` | Readiness |
-| Maintenance | `/admin/operations/maintenance` | Maintenance Center |
+| Maintenance | `/admin/operations/maintenance` | Maintenance |
 | Reliability Review | `/admin/operations/reliability` | Reliability Review |
-| Help / Tutorials | `/admin/operations/help` | Help & Tutorials |
+| Help | `/admin/operations/help` | Help |
 | Support Audit | `/admin/operations/audit` | Audit History |
 | Evidence Guidance | `/admin/operations/evidence` | Evidence Guidance |
 
@@ -72,7 +104,7 @@ Additional browser surfaces returned `200`:
 | Surface | Route |
 | --- | --- |
 | GTFS Studio | `/admin/gtfs-studio` |
-| Alerts Console | `/admin/alerts/console` |
+| Alerts | `/admin/alerts/console` |
 
 The unauthenticated check returned `401` for `/admin/operations`, preserving the
 private admin boundary.
@@ -83,7 +115,7 @@ On 2026-05-17, the local app was rebuilt and the browser-first route walkthrough
 was repeated after copy and responsive-layout polish. The recheck confirmed:
 
 - all 23 Operations Console routes listed above returned authenticated `200`;
-- GTFS Studio and the Alerts Console returned authenticated `200`;
+- GTFS Studio and Alerts returned authenticated `200`;
 - unauthenticated `/admin/operations` returned `401`;
 - a local Playwright run loaded all 25 private browser routes at desktop
   `1280x900` and
@@ -114,6 +146,7 @@ Startup and follow-up fetches returned `200` for:
 After a technical helper starts the local app, normal users can use the browser
 to:
 
+- sign in through the local/demo browser handoff;
 - review the dashboard and next actions;
 - complete setup review;
 - import and review GTFS;
@@ -124,6 +157,70 @@ to:
 - review connector categories, workbench recipes, and connector checks;
 - review CAL-ITP-style readiness without overclaiming;
 - inspect maintenance, reliability, help, support, audit, and evidence guidance.
+
+## Browser-First Correction Closeout
+
+The post-polish correction is complete:
+
+- Local browser admin login / first-run handoff is implemented at
+  `/admin/local-login` for local/demo mode and remains production-disabled.
+- Operations Console layout is action-first and uses Start, Setup, GTFS,
+  Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help.
+- GitHub Pages is published from `site/` to `gh-pages` with the updated
+  website, UI tour, connector catalog, readiness page, and video guide.
+- `site/video.html` embeds
+  `assets/open-transit-rt-browser-first-tutorial.mp4` with captions at
+  `assets/open-transit-rt-browser-first-tutorial.vtt`.
+- README, website, docs index, and wiki copy now start with the local browser
+  handoff and short action flow.
+- Connector support is split into implemented/local-supported paths and
+  roadmap-only candidates.
+- CAL-ITP-style readiness language stays bounded to local/self-hosted
+  readiness workflows.
+
+Current local-supported connector paths:
+
+- CSV replay telemetry adapter.
+- HTTP polling telemetry adapter.
+- Webhook sidecar telemetry adapter.
+- Generic JSON transform adapter.
+- Authenticated `POST /v1/telemetry`.
+- Deterministic built-in predictor.
+- External HTTP predictor adapter and shadow mode.
+- MobilityData static GTFS and GTFS Realtime validator wrappers.
+- Monitoring/export helper.
+- `/public/feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and
+  Alerts URLs.
+
+Roadmap-only connector candidates:
+
+- TheTransitClock behind `internal/prediction.Adapter`.
+- Real vendor AVL payload adapters behind `/v1/telemetry`.
+- SIRI / GTFS-RT bridge.
+- GTFS-Flex, GTFS-ride, GTFS-Pathways, and GTFS-Fares v2 QA helpers.
+- OpenTripPlanner and OneBusAway compatibility checks.
+- MobilityData validator UX and report explanation.
+- Transitland and Mobility Database discovery-readiness workflows.
+
+Final closeout validation passed on 2026-05-18:
+
+- `git diff --check`
+- `go test ./...`
+- `make check`
+- `make test`
+- `make smoke`
+- `make check-links`
+- `make audit-product-acceptance`
+- `make audit-final-claim-review`
+- `make external-connection-check`
+- `make adapter-conformance`
+- `make test-connector-examples`
+- `make gtfsrt-conformance`
+- `scripts/check-consumer-tracker.sh`
+
+The product-acceptance audit reported no tracked or untracked protected
+evidence path status. The consumer tracker remained exactly seven
+prepared-only targets.
 
 ## Remaining Command-Line Boundaries
 

@@ -2,7 +2,7 @@
 	route {
 		respond /healthz "ok" 200
 
-		@agency path /public/gtfs/* /public/feeds.json /public/agencies/*/feeds.json /public/agencies/*/gtfs/schedule.zip /admin/operations* /admin/publication* /admin/compliance* /admin/consumer-ingestion* /admin/validation* /admin/devices*
+		@agency path /public/gtfs/* /public/feeds.json /public/agencies/*/feeds.json /public/agencies/*/gtfs/schedule.zip /admin/local-login* /admin/operations* /admin/publication* /admin/compliance* /admin/consumer-ingestion* /admin/validation* /admin/devices*
 		reverse_proxy @agency agency-config:8081
 
 		@telemetry path /v1/telemetry /v1/events*
@@ -23,7 +23,7 @@
 		@local_root {
 			path /
 		}
-		respond @local_root "Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth." 200
+		respond @local_root "Open Transit RT local app is running. Start local browser setup at /admin/local-login. Public feeds are under /public/ and admin routes require auth." 200
 
 		respond "not found" 404
 	}
