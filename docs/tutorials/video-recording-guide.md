@@ -31,16 +31,66 @@ project media location.
    make agency-app-up
    ```
 
-3. Open the private Operations Console:
+3. Open the local browser sign-in page:
 
    ```text
-   http://localhost:8080/admin/operations
+   http://localhost:8080/admin/local-login
    ```
 
-4. Confirm the visible data is public-safe.
-5. Keep any admin token off screen.
-6. Close browser tabs that show private paths, raw logs, credentials, or
+4. Select **Start setup** and confirm the browser lands on the private
+   Operations Console.
+5. Confirm the visible data is public-safe.
+6. Keep any admin token off screen.
+7. Close browser tabs that show private paths, raw logs, credentials, or
    unrelated local work.
+
+## Published Tutorial Asset
+
+The public site includes a small generated MP4 tutorial asset and captions:
+
+```text
+site/assets/open-transit-rt-browser-first-tutorial.mp4
+site/assets/open-transit-rt-browser-first-tutorial.vtt
+```
+
+The asset was generated locally with `ffmpeg` using synthetic slides only. It
+does not capture a real desktop, browser profile, secret, private URL, raw log,
+agency record, external portal, consumer workflow, or vendor payload.
+
+Local recording tooling detected for future authorized screen captures:
+
+- `ffmpeg`
+- `ffprobe`
+- macOS `screencapture`
+- macOS `osascript`
+
+Direct desktop capture was not used for this committed asset because it can
+require macOS Screen Recording permission and can accidentally capture private
+desktop context. If a maintainer later authorizes a real screen recording, use
+the checklist in this guide, record only local/demo data, and publish through an
+authorized release or documentation workflow.
+
+### Published Asset Transcript
+
+Open Transit RT is a browser-first local evaluation tool for small agencies.
+This tutorial is local demo only, not evidence, and not a compliance claim.
+
+A technical helper starts the app with the documented local workflow. Startup
+prints a local setup URL, so staff do not need tokens, curl, DevTools, or header
+extensions.
+
+Agency staff open `/admin/local-login`, choose **Start setup**, and receive a
+short local browser session for the private Operations Console.
+
+Start with actions: Start setup, Import GTFS, Check feeds, Connect vehicles,
+Review readiness, and Get help. Longer tables remain behind details panels.
+
+Review `feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and Alerts.
+CAL-ITP-style readiness is local review and does not prove compliance.
+
+Use Maintenance and Help for startup, validator, secret, and deployment work.
+The tutorial makes no production readiness, consumer acceptance, SLA, vendor,
+hardware, AVL reliability, or ETA-quality claim.
 
 ## Reset After Recording
 
@@ -82,8 +132,8 @@ Goal: show a technical helper starting the app and handing off browser review.
 | 0:00-0:45 | README startup block | Use the current release candidate and local commands. |
 | 0:45-2:30 | Terminal with `make check` | The check is a local repo sanity check, not external approval. |
 | 2:30-5:30 | Terminal with `make agency-app-up` | The helper starts local services, imports demo GTFS, and prints next steps. |
-| 5:30-6:15 | Hide token output | Do not show or read admin tokens on camera. |
-| 6:15-8:30 | `/admin/operations` | Agency staff start from the private browser URL. |
+| 5:30-6:15 | Local sign-in page | Open `/admin/local-login` and select **Start setup**. |
+| 6:15-8:30 | `/admin/operations` | Agency staff start from the private browser session. |
 | 8:30-10:00 | Stop/reset guidance | Use `make agency-app-down`; use reset only for local demo cleanup. |
 
 ## Storyboard 3: Browser-First GTFS Import
@@ -154,7 +204,8 @@ The public-site source includes a companion page:
 site/video.html
 ```
 
-It summarizes these storyboards for readers browsing the static site source.
+It embeds the generated MP4, captions, transcript, and these storyboards for
+readers browsing the static site source.
 
 ## What This Does Not Prove
 

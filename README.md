@@ -9,6 +9,9 @@ starts the local app.
 Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
 
+Browser-first tutorial video:
+[https://ptse8204.github.io/open-transit-rt/video.html](https://ptse8204.github.io/open-transit-rt/video.html)
+
 Current public release candidate:
 [`v0.1.0-rc.2`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2).
 Use it for local or self-hosted evaluation. It is not a stable release and it
@@ -48,7 +51,7 @@ http://localhost:8080/admin/operations
 
 Then follow this order:
 
-1. Open **Agency Operations Cockpit / Start Here**.
+1. Open **Start Here**.
 2. Review agency setup and publication metadata.
 3. Import or review GTFS.
 4. Check the five feed URLs.
@@ -118,6 +121,7 @@ Detailed guides:
 - [Browser-First Setup](wiki/browser-first-setup.md)
 - [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
 - [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
+- [Video Recording Guide](docs/tutorials/video-recording-guide.md)
 
 ## CI And Validation
 
