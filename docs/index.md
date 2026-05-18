@@ -1,12 +1,12 @@
 # Open Transit RT Docs Index
 
-Use this page to choose the right guide without reading project-history files
-first.
+Use this page to choose the right guide without reading project-history files.
 
 ## New Users
 
-- [README](../README.md)
 - [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
+- [Video Guide](https://ptse8204.github.io/open-transit-rt/video.html)
+- [README](../README.md)
 - [Small Agency Quick Start](../wiki/small-agency-quick-start.md)
 - [Browser-First Setup](../wiki/browser-first-setup.md)
 - [Can My Agency Use This?](../wiki/can-my-agency-use-this.md)
@@ -61,14 +61,9 @@ first.
 
 ## AI Agents
 
-AI-agent, Codex, and phase-history files are implementation context, not the
-first path for human users. On `main`, agents can read `AGENTS.md`,
-`docs/agent/README.md`, `docs/codex-task.md`, `docs/conversation-summary.md`,
-`docs/handoffs/latest.md`, and the roadmap packs under `docs/roadmaps/`.
-
-Those paths are intentionally filtered out of `stable`, so this human docs
-index does not link to them directly. Use `stable` for product source,
-examples, tests, release docs, website files, and practical human guides.
+Codex and phase history files are implementation context, not the first path
+for human users. Use this index for product guides, release docs, examples, and
+tests.
 
 ## What This Index Does Not Prove
 

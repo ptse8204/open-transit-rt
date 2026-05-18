@@ -1,7 +1,7 @@
 # Open Transit RT Wiki
 
-This wiki is the task-based guide for people evaluating Open Transit RT from
-the browser.
+This wiki is the task-based guide for evaluating Open Transit RT from the
+browser.
 
 Open Transit RT helps small agencies and civic technology teams evaluate a
 self-hosted path for GTFS and GTFS Realtime operations. It is open-source
@@ -24,15 +24,15 @@ Use it for local/self-hosted evaluation only. It is not a stable release.
 5. [Small Agency Maintenance Guide](../docs/tutorials/small-agency-maintenance-guide.md)
 6. [Docs Index](../docs/index.md)
 
-Agency staff review starts from the private local browser URL provided by a
-technical helper, normally:
+Agency staff review starts from the private local setup URL provided by a
+technical helper:
 
 ```text
-http://localhost:8080/admin/operations
+http://localhost:8080/admin/local-login
 ```
 
-Click **Agency Operations Cockpit / Start Here** in the private Operations
-Console.
+Choose **Start setup**. The browser opens the private Operations Console and
+shows **Start Here** first.
 
 ## Technical Helper Startup
 
@@ -44,7 +44,8 @@ make check
 make agency-app-up
 ```
 
-This starts the local app. It is not the first step for agency staff review.
+This starts the local app. It is helper work, not the first step for agency
+staff review.
 
 ## Choose Your Task
 
@@ -52,7 +53,7 @@ This starts the local app. It is not the first step for agency staff review.
 | --- | --- |
 | Decide whether this fits your agency or project | [Can My Agency Use This?](can-my-agency-use-this.md) |
 | Try the browser-first local path | [Small Agency Quick Start](small-agency-quick-start.md) |
-| Avoid command-line-first operations | [No Command Line First Run](../docs/tutorials/no-cli-agency-first-run.md) |
+| Start after the app is running | [No Command Line First Run](../docs/tutorials/no-cli-agency-first-run.md) |
 | Understand what to click in the private UI | [Operations Console Tour](operations-console-tour.md) |
 | Use your own public GTFS ZIP | [Agency Evaluation Checklist](agency-adoption-checklist.md) |
 | Connect GPS, AVL, CSV, prediction, validator, monitoring, or discovery systems | [Connector Catalog](../docs/connectors/catalog.md) and [Connector Cookbook](connector-cookbook.md) |
@@ -64,12 +65,12 @@ This starts the local app. It is not the first step for agency staff review.
 
 ## What You Can Do In The UI
 
-- Follow the Agency Operations Cockpit / Start Here path.
+- Follow the Start Here action queue.
 - Review setup and publication metadata.
 - Import GTFS through the browser if you have an admin role.
 - Check the five configured feed paths.
 - Review feed health, GTFS quality, validation health, readiness, connectors,
-  telemetry simulator guidance, Maintenance Center, and Help.
+  telemetry simulator guidance, Maintenance, and Help.
 
 ## What Still Needs A Technical Helper
 

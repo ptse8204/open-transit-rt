@@ -1,10 +1,10 @@
 # Open Transit RT
 
 Open Transit RT is an MIT-licensed, self-hosted transit data backend for small
-agencies and civic technology teams. It helps you import or author GTFS,
-ingest vehicle telemetry, publish GTFS Realtime feeds, review feed health, and
-prepare for public-data workflows from a browser after a technical helper
-starts the local app.
+agencies and civic technology teams. It moves normal GTFS and GTFS Realtime
+evaluation work into the browser after a technical helper starts the local app:
+import GTFS, connect vehicle data, check feeds, review readiness, and get clear
+next actions.
 
 Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
@@ -34,58 +34,30 @@ Open Transit RT is for:
 It is not a rider app, fare system, CAD/dispatch system, hosted SaaS product,
 or proof that any agency, vendor, consumer, or regulator has accepted a feed.
 
-## Normal User Flow
+## Start In The Browser
 
-After a technical helper starts the app, agency staff should start here:
+After a technical helper starts the app, agency staff open:
 
 ```text
 http://localhost:8080/admin/local-login
 ```
 
 Select **Start setup**. The local-only page creates a short private browser
-session and sends you to:
+session and opens the Operations Console.
 
-```text
-http://localhost:8080/admin/operations
-```
+Use the visible action groups in this order: **Start**, **Setup**, **GTFS**,
+**Feeds**, **Realtime**, **Vehicles**, **Connectors**, **Readiness**,
+**Maintenance**, and **Help**.
 
-Then follow this order:
+Normal browser review does not require manual tokens, curl, DevTools, or a
+header extension. A technical helper is still needed for initial startup,
+validator installation, stable HTTPS deployment, secrets, and custom connectors.
 
-1. Open **Start Here**.
-2. Review agency setup and publication metadata.
-3. Import or review GTFS.
-4. Check the five feed URLs.
-5. Review feed health and validation.
-6. Connect or review vehicle telemetry.
-7. Review connectors, readiness, maintenance, and help.
-8. Read what the local review does not prove before making external claims.
+Helpful starting points:
 
-The key private pages are:
-
-```text
-/admin/operations
-/admin/operations/setup-wizard
-/admin/operations/gtfs-workbench
-/admin/operations/gtfs-import
-/admin/operations/feeds
-/admin/operations/feed-health
-/admin/operations/validation-center
-/admin/operations/realtime
-/admin/operations/devices
-/admin/operations/telemetry
-/admin/operations/connectors
-/admin/operations/connectors/workbench
-/admin/operations/readiness
-/admin/operations/maintenance
-/admin/operations/help
-```
-
-GTFS Studio and the Alerts Console are also private admin tools:
-
-```text
-/admin/gtfs-studio
-/admin/alerts/console
-```
+- [UI Tour](https://ptse8204.github.io/open-transit-rt/ui-tour.html)
+- [Video Guide](https://ptse8204.github.io/open-transit-rt/video.html)
+- [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
 
 ## Technical Helper Startup
 
@@ -107,7 +79,7 @@ app with:
 make agency-app-down
 ```
 
-For a validation-heavy local trial:
+For a validation-heavy local trial, add:
 
 ```bash
 make validators-install
@@ -115,7 +87,7 @@ make validate
 make test
 ```
 
-Detailed guides:
+More help:
 
 - [Small Agency Quick Start](wiki/small-agency-quick-start.md)
 - [Browser-First Setup](wiki/browser-first-setup.md)
@@ -123,10 +95,9 @@ Detailed guides:
 - [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
 - [Video Recording Guide](docs/tutorials/video-recording-guide.md)
 
-## CI And Validation
+## Validation
 
-Fast GitHub Actions run the same lightweight baseline contributors should run
-before opening a PR:
+Before opening a PR, run:
 
 ```bash
 go test ./...
@@ -135,15 +106,9 @@ scripts/check-consumer-tracker.sh
 make audit-final-claim-review
 ```
 
-The Go version follows `go.mod`; GitHub Actions reads it with
-`actions/setup-go` and `go-version-file: go.mod`. Validator-heavy checks,
-`make smoke`, connector conformance, GTFS-RT conformance, the standalone
-product-acceptance gate, and release-package audits stay in the manual
-release-gates workflow because they need pinned validators or broader
-release-candidate context. The product-acceptance audit also runs inside
-`make check`.
-
-See [Continuous Integration](docs/ci.md) for the exact workflow split.
+Validator-heavy checks, smoke tests, connector conformance, GTFS-RT
+conformance, and release-package audits run as manual release gates. See
+[Continuous Integration](docs/ci.md) for the exact workflow split.
 
 ## Import GTFS
 
@@ -156,8 +121,8 @@ Use the browser first:
 /admin/operations/validation-center
 ```
 
-The GTFS Workbench shows required files, row counts, service dates, route/stop
-coverage, import history, active feed version, validation issues, and safe next
+The GTFS pages show required files, row counts, service dates, route/stop
+coverage, import history, active feed version, validation issues, and next
 actions.
 
 For a scripted fallback with a public GTFS ZIP:
@@ -191,7 +156,7 @@ Connector review starts in the browser:
 /admin/operations/connectors/tests
 ```
 
-The connector catalog covers:
+Supported local connector paths include:
 
 - Vehicle / GPS / AVL connectors: CSV replay adapter, HTTP polling adapter,
   webhook sidecar adapter, generic JSON transform adapter, vendor-shaped
@@ -206,8 +171,8 @@ The connector catalog covers:
 - Consumer/discovery connectors: `/public/feeds.json`, static GTFS URL,
   Vehicle Positions URL, Trip Updates URL, Alerts URL, and prepared packet
   review without submission or acceptance claims.
-- Future connector extension model: manifest-based sidecars, no arbitrary
-  dynamic backend plugin loading, and conformance tests required.
+- Extension model: manifest-based sidecars, no arbitrary dynamic backend plugin
+  loading, and conformance tests required.
 
 Start with:
 
@@ -228,10 +193,10 @@ review:
 /admin/operations/readiness
 ```
 
-The readiness page covers public feed URLs, static GTFS, Vehicle Positions,
-Trip Updates, Alerts, validation, license/contact metadata, operations signals,
-telemetry/device state, and consumer preparedness. Each area explains what the
-local review helps prepare and what it does not prove.
+The readiness page shows public feed URLs, static GTFS, Vehicle Positions, Trip
+Updates, Alerts, validation, license/contact metadata, operations signals,
+telemetry/device state, and consumer preparedness. Each area states the next
+action and what the local review does not prove.
 
 More detail:
 
