@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -25,30 +27,40 @@
   <section class="page-hero">
     <div>
       <p class="tag">Troubleshooting</p>
-      <h1>Fix the next issue.</h1>
-      <p class="lead">Start from the browser status, open the linked page, and ask for technical help only when the next action depends on setup, tooling, secrets, or hosting.</p>
+      <h1>Fix the next issue instead of reading every diagnostic.</h1>
+      <p class="lead">Start from the private console status, open the linked page, and involve an administrator only when setup, tooling, secrets, or hosting are blocking the workflow.</p>
+      <div class="actions">
+        <a class="button primary" href="check-feeds.html">Check feed URLs</a>
+        <a class="button" href="readiness.html">Review readiness</a>
+      </div>
     </div>
     <aside class="summary-panel">
       <h2>First stop</h2>
-      <p>Use the Start page workflow. It is designed to show the first missing, blocked, or needs-review step.</p>
+      <p><code>/admin/operations</code></p>
+      <p>The Start page should point to the first missing, blocked, or needs-review step.</p>
     </aside>
   </section>
 
-  <section aria-labelledby="symptoms-heading">
-    <h2 id="symptoms-heading">Common Issues</h2>
-    <div class="grid">
-      <article class="status-card"><span class="status-label">Sign-in</span><h3>Local login missing</h3><p>Confirm the local app is running and local/demo sign-in is enabled. Production deployments use deployment-owned access.</p></article>
-      <article class="status-card"><span class="status-label">GTFS</span><h3>No active schedule</h3><p>Open Import GTFS, then GTFS Workbench. Ask for help if the ZIP is missing or import fails.</p></article>
-      <article class="status-card"><span class="status-label">Feeds</span><h3>URL missing or blocked</h3><p>Open Feed Health and follow the linked next action for that row.</p></article>
-      <article class="status-card"><span class="status-label">Vehicles</span><h3>Stale telemetry</h3><p>Open Devices and Telemetry Freshness. Check connector setup and stale thresholds.</p></article>
-      <article class="status-card"><span class="status-label">Validators</span><h3>Tooling unavailable</h3><p>Ask a helper to install or configure allowlisted validator tooling.</p></article>
-      <article class="status-card"><span class="status-label">Sharing</span><h3>Not ready to publish</h3><p>Confirm public hosting, license, contact metadata, and deployment ownership before sharing URLs.</p></article>
+  <section aria-labelledby="issues-heading">
+    <h2 id="issues-heading">Common Issues</h2>
+    <div class="table-wrap">
+      <table class="task-table">
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>Next action</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>Local sign-in unavailable</td><td>The app is not in local/demo mode or localhost guard failed.</td><td>Confirm startup mode and local URL.</td><td>Administrator</td></tr>
+          <tr><td>No active schedule</td><td>GTFS has not been imported or publish failed.</td><td>Open Import GTFS and GTFS Workbench.</td><td>Operator or administrator</td></tr>
+          <tr><td>Feed URL missing</td><td>Publication metadata or public base URL is incomplete.</td><td>Open Feed Health and Setup Details.</td><td>Deployment owner</td></tr>
+          <tr><td>Vehicle data stale</td><td>Device, connector, token, or network source is not sending fresh observations.</td><td>Open Devices, Telemetry Freshness, and Realtime.</td><td>Administrator or integrator</td></tr>
+          <tr><td>Validator unavailable</td><td>Validator tooling is not installed or configured.</td><td>Configure allowlisted validator tooling.</td><td>Administrator</td></tr>
+          <tr><td>Not ready to share URLs</td><td>Hosting, license, contact, validation, or ownership review is incomplete.</td><td>Open Readiness and self-hosting guidance.</td><td>Agency and deployment owner</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
-  <section aria-labelledby="support-heading">
-    <h2 id="support-heading">Useful Pages</h2>
-    <p><a class="button primary" href="try-locally.html">Try locally</a> <a class="button" href="check-feeds.html">Check feeds</a> <a class="button" href="connector-support.html">Connectors</a></p>
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>Troubleshooting output is private operational context. It does not prove compliance, consumer acceptance, hosted service availability, production readiness, vendor compatibility, SLA coverage, production AVL reliability, or ETA quality.</p>
   </section>
 </main>
 </body>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open Transit RT Connectors</title>
+  <title>Open Transit RT Connector Details</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -24,82 +26,53 @@
 <main>
   <section class="page-hero">
     <div>
-      <p class="tag">Connector support</p>
-      <h1>Connect vehicle data through clear, tested paths.</h1>
-      <p class="lead">Open Transit RT keeps external systems outside the core backend. Start with a local-supported connector shape, then let the deployment owner add real endpoints, credentials, and retention rules.</p>
+      <p class="tag">Connector details</p>
+      <h1>Use explicit adapters, not hidden plugin behavior.</h1>
+      <p class="lead">This page gives integrators a compact map of connector areas, current support, and where to read implementation details before using real data.</p>
+      <div class="actions">
+        <a class="button primary" href="connector-support.html">Connector overview</a>
+        <a class="button" href="connect-vehicles.html">Vehicle data setup</a>
+      </div>
     </div>
     <aside class="summary-panel">
-      <h2>Plain rule</h2>
-      <p>Supported means implemented for local/self-hosted evaluation. Candidate means useful direction, not compatibility.</p>
+      <h2>Console pages</h2>
+      <p><code>/admin/operations/connectors</code></p>
+      <p><code>/admin/operations/connectors/workbench</code></p>
+      <p><code>/admin/operations/connectors/tests</code></p>
     </aside>
   </section>
 
-  <section aria-labelledby="today-heading">
-    <h2 id="today-heading">Works Today / Local-Supported</h2>
-    <div class="grid">
-      <article class="card"><h3>Vehicle data</h3><p>CSV replay, HTTP polling, webhook sidecar, generic JSON transform, and authenticated <code>POST /v1/telemetry</code>.</p></article>
-      <article class="card"><h3>Prediction</h3><p>Deterministic built-in predictor plus external HTTP predictor adapter and shadow mode.</p></article>
-      <article class="card"><h3>Validation</h3><p>MobilityData static GTFS and GTFS Realtime validator wrappers when tooling is installed.</p></article>
-      <article class="card"><h3>Monitoring</h3><p>Monitoring/export helper and local health summaries.</p></article>
-      <article class="card"><h3>Discovery</h3><p><code>/public/feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts URLs.</p></article>
-      <article class="card"><h3>Conformance</h3><p>Local synthetic fixtures and adapter checks for telemetry, prediction, validators, monitoring, and discovery.</p></article>
-    </div>
-  </section>
-
-  <section aria-labelledby="planned-heading">
-    <h2 id="planned-heading">Planned / Candidate</h2>
-    <table>
-      <thead><tr><th>Candidate</th><th>Why it matters</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>TheTransitClock</td><td>External prediction evaluation behind the prediction adapter.</td><td>Candidate only.</td></tr>
-        <tr><td>Vendor AVL payloads</td><td>Real agencies often receive GPS data in vendor-shaped formats.</td><td>Roadmap only.</td></tr>
-        <tr><td>SIRI to GTFS-RT bridge</td><td>Some realtime systems expose SIRI-like data.</td><td>Investigation.</td></tr>
-        <tr><td>GTFS-Flex, GTFS-ride, Pathways, Fares v2</td><td>Useful future QA areas for broader public-data readiness.</td><td>Future investigation.</td></tr>
-        <tr><td>OpenTripPlanner and OneBusAway checks</td><td>Offline consumer-behavior checks could improve feed quality.</td><td>No compatibility claim.</td></tr>
-        <tr><td>Transitland / Mobility Database readiness</td><td>Discovery preparation needs stable URLs and metadata.</td><td>No submission or listing claim.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section aria-labelledby="ecosystem-heading">
-    <h2 id="ecosystem-heading">Ecosystem References</h2>
-    <p>These references ground the roadmap. They do not mean Open Transit RT claims support for those systems.</p>
-    <ul class="link-list">
-      <li><a href="https://gtfs.org/documentation/realtime/reference/">GTFS Realtime reference</a></li>
-      <li><a href="https://github.com/MobilityData/gtfs-validator">MobilityData GTFS Schedule Validator</a></li>
-      <li><a href="https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator">MobilityData GTFS Realtime validator package</a></li>
-      <li><a href="https://docs.opentripplanner.org/en/latest/">OpenTripPlanner documentation</a></li>
-      <li><a href="https://github.com/OneBusAway/onebusaway-application-modules">OneBusAway</a></li>
-      <li><a href="https://thetransitclock.github.io/">TheTransitClock</a></li>
-      <li><a href="https://www.transit.land/documentation/rest-api/feeds">Transitland feeds API</a></li>
-      <li><a href="https://mobilitydatabase.org/about">Mobility Database</a></li>
-    </ul>
-  </section>
-
-  <section aria-labelledby="where-heading">
-    <h2 id="where-heading">Where Setup Happens</h2>
-    <div class="two-column">
-      <article class="card">
-        <h3>In the browser</h3>
-        <p>Review connector categories, redaction rules, examples, health signals, and the next safe action.</p>
-      </article>
-      <article class="card">
-        <h3>Outside the browser</h3>
-        <p>Configure real endpoints, secrets, device tokens, sidecars, monitoring destinations, and deployment retention.</p>
-      </article>
-    </div>
-  </section>
-
   <section aria-labelledby="details-heading">
-    <h2 id="details-heading">Technical Details</h2>
-    <ul class="link-list">
-      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/connectors/catalog.md">Connector catalog</a></li>
-      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/integration-adapter-kit.md">Integration adapter kit</a></li>
-      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/external-connection-readiness.md">External connection readiness</a></li>
-    </ul>
+    <h2 id="details-heading">Connector Areas</h2>
+    <div class="table-wrap">
+      <table class="task-table">
+        <thead><tr><th>Area</th><th>Current support</th><th>Boundary</th><th>Docs</th></tr></thead>
+        <tbody>
+          <tr><td>Telemetry</td><td>CSV replay, polling, webhook sidecar, JSON transform, authenticated POST.</td><td>Real credentials and payloads stay private.</td><td><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/connectors/catalog.md">Catalog</a></td></tr>
+          <tr><td>Prediction</td><td>Deterministic predictor and external HTTP adapter boundary.</td><td>Trip Updates remain pluggable and fail closed.</td><td><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/prediction-eta-lab.md">Prediction lab</a></td></tr>
+          <tr><td>Validation</td><td>Allowlisted GTFS and GTFS Realtime validator wrappers.</td><td>Browser requests do not supply commands or arbitrary paths.</td><td><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/gtfs-validation-triage.md">Validation triage</a></td></tr>
+          <tr><td>Monitoring</td><td>Local helper and private summaries.</td><td>No hosted monitoring or SLA promise.</td><td><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/operator-smoke-and-support-bundle.md">Operator smoke</a></td></tr>
+          <tr><td>Discovery</td><td><code>/public/feeds.json</code> and public feed metadata.</td><td>No consumer submission or listing action.</td><td><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/external-connection-readiness.md">Readiness</a></td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 
-  <p class="boundary">These connector paths do not prove vendor compatibility, hardware certification, production AVL reliability, consumer acceptance, compliance, production readiness, hosted service availability, SLA, or ETA quality.</p>
+  <section aria-labelledby="sequence-heading">
+    <h2 id="sequence-heading">Safe Integration Sequence</h2>
+    <ol class="task-flow">
+      <li><div><strong>Pick the closest current path</strong><span>Choose telemetry, prediction, validation, monitoring, or discovery.</span></div></li>
+      <li><div><strong>Run synthetic checks</strong><span>Use committed fixtures and offline conformance before handling private data.</span></div></li>
+      <li><div><strong>Document failure behavior</strong><span>Make fail-closed behavior, redaction rules, and owner responsibilities explicit.</span></div></li>
+      <li><div><strong>Configure real data privately</strong><span>Use deployment-owned secrets and keep private payloads out of public docs and screenshots.</span></div></li>
+      <li><div><strong>Return to feed review</strong><span>Check how the integration changes Vehicle Positions, Trip Updates, Alerts, and readiness.</span></div></li>
+    </ol>
+  </section>
+
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>Connector details guide implementation. They do not prove named vendor compatibility, hardware certification, real-world fleet reliability, production readiness, consumer acceptance, SLA coverage, or ETA quality.</p>
+  </section>
 </main>
 </body>
 </html>

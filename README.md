@@ -2,15 +2,15 @@
 
 Open Transit RT is an MIT-licensed, self-hosted transit data backend for small
 agencies and civic technology teams. It moves normal GTFS and GTFS Realtime
-evaluation work into the browser after a technical helper starts the local app:
-import GTFS, connect vehicle data, check feeds, review readiness, and get clear
-next actions.
+operations work into the browser after an administrator starts a local or
+self-hosted instance: import a schedule, connect vehicle data, check feed URLs,
+review readiness, and fix the next issue.
 
 Public explainer site:
 [https://ptse8204.github.io/open-transit-rt/](https://ptse8204.github.io/open-transit-rt/)
 
-Browser-first tutorial video:
-[https://ptse8204.github.io/open-transit-rt/video.html](https://ptse8204.github.io/open-transit-rt/video.html)
+Operator workflow tour:
+[https://ptse8204.github.io/open-transit-rt/ui-tour.html](https://ptse8204.github.io/open-transit-rt/ui-tour.html)
 
 Current public release candidate:
 [`v0.1.0-rc.2`](https://github.com/ptse8204/open-transit-rt/releases/tag/v0.1.0-rc.2).
@@ -26,7 +26,9 @@ production-grade ETA quality. See the
 Open Transit RT is for:
 
 - small agencies that want a practical path from GTFS to GTFS Realtime;
-- technical helpers running a local or self-hosted evaluator;
+- administrators running a local or self-hosted evaluator;
+- deployment owners responsible for feed URLs, secrets, validators, backups,
+  and monitoring;
 - connector developers adapting GPS, AVL, CSV, prediction, validator, or
   monitoring systems;
 - maintainers improving an open-source transit backend.
@@ -36,7 +38,7 @@ or proof that any agency, vendor, consumer, or regulator has accepted a feed.
 
 ## Start In The Browser
 
-After a technical helper starts the app, agency staff open:
+After an administrator starts the app, agency staff open:
 
 ```text
 http://localhost:8080/admin/local-login
@@ -50,16 +52,17 @@ Use the visible action groups in this order: **Start**, **Setup**, **GTFS**,
 **Maintenance**, and **Help**.
 
 Normal browser review does not require manual tokens, curl, DevTools, or a
-header extension. A technical helper is still needed for initial startup,
-validator installation, stable HTTPS deployment, secrets, and custom connectors.
+header extension. An administrator or deployment owner is still needed for
+startup, validator installation, stable HTTPS deployment, secrets, and custom
+connectors.
 
 Helpful starting points:
 
-- [UI Tour](https://ptse8204.github.io/open-transit-rt/ui-tour.html)
-- [Video Guide](https://ptse8204.github.io/open-transit-rt/video.html)
+- [Operator Workflow Tour](https://ptse8204.github.io/open-transit-rt/ui-tour.html)
+- [Walkthrough Video](https://ptse8204.github.io/open-transit-rt/video.html)
 - [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
 
-## Technical Helper Startup
+## Administrator Startup
 
 From a clean checkout:
 
@@ -89,6 +92,8 @@ make test
 
 More help:
 
+- [Try And Deploy Guide](https://ptse8204.github.io/open-transit-rt/try-locally.html)
+- [Self-Hosted Reference Path](https://ptse8204.github.io/open-transit-rt/deploy.html)
 - [Small Agency Quick Start](wiki/small-agency-quick-start.md)
 - [Browser-First Setup](wiki/browser-first-setup.md)
 - [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
@@ -222,7 +227,7 @@ review:
 The readiness page shows public feed URLs, static GTFS, Vehicle Positions, Trip
 Updates, Alerts, validation, license/contact metadata, operations signals,
 telemetry/device state, and consumer preparedness. Each area states the next
-action and what the local review does not prove.
+action and the limits of the local or self-hosted review.
 
 More detail:
 
@@ -230,7 +235,7 @@ More detail:
 - [CAL-ITP-Style Readiness Checklist](docs/tutorials/calitp-readiness-checklist.md)
 - [External Connection Readiness](docs/external-connection-readiness.md)
 
-## What Is Not Proven Yet
+## Limits
 
 Local evaluation does not prove:
 

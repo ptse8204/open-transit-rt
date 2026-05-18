@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Check Feeds - Open Transit RT</title>
+  <title>Check Feed URLs - Open Transit RT</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html" aria-current="page">Check feeds</a>
+      <a href="check-feeds.html" aria-current="page">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -24,41 +26,58 @@
 <main>
   <section class="page-hero">
     <div>
-      <p class="tag">Feeds</p>
-      <h1>Check your feeds.</h1>
-      <p class="lead">Use Feed Health to answer the practical question first: are the URLs available, and what should happen next?</p>
+      <p class="tag">Feed troubleshooting</p>
+      <h1>Check the five feed URLs and fix the first broken row.</h1>
+      <p class="lead">Feed Health is the operator page for discovery metadata, static GTFS, Vehicle Positions, Trip Updates, and Alerts. Use it before asking someone to run command-line fetches.</p>
+      <div class="actions">
+        <a class="button primary" href="readiness.html">Review readiness</a>
+        <a class="button" href="connect-vehicles.html">Connect vehicle data</a>
+      </div>
     </div>
     <aside class="summary-panel">
-      <h2>Five URLs</h2>
-      <p>Feed discovery, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</p>
+      <h2>Console page</h2>
+      <p><code>/admin/operations/feed-health</code></p>
+      <p>Use this private page for local and self-hosted instances.</p>
     </aside>
   </section>
 
-  <section aria-labelledby="look-heading">
-    <h2 id="look-heading">What To Look For</h2>
-    <div class="grid">
-      <article class="status-card"><span class="status-label">Discovery</span><h3><code>feeds.json</code></h3><p>Lists the public feed URLs and metadata.</p></article>
-      <article class="status-card"><span class="status-label">Schedule</span><h3>Static GTFS</h3><p>Confirms a schedule ZIP is available from the public feed root.</p></article>
-      <article class="status-card"><span class="status-label">Realtime</span><h3>Vehicle Positions</h3><p>Shows whether vehicle position output is publishing.</p></article>
-      <article class="status-card"><span class="status-label">Realtime</span><h3>Trip Updates</h3><p>Shows adapter output or withheld diagnostics.</p></article>
-      <article class="status-card"><span class="status-label">Realtime</span><h3>Alerts</h3><p>Shows whether the alerts feed is available.</p></article>
-      <article class="status-card"><span class="status-label">Next</span><h3>Attention needed</h3><p>Open the linked console page for any missing, stale, or blocked row.</p></article>
+  <section aria-labelledby="feeds-heading">
+    <h2 id="feeds-heading">What Good Looks Like</h2>
+    <div class="table-wrap">
+      <table class="task-table">
+        <thead><tr><th>Feed</th><th>Good state</th><th>Common fix</th><th>Open next</th></tr></thead>
+        <tbody>
+          <tr><td><code>/public/feeds.json</code></td><td>Lists every configured public feed URL and useful metadata.</td><td>Complete publication metadata and public base URL configuration.</td><td><code>/admin/operations/setup</code></td></tr>
+          <tr><td><code>/public/gtfs/schedule.zip</code></td><td>Returns the active static GTFS ZIP.</td><td>Import or publish a schedule before reviewing realtime feeds.</td><td><code>/admin/operations/gtfs-import</code></td></tr>
+          <tr><td><code>/public/gtfsrt/vehicle_positions.pb</code></td><td>Returns valid Vehicle Positions data or a valid empty feed when appropriate.</td><td>Check vehicle data freshness, device bindings, stale thresholds, and assignment confidence.</td><td><code>/admin/operations/realtime</code></td></tr>
+          <tr><td><code>/public/gtfsrt/trip_updates.pb</code></td><td>Returns Trip Updates only when the prediction adapter can produce safe output.</td><td>Review withheld reasons, active GTFS, assignment confidence, and predictor configuration.</td><td><code>/admin/operations/prediction-lab</code></td></tr>
+          <tr><td><code>/public/gtfsrt/alerts.pb</code></td><td>Returns the Alerts feed from the active alert lifecycle.</td><td>Review Alerts Console and affected-service metadata.</td><td><code>/admin/alerts/console</code></td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
-  <section aria-labelledby="next-heading">
-    <h2 id="next-heading">Fix Feed Issues</h2>
-    <ol class="workflow-list">
-      <li><strong>Schedule missing</strong><span>Import or publish GTFS first.</span></li>
-      <li><strong>Realtime missing</strong><span>Review vehicle data, connector setup, and feed generation status.</span></li>
-      <li><strong>Validator blocked</strong><span>Ask a helper to install or configure validator tooling.</span></li>
-      <li><strong>Ready to share</strong><span>Confirm hosting, license, contact metadata, and deployment ownership before sharing URLs outside the local environment.</span></li>
+  <section aria-labelledby="fix-heading">
+    <h2 id="fix-heading">Fix Feed Issues</h2>
+    <ol class="task-flow">
+      <li><div><strong>Schedule missing</strong><span>Import or publish GTFS first. Recheck feed health after the active schedule exists.</span></div></li>
+      <li><div><strong>Realtime missing</strong><span>Review vehicle data, connector setup, and the realtime page before assuming the public endpoint is broken.</span></div></li>
+      <li><div><strong>Validator unavailable</strong><span>An administrator may need to install or configure allowlisted validator tooling.</span></div></li>
+      <li><div><strong>Public URL wrong</strong><span>A deployment owner should check reverse proxy, hostname, public base URL, and feed metadata.</span></div></li>
+      <li><div><strong>Ready to share</strong><span>Confirm license, contact metadata, agency authorization, and deployment ownership before sharing URLs outside the local environment.</span></div></li>
     </ol>
   </section>
 
-  <section aria-labelledby="more-heading">
-    <h2 id="more-heading">More Help</h2>
-    <p><a class="button primary" href="readiness.html">System check page</a> <a class="button" href="troubleshoot.html">Troubleshoot</a></p>
+  <section aria-labelledby="where-heading">
+    <h2 id="where-heading">Where To Go Next</h2>
+    <div class="link-row"><strong>Need a schedule</strong><span><a href="import-gtfs.html">Import a schedule</a>.</span></div>
+    <div class="link-row"><strong>Need vehicle data</strong><span><a href="connect-vehicles.html">Connect vehicle data</a>.</span></div>
+    <div class="link-row"><strong>Need deployment review</strong><span><a href="deploy.html">Review the self-hosted path</a>.</span></div>
+  </section>
+
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>A local feed row or validator result helps with troubleshooting. It is not consumer acceptance, compliance approval, public launch proof, production readiness, SLA coverage, or ETA-quality proof.</p>
   </section>
 </main>
 </body>

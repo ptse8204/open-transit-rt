@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Import GTFS - Open Transit RT</title>
+  <title>Import A Schedule - Open Transit RT</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -24,38 +26,45 @@
 <main>
   <section class="page-hero">
     <div>
-      <p class="tag">GTFS</p>
-      <h1>Import GTFS.</h1>
-      <p class="lead">Use the browser to load or review a schedule, confirm the active feed version, and see what needs attention before checking public feed URLs.</p>
+      <p class="tag">Schedule</p>
+      <h1>Import a schedule before reviewing realtime feeds.</h1>
+      <p class="lead">Open Transit RT needs an active GTFS feed version before Vehicle Positions, Trip Updates, Alerts, validators, and readiness review can be interpreted correctly.</p>
+      <div class="actions">
+        <a class="button primary" href="check-feeds.html">Check feed URLs</a>
+        <a class="button" href="ui-tour.html">See the workflow</a>
+      </div>
     </div>
     <aside class="summary-panel">
-      <h2>Start in the console</h2>
-      <p>Open <strong>Import GTFS</strong> from the Start page. Use GTFS Workbench when you need to review files, import history, or validation guidance.</p>
+      <h2>Console pages</h2>
+      <p><code>/admin/operations/gtfs-import</code></p>
+      <p><code>/admin/operations/gtfs-workbench</code></p>
     </aside>
   </section>
 
-  <section aria-labelledby="do-heading">
-    <h2 id="do-heading">What To Do</h2>
-    <ol class="workflow-list">
-      <li><strong>Choose the schedule ZIP</strong><span>Use public-safe or synthetic data for evaluation. Do not use private agency data in public demos.</span></li>
-      <li><strong>Import or review</strong><span>Confirm that a feed version is active and required GTFS files are present.</span></li>
-      <li><strong>Review validation</strong><span>If validator tooling is installed, review the latest static GTFS result and warnings.</span></li>
-      <li><strong>Check feeds</strong><span>After GTFS is active, open Feed Health and confirm the schedule URL is present.</span></li>
-    </ol>
-  </section>
-
-  <section aria-labelledby="help-heading">
-    <h2 id="help-heading">When To Get Technical Help</h2>
-    <div class="grid">
-      <article class="card"><h3>No schedule ZIP</h3><p>Ask for the current public-safe GTFS ZIP or a synthetic evaluation feed.</p></article>
-      <article class="card"><h3>Import fails</h3><p>Ask for the import log, file validation, and database migration state.</p></article>
-      <article class="card"><h3>Validators missing</h3><p>Ask a helper to install or configure the allowlisted validator tooling.</p></article>
+  <section aria-labelledby="steps-heading" class="split">
+    <div>
+      <h2 id="steps-heading">Schedule Import Flow</h2>
+      <ol class="task-flow">
+        <li><div><strong>Choose a GTFS ZIP</strong><span>Use public-safe or authorized schedule data. Keep private agency files out of public demos.</span></div></li>
+        <li><div><strong>Import or review</strong><span>Confirm required files, row counts, service dates, routes, stops, trips, and active feed version.</span></div></li>
+        <li><div><strong>Review validation</strong><span>Use internal import validation and configured canonical validator records when available.</span></div></li>
+        <li><div><strong>Check feed URLs</strong><span>After the active schedule exists, review the public schedule path and realtime outputs.</span></div></li>
+      </ol>
     </div>
+    <aside class="action-panel">
+      <h2>Administrator needed when</h2>
+      <ul class="compact-list">
+        <li>The ZIP is missing or too large.</li>
+        <li>Database migrations are not current.</li>
+        <li>Validator tooling is unavailable.</li>
+        <li>Rollback or table-level review is needed.</li>
+      </ul>
+    </aside>
   </section>
 
-  <section aria-labelledby="next-heading">
-    <h2 id="next-heading">Next</h2>
-    <p><a class="button primary" href="check-feeds.html">Check feeds</a> <a class="button" href="ui-tour.html">See the UI tour</a></p>
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>A successful local import does not prove source correctness, agency approval, validator-clean public deployment, consumer acceptance, compliance, production readiness, or ETA quality.</p>
   </section>
 </main>
 </body>

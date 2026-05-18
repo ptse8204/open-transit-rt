@@ -22,7 +22,7 @@ Review realtime state: fresh vehicles, stale rows, Vehicle Positions, Trip Updat
 Choose connector support from local-tested paths before any real endpoint, credential, or vendor payload is configured.
 
 00:28.000 --> 00:32.000
-Review what needs attention and decide whether the next step belongs to staff or a technical helper.
+Review what needs attention and decide whether the next step belongs to staff or an administrator.
 
 00:32.000 --> 00:36.000
 Use Maintenance for routine checks, backup and restore guidance, support summaries, and deployment-owner tasks.

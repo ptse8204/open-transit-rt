@@ -1,7 +1,7 @@
 # Video Recording Guide
 
 This guide defines repeatable, public-safe recording workflows for Open Transit
-RT tutorials. It is for maintainers and technical helpers who want to record
+RT tutorials. It is for maintainers and administrators who want to record
 short demos from the local browser-first product flow.
 
 Do not commit large binary video files to the repository unless a maintainer
@@ -96,12 +96,12 @@ Choose connector support from local-tested paths before any real endpoint,
 credential, or vendor payload is configured.
 
 Review what needs attention and decide whether the next step belongs to staff
-or a technical helper.
+or an administrator.
 
 Use Maintenance and Help for routine checks, backup and restore guidance,
 support summaries, setup, tooling, secrets, connectors, and deployment work.
 
-This tutorial is local demo only. It does not prove CAL-ITP/Caltrans
+This tutorial is local demo only. It does not establish CAL-ITP/Caltrans
 compliance, production readiness, consumer acceptance, vendor compatibility,
 hardware certification, SLA/uptime, production AVL reliability, production ETA
 quality, or real-world ETA accuracy.
@@ -126,20 +126,20 @@ and logs. Do not run it against a deployment.
 
 ## Storyboard 1: Three-Minute Overview
 
-Goal: explain what the project does and what local review does not prove.
+Goal: explain what the project does and what local review does not establish.
 
 | Time | Show | Say |
 | --- | --- | --- |
 | 0:00-0:25 | Homepage or README | Open Transit RT is a self-hosted backend for GTFS and GTFS Realtime evaluation. |
-| 0:25-0:55 | `/admin/operations` | Agency staff start from the browser after a helper starts the app. |
+| 0:25-0:55 | `/admin/operations` | Agency staff start from the browser after an administrator starts the app. |
 | 0:55-1:25 | Feed paths | The local app exposes `feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and Alerts. |
 | 1:25-1:55 | Connector Hub | Vehicle/GPS/AVL, prediction, validator, monitoring, and discovery connectors stay explicit. |
-| 1:55-2:25 | Readiness | CAL-ITP-style readiness helps prepare local review, but does not prove compliance. |
-| 2:25-3:00 | What is not proven | Local evaluation does not prove production readiness, consumer acceptance, vendor compatibility, SLA/uptime, or ETA quality. |
+| 1:55-2:25 | Readiness | CAL-ITP-style readiness helps prepare local review, but does not establish compliance. |
+| 2:25-3:00 | What is not proven | Local evaluation does not establish production readiness, consumer acceptance, vendor compatibility, SLA/uptime, or ETA quality. |
 
 ## Storyboard 2: Ten-Minute Local Setup
 
-Goal: show a technical helper starting the app and handing off browser review.
+Goal: show an administrator starting the app and handing off browser review.
 
 | Time | Show | Say |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ operations.
 | 0:45-2:30 | Import result | Import status and validation feedback are shown in the browser. |
 | 2:30-4:30 | `/admin/operations/gtfs-workbench` | Staff review required files, row counts, service dates, and active feed version. |
 | 4:30-5:30 | GTFS quality triage | Issues are grouped by likely owner, meaning, suggested fix path, and next action. |
-| 5:30-6:00 | Boundary | Import success does not prove agency approval or validator-clean public deployment. |
+| 5:30-6:00 | Boundary | Import success does not establish agency approval or validator-clean public deployment. |
 
 ## Storyboard 4: Feed Health And Readiness Review
 
@@ -194,7 +194,7 @@ Goal: show routine operations and troubleshooting paths.
 
 | Time | Show | Say |
 | --- | --- | --- |
-| 0:00-1:30 | `/admin/operations/maintenance` | Review weekly/monthly tasks and technical-helper cases. |
+| 0:00-1:30 | `/admin/operations/maintenance` | Review weekly/monthly tasks and administrator-owned cases. |
 | 1:30-2:30 | `/admin/operations/help` | Use task-based help when labels or next actions are unclear. |
 | 2:30-3:30 | Support bundle guide | Support bundles are local diagnostics, not retained evidence. |
 | 3:30-4:30 | Update guidance | Use documented release and deployment guidance before updates. |
@@ -224,7 +224,7 @@ page.
 
 ## What This Does Not Prove
 
-Recording or publishing a tutorial does not prove CAL-ITP/Caltrans compliance,
+Recording or publishing a tutorial does not establish CAL-ITP/Caltrans compliance,
 production readiness, agency adoption or approval, consumer submission, review,
 acceptance, ingestion, listing, or display, final-root readiness, hosted
 service availability, vendor compatibility, hardware certification, SLA/uptime,
