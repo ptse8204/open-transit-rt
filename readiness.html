@@ -1,38 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Readiness | Open Transit RT</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Transit RT Readiness</title>
   <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" href="data:,">
 </head>
 <body>
-  <header class="site-header"><nav class="nav" aria-label="Primary navigation"><a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span><span>Open Transit RT</span></a><div class="nav-links"><a href="quickstart.html">Start Here</a><a href="ui-tour.html">UI tour</a><a href="how-it-works.html">How it works</a><a href="connectors.html">Connectors</a><a href="readiness.html" aria-current="page">Readiness</a><a href="status.html">Status</a><a href="contribute.html">Contribute</a></div></nav></header>
-  <main>
-    <section class="hero"><div class="hero-inner"><p class="eyebrow">Review path</p><h1>Readiness</h1><p class="lede">The near-term path is browser-first product polish and clear blocker reporting. Connector maturity and release-cut cleanup remain separate later work, not stronger public claims.</p></div></section>
-    <section class="section">
-      <div class="timeline">
-        <article class="step"><div><h3>Browser-first review</h3><p>Start from the private Operations Console and click <strong>Agency Operations Cockpit / Start Here</strong>.</p></div></article>
-        <article class="step"><div><h3>Product explainer site</h3><p>Use this GitHub Pages site as documentation only. It orients public readers without replacing the deeper repo docs or hosting the product.</p></div></article>
-        <article class="step"><div><h3>`v0.1.0-rc.1` readiness</h3><p>Run clean-checkout diagnostics, local app startup, feed fetches, tests, validators where available, connector checks, and final claim audit.</p></div></article>
-        <article class="step"><div><h3>Later connector maturity</h3><p>Keep telemetry, predictor, validator, monitoring/export, feed-consumer metadata, and redaction hardening in a later scoped phase.</p></div></article>
-      </div>
-    </section>
-    <section class="section">
-      <pre><code>make check
-make audit-final-claim-review
-make external-connection-check
-make adapter-conformance
-scripts/release-candidate-check.sh --dry-run</code></pre>
-    </section>
-    <section class="section">
-      <figure class="diagram-card">
-        <img src="assets/diagrams/evidence-maturity-ladder.png" alt="Illustrative evidence maturity ladder showing code exists, hosted evidence, prepared packet, submitted, under review, and accepted as separate stages.">
-        <figcaption class="caption">Illustrative maturity ladder. Later evidence stages are separate optional tracks, not current default work.</figcaption>
-      </figure>
-    </section>
-  </main>
-  <footer class="site-footer"><div class="footer-inner"><p>Read <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/release-candidate-readiness.md">Release-Candidate Readiness</a> for the full local review sequence.</p></div></footer>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="ui-tour.html">UI Tour</a>
+      <a href="connectors.html">Connectors</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="video.html">Video Guide</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">README</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <p class="tag">CAL-ITP-style readiness</p>
+  <h1>Prepare the right signals without overclaiming them.</h1>
+  <p class="lead">Open Transit RT helps operators review the technical pieces commonly needed for public GTFS and GTFS Realtime workflows. The local review is useful, but it does not prove compliance, production readiness, or consumer acceptance.</p>
+
+  <section class="grid" aria-label="Readiness focus areas">
+    <article class="card"><h3>Public Feed URLs</h3><p>Review <code>feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts URLs.</p></article>
+    <article class="card"><h3>Static GTFS</h3><p>Review import state, active feed version, required files, service dates, and validation triage.</p></article>
+    <article class="card"><h3>Vehicle Positions</h3><p>Review telemetry freshness, assignment confidence, stale vehicles, and publishable rows.</p></article>
+    <article class="card"><h3>Trip Updates</h3><p>Review prediction source, generated versus withheld output, low confidence, ambiguity, and stale telemetry.</p></article>
+    <article class="card"><h3>Alerts</h3><p>Review Alerts feed URL, lifecycle guidance, stale alerts, and missing disruption links.</p></article>
+    <article class="card"><h3>Validation</h3><p>Review allowlisted validators, latest records, stale results, blockers, and next actions.</p></article>
+    <article class="card"><h3>License And Contact</h3><p>Review open-license fields and monitored technical-contact metadata.</p></article>
+    <article class="card"><h3>Operations Signals</h3><p>Review feed health, reliability, maintenance, backup/restore guidance, and support paths.</p></article>
+    <article class="card"><h3>Telemetry And Devices</h3><p>Review device bindings, accepted observations, stale handling, and simulator guidance.</p></article>
+    <article class="card"><h3>Consumer Preparedness</h3><p>Review draft packet records and public feed metadata without changing consumer status.</p></article>
+  </section>
+
+  <section>
+    <h2>What It Helps With</h2>
+    <table>
+      <thead><tr><th>Browser page</th><th>Use it for</th><th>Does not prove</th></tr></thead>
+      <tbody>
+        <tr><td><code>/admin/operations/feed-health</code></td><td>Five feed paths and local health context.</td><td>Public launch, official listing, or consumer ingestion.</td></tr>
+        <tr><td><code>/admin/operations/validation-health</code></td><td>Validator tooling, latest records, stale checks, and blockers.</td><td>Validator-clean public deployment or external approval.</td></tr>
+        <tr><td><code>/admin/operations/readiness</code></td><td>Ten-area readiness map with next actions and limits.</td><td>CAL-ITP/Caltrans compliance or production readiness.</td></tr>
+        <tr><td><code>/admin/operations/consumers</code></td><td>Draft packet records and local workflow notes.</td><td>Submission, review, acceptance, ingestion, listing, or display.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Before Outside Claims</h2>
+    <details open>
+      <summary>Public feed review</summary>
+      <p>Collect public HTTPS fetch proof, official feed listing review, validator results, and agency-approved license/contact metadata in a deployment-specific evidence workflow.</p>
+    </details>
+    <details>
+      <summary>Consumer or aggregator status</summary>
+      <p>Do not move draft packet records without separately authorized, retained target-originated evidence.</p>
+    </details>
+    <details>
+      <summary>Production or SLA language</summary>
+      <p>Operational monitoring, backups, restore practice, incident handling, and service commitments are deployment-owned work.</p>
+    </details>
+  </section>
+
+  <p class="notice">Allowed wording: Open Transit RT supports CAL-ITP-style readiness workflows. It does not prove compliance, production readiness, consumer acceptance, vendor compatibility, or ETA quality without future retained evidence.</p>
+</main>
 </body>
 </html>
