@@ -116,6 +116,25 @@ deployment-owned connector runtimes with:
 - public feed behavior that fails closed when connector inputs are missing,
   malformed, stale, low-confidence, or unavailable.
 
+## Current Recommendation
+
+After the Browser-First Access correction, the next safe product step is a
+release-candidate gate for the browser-first local login, action-first
+Operations Console, refreshed GitHub Pages site, and video tutorial asset. If
+that gate passes and the maintainer wants a new public candidate, update the
+filtered `stable` branch through the existing workflow.
+
+The next implementation roadmap remains this external connector runtime
+integration plan. Start with Phase 01 only after the release gate decision, so
+connector runtime work does not blur the completed browser-first usability
+correction with a new integration scope.
+
+Browser-First Access closeout validation passed on 2026-05-18. Connector
+specific checks passed: `make external-connection-check`,
+`make adapter-conformance`, `make test-connector-examples`, and
+`make gtfsrt-conformance`. The consumer tracker remained exactly seven
+prepared-only targets.
+
 ## Claim Boundary
 
 Allowed wording:

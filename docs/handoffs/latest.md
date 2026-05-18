@@ -33,10 +33,54 @@ The roadmap lives at
 phase plan at
 `docs/roadmaps/external-connector-runtime-integration/phase-plan.md`.
 
+Browser-First Access correction Phases 01 through 07 are complete. The local
+browser handoff is now `/admin/local-login`: normal users choose **Start
+setup** and receive a short private browser session without manual token
+generation, curl, DevTools, header extensions, or pasted cookies. The route is
+local/demo-only, localhost-guarded, production-disabled, and does not weaken
+the admin boundary: unauthenticated `/admin/operations` remains `401`, cookie
+unsafe POSTs still require CSRF, and Bearer-token API auth remains available
+for technical checks.
+
+The Operations Console Start page now leads with an action queue and concise
+status cards. Navigation groups are Start, Setup, GTFS, Feeds, Realtime,
+Vehicles, Connectors, Readiness, Maintenance, and Help. Long route lists,
+diagnostics, feed details, and caveats are behind details/help panels.
+
+The public site is published from `site/` to `gh-pages` and live at
+`https://ptse8204.github.io/open-transit-rt/`. The live site includes
+`index.html`, `ui-tour.html`, `connectors.html`, `readiness.html`,
+`video.html`, `assets/site.css`, and the video tutorial assets:
+`assets/open-transit-rt-browser-first-tutorial.mp4` and
+`assets/open-transit-rt-browser-first-tutorial.vtt`. The video uses synthetic
+slides only and is tutorial material, not evidence.
+
+README, website, docs index, and wiki wording now lead with browser setup,
+normal-user actions, and concise boundaries. Connector docs now list current
+local-supported paths separately from roadmap-only candidates. Current paths
+include CSV replay, HTTP polling, webhook sidecar, generic JSON transform,
+authenticated `POST /v1/telemetry`, deterministic prediction, external HTTP
+prediction/shadow mode, MobilityData validator wrappers, monitoring/export,
+`/public/feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and
+Alerts. Roadmap-only candidates include TheTransitClock, real vendor AVL,
+SIRI / GTFS-RT bridge, GTFS-Flex, GTFS-ride, GTFS-Pathways, GTFS-Fares v2,
+OpenTripPlanner, OneBusAway, MobilityData validator UX, and
+Transitland/Mobility Database discovery-readiness workflows.
+
+Browser-First Access Phase 07 validation passed on 2026-05-18:
+`git diff --check`, `go test ./...`, `make check`, `make test`,
+`make smoke`, `make check-links`, `make audit-product-acceptance`,
+`make audit-final-claim-review`, `make external-connection-check`,
+`make adapter-conformance`, `make test-connector-examples`,
+`make gtfsrt-conformance`, and `scripts/check-consumer-tracker.sh`.
+The product-acceptance audit reported no tracked or untracked protected
+evidence path status, and the consumer tracker remained exactly seven
+prepared-only targets.
+
 Recommended next work: start Phase 01 of the external connector runtime
-roadmap, or run the manual release gates and filtered stable update first if
-the maintainer wants another release-candidate review. Optional evidence
-tracks remain separately authorization-gated and require retained
+roadmap, or run a release-candidate gate for the browser-first correction and
+then update `stable` if the maintainer wants a new release candidate. Optional
+evidence tracks remain separately authorization-gated and require retained
 target-originated evidence rules.
 
 Post-closeout CI follow-up `d8dfc3b` fixed telemetry simulator tests for the

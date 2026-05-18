@@ -158,6 +158,70 @@ to:
 - review CAL-ITP-style readiness without overclaiming;
 - inspect maintenance, reliability, help, support, audit, and evidence guidance.
 
+## Browser-First Correction Closeout
+
+The post-polish correction is complete:
+
+- Local browser admin login / first-run handoff is implemented at
+  `/admin/local-login` for local/demo mode and remains production-disabled.
+- Operations Console layout is action-first and uses Start, Setup, GTFS,
+  Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help.
+- GitHub Pages is published from `site/` to `gh-pages` with the updated
+  website, UI tour, connector catalog, readiness page, and video guide.
+- `site/video.html` embeds
+  `assets/open-transit-rt-browser-first-tutorial.mp4` with captions at
+  `assets/open-transit-rt-browser-first-tutorial.vtt`.
+- README, website, docs index, and wiki copy now start with the local browser
+  handoff and short action flow.
+- Connector support is split into implemented/local-supported paths and
+  roadmap-only candidates.
+- CAL-ITP-style readiness language stays bounded to local/self-hosted
+  readiness workflows.
+
+Current local-supported connector paths:
+
+- CSV replay telemetry adapter.
+- HTTP polling telemetry adapter.
+- Webhook sidecar telemetry adapter.
+- Generic JSON transform adapter.
+- Authenticated `POST /v1/telemetry`.
+- Deterministic built-in predictor.
+- External HTTP predictor adapter and shadow mode.
+- MobilityData static GTFS and GTFS Realtime validator wrappers.
+- Monitoring/export helper.
+- `/public/feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and
+  Alerts URLs.
+
+Roadmap-only connector candidates:
+
+- TheTransitClock behind `internal/prediction.Adapter`.
+- Real vendor AVL payload adapters behind `/v1/telemetry`.
+- SIRI / GTFS-RT bridge.
+- GTFS-Flex, GTFS-ride, GTFS-Pathways, and GTFS-Fares v2 QA helpers.
+- OpenTripPlanner and OneBusAway compatibility checks.
+- MobilityData validator UX and report explanation.
+- Transitland and Mobility Database discovery-readiness workflows.
+
+Final closeout validation passed on 2026-05-18:
+
+- `git diff --check`
+- `go test ./...`
+- `make check`
+- `make test`
+- `make smoke`
+- `make check-links`
+- `make audit-product-acceptance`
+- `make audit-final-claim-review`
+- `make external-connection-check`
+- `make adapter-conformance`
+- `make test-connector-examples`
+- `make gtfsrt-conformance`
+- `scripts/check-consumer-tracker.sh`
+
+The product-acceptance audit reported no tracked or untracked protected
+evidence path status. The consumer tracker remained exactly seven
+prepared-only targets.
+
 ## Remaining Command-Line Boundaries
 
 The browser is not allowed to run arbitrary commands. These remain technical
