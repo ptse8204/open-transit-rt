@@ -1,0 +1,31 @@
+WEBVTT
+
+00:00.000 --> 00:04.000
+Open the local sign-in page after the app starts. Choose Start setup; no tokens or browser extensions are needed for normal review.
+
+00:04.000 --> 00:08.000
+Start on the Operations Console. The first page shows the current state and the next action to take.
+
+00:08.000 --> 00:12.000
+Import or review GTFS. Confirm the active schedule, required files, import history, and validation guidance.
+
+00:12.000 --> 00:16.000
+Check the five feed URLs: feeds.json, static GTFS, Vehicle Positions, Trip Updates, and Alerts.
+
+00:16.000 --> 00:20.000
+Connect vehicle data through device setup and authenticated telemetry paths. Stored token values are not shown.
+
+00:20.000 --> 00:24.000
+Review realtime state: fresh vehicles, stale rows, Vehicle Positions, Trip Updates diagnostics, and Alerts.
+
+00:24.000 --> 00:28.000
+Choose connector support from local-tested paths before any real endpoint, credential, or vendor payload is configured.
+
+00:28.000 --> 00:32.000
+Review what needs attention and decide whether the next step belongs to staff or a technical helper.
+
+00:32.000 --> 00:36.000
+Use Maintenance for routine checks, backup and restore guidance, support summaries, and deployment-owner tasks.
+
+00:36.000 --> 00:40.000
+Use Help when setup, tooling, secrets, connectors, or deployment work needs a clearer owner.

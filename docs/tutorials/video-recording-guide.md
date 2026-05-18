@@ -46,16 +46,18 @@ project media location.
 
 ## Published Tutorial Asset
 
-The public site includes a small generated MP4 tutorial asset and captions:
+The public site includes a small MP4 tutorial asset and captions generated
+from actual local UI screenshots:
 
 ```text
-site/assets/open-transit-rt-browser-first-tutorial.mp4
-site/assets/open-transit-rt-browser-first-tutorial.vtt
+site/assets/open-transit-rt-interface-tour.mp4
+site/assets/open-transit-rt-interface-tour.vtt
 ```
 
-The asset was generated locally with `ffmpeg` using synthetic slides only. It
-does not capture a real desktop, browser profile, secret, private URL, raw log,
-agency record, external portal, consumer workflow, or vendor payload.
+The asset was generated locally with `ffmpeg` from Playwright screenshots of
+the local/demo browser UI. It does not capture a real desktop profile, secret,
+private URL, raw log, agency record, external portal, consumer workflow, or
+vendor payload.
 
 Local recording tooling detected for future authorized screen captures:
 
@@ -64,33 +66,45 @@ Local recording tooling detected for future authorized screen captures:
 - macOS `screencapture`
 - macOS `osascript`
 
-Direct desktop capture was not used for this committed asset because it can
-require macOS Screen Recording permission and can accidentally capture private
-desktop context. If a maintainer later authorizes a real screen recording, use
-the checklist in this guide, record only local/demo data, and publish through an
-authorized release or documentation workflow.
+Direct desktop capture was not used for this committed asset because the local
+browser screenshot workflow is safer and avoids accidentally recording private
+desktop context. If a maintainer later authorizes a narrated screen recording,
+use the checklist in this guide, record only local/demo data, and publish
+through an authorized release or documentation workflow.
 
 ### Published Asset Transcript
 
-Open Transit RT is a browser-first local evaluation tool for small agencies.
-This tutorial is local demo only, not evidence, and not a compliance claim.
+Open the local sign-in page after the app starts. Choose **Start setup**; no
+tokens or browser extensions are needed for normal review.
 
-A technical helper starts the app with the documented local workflow. Startup
-prints a local setup URL, so staff do not need tokens, curl, DevTools, or header
-extensions.
+Start on the Operations Console. The first page shows the current state and the
+next action to take.
 
-Agency staff open `/admin/local-login`, choose **Start setup**, and receive a
-short local browser session for the private Operations Console.
+Import or review GTFS. Confirm the active schedule, required files, import
+history, and validation guidance.
 
-Start with actions: Start setup, Import GTFS, Check feeds, Connect vehicles,
-Review readiness, and Get help. Longer tables remain behind details panels.
+Check the five feed URLs: `feeds.json`, static GTFS, Vehicle Positions, Trip
+Updates, and Alerts.
 
-Review `feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and Alerts.
-CAL-ITP-style readiness is local review and does not prove compliance.
+Connect vehicle data through device setup and authenticated telemetry paths.
+Stored token values are not shown.
 
-Use Maintenance and Help for startup, validator, secret, and deployment work.
-The tutorial makes no production readiness, consumer acceptance, SLA, vendor,
-hardware, AVL reliability, or ETA-quality claim.
+Review realtime state: fresh vehicles, stale rows, Vehicle Positions, Trip
+Updates diagnostics, and Alerts.
+
+Choose connector support from local-tested paths before any real endpoint,
+credential, or vendor payload is configured.
+
+Review what needs attention and decide whether the next step belongs to staff
+or a technical helper.
+
+Use Maintenance and Help for routine checks, backup and restore guidance,
+support summaries, setup, tooling, secrets, connectors, and deployment work.
+
+This tutorial is local demo only. It does not prove CAL-ITP/Caltrans
+compliance, production readiness, consumer acceptance, vendor compatibility,
+hardware certification, SLA/uptime, production AVL reliability, production ETA
+quality, or real-world ETA accuracy.
 
 ## Reset After Recording
 
@@ -204,8 +218,9 @@ The public-site source includes a companion page:
 site/video.html
 ```
 
-It embeds the generated MP4, captions, transcript, and these storyboards for
-readers browsing the static site source.
+It embeds the screenshot-based MP4, captions, and public transcript. Maintainer
+recording checklists and storyboards stay in this guide, not on the public
+page.
 
 ## What This Does Not Prove
 
