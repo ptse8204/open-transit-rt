@@ -40,6 +40,54 @@ and technical helpers while keeping external systems outside the core domain:
 - Browser support for connector setup, health review, safe commands to run
   outside the browser, and warnings about secrets and private payloads.
 
+## Ecosystem Alignment
+
+Current local-supported connector paths:
+
+- CSV replay telemetry adapter.
+- HTTP polling telemetry adapter.
+- Webhook sidecar telemetry adapter.
+- Generic JSON transform adapter.
+- Authenticated `POST /v1/telemetry`.
+- Deterministic built-in predictor.
+- External HTTP predictor adapter and shadow mode.
+- MobilityData static GTFS validator wrapper.
+- MobilityData GTFS Realtime validator wrapper.
+- Monitoring/export helper.
+- `/public/feeds.json` discovery metadata.
+- Static GTFS URL.
+- Vehicle Positions URL.
+- Trip Updates URL.
+- Alerts URL.
+
+Roadmap-only candidates:
+
+- TheTransitClock behind `internal/prediction.Adapter`; no compatibility or
+  ETA-quality claim.
+- Real vendor AVL payload adapters behind `/v1/telemetry`; no vendor or
+  hardware claim.
+- SIRI / GTFS-RT bridge for SIRI-like realtime systems.
+- GTFS-Flex, GTFS-ride, GTFS-Pathways, and GTFS-Fares v2 QA helpers.
+- OpenTripPlanner and OneBusAway compatibility investigations.
+- MobilityData validator UX and report explanation.
+- Transitland and Mobility Database discovery-readiness workflows without
+  submission, listing, or acceptance claims.
+
+Grounding references:
+
+- [GTFS Realtime reference](https://gtfs.org/documentation/realtime/reference/)
+  and [best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/).
+- [MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator)
+  and [GTFS Realtime validator package](https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator).
+- [OpenTripPlanner](https://github.com/opentripplanner/OpenTripPlanner),
+  [OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
+  and [TheTransitClock](https://github.com/TheTransitClock/transitime).
+- [Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds)
+  and [Mobility Database FAQ](https://mobilitydatabase.org/faq).
+- [GTFS extensions overview](https://gtfs.org/community/extensions/overview/),
+  [GTFS schedule reference](https://gtfs.org/documentation/schedule/reference/),
+  and [GTFS-ride](https://gtfsride.org/).
+
 ## Phase Map
 
 | Phase | Name | Main outcome |

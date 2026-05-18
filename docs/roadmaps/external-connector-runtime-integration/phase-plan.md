@@ -37,6 +37,25 @@ Inspect current implementation under:
 - `testdata/adapter-conformance/`
 - `testdata/avl-vendor/`
 
+Ecosystem references for connector direction:
+
+- GTFS Realtime reference and best practices:
+  <https://gtfs.org/documentation/realtime/reference/> and
+  <https://gtfs.org/documentation/realtime/realtime-best-practices/>
+- MobilityData validators:
+  <https://github.com/MobilityData/gtfs-validator> and
+  <https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator>
+- Open-source ecosystem projects to evaluate without compatibility claims:
+  <https://github.com/opentripplanner/OpenTripPlanner>,
+  <https://github.com/OneBusAway/onebusaway-application-modules>, and
+  <https://github.com/TheTransitClock/transitime>
+- Discovery and extension references:
+  <https://www.transit.land/documentation/rest-api/feeds>,
+  <https://mobilitydatabase.org/faq>,
+  <https://gtfs.org/community/extensions/overview/>,
+  <https://gtfs.org/documentation/schedule/reference/>, and
+  <https://gtfsride.org/>
+
 Before UI, website, README visual structure, tutorial-flow, docs-UX, or
 product-flow changes, load:
 
@@ -114,6 +133,15 @@ implementation contract before adding new runtime behavior.
 
 Required work:
 
+- Keep the current implemented connector matrix explicit: CSV replay, HTTP
+  polling, webhook sidecar, generic JSON transform, authenticated telemetry
+  POST, deterministic predictor, external HTTP predictor/shadow mode,
+  MobilityData validator wrappers, monitoring/export helper, `/public/feeds.json`,
+  static GTFS, Vehicle Positions, Trip Updates, and Alerts URLs.
+- Keep roadmap-only candidates separate: TheTransitClock, real vendor AVL,
+  SIRI / GTFS-RT bridge, GTFS-Flex, GTFS-ride, GTFS-Pathways,
+  GTFS-Fares v2, OpenTripPlanner, OneBusAway, MobilityData validator UX, and
+  Transitland/Mobility Database discovery-readiness workflows.
 - Inventory all current connector examples, conformance fixture types,
   Make targets, private Connector Workbench routes, telemetry ingest contracts,
   prediction adapter contracts, and monitoring/export helpers.

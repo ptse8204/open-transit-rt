@@ -174,6 +174,16 @@ Supported local connector paths include:
 - Extension model: manifest-based sidecars, no arbitrary dynamic backend plugin
   loading, and conformance tests required.
 
+Roadmap candidates, with no compatibility claim yet:
+
+- TheTransitClock candidate behind `internal/prediction.Adapter`.
+- Real vendor AVL payload adapters behind `/v1/telemetry`.
+- SIRI / GTFS-RT bridge for agencies with SIRI-like realtime systems.
+- GTFS-Flex, GTFS-ride, GTFS-Pathways, and GTFS-Fares v2 QA helpers.
+- OpenTripPlanner and OneBusAway compatibility checks.
+- MobilityData validator report explanation in the browser.
+- Transitland and Mobility Database discovery-readiness review.
+
 Start with:
 
 - [Connector Catalog](docs/connectors/catalog.md)

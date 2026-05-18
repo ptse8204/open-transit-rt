@@ -70,12 +70,30 @@
   </section>
 
   <section>
+    <h2>Next Connector Roadmap</h2>
+    <table>
+      <thead><tr><th>Candidate</th><th>Boundary</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>TheTransitClock</td><td>Prediction adapter only</td><td>Candidate, no compatibility claim</td></tr>
+        <tr><td>Vendor AVL payloads</td><td>Transform to <code>POST /v1/telemetry</code></td><td>Roadmap, no vendor claim</td></tr>
+        <tr><td>SIRI / GTFS-RT bridge</td><td>Sidecar bridge</td><td>Investigation</td></tr>
+        <tr><td>GTFS-Flex, Pathways, Fares v2, GTFS-ride</td><td>QA helpers</td><td>Future investigation</td></tr>
+        <tr><td>OpenTripPlanner and OneBusAway</td><td>Offline compatibility checks</td><td>No compatibility claim</td></tr>
+        <tr><td>Transitland and Mobility Database</td><td>Discovery-readiness review</td><td>No submission or listing claim</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
     <h2>Detailed Docs</h2>
     <ul>
       <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/connectors/catalog.md">Connector Catalog</a></li>
       <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/connectors/plugin-contract.md">Plugin Contract</a></li>
       <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/connector-cookbook.md">Connector Cookbook</a></li>
       <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/external-adapter-conformance.md">External Adapter Conformance</a></li>
+      <li><a href="https://gtfs.org/documentation/realtime/reference/">GTFS Realtime Reference</a></li>
+      <li><a href="https://github.com/MobilityData/gtfs-validator">MobilityData GTFS Schedule Validator</a></li>
+      <li><a href="https://www.transit.land/documentation/rest-api/feeds">Transitland Feeds API</a></li>
     </ul>
   </section>
 </main>

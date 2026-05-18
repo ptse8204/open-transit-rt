@@ -19,6 +19,32 @@ send telemetry, or change consumer tracker status.
 In Open Transit RT, a plugin is an optional sidecar, command adapter, manifest,
 or connector process. It is not arbitrary dynamic code loaded into the backend.
 
+## Ecosystem Grounding
+
+These connector paths are aligned to current GTFS / GTFS-Realtime ecosystem
+needs without claiming external acceptance:
+
+- The GTFS Realtime reference defines Trip Updates, Vehicle Positions, and
+  Alerts, and requires `start_time` plus `start_date` for frequency-based
+  trip descriptors. See the [GTFS Realtime reference](https://gtfs.org/documentation/realtime/reference/).
+- GTFS Realtime best practices emphasize public permanent URLs, directly
+  accessible protobuf responses, frequent refresh, and bounded data age. See
+  [GTFS Realtime best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/).
+- MobilityData maintains the canonical static GTFS validator with web, desktop,
+  command-line, and Docker workflows. See
+  [MobilityData/gtfs-validator](https://github.com/MobilityData/gtfs-validator).
+- MobilityData publishes a GTFS Realtime validator container package, derived
+  from the CUTR validator lineage. See
+  [MobilityData GTFS Realtime validator package](https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator).
+- Transitland exposes static and GTFS Realtime feed discovery APIs, including
+  latest realtime downloads by `alerts`, `trip_updates`, and
+  `vehicle_positions`. See [Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds).
+- Mobility Database replaced TransitFeeds for current GTFS and GTFS-Realtime
+  discovery data. See [Mobility Database FAQ](https://mobilitydatabase.org/faq).
+- OpenTripPlanner, OneBusAway, and TheTransitClock remain relevant open-source
+  ecosystem projects to evaluate through adapters or compatibility checks, not
+  as built-in dependencies or supported integrations.
+
 ## Copy/Adapt Path
 
 1. Pick the connector category below.
@@ -80,6 +106,26 @@ or connector process. It is not arbitrary dynamic code loaded into the backend.
 | Trip Updates URL | `/public/gtfsrt/trip_updates.pb` behind the prediction boundary | `make gtfsrt-conformance` | Production-grade ETA quality, real-world accuracy, consumer acceptance, compliance, or production readiness. |
 | Alerts URL | `/public/gtfsrt/alerts.pb` plus the private Alerts Console | `make gtfsrt-conformance` | Consumer acceptance, complete disruption operations, public display, compliance, or production readiness. |
 | Consumer packet preparedness | `examples/connectors/consumer-discovery-metadata` and prepared-only tracker review | `go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance` | Consumer submission, review, acceptance, ingestion, listing, display, compliance, or public launch. |
+
+## Roadmap-Only Connector Candidates
+
+These are useful directions for CAL-ITP-style readiness and GTFS-RT ecosystem
+fit. They are not supported integrations until implemented, tested, and
+documented behind the same adapter boundaries.
+
+| Candidate | Why it matters | Required boundary | Current status |
+| --- | --- | --- | --- |
+| TheTransitClock integration | External prediction software can inform future Trip Updates evaluation. | `internal/prediction.Adapter`, external HTTP shadow/fail-closed modes, no Vehicle Positions dependency. | Candidate only; no compatibility, ETA-quality, or deployment claim. |
+| Real vendor AVL payload adapters | Agencies often receive GPS/AVL data in vendor-specific shapes. | Transform outside core into authenticated `POST /v1/telemetry`; fixtures must stay synthetic or redacted. | Roadmap only; no vendor compatibility or hardware certification claim. |
+| SIRI / GTFS-RT bridge | Some agencies or regions have SIRI-like realtime systems rather than direct GTFS-RT producers. | Sidecar transform into GTFS-RT-oriented telemetry/prediction DTOs, with no raw private payload commits. | Investigation only. |
+| GTFS-Flex / demand-response QA | Flexible service metadata may matter for demand-response or deviated-route evaluation. | Static GTFS QA/readiness helper, not a dispatch or booking system. | Future investigation only. |
+| GTFS-ride / ridership analytics QA | Ridership standards can help future planning analytics without becoming an unrelated analytics product. | Optional import/QA helper separate from public GTFS-RT publication. | Future investigation only. |
+| GTFS-Pathways accessibility QA | Pathways and accessibility metadata affect station wayfinding and readiness. | Static GTFS QA helper and validator/report explanation. | Future investigation only. |
+| GTFS-Fares v2 metadata QA | Fare metadata is part of broader public-data readiness. | Static GTFS QA helper; no fare payment product. | Future investigation only. |
+| OpenTripPlanner compatibility checks | OTP consumes GTFS/OpenStreetMap and applies realtime updates and alerts. | Offline feed-consumer compatibility check with synthetic/local data. | Investigation only; no OTP compatibility claim. |
+| OneBusAway compatibility or adapter investigation | OneBusAway exports GTFS-RT and is a relevant open-source realtime information system. | Offline compatibility/adaptor review; no public consumer status changes. | Investigation only; no OBA compatibility claim. |
+| MobilityData validator UX integration | Users need plain explanations of validator reports. | Server-owned allowlisted validator IDs and browser report explanation. | Partially supported through wrappers; richer UX is roadmap. |
+| Transitland / Mobility Database discovery readiness | Discovery workflows need stable URLs, license/contact metadata, and feed metadata. | `/public/feeds.json`, prepared-only local review, no portal automation. | Prepared-readiness only; no submission or listing claim. |
 
 ## Future Connector Extension Model
 

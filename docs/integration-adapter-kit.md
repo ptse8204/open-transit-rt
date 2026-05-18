@@ -42,6 +42,52 @@ Use the existing boundary that matches the system being integrated:
 | Review readiness gaps and next actions | `/admin/operations/readiness` | [CAL-ITP Readiness Checklist](tutorials/calitp-readiness-checklist.md) |
 | Prepare consumer/aggregator workflow | Public feed URLs and prepared packet records | [Consumer submission workflow](evidence/consumer-submissions/submission-workflow.md) |
 
+## Ecosystem Connector Map
+
+Implemented or local-supported paths:
+
+| Category | Current path | First local check |
+| --- | --- | --- |
+| CSV replay telemetry | `examples/connectors/telemetry-csv-replay` | `make test-connector-examples` |
+| HTTP polling telemetry | `examples/connectors/telemetry-http-poller` | `make external-connection-check` |
+| Webhook sidecar telemetry | `examples/connectors/telemetry-webhook-sidecar` | `make adapter-conformance` |
+| Generic JSON transform | `cmd/avl-vendor-adapter --dry-run` | `go test ./cmd/avl-vendor-adapter` |
+| Authenticated telemetry | `POST /v1/telemetry` | `make telemetry-simulator` |
+| Built-in prediction | `internal/prediction.Adapter` deterministic path | `go test ./internal/prediction` |
+| External predictor | external HTTP adapter and shadow mode | `make adapter-conformance` |
+| Static validator | MobilityData static GTFS validator wrapper | `make validators-check` |
+| Realtime validator | MobilityData GTFS Realtime validator wrapper | `make gtfsrt-conformance` |
+| Monitoring/export | `examples/connectors/monitoring-export` | `make adapter-conformance` |
+| Discovery metadata | `/public/feeds.json` and public feed URLs | `make smoke` |
+
+Roadmap-only candidates:
+
+| Candidate | Adapter rule |
+| --- | --- |
+| TheTransitClock | Only behind `internal/prediction.Adapter`; no compatibility or ETA-quality claim. |
+| Real vendor AVL payloads | Transform outside core into `/v1/telemetry`; no vendor or hardware claim. |
+| SIRI / GTFS-RT bridge | Sidecar bridge only; no raw private payload commits. |
+| GTFS-Flex / demand-response | Static GTFS QA helper only; not dispatch or booking. |
+| GTFS-ride / ridership analytics | Optional QA/import helper only; not unrelated analytics product. |
+| GTFS-Pathways | Accessibility metadata QA helper. |
+| GTFS-Fares v2 | Fare metadata QA helper; no fare payment product. |
+| OpenTripPlanner | Offline feed-consumer compatibility checks; no OTP support claim. |
+| OneBusAway | Compatibility or adapter investigation; no OBA support claim. |
+| MobilityData validator UX | Browser explanation of allowlisted validator reports. |
+| Transitland / Mobility Database | Discovery-readiness review; no submission, listing, or acceptance claim. |
+
+Useful references: [GTFS Realtime reference](https://gtfs.org/documentation/realtime/reference/),
+[GTFS Realtime best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/),
+[MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator),
+[MobilityData GTFS Realtime validator package](https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator),
+[OpenTripPlanner](https://github.com/opentripplanner/OpenTripPlanner),
+[OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
+[TheTransitClock](https://github.com/TheTransitClock/transitime),
+[Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds),
+[Mobility Database FAQ](https://mobilitydatabase.org/faq),
+[GTFS extensions overview](https://gtfs.org/community/extensions/overview/), and
+[GTFS-ride](https://gtfsride.org/).
+
 ## Practical Usage Path
 
 1. Use [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
