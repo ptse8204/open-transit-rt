@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Check Feeds - Open Transit RT</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="try-locally.html">Try locally</a>
+      <a href="ui-tour.html">Tour</a>
+      <a href="check-feeds.html" aria-current="page">Check feeds</a>
+      <a href="connector-support.html">Connectors</a>
+      <a href="video.html">Tutorial</a>
+      <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <section class="page-hero">
+    <div>
+      <p class="tag">Feeds</p>
+      <h1>Check your feeds.</h1>
+      <p class="lead">Use Feed Health to answer the practical question first: are the URLs available, and what should happen next?</p>
+    </div>
+    <aside class="summary-panel">
+      <h2>Five URLs</h2>
+      <p>Feed discovery, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</p>
+    </aside>
+  </section>
+
+  <section aria-labelledby="look-heading">
+    <h2 id="look-heading">What To Look For</h2>
+    <div class="grid">
+      <article class="status-card"><span class="status-label">Discovery</span><h3><code>feeds.json</code></h3><p>Lists the public feed URLs and metadata.</p></article>
+      <article class="status-card"><span class="status-label">Schedule</span><h3>Static GTFS</h3><p>Confirms a schedule ZIP is available from the public feed root.</p></article>
+      <article class="status-card"><span class="status-label">Realtime</span><h3>Vehicle Positions</h3><p>Shows whether vehicle position output is publishing.</p></article>
+      <article class="status-card"><span class="status-label">Realtime</span><h3>Trip Updates</h3><p>Shows adapter output or withheld diagnostics.</p></article>
+      <article class="status-card"><span class="status-label">Realtime</span><h3>Alerts</h3><p>Shows whether the alerts feed is available.</p></article>
+      <article class="status-card"><span class="status-label">Next</span><h3>Attention needed</h3><p>Open the linked console page for any missing, stale, or blocked row.</p></article>
+    </div>
+  </section>
+
+  <section aria-labelledby="next-heading">
+    <h2 id="next-heading">Common Next Actions</h2>
+    <ol class="workflow-list">
+      <li><strong>Schedule missing</strong><span>Import or publish GTFS first.</span></li>
+      <li><strong>Realtime missing</strong><span>Review vehicle data, connector setup, and feed generation status.</span></li>
+      <li><strong>Validator blocked</strong><span>Ask a helper to install or configure validator tooling.</span></li>
+      <li><strong>Ready to share</strong><span>Confirm hosting, license, contact metadata, and deployment ownership before sharing URLs outside the local environment.</span></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="more-heading">
+    <h2 id="more-heading">More Help</h2>
+    <p><a class="button primary" href="readiness.html">System check page</a> <a class="button" href="troubleshoot.html">Troubleshoot</a></p>
+  </section>
+</main>
+</body>
+</html>

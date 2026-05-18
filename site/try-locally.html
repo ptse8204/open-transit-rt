@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Try Open Transit RT Locally</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="try-locally.html" aria-current="page">Try locally</a>
+      <a href="ui-tour.html">Tour</a>
+      <a href="check-feeds.html">Check feeds</a>
+      <a href="connector-support.html">Connectors</a>
+      <a href="video.html">Tutorial</a>
+      <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <section class="page-hero">
+    <div>
+      <p class="tag">Start</p>
+      <h1>Try it locally.</h1>
+      <p class="lead">A technical helper starts the app once. Staff then use the local browser sign-in and follow the Operations Console workflow.</p>
+      <div class="actions">
+        <a class="button primary" href="ui-tour.html">Tour the screens</a>
+        <a class="button" href="video.html">Watch the walkthrough</a>
+      </div>
+    </div>
+    <aside class="summary-panel">
+      <h2>Normal users do not need</h2>
+      <ul class="compact-list">
+        <li>Manual admin tokens</li>
+        <li>curl commands</li>
+        <li>DevTools cookie setup</li>
+        <li>Header extensions</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section aria-labelledby="steps-heading">
+    <h2 id="steps-heading">The Local Flow</h2>
+    <ol class="workflow-list">
+      <li><strong>Start the app</strong><span>A technical helper runs the local startup flow from the release or repository.</span></li>
+      <li><strong>Open local sign-in</strong><span>Staff open <code>/admin/local-login</code> on the local machine and choose <strong>Start setup</strong>.</span></li>
+      <li><strong>Follow the workflow</strong><span>Use Start setup, Import GTFS, Check feeds, Connect vehicles, Review realtime, Fix issues, Share public URLs, and Maintain system.</span></li>
+      <li><strong>Escalate only when needed</strong><span>Ask for technical help for hosting, validators, secrets, real connector endpoints, or production network controls.</span></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="helper-heading">
+    <h2 id="helper-heading">Technical Helper</h2>
+    <div class="two-column">
+      <article class="card">
+        <h3>Repository startup</h3>
+        <p>Use the documented local startup command, then hand staff the local sign-in URL.</p>
+        <p><code>make agency-app-up</code></p>
+      </article>
+      <article class="card">
+        <h3>Release startup</h3>
+        <p>Use the release package instructions for the same local browser start. Keep tokens and secrets out of the normal staff path.</p>
+        <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">Technical README</a></p>
+      </article>
+    </div>
+  </section>
+
+  <p class="boundary">Local evaluation does not prove compliance, production readiness, consumer acceptance, hosted service availability, vendor compatibility, SLA, AVL reliability, or ETA quality.</p>
+</main>
+</body>
+</html>
