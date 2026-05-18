@@ -247,6 +247,37 @@ p {
   padding: 16px;
 }
 
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+  margin: 20px 0 8px;
+}
+
+.screenshot-card {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.screenshot-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #eef3f6;
+}
+
+.screenshot-card figcaption {
+  padding: 14px 16px 16px;
+}
+
+.screenshot-card figcaption p {
+  margin-bottom: 0;
+}
+
 .flow-card {
   min-height: 170px;
   display: grid;
