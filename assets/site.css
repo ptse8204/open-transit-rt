@@ -167,6 +167,29 @@ p {
   margin: 18px 0;
 }
 
+.video-frame {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 12px;
+  box-shadow: var(--shadow);
+  margin: 20px 0;
+}
+
+.video-frame video {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  background: #eef3f6;
+}
+
+.transcript {
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 14px 16px;
+  margin: 18px 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

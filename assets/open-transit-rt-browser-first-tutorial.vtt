@@ -1,0 +1,19 @@
+WEBVTT
+
+00:00.000 --> 00:06.000
+Open Transit RT. Browser-first local evaluation for small agencies. Local demo only. Not evidence. Not a compliance claim.
+
+00:06.000 --> 00:14.000
+First, a technical helper starts the app. The local startup prints a setup URL, so staff do not need tokens, curl, DevTools, or header extensions.
+
+00:14.000 --> 00:22.000
+Second, staff sign in locally. They open /admin/local-login, choose Start setup, and receive a short local admin session.
+
+00:22.000 --> 00:30.000
+Third, start with actions. Use Start setup, Import GTFS, Check feeds, Connect vehicles, Review readiness, and Get help.
+
+00:30.000 --> 00:38.000
+Fourth, check feeds and readiness. Review feeds.json, GTFS, Vehicle Positions, Trip Updates, and Alerts. Readiness is local review, not compliance.
+
+00:38.000 --> 00:48.000
+Fifth, know what needs help. Use Maintenance and Help for startup, validators, secrets, and deployment work. No production, consumer, vendor, SLA, or ETA claim is made.
