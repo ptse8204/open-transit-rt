@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open Transit RT Connector Catalog</title>
+  <title>Open Transit RT Connectors</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,90 +12,78 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="ui-tour.html">UI Tour</a>
-      <a href="connectors.html">Connectors</a>
-      <a href="readiness.html">Readiness</a>
-      <a href="video.html">Video Guide</a>
-      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">README</a>
+      <a href="ui-tour.html">Tour</a>
+      <a href="readiness.html">Check feeds</a>
+      <a href="connectors.html" aria-current="page">Connectors</a>
+      <a href="video.html">Tutorial</a>
+      <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
 </header>
 <main>
-  <p class="tag">Connector catalog</p>
-  <h1>Choose the safest path for vehicle data.</h1>
-  <p class="lead">Start with the connector shape that matches your data source: file replay, polling, webhook sidecar, JSON transform, authenticated telemetry POST, prediction, validation, monitoring, or discovery metadata.</p>
-  <p class="notice">These paths do not prove compliance, production readiness, consumer acceptance, vendor compatibility, hardware certification, hosted service availability, SLA coverage, production AVL reliability, production-grade ETA quality, or real-world ETA accuracy.</p>
-
-  <section class="grid" aria-label="Connector categories">
-    <article class="card"><span class="tag">Vehicle / GPS / AVL</span><h3>Send observations</h3><p>Use CSV replay, HTTP polling, webhook sidecar, JSON transform, synthetic examples, or authenticated <code>POST /v1/telemetry</code>.</p></article>
-    <article class="card"><span class="tag">Prediction</span><h3>Keep ETA work replaceable</h3><p>Use the deterministic predictor, external HTTP adapter, shadow mode, and fail-closed behavior. TheTransitClock remains a candidate only.</p></article>
-    <article class="card"><span class="tag">Validator</span><h3>Check feeds</h3><p>Run allowlisted MobilityData static GTFS and GTFS Realtime validator wrappers, then review private validation health.</p></article>
-    <article class="card"><span class="tag">Monitoring / Export</span><h3>Export health safely</h3><p>Use local summaries, notify drafts, and deployment-owned monitoring boundaries.</p></article>
-    <article class="card"><span class="tag">Consumer / Discovery</span><h3>Review public metadata</h3><p>Check <code>/public/feeds.json</code> and the four feed URLs without claiming submission or acceptance.</p></article>
-    <article class="card"><span class="tag">Extension Model</span><h3>Use sidecars</h3><p>Prefer manifests and sidecars. Do not load arbitrary backend code. Keep conformance tests required.</p></article>
+  <section class="page-hero">
+    <div>
+      <p class="tag">Connector support</p>
+      <h1>Connect vehicle data through clear, tested paths.</h1>
+      <p class="lead">Open Transit RT keeps external systems outside the core backend. Start with a local-supported connector shape, then let the deployment owner add real endpoints, credentials, and retention rules.</p>
+    </div>
+    <aside class="summary-panel">
+      <h2>Plain rule</h2>
+      <p>Supported means implemented for local/self-hosted evaluation. Candidate means useful direction, not compatibility.</p>
+    </aside>
   </section>
 
-  <section>
-    <h2>Start Here</h2>
+  <section aria-labelledby="today-heading">
+    <h2 id="today-heading">Works Today</h2>
+    <div class="grid">
+      <article class="card"><h3>Vehicle telemetry</h3><p>CSV replay, HTTP polling, webhook sidecar, generic JSON transform, and authenticated <code>POST /v1/telemetry</code>.</p></article>
+      <article class="card"><h3>Prediction</h3><p>Deterministic built-in prediction plus an external HTTP predictor adapter and shadow mode where configured.</p></article>
+      <article class="card"><h3>Validation</h3><p>Server-owned MobilityData static GTFS and GTFS Realtime validator wrappers when tooling is installed.</p></article>
+      <article class="card"><h3>Monitoring</h3><p>Local health summaries, monitoring/export helper, and no-send notification drafts.</p></article>
+      <article class="card"><h3>Discovery</h3><p><code>/public/feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts URLs.</p></article>
+      <article class="card"><h3>Conformance</h3><p>Local synthetic fixtures and adapter checks for telemetry, prediction, validators, monitoring, and discovery.</p></article>
+    </div>
+  </section>
+
+  <section aria-labelledby="planned-heading">
+    <h2 id="planned-heading">Planned Or Candidate</h2>
     <table>
-      <thead><tr><th>Need</th><th>Start with</th><th>First local check</th></tr></thead>
+      <thead><tr><th>Candidate</th><th>Why it matters</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>CSV replay</td><td><code>examples/connectors/telemetry-csv-replay</code></td><td><code>make test-connector-examples</code></td></tr>
-        <tr><td>GPS/API polling</td><td><code>examples/connectors/telemetry-http-poller</code></td><td><code>make external-connection-check</code></td></tr>
-        <tr><td>Webhook sidecar</td><td><code>examples/connectors/telemetry-webhook-sidecar</code></td><td><code>go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance</code></td></tr>
-        <tr><td>Generic JSON transform</td><td><code>internal/connectors</code> and telemetry examples</td><td><code>make adapter-conformance</code></td></tr>
-        <tr><td>Prediction sidecar</td><td><code>examples/connectors/predictor-sidecar-stub</code></td><td><code>go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance</code></td></tr>
-        <tr><td>Validator allowlist</td><td><code>examples/connectors/validator-allowlist</code></td><td><code>go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance</code></td></tr>
-        <tr><td>Monitoring/export</td><td><code>examples/connectors/monitoring-export</code></td><td><code>go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance</code></td></tr>
-        <tr><td>Consumer discovery</td><td><code>examples/connectors/consumer-discovery-metadata</code></td><td><code>go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance</code></td></tr>
+        <tr><td>TheTransitClock</td><td>External prediction evaluation behind the prediction adapter.</td><td>Candidate only.</td></tr>
+        <tr><td>Vendor AVL payloads</td><td>Real agencies often receive GPS data in vendor-shaped formats.</td><td>Roadmap only.</td></tr>
+        <tr><td>SIRI to GTFS-RT bridge</td><td>Some realtime systems expose SIRI-like data.</td><td>Investigation.</td></tr>
+        <tr><td>GTFS-Flex, GTFS-ride, Pathways, Fares v2</td><td>Useful future QA areas for broader public-data readiness.</td><td>Future investigation.</td></tr>
+        <tr><td>OpenTripPlanner and OneBusAway checks</td><td>Offline consumer-behavior checks could improve feed quality.</td><td>No compatibility claim.</td></tr>
+        <tr><td>Transitland / Mobility Database readiness</td><td>Discovery preparation needs stable URLs and metadata.</td><td>No submission or listing claim.</td></tr>
       </tbody>
     </table>
   </section>
 
-  <section>
-    <h2>Browser Review</h2>
-    <p>After startup, review connector choices in the private Operations Console.</p>
-    <details open>
-      <summary><code>/admin/operations/connectors</code></summary>
-      <p>Connector category catalog and committed manifest registry.</p>
-    </details>
-    <details>
-      <summary><code>/admin/operations/connectors/workbench</code></summary>
-      <p>Recipe chooser, redaction templates, preview rows, and conformance coverage.</p>
-    </details>
-    <details>
-      <summary><code>/admin/operations/connectors/tests</code></summary>
-      <p>Fixed local checks for a technical helper to run outside the browser.</p>
-    </details>
+  <section aria-labelledby="where-heading">
+    <h2 id="where-heading">Where Setup Happens</h2>
+    <div class="two-column">
+      <article class="card">
+        <h3>In the browser</h3>
+        <p>Review connector categories, redaction rules, examples, health signals, and the next safe action.</p>
+      </article>
+      <article class="card">
+        <h3>Outside the browser</h3>
+        <p>Configure real endpoints, secrets, device tokens, sidecars, monitoring destinations, and deployment retention.</p>
+      </article>
+    </div>
   </section>
 
-  <section>
-    <h2>Next Connector Roadmap</h2>
-    <table>
-      <thead><tr><th>Candidate</th><th>Boundary</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>TheTransitClock</td><td>Prediction adapter only</td><td>Candidate, no compatibility claim</td></tr>
-        <tr><td>Vendor AVL payloads</td><td>Transform to <code>POST /v1/telemetry</code></td><td>Roadmap, no vendor claim</td></tr>
-        <tr><td>SIRI / GTFS-RT bridge</td><td>Sidecar bridge</td><td>Investigation</td></tr>
-        <tr><td>GTFS-Flex, Pathways, Fares v2, GTFS-ride</td><td>QA helpers</td><td>Future investigation</td></tr>
-        <tr><td>OpenTripPlanner and OneBusAway</td><td>Offline compatibility checks</td><td>No compatibility claim</td></tr>
-        <tr><td>Transitland and Mobility Database</td><td>Discovery-readiness review</td><td>No submission or listing claim</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2>Detailed Docs</h2>
-    <ul>
-      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/connectors/catalog.md">Connector Catalog</a></li>
-      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/connectors/plugin-contract.md">Plugin Contract</a></li>
-      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/connector-cookbook.md">Connector Cookbook</a></li>
-      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/external-adapter-conformance.md">External Adapter Conformance</a></li>
-      <li><a href="https://gtfs.org/documentation/realtime/reference/">GTFS Realtime Reference</a></li>
-      <li><a href="https://github.com/MobilityData/gtfs-validator">MobilityData GTFS Schedule Validator</a></li>
-      <li><a href="https://www.transit.land/documentation/rest-api/feeds">Transitland Feeds API</a></li>
+  <section aria-labelledby="details-heading">
+    <h2 id="details-heading">Technical Details</h2>
+    <ul class="link-list">
+      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/connectors/catalog.md">Connector catalog</a></li>
+      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/integration-adapter-kit.md">Integration adapter kit</a></li>
+      <li><a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/external-connection-readiness.md">External connection readiness</a></li>
     </ul>
   </section>
+
+  <p class="boundary">These connector paths do not prove vendor compatibility, hardware certification, production AVL reliability, consumer acceptance, compliance, production readiness, hosted service availability, SLA, or ETA quality.</p>
 </main>
 </body>
 </html>
