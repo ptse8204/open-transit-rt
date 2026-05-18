@@ -53,7 +53,7 @@ workflows; it does not claim CAL-ITP/Caltrans compliance.
 The checklist keeps implemented local support separate from future ecosystem
 candidates.
 
-Implemented or local-supported:
+Works today / local-supported:
 
 - CSV replay, HTTP polling, webhook sidecar, and generic JSON transform
   telemetry adapters.
@@ -65,7 +65,7 @@ Implemented or local-supported:
 - `/public/feeds.json`, static GTFS, Vehicle Positions, Trip Updates, and
   Alerts URLs.
 
-Roadmap-only:
+Planned / candidate:
 
 - TheTransitClock candidate behind `internal/prediction.Adapter`.
 - Real vendor AVL payload adapters behind `/v1/telemetry`.
@@ -83,7 +83,7 @@ References: [Caltrans California Minimum GTFS Guidelines](https://dot.ca.gov/cal
 [GTFS Realtime best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/),
 [MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator),
 [Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds),
-[Mobility Database FAQ](https://mobilitydatabase.org/faq), and
+[Mobility Database](https://mobilitydatabase.org/about), and
 [GTFS extensions overview](https://gtfs.org/community/extensions/overview/).
 
 ## Operations Console Workflow

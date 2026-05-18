@@ -19,6 +19,43 @@ send telemetry, or change consumer tracker status.
 In Open Transit RT, a plugin is an optional sidecar, command adapter, manifest,
 or connector process. It is not arbitrary dynamic code loaded into the backend.
 
+## Support Matrix At A Glance
+
+### Works today / local-supported
+
+- CSV replay telemetry adapter.
+- HTTP polling telemetry adapter.
+- Webhook sidecar telemetry adapter.
+- Generic JSON transform adapter.
+- Authenticated `POST /v1/telemetry`.
+- Deterministic built-in predictor.
+- External HTTP predictor adapter and shadow mode.
+- MobilityData static GTFS validator wrapper.
+- MobilityData GTFS Realtime validator wrapper.
+- Monitoring/export helper.
+- `/public/feeds.json` discovery metadata.
+- Static GTFS URL.
+- Vehicle Positions URL.
+- Trip Updates URL.
+- Alerts URL.
+
+### Planned / candidate
+
+These items are roadmap direction only. They are not compatibility,
+production, vendor, consumer, or compliance claims.
+
+- TheTransitClock behind `internal/prediction.Adapter`.
+- Real vendor AVL payload adapters behind `/v1/telemetry`.
+- SIRI / GTFS-RT bridge.
+- GTFS-Flex / demand-response QA.
+- GTFS-ride / ridership analytics QA.
+- GTFS-Pathways accessibility metadata QA.
+- GTFS-Fares v2 fare metadata QA.
+- OpenTripPlanner compatibility checks.
+- OneBusAway compatibility checks.
+- MobilityData validator UX and report explanation.
+- Transitland / Mobility Database discovery-readiness workflows.
+
 ## Ecosystem Grounding
 
 These connector paths are aligned to current GTFS / GTFS-Realtime ecosystem
@@ -40,10 +77,13 @@ needs without claiming external acceptance:
   latest realtime downloads by `alerts`, `trip_updates`, and
   `vehicle_positions`. See [Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds).
 - Mobility Database replaced TransitFeeds for current GTFS and GTFS-Realtime
-  discovery data. See [Mobility Database FAQ](https://mobilitydatabase.org/faq).
+  discovery data. See [Mobility Database](https://mobilitydatabase.org/about).
 - OpenTripPlanner, OneBusAway, and TheTransitClock remain relevant open-source
-  ecosystem projects to evaluate through adapters or compatibility checks, not
-  as built-in dependencies or supported integrations.
+  ecosystem projects to evaluate through adapters or compatibility checks. See
+  [OpenTripPlanner docs](https://docs.opentripplanner.org/en/latest/),
+  [OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
+  and [TheTransitClock](https://thetransitclock.github.io/). They are not
+  built-in dependencies or supported integrations.
 
 ## Copy/Adapt Path
 

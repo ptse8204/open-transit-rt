@@ -49,10 +49,10 @@ Reference links: [GTFS Realtime reference](https://gtfs.org/documentation/realti
 [GTFS Realtime best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/),
 [MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator),
 [Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds),
-[Mobility Database FAQ](https://mobilitydatabase.org/faq),
-[OpenTripPlanner](https://github.com/opentripplanner/OpenTripPlanner),
+[Mobility Database](https://mobilitydatabase.org/about),
+[OpenTripPlanner docs](https://docs.opentripplanner.org/en/latest/),
 [OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
-[TheTransitClock](https://github.com/TheTransitClock/transitime), and
+[TheTransitClock](https://thetransitclock.github.io/), and
 [GTFS extensions overview](https://gtfs.org/community/extensions/overview/).
 
 ## Readiness Questions

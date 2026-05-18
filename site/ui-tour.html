@@ -5,101 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Open Transit RT UI Tour</title>
   <link rel="stylesheet" href="assets/site.css">
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
 <header class="site-header">
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="ui-tour.html">UI Tour</a>
-      <a href="connectors.html">Connectors</a>
-      <a href="readiness.html">Readiness</a>
-      <a href="video.html">Video Guide</a>
-      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">README</a>
+      <a href="try-locally.html">Try locally</a>
+      <a href="ui-tour.html" aria-current="page">Tour</a>
+      <a href="check-feeds.html">Check feeds</a>
+      <a href="connector-support.html">Connectors</a>
+      <a href="video.html">Tutorial</a>
+      <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
 </header>
 <main>
-  <p class="tag">UI tour</p>
-  <h1>Start from actions, not route lists.</h1>
-  <p class="lead">After a technical helper starts the local app, staff open the local sign-in page and use the private Operations Console without tokens, curl, DevTools, or browser extensions. These captures are documentation aids, not retained evidence or proof of external approval.</p>
-
-  <section class="grid" aria-label="Generated Operations Console captures">
-    <article class="capture">
-      <div class="browser">
-        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations</span></div>
-        <div class="browser-body">
-          <h3>Start Here</h3>
-          <div class="screen-grid"><div class="side-rail"><div class="rail-item"></div><div class="rail-item"></div><div class="rail-item"></div></div><div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div></div>
-        </div>
-      </div>
-      <p><strong>Use it for:</strong> next actions, current status, feed URLs, and help.</p>
-    </article>
-    <article class="capture">
-      <div class="browser">
-        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/gtfs-workbench</span></div>
-        <div class="browser-body">
-          <h3>GTFS Workbench</h3>
-          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
-        </div>
-      </div>
-      <p><strong>Use it for:</strong> required files, row counts, service dates, import history, and validation issues.</p>
-    </article>
-    <article class="capture">
-      <div class="browser">
-        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/feed-health</span></div>
-        <div class="browser-body">
-          <h3>Feed Health</h3>
-          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
-        </div>
-      </div>
-      <p><strong>Use it for:</strong> feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts review.</p>
-    </article>
-    <article class="capture">
-      <div class="browser">
-        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/realtime</span></div>
-        <div class="browser-body">
-          <h3>Realtime</h3>
-          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
-        </div>
-      </div>
-      <p><strong>Use it for:</strong> Vehicle Positions, withheld Trip Updates, Alerts, and replay guidance.</p>
-    </article>
-    <article class="capture">
-      <div class="browser">
-        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/connectors</span></div>
-        <div class="browser-body">
-          <h3>Connector Hub</h3>
-          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
-        </div>
-      </div>
-      <p><strong>Use it for:</strong> telemetry, prediction, validator, monitoring, and discovery connector choices.</p>
-    </article>
-    <article class="capture">
-      <div class="browser">
-        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations/readiness</span></div>
-        <div class="browser-body">
-          <h3>Readiness</h3>
-          <div class="screen-table"><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div><div class="screen-row"></div></div>
-        </div>
-      </div>
-      <p><strong>Use it for:</strong> local CAL-ITP-style readiness review and what each signal does not prove.</p>
-    </article>
+  <section class="page-hero">
+    <div>
+      <p class="tag">Browser tour</p>
+      <h1>Follow the same path staff use in the console.</h1>
+      <p class="lead">The Operations Console is organized around a simple sequence: start setup, import GTFS, check feeds, connect vehicles, review realtime, fix issues, share URLs, and maintain the system.</p>
+    </div>
+    <aside class="summary-panel">
+      <h2>What stays technical?</h2>
+      <p>Startup, production hosting, validator tooling, device secrets, real connector endpoints, and deployment monitoring still need a technical helper.</p>
+    </aside>
   </section>
 
-  <section>
-    <h2>Tour Order</h2>
-    <ol>
-      <li>Open <code>/admin/local-login</code>, choose <strong>Start setup</strong>, and land on <code>/admin/operations</code>.</li>
-      <li>Use Start, Setup, GTFS, Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help.</li>
-      <li>Open GTFS Workbench and check active schedule status.</li>
-      <li>Open Feed Health and check the five feed paths.</li>
-      <li>Open Realtime and review withheld or stale outputs.</li>
-      <li>Open Connector Hub and choose the closest connector category.</li>
-      <li>Open Readiness before making outside claims.</li>
-    </ol>
-    <p>For actual screenshot capture rules, see <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/assets/product-screenshots/README.md">Product Screenshots</a>.</p>
+  <section aria-labelledby="tour-heading">
+    <h2 id="tour-heading">Actual Browser Screens</h2>
+    <div class="screenshot-grid">
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/local-login.png" width="1440" height="1000" alt="Local sign-in page with Start setup button" loading="lazy">
+        <figcaption><span class="step">Open local sign-in</span><h3>Start without tokens</h3><p>Staff open the local page and choose Start setup.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/start-page.png" width="1440" height="1000" alt="Operations Console Start page" loading="lazy">
+        <figcaption><span class="step">Start here</span><h3>Follow the workflow</h3><p>The console opens with ordered steps and one main action per step.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/gtfs-workbench.png" width="1440" height="1000" alt="GTFS Workbench page" loading="lazy">
+        <figcaption><span class="step">Import GTFS</span><h3>Review the schedule</h3><p>Check active feed version, required files, import history, and validation guidance.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/feed-health.png" width="1440" height="1000" alt="Feed Health page with feed rows" loading="lazy">
+        <figcaption><span class="step">Check feeds</span><h3>Review five URLs</h3><p>Check discovery, schedule, Vehicle Positions, Trip Updates, and Alerts.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/devices.png" width="1440" height="1000" alt="Devices page showing vehicle data setup" loading="lazy">
+        <figcaption><span class="step">Connect vehicle data</span><h3>Review device setup</h3><p>See device bindings and next steps without showing stored token values.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/realtime.png" width="1440" height="1000" alt="Realtime page showing telemetry and feed status" loading="lazy">
+        <figcaption><span class="step">Review realtime</span><h3>Check live feed state</h3><p>Review stale vehicles, Vehicle Positions, Trip Updates diagnostics, and Alerts.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/connectors.png" width="1440" height="1000" alt="Connectors page showing connector categories" loading="lazy">
+        <figcaption><span class="step">Choose connectors</span><h3>Pick a safe path</h3><p>Start from local-supported connector categories before real endpoints are configured.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/readiness.png" width="1440" height="1000" alt="Readiness page showing system rows and next actions" loading="lazy">
+        <figcaption><span class="step">Review issues</span><h3>See what needs attention</h3><p>Use system checks to decide the next user action or technical-helper task.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/maintenance.png" width="1440" height="1000" alt="Maintenance page showing routine system tasks" loading="lazy">
+        <figcaption><span class="step">Maintain system</span><h3>Plan routine checks</h3><p>Review backup, restore, support, and deployment-owner tasks.</p></figcaption>
+      </figure>
+      <figure class="screenshot-card">
+        <img src="assets/screenshots/help.png" width="1440" height="1000" alt="Help page with task-oriented guidance" loading="lazy">
+        <figcaption><span class="step">Get help</span><h3>Find the right owner</h3><p>Use task help when a page is empty, blocked, or needs technical setup.</p></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="tour-boundary-heading">
+    <h2 id="tour-boundary-heading">Use The Tour For Evaluation</h2>
+    <p class="boundary">The UI helps local and self-hosted evaluation. It does not create evidence, contact consumers or vendors, prove public launch, or replace deployment-owned review.</p>
   </section>
 </main>
 </body>

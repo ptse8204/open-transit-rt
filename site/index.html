@@ -5,18 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Open Transit RT</title>
   <link rel="stylesheet" href="assets/site.css">
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
 <header class="site-header">
   <nav class="nav" aria-label="Site navigation">
-    <a class="brand" href="index.html">Open Transit RT</a>
+    <a class="brand" href="index.html" aria-current="page">Open Transit RT</a>
     <div class="nav-links">
-      <a href="ui-tour.html">UI Tour</a>
-      <a href="connectors.html">Connectors</a>
-      <a href="readiness.html">Readiness</a>
-      <a href="video.html">Video Guide</a>
-      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">README</a>
+      <a href="try-locally.html">Try locally</a>
+      <a href="ui-tour.html">Tour</a>
+      <a href="check-feeds.html">Check feeds</a>
+      <a href="connector-support.html">Connectors</a>
+      <a href="video.html">Tutorial</a>
+      <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
 </header>
@@ -24,131 +25,91 @@
   <section class="hero">
     <div>
       <p class="eyebrow">Self-hosted GTFS and GTFS Realtime</p>
-      <h1>Open Transit RT</h1>
-      <p class="lead">A browser-first, open-source transit data backend for small agencies. A technical helper starts the app once; agency staff sign in locally and use action pages to import GTFS, check feeds, connect vehicles, and review readiness.</p>
+      <h1>Run your transit feed from a browser.</h1>
+      <p class="lead">Open Transit RT helps small agencies and civic technologists import GTFS, check public feed URLs, connect vehicle data, and see what needs attention without turning every task into command-line work.</p>
       <div class="actions">
-        <a class="button primary" href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">Start Local Trial</a>
-        <a class="button" href="video.html">Watch Tutorial</a>
-        <a class="button" href="ui-tour.html">Tour The UI</a>
+        <a class="button primary" href="try-locally.html">Start locally</a>
+        <a class="button" href="ui-tour.html">Tour the browser UI</a>
+        <a class="button" href="video.html">Watch the walkthrough</a>
       </div>
-      <p class="notice">Local/self-hosted evaluation does not prove CAL-ITP/Caltrans compliance, production readiness, agency adoption, consumer acceptance, hosted service availability, vendor compatibility, SLA/uptime, production AVL reliability, or ETA quality.</p>
+      <p class="boundary">Built for local and self-hosted evaluation. It does not prove compliance, production readiness, consumer acceptance, vendor compatibility, SLA, AVL reliability, or ETA quality.</p>
     </div>
-    <div class="browser" aria-label="Generated browser capture of the Operations Console">
-      <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="browser-path">/admin/operations</span></div>
-      <div class="browser-body">
-        <p class="tag">Generated browser capture</p>
-        <h2>Start Here</h2>
-        <div class="screen-grid">
-          <div class="side-rail">
-            <div class="rail-item"></div>
-            <div class="rail-item"></div>
-            <div class="rail-item"></div>
-            <div class="rail-item"></div>
-          </div>
-          <div class="screen-table">
-            <div class="screen-row"></div>
-            <div class="screen-row"></div>
-            <div class="screen-row"></div>
-            <div class="screen-row"></div>
-            <div class="screen-row"></div>
-          </div>
-        </div>
-        <p class="muted">Illustrative local/demo UI capture, not retained evidence.</p>
-      </div>
+    <aside class="hero-panel" aria-label="Browser workflow">
+      <h2>Work in order</h2>
+      <ol class="workflow-list">
+        <li><strong>Start setup</strong><span>Open the local sign-in page after a helper starts the app.</span></li>
+        <li><strong>Import GTFS</strong><span>Upload or review a schedule and see validation guidance.</span></li>
+        <li><strong>Check feeds</strong><span>Review feeds.json, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</span></li>
+        <li><strong>Connect vehicles</strong><span>Choose a local connector shape before using real device data.</span></li>
+        <li><strong>Fix issues</strong><span>See the next action and when technical help is needed.</span></li>
+      </ol>
+    </aside>
+  </section>
+
+  <section id="start" aria-labelledby="start-heading">
+    <h2 id="start-heading">Start Here</h2>
+    <div class="two-column">
+      <article class="card">
+        <p class="tag">Agency staff</p>
+        <h3>Use the browser after startup</h3>
+        <p>Open the local sign-in page, choose <strong>Start setup</strong>, then follow the Operations Console workflow. Normal review does not require curl, DevTools, header extensions, JWTs, or manually pasted cookies.</p>
+      </article>
+      <article class="card">
+        <p class="tag">Technical helper</p>
+        <h3>Start the local app once</h3>
+        <p>Use the release or repository startup flow, then hand the local browser URL to staff. Keep deeper deployment, validator, connector, and secret work outside the normal user path.</p>
+        <p><a href="try-locally.html">Try locally</a> or open the <a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">technical README</a>.</p>
+      </article>
     </div>
   </section>
 
-  <section aria-labelledby="flow-heading">
-    <h2 id="flow-heading">Get To Useful Work</h2>
+  <section aria-labelledby="guides-heading">
+    <h2 id="guides-heading">Guides On This Site</h2>
     <div class="grid">
-      <article class="flow-card">
-        <span class="step">1. Start app</span>
-        <h3>Helper starts local services</h3>
-        <p>Run the documented startup command and share the local setup URL.</p>
-        <a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/small-agency-quick-start.md">Quick start</a>
+      <article class="flow-card"><span class="step">Start</span><h3><a href="try-locally.html">Try locally</a></h3><p>Open the local browser flow after a technical helper starts the app.</p></article>
+      <article class="flow-card"><span class="step">GTFS</span><h3><a href="import-gtfs.html">Import GTFS</a></h3><p>Load or review a schedule and confirm an active feed version.</p></article>
+      <article class="flow-card"><span class="step">Feeds</span><h3><a href="check-feeds.html">Check feeds</a></h3><p>Review the five public URLs and the next action for each row.</p></article>
+      <article class="flow-card"><span class="step">Vehicles</span><h3><a href="connect-vehicles.html">Connect vehicles</a></h3><p>Choose a local-supported connector path before using real endpoints.</p></article>
+      <article class="flow-card"><span class="step">Help</span><h3><a href="troubleshoot.html">Troubleshoot</a></h3><p>Separate browser actions from technical-helper tasks.</p></article>
+      <article class="flow-card"><span class="step">Connectors</span><h3><a href="connector-support.html">Connector support</a></h3><p>See what works today and what remains planned.</p></article>
+    </div>
+  </section>
+
+  <section aria-labelledby="browser-heading">
+    <h2 id="browser-heading">What You Can Do In The Browser</h2>
+    <div class="grid">
+      <article class="flow-card"><span class="step">GTFS</span><h3><a href="import-gtfs.html">Import GTFS</a></h3><p>Load a schedule ZIP or review an existing active feed version.</p></article>
+      <article class="flow-card"><span class="step">Feeds</span><h3><a href="check-feeds.html">Check feed URLs</a></h3><p>See whether discovery, schedule, Vehicle Positions, Trip Updates, and Alerts are present.</p></article>
+      <article class="flow-card"><span class="step">Realtime</span><h3>Review vehicle data</h3><p>Check freshness, stale vehicles, assignment confidence, and realtime outputs.</p></article>
+      <article class="flow-card"><span class="step">Connectors</span><h3><a href="connect-vehicles.html">Pick a connector path</a></h3><p>Start from CSV replay, polling, webhook sidecar, JSON transform, or authenticated telemetry POST.</p></article>
+      <article class="flow-card"><span class="step">System check</span><h3><a href="readiness.html">See what needs attention</a></h3><p>Separate user actions from technical-helper work before sharing public URLs.</p></article>
+      <article class="flow-card"><span class="step">Help</span><h3><a href="troubleshoot.html">Find the next step</a></h3><p>Use task-based help for setup, validators, connectors, maintenance, and troubleshooting.</p></article>
+    </div>
+  </section>
+
+  <section aria-labelledby="connect-heading">
+    <h2 id="connect-heading">What You Can Connect</h2>
+    <div class="matrix">
+      <article class="card">
+        <h3>Supported today</h3>
+        <p>Local connector examples, authenticated telemetry ingest, deterministic prediction, validator wrappers, monitoring/export helpers, and public feed URLs.</p>
+        <p><a href="connector-support.html">See connector support</a></p>
       </article>
-      <article class="flow-card">
-        <span class="step">2. Sign in</span>
-        <h3>Open the local browser handoff</h3>
-        <p>Agency staff choose <strong>Start setup</strong>. No manual token handling is needed for normal review.</p>
-        <a href="ui-tour.html">View the tour</a>
+      <article class="card">
+        <h3>Deployment-owned setup</h3>
+        <p>Real endpoints, credentials, device tokens, retention, monitoring destinations, and vendor payload mappings stay under the deployment owner.</p>
       </article>
-      <article class="flow-card">
-        <span class="step">3. Import GTFS</span>
-        <h3>Review the schedule</h3>
-        <p>Check required files, row counts, service dates, import history, and validation guidance.</p>
-        <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/gtfs-validation-triage.md">GTFS triage</a>
-      </article>
-      <article class="flow-card">
-        <span class="step">4. Check feeds</span>
-        <h3>Check five feed paths</h3>
-        <p>Review <code>feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</p>
-        <a href="readiness.html">Readiness flow</a>
-      </article>
-      <article class="flow-card">
-        <span class="step">5. Connect vehicle data</span>
-        <h3>Pick a connector shape</h3>
-        <p>Start with CSV replay, polling, webhook sidecar, JSON transform, or authenticated telemetry POST.</p>
-        <a href="connectors.html">Connector catalog</a>
-      </article>
-      <article class="flow-card">
-        <span class="step">6. Get help</span>
-        <h3>See what needs support</h3>
-        <p>Use Readiness, Maintenance, and Help to separate staff actions from technical-helper work.</p>
-        <a href="video.html">Watch tutorial</a>
+      <article class="card">
+        <h3>Planned candidates</h3>
+        <p>TheTransitClock, vendor AVL adapters, SIRI bridging, OTP/OBA checks, and discovery-readiness workflows remain roadmap items until implemented and tested.</p>
       </article>
     </div>
   </section>
 
-  <section aria-labelledby="role-heading">
-    <h2 id="role-heading">Choose Your Role</h2>
-    <div class="role-tabs" role="tablist" aria-label="Role navigation">
-      <button type="button" role="tab" aria-selected="true" data-role-tab="manager">Agency Manager</button>
-      <button type="button" role="tab" aria-selected="false" data-role-tab="operations">Operations Staff</button>
-      <button type="button" role="tab" aria-selected="false" data-role-tab="helper">Technical Helper</button>
-      <button type="button" role="tab" aria-selected="false" data-role-tab="connector">Connector Developer</button>
-      <button type="button" role="tab" aria-selected="false" data-role-tab="maintainer">Maintainer</button>
-    </div>
-    <article class="role-panel" data-role-panel="manager">
-      <h3>Agency Manager</h3>
-      <p>Decide whether a local evaluation is worth trying and what outside evidence would still be needed before public claims.</p>
-      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/wiki/can-my-agency-use-this.md">Can my agency use this?</a>
-    </article>
-    <article class="role-panel" data-role-panel="operations" hidden>
-      <h3>Operations Staff</h3>
-      <p>Start in the browser and review setup, imports, feeds, realtime state, readiness, and maintenance tasks.</p>
-      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/no-cli-agency-first-run.md">No command-line first run</a>
-    </article>
-    <article class="role-panel" data-role-panel="helper" hidden>
-      <h3>Technical Helper</h3>
-      <p>Start the local app, run deeper checks when useful, and help with deployment-owned setup.</p>
-      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/tutorials/self-hosted-operator-trial.md">Self-hosted operator trial</a>
-    </article>
-    <article class="role-panel" data-role-panel="connector" hidden>
-      <h3>Connector Developer</h3>
-      <p>Adapt telemetry, predictor, validator, monitoring, or consumer/discovery workflows through explicit adapter boundaries.</p>
-      <a href="connectors.html">Connector catalog</a>
-    </article>
-    <article class="role-panel" data-role-panel="maintainer" hidden>
-      <h3>Maintainer</h3>
-      <p>Use the docs index, release status, decisions, and audits before changing product contracts.</p>
-      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs index</a>
-    </article>
+  <section aria-labelledby="proof-heading">
+    <h2 id="proof-heading">Know What Is Not Proven</h2>
+    <p>Open Transit RT can help you evaluate and prepare GTFS / GTFS-Realtime workflows. Outside claims still require deployment-specific review, external evidence, and agency-owned decisions.</p>
   </section>
 </main>
-<script>
-  document.documentElement.classList.add('js');
-  const tabs = Array.from(document.querySelectorAll('[data-role-tab]'));
-  const panels = Array.from(document.querySelectorAll('[data-role-panel]'));
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const role = tab.getAttribute('data-role-tab');
-      tabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
-      panels.forEach((panel) => {
-        panel.hidden = panel.getAttribute('data-role-panel') !== role;
-      });
-    });
-  });
-</script>
 </body>
 </html>

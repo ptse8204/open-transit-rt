@@ -44,7 +44,7 @@ Use the existing boundary that matches the system being integrated:
 
 ## Ecosystem Connector Map
 
-Implemented or local-supported paths:
+Works today / local-supported:
 
 | Category | Current path | First local check |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Implemented or local-supported paths:
 | Monitoring/export | `examples/connectors/monitoring-export` | `make adapter-conformance` |
 | Discovery metadata | `/public/feeds.json` and public feed URLs | `make smoke` |
 
-Roadmap-only candidates:
+Planned / candidate:
 
 | Candidate | Adapter rule |
 | --- | --- |
@@ -80,11 +80,11 @@ Useful references: [GTFS Realtime reference](https://gtfs.org/documentation/real
 [GTFS Realtime best practices](https://gtfs.org/documentation/realtime/realtime-best-practices/),
 [MobilityData GTFS Schedule Validator](https://github.com/MobilityData/gtfs-validator),
 [MobilityData GTFS Realtime validator package](https://github.com/orgs/MobilityData/packages/container/package/gtfs-realtime-validator),
-[OpenTripPlanner](https://github.com/opentripplanner/OpenTripPlanner),
+[OpenTripPlanner docs](https://docs.opentripplanner.org/en/latest/),
 [OneBusAway](https://github.com/OneBusAway/onebusaway-application-modules),
-[TheTransitClock](https://github.com/TheTransitClock/transitime),
+[TheTransitClock](https://thetransitclock.github.io/),
 [Transitland feeds API](https://www.transit.land/documentation/rest-api/feeds),
-[Mobility Database FAQ](https://mobilitydatabase.org/faq),
+[Mobility Database](https://mobilitydatabase.org/about),
 [GTFS extensions overview](https://gtfs.org/community/extensions/overview/), and
 [GTFS-ride](https://gtfsride.org/).
 
