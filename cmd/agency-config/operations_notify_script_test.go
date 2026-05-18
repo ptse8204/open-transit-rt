@@ -385,10 +385,11 @@ func TestOperationsNotifyRedactionFailureAlwaysFails(t *testing.T) {
 func TestOperationsNotifyDocsWordingBoundaries(t *testing.T) {
 	root := operationsNotifyRepoRoot(t)
 	paths := []string{
-		"docs/phase-47-self-hosted-operations-notifications.md",
-		"docs/handoffs/phase-47.md",
 		"docs/tutorials/self-hosted-operations-notifications.md",
 		"docs/roadmap-to-calitp-compliance-and-gap-closure.md",
+		"docs/current-status.md",
+		"docs/handoffs/latest.md",
+		"docs/product-acceptance/product-vs-demo-review.md",
 	}
 	for _, rel := range paths {
 		body, err := os.ReadFile(filepath.Join(root, rel))
