@@ -355,7 +355,7 @@ code {
 }
 
 .transcript {
-  border-left: 4px solid var(--green);
+  border: 1px solid var(--line);
   box-shadow: none;
 }
 

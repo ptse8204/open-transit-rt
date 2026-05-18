@@ -401,8 +401,7 @@ PUBLIC_BASE_URL=https://feeds.example.org make oci-reference-check
 When `OCI_HOST` access is configured, the helper also checks loopback health
 for the five services through SSH. It records deployment helper presence,
 backup/restore configuration presence, public fetch/validator state, telemetry
-simulator guidance, and all-false claim flags without printing populated env
-values.
+simulator guidance, and safety booleans without printing populated env values.
 
 See [OCI Reference Check](oci-reference-check.md).
 
