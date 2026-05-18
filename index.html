@@ -12,9 +12,10 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html" aria-current="page">Open Transit RT</a>
     <div class="nav-links">
+      <a href="try-locally.html">Try locally</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="readiness.html">Check feeds</a>
-      <a href="connectors.html">Connectors</a>
+      <a href="check-feeds.html">Check feeds</a>
+      <a href="connector-support.html">Connectors</a>
       <a href="video.html">Tutorial</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
@@ -27,7 +28,7 @@
       <h1>Run your transit feed from a browser.</h1>
       <p class="lead">Open Transit RT helps small agencies and civic technologists import GTFS, check public feed URLs, connect vehicle data, and see what needs attention without turning every task into command-line work.</p>
       <div class="actions">
-        <a class="button primary" href="#start">Start locally</a>
+        <a class="button primary" href="try-locally.html">Start locally</a>
         <a class="button" href="ui-tour.html">Tour the browser UI</a>
         <a class="button" href="video.html">Watch the walkthrough</a>
       </div>
@@ -57,20 +58,32 @@
         <p class="tag">Technical helper</p>
         <h3>Start the local app once</h3>
         <p>Use the release or repository startup flow, then hand the local browser URL to staff. Keep deeper deployment, validator, connector, and secret work outside the normal user path.</p>
-        <p><a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">Technical README</a></p>
+        <p><a href="try-locally.html">Try locally</a> or open the <a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">technical README</a>.</p>
       </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="guides-heading">
+    <h2 id="guides-heading">Guides On This Site</h2>
+    <div class="grid">
+      <article class="flow-card"><span class="step">Start</span><h3><a href="try-locally.html">Try locally</a></h3><p>Open the local browser flow after a technical helper starts the app.</p></article>
+      <article class="flow-card"><span class="step">GTFS</span><h3><a href="import-gtfs.html">Import GTFS</a></h3><p>Load or review a schedule and confirm an active feed version.</p></article>
+      <article class="flow-card"><span class="step">Feeds</span><h3><a href="check-feeds.html">Check feeds</a></h3><p>Review the five public URLs and the next action for each row.</p></article>
+      <article class="flow-card"><span class="step">Vehicles</span><h3><a href="connect-vehicles.html">Connect vehicles</a></h3><p>Choose a local-supported connector path before using real endpoints.</p></article>
+      <article class="flow-card"><span class="step">Help</span><h3><a href="troubleshoot.html">Troubleshoot</a></h3><p>Separate browser actions from technical-helper tasks.</p></article>
+      <article class="flow-card"><span class="step">Connectors</span><h3><a href="connector-support.html">Connector support</a></h3><p>See what works today and what remains planned.</p></article>
     </div>
   </section>
 
   <section aria-labelledby="browser-heading">
     <h2 id="browser-heading">What You Can Do In The Browser</h2>
     <div class="grid">
-      <article class="flow-card"><span class="step">GTFS</span><h3>Import GTFS</h3><p>Load a schedule ZIP or review an existing active feed version.</p></article>
-      <article class="flow-card"><span class="step">Feeds</span><h3>Check feed URLs</h3><p>See whether discovery, schedule, Vehicle Positions, Trip Updates, and Alerts are present.</p></article>
+      <article class="flow-card"><span class="step">GTFS</span><h3><a href="import-gtfs.html">Import GTFS</a></h3><p>Load a schedule ZIP or review an existing active feed version.</p></article>
+      <article class="flow-card"><span class="step">Feeds</span><h3><a href="check-feeds.html">Check feed URLs</a></h3><p>See whether discovery, schedule, Vehicle Positions, Trip Updates, and Alerts are present.</p></article>
       <article class="flow-card"><span class="step">Realtime</span><h3>Review vehicle data</h3><p>Check freshness, stale vehicles, assignment confidence, and realtime outputs.</p></article>
-      <article class="flow-card"><span class="step">Connectors</span><h3>Pick a connector path</h3><p>Start from CSV replay, polling, webhook sidecar, JSON transform, or authenticated telemetry POST.</p></article>
-      <article class="flow-card"><span class="step">Readiness</span><h3>See what needs attention</h3><p>Separate user actions from technical-helper work before sharing public URLs.</p></article>
-      <article class="flow-card"><span class="step">Help</span><h3>Find the next step</h3><p>Use task-based help for setup, validators, connectors, maintenance, and troubleshooting.</p></article>
+      <article class="flow-card"><span class="step">Connectors</span><h3><a href="connect-vehicles.html">Pick a connector path</a></h3><p>Start from CSV replay, polling, webhook sidecar, JSON transform, or authenticated telemetry POST.</p></article>
+      <article class="flow-card"><span class="step">System check</span><h3><a href="readiness.html">See what needs attention</a></h3><p>Separate user actions from technical-helper work before sharing public URLs.</p></article>
+      <article class="flow-card"><span class="step">Help</span><h3><a href="troubleshoot.html">Find the next step</a></h3><p>Use task-based help for setup, validators, connectors, maintenance, and troubleshooting.</p></article>
     </div>
   </section>
 
@@ -80,7 +93,7 @@
       <article class="card">
         <h3>Supported today</h3>
         <p>Local connector examples, authenticated telemetry ingest, deterministic prediction, validator wrappers, monitoring/export helpers, and public feed URLs.</p>
-        <p><a href="connectors.html">See connector support</a></p>
+        <p><a href="connector-support.html">See connector support</a></p>
       </article>
       <article class="card">
         <h3>Deployment-owned setup</h3>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Troubleshoot Open Transit RT</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="try-locally.html">Try locally</a>
+      <a href="ui-tour.html">Tour</a>
+      <a href="check-feeds.html">Check feeds</a>
+      <a href="connector-support.html">Connectors</a>
+      <a href="video.html">Tutorial</a>
+      <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <section class="page-hero">
+    <div>
+      <p class="tag">Troubleshooting</p>
+      <h1>Fix the next issue.</h1>
+      <p class="lead">Start from the browser status, open the linked page, and ask for technical help only when the next action depends on setup, tooling, secrets, or hosting.</p>
+    </div>
+    <aside class="summary-panel">
+      <h2>First stop</h2>
+      <p>Use the Start page workflow. It is designed to show the first missing, blocked, or needs-review step.</p>
+    </aside>
+  </section>
+
+  <section aria-labelledby="symptoms-heading">
+    <h2 id="symptoms-heading">Common Issues</h2>
+    <div class="grid">
+      <article class="status-card"><span class="status-label">Sign-in</span><h3>Local login missing</h3><p>Confirm the local app is running and local/demo sign-in is enabled. Production deployments use deployment-owned access.</p></article>
+      <article class="status-card"><span class="status-label">GTFS</span><h3>No active schedule</h3><p>Open Import GTFS, then GTFS Workbench. Ask for help if the ZIP is missing or import fails.</p></article>
+      <article class="status-card"><span class="status-label">Feeds</span><h3>URL missing or blocked</h3><p>Open Feed Health and follow the linked next action for that row.</p></article>
+      <article class="status-card"><span class="status-label">Vehicles</span><h3>Stale telemetry</h3><p>Open Devices and Telemetry Freshness. Check connector setup and stale thresholds.</p></article>
+      <article class="status-card"><span class="status-label">Validators</span><h3>Tooling unavailable</h3><p>Ask a helper to install or configure allowlisted validator tooling.</p></article>
+      <article class="status-card"><span class="status-label">Sharing</span><h3>Not ready to publish</h3><p>Confirm public hosting, license, contact metadata, and deployment ownership before sharing URLs.</p></article>
+    </div>
+  </section>
+
+  <section aria-labelledby="support-heading">
+    <h2 id="support-heading">Useful Pages</h2>
+    <p><a class="button primary" href="try-locally.html">Try locally</a> <a class="button" href="check-feeds.html">Check feeds</a> <a class="button" href="connector-support.html">Connectors</a></p>
+  </section>
+</main>
+</body>
+</html>
