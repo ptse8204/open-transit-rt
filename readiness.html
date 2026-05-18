@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open Transit RT Feed Check</title>
+  <title>Open Transit RT - Check Your Feeds</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -24,25 +24,41 @@
   <section class="page-hero">
     <div>
       <p class="tag">System check</p>
-      <h1>Is it running?</h1>
-      <p class="lead">Start by checking whether the schedule imported, the public feed URLs exist, realtime is publishing, vehicle data is fresh, and validators are available.</p>
+      <h1>Check your feeds.</h1>
+      <p class="lead">Use this page when you need a simple answer: is Open Transit RT running, which feed pieces are available, and what should happen next?</p>
     </div>
     <aside class="summary-panel">
       <h2>Fast answer</h2>
-      <p>If a row is missing or blocked, open the linked browser page first. Ask for technical help only when the page says setup, tooling, secrets, or deployment work is needed.</p>
+      <p>Start in Feed Health. If a row is missing or blocked, open the linked page before asking for deeper technical help.</p>
     </aside>
   </section>
 
   <section aria-labelledby="questions-heading">
-    <h2 id="questions-heading">Check These First</h2>
+    <h2 id="questions-heading">Is It Running?</h2>
     <div class="grid">
-      <article class="status-card"><span class="status-label">GTFS</span><h3>Did the schedule import?</h3><p>Open GTFS Import or GTFS Workbench and confirm an active feed version exists.</p></article>
       <article class="status-card"><span class="status-label">Feeds</span><h3>Are five URLs available?</h3><p>Check <code>feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</p></article>
+      <article class="status-card"><span class="status-label">GTFS</span><h3>Did GTFS import?</h3><p>Open GTFS Import or GTFS Workbench and confirm an active feed version exists.</p></article>
       <article class="status-card"><span class="status-label">Realtime</span><h3>Are feeds publishing?</h3><p>Review Vehicle Positions, Trip Updates diagnostics, Alerts, stale rows, and withheld output.</p></article>
       <article class="status-card"><span class="status-label">Vehicles</span><h3>Is vehicle data fresh?</h3><p>Check device bindings, last observations, stale counts, and assignment confidence.</p></article>
       <article class="status-card"><span class="status-label">Validators</span><h3>Are validators installed?</h3><p>Review validator health and latest static or realtime results when tooling is configured.</p></article>
       <article class="status-card"><span class="status-label">Issues</span><h3>What needs attention?</h3><p>Use feed health, GTFS quality, validation health, readiness, maintenance, and help pages.</p></article>
+      <article class="status-card"><span class="status-label">Next</span><h3>What can I do next?</h3><p>Follow the browser action first. Escalate only for setup, tooling, secrets, hosting, or connector work.</p></article>
     </div>
+  </section>
+
+  <section aria-labelledby="where-heading">
+    <h2 id="where-heading">Open These Pages</h2>
+    <table>
+      <thead><tr><th>Need</th><th>Open in the console</th><th>What to look for</th></tr></thead>
+      <tbody>
+        <tr><td>Five feed URLs</td><td><code>/admin/operations/feed-health</code></td><td>Present, missing, stale, blocked, and next action rows.</td></tr>
+        <tr><td>Imported schedule</td><td><code>/admin/operations/gtfs-workbench</code></td><td>Active feed version, required files, import history, and validation guidance.</td></tr>
+        <tr><td>Realtime output</td><td><code>/admin/operations/realtime</code></td><td>Vehicle Positions, Trip Updates diagnostics, Alerts, stale rows, and assignment state.</td></tr>
+        <tr><td>Vehicle data</td><td><code>/admin/operations/devices</code></td><td>Device bindings, last observations, freshness, and token-safe next actions.</td></tr>
+        <tr><td>Validator tooling</td><td><code>/admin/operations/validation-health</code></td><td>Tooling status, latest records, stale results, blockers, and allowed reruns.</td></tr>
+        <tr><td>Ongoing operations</td><td><code>/admin/operations/maintenance</code></td><td>Routine checks, backup/restore guidance, support summaries, and owner notes.</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <section aria-labelledby="next-heading">
@@ -53,6 +69,7 @@
       <li><strong>Stale vehicle data</strong><span>Check device bindings, telemetry source, connector setup, and stale threshold.</span></li>
       <li><strong>Validator not available</strong><span>Ask a technical helper to install or configure the allowlisted validator tooling.</span></li>
       <li><strong>External sharing</strong><span>Confirm public hosting, license/contact metadata, and deployment ownership before sharing URLs.</span></li>
+      <li><strong>Still unclear</strong><span>Open Help and use the task guidance to separate staff work from technical-helper work.</span></li>
     </ol>
   </section>
 
