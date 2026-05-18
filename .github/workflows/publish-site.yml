@@ -1,0 +1,81 @@
+name: Publish GitHub Pages site
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - site/**
+      - .github/workflows/publish-site.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: github-pages-site-publish
+  cancel-in-progress: false
+
+jobs:
+  publish-site:
+    name: Publish site directory to gh-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Prepare gh-pages worktree
+        run: |
+          git fetch origin '+refs/heads/gh-pages:refs/remotes/origin/gh-pages' || true
+          rm -rf ../gh-pages-publish
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git worktree add -B gh-pages ../gh-pages-publish refs/remotes/origin/gh-pages
+          else
+            git worktree add --detach ../gh-pages-publish
+            cd ../gh-pages-publish
+            git checkout --orphan gh-pages
+          fi
+
+      - name: Copy public site files
+        run: |
+          find ../gh-pages-publish -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          rsync -a --exclude '.DS_Store' site/ ../gh-pages-publish/
+          touch ../gh-pages-publish/.nojekyll
+
+      - name: Verify public site tree
+        run: |
+          cd ../gh-pages-publish
+          for path in \
+            index.html \
+            ui-tour.html \
+            connectors.html \
+            readiness.html \
+            video.html \
+            assets/site.css
+          do
+            test -f "$path"
+          done
+          for path in AGENTS.md README.md docs .github cmd internal scripts; do
+            if [ -e "$path" ]; then
+              echo "Public site publish unexpectedly includes $path" >&2
+              exit 1
+            fi
+          done
+
+      - name: Commit and push gh-pages
+        run: |
+          cd ../gh-pages-publish
+          git add -A
+          if git diff --cached --quiet; then
+            echo "gh-pages already matches site/."
+            exit 0
+          fi
+          git commit -m "Publish updated browser-first website"
+          git push origin HEAD:gh-pages
