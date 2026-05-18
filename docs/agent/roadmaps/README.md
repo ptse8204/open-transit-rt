@@ -5,23 +5,21 @@ should not need to read them before trying the product.
 
 ## Active Roadmap
 
-- [Post-rc2 Browser-First Product Roadmap](../../roadmaps/post-rc2-browser-first-product/README.md)
-- [Phase Plan](../../roadmaps/post-rc2-browser-first-product/phase-plan.md)
-- [UI Audit](../../roadmaps/post-rc2-browser-first-product/ui-audit.md)
+- [External Connector Runtime Roadmap](../../roadmaps/external-connector-runtime-integration/README.md)
+- [External Connector Phase Plan](../../roadmaps/external-connector-runtime-integration/phase-plan.md)
+- [Post-rc2 Browser-First Closeout](../../roadmaps/post-rc2-browser-first-product/closeout.md)
 
 ## Earlier Autonomous Packs
 
-- [Agency-First Connector Platform](../../roadmaps/agency-first-connector-platform/README.md)
-- [Consumer-Grade Control Plane](../../roadmaps/consumer-grade-control-plane/README.md)
-- [Post-90 Agency-Grade GTFS-RT Product](../../roadmaps/post-90-agency-grade-gtfs-rt-product/README.md)
-- [Post-110 Public Release Install UX](../../roadmaps/post-110-goal-public-release-install-ux/README.md)
+Earlier autonomous packs are archived on `archive/agent-history`. They are not
+part of the main read set.
 
 ## Phase Ledgers
 
-Root-level `docs/phase-*.md` files are long implementation ledgers. They are
-kept for traceability, not for normal setup or operator training. The Phase 11
-inventory found 125 root phase-ledger files.
+Root-level `docs/phase-*.md` implementation ledgers are archived on
+`archive/agent-history`. Main keeps a short claim-review gate at
+`docs/phase-60-final-claim-review-and-public-closeout.md` because the final
+claim audit reads it.
 
 When a phase ledger conflicts with current implementation or current human docs,
-prefer the current code and the current browser-first guides, then update the
-stale doc or add a redirect note.
+prefer the current code and the current browser-first guides.

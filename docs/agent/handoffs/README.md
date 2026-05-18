@@ -15,10 +15,10 @@ agent prompts and local scripts still resolve it.
 
 ## Historical Handoff Archive
 
-The archive lives at `docs/handoffs/`. It includes phase-specific records,
-release-candidate closeouts, and blocker-only handoffs.
+Historical handoffs live on `archive/agent-history`. Main keeps only
+`docs/handoffs/latest.md` for current continuation state.
 
-Use the archive when you need to understand why a decision was made. Do not
+Use the archive branch when you need to understand why a decision was made. Do not
 copy old internal phrases into human-facing docs when clearer product language
 exists.
 

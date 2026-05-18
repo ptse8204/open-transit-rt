@@ -4,9 +4,8 @@ This directory is the entry point for Codex and other AI-agent maintenance
 context. Human readers should usually start with the [Docs Index](../index.md)
 or the [README](../../README.md) instead.
 
-The repository keeps long project-history files because they preserve release,
-roadmap, and claim-boundary decisions. They are not the normal product docs for
-agency staff.
+Long project-history files are preserved on the `archive/agent-history` branch.
+They are not the normal product docs for agency staff.
 
 ## Agent Read Order
 
@@ -16,19 +15,18 @@ For a new Codex session, read in this order:
 2. [Codex Task Brief](../codex-task.md)
 3. [Current Status](../current-status.md)
 4. [Latest Handoff](../handoffs/latest.md)
-5. [Post-rc2 Browser-First Product Roadmap](../roadmaps/post-rc2-browser-first-product/README.md)
-6. [Phase Plan](../roadmaps/post-rc2-browser-first-product/phase-plan.md)
+5. [External Connector Runtime Roadmap](../roadmaps/external-connector-runtime-integration/README.md)
+6. [Post-rc2 Browser-First Closeout](../roadmaps/post-rc2-browser-first-product/closeout.md)
 7. [Decisions](../decisions.md)
 8. [Dependencies](../dependencies.md)
-9. [Final Claim Review Rules](../release-status-v0.1.0-rc.2.md)
+9. [Final Claim Review Rules](../phase-60-final-claim-review-and-public-closeout.md)
 
 ## Agent-Only Areas
 
-- [Handoffs](handoffs/README.md): latest and historical continuation notes.
-- [Roadmaps](roadmaps/README.md): autonomous roadmap packs, phase plans, and
-  internal status ledgers.
-- [Prompts](prompts/README.md): Codex kickoff prompts and truthfulness guards.
-- [History](history/README.md): phase-ledger inventory and stale-doc handling.
+- [Handoffs](handoffs/README.md): latest continuation note and archive pointer.
+- [Roadmaps](roadmaps/README.md): current roadmap pointers and archive pointer.
+- [Prompts](prompts/README.md): current prompt context and archive pointer.
+- [History](history/README.md): archive branch and stale-doc handling.
 
 ## Stable Branch Boundary
 
@@ -37,7 +35,8 @@ intentionally omits `AGENTS.md`, `docs/agent/**`, `docs/handoffs/**`,
 `docs/prompts/**`, `docs/roadmaps/**`, Codex task files, conversation
 summaries, phase ledgers, and roadmap planning packs.
 
-Run this local check before changing the filter workflow or exclude list:
+The filtered stable branch still omits agent-only paths. Run this local check
+before changing the filter workflow or exclude list:
 
 ```bash
 make check-stable-filter

@@ -1,16 +1,20 @@
 # Agent History
 
-This repo has a long agent-maintained history layer. Phase 11 keeps that layer
-discoverable while moving normal readers toward shorter browser-first docs.
+This repo has a long agent-maintained history layer. Main now keeps only the
+active maintenance context. The long archive is preserved on
+`archive/agent-history`.
 
 ## Inventory
 
-Phase 11 inventory found:
+Before archive, the inventory included:
 
 - 125 root `docs/phase-*.md` implementation ledgers;
 - 146 files in `docs/handoffs/`;
 - roadmap packs under `docs/roadmaps/`;
 - Codex and kickoff prompt files under `docs/prompts/` and roadmap folders.
+
+Use `git switch archive/agent-history` to inspect those files locally, then
+return to `main` before normal product work.
 
 ## How To Use History
 
@@ -28,8 +32,8 @@ history files before they can run the product.
 
 When a historical file is stale:
 
-- do not delete it just to simplify the tree;
-- prefer adding a short redirect note from current docs;
+- do not restore it to main just to simplify archaeology;
+- prefer a short pointer to `archive/agent-history`;
 - update current human docs first;
 - update `docs/handoffs/latest.md` only for current continuation state;
 - keep protected evidence paths and the prepared-only consumer tracker
