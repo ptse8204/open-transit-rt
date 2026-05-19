@@ -138,7 +138,7 @@ func buildOperationsGTFSQualityFixPlanner(page operationsPage) operationsGTFSQua
 		},
 		AfterValidation: []string{
 			"Re-import the corrected GTFS ZIP or publish the reviewed GTFS Studio draft through the existing private flow.",
-			"Rerun the allowlisted static validator when available, then review GTFS Quality, Validation Health, Feed Health, and GTFS Workbench.",
+			"Rerun the allowlisted static validator when available, then review GTFS Quality, Validation Health, Feed Health, and Schedule Review.",
 			"Keep remaining warnings in needs_review until a data owner documents why no source change is required.",
 		},
 	}

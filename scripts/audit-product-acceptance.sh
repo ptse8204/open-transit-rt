@@ -210,12 +210,15 @@ def check_front_doors():
     for heading in (
         "## New Users",
         "## Agency Staff",
-        "## Technical Helpers",
         "## Connector Developers",
         "## Maintainers",
         "## AI Agents",
     ):
         require_contains(docs_index, heading, f"docs index includes {heading}")
+    if "## Administrators And Deployment Owners" in docs_index or "## Technical Helpers" in docs_index:
+        record_pass("docs index includes administrator/deployment-owner guidance")
+    else:
+        record_failure("docs index is missing administrator/deployment-owner guidance")
     maintainer_index = docs_index.find("## Maintainers")
     ai_index = docs_index.find("## AI Agents")
     if maintainer_index == -1 or ai_index == -1:

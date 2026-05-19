@@ -164,7 +164,7 @@ func buildFeedsJSONHealthRow(page operationsPage) operationsFeedHealthRow {
 		ValidatorContext:    "feeds.json is not itself a GTFS validator result; review each feed validator row separately.",
 		HealthContext:       "Metadata presence is a readiness signal, not a public fetch or consumer-ingestion proof.",
 		NextAction:          next,
-		DoesNotProve:        "Does not prove consumer acceptance, listing, display, ingestion, final-root ownership, or CAL-ITP/Caltrans compliance.",
+		DoesNotProve:        "This private view does not show consumer acceptance, listing, display, ingestion, final-root ownership, or CAL-ITP/Caltrans compliance.",
 		AdminLinks:          []string{"/admin/operations/feeds", "/admin/operations/setup"},
 		DocsLinks:           []string{"docs/requirements-calitp-compliance.md", "docs/tutorials/calitp-readiness-checklist.md"},
 	}
@@ -463,7 +463,7 @@ func feedHealthThresholdText(threshold string) string {
 func feedHealthNextAction(page operationsPage, feedType string, feed compliance.FeedMetadata, hasFeed bool, validation *compliance.ValidationHealthRow, reliability *compliance.ReliabilityFeedRow, status string) string {
 	if page.DiscoveryError != "" || !hasFeed || strings.TrimSpace(feed.CanonicalPublicURL) == "" {
 		if feedType == "schedule" {
-			return "Import GTFS by browser or CLI, then store publication metadata and rerun validation."
+			return "Import Schedule by browser or CLI, then store publication metadata and rerun validation."
 		}
 		return "Confirm the feed is configured and listed in feeds.json, then run validator health."
 	}
@@ -482,15 +482,15 @@ func feedHealthNextAction(page operationsPage, feedType string, feed compliance.
 func feedHealthDoesNotProve(feedType string) string {
 	switch feedType {
 	case "schedule":
-		return "Does not prove validator-clean production data, agency approval, final-root proof, consumer acceptance, or CAL-ITP/Caltrans compliance."
+		return "This private view does not show validator-clean production data, agency approval, final-root proof, consumer acceptance, or CAL-ITP/Caltrans compliance."
 	case "vehicle_positions":
-		return "Does not prove production AVL reliability, vendor compatibility, hardware certification, consumer display, or compliance."
+		return "This private view does not show production AVL reliability, vendor compatibility, hardware certification, consumer display, or compliance."
 	case "trip_updates":
-		return "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance."
+		return "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance."
 	case "alerts":
-		return "Does not prove consumer display, agency approval, public launch completion, or compliance."
+		return "This private view does not show consumer display, agency approval, public launch completion, or compliance."
 	default:
-		return "Does not prove consumer acceptance, public launch, SLA, uptime proof, production readiness, or compliance."
+		return "This private view does not show consumer acceptance, public launch, SLA, uptime proof, production readiness, or compliance."
 	}
 }
 
@@ -538,8 +538,8 @@ func vehiclePositionsUsefulness(page operationsPage) operationsRealtimeUsefulnes
 	signal := "no accepted latest telemetry rows are available to this console"
 	next := "Create or review device credentials, then send a safe sample telemetry event."
 	if len(page.Telemetry) > 0 {
-		state = "potentially non-empty"
-		count = fmt.Sprintf("%d latest telemetry rows available; public protobuf entity count not recorded", len(page.Telemetry))
+		state = "publishable"
+		count = fmt.Sprintf("%d latest telemetry rows available for private review; public protobuf entity count still needs feed-health or validator review", len(page.Telemetry))
 		signal = fmt.Sprintf("latest telemetry %s; stale latest rows=%d", formatTimeForText(page.TelemetryUpdatedAt), page.StaleCount)
 		next = "Review stale/suppressed rows and the public Vehicle Positions feed-health row."
 		if page.StaleCount == len(page.Telemetry) {
@@ -555,7 +555,7 @@ func vehiclePositionsUsefulness(page operationsPage) operationsRealtimeUsefulnes
 		StaleOrHeld:  fmt.Sprintf("%d stale latest telemetry rows", page.StaleCount),
 		NextAction:   next,
 		AdminLink:    "/admin/operations/telemetry",
-		DoesNotProve: "Does not prove real fleet reliability, vendor compatibility, hardware certification, consumer display, or compliance.",
+		DoesNotProve: "This private view does not show real fleet reliability, vendor compatibility, hardware certification, consumer display, or compliance.",
 	}
 }
 
@@ -564,19 +564,21 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 		return operationsRealtimeUsefulnessRow{
 			ID:           "trip_updates",
 			Label:        "Trip Updates",
-			State:        "not recorded",
+			State:        "missing",
 			Count:        "Trip Updates diagnostics are not available",
 			LatestSignal: page.TripUpdatesQuality.Message,
 			StaleOrHeld:  "withheld counts are not available until diagnostics are recorded",
 			Adapter:      "not available",
 			NextAction:   "Review telemetry and assignment confidence first; Trip Updates may be empty when prediction output is defensibly withheld.",
 			AdminLink:    "/admin/operations/feeds",
-			DoesNotProve: "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
+			DoesNotProve: "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
 		}
 	}
-	state := "generated"
+	state := "publishable"
 	if page.TripUpdatesQuality.TripUpdatesEmitted == 0 {
-		state = "empty or withheld"
+		state = "withheld"
+	} else if page.TripUpdatesQuality.StaleTelemetryRows > 0 {
+		state = "stale"
 	}
 	return operationsRealtimeUsefulnessRow{
 		ID:           "trip_updates",
@@ -588,22 +590,22 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 		Adapter:      firstNonEmpty(page.TripUpdatesQuality.AdapterName, "not available"),
 		NextAction:   "Review withheld reasons, matching confidence, stale telemetry, and adapter fallback state before relying on Trip Updates.",
 		AdminLink:    "/admin/operations/feeds",
-		DoesNotProve: "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
+		DoesNotProve: "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
 		Details:      page.TripUpdatesQuality.WithheldByReason,
 	}
 }
 
 func alertsUsefulness(feedRows []operationsFeedHealthRow) operationsRealtimeUsefulnessRow {
-	state := "not available yet"
+	state := "missing"
 	signal := "active alert count is not exposed in this Operations Console model"
 	count := "active alert count not available"
 	next := "Open the Alerts Console to review active, planned, or archived alerts, then check the Alerts feed row."
 	for _, row := range feedRows {
 		if row.ID == "alerts" {
 			if row.Status == checklistStatusOK {
-				state = "feed configured"
+				state = "publishable"
 			} else {
-				state = row.StatusText
+				state = issuePublishStateFromStatus(row.Status)
 			}
 			signal = row.CurrentSignal
 			break
@@ -618,7 +620,20 @@ func alertsUsefulness(feedRows []operationsFeedHealthRow) operationsRealtimeUsef
 		StaleOrHeld:  "not available in this private summary",
 		NextAction:   next,
 		AdminLink:    "/admin/alerts/console",
-		DoesNotProve: "Does not prove consumer display, agency approval, public launch completion, or compliance.",
+		DoesNotProve: "This private view does not show consumer display, agency approval, public launch completion, or compliance.",
+	}
+}
+
+func issuePublishStateFromStatus(status string) string {
+	switch normalizeChecklistStatus(status) {
+	case checklistStatusOK:
+		return "publishable"
+	case checklistStatusMissing:
+		return "missing"
+	case checklistStatusBlocked:
+		return "blocked"
+	default:
+		return "blocked"
 	}
 }
 

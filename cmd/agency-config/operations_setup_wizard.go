@@ -175,7 +175,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 			"Bind devices and send authenticated sample telemetry through existing ingest flows.",
 			"/admin/operations/telemetry-simulator",
 			[]string{"docs/tutorials/telemetry-simulator-and-device-trial.md", "docs/tutorials/device-avl-integration.md"},
-			"Telemetry visibility does not prove real vendor compatibility, hardware certification, or fleet reliability.",
+			"Telemetry visibility does not show real vendor compatibility, hardware certification, or fleet reliability.",
 		),
 		setupWizardStage(
 			"validators",
@@ -287,7 +287,7 @@ func setupWizardSummary(stages []operationsSetupWizardStage) operationsSetupWiza
 		NextStageLabel:    next.Label,
 		NextAction:        next.PrimaryAction,
 		NextActionLink:    next.AdminLink,
-		Meaning:           "Setup progress is a private operator guide for local/reference readiness. It does not prove approval, compliance, consumer acceptance, hosted operation, or production readiness.",
+		Meaning:           "Setup progress is a private operator guide for local/reference readiness. It does not show approval, compliance, consumer acceptance, hosted operation, or production readiness.",
 	}
 }
 
@@ -349,7 +349,7 @@ func setupWizardDiagnostics(page operationsPage) []operationsSetupWizardDiagnost
 			presenceStatus(page.PublicationConfig.FeedBaseURL),
 			presenceSignal(page.PublicationConfig.FeedBaseURL, "feed base URL"),
 			"Store the feed base URL on the advanced setup page before reviewing public feed links.",
-			"Feed URL configuration does not prove public launch, consumer acceptance, or production readiness.",
+			"Feed URL configuration does not show public launch, consumer acceptance, or production readiness.",
 		),
 		setupWizardDiagnostic(
 			"license_contact",
@@ -373,7 +373,7 @@ func setupWizardDiagnostics(page operationsPage) []operationsSetupWizardDiagnost
 			presenceStatus(page.ActiveFeedVersion),
 			presenceSignal(page.ActiveFeedVersion, "active schedule feed version"),
 			"Import a GTFS ZIP, import a safe URL, or publish a GTFS Studio draft before realtime review.",
-			"An active schedule does not prove validator-clean data or agency approval.",
+			"An active schedule does not show validator-clean data or agency approval.",
 		),
 		setupWizardDiagnostic(
 			"validator_tooling",
@@ -381,7 +381,7 @@ func setupWizardDiagnostics(page operationsPage) []operationsSetupWizardDiagnost
 			setupWizardValidationToolingStatus(page.ValidationHealth.ToolingStatus),
 			firstNonEmpty(page.ValidationHealth.ToolingStatus, "validator tooling status is unknown"),
 			"Review Validator Health and run only allowlisted server-side validation actions.",
-			"Validator tooling availability does not prove compliance or consumer acceptance.",
+			"Validator tooling availability does not show compliance or consumer acceptance.",
 		),
 		setupWizardDiagnostic(
 			"device_bindings",
@@ -389,7 +389,7 @@ func setupWizardDiagnostics(page operationsPage) []operationsSetupWizardDiagnost
 			presenceStatusFromCount(len(page.Devices)),
 			deviceBindingDiagnosticSignal(page),
 			"Bind devices only through the private token lifecycle; store one-time secrets outside the repo.",
-			"Device binding visibility does not prove hardware certification or vendor compatibility.",
+			"Device binding visibility does not show hardware certification or vendor compatibility.",
 		),
 		setupWizardDiagnostic(
 			"telemetry_freshness",
@@ -397,7 +397,7 @@ func setupWizardDiagnostics(page operationsPage) []operationsSetupWizardDiagnost
 			telemetryStatusForSetup(page),
 			telemetryFreshnessDiagnosticSignal(page),
 			"Use the telemetry simulator or authenticated device ingest, then review stale and unmatched states.",
-			"Telemetry visibility does not prove fleet reliability.",
+			"Telemetry visibility does not show fleet reliability.",
 		),
 	}
 }
@@ -434,7 +434,7 @@ func setupWizardRoleVisibility(page operationsPage) []operationsSetupWizardRoleV
 			mutationStatus,
 			mutationSignal,
 			"Use GTFS Import only when an admin has reviewed source, validation, and rollback implications.",
-			"Import permission does not prove schedule correctness, public launch, or consumer acceptance.",
+			"Import permission does not show schedule correctness, public launch, or consumer acceptance.",
 		),
 	}
 }
@@ -506,7 +506,7 @@ func setupWizardHelpRow(id string, label string, whenNeeded string, nextAction s
 	return operationsSetupWizardTechnicalHelp{
 		ID:            id,
 		Label:         label,
-		WhenNeeded:    firstNonEmpty(whenNeeded, "technical help is needed"),
+		WhenNeeded:    firstNonEmpty(whenNeeded, "administrator help is needed"),
 		NextAction:    firstNonEmpty(nextAction, "Use the linked private console or repo docs."),
 		AdminLink:     firstSafeAdminLink(adminLink),
 		DocsLink:      firstSafeDocsLink(docsLink),

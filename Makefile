@@ -10,13 +10,14 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: help check check-links check-stable-filter build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check external-connection-check adapter-conformance gtfsrt-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: help check check-links check-stable-filter build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up capture-ui-tour product-ui-smoke telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check external-connection-check adapter-conformance gtfsrt-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-product-language test-product-language audit-ui-layout audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 help:
 	@printf '%s\n' 'Open Transit RT command map'
 	@printf '%s\n' ''
 	@printf '%s\n' 'Local evaluation:'
 	@printf '%s\n' '  make agency-app-up              Start the local evaluator app package'
+	@printf '%s\n' '  make capture-ui-tour            Capture current tutorial screenshots from local app'
 	@printf '%s\n' '  make telemetry-simulator        Send synthetic telemetry through authenticated ingest'
 	@printf '%s\n' '  make agency-pilot-up            Import a supplied public GTFS URL for local/reference review'
 	@printf '%s\n' '  make agency-app-down            Stop the local evaluator app package'
@@ -24,6 +25,9 @@ help:
 	@printf '%s\n' 'Lightweight checks:'
 	@printf '%s\n' '  make check                      No-network/no-Docker/no-validator-install evaluator check'
 	@printf '%s\n' '  make check-stable-filter        Verify stable branch filtering rules locally'
+	@printf '%s\n' '  make audit-product-language     Check primary product wording guardrails'
+	@printf '%s\n' '  make test-product-language      Test product wording guardrails'
+	@printf '%s\n' '  make audit-ui-layout            Check static public/console layout guardrails'
 	@printf '%s\n' '  make test                       Go unit tests'
 	@printf '%s\n' '  make validate                   Full repo validation; requires pinned validators'
 	@printf '%s\n' ''
@@ -35,6 +39,7 @@ help:
 	@printf '%s\n' ''
 	@printf '%s\n' 'Release/readiness:'
 	@printf '%s\n' '  make release-candidate-check    Local release-candidate diagnostic summary'
+	@printf '%s\n' '  make product-ui-smoke           Render private product routes with reference settings'
 	@printf '%s\n' '  make install-confidence         Run local fresh-clone/archive install diagnostics'
 	@printf '%s\n' '  make oci-reference-check        Private OCI/reference deployment diagnostic summary'
 	@printf '%s\n' '  make validate-public-feeds      Off-host five-feed fetch and validator diagnostic'
@@ -60,13 +65,16 @@ check:
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git diff --check; else echo "Skipping git diff --check outside a git worktree."; fi
 	@scripts/check-consumer-tracker.sh >/dev/null
 	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json testdata/gtfsrt-conformance/*.json testdata/telemetry-simulator/*.json; do python3 -m json.tool "$$f" >/dev/null; done
-	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/install-confidence.sh scripts/test-install-confidence.sh scripts/release-candidate-check.sh scripts/oci-reference-check.sh scripts/validate-public-feeds.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/check-consumer-tracker.sh scripts/check-internal-links.sh scripts/check-stable-filter.sh scripts/test-product-acceptance.sh scripts/audit-operations-route-inventory.sh scripts/test-operations-route-inventory.sh; do sh -n "$$s"; done
+	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/capture-ui-tour.sh scripts/product-ui-smoke.sh scripts/install-confidence.sh scripts/test-install-confidence.sh scripts/release-candidate-check.sh scripts/oci-reference-check.sh scripts/validate-public-feeds.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/audit-product-language.sh scripts/audit-ui-layout.sh scripts/check-consumer-tracker.sh scripts/check-internal-links.sh scripts/check-stable-filter.sh scripts/test-product-acceptance.sh scripts/test-product-language.sh scripts/audit-operations-route-inventory.sh scripts/test-operations-route-inventory.sh; do sh -n "$$s"; done
 	@scripts/bootstrap-dev.sh --help >/dev/null
 	@scripts/agency-local-app.sh --help >/dev/null
 	@scripts/install-confidence.sh --help >/dev/null
 	@scripts/audit-final-claim-review.sh >/dev/null
 	@scripts/audit-product-acceptance.sh >/dev/null
+	@scripts/audit-product-language.sh >/dev/null
+	@scripts/audit-ui-layout.sh >/dev/null
 	@scripts/audit-operations-route-inventory.sh >/dev/null
+	@scripts/product-ui-smoke.sh >/dev/null
 	@scripts/check-internal-links.sh >/dev/null
 	@scripts/check-stable-filter.sh --skip-ref-check >/dev/null
 	@scripts/release-candidate-check.sh --help >/dev/null
@@ -129,6 +137,12 @@ agency-app-reset:
 
 agency-pilot-up:
 	@./scripts/agency-pilot-onboard.sh
+
+capture-ui-tour:
+	@./scripts/capture-ui-tour.sh
+
+product-ui-smoke:
+	@./scripts/product-ui-smoke.sh
 
 telemetry-simulator:
 	@./scripts/telemetry-simulator.sh
@@ -237,6 +251,15 @@ audit-product-acceptance:
 
 test-product-acceptance:
 	./scripts/test-product-acceptance.sh
+
+audit-product-language:
+	./scripts/audit-product-language.sh
+
+test-product-language:
+	./scripts/test-product-language.sh
+
+audit-ui-layout:
+	./scripts/audit-ui-layout.sh
 
 audit-operations-route-inventory:
 	./scripts/audit-operations-route-inventory.sh

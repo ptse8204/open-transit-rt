@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Connect Vehicles - Open Transit RT</title>
+  <title>Connect Vehicle Data - Open Transit RT</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -24,40 +26,57 @@
 <main>
   <section class="page-hero">
     <div>
-      <p class="tag">Vehicles</p>
-      <h1>Connect vehicle data.</h1>
-      <p class="lead">Start with a local-supported connector path, then let the deployment owner add real endpoints, credentials, device tokens, and retention rules.</p>
+      <p class="tag">Vehicle data</p>
+      <h1>Connect vehicle data through a controlled adapter path.</h1>
+      <p class="lead">Start with a local-supported connector shape. Add real endpoints, credentials, device tokens, retention rules, and monitoring only when a deployment owner is ready.</p>
+      <div class="actions">
+        <a class="button primary" href="connector-support.html">Connector support</a>
+        <a class="button" href="check-feeds.html">Check feed URLs</a>
+      </div>
     </div>
     <aside class="summary-panel">
-      <h2>Browser first</h2>
-      <p>Use Devices, Telemetry Freshness, Realtime, and Connectors to see what is connected and what needs technical help.</p>
+      <h2>Console pages</h2>
+      <p><code>/admin/operations/devices</code></p>
+      <p><code>/admin/operations/telemetry</code></p>
+      <p><code>/admin/operations/realtime</code></p>
     </aside>
   </section>
 
   <section aria-labelledby="paths-heading">
-    <h2 id="paths-heading">Start With One Path</h2>
-    <div class="grid">
-      <article class="card"><h3>CSV replay</h3><p>Replay synthetic or public-safe vehicle observations for evaluation.</p></article>
-      <article class="card"><h3>HTTP polling</h3><p>Poll a deployment-owned endpoint through the connector boundary.</p></article>
-      <article class="card"><h3>Webhook sidecar</h3><p>Receive payloads in a sidecar before forwarding normalized telemetry.</p></article>
-      <article class="card"><h3>Generic JSON transform</h3><p>Map simple JSON fields into the telemetry shape Open Transit RT expects.</p></article>
-      <article class="card"><h3>Authenticated POST</h3><p>Send normalized telemetry to <code>/v1/telemetry</code> with deployment-owned tokens.</p></article>
+    <h2 id="paths-heading">Choose One Starting Path</h2>
+    <div class="table-wrap">
+      <table class="task-table">
+        <thead><tr><th>Path</th><th>Use when</th><th>First safe check</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td>CSV replay</td><td>You have synthetic or public-safe vehicle observations for evaluation.</td><td>Run a local dry-run before sending telemetry.</td><td>Administrator or integrator</td></tr>
+          <tr><td>HTTP polling</td><td>A deployment-owned endpoint exposes vehicle observations.</td><td>Review polling credentials and fail-closed behavior.</td><td>Deployment owner</td></tr>
+          <tr><td>Webhook sidecar</td><td>A source can push payloads to an adapter process.</td><td>Normalize and redact payloads before forwarding.</td><td>Integrator</td></tr>
+          <tr><td>Generic JSON transform</td><td>Source data maps cleanly into the telemetry event shape.</td><td>Run transform conformance with synthetic fixtures.</td><td>Integrator</td></tr>
+          <tr><td>Authenticated telemetry POST</td><td>The source already emits normalized events.</td><td>Use deployment-owned device tokens for <code>/v1/telemetry</code>.</td><td>Administrator</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
-  <section aria-labelledby="safe-heading">
-    <h2 id="safe-heading">Keep This Technical</h2>
-    <ul class="compact-list">
-      <li>Device tokens and endpoint credentials.</li>
-      <li>Private vendor payloads and payload mappings.</li>
-      <li>Network exposure, TLS, retention, and monitoring destinations.</li>
-      <li>Production alerting and operations ownership.</li>
-    </ul>
+  <section aria-labelledby="browser-heading" class="split">
+    <div>
+      <h2 id="browser-heading">What Operators Can Review</h2>
+      <ul class="check-list">
+        <li><strong>Device bindings</strong><span>Which device is associated with which vehicle.</span></li>
+        <li><strong>Freshness</strong><span>When the latest observation arrived and whether stale thresholds are crossed.</span></li>
+        <li><strong>Assignment confidence</strong><span>Whether the matcher can safely associate a vehicle with a trip.</span></li>
+        <li><strong>Realtime feed effect</strong><span>Whether Vehicle Positions, Trip Updates, and Alerts reflect the current setup.</span></li>
+      </ul>
+    </div>
+    <aside class="action-panel">
+      <h2>Administrator work</h2>
+      <p>Real secrets, private payload mappings, network exposure, retention, and monitoring destinations should stay outside public docs and screenshots.</p>
+    </aside>
   </section>
 
-  <section aria-labelledby="next-heading">
-    <h2 id="next-heading">Next</h2>
-    <p><a class="button primary" href="connector-support.html">See connector support</a> <a class="button" href="check-feeds.html">Check feeds</a></p>
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>Local connector examples and synthetic checks do not prove real vendor compatibility, hardware certification, production AVL reliability, consumer acceptance, compliance, production readiness, SLA coverage, or ETA quality.</p>
   </section>
 </main>
 </body>

@@ -235,7 +235,7 @@ func buildRealtimeSummary(page operationsPage, fleet []operationsRealtimeFleetRo
 		LatestTelemetryRows: len(page.Telemetry),
 		StaleTelemetryRows:  page.StaleCount,
 		DeviceBindings:      len(page.Devices),
-		DoesNotProve:        "Does not prove production AVL reliability, vendor compatibility, hardware certification, consumer display, compliance, hosted operation, SLA, public launch, production readiness, or production-grade ETA quality.",
+		DoesNotProve:        "This private view does not show production AVL reliability, vendor compatibility, hardware certification, consumer display, compliance, hosted operation, SLA, public launch, production readiness, or production-grade ETA quality.",
 	}
 	if summary.LatestTelemetryRows >= summary.StaleTelemetryRows {
 		summary.FreshTelemetryRows = summary.LatestTelemetryRows - summary.StaleTelemetryRows
@@ -366,8 +366,8 @@ func vehiclePositionsPublishingReview(page operationsPage, summary operationsRea
 		Status:           status,
 		WhatLooksHealthy: fmt.Sprintf("%d latest vehicle row(s), %d estimated in Vehicle Positions, %s.", seenVehicles, publishedVehicles, coverage),
 		NeedsAttention:   "Review any suppressed, stale, unmatched, low-confidence, or assignment-mismatch rows before relying on public vehicle movement.",
-		NotProven:        "This private review does not prove production AVL reliability, vendor compatibility, hardware certification, consumer display, compliance, SLA, uptime, or production readiness.",
-		NextAction:       "Open Telemetry Freshness and Feed Health, then inspect why omitted vehicles or trip descriptors stayed out of the public feed.",
+		NotProven:        "This private review does not show production AVL reliability, vendor compatibility, hardware certification, consumer display, compliance, SLA, uptime, or production readiness.",
+		NextAction:       "Open Telemetry and Feed Health, then inspect why omitted vehicles or trip descriptors stayed out of the public feed.",
 		Signals: []operationsRealtimePublishingSignal{
 			{"Vehicle count", strconv.Itoa(seenVehicles), "Latest accepted telemetry vehicles visible to this private console."},
 			{"Estimated Vehicle Positions rows", strconv.Itoa(publishedVehicles), "Vehicles not older than the stale suppression threshold."},
@@ -442,7 +442,7 @@ func tripUpdatesPublishingReview(page operationsPage, feed operationsRealtimeFee
 		Status:           status,
 		WhatLooksHealthy: fmt.Sprintf("%d generated from %d eligible candidate(s); latest diagnostics: %s.", emitted, eligible, latest),
 		NeedsAttention:   "Review generated versus withheld counts, fallback reason, stale telemetry, ambiguous assignments, low-confidence handling, and prediction source before relying on ETA-like output.",
-		NotProven:        "This review does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
+		NotProven:        "This review does not show production-grade ETA quality, real-world ETA accuracy, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
 		NextAction:       "Open Prediction & ETA Lab for withheld reasons, adapter diagnostics, future-stop coverage, and backtest guidance.",
 		Signals:          signals,
 	}
@@ -463,7 +463,7 @@ func alertsPublishingReview(page operationsPage, feed operationsRealtimeFeedStat
 	if !realtimeFeedNeedsReview(feed.State) && page.TripUpdatesQuality.CancellationAlertLinksMissing == 0 {
 		status = checklistStatusOK
 	}
-	if strings.TrimSpace(feed.State) == "" || feed.State == "not available yet" {
+	if strings.TrimSpace(feed.State) == "" || feed.State == "missing" {
 		status = checklistStatusMissing
 	}
 	return operationsRealtimeFeedReview{
@@ -472,7 +472,7 @@ func alertsPublishingReview(page operationsPage, feed operationsRealtimeFeedStat
 		Status:           status,
 		WhatLooksHealthy: "Alerts feed metadata and validator/feed-health rows are visible, and cancellation alert linkage has no recorded missing rows.",
 		NeedsAttention:   "Active alert counts and stale alert details remain in the Alerts Console; review missing cancellation/disruption links before relying on cancellation messaging.",
-		NotProven:        "This review does not prove agency approval, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
+		NotProven:        "This review does not show agency approval, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
 		NextAction:       "Open the Alerts Console for active, stale, planned, archived, cancellation, and disruption review, then check Alerts feed health and validation.",
 		Signals: []operationsRealtimePublishingSignal{
 			{"Active alerts", "review in Alerts Console", "The Realtime Center links to the lifecycle surface instead of duplicating alert authoring state."},
@@ -501,12 +501,12 @@ func buildRealtimeReplayGuide(page operationsPage) operationsRealtimeReplayGuide
 		Status:       status,
 		Summary:      fmt.Sprintf("%d committed synthetic simulator scenario(s) are available for local browser review.", len(page.TelemetrySimulator.Scenarios)),
 		BrowserStart: "/admin/operations/telemetry-simulator",
-		LocalReplay:  "Use the browser dry-run preview first; a technical helper may run fixed local simulator or realtime-quality commands when credentials and private DB access are needed.",
+		LocalReplay:  "Use the browser dry-run preview first; an administrator may run fixed local simulator or realtime-quality commands when credentials and private DB access are needed.",
 		ReviewAfter:  "After replay, return to Realtime Center, Feed Health, Prediction & ETA Lab, Validation Health, and Alerts Console.",
 		Boundary:     "Replay guidance is local/synthetic review only. The browser does not execute shell commands, collect tokens, send telemetry, create evidence, contact external systems, prove vendor compatibility, prove production AVL reliability, or prove ETA quality.",
 		Steps: []operationsRealtimeReplayStep{
 			{"browser_preview", "Preview a scenario in the browser", "Open Telemetry Simulator and choose on-route, stale, low-quality GPS, after-midnight, or block-transition fixture metadata.", "Preview only; no telemetry send, no token collection, and no command execution."},
-			{"local_send", "Run local synthetic send only when appropriate", "A technical helper can use the fixed simulator command with deployment-owned tokens when intentional local ingest is required.", "Keep tokens outside browser notes and do not commit generated `.cache` diagnostics."},
+			{"local_send", "Run local synthetic send only when appropriate", "An administrator can use the fixed simulator command with deployment-owned tokens when intentional local ingest is required.", "Keep tokens outside browser notes and do not commit generated `.cache` diagnostics."},
 			{"realtime_review", "Review realtime feed usefulness", "Check Vehicle Positions publishing review, Trip Updates withheld reasons, Alerts lifecycle review, and GTFS-Realtime validator health.", "Healthy local signals do not prove external approval, consumer display, production readiness, or real-world accuracy."},
 		},
 	}
@@ -545,7 +545,7 @@ func vehiclePositionsUsefulnessScore(page operationsPage, summary operationsReal
 		NeedsReviewSignal:    needs,
 		ConsumerSafeBehavior: "Emit only defensible vehicle position fields; suppress stale rows when configured and omit trip descriptors when assignment confidence is weak.",
 		NextAction:           "Review telemetry freshness, stale suppression, assignment confidence, Vehicle Positions feed health, and realtime validation together.",
-		DoesNotProve:         "Does not prove field reliability, vendor compatibility, hardware certification, consumer display, compliance, SLA, uptime, or production readiness.",
+		DoesNotProve:         "This private view does not show field reliability, vendor compatibility, hardware certification, consumer display, compliance, SLA, uptime, or production readiness.",
 		Details: []countView{
 			{Label: "fresh_telemetry", Count: summary.FreshTelemetryRows},
 			{Label: "stale_telemetry", Count: summary.StaleTelemetryRows},
@@ -594,7 +594,7 @@ func tripUpdatesUsefulnessScore(page operationsPage, feed operationsRealtimeFeed
 		NeedsReviewSignal:    needs,
 		ConsumerSafeBehavior: "Withhold Trip Updates or emit valid empty/fallback output when prediction evidence is stale, ambiguous, low confidence, or missing future-stop support.",
 		NextAction:           "Review emitted counts, withheld reasons, stale telemetry, adapter fallback state, and realtime validation before relying on ETAs.",
-		DoesNotProve:         "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, public launch, compliance, SLA, or production readiness.",
+		DoesNotProve:         "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, public launch, compliance, SLA, or production readiness.",
 		Details:              details,
 	}
 }
@@ -604,7 +604,7 @@ func alertsUsefulnessScore(feed operationsRealtimeFeedStatus) operationsRealtime
 	label := "missing_signal"
 	helpful := "Alerts feed state is not available."
 	needs := "Open Alerts Console and feed health before relying on alert output."
-	if strings.TrimSpace(feed.State) != "" && feed.State != "not available yet" {
+	if strings.TrimSpace(feed.State) != "" && feed.State != "missing" {
 		score = 1
 		label = "lifecycle_needs_review"
 		helpful = "Alerts feed state is visible in private feed health."
@@ -624,7 +624,7 @@ func alertsUsefulnessScore(feed operationsRealtimeFeedStatus) operationsRealtime
 		NeedsReviewSignal:    needs,
 		ConsumerSafeBehavior: "Publish only authored and reviewed Alerts records; do not infer a disruption or an all-clear state from missing private rows.",
 		NextAction:           "Review active, planned, archived, and canceled-service alert workflows in the Alerts Console, then check feed health and validation.",
-		DoesNotProve:         "Does not prove agency approval, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
+		DoesNotProve:         "This private view does not show agency approval, consumer display, public launch, compliance, SLA, uptime, or production readiness.",
 	}
 }
 
@@ -670,7 +670,7 @@ func realtimeFreshnessReviewRows(page operationsPage, summary operationsRealtime
 			Status:        summary.Status,
 			CurrentSignal: fmt.Sprintf("%d latest rows; %d fresh; %d stale at %s", summary.LatestTelemetryRows, summary.FreshTelemetryRows, summary.StaleTelemetryRows, page.StaleThreshold),
 			NextAction:    "Check stale devices before changing matching thresholds or prediction settings.",
-			DoesNotProve:  "Fresh telemetry does not prove field reliability, SLA, uptime, or vendor compatibility.",
+			DoesNotProve:  "Fresh telemetry does not show field reliability, SLA, uptime, or vendor compatibility.",
 		},
 		{
 			ID:            "device_state",
@@ -678,7 +678,7 @@ func realtimeFreshnessReviewRows(page operationsPage, summary operationsRealtime
 			Status:        realtimeDeviceFreshnessStatus(summary),
 			CurrentSignal: fmt.Sprintf("%d bindings; %d reporting; %d not seen", summary.DeviceBindings, summary.DevicesReporting, summary.DevicesNotSeen),
 			NextAction:    "Review device bindings and one-time token lifecycle when devices are not seen.",
-			DoesNotProve:  "A visible binding does not prove hardware certification or production AVL reliability.",
+			DoesNotProve:  "A visible binding does not show hardware certification or production AVL reliability.",
 		},
 		realtimeFeedFreshnessRow("vehicle_positions_feed", "Vehicle Positions feed freshness", feeds["vehicle_positions"]),
 		{
@@ -729,14 +729,14 @@ func realtimeConsumerSafeOmissionRules() []operationsRealtimeOmissionRule {
 			Condition:    "Telemetry is stale or older than the configured suppression threshold.",
 			SafeBehavior: "Prefer suppressing stale vehicles or omitting stale-sensitive fields over presenting old movement as current.",
 			ReviewStep:   "Check device power, network, timestamps, and ingest cadence before changing thresholds.",
-			DoesNotProve: "Suppressing stale rows does not prove fleet reliability or uptime.",
+			DoesNotProve: "Suppressing stale rows does not show fleet reliability or uptime.",
 		},
 		{
 			ID:           "unknown_assignment",
 			Condition:    "Assignment is unknown, ambiguous, manually withheld, or below confidence threshold.",
 			SafeBehavior: "Emit Vehicle Positions without a trip descriptor or keep the public trip context unknown.",
 			ReviewStep:   "Review service day, after-midnight trips, frequency service, block continuity, and active overrides.",
-			DoesNotProve: "A later match does not prove consumer display or ETA quality.",
+			DoesNotProve: "A later match does not show consumer display or ETA quality.",
 		},
 		{
 			ID:           "trip_updates_withheld",
@@ -750,7 +750,7 @@ func realtimeConsumerSafeOmissionRules() []operationsRealtimeOmissionRule {
 			Condition:    "No active alert is authored for a disruption or cancellation signal.",
 			SafeBehavior: "Do not infer or publish a service alert automatically from telemetry or prediction data.",
 			ReviewStep:   "Use the Alerts Console lifecycle review and cancellation-link guidance before publishing alert records.",
-			DoesNotProve: "An absent alert does not prove there is no disruption or that an agency approved messaging.",
+			DoesNotProve: "An absent alert does not show there is no disruption or that an agency approved messaging.",
 		},
 	}
 }
@@ -798,7 +798,7 @@ func realtimeFleetRowFromTelemetry(row telemetryView) operationsRealtimeFleetRow
 		TripID:           row.TripID,
 		Confidence:       row.Confidence,
 		ReasonCodes:      append([]string(nil), row.ReasonCodes...),
-		DoesNotProve:     "Does not prove real fleet reliability, vendor compatibility, hardware certification, consumer display, compliance, or production-grade ETA quality.",
+		DoesNotProve:     "This private view does not show real fleet reliability, vendor compatibility, hardware certification, consumer display, compliance, or production-grade ETA quality.",
 	}
 	out.CurrentSignal = realtimeFleetSignal(out)
 	out.NextAction = realtimeFleetNextAction(out)
@@ -814,7 +814,7 @@ func realtimeFleetRowFromDevice(row operationsDeviceRow) operationsRealtimeFleet
 		ReceivedAt:       formatTimeForText(row.LatestReceivedAt),
 		AssignmentState:  "not available",
 		AssignmentSource: row.AssignmentSource,
-		DoesNotProve:     "A device binding does not prove hardware certification, vendor compatibility, production AVL reliability, consumer display, compliance, or production readiness.",
+		DoesNotProve:     "A device binding does not show hardware certification, vendor compatibility, production AVL reliability, consumer display, compliance, or production readiness.",
 	}
 	if row.LatestAgeSeconds != nil {
 		out.AgeSeconds = *row.LatestAgeSeconds
@@ -858,7 +858,7 @@ func realtimeOperatorIssues(page operationsPage, summary operationsRealtimeSumma
 			Signal:       page.TelemetryError,
 			NextAction:   "Confirm the private telemetry service and database are available.",
 			AdminLink:    "/admin/operations/telemetry",
-			DoesNotProve: "A restored repository connection does not prove production AVL reliability or uptime.",
+			DoesNotProve: "A restored repository connection does not show production AVL reliability or uptime.",
 		})
 	}
 	if summary.LatestTelemetryRows == 0 {
@@ -868,7 +868,7 @@ func realtimeOperatorIssues(page operationsPage, summary operationsRealtimeSumma
 			Signal:       summary.CurrentSignal,
 			NextAction:   summary.NextAction,
 			AdminLink:    "/admin/operations/devices",
-			DoesNotProve: "A sample row does not prove vendor compatibility, hardware certification, or production readiness.",
+			DoesNotProve: "A sample row does not show vendor compatibility, hardware certification, or production readiness.",
 		})
 	}
 	for _, row := range fleet {
@@ -923,7 +923,7 @@ func realtimeOperatorIssues(page operationsPage, summary operationsRealtimeSumma
 			Signal:       "No stale, not-seen, low-confidence, or withheld realtime rows are visible in this bounded summary.",
 			NextAction:   "Continue periodic private monitoring of telemetry, assignments, Vehicle Positions, Trip Updates diagnostics, and Alerts lifecycle.",
 			AdminLink:    "/admin/operations/feed-health",
-			DoesNotProve: "A quiet private dashboard does not prove compliance, consumer display, production uptime, or ETA quality.",
+			DoesNotProve: "A quiet private dashboard does not show compliance, consumer display, production uptime, or ETA quality.",
 		}}
 	}
 	const limit = 12
@@ -963,7 +963,7 @@ func realtimeQualityGuidance(page operationsPage, summary operationsRealtimeSumm
 			WhatItMeans:  "The safer realtime output is to omit a trip descriptor when matching evidence is weak.",
 			ReviewSignal: fmt.Sprintf("%d unknown or unavailable assignments; %d low-confidence rows", summary.UnknownAssignments, summary.LowConfidenceRows),
 			NextAction:   "Review route/trip hints, service day, after-midnight service, block continuity, and any active operator override.",
-			DoesNotProve: "A matched assignment does not prove public consumer display or production-grade ETA quality.",
+			DoesNotProve: "A matched assignment does not show public consumer display or production-grade ETA quality.",
 		},
 		{
 			ID:           "out_of_order_low_quality_gps",
@@ -971,7 +971,7 @@ func realtimeQualityGuidance(page operationsPage, summary operationsRealtimeSumm
 			WhatItMeans:  "The browser summary only shows latest accepted rows; rejected or out-of-order samples belong in ingest logs and connector conformance outputs.",
 			ReviewSignal: "If positions jump, stop updating, or timestamps move backward, treat route/trip certainty as suspect.",
 			NextAction:   "Review connector conformance fixtures, telemetry simulator cases, and private ingest diagnostics without exposing raw payloads in HTML.",
-			DoesNotProve: "Synthetic conformance does not prove real vendor compatibility, hardware certification, or real-world fleet accuracy.",
+			DoesNotProve: "Synthetic conformance does not show real vendor compatibility, hardware certification, or real-world fleet accuracy.",
 		},
 		{
 			ID:           "vehicle_positions_debug",
@@ -995,7 +995,7 @@ func realtimeQualityGuidance(page operationsPage, summary operationsRealtimeSumm
 			WhatItMeans:  "Alerts need active/planned/archive review and feed validation separate from telemetry health.",
 			ReviewSignal: fmt.Sprintf("%s; %s", firstNonEmpty(alerts.State, "unknown"), firstNonEmpty(alerts.LatestSignal, "no alert signal")),
 			NextAction:   "Open the Alerts Console for safe edit links, then verify the Alerts feed health row.",
-			DoesNotProve: "An alert visible in the private console does not prove consumer display, public launch, agency approval, or compliance.",
+			DoesNotProve: "An alert visible in the private console does not show consumer display, public launch, agency approval, or compliance.",
 		},
 	}
 }
@@ -1006,7 +1006,7 @@ func realtimeFeedNeedsReview(state string) bool {
 		return true
 	}
 	switch normalized {
-	case checklistStatusOK, "available", "ready", "recorded", "potentially non-empty":
+	case checklistStatusOK, "available", "ready", "recorded", "publishable":
 		return false
 	default:
 		return true

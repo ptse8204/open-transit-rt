@@ -24,8 +24,8 @@ Use it for local/self-hosted evaluation only. It is not a stable release.
 5. [Small Agency Maintenance Guide](../docs/tutorials/small-agency-maintenance-guide.md)
 6. [Docs Index](../docs/index.md)
 
-Agency staff review starts from the private local setup URL provided by a
-technical helper:
+Agency staff review starts from the private local setup URL provided by an
+administrator:
 
 ```text
 http://localhost:8080/admin/local-login
@@ -34,7 +34,11 @@ http://localhost:8080/admin/local-login
 Choose **Start setup**. The browser opens the private Operations Console and
 shows **Start Here** first.
 
-## Technical Helper Startup
+Self-hosted/reference deployments use the same authenticated
+`/admin/operations*` product routes after the deployment owner configures the
+server, HTTPS root, secrets, validators, backups, and monitoring.
+
+## Administrator Startup
 
 ```bash
 git clone https://github.com/ptse8204/open-transit-rt.git
@@ -59,7 +63,7 @@ staff review.
 | Connect GPS, AVL, CSV, prediction, validator, monitoring, or discovery systems | [Connector Catalog](../docs/connectors/catalog.md) and [Connector Cookbook](connector-cookbook.md) |
 | Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](calitp-readiness-plain-english.md) |
 | Understand readiness and evidence boundaries | [Readiness And Evidence](readiness-and-evidence.md) |
-| Plan a self-hosted evaluator or reference deployment | [Deployment Guide](deployment-guide.md) |
+| Plan a self-hosted evaluator or reference deployment | [Deployment Guide](deployment-guide.md) and [Self-hosted site guide](https://ptse8204.github.io/open-transit-rt/deploy.html) |
 | Help improve the project | [How Agencies Can Help](how-agencies-can-help.md) |
 | Contribute code or docs | [Support And Contribute](support-and-contribute.md) |
 
@@ -72,13 +76,13 @@ staff review.
 - Review feed health, GTFS quality, validation health, readiness, connectors,
   telemetry simulator guidance, Maintenance, and Help.
 
-## What Still Needs A Technical Helper
+## When An Administrator Is Needed
 
-You may need technical help for Docker setup, large GTFS imports, validator
-installation, stable HTTPS deployment, device-token handling, custom GPS/AVL
-connectors, and any future authorized evidence intake.
+You may need an administrator or deployment owner for Docker setup, large GTFS
+imports, validator installation, stable HTTPS deployment, device-token
+handling, custom GPS/AVL connectors, and any future authorized evidence intake.
 
-## Important Boundaries
+## Limits
 
 Local UI evaluation does not prove CAL-ITP/Caltrans compliance, agency adoption
 or approval, consumer acceptance, final-root readiness, hosted SaaS,

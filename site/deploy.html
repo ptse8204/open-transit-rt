@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Self-Host Open Transit RT</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site-header">
+  <nav class="nav" aria-label="Site navigation">
+    <a class="brand" href="index.html">Open Transit RT</a>
+    <div class="nav-links">
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html" aria-current="page">Self-host</a>
+      <a href="ui-tour.html">Tour</a>
+      <a href="check-feeds.html">Feeds</a>
+      <a href="connector-support.html">Connectors</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
+      <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <section class="page-hero">
+    <div>
+      <p class="tag">Reference deployment</p>
+      <h1>Run the same operator workflow on your own infrastructure.</h1>
+      <p class="lead">Self-hosted operation keeps the private Operations Console, public feed URLs, credentials, validators, backups, and monitoring under the deployment owner.</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/deployment/oci-reference-deployment.md">Deployment guide</a>
+        <a class="button" href="readiness.html">Review readiness</a>
+      </div>
+    </div>
+    <aside class="summary-panel">
+      <h2>Private and public paths</h2>
+      <p>Operators use <code>/admin/operations</code>. Consumers and public tools use the configured feed URLs only when sharing is authorized.</p>
+    </aside>
+  </section>
+
+  <section aria-labelledby="steps-heading" class="split">
+    <div>
+      <h2 id="steps-heading">Deployment Owner Checklist</h2>
+      <ol class="task-flow">
+        <li><div><strong>Prepare the server</strong><span>Use an operator-owned Linux host, database, reverse proxy, and private service account.</span></div></li>
+        <li><div><strong>Configure secrets</strong><span>Set database, admin, CSRF, and device-token secrets in private env files.</span></div></li>
+        <li><div><strong>Run migrations</strong><span>Apply database migrations before starting app services.</span></div></li>
+        <li><div><strong>Start private services</strong><span>Run agency-config, telemetry ingest, and feed services behind the reverse proxy.</span></div></li>
+        <li><div><strong>Open the console</strong><span>Use the private Operations Console to set up the agency and import a schedule.</span></div></li>
+        <li><div><strong>Check the five feeds</strong><span>Confirm discovery, schedule, Vehicle Positions, Trip Updates, and Alerts paths.</span></div></li>
+        <li><div><strong>Plan operations</strong><span>Review validators, backups, support summaries, monitoring destinations, and update procedure.</span></div></li>
+      </ol>
+    </div>
+    <aside class="action-panel">
+      <h2>Reference commands</h2>
+      <p><code>make oci-reference-check</code></p>
+      <p><code>make validate-public-feeds</code></p>
+      <p class="muted">Run these only against an operator-owned environment with the required private configuration.</p>
+    </aside>
+  </section>
+
+  <section aria-labelledby="owner-heading">
+    <h2 id="owner-heading">Who Owns What</h2>
+    <div class="table-wrap">
+      <table class="task-table">
+        <thead><tr><th>Area</th><th>Owner</th><th>Where to review</th></tr></thead>
+        <tbody>
+          <tr><td>Agency metadata, license, contact</td><td>Administrator with agency input</td><td><code>/admin/operations/setup</code></td></tr>
+          <tr><td>Schedule import and active feed version</td><td>Operator or administrator</td><td><code>/admin/operations/gtfs-import</code></td></tr>
+          <tr><td>Public feed base URL and reverse proxy</td><td>Deployment owner</td><td><code>/admin/operations/feed-health</code></td></tr>
+          <tr><td>Vehicle data, device tokens, sidecars</td><td>Administrator and integrator</td><td><code>/admin/operations/devices</code></td></tr>
+          <tr><td>Backups, validators, monitoring, updates</td><td>Deployment owner</td><td><code>/admin/operations/maintenance</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>The reference deployment guide is an implementation path, not evidence that a deployment exists or is ready for production. Stronger public statements require deployment-specific review and authorization.</p>
+  </section>
+</main>
+</body>
+</html>

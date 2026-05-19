@@ -9,14 +9,14 @@ check the five configured feed paths, understand validator and data-quality
 state, review telemetry/device readiness, and decide the next maintenance
 action.
 
-This guide does not prove agency adoption, CAL-ITP/Caltrans compliance,
+This guide does not establish agency adoption, CAL-ITP/Caltrans compliance,
 consumer acceptance, final-root ownership, hosted service availability,
 production readiness, vendor compatibility, SLA coverage, or production-grade
 ETA quality.
 
 ## Before You Start
 
-A technical helper may still need to start the local app or reference
+An administrator may still need to start the local app or reference
 deployment. After that, the routine review path should start in the private
 browser UI:
 
@@ -79,7 +79,7 @@ Review:
 - maintenance.
 
 Each action card has a current signal, the next action, a private admin link,
-and what the card does not prove.
+and what the card limits.
 
 ## 3. Import Or Review GTFS
 
@@ -101,7 +101,7 @@ After import, review:
   and validation triage in one table;
 - the GTFS Workbench **Validation Issue Triage**, which shows likely owner,
   plain-English meaning, suggested fix path, safe next action, and what the
-  row does not prove;
+  row limits;
 - routes, stops, trips, stop times, and shapes counts;
 - validation/import warnings grouped by file;
 - GTFS quality next actions;
@@ -109,8 +109,8 @@ After import, review:
 - validator health next actions.
 
 If staged comparison or browser rollback is not available in the current
-runtime, the UI says so instead of pretending rollback exists. A technical
-helper may use the documented CLI rollback path when needed.
+runtime, the UI says so instead of pretending rollback exists. An administrator
+may use the documented CLI rollback path when needed.
 
 ## 4. Check The Five Public Feed Paths
 
@@ -132,9 +132,9 @@ The page tracks exactly these public paths:
 
 For each path, review the configured URL, recorded HTTP status, byte count,
 content type, checksum, generated/checked time, validator state, health state,
-next action, and what it does not prove.
+next action, and its limits.
 
-Use this page before asking a technical helper to run curl commands.
+Use this page before asking an administrator to run curl commands.
 
 ## 5. Understand Realtime Usefulness
 
@@ -162,7 +162,7 @@ On Realtime Center, use **Feed Usefulness Details** to review Vehicle
 Positions publishing counts and omitted trip-descriptor reasons, Trip Updates
 generated versus withheld/fallback reasons, and Alerts lifecycle gaps. Use
 **Synthetic / Local Replay Guide** to start with browser fixture previews
-before asking a technical helper for local replay commands.
+before asking an administrator for local replay commands.
 
 ## 6. Review GTFS Quality And Validators
 
@@ -209,12 +209,12 @@ vehicle binding, and latest token use. Telemetry Freshness shows latest
 accepted telemetry time, assignment state, match confidence or unknown reason
 when available, and stale telemetry state. Telemetry Simulator shows a
 browser-only synthetic dry-run preview for committed fixture summaries, plus
-fixed technical-helper commands for private shell dry-runs or intentional local
+fixed administrator commands for private shell dry-runs or intentional local
 sends.
 
 Token creation can happen from the private Devices & Tokens page for admins,
 but the one-time token must still be stored outside the browser after
-creation. Simulator sending may still need a technical helper because device
+creation. Simulator sending may still need an administrator because device
 tokens stay in the operator shell and are not collected by the browser preview.
 
 ## 8. Review Connectors
@@ -266,9 +266,9 @@ Readiness, Maintenance, Help / Tutorials, and Support / Troubleshooting. GTFS
 Studio and Alerts Console remain separate private tools when linked from the
 Operations Console.
 
-## What Still Needs A Technical Helper
+## When An Administrator Is Needed
 
-Use a technical helper for:
+Use an administrator for:
 
 - starting Docker or a server deployment;
 - changing production/admin access configuration;
@@ -291,5 +291,5 @@ validator raw reports, and `.cache` diagnostics are private unless a separate
 retained-evidence approval exists.
 
 Routine agency setup and review should start in the browser. Shell commands
-remain a technical-helper path for deployment, diagnostics, validators, and
+remain an administrator path for deployment, diagnostics, validators, and
 secure token handling.

@@ -102,7 +102,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"Enter or review publication metadata in the guided setup page; keep placeholders marked missing or review-needed.",
 			"/admin/operations/setup",
 			"docs/tutorials/agency-first-run.md",
-			"Metadata in this console does not prove agency approval, final-root ownership, or public publication authorization.",
+			"Metadata in this console does not show agency approval, final-root ownership, or public publication authorization.",
 		),
 		firstRunTask(
 			2,
@@ -114,7 +114,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"Use browser upload or safe URL import first when you have a GTFS ZIP; publish a GTFS Studio draft only when typed authoring is the right source.",
 			"/admin/operations/gtfs-import",
 			"docs/tutorials/real-agency-gtfs-onboarding.md",
-			"A stored GTFS feed does not prove validator-clean status, agency approval, or Caltrans compliance.",
+			"A stored GTFS feed does not show validator-clean status, agency approval, or Caltrans compliance.",
 		),
 		firstRunTask(
 			3,
@@ -126,7 +126,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"Copy or review each path below, then open the feed health command center for validation, freshness, and next actions.",
 			"/admin/operations/feed-health",
 			"docs/tutorials/operator-smoke-and-support-bundle.md",
-			"URL listing does not prove public fetch success, stable final-root ownership, validator health, or consumer acceptance.",
+			"URL listing does not show public fetch success, stable final-root ownership, validator health, or consumer acceptance.",
 		),
 		firstRunTask(
 			4,
@@ -138,7 +138,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"Open validator health, install or configure pinned tooling if needed, then run only the allowlisted validator actions.",
 			"/admin/operations/validation-health",
 			"docs/tutorials/gtfs-validation-triage.md",
-			"Validator output is supporting diagnostics only; it does not prove consumer ingestion, compliance, or feed correctness in all operating conditions.",
+			"Validator output is supporting diagnostics only; it does not show consumer ingestion, compliance, or feed correctness in all operating conditions.",
 		),
 		firstRunTask(
 			5,
@@ -150,7 +150,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"Bind a device token, send synthetic or deployment-owned telemetry through the authenticated ingest path, and review freshness.",
 			"/admin/operations/devices",
 			"docs/tutorials/telemetry-simulator-and-device-trial.md",
-			"Telemetry shown here does not prove vendor compatibility, hardware certification, fleet reliability, or production AVL reliability.",
+			"Telemetry shown here does not show vendor compatibility, hardware certification, fleet reliability, or production AVL reliability.",
 		),
 		firstRunTask(
 			6,
@@ -162,7 +162,7 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"Review feed health for Vehicle Positions, Trip Updates, and Alerts; fix missing URLs or validation gaps without coupling Trip Updates to ingest.",
 			"/admin/operations/feed-health",
 			"docs/requirements-calitp-compliance.md",
-			"Realtime feed availability does not prove production-grade ETA quality, consumer display, or complete disruption handling.",
+			"Realtime feed availability does not show production-grade ETA quality, consumer display, or complete disruption handling.",
 		),
 		firstRunTask(
 			7,
@@ -181,9 +181,9 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			"connectors",
 			"Connectors",
 			checklistStatusNeedsReview,
-			"Connector Hub and connector test instructions are available as read-only local contract guidance.",
+			"Connectors and connector test instructions are available as read-only local contract guidance.",
 			"Optional external systems should stay behind sidecar, manifest, or adapter boundaries with synthetic conformance, redaction, and fail-closed checks first.",
-			"Review Connector Hub, connector tests, and external-connection readiness before any deployment-owned external integration.",
+			"Review Connectors, connector tests, and external-connection readiness before any deployment-owned external integration.",
 			"/admin/operations/connectors",
 			"docs/external-connection-readiness.md",
 			"Connector guidance does not enable dynamic backend plugin loading, contact vendors, or prove vendor compatibility.",
@@ -204,11 +204,11 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 	return operationsFirstRunView{
 		GeneratedAt:                         page.GeneratedAt,
 		AgencyID:                            page.AgencyID,
-		Boundary:                            "Start Here is a private authenticated first-run guide. It is GET-only, reads existing private records, runs no commands, creates no retained evidence, changes no consumer status, and makes no approval, compliance, public-launch, hosted-service, vendor, SLA, or ETA-quality claim.",
+		Boundary:                            "Start is a private authenticated first-run guide. It is GET-only, reads existing private records, runs no commands, creates no retained evidence, changes no consumer status, and makes no approval, compliance, public-launch, hosted-service, vendor, SLA, or ETA-quality claim.",
 		LocalDemoDeploymentEvidenceBoundary: "Local demo checks show local wiring only. Deployment checks review a target environment only. Evidence requires a separate authorized intake with retention, redaction, and claim mapping; this page creates none of that.",
 		Paths: []operationsFirstRunPath{
 			firstRunPath(
-				"no_developer",
+				"no_code",
 				"Normal browser path",
 				"Use the private browser console; admin-only buttons remain on their existing pages and read-only users can still review status.",
 				"An operator can complete the visible path with guided setup, browser GTFS import, device binding, validator health, feed health, readiness, and connector review pages.",
@@ -219,9 +219,9 @@ func buildOperationsFirstRun(page operationsPage) operationsFirstRunView {
 			),
 			firstRunPath(
 				"developer",
-				"Technical-helper path",
+				"Administrator path",
 				"Use documented Make and Go commands from a terminal; the console only points to the checks and does not execute them.",
-				"A technical helper can bootstrap local services, import GTFS, run validators, simulator checks, connector conformance, and maintenance diagnostics through existing CLI workflows.",
+				"An administrator can bootstrap local services, import GTFS, run validators, simulator checks, connector conformance, and maintenance diagnostics through existing CLI workflows.",
 				"Follow the docs for local app startup and focused checks, then review the resulting private records here.",
 				"/admin/operations/checklist",
 				"docs/tutorials/self-hosted-operator-trial.md",
@@ -273,7 +273,7 @@ func firstRunFeedURLs(page operationsPage) []operationsFirstRunFeedURL {
 			"Discovery metadata lists feed URLs, contact, license, and update context for operators and downstream review.",
 			"Set publication metadata before copying this outside the private console.",
 			"docs/requirements-calitp-compliance.md",
-			"A feeds.json URL does not prove source-of-truth website listing, final-root approval, or consumer ingestion.",
+			"A feeds.json URL does not show source-of-truth website listing, final-root approval, or consumer ingestion.",
 		),
 		firstRunFeedURL(
 			"schedule",
@@ -283,7 +283,7 @@ func firstRunFeedURLs(page operationsPage) []operationsFirstRunFeedURL {
 			"The schedule ZIP is the static GTFS base used by realtime references and validation.",
 			"Import or publish GTFS, then validate the schedule before external sharing.",
 			"docs/tutorials/real-agency-gtfs-onboarding.md",
-			"A schedule URL does not prove validator-clean status, agency approval, or open-license publication.",
+			"A schedule URL does not show validator-clean status, agency approval, or open-license publication.",
 		),
 		firstRunFeedURL(
 			"vehicle_positions",
@@ -293,7 +293,7 @@ func firstRunFeedURLs(page operationsPage) []operationsFirstRunFeedURL {
 			"Vehicle Positions are the first high-quality realtime feed target for Open Transit RT.",
 			"Confirm fresh telemetry, public protobuf output, feed health, and realtime validation.",
 			"docs/requirements-calitp-compliance.md",
-			"A Vehicle Positions URL does not prove real-device reliability or consumer acceptance.",
+			"A Vehicle Positions URL does not show real-device reliability or consumer acceptance.",
 		),
 		firstRunFeedURL(
 			"trip_updates",
@@ -303,7 +303,7 @@ func firstRunFeedURLs(page operationsPage) []operationsFirstRunFeedURL {
 			"Trip Updates should remain replaceable behind the prediction adapter boundary.",
 			"Review prediction diagnostics, withheld cases, and realtime validation before relying on Trip Updates.",
 			"docs/requirements-trip-updates.md",
-			"A Trip Updates URL does not prove production-grade ETA quality or stop-level prediction accuracy.",
+			"A Trip Updates URL does not show production-grade ETA quality or stop-level prediction accuracy.",
 		),
 		firstRunFeedURL(
 			"alerts",
@@ -313,7 +313,7 @@ func firstRunFeedURLs(page operationsPage) []operationsFirstRunFeedURL {
 			"Alerts complete the expected realtime feed set and stay separate from telemetry ingest.",
 			"Use the Alerts Console for lifecycle checks, then validate the Alerts feed.",
 			"docs/requirements-calitp-compliance.md",
-			"An Alerts URL does not prove agency approval, consumer display, or disruption-workflow completeness.",
+			"An Alerts URL does not show agency approval, consumer display, or disruption-workflow completeness.",
 		),
 	}
 }

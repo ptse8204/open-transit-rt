@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html" aria-current="page">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -24,91 +26,72 @@
 <main>
   <section class="hero">
     <div>
-      <p class="eyebrow">Self-hosted GTFS and GTFS Realtime</p>
-      <h1>Run your transit feed from a browser.</h1>
-      <p class="lead">Open Transit RT helps small agencies and civic technologists import GTFS, check public feed URLs, connect vehicle data, and see what needs attention without turning every task into command-line work.</p>
+      <p class="eyebrow">Self-hosted transit operations</p>
+      <h1>Run GTFS and realtime feed work from one private console.</h1>
+      <p class="lead">Open Transit RT helps small agencies, operators, deployment owners, and civic technologists import schedules, check feed URLs, connect vehicle data, review realtime output, and keep the system maintainable.</p>
       <div class="actions">
-        <a class="button primary" href="try-locally.html">Start locally</a>
-        <a class="button" href="ui-tour.html">Tour the browser UI</a>
-        <a class="button" href="video.html">Watch the walkthrough</a>
+        <a class="button primary" href="try-locally.html">Try &amp; deploy</a>
+        <a class="button" href="ui-tour.html">Tour the workflow</a>
+        <a class="button" href="check-feeds.html">Check feed URLs</a>
       </div>
-      <p class="boundary">Built for local and self-hosted evaluation. It does not prove compliance, production readiness, consumer acceptance, vendor compatibility, SLA, AVL reliability, or ETA quality.</p>
     </div>
-    <aside class="hero-panel" aria-label="Browser workflow">
-      <h2>Work in order</h2>
-      <ol class="workflow-list">
-        <li><strong>Start setup</strong><span>Open the local sign-in page after a helper starts the app.</span></li>
-        <li><strong>Import GTFS</strong><span>Upload or review a schedule and see validation guidance.</span></li>
-        <li><strong>Check feeds</strong><span>Review feeds.json, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</span></li>
-        <li><strong>Connect vehicles</strong><span>Choose a local connector shape before using real device data.</span></li>
-        <li><strong>Fix issues</strong><span>See the next action and when technical help is needed.</span></li>
-      </ol>
+    <aside class="summary-panel" aria-label="Product summary">
+      <h2>Built for</h2>
+      <ul class="compact-list">
+        <li><strong>Small agency staff</strong><span>Use a browser-first path after the app is running.</span></li>
+        <li><strong>Operators</strong><span>Review what is missing, stale, blocked, or ready for the next step.</span></li>
+        <li><strong>Deployment owners</strong><span>Handle hosting, secrets, validators, device data, and public URL ownership.</span></li>
+      </ul>
     </aside>
   </section>
 
-  <section id="start" aria-labelledby="start-heading">
-    <h2 id="start-heading">Start Here</h2>
-    <div class="two-column">
-      <article class="card">
-        <p class="tag">Agency staff</p>
-        <h3>Use the browser after startup</h3>
-        <p>Open the local sign-in page, choose <strong>Start setup</strong>, then follow the Operations Console workflow. Normal review does not require curl, DevTools, header extensions, JWTs, or manually pasted cookies.</p>
-      </article>
-      <article class="card">
-        <p class="tag">Technical helper</p>
-        <h3>Start the local app once</h3>
-        <p>Use the release or repository startup flow, then hand the local browser URL to staff. Keep deeper deployment, validator, connector, and secret work outside the normal user path.</p>
-        <p><a href="try-locally.html">Try locally</a> or open the <a href="https://github.com/ptse8204/open-transit-rt/blob/main/README.md">technical README</a>.</p>
-      </article>
+  <section aria-labelledby="workflow-heading" class="split">
+    <div>
+      <h2 id="workflow-heading">Operator Workflow</h2>
+      <ol class="task-flow">
+        <li><div><strong>Set up the agency</strong><span>Review agency metadata, public base URLs, contact, license, and role visibility.</span></div></li>
+        <li><div><strong>Import a schedule</strong><span>Upload or review a GTFS ZIP, then confirm an active schedule exists.</span></div></li>
+        <li><div><strong>Check feed URLs</strong><span>Review discovery, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</span></div></li>
+        <li><div><strong>Connect vehicle data</strong><span>Start with a supported connector path before using real endpoints or credentials.</span></div></li>
+        <li><div><strong>Review realtime output</strong><span>Check fresh vehicles, stale rows, conservative matching, and withheld output.</span></div></li>
+        <li><div><strong>Fix issues first</strong><span>Use the private console to decide what is broken, who owns it, and where to go next.</span></div></li>
+        <li><div><strong>Maintain the deployment</strong><span>Keep validators, backup checks, support summaries, and updates in the operator path.</span></div></li>
+        <li><div><strong>Prepare external sharing</strong><span>Share URLs only when the agency and deployment owner authorize the public path.</span></div></li>
+      </ol>
+    </div>
+    <aside class="action-panel">
+      <h2>What to open first</h2>
+      <p>After a local or self-hosted instance is running, start with the private Operations Console:</p>
+      <p><code>/admin/operations</code></p>
+      <p class="button-row"><a class="button primary" href="ui-tour.html">See the console tour</a></p>
+    </aside>
+  </section>
+
+  <section aria-labelledby="paths-heading">
+    <h2 id="paths-heading">Local Evaluation And Self-Hosted Operation</h2>
+    <div class="table-wrap">
+      <table class="task-table">
+        <thead><tr><th>Path</th><th>Who uses it</th><th>What it answers</th><th>Start here</th></tr></thead>
+        <tbody>
+          <tr><td>Local evaluation</td><td>Agency staff with an administrator nearby</td><td>Can the product workflow fit our schedule, feed, and vehicle-data needs?</td><td><a href="try-locally.html">Try &amp; deploy</a></td></tr>
+          <tr><td>Self-hosted reference operation</td><td>Deployment owners and civic technologists</td><td>Can we run the private console and public feed URLs on our own infrastructure?</td><td><a href="deploy.html">Self-host</a></td></tr>
+          <tr><td>External sharing preparation</td><td>Agency decision makers and deployment owners</td><td>Are feed URLs, license, contact metadata, validation, and ownership ready for review?</td><td><a href="readiness.html">Readiness</a></td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
-  <section aria-labelledby="guides-heading">
-    <h2 id="guides-heading">Guides On This Site</h2>
-    <div class="grid">
-      <article class="flow-card"><span class="step">Start</span><h3><a href="try-locally.html">Try locally</a></h3><p>Open the local browser flow after a technical helper starts the app.</p></article>
-      <article class="flow-card"><span class="step">GTFS</span><h3><a href="import-gtfs.html">Import GTFS</a></h3><p>Load or review a schedule and confirm an active feed version.</p></article>
-      <article class="flow-card"><span class="step">Feeds</span><h3><a href="check-feeds.html">Check feeds</a></h3><p>Review the five public URLs and the next action for each row.</p></article>
-      <article class="flow-card"><span class="step">Vehicles</span><h3><a href="connect-vehicles.html">Connect vehicles</a></h3><p>Choose a local-supported connector path before using real endpoints.</p></article>
-      <article class="flow-card"><span class="step">Help</span><h3><a href="troubleshoot.html">Troubleshoot</a></h3><p>Separate browser actions from technical-helper tasks.</p></article>
-      <article class="flow-card"><span class="step">Connectors</span><h3><a href="connector-support.html">Connector support</a></h3><p>See what works today and what remains planned.</p></article>
-    </div>
+  <section aria-labelledby="next-heading">
+    <h2 id="next-heading">Choose A Task</h2>
+    <div class="link-row"><strong>Evaluate the product</strong><span><a href="try-locally.html">Try locally</a> or <a href="ui-tour.html">tour the operator workflow</a>.</span></div>
+    <div class="link-row"><strong>Publish a schedule</strong><span><a href="import-gtfs.html">Import a schedule</a>, then <a href="check-feeds.html">check feed URLs</a>.</span></div>
+    <div class="link-row"><strong>Connect vehicles</strong><span><a href="connect-vehicles.html">Pick a vehicle-data path</a> and review <a href="connector-support.html">connector support</a>.</span></div>
+    <div class="link-row"><strong>Run it yourself</strong><span>Use the <a href="deploy.html">self-hosted reference path</a> and the <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/deployment/oci-reference-deployment.md">deployment guide</a>.</span></div>
   </section>
 
-  <section aria-labelledby="browser-heading">
-    <h2 id="browser-heading">What You Can Do In The Browser</h2>
-    <div class="grid">
-      <article class="flow-card"><span class="step">GTFS</span><h3><a href="import-gtfs.html">Import GTFS</a></h3><p>Load a schedule ZIP or review an existing active feed version.</p></article>
-      <article class="flow-card"><span class="step">Feeds</span><h3><a href="check-feeds.html">Check feed URLs</a></h3><p>See whether discovery, schedule, Vehicle Positions, Trip Updates, and Alerts are present.</p></article>
-      <article class="flow-card"><span class="step">Realtime</span><h3>Review vehicle data</h3><p>Check freshness, stale vehicles, assignment confidence, and realtime outputs.</p></article>
-      <article class="flow-card"><span class="step">Connectors</span><h3><a href="connect-vehicles.html">Pick a connector path</a></h3><p>Start from CSV replay, polling, webhook sidecar, JSON transform, or authenticated telemetry POST.</p></article>
-      <article class="flow-card"><span class="step">System check</span><h3><a href="readiness.html">See what needs attention</a></h3><p>Separate user actions from technical-helper work before sharing public URLs.</p></article>
-      <article class="flow-card"><span class="step">Help</span><h3><a href="troubleshoot.html">Find the next step</a></h3><p>Use task-based help for setup, validators, connectors, maintenance, and troubleshooting.</p></article>
-    </div>
-  </section>
-
-  <section aria-labelledby="connect-heading">
-    <h2 id="connect-heading">What You Can Connect</h2>
-    <div class="matrix">
-      <article class="card">
-        <h3>Supported today</h3>
-        <p>Local connector examples, authenticated telemetry ingest, deterministic prediction, validator wrappers, monitoring/export helpers, and public feed URLs.</p>
-        <p><a href="connector-support.html">See connector support</a></p>
-      </article>
-      <article class="card">
-        <h3>Deployment-owned setup</h3>
-        <p>Real endpoints, credentials, device tokens, retention, monitoring destinations, and vendor payload mappings stay under the deployment owner.</p>
-      </article>
-      <article class="card">
-        <h3>Planned candidates</h3>
-        <p>TheTransitClock, vendor AVL adapters, SIRI bridging, OTP/OBA checks, and discovery-readiness workflows remain roadmap items until implemented and tested.</p>
-      </article>
-    </div>
-  </section>
-
-  <section aria-labelledby="proof-heading">
-    <h2 id="proof-heading">Know What Is Not Proven</h2>
-    <p>Open Transit RT can help you evaluate and prepare GTFS / GTFS-Realtime workflows. Outside claims still require deployment-specific review, external evidence, and agency-owned decisions.</p>
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>Open Transit RT is self-hosted open-source software for local and reference operation review. This site does not claim compliance, production readiness, agency adoption, consumer acceptance, hosted service availability, vendor compatibility, SLA coverage, production AVL reliability, or ETA quality.</p>
   </section>
 </main>
 </body>

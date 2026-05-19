@@ -189,7 +189,7 @@ func ValidationHealthRefreshDefinition() Definition {
 		PrivateImpact:    "Writes nothing; the response is computed from existing private records and server-owned artifact checks.",
 		RollbackPath:     "No rollback is required because the refresh writes nothing.",
 		TechnicalHandoff: "Use validator tooling setup or off-host validation docs if tooling or artifacts are blocked.",
-		DoesNotProve:     "Does not prove compliance, consumer acceptance, final-root readiness, hosted availability, production readiness, vendor compatibility, SLA, or ETA quality.",
+		DoesNotProve:     "This private view does not show compliance, consumer acceptance, final-root readiness, hosted availability, production readiness, vendor compatibility, SLA, or ETA quality.",
 		ServerOwnedMappings: []string{
 			"validator identifiers",
 			"artifact lookup",
@@ -209,7 +209,7 @@ func ValidationHealthRunAllDefinition() Definition {
 		PrivateImpact:    "Successful validator runs may store normal validation_report rows only.",
 		RollbackPath:     "Review or supersede validation_report rows with a later validator run; no browser rollback is required for public feeds.",
 		TechnicalHandoff: "Use validator tooling setup or off-host validation docs if tooling or artifacts are blocked.",
-		DoesNotProve:     "Does not prove compliance, consumer acceptance, final-root readiness, hosted availability, production readiness, vendor compatibility, SLA, or ETA quality.",
+		DoesNotProve:     "This private view does not show compliance, consumer acceptance, final-root readiness, hosted availability, production readiness, vendor compatibility, SLA, or ETA quality.",
 		ServerOwnedMappings: []string{
 			"validator identifiers",
 			"validator binary paths",
@@ -232,7 +232,7 @@ func AlertsCancellationPreviewDefinition() Definition {
 		RollbackPath:      "No rollback is required because the preview writes nothing.",
 		DisabledByDefault: true,
 		TechnicalHandoff:  "Use the Alerts Console reconciliation action only after agency review of canceled-trip overrides.",
-		DoesNotProve:      "Does not prove compliance, consumer acceptance, consumer display, public launch, hosted availability, production readiness, vendor compatibility, hardware certification, SLA, or ETA quality.",
+		DoesNotProve:      "This private view does not show compliance, consumer acceptance, consumer display, public launch, hosted availability, production readiness, vendor compatibility, hardware certification, SLA, or ETA quality.",
 		ServerOwnedMappings: []string{
 			"canceled-trip override lookup",
 			"missing-alert review lookup",
@@ -253,7 +253,7 @@ func RealtimeQualityBacktestDefinition() Definition {
 		RollbackPath:      "Remove or supersede private diagnostic output; no public feed rollback is required.",
 		DisabledByDefault: true,
 		TechnicalHandoff:  "Use realtime-quality backtest docs when observed/prediction inputs are missing or blocked.",
-		DoesNotProve:      "Does not prove compliance, consumer acceptance, real-world ETA accuracy, production-grade ETA quality, public launch, hosted availability, production readiness, vendor compatibility, hardware certification, or SLA.",
+		DoesNotProve:      "This private view does not show compliance, consumer acceptance, real-world ETA accuracy, production-grade ETA quality, public launch, hosted availability, production readiness, vendor compatibility, hardware certification, or SLA.",
 		ServerOwnedMappings: []string{
 			"observed event input",
 			"prediction sample input",
@@ -275,7 +275,7 @@ func ConnectorConformanceReviewDefinition() Definition {
 		RollbackPath:      "No rollback is required because the review writes nothing.",
 		DisabledByDefault: true,
 		TechnicalHandoff:  "Use connector conformance docs if manifests or synthetic fixtures are missing or blocked.",
-		DoesNotProve:      "Does not prove compliance, consumer acceptance, vendor compatibility, hardware certification, public launch, hosted availability, production readiness, SLA, production AVL reliability, or ETA quality.",
+		DoesNotProve:      "This private view does not show compliance, consumer acceptance, vendor compatibility, hardware certification, public launch, hosted availability, production readiness, SLA, production AVL reliability, or ETA quality.",
 		ServerOwnedMappings: []string{
 			"connector manifest registry",
 			"synthetic fixture paths",

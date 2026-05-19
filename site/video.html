@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html" aria-current="page">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -25,37 +27,40 @@
   <section class="page-hero">
     <div>
       <p class="tag">Walkthrough</p>
-      <h1>Watch the browser workflow.</h1>
-      <p class="lead">The tutorial follows the normal local browser entry: open local sign-in, start setup, import or review GTFS, check feeds, review realtime, connect vehicle data, and get help.</p>
+      <h1>Watch the browser workflow, then follow the screenshot tutorial.</h1>
+      <p class="lead">The walkthrough is paired with the current UI tour so viewers can map each screen to a real operator task and understand the local and self-hosted paths.</p>
+      <div class="actions">
+        <a class="button primary" href="ui-tour.html">Open screenshot tutorial</a>
+        <a class="button" href="deploy.html">Review self-hosting</a>
+      </div>
     </div>
     <aside class="summary-panel">
       <h2>Use it for</h2>
-      <p>A quick orientation before trying the local browser UI with public-safe or synthetic data.</p>
+      <p>Orientation before a local evaluation or self-hosted reference deployment review.</p>
     </aside>
   </section>
 
-  <section aria-labelledby="video-asset-heading">
-    <h2 id="video-asset-heading">Interface Walkthrough</h2>
+  <section aria-labelledby="video-heading">
+    <h2 id="video-heading">Interface Walkthrough</h2>
     <div class="video-frame">
-      <video controls preload="metadata" width="1280" height="720" aria-describedby="video-boundary">
+      <video controls preload="metadata" width="1280" height="720" aria-describedby="video-note">
         <source src="assets/open-transit-rt-interface-tour.mp4" type="video/mp4">
         <track src="assets/open-transit-rt-interface-tour.vtt" kind="captions" srclang="en" label="English" default>
         Your browser does not support the video element. The transcript is below.
       </video>
     </div>
-    <p id="video-boundary" class="boundary">Local/demo tutorial only. It does not show private agency data, secrets, raw logs, external portals, consumer submissions, or vendor payloads.</p>
+    <p id="video-note" class="notice">Use the screenshot tutorial as the current capture-backed walkthrough. The video is a public-safe companion asset and is not a slide deck standing in for the product.</p>
   </section>
 
-  <section aria-labelledby="walkthrough-heading">
-    <h2 id="walkthrough-heading">What The Walkthrough Covers</h2>
-    <ol class="workflow-list">
-      <li><strong>Open local sign-in</strong><span>Staff enter through the local browser page after startup.</span></li>
-      <li><strong>Start setup</strong><span>The console shows a short list of actions instead of token handling.</span></li>
-      <li><strong>Import or review GTFS</strong><span>Use GTFS Import, Workbench, quality guidance, and validation health.</span></li>
-      <li><strong>Check feeds</strong><span>Review feeds.json, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</span></li>
-      <li><strong>Connect vehicles</strong><span>Choose a local-supported connector path before using real deployment data.</span></li>
-      <li><strong>Review issues</strong><span>Use readiness and maintenance pages to see what needs attention.</span></li>
-      <li><strong>Get help</strong><span>Use Maintenance and Help when setup, tooling, secrets, or deployment work is needed.</span></li>
+  <section aria-labelledby="covers-heading">
+    <h2 id="covers-heading">What The Walkthrough Covers</h2>
+    <ol class="task-flow">
+      <li><div><strong>Local sign-in</strong><span>How operator staff enter after an administrator starts the local app.</span></div></li>
+      <li><div><strong>Start page</strong><span>How to choose the first missing, blocked, or needs-review action.</span></div></li>
+      <li><div><strong>Schedule import</strong><span>How GTFS import and workbench review fit before feed sharing.</span></div></li>
+      <li><div><strong>Feed health</strong><span>How to review discovery, schedule, Vehicle Positions, Trip Updates, and Alerts.</span></div></li>
+      <li><div><strong>Vehicle data</strong><span>How devices, telemetry, connectors, and realtime review connect.</span></div></li>
+      <li><div><strong>Self-hosted context</strong><span>What becomes deployment-owner work: DNS, TLS, secrets, validators, backups, and monitoring.</span></div></li>
     </ol>
   </section>
 
@@ -65,7 +70,12 @@
     <p>Use the Operations Console to import or review GTFS, check the five feed URLs, connect vehicle data, and review realtime state.</p>
     <p>Choose connector support from local-tested paths before configuring real endpoints, credentials, or vendor payloads.</p>
     <p>Use readiness, maintenance, and help pages to see what needs attention and who should handle the next step.</p>
-    <p>Local review can help prepare public feed work. It is not proof of compliance, production readiness, consumer acceptance, vendor compatibility, SLA, AVL reliability, or ETA quality.</p>
+    <p>For self-hosted reference operation, a deployment owner also manages public base URLs, TLS, secrets, validator tooling, backups, monitoring, and update procedure.</p>
+  </section>
+
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>The walkthrough does not show private agency data, secrets, raw logs, external portals, consumer submissions, vendor payloads, compliance proof, production readiness, SLA coverage, production AVL reliability, or ETA-quality proof.</p>
   </section>
 </main>
 </body>

@@ -52,14 +52,14 @@ type operationsFeedReadinessFutureGate struct {
 }
 
 type operationsFeedReadinessGuide struct {
-	ID                  string `json:"id"`
-	Label               string `json:"label"`
-	Status              string `json:"status"`
-	CurrentSignal       string `json:"current_signal"`
-	OperatorStep        string `json:"operator_step"`
-	TechnicalHelperStep string `json:"technical_helper_step"`
-	DocsLink            string `json:"docs_link"`
-	DoesNotProve        string `json:"does_not_prove"`
+	ID                string `json:"id"`
+	Label             string `json:"label"`
+	Status            string `json:"status"`
+	CurrentSignal     string `json:"current_signal"`
+	OperatorStep      string `json:"operator_step"`
+	AdministratorStep string `json:"administrator_step"`
+	DocsLink          string `json:"docs_link"`
+	DoesNotProve      string `json:"does_not_prove"`
 }
 
 type operationsFeedReadinessClaimFlags struct {
@@ -215,11 +215,11 @@ func feedReadinessChecklist(id string) []string {
 
 func feedReadinessMetadata(page operationsPage) []operationsFeedReadinessMetadata {
 	return []operationsFeedReadinessMetadata{
-		feedReadinessMetadataRow("public_base_url", "Public base URL", strings.TrimSpace(page.Discovery.PublicBaseURL) != "" && page.DiscoveryError == "", firstNonEmpty(page.Discovery.PublicBaseURL, page.DiscoveryError, "missing"), "Set publication metadata before copying URLs outside the private console.", "Does not prove final-root ownership or public website source-of-truth listing."),
-		feedReadinessMetadataRow("license", "License metadata", page.Discovery.Readiness.LicenseComplete && page.DiscoveryError == "", firstNonEmpty(page.Discovery.License.Name, "missing"), "Add license name and URL before external feed review.", "Does not prove legal approval or consumer acceptance."),
-		feedReadinessMetadataRow("contact", "Technical contact metadata", page.Discovery.Readiness.ContactComplete && page.DiscoveryError == "", firstNonEmpty(page.Discovery.TechnicalContactEmail, "missing"), "Add a monitored technical contact before external feed review.", "Does not prove agency approval or managed support."),
-		feedReadinessMetadataRow("https", "HTTPS configured URLs", page.Discovery.Readiness.HTTPSURLs && page.DiscoveryError == "", fmt.Sprintf("all_https=%t", page.Discovery.Readiness.HTTPSURLs), "Review any HTTP/local URL before using it outside local/reference contexts.", "Does not prove uptime, SLA, or hosted service availability."),
-		feedReadinessMetadataRow("all_required_feeds", "Expected feed set", page.Discovery.Readiness.AllRequiredFeedsListed && page.DiscoveryError == "", fmt.Sprintf("%d feed records; all_required_listed=%t", len(page.Discovery.Feeds), page.Discovery.Readiness.AllRequiredFeedsListed), "List feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts before public feed review.", "Does not prove consumer ingestion, listing, display, or acceptance."),
+		feedReadinessMetadataRow("public_base_url", "Public base URL", strings.TrimSpace(page.Discovery.PublicBaseURL) != "" && page.DiscoveryError == "", firstNonEmpty(page.Discovery.PublicBaseURL, page.DiscoveryError, "missing"), "Set publication metadata before copying URLs outside the private console.", "This private view does not show final-root ownership or public website source-of-truth listing."),
+		feedReadinessMetadataRow("license", "License metadata", page.Discovery.Readiness.LicenseComplete && page.DiscoveryError == "", firstNonEmpty(page.Discovery.License.Name, "missing"), "Add license name and URL before external feed review.", "This private view does not show legal approval or consumer acceptance."),
+		feedReadinessMetadataRow("contact", "Technical contact metadata", page.Discovery.Readiness.ContactComplete && page.DiscoveryError == "", firstNonEmpty(page.Discovery.TechnicalContactEmail, "missing"), "Add a monitored technical contact before external feed review.", "This private view does not show agency approval or managed support."),
+		feedReadinessMetadataRow("https", "HTTPS configured URLs", page.Discovery.Readiness.HTTPSURLs && page.DiscoveryError == "", fmt.Sprintf("all_https=%t", page.Discovery.Readiness.HTTPSURLs), "Review any HTTP/local URL before using it outside local/reference contexts.", "This private view does not show uptime, SLA, or hosted service availability."),
+		feedReadinessMetadataRow("all_required_feeds", "Expected feed set", page.Discovery.Readiness.AllRequiredFeedsListed && page.DiscoveryError == "", fmt.Sprintf("%d feed records; all_required_listed=%t", len(page.Discovery.Feeds), page.Discovery.Readiness.AllRequiredFeedsListed), "List feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts before public feed review.", "This private view does not show consumer ingestion, listing, display, or acceptance."),
 	}
 }
 
@@ -256,7 +256,7 @@ func feedReadinessSourceOfTruthGuidance(page operationsPage) []operationsFeedRea
 			"Privately compare the five configured feed URLs with the intended provider or regional source-of-truth page.",
 			"Do not collect retained final-root proof unless a separate written authorization starts that evidence gate.",
 			"docs/requirements-calitp-compliance.md",
-			"Does not prove the page is final-root, agency-owned, agency-approved, listed publicly, or reviewed by any target.",
+			"This private view does not show the page is final-root, agency-owned, agency-approved, listed publicly, or reviewed by any target.",
 		),
 		feedReadinessGuide(
 			"metadata_identity",
@@ -266,7 +266,7 @@ func feedReadinessSourceOfTruthGuidance(page operationsPage) []operationsFeedRea
 			"Confirm agency name, license URL, and monitored technical contact are understandable before any future external sharing.",
 			"Update publication metadata through existing server-owned configuration paths; do not paste credentials or private contacts into evidence packets.",
 			"docs/release-candidate-readiness.md",
-			"Does not prove legal approval, managed support, compliance, consumer review, or target listing.",
+			"This private view does not show legal approval, managed support, compliance, consumer review, or target listing.",
 		),
 		feedReadinessGuide(
 			"screenshot_and_diagram_policy",
@@ -292,10 +292,10 @@ func feedReadinessOffHostGuidance(page operationsPage) []operationsFeedReadiness
 			"Static schedule validator",
 			scheduleStatus,
 			feedReadinessValidationContext(page, "schedule"),
-			"Use the private validation center first. If the host lacks tooling, ask a technical helper to run the allowlisted static validator off-host.",
+			"Use the private validation center first. If the host lacks tooling, ask an administrator to run the allowlisted static validator off-host.",
 			"Keep off-host outputs local or in ignored .cache paths unless an authorized evidence gate specifies retention.",
 			"docs/dependencies.md",
-			"Does not prove a validator-clean public feed, compliance, consumer review, or source-of-truth listing.",
+			"This private view does not show a validator-clean public feed, compliance, consumer review, or source-of-truth listing.",
 		),
 		feedReadinessGuide(
 			"realtime_validators",
@@ -305,7 +305,7 @@ func feedReadinessOffHostGuidance(page operationsPage) []operationsFeedReadiness
 			"Review Vehicle Positions, Trip Updates, and Alerts validator rows separately before sharing realtime URLs.",
 			"Run GTFS-Realtime validation through existing allowlisted validator IDs or documented off-host commands; never accept browser-supplied validator paths.",
 			"docs/requirements-trip-updates.md",
-			"Does not prove consumer display, real-world ETA quality, realtime reliability, or target ingestion.",
+			"This private view does not show consumer display, real-world ETA quality, realtime reliability, or target ingestion.",
 		),
 		feedReadinessGuide(
 			"small_host_offload",
@@ -315,7 +315,7 @@ func feedReadinessOffHostGuidance(page operationsPage) []operationsFeedReadiness
 			"Treat missing local validator tooling as a reason to use documented off-host validation, not as a pass.",
 			"Use a workstation or CI environment with pinned validators; keep stdout, stderr, private paths, and raw reports out of HTML.",
 			"docs/tutorials/gtfs-validation-triage.md",
-			"Does not prove hosted service availability, SLA, uptime, release readiness, or public launch.",
+			"This private view does not show hosted service availability, SLA, uptime, release readiness, or public launch.",
 		),
 	}
 }
@@ -330,7 +330,7 @@ func feedReadinessDocsPortalGuidance(page operationsPage) []operationsFeedReadin
 			"Keep public docs focused on self-hosted browser-first operation and clear claim boundaries.",
 			"When docs mention screenshots or feed URLs, label them as local/demo documentation aids unless retained evidence is separately authorized.",
 			"docs/index.md",
-			"Does not prove hosted-service availability, public service launch, agency approval, or release readiness.",
+			"This private view does not show hosted-service availability, public service launch, agency approval, or release readiness.",
 		),
 		feedReadinessGuide(
 			"feed_url_share_copy",
@@ -340,7 +340,7 @@ func feedReadinessDocsPortalGuidance(page operationsPage) []operationsFeedReadin
 			"Copy URLs only from the private configured feed URL review after metadata and validation context are reviewed.",
 			"Do not automate portal uploads or external network sends from this browser page.",
 			"docs/tutorials/self-hosted-operator-trial.md",
-			"Does not prove a target received, reviewed, listed, displayed, or ingested a feed.",
+			"This private view does not show a target received, reviewed, listed, displayed, or ingested a feed.",
 		),
 		feedReadinessGuide(
 			"future_operator_checklist",
@@ -357,14 +357,14 @@ func feedReadinessDocsPortalGuidance(page operationsPage) []operationsFeedReadin
 
 func feedReadinessGuide(id string, label string, status string, signal string, operatorStep string, technicalHelperStep string, docsLink string, doesNotProve string) operationsFeedReadinessGuide {
 	return operationsFeedReadinessGuide{
-		ID:                  strings.TrimSpace(id),
-		Label:               firstNonEmpty(label, id),
-		Status:              firstNonEmpty(status, operationsStatusUnknown),
-		CurrentSignal:       firstNonEmpty(signal, "not available"),
-		OperatorStep:        firstNonEmpty(operatorStep, "Review this item inside the private Operations Console."),
-		TechnicalHelperStep: firstNonEmpty(technicalHelperStep, "Keep any technical output private unless a separate evidence gate is authorized."),
-		DocsLink:            docsLink,
-		DoesNotProve:        firstNonEmpty(doesNotProve, privateBoundary()),
+		ID:                strings.TrimSpace(id),
+		Label:             firstNonEmpty(label, id),
+		Status:            firstNonEmpty(status, operationsStatusUnknown),
+		CurrentSignal:     firstNonEmpty(signal, "not available"),
+		OperatorStep:      firstNonEmpty(operatorStep, "Review this item inside the private Operations Console."),
+		AdministratorStep: firstNonEmpty(technicalHelperStep, "Keep any technical output private unless a separate evidence gate is authorized."),
+		DocsLink:          docsLink,
+		DoesNotProve:      firstNonEmpty(doesNotProve, privateBoundary()),
 	}
 }
 

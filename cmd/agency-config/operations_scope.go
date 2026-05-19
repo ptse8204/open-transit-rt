@@ -27,6 +27,6 @@ func buildOperationsAgencyScope(principal auth.Principal) operationsAgencyScopeV
 		QueryRule:      "agency_id query values must match this agency; conflicting values are rejected before page data is loaded",
 		Roles:          roles,
 		NextAction:     "Use a separate signed-in session for a different agency. Do not treat URL edits as agency switching.",
-		DoesNotProve:   "Agency scope visibility does not prove deployment-wide tenancy readiness or cross-agency administration support.",
+		DoesNotProve:   "Agency scope visibility does not show deployment-wide tenancy readiness or cross-agency administration support.",
 	}
 }

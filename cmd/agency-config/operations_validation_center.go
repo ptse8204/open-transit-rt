@@ -459,7 +459,7 @@ func validationCenterBlockerRows(timelineRows []operationsValidationCenterTimeli
 			Area:         "Additional private blocker rows",
 			Signal:       fmt.Sprintf("%d additional rows are hidden by the Center cap", overflow),
 			NextAction:   "Open Feed Health, Validator Health, GTFS Quality, and Readiness to review the complete private row set.",
-			DoesNotProve: "Hidden row count does not prove release readiness or absence of other issues.",
+			DoesNotProve: "Hidden row count does not show release readiness or absence of other issues.",
 			ReviewURL:    "/admin/operations/readiness",
 		})
 	}
@@ -518,7 +518,7 @@ func validationCenterConsumerRows(rows []consumerStatusView) []operationsValidat
 			Source:       row.Source,
 			UpdatedAt:    formatTimeForText(row.UpdatedAt),
 			NextAction:   "Keep the target-specific packet record prepared-only until separate written authorization and retained target-originated evidence support a status change.",
-			DoesNotProve: "Prepared tracker status does not prove submission, review, acceptance, ingestion, listing, display, consumer approval, or compliance.",
+			DoesNotProve: "Prepared tracker status does not show submission, review, acceptance, ingestion, listing, display, consumer approval, or compliance.",
 		})
 	}
 	return out

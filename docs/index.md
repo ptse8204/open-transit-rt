@@ -5,7 +5,9 @@ Use this page to choose the right guide without reading project-history files.
 ## New Users
 
 - [Product Explainer Site](https://ptse8204.github.io/open-transit-rt/)
-- [Video Guide](https://ptse8204.github.io/open-transit-rt/video.html)
+- [Try And Deploy](https://ptse8204.github.io/open-transit-rt/try-locally.html)
+- [Self-Hosted Reference Path](https://ptse8204.github.io/open-transit-rt/deploy.html)
+- [Operator Workflow Tour](https://ptse8204.github.io/open-transit-rt/ui-tour.html)
 - [README](../README.md)
 - [Small Agency Quick Start](../wiki/small-agency-quick-start.md)
 - [Browser-First Setup](../wiki/browser-first-setup.md)
@@ -17,12 +19,12 @@ Use this page to choose the right guide without reading project-history files.
 - [No Command Line First Run](tutorials/no-cli-agency-first-run.md)
 - [GTFS Validation Triage](tutorials/gtfs-validation-triage.md)
 - [Small Agency Maintenance Guide](tutorials/small-agency-maintenance-guide.md)
-- [Video Recording Guide](tutorials/video-recording-guide.md)
+- [Operator Workflow Tutorial](https://ptse8204.github.io/open-transit-rt/ui-tour.html)
 - [CAL-ITP Readiness Plain English](../wiki/calitp-readiness-plain-english.md)
 - [CAL-ITP-Style Readiness Checklist](tutorials/calitp-readiness-checklist.md)
 - [Readiness And Evidence](../wiki/readiness-and-evidence.md)
 
-## Technical Helpers
+## Administrators And Deployment Owners
 
 - [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
 - [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md)
@@ -31,6 +33,11 @@ Use this page to choose the right guide without reading project-history files.
 - [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)
 - [Off-Host Public Feed Validation](deployment/off-host-validation.md)
 - [Dependencies](dependencies.md)
+
+The authenticated `/admin/operations*` routes are the private product UI for
+both local evaluation and self-hosted/reference deployments. Use the public
+tutorial to understand the workflow, then use the deployment guides for server,
+HTTPS, secret, validator, backup, and monitoring ownership.
 
 ## Connector Developers
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open Transit RT UI Tour</title>
+  <title>Open Transit RT Operator Tour</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html" aria-current="page">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -24,65 +26,157 @@
 <main>
   <section class="page-hero">
     <div>
-      <p class="tag">Browser tour</p>
-      <h1>Follow the same path staff use in the console.</h1>
-      <p class="lead">The Operations Console is organized around a simple sequence: start setup, import GTFS, check feeds, connect vehicles, review realtime, fix issues, share URLs, and maintain the system.</p>
+      <p class="tag">Guided tutorial</p>
+      <h1>Tour the operator workflow from sign-in to feed review.</h1>
+      <p class="lead">This tutorial follows the real private console path. It covers local evaluation first, then explains what changes when a deployment owner runs the same workflow on a self-hosted reference instance.</p>
+      <div class="actions">
+        <a class="button primary" href="video.html">Open walkthrough</a>
+        <a class="button" href="deploy.html">Self-hosted path</a>
+      </div>
     </div>
     <aside class="summary-panel">
-      <h2>What stays technical?</h2>
-      <p>Startup, production hosting, validator tooling, device secrets, real connector endpoints, and deployment monitoring still need a technical helper.</p>
+      <h2>When an administrator is needed</h2>
+      <p>Startup, self-hosting, validators, secrets, device tokens, real connector endpoints, and monitoring destinations belong to an administrator or deployment owner.</p>
     </aside>
   </section>
 
-  <section aria-labelledby="tour-heading">
-    <h2 id="tour-heading">Actual Browser Screens</h2>
-    <div class="screenshot-grid">
-      <figure class="screenshot-card">
+  <section aria-labelledby="tutorial-heading">
+    <h2 id="tutorial-heading">Step-By-Step Tour</h2>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">1. Local sign-in</p>
+        <h3>Start without token handling</h3>
+        <p>For local evaluation, an administrator starts the app and staff open <code>/admin/local-login</code>. Choosing <strong>Start setup</strong> opens a private browser session for the Operations Console.</p>
+        <p><strong>Self-hosted difference:</strong> production access is deployment-owned. The local sign-in shortcut is for local/demo operation only.</p>
+      </div>
+      <figure>
         <img src="assets/screenshots/local-login.png" width="1440" height="1000" alt="Local sign-in page with Start setup button" loading="lazy">
-        <figcaption><span class="step">Open local sign-in</span><h3>Start without tokens</h3><p>Staff open the local page and choose Start setup.</p></figcaption>
+        <figcaption>Local/demo sign-in keeps normal review out of token and cookie setup.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/start-page.png" width="1440" height="1000" alt="Operations Console Start page" loading="lazy">
-        <figcaption><span class="step">Start here</span><h3>Follow the workflow</h3><p>The console opens with ordered steps and one main action per step.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">2. Start page</p>
+        <h3>Pick the first blocked action</h3>
+        <p>The Start page shows the current product state and the ordered workflow: setup, schedule import, feed URLs, vehicle data, realtime review, issue fixing, maintenance, and authorized sharing preparation.</p>
+        <p><strong>Self-hosted difference:</strong> the same page should reflect deployment-owned public base URLs and server-side service state.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/start-page.png" width="1440" height="1000" alt="Operations Console Start page with ordered workflow" loading="lazy">
+        <figcaption>The operator path starts with the action queue, not a route list.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/gtfs-workbench.png" width="1440" height="1000" alt="GTFS Workbench page" loading="lazy">
-        <figcaption><span class="step">Import GTFS</span><h3>Review the schedule</h3><p>Check active feed version, required files, import history, and validation guidance.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">3. Set up agency</p>
+        <h3>Fill in agency settings first</h3>
+        <p>Agency Setup keeps profile, public feed metadata, contact, license, schedule, vehicle data, validation, and maintenance ownership in one browser-first checklist.</p>
+        <p><strong>Self-hosted difference:</strong> deployment owners should replace local placeholders with the reference deployment hostname, monitored contact, and owner assignments before sharing URLs.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/agency-setup.png" width="1440" height="1000" alt="Agency Setup page with deployment and operations checklist" loading="lazy">
+        <figcaption>Setup makes ownership visible before schedule or realtime work moves forward.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/feed-health.png" width="1440" height="1000" alt="Feed Health page with feed rows" loading="lazy">
-        <figcaption><span class="step">Check feeds</span><h3>Review five URLs</h3><p>Check discovery, schedule, Vehicle Positions, Trip Updates, and Alerts.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">4. Import a schedule</p>
+        <h3>Confirm the active GTFS feed</h3>
+        <p>Use Import Schedule or Schedule Review to load a schedule, confirm required files, review import history, and understand validation guidance before checking public feed URLs.</p>
+        <p><strong>Self-hosted difference:</strong> the deployment owner must decide which source schedule is allowed for the hosted environment.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/gtfs-workbench.png" width="1440" height="1000" alt="Schedule Review page showing active schedule review" loading="lazy">
+        <figcaption>Schedule review comes before realtime confidence or external sharing.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/devices.png" width="1440" height="1000" alt="Devices page showing vehicle data setup" loading="lazy">
-        <figcaption><span class="step">Connect vehicle data</span><h3>Review device setup</h3><p>See device bindings and next steps without showing stored token values.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">5. Check feed URLs</p>
+        <h3>Review all five public paths</h3>
+        <p>Feed Health shows discovery, static GTFS, Vehicle Positions, Trip Updates, and Alerts. Missing or stale rows link back to the next private console action.</p>
+        <p><strong>Self-hosted difference:</strong> public URLs should use the deployment-owned hostname and reverse proxy path.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/feed-health.png" width="1440" height="1000" alt="Feed Health page showing five feed rows" loading="lazy">
+        <figcaption>The feed page answers what is available and what to fix next.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/realtime.png" width="1440" height="1000" alt="Realtime page showing telemetry and feed status" loading="lazy">
-        <figcaption><span class="step">Review realtime</span><h3>Check live feed state</h3><p>Review stale vehicles, Vehicle Positions, Trip Updates diagnostics, and Alerts.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">6. Connect vehicle data</p>
+        <h3>Choose a safe connector path</h3>
+        <p>Devices, Telemetry Freshness, Realtime, and Connectors show whether vehicles are sending fresh data and which connector category fits the deployment.</p>
+        <p><strong>Self-hosted difference:</strong> credentials, sidecars, payload mappings, and retention rules stay under deployment-owner control.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/devices.png" width="1440" height="1000" alt="Devices page showing token-safe vehicle data setup" loading="lazy">
+        <figcaption>Token values should not appear in public screenshots or notes.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/connectors.png" width="1440" height="1000" alt="Connectors page showing connector categories" loading="lazy">
-        <figcaption><span class="step">Choose connectors</span><h3>Pick a safe path</h3><p>Start from local-supported connector categories before real endpoints are configured.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">7. Review connector options</p>
+        <h3>Keep integrations behind safe boundaries</h3>
+        <p>Connectors shows which adapter shape fits telemetry, prediction, validation, monitoring, or discovery work before any real endpoint, credential, or vendor payload is introduced.</p>
+        <p><strong>Self-hosted difference:</strong> a deployment owner controls sidecars, secrets, payload mapping, and network sends.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/connectors.png" width="1440" height="1000" alt="Connectors page with safe integration categories" loading="lazy">
+        <figcaption>Connector review starts with local and synthetic contracts.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/readiness.png" width="1440" height="1000" alt="Readiness page showing system rows and next actions" loading="lazy">
-        <figcaption><span class="step">Review issues</span><h3>See what needs attention</h3><p>Use system checks to decide the next user action or technical-helper task.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">8. Review realtime output</p>
+        <h3>Prefer unknown over false certainty</h3>
+        <p>Realtime review separates fresh vehicles, stale rows, unmatched vehicles, Vehicle Positions, Trip Updates diagnostics, and Alerts lifecycle status.</p>
+        <p><strong>Self-hosted difference:</strong> production-like checks still need deployment-specific validator and monitoring review.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/realtime.png" width="1440" height="1000" alt="Realtime page with telemetry and feed status" loading="lazy">
+        <figcaption>Conservative matching should be visible before people trust realtime output.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/maintenance.png" width="1440" height="1000" alt="Maintenance page showing routine system tasks" loading="lazy">
-        <figcaption><span class="step">Maintain system</span><h3>Plan routine checks</h3><p>Review backup, restore, support, and deployment-owner tasks.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">9. Review readiness</p>
+        <h3>Separate preparation from outside approval</h3>
+        <p>Readiness shows remaining gaps across metadata, schedule, feed health, validators, telemetry, realtime output, maintenance, and future sharing preparation.</p>
+        <p><strong>Self-hosted difference:</strong> readiness should use deployment-owned base URLs and local/reference diagnostics without changing consumer statuses.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/readiness.png" width="1440" height="1000" alt="Readiness page with operator issue and preparation rows" loading="lazy">
+        <figcaption>Readiness is a private work list, not an outside claim.</figcaption>
       </figure>
-      <figure class="screenshot-card">
-        <img src="assets/screenshots/help.png" width="1440" height="1000" alt="Help page with task-oriented guidance" loading="lazy">
-        <figcaption><span class="step">Get help</span><h3>Find the right owner</h3><p>Use task help when a page is empty, blocked, or needs technical setup.</p></figcaption>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">10. Maintain the deployment</p>
+        <h3>Keep operations work assigned</h3>
+        <p>Maintenance and Help show routine checks, owner responsibilities, backup and restore guidance, validator setup, support summaries, and update planning.</p>
+        <p><strong>Self-hosted difference:</strong> these tasks become routine deployment-owner responsibilities.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/maintenance.png" width="1440" height="1000" alt="Maintenance page with routine operation tasks" loading="lazy">
+        <figcaption>Maintenance work stays private and operator-controlled.</figcaption>
       </figure>
-    </div>
+    </article>
   </section>
 
-  <section aria-labelledby="tour-boundary-heading">
-    <h2 id="tour-boundary-heading">Use The Tour For Evaluation</h2>
-    <p class="boundary">The UI helps local and self-hosted evaluation. It does not create evidence, contact consumers or vendors, prove public launch, or replace deployment-owned review.</p>
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>These captures are tutorial assets from local/demo UI review. They do not show private agency data, secrets, external portals, consumer submissions, vendor payloads, or proof of production readiness.</p>
   </section>
 </main>
 </body>

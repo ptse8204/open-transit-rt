@@ -329,7 +329,7 @@ func buildConnectorWorkbench(page operationsPage) connectorWorkbenchView {
 				"Review where an adapter can transform inbound observations before authenticated telemetry ingest.",
 				"needs_review",
 				"Use this as a boundary checklist for deployment-owned webhook receivers and transform adapters.",
-				[]string{"Deployment-owned receiver outside the Operations Console", "device token issued through Devices & Tokens", "redacted local diagnostics"},
+				[]string{"Deployment-owned receiver outside the Operations Console", "device token issued through Devices", "redacted local diagnostics"},
 				"Outside this browser page; the Workbench does not receive or forward posted payloads.",
 				"go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance",
 				"Synthetic malformed, stale, future, duplicate, low-quality, and wrong-agency cases fail closed.",
@@ -751,7 +751,7 @@ func connectorWorkbenchWebhookBoundaryView() connectorWorkbenchWebhookBoundary {
 				"credential_boundary",
 				"Credentials stay server-owned",
 				"Device and adapter credentials must be provisioned through existing private admin paths or deployment configuration, not through manifests or this page.",
-				[]string{"environment references", "device token issuance through private Devices & Tokens", "redacted credential presence indicators"},
+				[]string{"environment references", "device token issuance through private Devices", "redacted credential presence indicators"},
 				[]string{"API keys in JSON", "bearer values in HTML", "credential upload fields", "token hashes in operator-visible tables"},
 				"make external-connection-check",
 				"Block connector manifests or examples that contain secret-like values, private endpoints, raw commands, or status mutation.",
@@ -762,7 +762,7 @@ func connectorWorkbenchWebhookBoundaryView() connectorWorkbenchWebhookBoundary {
 			connectorWorkbenchWebhookRowView(
 				"review_before_send",
 				"Review before any intentional send",
-				"After local synthetic checks pass, a technical helper should review the adapter boundary before any deployment-owned send path is enabled.",
+				"After local synthetic checks pass, an administrator should review the adapter boundary before any deployment-owned send path is enabled.",
 				[]string{"passing synthetic conformance results", "redaction plan", "rollback plan", "operator-owned go/no-go notes outside protected evidence paths"},
 				[]string{"retained evidence without authorization", "consumer status movement", "automatic submissions", "public claims based on local checks"},
 				"make adapter-conformance",
@@ -1330,7 +1330,7 @@ func (p *connectorWorkbenchTelemetryPreview) addSource(id string, label string, 
 	}
 	if err != nil {
 		source.Status = checklistStatusBlocked
-		source.DoesNotProve = "A missing or unreadable committed fixture does not prove connector failure or success."
+		source.DoesNotProve = "A missing or unreadable committed fixture does not show connector failure or success."
 		p.Sources = append(p.Sources, source)
 		return
 	}
