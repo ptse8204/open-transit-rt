@@ -34,19 +34,27 @@ For one guided local/reference evaluation that combines this deployment path,
 handling, and the synthetic AVL dry-run adapter, use
 [Self-Hosted Operator Trial](../tutorials/self-hosted-operator-trial.md).
 
-For browser-first agency operations after deployment, use:
+For a capture-backed browser walkthrough of the same private workflow, use the
+[Operator Workflow Tutorial](https://ptse8204.github.io/open-transit-rt/ui-tour.html).
+
+For browser-first agency operations after deployment, use the same private
+product routes as the local evaluator:
 
 ```text
 /admin/operations
+/admin/operations/setup-wizard
 /admin/operations/feed-health
 /admin/operations/gtfs-import
+/admin/operations/gtfs-workbench
+/admin/operations/connectors
 /admin/operations/validation-health
+/admin/operations/readiness
 /admin/operations/maintenance
 ```
 
 These private pages are the normal operator surfaces. Shell diagnostics remain
-technical-helper paths for deployment, off-host validation, support summaries,
-and secure token handling.
+administrator or deployment-owner paths for startup, deployment, off-host
+validation, support summaries, and secure token handling.
 
 ## Server Prerequisites
 

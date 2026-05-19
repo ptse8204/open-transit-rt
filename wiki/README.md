@@ -34,6 +34,10 @@ http://localhost:8080/admin/local-login
 Choose **Start setup**. The browser opens the private Operations Console and
 shows **Start Here** first.
 
+Self-hosted/reference deployments use the same authenticated
+`/admin/operations*` product routes after the deployment owner configures the
+server, HTTPS root, secrets, validators, backups, and monitoring.
+
 ## Administrator Startup
 
 ```bash

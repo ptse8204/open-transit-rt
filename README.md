@@ -100,6 +100,11 @@ More help:
 - [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
 - [Video Recording Guide](docs/tutorials/video-recording-guide.md)
 
+The same authenticated `/admin/operations*` pages are the private product
+routes for local evaluation and for a self-hosted/reference deployment. The
+hostname, TLS, secrets, validators, backups, and monitoring change; the browser
+workflow does not move to a separate local-only demo surface.
+
 ## Validation
 
 Before opening a PR, run:

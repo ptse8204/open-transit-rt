@@ -34,6 +34,11 @@ Use this page to choose the right guide without reading project-history files.
 - [Off-Host Public Feed Validation](deployment/off-host-validation.md)
 - [Dependencies](dependencies.md)
 
+The authenticated `/admin/operations*` routes are the private product UI for
+both local evaluation and self-hosted/reference deployments. Use the public
+tutorial to understand the workflow, then use the deployment guides for server,
+HTTPS, secret, validator, backup, and monitoring ownership.
+
 ## Connector Developers
 
 - [Connector Catalog](connectors/catalog.md)

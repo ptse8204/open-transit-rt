@@ -10,7 +10,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: help check check-links check-stable-filter build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up capture-ui-tour telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check external-connection-check adapter-conformance gtfsrt-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-product-language audit-ui-layout audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: help check check-links check-stable-filter build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up capture-ui-tour product-ui-smoke telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check external-connection-check adapter-conformance gtfsrt-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-product-language audit-ui-layout audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 help:
 	@printf '%s\n' 'Open Transit RT command map'
@@ -38,6 +38,7 @@ help:
 	@printf '%s\n' ''
 	@printf '%s\n' 'Release/readiness:'
 	@printf '%s\n' '  make release-candidate-check    Local release-candidate diagnostic summary'
+	@printf '%s\n' '  make product-ui-smoke           Render private product routes with reference settings'
 	@printf '%s\n' '  make install-confidence         Run local fresh-clone/archive install diagnostics'
 	@printf '%s\n' '  make oci-reference-check        Private OCI/reference deployment diagnostic summary'
 	@printf '%s\n' '  make validate-public-feeds      Off-host five-feed fetch and validator diagnostic'
@@ -135,6 +136,9 @@ agency-pilot-up:
 
 capture-ui-tour:
 	@./scripts/capture-ui-tour.sh
+
+product-ui-smoke:
+	@./scripts/product-ui-smoke.sh
 
 telemetry-simulator:
 	@./scripts/telemetry-simulator.sh
