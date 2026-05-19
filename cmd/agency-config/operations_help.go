@@ -244,7 +244,7 @@ func operationsHelpRoleTours() []operationsHelpRoleTour {
 		helpRoleTour(
 			"no_code_evaluator",
 			"No-code evaluator",
-			"Someone deciding whether the private browser workflow is understandable before asking for technical help.",
+			"Someone deciding whether the private browser workflow is understandable before asking an administrator for help.",
 			"/admin/operations",
 			"Start, Agency Setup, Feed Links & Health, Validation Center, Help",
 			"Follow status chips and next actions only; do not try shell commands or deployment changes.",
@@ -256,11 +256,11 @@ func operationsHelpRoleTours() []operationsHelpRoleTour {
 		helpRoleTour(
 			"director_manager",
 			"Director or manager",
-			"Someone checking whether the agency has a clear operational path and knows which work needs staff or technical support.",
+			"Someone checking whether the agency has a clear operational path and knows which work needs staff or deployment-owner support.",
 			"/admin/operations/launchpad",
 			"Agency Launchpad, Readiness, Consumer Preparation, Maintenance, Evidence Guidance",
 			"Confirm the team knows the next private task, current blockers, and which outside claims remain unavailable.",
-			"Ask for technical help when a blocker needs data import, feed validation tooling, deployment checks, or redaction review.",
+			"Ask an administrator when a blocker needs data import, feed validation tooling, deployment checks, or redaction review.",
 			"This private view does not show adoption, approval, compliance, public launch, managed service, or support coverage.",
 			[]string{"/admin/operations/launchpad", "/admin/operations/readiness", "/admin/operations/consumers", "/admin/operations/maintenance"},
 			[]string{"docs/agency-training-outline.md", "docs/support-boundaries.md"},
@@ -336,7 +336,7 @@ func operationsHelpRecoveryGuidance() []operationsHelpRecoveryRow {
 	return []operationsHelpRecoveryRow{
 		helpRecoveryRow("empty_start_here", "Start shows missing or blocked rows.", "The agency has not completed setup, import, telemetry, validation, or maintenance inputs yet.", "Open Agency Setup and follow the first missing private next action.", "An administrator is needed if startup, environment, validator tooling, or deployment settings are missing.", "/admin/operations/setup-wizard", "Clearing a missing row does not show outside readiness."),
 		helpRecoveryRow("gtfs_import_confusing", "A schedule import produced errors or the Workbench still looks incomplete.", "The source GTFS may be missing required files, has validator issues, or has not been published as the active feed.", "Open Schedule Review and Schedule Quality, then fix source data before relying on realtime feeds.", "Escalate when the source owner must change service data or a validator tool is unavailable.", "/admin/operations/gtfs-workbench", "Import review does not show validator-clean status or source-of-truth listing."),
-		helpRecoveryRow("feed_url_missing", "A feed URL is missing, local-only, or not ready to copy.", "Publication metadata, active schedule, realtime feed output, or public root configuration is incomplete.", "Open Feed Links & Health and review metadata, local fetch context, and source-of-truth guidance.", "Use technical help for deployment root configuration or off-host validation.", "/admin/operations/feeds", "A configured URL does not show final-root readiness or consumer action."),
+		helpRecoveryRow("feed_url_missing", "A feed URL is missing, local-only, or not ready to copy.", "Publication metadata, active schedule, realtime feed output, or public root configuration is incomplete.", "Open Feed Links & Health and review metadata, local fetch context, and source-of-truth guidance.", "Use an administrator for deployment root configuration or off-host validation.", "/admin/operations/feeds", "A configured URL does not show final-root readiness or consumer action."),
 		helpRecoveryRow("validator_blocked", "Validation Health says missing, stale, blocked, or tool unavailable.", "The host may lack pinned validator tooling, an artifact may be missing, or the active feed changed after the latest run.", "Use Validation Center and Validation Health to identify the specific feed and validator row before rerunning allowed checks.", "Escalate if validator tooling must be installed or off-host validation is needed.", "/admin/operations/validation-center", "Validator success remains a supporting signal only."),
 		helpRecoveryRow("vehicles_stale", "Vehicles are stale, unmatched, degraded, or missing.", "Telemetry may have stopped, device binding may be inactive, GPS quality may be poor, or matching confidence may be intentionally unknown.", "Open Realtime Center, Devices, and Telemetry to find freshness, binding, and confidence signals.", "Escalate if devices, tokens, or external telemetry adapters need operational changes.", "/admin/operations/realtime", "Resolving staleness does not show field reliability or target display."),
 		helpRecoveryRow("trip_updates_withheld", "Trip Updates are empty, fallback, or withheld.", "The deterministic predictor may be protecting riders from stale, ambiguous, low-confidence, or missing assignment data.", "Open Prediction & ETA Lab and read withheld reasons before changing prediction settings.", "Escalate before introducing external predictors or real-world ETA claims.", "/admin/operations/prediction-lab", "Withheld diagnostics do not prove production-grade ETA quality."),
@@ -394,7 +394,7 @@ func operationsHelpTrainerScript() []operationsHelpTrainerStep {
 		helpTrainerStep("open_boundary", "Opening boundary", "5", "State that this is private training over local or synthetic data only.", "Ask each participant to name one thing the session must not prove.", "/admin/operations/help", "Creates no evidence, no outside contact, and no consumer status change."),
 		helpTrainerStep("role_path", "Role path assignment", "10", "Assign each participant one role path: evaluator, director, operator, administrator, or integrator.", "Ask the participant to open the role's first console page and read the first next action.", "/admin/operations/help", "Does not create support entitlement, adoption proof, or approval."),
 		helpTrainerStep("demo_scenario", "Scenario walkthrough", "20", "Choose one demo scenario and follow only the listed console and fixture references.", "Ask what a blocked or missing row means and when to escalate.", "/admin/operations/help", "Uses synthetic/local fixtures only and does not show field outcomes."),
-		helpTrainerStep("recovery_drill", "Recovery drill", "15", "Pick one common mistake row and rehearse the safe first step before any technical action.", "Ask what not to copy into notes or tickets.", "/admin/operations/help", "Does not authorize credential sharing, private data retention, or external contact."),
+		helpTrainerStep("recovery_drill", "Recovery drill", "15", "Pick one common mistake row and rehearse the safe first step before any administrator action.", "Ask what not to copy into notes or tickets.", "/admin/operations/help", "Does not authorize credential sharing, private data retention, or external contact."),
 		helpTrainerStep("handoff", "Administrator handoff", "10", "Complete a handoff using page, blocker, owner, intended next action, and authorization need.", "Ask whether the handoff needs a maintainer, administrator, or separate evidence gate.", "/admin/operations/help", "Does not start an evidence, release, vendor, or consumer workflow."),
 		helpTrainerStep("closeout", "Closeout", "5", "Review claim boundaries and leave statuses unchanged unless a real authorized workflow exists.", "Ask participants to repeat that all consumer targets remain prepared.", "/admin/operations/consumers", "This private view does not show adoption, consumer acceptance, compliance, public launch, hosted service, SLA, or production readiness."),
 	}

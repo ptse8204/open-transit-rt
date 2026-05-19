@@ -71,20 +71,33 @@
 
     <article class="guide-step">
       <div>
-        <p class="step">3. Import a schedule</p>
+        <p class="step">3. Set up agency</p>
+        <h3>Fill in agency settings first</h3>
+        <p>Agency Setup keeps profile, public feed metadata, contact, license, schedule, vehicle data, validation, and maintenance ownership in one browser-first checklist.</p>
+        <p><strong>Self-hosted difference:</strong> deployment owners should replace local placeholders with the reference deployment hostname, monitored contact, and owner assignments before sharing URLs.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/agency-setup.png" width="1440" height="1000" alt="Agency Setup page with deployment and operations checklist" loading="lazy">
+        <figcaption>Setup makes ownership visible before schedule or realtime work moves forward.</figcaption>
+      </figure>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">4. Import a schedule</p>
         <h3>Confirm the active GTFS feed</h3>
-        <p>Use Import GTFS or GTFS Workbench to load a schedule, confirm required files, review import history, and understand validation guidance before checking public feed URLs.</p>
+        <p>Use Import Schedule or Schedule Review to load a schedule, confirm required files, review import history, and understand validation guidance before checking public feed URLs.</p>
         <p><strong>Self-hosted difference:</strong> the deployment owner must decide which source schedule is allowed for the hosted environment.</p>
       </div>
       <figure>
-        <img src="assets/screenshots/gtfs-workbench.png" width="1440" height="1000" alt="GTFS Workbench page showing active schedule review" loading="lazy">
+        <img src="assets/screenshots/gtfs-workbench.png" width="1440" height="1000" alt="Schedule Review page showing active schedule review" loading="lazy">
         <figcaption>Schedule review comes before realtime confidence or external sharing.</figcaption>
       </figure>
     </article>
 
     <article class="guide-step">
       <div>
-        <p class="step">4. Check feed URLs</p>
+        <p class="step">5. Check feed URLs</p>
         <h3>Review all five public paths</h3>
         <p>Feed Health shows discovery, static GTFS, Vehicle Positions, Trip Updates, and Alerts. Missing or stale rows link back to the next private console action.</p>
         <p><strong>Self-hosted difference:</strong> public URLs should use the deployment-owned hostname and reverse proxy path.</p>
@@ -97,7 +110,7 @@
 
     <article class="guide-step">
       <div>
-        <p class="step">5. Connect vehicle data</p>
+        <p class="step">6. Connect vehicle data</p>
         <h3>Choose a safe connector path</h3>
         <p>Devices, Telemetry Freshness, Realtime, and Connectors show whether vehicles are sending fresh data and which connector category fits the deployment.</p>
         <p><strong>Self-hosted difference:</strong> credentials, sidecars, payload mappings, and retention rules stay under deployment-owner control.</p>
@@ -110,7 +123,20 @@
 
     <article class="guide-step">
       <div>
-        <p class="step">6. Review realtime output</p>
+        <p class="step">7. Review connector options</p>
+        <h3>Keep integrations behind safe boundaries</h3>
+        <p>Connectors shows which adapter shape fits telemetry, prediction, validation, monitoring, or discovery work before any real endpoint, credential, or vendor payload is introduced.</p>
+        <p><strong>Self-hosted difference:</strong> a deployment owner controls sidecars, secrets, payload mapping, and network sends.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/connectors.png" width="1440" height="1000" alt="Connectors page with safe integration categories" loading="lazy">
+        <figcaption>Connector review starts with local and synthetic contracts.</figcaption>
+      </figure>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">8. Review realtime output</p>
         <h3>Prefer unknown over false certainty</h3>
         <p>Realtime review separates fresh vehicles, stale rows, unmatched vehicles, Vehicle Positions, Trip Updates diagnostics, and Alerts lifecycle status.</p>
         <p><strong>Self-hosted difference:</strong> production-like checks still need deployment-specific validator and monitoring review.</p>
@@ -123,9 +149,22 @@
 
     <article class="guide-step">
       <div>
-        <p class="step">7. Maintain the system</p>
+        <p class="step">9. Review readiness</p>
+        <h3>Separate preparation from outside approval</h3>
+        <p>Readiness shows remaining gaps across metadata, schedule, feed health, validators, telemetry, realtime output, maintenance, and future sharing preparation.</p>
+        <p><strong>Self-hosted difference:</strong> readiness should use deployment-owned base URLs and local/reference diagnostics without changing consumer statuses.</p>
+      </div>
+      <figure>
+        <img src="assets/screenshots/readiness.png" width="1440" height="1000" alt="Readiness page with operator issue and preparation rows" loading="lazy">
+        <figcaption>Readiness is a private work list, not an outside claim.</figcaption>
+      </figure>
+    </article>
+
+    <article class="guide-step">
+      <div>
+        <p class="step">10. Maintain the deployment</p>
         <h3>Keep operations work assigned</h3>
-        <p>Readiness, Maintenance, and Help show remaining issues, owner responsibilities, backup and restore guidance, validator setup, support summaries, and update planning.</p>
+        <p>Maintenance and Help show routine checks, owner responsibilities, backup and restore guidance, validator setup, support summaries, and update planning.</p>
         <p><strong>Self-hosted difference:</strong> these tasks become routine deployment-owner responsibilities.</p>
       </div>
       <figure>

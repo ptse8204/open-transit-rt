@@ -44,10 +44,24 @@ project media location.
 7. Close browser tabs that show private paths, raw logs, credentials, or
    unrelated local work.
 
+## Refresh Screenshot Tutorial Assets
+
+The public screenshot tutorial is regenerated from the running local app:
+
+```bash
+make agency-app-up
+scripts/capture-ui-tour.sh --check
+make capture-ui-tour
+```
+
+The capture script uses Playwright, a short-lived local admin session, and the
+real private `/admin/operations*` pages. It writes public-safe PNG files under
+`site/assets/screenshots/` and fails if the local app is not reachable.
+
 ## Published Tutorial Asset
 
-The public site includes a small MP4 tutorial asset and captions generated
-from actual local UI screenshots:
+The public site includes a screenshot tutorial plus a small MP4 companion asset
+and captions generated from local UI captures:
 
 ```text
 site/assets/open-transit-rt-interface-tour.mp4

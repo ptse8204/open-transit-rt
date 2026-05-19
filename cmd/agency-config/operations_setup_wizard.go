@@ -506,7 +506,7 @@ func setupWizardHelpRow(id string, label string, whenNeeded string, nextAction s
 	return operationsSetupWizardTechnicalHelp{
 		ID:            id,
 		Label:         label,
-		WhenNeeded:    firstNonEmpty(whenNeeded, "technical help is needed"),
+		WhenNeeded:    firstNonEmpty(whenNeeded, "administrator help is needed"),
 		NextAction:    firstNonEmpty(nextAction, "Use the linked private console or repo docs."),
 		AdminLink:     firstSafeAdminLink(adminLink),
 		DocsLink:      firstSafeDocsLink(docsLink),

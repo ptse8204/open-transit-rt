@@ -2373,7 +2373,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>{{.Signal}}</p>
 <p><a class="action-link" href="{{.AdminLink}}">{{.ActionLabel}}</a></p>
 <details>
-<summary>When to get technical help</summary>
+<summary>When an administrator is needed</summary>
 <p>{{.HelpNeeded}}</p>
 <p class="muted"><strong>Limit:</strong> {{.DoesNotProve}}</p>
 </details>
