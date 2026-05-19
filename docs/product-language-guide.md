@@ -75,3 +75,10 @@ definitions, and the prompt file used to request this work.
 
 `make audit-ui-layout` checks stable static layout rules. It is not a visual
 review replacement; it exists to catch obvious regressions before review.
+
+`make product-ui-smoke` renders the private Operations Console through the Go
+handler with reference-deployment-style settings so `/admin/operations*` stays
+covered as the real product UI, not a local-only demo.
+
+Use [Product Review Checklist](product-review-checklist.md) before merging
+public-site, docs-entry, or Operations Console changes.

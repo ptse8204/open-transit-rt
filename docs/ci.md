@@ -37,8 +37,9 @@ make audit-final-claim-review
 This path avoids validator installation, Docker, external services, and
 release packaging so normal PR feedback stays focused and repeatable.
 `make check` also runs no-network repository guardrails, internal link checks,
-final-claim/product-acceptance audits, and a stable-branch filter simulation
-with branch-ref checks skipped.
+final-claim/product-acceptance audits, product language and static layout
+audits, the reference-settings product UI smoke, and a stable-branch filter
+simulation with branch-ref checks skipped.
 
 ## Manual Release Gates
 
