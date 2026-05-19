@@ -538,8 +538,8 @@ func vehiclePositionsUsefulness(page operationsPage) operationsRealtimeUsefulnes
 	signal := "no accepted latest telemetry rows are available to this console"
 	next := "Create or review device credentials, then send a safe sample telemetry event."
 	if len(page.Telemetry) > 0 {
-		state = "potentially non-empty"
-		count = fmt.Sprintf("%d latest telemetry rows available; public protobuf entity count not recorded", len(page.Telemetry))
+		state = "publishable"
+		count = fmt.Sprintf("%d latest telemetry rows available for private review; public protobuf entity count still needs feed-health or validator review", len(page.Telemetry))
 		signal = fmt.Sprintf("latest telemetry %s; stale latest rows=%d", formatTimeForText(page.TelemetryUpdatedAt), page.StaleCount)
 		next = "Review stale/suppressed rows and the public Vehicle Positions feed-health row."
 		if page.StaleCount == len(page.Telemetry) {
@@ -564,7 +564,7 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 		return operationsRealtimeUsefulnessRow{
 			ID:           "trip_updates",
 			Label:        "Trip Updates",
-			State:        "not recorded",
+			State:        "missing",
 			Count:        "Trip Updates diagnostics are not available",
 			LatestSignal: page.TripUpdatesQuality.Message,
 			StaleOrHeld:  "withheld counts are not available until diagnostics are recorded",
@@ -574,9 +574,11 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 			DoesNotProve: "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
 		}
 	}
-	state := "generated"
+	state := "publishable"
 	if page.TripUpdatesQuality.TripUpdatesEmitted == 0 {
-		state = "empty or withheld"
+		state = "withheld"
+	} else if page.TripUpdatesQuality.StaleTelemetryRows > 0 {
+		state = "stale"
 	}
 	return operationsRealtimeUsefulnessRow{
 		ID:           "trip_updates",
@@ -594,16 +596,16 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 }
 
 func alertsUsefulness(feedRows []operationsFeedHealthRow) operationsRealtimeUsefulnessRow {
-	state := "not available yet"
+	state := "missing"
 	signal := "active alert count is not exposed in this Operations Console model"
 	count := "active alert count not available"
 	next := "Open the Alerts Console to review active, planned, or archived alerts, then check the Alerts feed row."
 	for _, row := range feedRows {
 		if row.ID == "alerts" {
 			if row.Status == checklistStatusOK {
-				state = "feed configured"
+				state = "publishable"
 			} else {
-				state = row.StatusText
+				state = issuePublishStateFromStatus(row.Status)
 			}
 			signal = row.CurrentSignal
 			break
@@ -619,6 +621,19 @@ func alertsUsefulness(feedRows []operationsFeedHealthRow) operationsRealtimeUsef
 		NextAction:   next,
 		AdminLink:    "/admin/alerts/console",
 		DoesNotProve: "This private view does not show consumer display, agency approval, public launch completion, or compliance.",
+	}
+}
+
+func issuePublishStateFromStatus(status string) string {
+	switch normalizeChecklistStatus(status) {
+	case checklistStatusOK:
+		return "publishable"
+	case checklistStatusMissing:
+		return "missing"
+	case checklistStatusBlocked:
+		return "blocked"
+	default:
+		return "blocked"
 	}
 }
 

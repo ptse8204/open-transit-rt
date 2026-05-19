@@ -463,7 +463,7 @@ func alertsPublishingReview(page operationsPage, feed operationsRealtimeFeedStat
 	if !realtimeFeedNeedsReview(feed.State) && page.TripUpdatesQuality.CancellationAlertLinksMissing == 0 {
 		status = checklistStatusOK
 	}
-	if strings.TrimSpace(feed.State) == "" || feed.State == "not available yet" {
+	if strings.TrimSpace(feed.State) == "" || feed.State == "missing" {
 		status = checklistStatusMissing
 	}
 	return operationsRealtimeFeedReview{
@@ -604,7 +604,7 @@ func alertsUsefulnessScore(feed operationsRealtimeFeedStatus) operationsRealtime
 	label := "missing_signal"
 	helpful := "Alerts feed state is not available."
 	needs := "Open Alerts Console and feed health before relying on alert output."
-	if strings.TrimSpace(feed.State) != "" && feed.State != "not available yet" {
+	if strings.TrimSpace(feed.State) != "" && feed.State != "missing" {
 		score = 1
 		label = "lifecycle_needs_review"
 		helpful = "Alerts feed state is visible in private feed health."
@@ -1006,7 +1006,7 @@ func realtimeFeedNeedsReview(state string) bool {
 		return true
 	}
 	switch normalized {
-	case checklistStatusOK, "available", "ready", "recorded", "potentially non-empty":
+	case checklistStatusOK, "available", "ready", "recorded", "publishable":
 		return false
 	default:
 		return true

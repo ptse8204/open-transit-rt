@@ -90,8 +90,8 @@ tbody tr:nth-child(even){background:#fbfdfe}
 tbody tr:focus-within{outline:2px solid var(--color-focus);outline-offset:-2px}
 .pill,.status-chip{display:inline-block;border:1px solid var(--color-border);border-radius:var(--radius-1);padding:.12rem .4rem;background:var(--color-surface-muted);font-size:var(--font-small)}
 .status-chip{font-weight:750}
-.status-ready,.status-ready-for-local-review,.status-ok,.status-configured,.status-recorded{border-color:#80b88d;background:var(--color-success);color:var(--color-success-text)}
-.status-needs-review,.status-warning,.status-yellow{border-color:#d5a54f;background:var(--color-warning);color:var(--color-warning-text)}
+.status-ready,.status-ready-for-local-review,.status-ok,.status-configured,.status-recorded,.status-publishable{border-color:#80b88d;background:var(--color-success);color:var(--color-success-text)}
+.status-needs-review,.status-warning,.status-yellow,.status-stale,.status-withheld{border-color:#d5a54f;background:var(--color-warning);color:var(--color-warning-text)}
 .status-missing,.status-blocked,.status-failed,.status-red{border-color:#df9188;background:var(--color-danger);color:var(--color-danger-text)}
 .status-unknown,.status-diagnostic-only,.status-not-run,.status-not-available{border-color:var(--color-border-strong);background:var(--color-surface-muted);color:#364250}
 .hero{border:1px solid #a9bfce;background:#f5f9fb;padding:var(--space-4);border-radius:var(--radius-3);margin:var(--space-4) 0}

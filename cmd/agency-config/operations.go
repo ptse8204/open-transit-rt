@@ -70,6 +70,7 @@ type operationsPage struct {
 	Realtime               operationsRealtimeView
 	PredictionLab          predictionLabView
 	Maintenance            operationsMaintenanceView
+	IssueCenter            operationsIssueCenterView
 	Access                 operationsAccessView
 	Audit                  operationsAuditView
 	TelemetrySimulator     operationsTelemetrySimulatorView
@@ -1157,6 +1158,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ConnectorHub = buildConnectorHub(page)
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
+	page.IssueCenter = buildOperationsIssueCenter(page)
 	page.Cockpit = buildOperationsCockpit(page)
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
 	page.ContextHelp = page.Help.ContextualHelp
@@ -2359,6 +2361,20 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </aside>
 </section>
 
+<section class="issue-center" aria-labelledby="issue-center-heading">
+<h2 id="issue-center-heading">Fix These First</h2>
+<p>{{.IssueCenter.Recommendation.Summary}} <a href="{{.IssueCenter.Recommendation.AdminLink}}">{{.IssueCenter.Recommendation.NextAction}}</a></p>
+<p class="muted">{{.IssueCenter.Boundary}}</p>
+<table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Why it matters</th><th>Next action</th><th>Source signal</th></tr></thead><tbody>
+{{range .IssueCenter.VisibleIssues}}<tr id="operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span><br><span class="muted">{{.SourceSurface}}</span></td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.SourceSignal}}</td></tr>{{end}}
+</tbody></table>
+{{if .IssueCenter.Counts.Hidden}}<details id="all-operator-issues"><summary>All issue rows ({{.IssueCenter.Counts.Total}} total)</summary>
+<table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Why it matters</th><th>Next action</th><th>Source signal</th></tr></thead><tbody>
+{{range .IssueCenter.Issues}}<tr id="all-operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span><br><span class="muted">{{.SourceSurface}}</span></td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.SourceSignal}}</td></tr>{{end}}
+</tbody></table>
+</details>{{end}}
+</section>
+
 <section aria-labelledby="workflow-heading">
 <h2 id="workflow-heading">Operations workflow</h2>
 <ol class="workflow-steps">
@@ -3470,6 +3486,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 </div>
 <p><a href="/admin/operations/feed-health.json">Export private feed health JSON</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/reliability">Open reliability diagnostics</a></p>
+<h3>GTFS-RT Usefulness</h3>
+<table><thead><tr><th>Feed</th><th>State</th><th>Reason</th><th>Next fix</th><th>Validator connection</th><th>Feed-health connection</th></tr></thead><tbody>
+{{range .IssueCenter.RealtimeFeeds}}<tr id="gtfsrt-usefulness-{{.ID}}"><td><a href="{{.AdminLink}}">{{.Label}}</a></td><td><span class="status-chip status-{{statusClass .PublishState}}">{{.PublishState}}</span></td><td>{{.Reason}}</td><td>{{.NextFix}}</td><td>{{.ValidatorConnection}}</td><td>{{.FeedHealthConnection}}</td></tr>{{end}}
+</tbody></table>
 <section class="review-tools" data-review-tools data-review-target="feed-health-review-rows" aria-label="Review tools">
 <h3>Review tools</h3>
 <div class="review-controls">
@@ -3958,6 +3978,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h2>Realtime</h2>
 <p class="warning">{{.Realtime.Boundary}}</p>
 <p><a href="/admin/operations/realtime.json">Export private realtime JSON</a> · <a href="/admin/operations/telemetry">Open telemetry freshness</a> · <a href="/admin/operations/devices">Open device credentials</a> · <a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p>
+<h3>GTFS-RT Usefulness</h3>
+<table><thead><tr><th>Feed</th><th>Publishable state</th><th>Reason</th><th>Next fix</th><th>Validator and feed-health connection</th></tr></thead><tbody>
+{{range .IssueCenter.RealtimeFeeds}}<tr id="realtime-gtfsrt-usefulness-{{.ID}}"><td><a href="{{.AdminLink}}">{{.Label}}</a></td><td><span class="status-chip status-{{statusClass .PublishState}}">{{.PublishState}}</span></td><td>{{.Reason}}</td><td>{{.NextFix}}</td><td>{{.ValidatorConnection}}<br>{{.FeedHealthConnection}}</td></tr>{{end}}
+</tbody></table>
 <div class="card-grid" aria-label="Realtime status summary">
 <section class="card">
 <h3>Fleet Freshness</h3>
