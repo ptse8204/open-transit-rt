@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Open Transit RT - Check Your Feeds</title>
+  <title>Readiness Review - Open Transit RT</title>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,11 +12,13 @@
   <nav class="nav" aria-label="Site navigation">
     <a class="brand" href="index.html">Open Transit RT</a>
     <div class="nav-links">
-      <a href="try-locally.html">Try locally</a>
+      <a href="try-locally.html">Try &amp; deploy</a>
+      <a href="deploy.html">Self-host</a>
       <a href="ui-tour.html">Tour</a>
-      <a href="check-feeds.html">Check feeds</a>
+      <a href="check-feeds.html">Feeds</a>
       <a href="connector-support.html">Connectors</a>
-      <a href="video.html">Tutorial</a>
+      <a href="readiness.html" aria-current="page">Readiness</a>
+      <a href="https://github.com/ptse8204/open-transit-rt/blob/main/docs/index.md">Docs</a>
       <a href="https://github.com/ptse8204/open-transit-rt">GitHub</a>
     </div>
   </nav>
@@ -24,60 +26,64 @@
 <main>
   <section class="page-hero">
     <div>
-      <p class="tag">System check</p>
-      <h1>Check your feeds.</h1>
-      <p class="lead">Use this page when you need a simple answer: is Open Transit RT running, which feed pieces are available, and what should happen next?</p>
+      <p class="tag">Readiness</p>
+      <h1>Know what is ready, what is blocked, and who owns the next step.</h1>
+      <p class="lead">Readiness review helps operators prepare GTFS, GTFS Realtime, license/contact metadata, validation, vehicle data, connectors, and maintenance work without overclaiming the result.</p>
+      <div class="actions">
+        <a class="button primary" href="check-feeds.html">Check feed URLs</a>
+        <a class="button" href="deploy.html">Self-hosted path</a>
+      </div>
     </div>
     <aside class="summary-panel">
-      <h2>Fast answer</h2>
-      <p>Start with the <a href="check-feeds.html">Check feeds guide</a>. If a row is missing or blocked, open the linked console page before asking for deeper technical help.</p>
+      <h2>Console page</h2>
+      <p><code>/admin/operations/readiness</code></p>
+      <p>Use it after schedule import and feed-health review.</p>
     </aside>
   </section>
 
-  <section aria-labelledby="questions-heading">
-    <h2 id="questions-heading">Is It Running?</h2>
-    <div class="grid">
-      <article class="status-card"><span class="status-label">Feeds</span><h3>Are five URLs available?</h3><p>Check <code>feeds.json</code>, static GTFS, Vehicle Positions, Trip Updates, and Alerts.</p></article>
-      <article class="status-card"><span class="status-label">GTFS</span><h3>Did GTFS import?</h3><p>Open GTFS Import or GTFS Workbench and confirm an active feed version exists.</p></article>
-      <article class="status-card"><span class="status-label">Realtime</span><h3>Are feeds publishing?</h3><p>Review Vehicle Positions, Trip Updates diagnostics, Alerts, stale rows, and withheld output.</p></article>
-      <article class="status-card"><span class="status-label">Vehicles</span><h3>Is vehicle data fresh?</h3><p>Check device bindings, last observations, stale counts, and assignment confidence.</p></article>
-      <article class="status-card"><span class="status-label">Validators</span><h3>Are validators installed?</h3><p>Review validator health and latest static or realtime results when tooling is configured.</p></article>
-      <article class="status-card"><span class="status-label">Issues</span><h3>What needs attention?</h3><p>Use feed health, GTFS quality, validation health, readiness, maintenance, and help pages.</p></article>
-      <article class="status-card"><span class="status-label">Next</span><h3>What can I do next?</h3><p>Follow the browser action first. Use <a href="connector-support.html">connector support</a> to separate current paths from planned work.</p></article>
+  <section aria-labelledby="areas-heading">
+    <h2 id="areas-heading">What Readiness Should Answer</h2>
+    <div class="table-wrap">
+      <table class="task-table">
+        <thead><tr><th>Area</th><th>Question</th><th>Next owner</th></tr></thead>
+        <tbody>
+          <tr><td>GTFS Schedule</td><td>Is there an active schedule with required files and reviewable validation state?</td><td>Operator or administrator</td></tr>
+          <tr><td>Vehicle Positions</td><td>Are fresh vehicles publishing safely, and are stale or unmatched rows understood?</td><td>Operator</td></tr>
+          <tr><td>Trip Updates</td><td>Is output available, withheld, blocked, or waiting on prediction configuration?</td><td>Administrator or integrator</td></tr>
+          <tr><td>Alerts</td><td>Is the Alerts feed available and tied to an operator-owned alert lifecycle?</td><td>Operator</td></tr>
+          <tr><td>Validation</td><td>Are validator tools configured, current, and understandable?</td><td>Administrator</td></tr>
+          <tr><td>License and contact</td><td>Are public metadata fields present before URLs are shared?</td><td>Agency and deployment owner</td></tr>
+          <tr><td>Maintenance</td><td>Are backup, restore, support, update, and monitoring responsibilities assigned?</td><td>Deployment owner</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
-  <section aria-labelledby="where-heading">
-    <h2 id="where-heading">Open These Pages</h2>
-    <table>
-      <thead><tr><th>Need</th><th>Open in the console</th><th>What to look for</th></tr></thead>
-      <tbody>
-        <tr><td>Five feed URLs</td><td><code>/admin/operations/feed-health</code></td><td>Present, missing, stale, blocked, and next action rows.</td></tr>
-        <tr><td>Imported schedule</td><td><code>/admin/operations/gtfs-workbench</code></td><td>Active feed version, required files, import history, and validation guidance.</td></tr>
-        <tr><td>Realtime output</td><td><code>/admin/operations/realtime</code></td><td>Vehicle Positions, Trip Updates diagnostics, Alerts, stale rows, and assignment state.</td></tr>
-        <tr><td>Vehicle data</td><td><code>/admin/operations/devices</code></td><td>Device bindings, last observations, freshness, and token-safe next actions.</td></tr>
-        <tr><td>Validator tooling</td><td><code>/admin/operations/validation-health</code></td><td>Tooling status, latest records, stale results, blockers, and allowed reruns.</td></tr>
-        <tr><td>Ongoing operations</td><td><code>/admin/operations/maintenance</code></td><td>Routine checks, backup/restore guidance, support summaries, and owner notes.</td></tr>
-      </tbody>
-    </table>
+  <section aria-labelledby="next-heading" class="split">
+    <div>
+      <h2 id="next-heading">Before You Share Feed URLs</h2>
+      <ol class="task-flow">
+        <li><div><strong>Confirm the five feeds</strong><span>Discovery, schedule, Vehicle Positions, Trip Updates, and Alerts should each have a clear status.</span></div></li>
+        <li><div><strong>Confirm public metadata</strong><span>License, contact, provider identity, and feed URLs need agency and deployment-owner review.</span></div></li>
+        <li><div><strong>Confirm operations ownership</strong><span>Assign who handles validators, backups, telemetry sources, secrets, monitoring, and updates.</span></div></li>
+        <li><div><strong>Decide what can be said</strong><span>Only make external claims that are supported by authorized deployment-specific records.</span></div></li>
+      </ol>
+    </div>
+    <aside class="action-panel">
+      <h2>Administrator needed for</h2>
+      <ul class="compact-list">
+        <li>Stable HTTPS hosting</li>
+        <li>Validator tooling</li>
+        <li>Secrets and tokens</li>
+        <li>External connector setup</li>
+        <li>Monitoring and backups</li>
+      </ul>
+    </aside>
   </section>
 
-  <section aria-labelledby="next-heading">
-    <h2 id="next-heading">What To Do Next</h2>
-    <ol class="workflow-list">
-      <li><strong>Missing GTFS</strong><span>Import or publish a schedule before reviewing public feed health.</span></li>
-      <li><strong>Missing feed URL</strong><span>Review publication metadata and public base URL configuration.</span></li>
-      <li><strong>Stale vehicle data</strong><span>Check device bindings, telemetry source, connector setup, and stale threshold.</span></li>
-      <li><strong>Validator not available</strong><span>Ask a technical helper to install or configure the allowlisted validator tooling.</span></li>
-      <li><strong>External sharing</strong><span>Confirm public hosting, license/contact metadata, and deployment ownership before sharing URLs.</span></li>
-      <li><strong>Still unclear</strong><span>Open Help and use the task guidance to separate staff work from technical-helper work.</span></li>
-    </ol>
-  </section>
-
-  <section aria-labelledby="public-data-heading">
-    <h2 id="public-data-heading">For Public-Data Preparation</h2>
-    <p>Open Transit RT supports CAL-ITP-style readiness workflows by making GTFS, GTFS-Realtime, discovery metadata, validation, and operations signals easier to review.</p>
-    <p class="boundary">This local review is not a compliance decision, consumer submission, public listing, production launch, SLA, vendor certification, or ETA-quality proof.</p>
+  <section class="limits" aria-labelledby="limits-heading">
+    <h2 id="limits-heading">Limits</h2>
+    <p>Readiness review is preparation. It is not compliance approval, agency adoption, consumer submission or acceptance, final public root proof, production readiness, hosted service availability, vendor compatibility, SLA coverage, production AVL reliability, or ETA-quality proof.</p>
   </section>
 </main>
 </body>
