@@ -1604,7 +1604,7 @@ func readinessItems(page operationsPage) []readinessItemView {
 			Source:        "published_feed Vehicle Positions record, validation records, and feed health snapshots",
 			Evidence:      feedEvidence(page, "vehicle_positions"),
 			NextAction:    "Verify fresh telemetry, public protobuf output, feed health, and GTFS-Realtime validation.",
-			ClaimBoundary: "Vehicle Positions readiness does not prove real device reliability or consumer acceptance.",
+			ClaimBoundary: "Vehicle Positions readiness does not show real device reliability or consumer acceptance.",
 		},
 		{
 			Name:          "Trip Updates",
@@ -1620,7 +1620,7 @@ func readinessItems(page operationsPage) []readinessItemView {
 			Source:        "published_feed Alerts record, validation records, and Alerts Console workflow",
 			Evidence:      feedEvidence(page, "alerts"),
 			NextAction:    "Use the Alerts Console for lifecycle checks, then validate the public Alerts feed.",
-			ClaimBoundary: "Alert feed availability does not prove consumer display or agency approval.",
+			ClaimBoundary: "Alert feed availability does not show consumer display or agency approval.",
 		},
 		{
 			Name:          "License/contact metadata",
@@ -2113,18 +2113,18 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <h2>Access &amp; Roles</h2>
 <p class="warning">{{.Access.Boundary}}</p>
-<p><a href="/admin/operations/access.json">Export private access JSON</a> · <a href="/admin/operations">Back to Start Here</a></p>
+<p><a href="/admin/operations/access.json">Export private access JSON</a> · <a href="/admin/operations">Back to Start</a></p>
 <table><tbody>
 <tr><th>Agency</th><td><code>{{.Access.AgencyID}}</code></td></tr>
 <tr><th>Current roles</th><td>{{join .Access.CurrentRoles ", "}}</td></tr>
 <tr><th>Generated at</th><td>{{formatTime .Access.GeneratedAt}}</td></tr>
 </tbody></table>
 <h3>Role Permissions</h3>
-<table><thead><tr><th>Role</th><th>Current session</th><th>Review access</th><th>Mutation access</th><th>Technical helper note</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Access.Roles}}<tr id="access-role-{{.ID}}"><td>{{.Label}}</td><td>{{.Current}}</td><td>{{.ReviewAccess}}</td><td>{{.MutationAccess}}</td><td>{{.TechnicalHelperNote}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>Role</th><th>Current session</th><th>Review access</th><th>Mutation access</th><th>Administrator note</th><th>Limits</th></tr></thead><tbody>
+{{range .Access.Roles}}<tr id="access-role-{{.ID}}"><td>{{.Label}}</td><td>{{.Current}}</td><td>{{.ReviewAccess}}</td><td>{{.MutationAccess}}</td><td>{{.AdministratorNote}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Access-Denied Guidance</h3>
-<table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .Access.Denied}}<tr id="access-denied-{{.ID}}"><td>{{.Scenario}}</td><td>{{.WhatHappened}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 {{template "layoutEnd" .}}
@@ -2132,7 +2132,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "audit"}}
 {{template "layoutStart" .}}
-<h2>Audit History</h2>
+<h2>Audit Log</h2>
 <p class="warning">{{.Audit.Boundary}}</p>
 <p><a href="/admin/operations/audit.json">Export private audit JSON</a> · <a href="/admin/operations/access">Open Access &amp; Roles</a></p>
 <table><tbody>
@@ -2161,10 +2161,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>When a page is empty or blocked</h3>
 <p><strong>What am I seeing?</strong> The console is showing the latest private records it can read for this agency.</p>
 <p><strong>Is this bad?</strong> Not always. Empty often means first-run setup has not produced that source record yet; blocked means an operator action or configuration is needed.</p>
-<p><strong>What should I do next?</strong> Open Start Here, follow the linked page, and keep missing records missing until the underlying setup, import, validator, telemetry, connector, or maintenance signal exists.</p>
+<p><strong>What should I do next?</strong> Open Start, follow the linked page, and keep missing records missing until the underlying setup, import, validator, telemetry, connector, or maintenance signal exists.</p>
 <p><strong>Can I do it in the browser?</strong> Review can happen in the browser; admin-only browser actions stay on their existing private pages.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for local startup, validator/tooling setup, operator-shell commands, backup/restore configuration, deployment diagnostics, or external integration prep.</p>
-<p><strong>What this does not prove:</strong> Help text does not prove compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, production readiness, vendor compatibility, SLA coverage, hardware certification, or ETA quality.</p>
+<p><strong>When is an administrator needed?</strong> Use one for local startup, validator/tooling setup, operator-shell commands, backup/restore configuration, deployment diagnostics, or external integration prep.</p>
+<p><strong>Limits:</strong> Help text does not show compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, production readiness, vendor compatibility, SLA coverage, hardware certification, or ETA quality.</p>
 </section>
 </div>
 <p><a href="/admin/operations/help.json">Export private help JSON</a> · <a href="/admin/operations">Back to Operations Console</a></p>
@@ -2177,21 +2177,21 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Review first:</strong> {{.ReviewFirst}}</p>
 <p><strong>First actions:</strong> {{.FirstActions}}</p>
 <p><strong>Ask for help when:</strong> {{.EscalateWhen}}</p>
-<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p><strong>Limits:</strong> {{.DoesNotProve}}</p>
 <p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>
 <p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>
 </section>{{end}}
 </div>
 <h3>First-Week Checklist</h3>
-<table><thead><tr><th>When</th><th>Role</th><th>Task</th><th>Review</th><th>Done when</th><th>Next action</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>When</th><th>Role</th><th>Task</th><th>Review</th><th>Done when</th><th>Next action</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.FirstWeek}}<tr id="help-first-week-{{.ID}}"><td>{{.Day}}</td><td>{{.Role}}</td><td>{{.Task}}</td><td>{{.Review}}</td><td>{{.DoneWhen}}</td><td>{{.NextAction}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Plain-Language Glossary</h3>
-<table><thead><tr><th>Term</th><th>Plain meaning</th><th>Technical meaning</th><th>Where to review</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Term</th><th>Plain meaning</th><th>Technical meaning</th><th>Where to review</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.Glossary}}<tr id="help-glossary-{{.ID}}"><td>{{.Term}}</td><td>{{.PlainMeaning}}</td><td>{{.TechnicalMeaning}}</td><td>{{.WhereToReview}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Common Mistake Recovery</h3>
-<table><thead><tr><th>What the operator sees</th><th>Likely cause</th><th>Safe next step</th><th>Escalate when</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>What the operator sees</th><th>Likely cause</th><th>Safe next step</th><th>Escalate when</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.Recovery}}<tr id="help-recovery-{{.ID}}"><td>{{.WhatOperatorSees}}</td><td>{{.LikelyCause}}</td><td>{{.SafeNextStep}}</td><td>{{.EscalationTrigger}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Printable Staff Training Guide</h3>
@@ -2203,23 +2203,23 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Boundary</th><td>{{.Help.TrainingGuide.Boundary}}</td></tr>
 </tbody></table>
 <h3>Quick Tasks</h3>
-<table><thead><tr><th>Task</th><th>Role</th><th>Review steps</th><th>Done when</th><th>Escalate when</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Task</th><th>Role</th><th>Review steps</th><th>Done when</th><th>Escalate when</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.QuickTasks}}<tr id="help-quick-task-{{.ID}}"><td>{{.Label}}</td><td>{{.PrimaryRole}}</td><td>{{.ReviewSteps}}</td><td>{{.DoneWhen}}</td><td>{{.Escalation}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Staff Handoff Checklist</h3>
-<table><thead><tr><th>Area</th><th>From</th><th>To</th><th>Confirm</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Area</th><th>From</th><th>To</th><th>Confirm</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.Handoff}}<tr id="help-handoff-{{.ID}}"><td>{{.Area}}</td><td>{{.FromRole}}</td><td>{{.ToRole}}</td><td>{{.Confirm}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Demo Scenario Catalog</h3>
 <p class="section-note">Use these committed local/synthetic fixtures for training. They are teaching scenarios, not agency evidence or vendor proof.</p>
-<table><thead><tr><th>Scenario</th><th>Audience</th><th>Fixtures</th><th>Exercise</th><th>Done when</th><th>Recovery prompt</th><th>Console</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Scenario</th><th>Audience</th><th>Fixtures</th><th>Exercise</th><th>Done when</th><th>Recovery prompt</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.DemoScenarios}}<tr id="help-demo-scenario-{{.ID}}"><td>{{.Label}}<br><code>{{.ID}}</code></td><td>{{.Audience}}</td><td>{{range .FixturePaths}}<code>{{.}}</code><br>{{end}}</td><td>{{.Exercise}}</td><td>{{.DoneWhen}}</td><td>{{.RecoveryPrompt}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Trainer Script</h3>
 <table><thead><tr><th>Segment</th><th>Minutes</th><th>Talk track</th><th>Ask participant</th><th>Console</th><th>Boundary</th></tr></thead><tbody>
 {{range .Help.TrainerScript}}<tr id="help-trainer-step-{{.ID}}"><td>{{.Segment}}</td><td>{{.Minutes}}</td><td>{{.TalkTrack}}</td><td>{{.AskParticipant}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.Boundary}}</td></tr>{{end}}
 </tbody></table>
-<h3>Technical-Helper Checklist</h3>
+<h3>Administrator Checklist</h3>
 <table><thead><tr><th>Area</th><th>Collect</th><th>Do not collect</th><th>Console</th><th>Docs</th><th>Needs separate authorization when</th></tr></thead><tbody>
 {{range .Help.HelperChecklist}}<tr id="help-helper-check-{{.ID}}"><td>{{.Area}}</td><td>{{.Collect}}</td><td>{{.DoNotCollect}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.NeedsAuthorizationWhen}}</td></tr>{{end}}
 </tbody></table>
@@ -2287,7 +2287,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <code class="copy-value" data-copy-value="{{.CopyValue}}">{{if .CopyValue}}{{.CopyValue}}{{else}}Not configured yet{{end}}</code>
 <p><strong>Current link:</strong> {{if .URL}}<a href="{{.URL}}">{{.URL}}</a>{{else}}missing{{end}}</p>
 <p><strong>Next:</strong> {{.NextAction}}</p>
-<p class="muted"><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p class="muted"><strong>Limits:</strong> {{.DoesNotProve}}</p>
 </section>{{end}}
 </div>
 <h3>First-Run Tasks</h3>
@@ -2302,7 +2302,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </div>
 <details>
 <summary>Detailed first-run task table</summary>
-<table><thead><tr><th>Order</th><th>Task</th><th>Status</th><th>Current signal</th><th>What it means</th><th>Next action</th><th>Console</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Order</th><th>Task</th><th>Status</th><th>Current signal</th><th>What it means</th><th>Next action</th><th>Console</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
 {{range .Tasks}}<tr><td>{{.Order}}</td><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.Meaning}}</td><td>{{.NextAction}}</td><td><a href="{{.UILink}}">{{.UILink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 </details>
@@ -2345,7 +2345,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <div>
 <h2 id="workflow-hero-heading">Work through this in order</h2>
 <p>Open the first step that is missing, blocked, or needs review. Use the main button in that step before opening secondary tools.</p>
-<p class="compact-actions"><a class="action-link" href="/admin/operations/setup-wizard">Start setup</a><a class="action-link" href="/admin/operations/gtfs-import">Import GTFS</a><a class="action-link" href="/admin/operations/feed-health">Check feeds</a><a class="action-link secondary-action" href="/admin/operations/help">Get help</a></p>
+<p class="compact-actions"><a class="action-link" href="/admin/operations/setup-wizard">Start setup</a><a class="action-link" href="/admin/operations/gtfs-import">Import Schedule</a><a class="action-link" href="/admin/operations/feed-health">Check feeds</a><a class="action-link secondary-action" href="/admin/operations/help">Get help</a></p>
 </div>
 <aside class="workflow-summary" aria-label="Current local summary">
 <h3>Current snapshot</h3>
@@ -2431,9 +2431,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Section</th><th>Status</th><th>Last updated</th><th>Next action</th></tr></thead><tbody>
 <tr><td>Agency launchpad</td><td>{{len .Launchpad.Sections}} workflow sections</td><td>{{formatTime .Launchpad.GeneratedAt}}</td><td><a href="/admin/operations/launchpad">open launchpad</a> · <a href="/admin/operations/launchpad.json">export JSON</a></td></tr>
 <tr><td>Setup wizard</td><td>{{len .SetupWizard.Stages}} staged setup rows</td><td>{{formatTime .SetupWizard.GeneratedAt}}</td><td><a href="/admin/operations/setup-wizard">open wizard</a> · <a href="/admin/operations/setup-wizard.json">export JSON</a></td></tr>
-<tr><td>Connector Hub</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
-<tr><td>GTFS Workbench</td><td>{{.GTFSWorkbench.ActiveFeedVersion.Status}} active schedule; {{.GTFSWorkbench.Import.Status}} import history</td><td>{{formatTime .GTFSWorkbench.GeneratedAt}}</td><td><a href="/admin/operations/gtfs-workbench">review schedule workbench</a> · <a href="/admin/operations/gtfs-workbench.json">export JSON</a></td></tr>
-<tr><td>Import GTFS</td><td>admin-only ZIP upload or URL import</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/gtfs-import">import GTFS with validation feedback</a></td></tr>
+<tr><td>Connectors</td><td>{{len .ConnectorHub.Categories}} connector categories</td><td>{{formatTime .ConnectorHub.GeneratedAt}}</td><td><a href="/admin/operations/connectors">review connector paths</a> · <a href="/admin/operations/connectors.json">export JSON</a></td></tr>
+<tr><td>Schedule Review</td><td>{{.GTFSWorkbench.ActiveFeedVersion.Status}} active schedule; {{.GTFSWorkbench.Import.Status}} import history</td><td>{{formatTime .GTFSWorkbench.GeneratedAt}}</td><td><a href="/admin/operations/gtfs-workbench">review schedule workbench</a> · <a href="/admin/operations/gtfs-workbench.json">export JSON</a></td></tr>
+<tr><td>Import Schedule</td><td>admin-only ZIP upload or URL import</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/gtfs-import">import GTFS with validation feedback</a></td></tr>
 <tr><td>Feed health dashboard</td><td>{{len .FeedHealth.Rows}} plain-language rows</td><td>{{formatTime .FeedHealth.GeneratedAt}}</td><td><a href="/admin/operations/feed-health">open feed health</a> · <a href="/admin/operations/feed-health.json">export JSON</a></td></tr>
 <tr><td>Readiness checklist</td><td>{{len .Checklist.Groups}} grouped diagnostics</td><td>{{formatTime .GeneratedAt}}</td><td><a href="/admin/operations/checklist">open checklist</a> · <a href="/admin/operations/checklist.json">export JSON</a></td></tr>
 <tr><td>Feeds / validation</td><td>{{if .DiscoveryError}}not configured{{else}}{{len .Discovery.Feeds}} feed records{{end}}</td><td>{{formatTimePtr .FeedsUpdatedAt}}</td><td><a href="/admin/operations/feeds">review feed URLs and validation</a></td></tr>
@@ -2535,8 +2535,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Capability</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
 {{range .SetupWizard.RoleVisibility}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
-<h3>Technical Helper Cards</h3>
-<div class="card-grid" aria-label="Technical helper escalation cards">
+<h3>Administrator Cards</h3>
+<div class="card-grid" aria-label="Administrator escalation cards">
 {{range .SetupWizard.TechnicalHelp}}<section class="card">
 <h4>{{.Label}}</h4>
 <p><strong>When needed:</strong> {{.WhenNeeded}}</p>
@@ -2557,7 +2557,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>{{end}}
 </div>
 <details>
-<summary>What this page does not do</summary>
+<summary>Advanced safety details for this setup review</summary>
 <p>{{.SetupWizard.Boundary}}</p>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.SetupWizard.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
@@ -2583,19 +2583,20 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "connectors"}}
 {{template "layoutStart" .}}
-<h2>Connector Hub</h2>
+<h2>Connectors</h2>
 <p class="warning">{{.ConnectorHub.Boundary}}</p>
 <div class="card-grid" aria-label="Connector empty or blocked state guidance">
 <section class="card empty-state">
 <h3>If no connector setup exists</h3>
-<p><strong>What am I seeing?</strong> Connector Hub shows safe local adapter shapes, committed example manifests, and any registry diagnostics.</p>
+<p><strong>What am I seeing?</strong> Connectors shows safe local adapter shapes, committed example manifests, and any registry diagnostics.</p>
 <p><strong>Is this bad?</strong> No for a first browser review. It is a blocker only when a deployment depends on an external telemetry, prediction, validator, monitoring, or discovery integration.</p>
 <p><strong>What should I do next?</strong> Pick the connector category, read its boundary, then run the fixed offline connector tests before any authorized integration work.</p>
 <p><strong>Can I do it in the browser?</strong> You can review categories, docs, and manifest diagnostics here; the browser does not load plugins or contact systems.</p>
-<p><strong>When do I need a technical helper?</strong> Use one to run conformance commands, configure sidecars, map credentials, or prepare deployment-owned external connections.</p>
-<p><strong>What this does not prove:</strong> Connector guidance does not prove vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, SLA coverage, production readiness, or ETA quality.</p>
+<p><strong>When is an administrator needed?</strong> Use one to run conformance commands, configure sidecars, map credentials, or prepare deployment-owned external connections.</p>
+<p><strong>Limits:</strong> Connector guidance does not show vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, SLA coverage, production readiness, or ETA quality.</p>
 </section>
 </div>
+<details><summary>Advanced safety details for this connector review</summary>
 <table><tbody>
 <tr><th>Safe plugin definition</th><td>{{.ConnectorHub.PluginDefinition}}</td></tr>
 <tr><th><code>dynamic_backend_plugin_loading_enabled</code></th><td>{{.ConnectorHub.ClaimFlags.DynamicBackendPluginLoadingEnabled}}</td></tr>
@@ -2605,9 +2606,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>compliance_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ComplianceClaimed}}</td></tr>
 <tr><th><code>production_readiness_claimed</code></th><td>{{.ConnectorHub.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
 </tbody></table>
+</details>
 <h3>Connector Catalog</h3>
 <p>Use this catalog to choose a starter shape, copy the matching example or contract, and run the first local check before any deployment-owned integration work.</p>
-<table><thead><tr><th>Category</th><th>Connector</th><th>Status</th><th>Start with</th><th>Browser review</th><th>First safe check</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+<table><thead><tr><th>Category</th><th>Connector</th><th>Status</th><th>Start with</th><th>Browser review</th><th>First safe check</th><th>Limits</th><th>Docs</th></tr></thead><tbody>
 {{range .ConnectorHub.Catalog}}
 <tr>
 <td>{{.Group}}</td>
@@ -2662,7 +2664,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{end}}
 </tbody></table>
 <p><a href="/admin/operations/connectors/tests">Open connector test instructions</a> for fixed offline checks.</p>
-<p class="muted">Connector Hub is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
+<p class="muted">Connectors is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -2677,10 +2679,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Is this bad?</strong> No. It is intentionally a planning and review surface, not a browser runner.</p>
 <p><strong>What should I do next?</strong> Choose the recipe closest to your source, read its first safe check, then use an operator shell for the fixed command.</p>
 <p><strong>Can I do it in the browser?</strong> You can review recipes and manifests here; the browser does not run checks, contact external systems, or send telemetry.</p>
-<p><strong>When do I need a technical helper?</strong> Use one when credentials, sidecars, deployment-owned webhook receivers, or off-host validators are involved.</p>
-<p><strong>What this does not prove:</strong> Workbench review does not prove real integration, compatibility, hardware certification, compliance, consumer acceptance, hosted service, SLA, production readiness, or ETA quality.</p>
+<p><strong>When is an administrator needed?</strong> Use one when credentials, sidecars, deployment-owned webhook receivers, or off-host validators are involved.</p>
+<p><strong>Limits:</strong> Workbench review does not show real integration, compatibility, hardware certification, compliance, consumer acceptance, hosted service, SLA, production readiness, or ETA quality.</p>
 </section>
 </div>
+<details><summary>Advanced safety details for this connector workbench review</summary>
 <table><tbody>
 <tr><th><code>backend_command_execution_enabled</code></th><td>{{.ConnectorWorkbench.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
 <tr><th><code>browser_network_send_enabled</code></th><td>{{.ConnectorWorkbench.ClaimFlags.BrowserNetworkSendEnabled}}</td></tr>
@@ -2694,9 +2697,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>production_readiness_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ProductionReadinessClaimed}}</td></tr>
 <tr><th><code>production_grade_eta_claimed</code></th><td>{{.ConnectorWorkbench.ClaimFlags.ProductionGradeETAClaimed}}</td></tr>
 </tbody></table>
+</details>
 <h3>Connection Decision Tree</h3>
 <p>Pick the row that matches the source shape, run only the fixed local check, and stop when the stop condition applies.</p>
-<table><thead><tr><th>Source signal</th><th>Use when</th><th>Boundary</th><th>First safe check</th><th>Stop if</th><th>Next review</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Source signal</th><th>Use when</th><th>Boundary</th><th>First safe check</th><th>Stop if</th><th>Next review</th><th>Limits</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.DecisionTree}}
 <tr>
 <td><strong>{{.SourceSignal}}</strong><br><code>{{.ID}}</code></td>
@@ -2722,7 +2726,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>First safe check:</strong> <code>{{.FirstSafeCheck}}</code></p>
 <p><strong>Good result:</strong> {{.GoodResult}}</p>
 <p><strong>If it fails:</strong> {{.IfItFails}}</p>
-<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p><strong>Limits:</strong> {{.DoesNotProve}}</p>
 {{if .ManifestIDs}}<p><strong>Example manifests:</strong> {{range .ManifestIDs}}<code>{{.}}</code> {{end}}</p>{{end}}
 {{if .AdminLinks}}<p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>{{end}}
 {{if .DocsLinks}}<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>{{end}}
@@ -2731,7 +2735,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </div>
 <h3>Redaction-First Templates</h3>
 <p>Use these templates before adapting a source. They describe what may be shown in local diagnostics and what must be removed or blocked.</p>
-<table><thead><tr><th>Template</th><th>Applies to</th><th>Data classification</th><th>Allowed fields</th><th>Redact fields</th><th>Blocked fields</th><th>No-send default</th><th>Fail-closed rule</th><th>First safe check</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Template</th><th>Applies to</th><th>Data classification</th><th>Allowed fields</th><th>Redact fields</th><th>Blocked fields</th><th>No-send default</th><th>Fail-closed rule</th><th>First safe check</th><th>Limits</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.RedactionTemplates}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2749,7 +2753,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 <h3>Dry-Run Command Cards</h3>
 <p>These are fixed operator-shell instructions. The browser does not execute them, read command output, send telemetry, or contact external systems.</p>
-<table><thead><tr><th>Dry run</th><th>Instruction</th><th>Runs where</th><th>Inputs</th><th>Expected result</th><th>If it fails</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+<table><thead><tr><th>Dry run</th><th>Instruction</th><th>Runs where</th><th>Inputs</th><th>Expected result</th><th>If it fails</th><th>Limits</th><th>Docs</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.DryRunCommands}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2765,7 +2769,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 <h3>Synthetic Telemetry Normalization Preview</h3>
 <p class="warning">{{.ConnectorWorkbench.TelemetryPreview.Boundary}}</p>
-<table><thead><tr><th>Source</th><th>Fixture</th><th>Status</th><th>Rows</th><th>Expected events</th><th>Expected drops</th><th>Instruction</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Source</th><th>Fixture</th><th>Status</th><th>Rows</th><th>Expected events</th><th>Expected drops</th><th>Instruction</th><th>Limits</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.TelemetryPreview.Sources}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2798,7 +2802,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted">Preview counts: {{.ConnectorWorkbench.TelemetryPreview.Counts.Events}} events, {{.ConnectorWorkbench.TelemetryPreview.Counts.Drops}} drops, network send enabled: {{.ConnectorWorkbench.TelemetryPreview.Counts.NetworkSendEnabled}}.</p>
 <h3>{{.ConnectorWorkbench.WebhookBoundary.Title}}</h3>
 <p class="warning">{{.ConnectorWorkbench.WebhookBoundary.Boundary}}</p>
-<table><thead><tr><th>Boundary</th><th>What it means</th><th>Allowed inputs</th><th>Blocked inputs</th><th>First safe check</th><th>Fail-closed rule</th><th>Redaction rule</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+<table><thead><tr><th>Boundary</th><th>What it means</th><th>Allowed inputs</th><th>Blocked inputs</th><th>First safe check</th><th>Fail-closed rule</th><th>Redaction rule</th><th>Limits</th><th>Review</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.WebhookBoundary.Rows}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2816,7 +2820,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Docs:</strong> {{range .ConnectorWorkbench.WebhookBoundary.DocsLinks}}<code>{{.}}</code> {{end}}</p>
 <h3>{{.ConnectorWorkbench.PredictionGuide.Title}}</h3>
 <p class="warning">{{.ConnectorWorkbench.PredictionGuide.Boundary}}</p>
-<table><thead><tr><th>Mode</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+<table><thead><tr><th>Mode</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Limits</th><th>Review</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.PredictionGuide.Rows}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2834,7 +2838,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Docs:</strong> {{range .ConnectorWorkbench.PredictionGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
 <h3>{{.ConnectorWorkbench.MonitoringGuide.Title}}</h3>
 <p class="warning">{{.ConnectorWorkbench.MonitoringGuide.Boundary}}</p>
-<table><thead><tr><th>Recipe</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+<table><thead><tr><th>Recipe</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Limits</th><th>Review</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.MonitoringGuide.Rows}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2852,7 +2856,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Docs:</strong> {{range .ConnectorWorkbench.MonitoringGuide.DocsLinks}}<code>{{.}}</code> {{end}}</p>
 <h3>{{.ConnectorWorkbench.ConsumerGuide.Title}}</h3>
 <p class="warning">{{.ConnectorWorkbench.ConsumerGuide.Boundary}}</p>
-<table><thead><tr><th>Recipe</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+<table><thead><tr><th>Recipe</th><th>Status</th><th>What this is</th><th>Inputs</th><th>Outputs</th><th>Failure behavior</th><th>First safe check</th><th>Limits</th><th>Review</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.ConsumerGuide.Rows}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2878,7 +2882,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Case count</th><td>{{.ConnectorWorkbench.Conformance.CaseCount}}</td></tr>
 </tbody></table>
 <h4>Runner Guidance</h4>
-<table><thead><tr><th>Command</th><th>Instruction</th><th>Inputs</th><th>Expected result</th><th>If it fails</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+<table><thead><tr><th>Command</th><th>Instruction</th><th>Inputs</th><th>Expected result</th><th>If it fails</th><th>Limits</th><th>Docs</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.Conformance.RunnerCommands}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2895,7 +2899,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h4>{{.Label}}</h4>
 <p>Status: {{.Status}} · cases: {{.CaseCount}}</p>
 {{$group := .}}
-<table><thead><tr><th>Group</th><th>Required scenarios</th><th>Command</th><th>Case</th><th>Scenario</th><th>Fixture</th><th>Expected</th><th>Assertions</th><th>Status</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Group</th><th>Required scenarios</th><th>Command</th><th>Case</th><th>Scenario</th><th>Fixture</th><th>Expected</th><th>Assertions</th><th>Status</th><th>Limits</th></tr></thead><tbody>
 {{range .Cases}}
 <tr>
 <td><code>{{$group.ID}}</code></td>
@@ -2916,7 +2920,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>{{.ConnectorWorkbench.ManifestReview.Summary}}</p>
 <p><strong>Safe plugin definition:</strong> {{.ConnectorWorkbench.ManifestReview.PluginDefinition}}</p>
 <h4>Manifest Lint Summary</h4>
-<table><thead><tr><th>Lint</th><th>Status</th><th>Enforced by</th><th>Blocks</th><th>Operator action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Lint</th><th>Status</th><th>Enforced by</th><th>Blocks</th><th>Operator action</th><th>Limits</th></tr></thead><tbody>
 {{range .ConnectorWorkbench.ManifestReview.LintChecks}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2949,7 +2953,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td colspan="8">No committed connector manifests were loaded. Review diagnostics and run <code>make external-connection-check</code>.</td></tr>
 {{end}}
 </tbody></table>
-<p><a href="/admin/operations/connectors">Open Connector Hub</a> for category overview. <a href="/admin/operations/connectors/tests">Open Connector Tests</a> for fixed offline commands.</p>
+<p><a href="/admin/operations/connectors">Open Connectors</a> for category overview. <a href="/admin/operations/connectors/tests">Open Connector Tests</a> for fixed offline commands.</p>
 <p class="muted">Connector Workbench is GET-only generated guidance. It does not upload manifests, load backend plugins, execute commands, launch sidecars, contact external parties, write evidence, or change consumer status.</p>
 {{template "layoutEnd" .}}
 {{end}}
@@ -2965,10 +2969,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Is this bad?</strong> Not for review. It becomes a blocker when connector work depends on unverified manifests, examples, or adapter cases.</p>
 <p><strong>What should I do next?</strong> Copy the relevant command into an operator terminal, review any failure, and keep the fix inside synthetic fixtures or adapter boundaries.</p>
 <p><strong>Can I do it in the browser?</strong> No. The browser only shows commands and boundaries; it does not execute commands or read command output.</p>
-<p><strong>When do I need a technical helper?</strong> Use one to run Go/Make checks, diagnose adapter failures, or set up local toolchains.</p>
-<p><strong>What this does not prove:</strong> Passing local synthetic checks does not prove real vendor compatibility, consumer acceptance, compliance, production readiness, external network behavior, or ETA quality.</p>
+<p><strong>When is an administrator needed?</strong> Use one to run Go/Make checks, diagnose adapter failures, or set up local toolchains.</p>
+<p><strong>Limits:</strong> Passing local synthetic checks does not show real vendor compatibility, consumer acceptance, compliance, production readiness, external network behavior, or ETA quality.</p>
 </section>
 </div>
+<details><summary>Advanced safety details for this connector check review</summary>
 <table><tbody>
 <tr><th><code>backend_command_execution_enabled</code></th><td>{{.ConnectorTests.ClaimFlags.BackendCommandExecutionEnabled}}</td></tr>
 <tr><th><code>manifest_command_execution_enabled</code></th><td>{{.ConnectorTests.ClaimFlags.ManifestCommandExecutionEnabled}}</td></tr>
@@ -2977,7 +2982,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>consumer_statuses_changed</code></th><td>{{.ConnectorTests.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
 <tr><th><code>vendor_compatibility_claimed</code></th><td>{{.ConnectorTests.ClaimFlags.VendorCompatibilityClaimed}}</td></tr>
 </tbody></table>
-<table><thead><tr><th>Check</th><th>Copyable instruction</th><th>What it validates</th><th>Inputs</th><th>Failure next action</th><th>Does not prove</th><th>Docs</th></tr></thead><tbody>
+</details>
+<table><thead><tr><th>Check</th><th>Copyable instruction</th><th>What it validates</th><th>Inputs</th><th>Failure next action</th><th>Limits</th><th>Docs</th></tr></thead><tbody>
 {{range .ConnectorTests.Commands}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -2996,10 +3002,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "gtfs-workbench"}}
 {{template "layoutStart" .}}
-<h2>GTFS Workbench</h2>
+<h2>Schedule Review</h2>
 <p class="warning">{{.GTFSWorkbench.Boundary}}</p>
-<p><a href="/admin/operations/gtfs-workbench.json">Export private GTFS Workbench JSON</a> · <a href="/admin/operations/gtfs-import">Import Schedule ZIP</a> · <a href="/admin/gtfs-studio">Open Draft Schedule Editor</a> · <a href="/admin/operations/gtfs-quality">Open Schedule Quality</a> · <a href="/admin/operations/validation-health">Open Schedule Validation</a></p>
-<div class="card-grid" aria-label="GTFS Workbench summary cards">
+<p><a href="/admin/operations/gtfs-workbench.json">Export private Schedule Review JSON</a> · <a href="/admin/operations/gtfs-import">Import Schedule ZIP</a> · <a href="/admin/gtfs-studio">Open Draft Schedule Editor</a> · <a href="/admin/operations/gtfs-quality">Open Schedule Quality</a> · <a href="/admin/operations/validation-health">Open Schedule Validation</a></p>
+<div class="card-grid" aria-label="Schedule Review summary cards">
 <section class="card">
 <h3>Current Schedule</h3>
 <p><span class="status-chip status-{{statusClass .GTFSWorkbench.ActiveFeedVersion.Status}}">{{.GTFSWorkbench.ActiveFeedVersion.Status}}</span></p>
@@ -3043,7 +3049,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 </div>
 <h3>Agency Review Summary</h3>
-<table><thead><tr><th>Review area</th><th>Status</th><th>Plain-language summary</th><th>Suggested review</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Review area</th><th>Status</th><th>Plain-language summary</th><th>Suggested review</th><th>Limits</th></tr></thead><tbody>
 {{range .GTFSWorkbench.ReviewSummary}}<tr id="gtfs-review-summary-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.PlainLanguage}}</td><td>{{.SuggestedReview}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Next Operator Actions</h3>
@@ -3057,7 +3063,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Current signal</th><td>{{.GTFSWorkbench.IssueTriage.CurrentSignal}}</td></tr>
 <tr><th>Rows shown</th><td>{{.GTFSWorkbench.IssueTriage.DisplayedRows}} of {{.GTFSWorkbench.IssueTriage.TotalRows}}{{if .GTFSWorkbench.IssueTriage.HiddenRows}}; {{.GTFSWorkbench.IssueTriage.HiddenRows}} hidden by cap{{end}}</td></tr>
 </tbody></table>
-{{if .GTFSWorkbench.IssueTriage.Rows}}<table><thead><tr><th>Severity</th><th>Source</th><th>Issue family</th><th>Likely owner</th><th>Plain-English meaning</th><th>Suggested fix path</th><th>Safe next action</th><th>Verify with</th><th>Does not prove</th></tr></thead><tbody>
+{{if .GTFSWorkbench.IssueTriage.Rows}}<table><thead><tr><th>Severity</th><th>Source</th><th>Issue family</th><th>Likely owner</th><th>Plain-English meaning</th><th>Suggested fix path</th><th>Safe next action</th><th>Verify with</th><th>Limits</th></tr></thead><tbody>
 {{range .GTFSWorkbench.IssueTriage.Rows}}<tr><td>{{.Severity}}</td><td>{{.SourceLabel}}</td><td>{{.Family}}<br><span class="muted">{{join .Codes ", "}} · {{.Count}} notice(s)</span></td><td>{{.LikelyOwner}}</td><td>{{.PlainEnglishMeaning}}</td><td>{{.SuggestedFixPath}}</td><td>{{.SafeNextAction}}</td><td>{{.VerifyWith}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>{{else}}<p class="muted">No sanitized validator/importer issue rows are available for this active schedule yet.</p>{{end}}
 <h3>Import Change Signals</h3>
@@ -3209,7 +3215,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "gtfs-import"}}
 {{template "layoutStart" .}}
-<h2>Import GTFS</h2>
+<h2>Import Schedule</h2>
 <p class="warning">Private admin-only import path. Raw GTFS ZIP bytes are written to temporary runtime storage for the import attempt and then removed. This page creates no retained evidence, contacts no consumers, records no agency approval, and makes no CAL-ITP/Caltrans compliance, public launch, hosted-service, vendor compatibility, production-readiness, or production-grade ETA claim.</p>
 {{if .GTFSImportNotice}}<p class="ok">{{.GTFSImportNotice}}</p>{{end}}
 {{if .GTFSImportError}}<p class="bad">{{.GTFSImportError}}</p>{{end}}
@@ -3220,8 +3226,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Is this bad?</strong> It is normal on first run, but it blocks useful feed health, validation, telemetry matching, and realtime review.</p>
 <p><strong>What should I do next?</strong> Import a GTFS ZIP or safe GTFS URL, then review GTFS Quality, Validation Health, and Feed Health.</p>
 <p><strong>Can I do it in the browser?</strong> Yes, admins can use ZIP upload or safe URL import on this page.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for local app startup, very large scripted imports, unavailable import service, staged comparisons, or rollback work.</p>
-<p><strong>What this does not prove:</strong> A successful import does not prove canonical validator success, schedule correctness, agency approval, consumer acceptance, compliance, final-root readiness, hosted operation, or production readiness.</p>
+<p><strong>When is an administrator needed?</strong> Use one for local app startup, very large scripted imports, unavailable import service, staged comparisons, or rollback work.</p>
+<p><strong>Limits:</strong> A successful import does not show canonical validator success, schedule correctness, agency approval, consumer acceptance, compliance, final-root readiness, hosted operation, or production readiness.</p>
 </section>
 </div>
 <h3>Source Review Before Import</h3>
@@ -3230,13 +3236,13 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>What changes</th><td>A successful published import updates the active schedule feed version through the existing importer. This is not a preview-only action.</td></tr>
 <tr><th>Review before submit</th><td>Confirm the source file, expected agency identity, service period, route/stops/trips coverage, license/contact metadata, and rollback plan before an admin starts the import.</td></tr>
 <tr><th>Safety controls</th><td>Import requires an admin role, CSRF protection, form size limits, temporary runtime storage, server-owned import paths, and bounded result rendering.</td></tr>
-<tr><th>Technical helper needed</th><td>Use a technical helper for large files, scripted imports, staged diffing, rollback execution, source-permission uncertainty, or validator tooling failures.</td></tr>
+<tr><th>Administrator needed</th><td>Use an administrator for large files, scripted imports, staged diffing, rollback execution, source-permission uncertainty, or validator tooling failures.</td></tr>
 </tbody></table>
 <h3>Current Active Schedule</h3>
 <table><tbody>
 <tr><th>Active feed version</th><td>{{if .ActiveFeedVersion}}<code>{{.ActiveFeedVersion}}</code>{{else}}missing active schedule{{end}}</td></tr>
 <tr><th>Schedule source review</th><td>Use this page to compare a new import's row counts and validation blockers with the current active schedule. Full staged diff and browser rollback execution are not available yet.</td></tr>
-<tr><th>Rollback visibility</th><td>The active feed version is visible here. Prior feed-version listing and rollback execution remain technical-helper workflows until a safe browser rollback view is implemented.</td></tr>
+<tr><th>Rollback visibility</th><td>The active feed version is visible here. Prior feed-version listing and rollback execution remain administrator workflows until a safe browser rollback view is implemented.</td></tr>
 </tbody></table>
 {{if .GTFSImportSource.SourceType}}
 <h3>GTFS Source Review</h3>
@@ -3299,7 +3305,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Validation feedback</th><td><a href="/admin/operations/gtfs-quality">Review GTFS quality triage</a> and stored import validation messages before relying on the feed.</td></tr>
 <tr><th>Feed health</th><td><a href="/admin/operations/feed-health">Review the five-path feed health command center</a> after a successful publish.</td></tr>
 <tr><th>Validator health</th><td><a href="/admin/operations/validation-health">Run or review allowlisted validator health</a>; browser requests cannot supply validator commands, paths, URLs, argument lists, binaries, artifacts, or timeouts.</td></tr>
-<tr><th>Update decision</th><td>Compare current active schedule, new import counts, warnings, and blockers. If staged comparison is required, use a technical helper until browser staging comparison is implemented.</td></tr>
+<tr><th>Update decision</th><td>Compare current active schedule, new import counts, warnings, and blockers. If staged comparison is required, use an administrator until browser staging comparison is implemented.</td></tr>
 <tr><th>Rollback</th><td>Use the active feed version shown above and the operator rollback documentation. This page does not fake a rollback button.</td></tr>
 <tr><th>Typed edits</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> when an agency needs draft authoring instead of ZIP import.</td></tr>
 <tr><th>CLI fallback</th><td>Keep using the documented CLI import path for large files, scripted imports, or runtimes where browser import is unavailable.</td></tr>
@@ -3317,8 +3323,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><a href="/admin/operations/readiness.json">Export private readiness v2 JSON</a> · <a href="/admin/operations/gtfs-quality">Open authenticated GTFS quality triage</a> · <a href="/admin/operations/validation-health">Open private validator health diagnostics</a></p>
 <p class="muted">Start with the workflow map, then open each Readiness item card for the underlying private signals. Consumer tracker states remain prepared unless retained target-originated evidence supports a target-specific change. Advanced safety details are available in the private JSON export and remain negative.</p>
 <h3>CAL-ITP-Style Readiness Workflow Map</h3>
-<p>This map shows what local browser review helps prepare and what it does not prove.</p>
-<table><thead><tr><th>Area</th><th>Status</th><th>What this helps with</th><th>Primary signal</th><th>Next action</th><th>Does not prove</th><th>Review</th></tr></thead><tbody>
+<p>This map shows what local browser review helps prepare and what it does not show.</p>
+<table><thead><tr><th>Area</th><th>Status</th><th>What this helps with</th><th>Primary signal</th><th>Next action</th><th>Limits</th><th>Review</th></tr></thead><tbody>
 {{range .ReadinessV2.FocusAreas}}
 <tr>
 <td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td>
@@ -3340,7 +3346,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>What this means:</strong> {{.WhatThisMeans}}</p>
 <p><strong>What this helps with:</strong> {{.WhyItMatters}}</p>
 <p><strong>What to do next:</strong> {{.WhatToDoNext}}</p>
-<p><strong>What it does not prove:</strong> {{.WhatItDoesNotProve}}</p>
+<p><strong>What it does not show:</strong> {{.WhatItDoesNotProve}}</p>
 <p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>
 <p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>
 </section>
@@ -3383,7 +3389,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Feed health</strong> is the private route and freshness signal available from configured feed records, reliability snapshots, and public path metadata.</p>
 <p><strong>Validation</strong> is the server-owned validator tooling and latest result signal for static GTFS or GTFS-Realtime artifacts.</p>
 <p><strong>GTFS quality</strong> summarizes static validator and importer notices into operator guidance without editing schedule data.</p>
-<p><strong>What this does not prove:</strong> These diagnostics do not prove compliance, consumer acceptance, final-root readiness, hosted availability, SLA coverage, uptime, public launch, production readiness, vendor compatibility, hardware certification, or production-grade ETA quality.</p>
+<p><strong>Limits:</strong> These diagnostics do not prove compliance, consumer acceptance, final-root readiness, hosted availability, SLA coverage, uptime, public launch, production readiness, vendor compatibility, hardware certification, or production-grade ETA quality.</p>
 </section>
 </div>
 <h3>Five Feed URL Panel</h3>
@@ -3459,8 +3465,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Is this bad?</strong> Missing is expected before setup or import; blocked means a feed, validator artifact, or reliability signal needs operator attention before stronger review.</p>
 <p><strong>What should I do next?</strong> Use each row's next action, then return here after GTFS import, validator health, telemetry, or reliability records change.</p>
 <p><strong>Can I do it in the browser?</strong> You can review the rows and follow private console links; some fixes happen in GTFS Import, Setup, Validation Health, Devices, or Alerts.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for deployment public-root configuration, off-host validation, loopback feed checks, reliability snapshots, or service diagnostics.</p>
-<p><strong>What this does not prove:</strong> Local feed rows do not prove consumer acceptance, final-root ownership, compliance, hosted availability, service-level guarantees, uptime, production readiness, or public launch.</p>
+<p><strong>When is an administrator needed?</strong> Use one for deployment public-root configuration, off-host validation, loopback feed checks, reliability snapshots, or service diagnostics.</p>
+<p><strong>Limits:</strong> Local feed rows do not prove consumer acceptance, final-root ownership, compliance, hosted availability, service-level guarantees, uptime, production readiness, or public launch.</p>
 </section>
 </div>
 <p><a href="/admin/operations/feed-health.json">Export private feed health JSON</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/reliability">Open reliability diagnostics</a></p>
@@ -3476,6 +3482,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p id="feed-health-review-status" class="review-status" aria-live="polite" data-review-status>Showing all private diagnostic rows.</p>
 <p class="muted">Filters only change this browser view. They do not run validators, change feeds, create evidence, contact consumers, or prove readiness.</p>
 </section>
+<details><summary>Advanced safety details for this feed health review</summary>
 <table><tbody>
 <tr><th><code>external_evidence_created</code></th><td>{{.FeedHealth.ClaimFlags.ExternalEvidenceCreated}}</td></tr>
 <tr><th><code>consumer_statuses_changed</code></th><td>{{.FeedHealth.ClaimFlags.ConsumerStatusesChanged}}</td></tr>
@@ -3486,6 +3493,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>consumer_acceptance_claimed</code></th><td>{{.FeedHealth.ClaimFlags.ConsumerAcceptanceClaimed}}</td></tr>
 <tr><th><code>public_launch_claimed</code></th><td>{{.FeedHealth.ClaimFlags.PublicLaunchClaimed}}</td></tr>
 </tbody></table>
+</details>
 <div class="card-grid" id="feed-health-review-rows" aria-label="Plain-language feed health rows">
 {{range .FeedHealth.Rows}}
 <section class="card" data-review-row data-review-status="{{.Status}}" data-review-name="{{.Label}}" data-review-updated="{{.LastChecked}}">
@@ -3507,7 +3515,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Validator context:</strong> {{.ValidatorContext}}</p>
 <p><strong>Health context:</strong> {{.HealthContext}}</p>
 <p><strong>Next action:</strong> {{.NextAction}}</p>
-<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p><strong>Limits:</strong> {{.DoesNotProve}}</p>
 {{if .AdminLinks}}<p><strong>Console:</strong> {{range .AdminLinks}}<a href="{{.}}">{{.}}</a> {{end}}</p>{{end}}
 {{if .DocsLinks}}<p><strong>Docs:</strong> {{range .DocsLinks}}<code>{{.}}</code> {{end}}</p>{{end}}
 </section>
@@ -3515,9 +3523,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </div>
 <h3>Realtime Usefulness</h3>
 <div class="card-grid" aria-label="Realtime usefulness rows">
-<section class="card" id="realtime-usefulness-vehicle-positions"><h3>{{.FeedHealth.RealtimeUsefulness.VehiclePositions.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.VehiclePositions.State}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.LatestSignal}}</p><p><strong>Stale or suppressed:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.StaleOrHeld}}</p><p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.VehiclePositions.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.VehiclePositions.NextAction}}</a></p><p><strong>Does not prove:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.DoesNotProve}}</p></section>
-<section class="card" id="realtime-usefulness-trip-updates"><h3>{{.FeedHealth.RealtimeUsefulness.TripUpdates.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.TripUpdates.State}}</p><p><strong>Adapter:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.Adapter}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.LatestSignal}}</p><p><strong>Withheld / stale:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.StaleOrHeld}}</p>{{if .FeedHealth.RealtimeUsefulness.TripUpdates.Details}}<p><strong>Withheld reasons:</strong> {{range .FeedHealth.RealtimeUsefulness.TripUpdates.Details}}<span class="pill">{{.Label}}: {{.Count}}</span> {{end}}</p>{{end}}<p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.TripUpdates.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.TripUpdates.NextAction}}</a></p><p><strong>Does not prove:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.DoesNotProve}}</p></section>
-<section class="card" id="realtime-usefulness-alerts"><h3>{{.FeedHealth.RealtimeUsefulness.Alerts.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.Alerts.State}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.LatestSignal}}</p><p><strong>Stale or held:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.StaleOrHeld}}</p><p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.Alerts.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.Alerts.NextAction}}</a></p><p><strong>Does not prove:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.DoesNotProve}}</p></section>
+<section class="card" id="realtime-usefulness-vehicle-positions"><h3>{{.FeedHealth.RealtimeUsefulness.VehiclePositions.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.VehiclePositions.State}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.LatestSignal}}</p><p><strong>Stale or suppressed:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.StaleOrHeld}}</p><p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.VehiclePositions.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.VehiclePositions.NextAction}}</a></p><p><strong>Limits:</strong> {{.FeedHealth.RealtimeUsefulness.VehiclePositions.DoesNotProve}}</p></section>
+<section class="card" id="realtime-usefulness-trip-updates"><h3>{{.FeedHealth.RealtimeUsefulness.TripUpdates.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.TripUpdates.State}}</p><p><strong>Adapter:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.Adapter}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.LatestSignal}}</p><p><strong>Withheld / stale:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.StaleOrHeld}}</p>{{if .FeedHealth.RealtimeUsefulness.TripUpdates.Details}}<p><strong>Withheld reasons:</strong> {{range .FeedHealth.RealtimeUsefulness.TripUpdates.Details}}<span class="pill">{{.Label}}: {{.Count}}</span> {{end}}</p>{{end}}<p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.TripUpdates.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.TripUpdates.NextAction}}</a></p><p><strong>Limits:</strong> {{.FeedHealth.RealtimeUsefulness.TripUpdates.DoesNotProve}}</p></section>
+<section class="card" id="realtime-usefulness-alerts"><h3>{{.FeedHealth.RealtimeUsefulness.Alerts.Label}}</h3><p class="status">{{.FeedHealth.RealtimeUsefulness.Alerts.State}}</p><p><strong>Count:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.Count}}</p><p><strong>Latest signal:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.LatestSignal}}</p><p><strong>Stale or held:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.StaleOrHeld}}</p><p><strong>Next action:</strong> <a href="{{.FeedHealth.RealtimeUsefulness.Alerts.AdminLink}}">{{.FeedHealth.RealtimeUsefulness.Alerts.NextAction}}</a></p><p><strong>Limits:</strong> {{.FeedHealth.RealtimeUsefulness.Alerts.DoesNotProve}}</p></section>
 </div>
 <p class="muted">This dashboard summarizes existing private records only. Missing records stay missing or unknown until the underlying source records change.</p>
 {{template "layoutEnd" .}}
@@ -3544,25 +3552,25 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Copy guidance:</strong> {{.CopyGuidance}}</p>
 <p><strong>Review before sharing:</strong></p>
 <ul>{{range .ReviewChecklist}}<li>{{.}}</li>{{end}}</ul>
-<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p><strong>Limits:</strong> {{.DoesNotProve}}</p>
 {{if .DocsLink}}<p><strong>Docs:</strong> <code>{{.DocsLink}}</code></p>{{end}}
 </section>{{end}}
 </div>
 <h3>Source-of-truth metadata checklist</h3>
-<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .FeedReadiness.Metadata}}<tr id="feed-readiness-metadata-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Source-of-truth listing guidance</h3>
-<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
-{{range .FeedReadiness.SourceOfTruth}}<tr id="feed-readiness-source-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
+{{range .FeedReadiness.SourceOfTruth}}<tr id="feed-readiness-source-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Off-host validation guidance</h3>
-<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
-{{range .FeedReadiness.OffHost}}<tr id="feed-readiness-off-host-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
+{{range .FeedReadiness.OffHost}}<tr id="feed-readiness-off-host-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Public docs portal alignment</h3>
-<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Docs</th><th>Does not prove</th></tr></thead><tbody>
-{{range .FeedReadiness.DocsPortal}}<tr id="feed-readiness-docs-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
+{{range .FeedReadiness.DocsPortal}}<tr id="feed-readiness-docs-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Future final-root/evidence checklist</h3>
 <table><thead><tr><th>Gate</th><th>Current status</th><th>Next action</th><th>Boundary</th></tr></thead><tbody>
@@ -3614,8 +3622,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Is this bad?</strong> Empty is expected before GTFS import or validator setup. Blocking errors should be fixed before relying on schedule or realtime outputs.</p>
 <p><strong>What should I do next?</strong> Import or publish GTFS first, identify the source-data owner, fix the source, and rerun the allowlisted static validator when available.</p>
 <p><strong>Can I do it in the browser?</strong> Admins can rerun the configured static validator from this page after an active schedule exists.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for validator installation, source-system export issues, complex calendar/shape/block fixes, or CLI-only imports.</p>
-<p><strong>What this does not prove:</strong> Quality guidance and validator output do not prove compliance, consumer acceptance, agency approval, public launch, hosted operation, or production readiness.</p>
+<p><strong>When is an administrator needed?</strong> Use one for validator installation, source-system export issues, complex calendar/shape/block fixes, or CLI-only imports.</p>
+<p><strong>Limits:</strong> Quality guidance and validator output do not prove compliance, consumer acceptance, agency approval, public launch, hosted operation, or production readiness.</p>
 </section>
 </div>
 <table><tbody>
@@ -3690,10 +3698,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>If validators are missing or not run</h3>
 <p><strong>What am I seeing?</strong> Validation Health shows server-owned validator tooling state, artifact availability, latest results, staleness, and next actions.</p>
 <p><strong>Is this bad?</strong> Not on first run. It becomes a blocker when feed review depends on unavailable artifacts, missing tooling, failed validation, or stale reports.</p>
-<p><strong>What should I do next?</strong> Import GTFS, confirm feed artifacts exist, then run or review the allowlisted validator health action.</p>
+<p><strong>What should I do next?</strong> Import Schedule, confirm feed artifacts exist, then run or review the allowlisted validator health action.</p>
 <p><strong>Can I do it in the browser?</strong> Admins can run the configured all-feed validator health action; other roles can review the current state.</p>
-<p><strong>When do I need a technical helper?</strong> Use one to install pinned validators, configure off-host validators, inspect server logs, or fix missing artifacts.</p>
-<p><strong>What this does not prove:</strong> Validator rows are supporting diagnostics only and do not prove compliance, consumer acceptance, final-root readiness, hosted availability, or production readiness.</p>
+<p><strong>When is an administrator needed?</strong> Use one to install pinned validators, configure off-host validators, inspect server logs, or fix missing artifacts.</p>
+<p><strong>Limits:</strong> Validator rows are supporting diagnostics only and do not prove compliance, consumer acceptance, final-root readiness, hosted availability, or production readiness.</p>
 </section>
 </div>
 <div class="card-grid">
@@ -3714,6 +3722,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>Browser requests still cannot supply validator IDs, commands, paths, URLs, argument arrays, artifacts, output paths, reports, or timeouts.</p>
 </section>
 </div>
+<details><summary>Advanced safety details for this validator review</summary>
 <table><tbody>
 <tr><th>Overall status</th><td>{{.ValidationHealth.OverallStatus}}</td></tr>
 <tr><th>Tooling status</th><td>{{.ValidationHealth.ToolingStatus}}</td></tr>
@@ -3723,6 +3732,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>compliance_claimed</code></th><td>{{.ValidationHealth.ComplianceClaimed}}</td></tr>
 <tr><th><code>production_readiness_claimed</code></th><td>{{.ValidationHealth.ProductionReadinessClaimed}}</td></tr>
 </tbody></table>
+</details>
 <section class="review-tools" aria-label="Review tools">
 <h3>Review tools</h3>
 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -3858,7 +3868,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Diagnostics:</strong> {{.PredictionLab.Summary.DiagnosticsStatus}} / {{.PredictionLab.Summary.DiagnosticsReason}}</p>
 <p><strong>Counts:</strong> {{.PredictionLab.Summary.TripUpdatesEmitted}} emitted; {{.PredictionLab.Summary.EligiblePredictionCandidates}} eligible; {{.PredictionLab.Summary.WithheldCount}} withheld.</p>
 <p><strong>Next action:</strong> {{.PredictionLab.Summary.NextAction}}</p>
-<p><strong>Does not prove:</strong> {{.PredictionLab.Summary.DoesNotProve}}</p>
+<p><strong>Limits:</strong> {{.PredictionLab.Summary.DoesNotProve}}</p>
 </section>
 <section class="card">
 <h3>Safe Fallback</h3>
@@ -3866,17 +3876,17 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Status:</strong> {{.PredictionLab.Deterministic.Status}}</p>
 <p><strong>Review signal:</strong> {{.PredictionLab.Deterministic.ReviewSignal}}</p>
 <p><strong>Next action:</strong> {{.PredictionLab.Deterministic.NextAction}}</p>
-<p><strong>Does not prove:</strong> {{.PredictionLab.Deterministic.DoesNotProve}}</p>
+<p><strong>Limits:</strong> {{.PredictionLab.Deterministic.DoesNotProve}}</p>
 </section>
 </div>
 <h3>Deterministic Predictor Diagnostics</h3>
-<table><thead><tr><th>Diagnostic</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Diagnostic</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.Deterministic.Rows}}
 <tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
 </tbody></table>
 <h3>Why ETAs Are Missing</h3>
-<table><thead><tr><th>Reason</th><th>Count</th><th>What it means</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Reason</th><th>Count</th><th>What it means</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.WithheldReasons}}
 <tr><td><strong>{{.Label}}</strong><br><code>{{.Reason}}</code></td><td>{{.Count}}</td><td>{{.WhatItMeans}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>
 {{else}}
@@ -3886,7 +3896,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>External Predictor Shadow Review</h3>
 <p class="warning">{{.PredictionLab.ShadowReview.Boundary}}</p>
 <p><strong>Status:</strong> {{.PredictionLab.ShadowReview.Status}} · <strong>Next action:</strong> {{.PredictionLab.ShadowReview.NextAction}}</p>
-<table><thead><tr><th>Mode</th><th>Status</th><th>Reason</th><th>Latency</th><th>Count comparison</th><th>Failure behavior</th><th>First safe check</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Mode</th><th>Status</th><th>Reason</th><th>Latency</th><th>Count comparison</th><th>Failure behavior</th><th>First safe check</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.ShadowReview.Rows}}
 <tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Status}}</td><td>{{.Reason}}</td><td>{{.Latency}}</td><td>{{.CountComparison}}</td><td>{{.FailureBehavior}}</td><td><code>{{.FirstSafeCheck}}</code></td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
@@ -3894,7 +3904,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Backtest Summary</h3>
 <p class="warning">{{.PredictionLab.Backtests.Boundary}}</p>
 <p><strong>Status:</strong> {{.PredictionLab.Backtests.Status}} · <strong>Cache root:</strong> <code>{{.PredictionLab.Backtests.RootRef}}</code> · {{.PredictionLab.Backtests.Message}}</p>
-<table><thead><tr><th>Output</th><th>Status</th><th>Generated</th><th>Inputs</th><th>Coverage</th><th>Error</th><th>Withheld</th><th>Conformance</th><th>Signal</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Output</th><th>Status</th><th>Generated</th><th>Inputs</th><th>Coverage</th><th>Error</th><th>Withheld</th><th>Conformance</th><th>Signal</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.Backtests.Rows}}
 <tr><td><code>{{.OutputRef}}</code></td><td>{{.Status}}<br><code>{{.MaturityGate}}</code></td><td>{{.GeneratedAt}}</td><td>{{.ObservedRecords}} observed<br>{{.PredictionRecords}} predictions<br>{{.GroupCount}} groups</td><td>prediction: {{.PredictionCoverage}}<br>future stop: {{.FutureStopCoverage}}</td><td>MAE: {{.MAEAbsoluteErrorSeconds}}<br>P90: {{.P90AbsoluteErrorSeconds}}</td><td>{{.WithheldByReason}}</td><td>{{.ConformanceSignal}}</td><td>{{.DiagnosticSignal}}</td><td>{{.DoesNotProve}}</td></tr>
 {{else}}
@@ -3904,7 +3914,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Conservative Handling Guide</h3>
 <p class="warning">{{.PredictionLab.HandlingGuide.Boundary}}</p>
 <p><strong>Status:</strong> {{.PredictionLab.HandlingGuide.Status}} · <strong>Next action:</strong> {{.PredictionLab.HandlingGuide.NextAction}}</p>
-<table><thead><tr><th>Situation</th><th>Review signal</th><th>Safe behavior</th><th>Operator step</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Situation</th><th>Review signal</th><th>Safe behavior</th><th>Operator step</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.HandlingGuide.Rows}}
 <tr><td><strong>{{.Situation}}</strong><br><code>{{.ID}}</code></td><td>{{.ReviewSignal}}</td><td>{{.SafeBehavior}}</td><td>{{.OperatorStep}}</td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
@@ -3912,20 +3922,20 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Future ETA Proof Gates</h3>
 <p class="warning">{{.PredictionLab.ProofChecklist.Boundary}}</p>
 <p><strong>Status:</strong> {{.PredictionLab.ProofChecklist.Status}} · <strong>Next action:</strong> {{.PredictionLab.ProofChecklist.NextAction}}</p>
-<table><thead><tr><th>Gate</th><th>Required review</th><th>Authorization</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Gate</th><th>Required review</th><th>Authorization</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.ProofChecklist.Rows}}
 <tr><td><strong>{{.FutureGate}}</strong><br><code>{{.ID}}</code></td><td>{{.RequiredReview}}</td><td>{{.SeparateAuthorization}}</td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
 </tbody></table>
 <h3>Needs Operator Review</h3>
-<table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Severity</th><th>Area</th><th>Signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.ReviewRows}}
 <tr><td>{{.Severity}}</td><td>{{.Area}}</td><td>{{.Signal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
 </tbody></table>
 <h3>Fixed Local Checks</h3>
 <p>These commands are operator-shell guidance only. The browser does not run them, capture output, contact sidecars, or create evidence.</p>
-<table><thead><tr><th>Check</th><th>Instruction</th><th>Expected result</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Check</th><th>Instruction</th><th>Expected result</th><th>Limits</th></tr></thead><tbody>
 {{range .PredictionLab.Commands}}
 <tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><code>{{.CommandLine}}</code></td><td>{{.ExpectedResult}}</td><td>{{.DoesNotProve}}</td></tr>
 {{end}}
@@ -3975,7 +3985,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{if .Adapter}}<p><strong>Adapter:</strong> {{.Adapter}}</p>{{end}}
 {{if .Details}}<p><strong>Details:</strong> {{range $index, $detail := .Details}}{{if $index}}; {{end}}{{$detail.Label}}={{$detail.Count}}{{end}}</p>{{end}}
 <p><strong>Next action:</strong> <a href="{{.AdminLink}}">{{.NextAction}}</a></p>
-<p><strong>Does not prove:</strong> {{.DoesNotProve}}</p>
+<p><strong>Limits:</strong> {{.DoesNotProve}}</p>
 </section>
 {{end}}
 </div>
@@ -4062,24 +4072,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "telemetry"}}
 {{template "layoutStart" .}}
-<h2>Telemetry Freshness</h2>
-<p class="warning">Private telemetry freshness diagnostics only. Viewing this page creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
+<h2>Telemetry</h2>
+<p class="warning">Private telemetry freshness diagnostics only. Viewing this page creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not show hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
 <p>Stale threshold: {{.StaleThreshold}}</p>
 <div class="card-grid" aria-label="Telemetry empty or blocked state guidance">
 <section class="card empty-state">
 <h3>If no telemetry appears</h3>
-<p><strong>What am I seeing?</strong> Telemetry Freshness shows accepted latest observations, stale state, and conservative assignment results for this agency.</p>
+<p><strong>What am I seeing?</strong> Telemetry shows accepted latest observations, stale state, and conservative assignment results for this agency.</p>
 <p><strong>Is this bad?</strong> It is normal before devices or simulator sends exist, but Vehicle Positions and Trip Updates will remain empty or limited until fresh telemetry arrives.</p>
 <p><strong>What should I do next?</strong> Create or rotate a device credential, send a sample through authenticated ingest, then review freshness and Feed Health.</p>
 <p><strong>Can I do it in the browser?</strong> You can review telemetry and rotate credentials from the browser; sending telemetry happens through a device or operator-shell simulator.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for simulator commands, device networking, ingest target configuration, database-backed matcher diagnostics, or deployment troubleshooting.</p>
-<p><strong>What this does not prove:</strong> Fresh telemetry does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted operation, or production readiness.</p>
+<p><strong>When is an administrator needed?</strong> Use one for simulator commands, device networking, ingest target configuration, database-backed matcher diagnostics, or deployment troubleshooting.</p>
+<p><strong>Limits:</strong> Fresh telemetry does not show hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted operation, or production readiness.</p>
 </section>
 </div>
 <div class="card-grid">
 <section class="card"><h3>Make Vehicle Positions non-empty</h3><p>Create or rotate a device token, configure a device or synthetic simulator from an operator shell, send accepted telemetry to <code>/v1/telemetry</code>, then review this page and Feed Health.</p></section>
 <section class="card"><h3>Why Trip Updates may be empty</h3><p>Trip Updates can be empty when telemetry is missing or stale, assignment confidence is too low, a vehicle is unknown, or the prediction adapter withholds output. Prefer empty or unknown over false certainty.</p></section>
-<section class="card"><h3>Does not prove</h3><p>Fresh or visible telemetry does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p></section>
+<section class="card"><h3>Limits</h3><p>Fresh or visible telemetry does not show hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p></section>
 </div>
 {{if .TelemetryError}}<p class="warning">{{.TelemetryError}}. Next action: confirm the telemetry service and database are running.</p>{{else if not .Telemetry}}<p class="warning">No telemetry has been accepted yet. Next action: create or rotate a device token, configure the device, then send a sample telemetry event.</p>{{else}}
 <table><thead><tr><th>Vehicle</th><th>Device</th><th>Observed</th><th>Age seconds</th><th>Freshness</th><th>Assignment</th><th>Trip</th><th>Route</th><th>Confidence</th><th>Reasons</th><th>Assignment time</th></tr></thead><tbody>
@@ -4101,8 +4111,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Is this bad?</strong> It is not bad for browser review, but missing fixtures block safe synthetic telemetry practice.</p>
 <p><strong>What should I do next?</strong> Restore committed simulator fixtures or copy a fixed command into an operator shell after the local app and credentials are ready.</p>
 <p><strong>Can I do it in the browser?</strong> You can preview committed synthetic fixture summaries here. Sending telemetry and handling tokens stay outside the browser.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for local app startup, shell environment setup, seeded credentials, matcher diagnostics, or failed simulator commands.</p>
-<p><strong>What this does not prove:</strong> Synthetic telemetry does not prove real fleet reliability, vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, or ETA quality.</p>
+<p><strong>When is an administrator needed?</strong> Use one for local app startup, shell environment setup, seeded credentials, matcher diagnostics, or failed simulator commands.</p>
+<p><strong>Limits:</strong> Synthetic telemetry does not show real fleet reliability, vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, or ETA quality.</p>
 </section>
 </div>
 <div class="card-grid">
@@ -4126,13 +4136,13 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Current signal</th><td>{{.TelemetrySimulator.DryRunPreview.CurrentSignal}}</td></tr>
 <tr><th>Next action</th><td>{{.TelemetrySimulator.DryRunPreview.NextAction}}</td></tr>
 <tr><th>Boundary</th><td>{{.TelemetrySimulator.DryRunPreview.Boundary}}</td></tr>
-<tr><th>Does not prove</th><td>{{.TelemetrySimulator.DryRunPreview.DoesNotProve}}</td></tr>
+<tr><th>Limits</th><td>{{.TelemetrySimulator.DryRunPreview.DoesNotProve}}</td></tr>
 </tbody></table>
 {{if .TelemetrySimulator.DryRunPreview.Events}}<table><caption>Redacted synthetic event preview</caption><thead><tr><th>Event</th><th>Agency</th><th>Device</th><th>Vehicle</th><th>Timestamp</th><th>Location summary</th><th>Motion summary</th><th>Trip hint</th><th>Expected statuses</th></tr></thead><tbody>
 {{range .TelemetrySimulator.DryRunPreview.Events}}<tr><td>{{.Label}}</td><td>{{.AgencyID}}</td><td>{{.DeviceID}}</td><td>{{.VehicleID}}</td><td>{{.Timestamp}}</td><td>{{.LocationSummary}}</td><td>{{.MotionSummary}}</td><td>{{if .TripHint}}{{.TripHint}}{{else}}none{{end}}</td><td>HTTP {{range .ExpectedHTTPStatus}}<span class="pill">{{.}}</span> {{end}}<br>ingest {{range .ExpectedIngestStatuses}}<span class="pill">{{.}}</span> {{end}}</td></tr>{{end}}
 </tbody></table>{{end}}
 <h3>Operator Commands</h3>
-<table><thead><tr><th>Command</th><th>What it does</th><th>Operator prep</th><th>Failure next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Command</th><th>What it does</th><th>Operator prep</th><th>Failure next action</th><th>Limits</th></tr></thead><tbody>
 {{range .TelemetrySimulator.Commands}}<tr><td><code>{{.CommandLine}}</code></td><td>{{.WhatItDoes}}</td><td>{{.OperatorPrep}}</td><td>{{.FailureNextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Synthetic Scenarios</h3>
@@ -4161,26 +4171,26 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 
 {{define "devices"}}
 {{template "layoutStart" .}}
-<h2>Devices &amp; Tokens</h2>
+<h2>Devices</h2>
 <p class="warning">Device tokens are secrets. Store a one-time token immediately; it will not be shown again by this console.</p>
-<p class="warning">Private device credential diagnostics only. Viewing or rotating credentials creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
+<p class="warning">Private device credential diagnostics only. Viewing or rotating credentials creates no retained evidence, contacts no vendors or consumers, changes no consumer status, and does not show hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p>
 <p>The supported browser flow is rotate/rebind. If a device has no credential yet, this uses the existing rebind API path.</p>
 <div class="card-grid" aria-label="Device credential empty or blocked state guidance">
 <section class="card empty-state">
 <h3>If no devices are listed</h3>
-<p><strong>What am I seeing?</strong> Devices &amp; Tokens shows configured device-to-vehicle bindings, token status dates, latest accepted telemetry, and assignment context.</p>
+<p><strong>What am I seeing?</strong> Devices shows configured device-to-vehicle bindings, token status dates, latest accepted telemetry, and assignment context.</p>
 <p><strong>Is this bad?</strong> It is expected before first setup, but it blocks live telemetry and useful Vehicle Positions until at least one credential is installed and reporting.</p>
-<p><strong>What should I do next?</strong> Ask an admin to rotate or create the first device token, install it on the device or simulator, then check Telemetry Freshness.</p>
+<p><strong>What should I do next?</strong> Ask an admin to rotate or create the first device token, install it on the device or simulator, then check Telemetry.</p>
 <p><strong>Can I do it in the browser?</strong> Admins can rotate or rebind one-time credentials in the browser; read-only users can review status only.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for installing tokens on hardware, configuring device network targets, simulator sends, or diagnosing stale/no telemetry.</p>
-<p><strong>What this does not prove:</strong> A device binding does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted operation, or production readiness.</p>
+<p><strong>When is an administrator needed?</strong> Use one for installing tokens on hardware, configuring device network targets, simulator sends, or diagnosing stale/no telemetry.</p>
+<p><strong>Limits:</strong> A device binding does not show hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted operation, or production readiness.</p>
 </section>
 </div>
 <div class="card-grid">
 <section class="card"><h3>Token status</h3><p>The table shows credential status and dates, never stored token values. New tokens are shown only once after an admin rotate/rebind action.</p></section>
 <section class="card"><h3>Vehicle binding</h3><p>Each device row links a device to a vehicle, latest accepted telemetry time, freshness, assignment state, match confidence where available, and a next action.</p></section>
 <section class="card"><h3>Realtime setup</h3><p>Vehicle Positions need accepted fresh telemetry. Trip Updates may still be empty until matching confidence and prediction diagnostics justify output.</p></section>
-<section class="card"><h3>Does not prove</h3><p>Device bindings and credential rotation do not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p></section>
+<section class="card"><h3>Limits</h3><p>Device bindings and credential rotation do not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness.</p></section>
 </div>
 <h3>Guided Onboarding Use Cases</h3>
 <div class="card-grid">
@@ -4190,28 +4200,28 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="warning">{{.DeviceFleetOnboarding.Boundary}}</p>
 <p><strong>Status:</strong> {{.DeviceFleetOnboarding.Status}}</p>
 <h4>Inventory Review</h4>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .DeviceFleetOnboarding.InventoryRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.InventoryRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h4>Bulk Import Planning</h4>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .DeviceFleetOnboarding.BulkImportRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.BulkImportRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h4>Token Lifecycle Guidance</h4>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .DeviceFleetOnboarding.TokenLifecycleRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.TokenLifecycleRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h4>Freshness And Unknown-Device Triage</h4>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .DeviceFleetOnboarding.FreshnessTriageRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.FreshnessTriageRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h4>Binding Review</h4>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .DeviceFleetOnboarding.BindingReviewRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.BindingReviewRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
-<h4>Technical Helper Handoff</h4>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .DeviceFleetOnboarding.TechnicalHandoffRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<h4>Administrator Handoff</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.TechnicalHandoffRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 {{if .DeviceToken}}<div class="token"><h3>One-time token</h3><p>Device: {{.DeviceTokenMeta.DeviceID}} · Vehicle: {{.DeviceTokenMeta.VehicleID}} · Rotated: {{.DeviceTokenMeta.RotatedAt}}</p><p><code>{{.DeviceToken}}</code></p></div>{{end}}
 {{if .DeviceError}}<p class="warning">{{.DeviceError}}</p>{{end}}
@@ -4246,11 +4256,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Is this bad?</strong> Missing is expected on a local first run; it becomes a blocker before depending on routine operations, recovery, support, or stronger deployment claims.</p>
 <p><strong>What should I do next?</strong> Review each summary row, configure missing private backup/restore values where appropriate, and run the linked diagnostics from the operator environment.</p>
 <p><strong>Can I do it in the browser?</strong> You can review status and next steps here; backup/restore configuration and support bundles are operator-shell work.</p>
-<p><strong>When do I need a technical helper?</strong> Use one for backup paths, restore-drill targets, service health checks, support bundles, deployment logs, or redaction review.</p>
-<p><strong>What this does not prove:</strong> Maintenance rows do not prove SLA coverage, uptime, hosted availability, production readiness, compliance, agency adoption, consumer acceptance, or disaster-recovery success.</p>
+<p><strong>When is an administrator needed?</strong> Use one for backup paths, restore-drill targets, service health checks, support bundles, deployment logs, or redaction review.</p>
+<p><strong>Limits:</strong> Maintenance rows do not prove SLA coverage, uptime, hosted availability, production readiness, compliance, agency adoption, consumer acceptance, or disaster-recovery success.</p>
 </section>
 </div>
 <p><a href="/admin/operations/maintenance.json">Export private maintenance JSON</a> · <a href="/admin/operations/feed-health">Open feed health</a> · <a href="/admin/operations/validation-health">Open validator health</a></p>
+<details><summary>Advanced safety details for this maintenance review</summary>
 <table><tbody>
 <tr><th>Overall status</th><td>{{.Maintenance.OverallStatus}}</td></tr>
 <tr><th>Generated at</th><td>{{formatTime .Maintenance.GeneratedAt}}</td></tr>
@@ -4261,57 +4272,58 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th><code>sla_claimed</code></th><td>{{.Maintenance.ClaimFlags.SLAClaimed}}</td></tr>
 <tr><th><code>uptime_guarantee_claimed</code></th><td>{{.Maintenance.ClaimFlags.UptimeGuaranteeClaimed}}</td></tr>
 </tbody></table>
+</details>
 <h3>Summary</h3>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .Maintenance.SummaryRows}}<tr id="maintenance-row-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Local Diagnostic Summaries</h3>
 <p class="warning">{{.Maintenance.Diagnostics.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.Diagnostics.Status}}</p>
-<table><thead><tr><th>ID</th><th>Source</th><th>Status</th><th>Generated</th><th>Current signal</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>ID</th><th>Source</th><th>Status</th><th>Generated</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .Maintenance.Diagnostics.Rows}}<tr id="maintenance-diagnostic-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}<br><code>{{.SourceRef}}</code></td><td>{{.Status}}</td><td>{{.GeneratedAt}}</td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Small-Host Readiness</h3>
 <p class="warning">{{.Maintenance.SmallHostReadiness.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.SmallHostReadiness.Status}} · <strong>Next action:</strong> {{.Maintenance.SmallHostReadiness.NextAction}}</p>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Maintenance.SmallHostReadiness.Rows}}<tr id="maintenance-small-host-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .Maintenance.SmallHostReadiness.Rows}}<tr id="maintenance-small-host-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Infrastructure Checks</h3>
 <p class="warning">{{.Maintenance.Infrastructure.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.Infrastructure.Status}} · <strong>Next action:</strong> {{.Maintenance.Infrastructure.NextAction}}</p>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Maintenance.Infrastructure.Rows}}<tr id="maintenance-infrastructure-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .Maintenance.Infrastructure.Rows}}<tr id="maintenance-infrastructure-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Backup And Restore Review</h3>
 <p class="warning">{{.Maintenance.BackupRestore.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.BackupRestore.Status}} · <strong>Next action:</strong> {{.Maintenance.BackupRestore.NextAction}}</p>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Maintenance.BackupRestore.Rows}}<tr id="maintenance-backup-restore-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .Maintenance.BackupRestore.Rows}}<tr id="maintenance-backup-restore-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Upgrade And Rollback Review</h3>
 <p class="warning">{{.Maintenance.UpgradeRollback.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.UpgradeRollback.Status}} · <strong>Next action:</strong> {{.Maintenance.UpgradeRollback.NextAction}}</p>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Maintenance.UpgradeRollback.Rows}}<tr id="maintenance-upgrade-rollback-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .Maintenance.UpgradeRollback.Rows}}<tr id="maintenance-upgrade-rollback-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Support Bundle And Redaction Review</h3>
 <p class="warning">{{.Maintenance.SupportReview.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.SupportReview.Status}} · <strong>Next action:</strong> {{.Maintenance.SupportReview.NextAction}}</p>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Maintenance.SupportReview.Rows}}<tr id="maintenance-support-review-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .Maintenance.SupportReview.Rows}}<tr id="maintenance-support-review-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Maintenance Cadence Plan</h3>
 <p class="warning">{{.Maintenance.CadencePlan.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.CadencePlan.Status}} · <strong>Next action:</strong> {{.Maintenance.CadencePlan.NextAction}}</p>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Maintenance.CadencePlan.Rows}}<tr id="maintenance-cadence-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .Maintenance.CadencePlan.Rows}}<tr id="maintenance-cadence-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Monitoring Export And Health Digest Review</h3>
 <p class="warning">{{.Maintenance.MonitoringExport.Boundary}}</p>
 <p><strong>Status:</strong> {{.Maintenance.MonitoringExport.Status}} · <strong>Next action:</strong> {{.Maintenance.MonitoringExport.NextAction}}</p>
-<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Technical helper step</th><th>Does not prove</th></tr></thead><tbody>
-{{range .Maintenance.MonitoringExport.Rows}}<tr id="maintenance-monitoring-export-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.TechnicalHelperStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .Maintenance.MonitoringExport.Rows}}<tr id="maintenance-monitoring-export-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Next Maintenance Tasks</h3>
 <table><thead><tr><th>ID</th><th>Cadence</th><th>Task</th><th>Status</th><th>Owner</th><th>Next step</th></tr></thead><tbody>
@@ -4343,11 +4355,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .Consumers}}<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.Source}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Notes}}</td></tr>{{end}}
 </tbody></table>
 <h3>Target Boundary Review</h3>
-<table><thead><tr><th>Target</th><th>Status</th><th>Current record</th><th>Packet path</th><th>Meaning</th><th>Runtime note</th><th>Next action</th><th>Does not prove</th></tr></thead><tbody>
+<table><thead><tr><th>Target</th><th>Status</th><th>Current record</th><th>Packet path</th><th>Meaning</th><th>Runtime note</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .ConsumerPreparation.Targets}}<tr id="consumer-prepared-{{.ID}}"><td>{{.Name}}</td><td>{{.Status}}</td><td><code>{{.CurrentPath}}</code></td><td><code>{{.PacketPath}}</code></td><td>{{.Meaning}}</td><td>{{.RuntimeObserved}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Future Authorization Gates</h3>
-<table><thead><tr><th>Gate</th><th>Status</th><th>Required before action</th><th>Blocked in this track</th><th>Does not prove now</th></tr></thead><tbody>
+<table><thead><tr><th>Gate</th><th>Status</th><th>Required before action</th><th>Blocked in this track</th><th>Limits now</th></tr></thead><tbody>
 {{range .ConsumerPreparation.FutureGates}}<tr id="consumer-gate-{{.ID}}"><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.RequiredAuthorization}}</td><td>{{.BlockedAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 <h3>Workflow Separation</h3>
@@ -4407,7 +4419,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Capability</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
 {{range .SetupWizard.RoleVisibility}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td></tr>{{end}}
 </tbody></table>
-<div class="card-grid" aria-label="Technical helper escalation cards">
+<div class="card-grid" aria-label="Administrator escalation cards">
 {{range .SetupWizard.TechnicalHelp}}<section class="card"><h3>{{.Label}}</h3><p><strong>When needed:</strong> {{.WhenNeeded}}</p><p><strong>Next action:</strong> {{.NextAction}}</p>{{if .AdminLink}}<p><a href="{{.AdminLink}}">Open console area</a></p>{{end}}</section>{{end}}
 </div>
 <table><thead><tr><th>Step</th><th>Status</th><th>Status source</th><th>Evidence signal</th><th>Next action</th></tr></thead><tbody>
@@ -4447,7 +4459,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p>Source: feed discovery and the existing GTFS importer. Browser import is admin-only, size-limited, temporary-file based, and uses the same validation and publish pipeline as the CLI import path.</p>
 <table><tbody>
 <tr><th>Browser import</th><td><a href="/admin/operations/gtfs-import">Import a GTFS ZIP by upload or safe URL</a>.</td></tr>
-<tr><th>Large or scripted import help</th><td>Use browser import for normal agency ZIP or safe URL imports. Ask a technical helper only for unusually large, scripted, or recovery imports documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
+<tr><th>Large or scripted import help</th><td>Use browser import for normal agency ZIP or safe URL imports. Ask an administrator only for unusually large, scripted, or recovery imports documented in <code>docs/tutorials/real-agency-gtfs-onboarding.md</code>.</td></tr>
 <tr><th>Typed authoring</th><td><a href="/admin/gtfs-studio">Open GTFS Studio</a> for draft authoring and publish.</td></tr>
 <tr><th>Validation triage</th><td>Use <code>docs/tutorials/gtfs-validation-triage.md</code> and the validation form below.</td></tr>
 <tr><th>GTFS quality triage</th><td><a href="/admin/operations/gtfs-quality">Review canonical validator and internal importer actions</a>.</td></tr>
@@ -4482,12 +4494,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Device bindings</th><td>{{if .DeviceError}}{{.DeviceError}}{{else}}{{len .Devices}} binding records{{end}}</td></tr>
 <tr><th>Latest telemetry</th><td>{{if .TelemetryError}}{{.TelemetryError}}{{else if .TelemetryUpdatedAt}}{{formatTimePtr .TelemetryUpdatedAt}}{{else}}not observed yet{{end}}</td></tr>
 <tr><th>Stale telemetry</th><td>{{if .TelemetryError}}not available{{else}}{{.StaleCount}} stale latest rows using threshold {{.StaleThreshold}}{{end}}</td></tr>
-<tr><th>Next action</th><td><a href="/admin/operations/devices">Manage device bindings</a>; open <a href="/admin/operations/telemetry-simulator">Telemetry Simulator</a> to preview synthetic fixture shape in the browser before a technical helper runs any private shell dry-run.</td></tr>
+<tr><th>Next action</th><td><a href="/admin/operations/devices">Manage device bindings</a>; open <a href="/admin/operations/telemetry-simulator">Telemetry Simulator</a> to preview synthetic fixture shape in the browser before an administrator runs any private shell dry-run.</td></tr>
 </tbody></table>
 
 <h2>Alerts, Overrides, Consumers, Evidence</h2>
 <table><tbody>
-<tr><th>Alerts</th><td>Source: feed discovery and Alerts Console. <a href="/admin/alerts/console">Create, publish, or archive alerts</a>. Alerts feed availability does not prove consumer acceptance.</td></tr>
+<tr><th>Alerts</th><td>Source: feed discovery and Alerts Console. <a href="/admin/alerts/console">Create, publish, or archive alerts</a>. Alerts feed availability does not show consumer acceptance.</td></tr>
 <tr><th>Manual overrides/review</th><td>Not exposed from this setup page. Use current review pages for bounded summaries; future override views must avoid raw diagnostics and new mutation semantics unless they are deliberately designed.</td></tr>
 <tr><th>Consumer packets</th><td>Source: docs/evidence tracker. <a href="/admin/operations/consumers">Review all seven prepared packet records</a>; prepared is not submitted or accepted.</td></tr>
 <tr><th>Evidence/readiness</th><td>Source: evidence links. <a href="/admin/operations/evidence">Open evidence link index</a>.</td></tr>

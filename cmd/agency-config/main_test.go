@@ -632,12 +632,12 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "<title>Start</title>", `<h1 id="operations-page-title">Start</h1>`, "Normal browser path", "Technical-helper path", "Copy Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "<title>Start</title>", `<h1 id="operations-page-title">Start</h1>`, "Normal browser path", "Administrator path", "Copy Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
 	}
-	for _, want := range []string{"Work through this in order", "Operations workflow", "Start setup", "Import GTFS", "Check feeds", "Connect vehicles", "Fix issues", "Share public URLs", "Maintain system"} {
+	for _, want := range []string{"Work through this in order", "Operations workflow", "Start setup", "Import Schedule", "Check feeds", "Connect vehicles", "Fix issues", "Share public URLs", "Maintain system"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("action-first body does not contain %q: %s", want, body)
 		}
@@ -814,7 +814,7 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 		t.Fatalf("audit status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Audit History", "Recent scoped audit metadata", "Visible rows", "2 of the latest 50", "actor=2; reason=1; old=1; new=2", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
+	for _, want := range []string{"Audit Log", "Recent scoped audit metadata", "Visible rows", "2 of the latest 50", "actor=2; reason=1; old=1; new=2", "device.rebind", "manual_override", "Raw actor identifiers", "credential values"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("audit body missing %q: %s", want, body)
 		}
@@ -1007,7 +1007,7 @@ func TestOperationsSetupRendersTruthfulMissingStates(t *testing.T) {
 		"Return to Agency Setup",
 		"Setup Diagnostics",
 		"Role Visibility",
-		"Technical helper escalation cards",
+		"Administrator escalation cards",
 		"Publication metadata changes require an admin role",
 		"Validation runs from this setup page require an admin role",
 		"publication metadata",
@@ -1107,7 +1107,7 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 		"What this means",
 		"What this helps with",
 		"What to do next",
-		"What it does not prove",
+		"What it does not show",
 		"Feed discovery and metadata",
 		"Plain-language feed health",
 		"Static GTFS quality",
@@ -1121,7 +1121,7 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 		"Consumer prepared tracker",
 		"target-specific statuses",
 		"target-originated evidence",
-		"Does not prove submission, review, acceptance, listing, display, ingestion, consumer approval, or Caltrans/CAL-ITP compliance.",
+		"This private view does not show submission, review, acceptance, listing, display, ingestion, consumer approval, or Caltrans/CAL-ITP compliance.",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
@@ -1583,7 +1583,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Launchpad", "First-run details", "First-Run Tasks", "Copy Feed URLs", "Normal browser path", "Technical-helper path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Agency Launchpad", "First-run details", "First-Run Tasks", "Copy Feed URLs", "Normal browser path", "Administrator path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1650,7 +1650,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"Maintain system",
 		"Task status:",
 		"Normal browser path",
-		"Technical-helper path",
+		"Administrator path",
 		`class="feed-copy-grid"`,
 		`class="status-chip status-needs-review"`,
 		"First-Run Tasks",
@@ -1850,7 +1850,7 @@ func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Technical Helper Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Public feed information", "Schedule data", "Feed links", "Vehicle telemetry", "Validation", "Optional connectors", "Readiness review"} {
+	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Administrator Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Public feed information", "Schedule data", "Feed links", "Vehicle telemetry", "Validation", "Optional connectors", "Readiness review"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1882,7 +1882,7 @@ func TestGTFSImportRouteAuthMatrixAndBoundaries(t *testing.T) {
 				t.Fatalf("Cache-Control = %q, want no-store", got)
 			}
 			body := rr.Body.String()
-			for _, want := range []string{"Source Review Before Import", "not a preview-only action", "admin role", "CSRF protection", "private URLs", "Technical helper needed"} {
+			for _, want := range []string{"Source Review Before Import", "not a preview-only action", "admin role", "CSRF protection", "private URLs", "Administrator needed"} {
 				if !strings.Contains(body, want) {
 					t.Fatalf("GET body missing source review copy %q: %s", want, body)
 				}
@@ -2129,7 +2129,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"GTFS Workbench", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
+	for _, want := range []string{"Schedule Review", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
@@ -2688,7 +2688,7 @@ func TestFeedHealthHTMLPlainLanguageBoundariesAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five configured public route paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Does not prove"} {
+	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five configured public route paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Limits"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2869,7 +2869,7 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connector Hub", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
+	for _, want := range []string{"Connectors", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -3694,10 +3694,10 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		`id="help-validators"`,
 		`id="help-telemetry"`,
 		`id="help-claims_evidence"`,
-		`id="help-role-no_developer_evaluator"`,
+		`id="help-role-no_code_evaluator"`,
 		`id="help-role-director_manager"`,
 		`id="help-role-daily_operator"`,
-		`id="help-role-technical_helper"`,
+		`id="help-role-administrator"`,
 		`id="help-role-integrator"`,
 		"Role-Based Tours",
 		"First-Week Checklist",
@@ -3708,12 +3708,12 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"Staff Handoff Checklist",
 		"Demo Scenario Catalog",
 		"Trainer Script",
-		"Technical-Helper Checklist",
+		"Administrator Checklist",
 		"docs/operator-training-guide.md",
-		"No-developer evaluator",
+		"No-code evaluator",
 		"Director or manager",
 		"Daily operator",
-		"Technical helper",
+		"Administrator",
 		"Integrator",
 		`id="help-first-week-day_1_start"`,
 		`id="help-first-week-day_5_maintenance"`,
@@ -3736,7 +3736,7 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"testdata/gtfs/valid-small",
 		"testdata/adapter-conformance/suite.json",
 		"Trip Updates are empty, fallback, or withheld",
-		"Prepared packet visibility does not prove submission",
+		"Prepared packet visibility does not show submission",
 		safePluginDefinition,
 		`backend_command_execution_enabled`,
 		`consumer_statuses_changed`,
@@ -3763,7 +3763,7 @@ func TestOperationsSharedLayoutRendersContextualHelpForMajorSections(t *testing.
 	}{
 		{path: "/admin/operations/gtfs-import", want: []string{`Help for GTFS import`, `help-gtfs`, `help-validators`}},
 		{path: "/admin/operations/feed-health", want: []string{`Help for feed health`, `help-gtfs_rt`, `help-readiness`}},
-		{path: "/admin/operations/connectors", want: []string{`Help for Connector Hub`, `help-connectors`, `help-claims_evidence`}},
+		{path: "/admin/operations/connectors", want: []string{`Help for Connectors`, `help-connectors`, `help-claims_evidence`}},
 		{path: "/admin/operations/telemetry-simulator", want: []string{`Help for Telemetry Simulator`, `help-telemetry`, `help-gtfs_rt`}},
 		{path: "/admin/operations/readiness", want: []string{`Help for readiness`, `help-readiness`, `help-claims_evidence`}},
 		{path: "/admin/operations/validation-health", want: []string{`Help for validator health`, `help-validators`, `help-claims_evidence`}},
@@ -3812,8 +3812,8 @@ func TestOperationsConsoleEmptyStateGuidanceAnswersFirstRunQuestions(t *testing.
 		"Is this bad?",
 		"What should I do next?",
 		"Can I do it in the browser?",
-		"When do I need a technical helper?",
-		"What this does not prove",
+		"When is an administrator needed?",
+		"Limits",
 	}
 	for _, path := range paths {
 		t.Run(path, func(t *testing.T) {
@@ -5894,7 +5894,7 @@ func TestValidationHealthCommandDefinitionsBoundedForBrowserControl(t *testing.T
 	if refresh.Action != "validation_health.refresh" || refresh.LadderLevel != admincontrol.LevelReadOnlyRefresh || refresh.RequiredRole != "read_only" {
 		t.Fatalf("unexpected refresh command definition: %+v", refresh)
 	}
-	for _, want := range []string{"No public feed output changes", "Writes nothing", "Does not prove compliance"} {
+	for _, want := range []string{"No public feed output changes", "Writes nothing", "This private view does not show compliance"} {
 		if !strings.Contains(refresh.PublicFeedImpact+refresh.PrivateImpact+refresh.DoesNotProve, want) {
 			t.Fatalf("refresh command definition missing %q: %+v", want, refresh)
 		}
@@ -5903,7 +5903,7 @@ func TestValidationHealthCommandDefinitionsBoundedForBrowserControl(t *testing.T
 	if runAll.Action != "validation_health.run_all" || runAll.LadderLevel != admincontrol.LevelReversiblePrivate || runAll.RequiredRole != "admin" {
 		t.Fatalf("unexpected run-all command definition: %+v", runAll)
 	}
-	for _, want := range []string{"No public feed output changes", "validation_report", "Does not prove compliance"} {
+	for _, want := range []string{"No public feed output changes", "validation_report", "This private view does not show compliance"} {
 		if !strings.Contains(runAll.PublicFeedImpact+runAll.PrivateImpact+runAll.DoesNotProve, want) {
 			t.Fatalf("run-all command definition missing %q: %+v", want, runAll)
 		}
@@ -6993,7 +6993,7 @@ func TestOperationsDevicesShowsFleetOnboardingV2GuidanceSafely(t *testing.T) {
 		"Unknown-device and rejected-payload triage",
 		"Unauthorized device payloads are rejected before storage",
 		"unknown_assignments=1; low_confidence_assignments=1; unlisted_accepted_rows=1",
-		"Safe technical-helper handoff",
+		"Safe administrator handoff",
 		"token values, request credential headers, private endpoints, raw telemetry, database URLs, or evidence packets",
 	} {
 		if !strings.Contains(body, want) {
@@ -7034,7 +7034,7 @@ func TestOperationsDevicesAndTelemetryAvoidUnsupportedClaims(t *testing.T) {
 			"creates no retained evidence",
 			"contacts no vendors or consumers",
 			"changes no consumer status",
-			"does not prove hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness",
+			"does not show hardware certification, vendor compatibility, production AVL reliability, consumer acceptance, compliance, hosted service, or production readiness",
 		} {
 			if !strings.Contains(rawBody, want) {
 				t.Fatalf("%s body missing boundary copy %q: %s", path, want, rawBody)
@@ -7511,13 +7511,13 @@ func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 	}
 	for _, help := range wizard.TechnicalHelp {
 		if help.ID == "" || help.Label == "" || help.WhenNeeded == "" || help.NextAction == "" || help.AdminLink == "" || help.DocsLink == "" || help.ClaimBoundary == "" {
-			t.Fatalf("invalid setup wizard technical helper shape: %+v", help)
+			t.Fatalf("invalid setup wizard administrator shape: %+v", help)
 		}
 		if !strings.HasPrefix(help.AdminLink, "/admin/") {
-			t.Fatalf("technical helper %s has unsafe admin link %q", help.ID, help.AdminLink)
+			t.Fatalf("administrator %s has unsafe admin link %q", help.ID, help.AdminLink)
 		}
 		if !strings.HasPrefix(help.DocsLink, "docs/") {
-			t.Fatalf("technical helper %s has unsafe docs link %q", help.ID, help.DocsLink)
+			t.Fatalf("administrator %s has unsafe docs link %q", help.ID, help.DocsLink)
 		}
 	}
 }
@@ -7555,7 +7555,7 @@ func assertFirstRunShape(t *testing.T, firstRun operationsFirstRunView) {
 	if strings.Join(gotTaskIDs, ",") != strings.Join(wantTaskIDs, ",") {
 		t.Fatalf("first-run task ids = %v, want %v", gotTaskIDs, wantTaskIDs)
 	}
-	wantPathIDs := []string{"no_developer", "developer"}
+	wantPathIDs := []string{"no_code", "developer"}
 	var gotPathIDs []string
 	for _, path := range firstRun.Paths {
 		gotPathIDs = append(gotPathIDs, path.ID)
@@ -7612,7 +7612,7 @@ func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	if view.TrainingGuide.DocsPath != "docs/operator-training-guide.md" || view.TrainingGuide.Label == "" || view.TrainingGuide.Audience == "" || view.TrainingGuide.HowToUse == "" || view.TrainingGuide.Boundary == "" {
 		t.Fatalf("invalid training guide link: %+v", view.TrainingGuide)
 	}
-	wantRoles := []string{"no_developer_evaluator", "director_manager", "daily_operator", "technical_helper", "integrator"}
+	wantRoles := []string{"no_code_evaluator", "director_manager", "daily_operator", "administrator", "integrator"}
 	var gotRoles []string
 	for _, tour := range view.RoleTours {
 		gotRoles = append(gotRoles, tour.ID)
@@ -8149,7 +8149,7 @@ func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 		{name: "infrastructure", rows: view.Infrastructure.Rows},
 	} {
 		for _, row := range panel.rows {
-			if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.OperatorStep == "" || row.TechnicalHelperStep == "" || row.DoesNotProve == "" {
+			if row.ID == "" || row.Label == "" || row.Status == "" || row.CurrentSignal == "" || row.OperatorStep == "" || row.AdministratorStep == "" || row.DoesNotProve == "" {
 				t.Fatalf("invalid maintenance panel row: %+v", row)
 			}
 			if seen[panel.name+":"+row.ID] {

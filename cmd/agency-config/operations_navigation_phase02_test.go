@@ -256,6 +256,92 @@ func TestOperationsPhase02UserFacingLabelsAndActiveStateStayRegistryDriven(t *te
 	}
 }
 
+func TestOperationsPhase136PrimaryPagesUseActionFirstProductLanguage(t *testing.T) {
+	handler := phase02OperationsHandler(t, auth.TestAuthenticator{Principal: phase02ReadOnlyPrincipal()})
+	corePaths := []string{
+		"/admin/operations",
+		"/admin/operations/setup-wizard",
+		"/admin/operations/setup",
+		"/admin/operations/gtfs-import",
+		"/admin/operations/gtfs-workbench",
+		"/admin/operations/gtfs-quality",
+		"/admin/operations/feeds",
+		"/admin/operations/feed-health",
+		"/admin/operations/validation-center",
+		"/admin/operations/validation-health",
+		"/admin/operations/realtime",
+		"/admin/operations/prediction-lab",
+		"/admin/operations/devices",
+		"/admin/operations/telemetry",
+		"/admin/operations/telemetry-simulator",
+		"/admin/operations/connectors",
+		"/admin/operations/connectors/workbench",
+		"/admin/operations/connectors/tests",
+		"/admin/operations/readiness",
+		"/admin/operations/maintenance",
+		"/admin/operations/help",
+	}
+	bannedVisibleCopy := []string{
+		"technical helper",
+		"technical-helper",
+		"common next action",
+		"common next actions",
+		"what this does not prove",
+	}
+	rawClaimFlags := []string{
+		"external_evidence_created",
+		"consumer_statuses_changed",
+		"production_grade_eta_claimed",
+		"hosted_saas_claimed",
+		"dynamic_backend_plugin_loading_enabled",
+	}
+
+	for _, path := range corePaths {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+			}
+			body := rr.Body.String()
+			lower := strings.ToLower(body)
+			for _, banned := range bannedVisibleCopy {
+				if strings.Contains(lower, banned) {
+					t.Fatalf("%s contains banned primary-page copy %q: %s", path, banned, body)
+				}
+			}
+			if path != "/admin/operations" {
+				actionIndex := strings.Index(body, `class="page-next-action"`)
+				tableIndex := strings.Index(body, "<table")
+				if actionIndex < 0 {
+					t.Fatalf("%s is missing the shared page next action: %s", path, body)
+				}
+				if tableIndex >= 0 && actionIndex > tableIndex {
+					t.Fatalf("%s shows diagnostics before the next action: action=%d table=%d body=%s", path, actionIndex, tableIndex, body)
+				}
+			}
+			if flagIndex := firstStringIndex(lower, rawClaimFlags); flagIndex >= 0 {
+				advancedIndex := strings.LastIndex(lower[:flagIndex], "advanced safety details")
+				if advancedIndex < 0 {
+					t.Fatalf("%s exposes raw safety flag names before advanced details: %s", path, body)
+				}
+			}
+		})
+	}
+}
+
+func firstStringIndex(s string, needles []string) int {
+	first := -1
+	for _, needle := range needles {
+		index := strings.Index(s, needle)
+		if index >= 0 && (first < 0 || index < first) {
+			first = index
+		}
+	}
+	return first
+}
+
 func phase02OperationsHandler(t testing.TB, admin adminAuth) http.Handler {
 	t.Helper()
 	return newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}}, admin)

@@ -128,7 +128,7 @@ func TestOperatorAssistantDefinitionsAreServerOwnedAndBounded(t *testing.T) {
 		if !strings.Contains(definition.PublicFeedImpact, "No public feed output changes") {
 			t.Fatalf("definition %s does not bound public feed impact: %+v", definition.Action, definition)
 		}
-		if !strings.Contains(definition.DoesNotProve, "Does not prove") {
+		if !strings.Contains(definition.DoesNotProve, "This private view does not show") {
 			t.Fatalf("definition %s does not state non-claims: %+v", definition.Action, definition)
 		}
 		if definition.Action != "validation_health.refresh" && definition.Action != "validation_health.run_all" && !definition.DisabledByDefault {

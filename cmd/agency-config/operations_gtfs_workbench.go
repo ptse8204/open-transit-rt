@@ -342,7 +342,7 @@ func (h *handler) buildGTFSWorkbenchView(r *http.Request, page operationsPage) o
 	view := operationsGTFSWorkbenchView{
 		GeneratedAt: page.GeneratedAt,
 		AgencyID:    page.AgencyID,
-		Boundary:    "Private GTFS Workbench reads existing local records only. It does not auto-edit GTFS, publish schedules, run validators, create retained evidence, contact external systems, change consumer status, or prove compliance, consumer acceptance, public launch, production readiness, or final-root readiness.",
+		Boundary:    "Private Schedule Review reads existing local records only. It does not auto-edit GTFS, publish schedules, run validators, create retained evidence, contact external systems, change consumer status, or prove compliance, consumer acceptance, public launch, production readiness, or final-root readiness.",
 		ClaimFlags:  operationsGTFSWorkbenchClaimFlags{},
 	}
 	view.ActiveFeedVersion = buildGTFSActiveFeedVersion(page.Discovery)
@@ -562,7 +562,7 @@ func buildGTFSActiveFeedVersion(discovery compliance.FeedDiscovery) operationsGT
 	row := operationsGTFSActiveFeedVersion{
 		Status:        "missing",
 		FeedVersionID: versionID,
-		ClaimBoundary: "Active schedule metadata is local publication state only; it does not prove source correctness, validator success, compliance, or consumer use.",
+		ClaimBoundary: "Active schedule metadata is local publication state only; it does not show source correctness, validator success, compliance, or consumer use.",
 	}
 	for _, feed := range discovery.Feeds {
 		if feed.FeedType != "schedule" {
@@ -599,7 +599,7 @@ func (h *handler) buildGTFSPreviewSummary(ctx context.Context, agencyID string, 
 	if !ok {
 		summary.Status = "unknown"
 		summary.CurrentSignal = "This runtime does not expose a GTFS schedule preview reader."
-		summary.NextAction = "Use import, quality, validation, and feed output rows; ask a technical helper if table-level review is required."
+		summary.NextAction = "Use import, quality, validation, and feed output rows; ask an administrator if table-level review is required."
 		return summary
 	}
 	preview, err := reader.GTFSSchedulePreview(ctx, agencyID, feedVersionID, gtfsWorkbenchPreviewRowLimit)
@@ -718,7 +718,7 @@ func (h *handler) buildGTFSDraftReviewSummary(ctx context.Context, agencyID stri
 		NextAction:    "Use GTFS Studio for draft authoring and return here after publish attempts are recorded.",
 		ClaimBoundary: boundary,
 		Checklist: []operationsGTFSChangeRow{
-			gtfsWorkbenchChangeRow("Workbench publish action", "ok", "No publish action exists on the GTFS Workbench.", "Use GTFS Studio admin publish after reviewing draft data and validation feedback.", boundary),
+			gtfsWorkbenchChangeRow("Workbench publish action", "ok", "No publish action exists on the Schedule Review.", "Use GTFS Studio admin publish after reviewing draft data and validation feedback.", boundary),
 		},
 	}
 	reader, ok := h.store.(gtfsDraftReviewReader)
@@ -833,7 +833,7 @@ func gtfsDraftReviewNextAction(status string) string {
 	case "missing":
 		return "Use GTFS Studio only if typed draft authoring is needed; otherwise continue with ZIP import review."
 	default:
-		return "Review GTFS Studio state with a technical helper if draft authoring is part of this workflow."
+		return "Review GTFS Studio state with an administrator if draft authoring is part of this workflow."
 	}
 }
 
@@ -864,10 +864,10 @@ func (h *handler) buildGTFSScheduleHistory(ctx context.Context, agencyID string,
 		Status:        "unknown",
 		HistoryStatus: "unavailable",
 		CurrentSignal: "Schedule feed-version history is not available in this runtime.",
-		NextAction:    "Use import and draft publish records, then ask a technical helper to inspect feed_version state if rollback review is needed.",
+		NextAction:    "Use import and draft publish records, then ask an administrator to inspect feed_version state if rollback review is needed.",
 		ClaimBoundary: boundary,
 		RollbackGuidance: []operationsGTFSChangeRow{
-			gtfsWorkbenchChangeRow("Browser rollback execution", "ok", "No rollback POST route exists in the GTFS Workbench.", "Use documented operator procedures and technical-helper review before any rollback outside this page.", boundary),
+			gtfsWorkbenchChangeRow("Browser rollback execution", "ok", "No rollback POST route exists in the Schedule Review.", "Use documented operator procedures and administrator review before any rollback outside this page.", boundary),
 		},
 	}
 	reader, ok := h.store.(gtfsScheduleHistoryReader)
@@ -953,7 +953,7 @@ func scheduleHistoryNextAction(status string) string {
 	case "missing":
 		return "Import or publish a schedule before rollback review."
 	default:
-		return "Ask a technical helper to inspect schedule history if rollback review is required."
+		return "Ask an administrator to inspect schedule history if rollback review is required."
 	}
 }
 
@@ -1006,7 +1006,7 @@ func (h *handler) buildGTFSVersionComparison(ctx context.Context, agencyID strin
 	candidate := previousFeedVersionForComparison(history.FeedVersions, activeFeedVersionID)
 	if candidate == nil {
 		summary.CurrentSignal = "No previous published feed version is visible in the bounded schedule history."
-		summary.NextAction = "Treat this as a first recorded active schedule or ask a technical helper to inspect older feed versions if rollback review is needed."
+		summary.NextAction = "Treat this as a first recorded active schedule or ask an administrator to inspect older feed versions if rollback review is needed."
 		summary.ReviewRows = append(summary.ReviewRows,
 			gtfsWorkbenchChangeRow("Previous version candidate", "missing", "No non-active previous feed version is visible in this bounded Workbench history.", "Import or publish a later schedule before active-vs-previous comparison is available here.", boundary),
 		)
@@ -1020,7 +1020,7 @@ func (h *handler) buildGTFSVersionComparison(ctx context.Context, agencyID strin
 	if !ok {
 		summary.Status = "unknown"
 		summary.CurrentSignal = "This runtime does not expose the GTFS schedule preview reader needed for version comparison."
-		summary.NextAction = "Use feed-version history and import records, then ask a technical helper for table-level diff review."
+		summary.NextAction = "Use feed-version history and import records, then ask an administrator for table-level diff review."
 		summary.ReviewRows = append(summary.ReviewRows,
 			gtfsWorkbenchChangeRow("Preview reader", "unknown", "GTFS table previews are unavailable in this runtime.", "Review database/repository wiring before relying on version comparison.", boundary),
 		)
@@ -1031,7 +1031,7 @@ func (h *handler) buildGTFSVersionComparison(ctx context.Context, agencyID strin
 	if previousErr != nil || activeErr != nil {
 		summary.Status = "unknown"
 		summary.CurrentSignal = "One or both GTFS schedule previews could not be read for version comparison."
-		summary.NextAction = "Review feed-version table state and schedule rows with a technical helper before rollback decisions."
+		summary.NextAction = "Review feed-version table state and schedule rows with an administrator before rollback decisions."
 		summary.ReviewRows = append(summary.ReviewRows,
 			gtfsWorkbenchChangeRow("Previous preview", statusFromErr(previousErr), previewReadSignal("previous", candidate.ID, previousErr), "Resolve missing or unreadable schedule rows before rollback review.", boundary),
 			gtfsWorkbenchChangeRow("Active preview", statusFromErr(activeErr), previewReadSignal("active", activeFeedVersionID, activeErr), "Resolve missing or unreadable schedule rows before relying on the active schedule.", boundary),
@@ -1270,7 +1270,7 @@ func gtfsVersionComparisonNextAction(status string) string {
 	case "missing":
 		return "Import or publish another schedule before active-vs-previous comparison is available."
 	default:
-		return "Ask a technical helper to inspect feed-version and schedule table state before rollback or publish decisions."
+		return "Ask an administrator to inspect feed-version and schedule table state before rollback or publish decisions."
 	}
 }
 
@@ -1320,7 +1320,7 @@ func (h *handler) buildGTFSImportSummary(ctx context.Context, agencyID string, a
 	if len(summary.History) == 0 {
 		summary.Status = "missing"
 		summary.NextAction = "Import a GTFS ZIP or publish a GTFS Studio draft before schedule review."
-		summary.Diff = []operationsGTFSChangeRow{gtfsWorkbenchChangeRow("Latest import", "missing", "No GTFS import record is stored for this agency.", "Use Import GTFS for a ZIP upload or safe URL import.", summary.ClaimBoundary)}
+		summary.Diff = []operationsGTFSChangeRow{gtfsWorkbenchChangeRow("Latest import", "missing", "No GTFS import record is stored for this agency.", "Use Import Schedule for a ZIP upload or safe URL import.", summary.ClaimBoundary)}
 		return summary
 	}
 	latest := summary.History[0]
@@ -1524,7 +1524,7 @@ func buildGTFSWorkbenchValidationSummary(summary compliance.ValidationHealthSumm
 		Status:        "unknown",
 		ToolingStatus: firstNonEmpty(summary.ToolingStatus, "unknown"),
 		NextAction:    "Run or review private validator health after an active schedule exists.",
-		ClaimBoundary: "Validator health is a supporting private signal only; it does not prove canonical validator success, compliance, consumer acceptance, or production readiness.",
+		ClaimBoundary: "Validator health is a supporting private signal only; it does not show canonical validator success, compliance, consumer acceptance, or production readiness.",
 	}
 	for _, row := range summary.Feeds {
 		if row.FeedType != "schedule" {
@@ -1549,7 +1549,7 @@ func buildGTFSWorkbenchFeedOutput(discovery compliance.FeedDiscovery) operations
 	out := operationsGTFSFeedOutputSummary{
 		Status:        "missing",
 		NextAction:    "Configure publication metadata and active schedule feed output before sharing URLs for review.",
-		ClaimBoundary: "Feed URLs are local/deployment records only. Copying them does not prove final-root ownership, consumer ingestion, compliance, or public launch.",
+		ClaimBoundary: "Feed URLs are local/deployment records only. Copying them does not show final-root ownership, consumer ingestion, compliance, or public launch.",
 	}
 	for _, feed := range discovery.Feeds {
 		if feed.FeedType != "schedule" {
@@ -1580,7 +1580,7 @@ func buildGTFSWorkbenchActions(view operationsGTFSWorkbenchView, page operations
 			CurrentSignal: firstNonEmpty(page.PublicationError, "publication metadata is configured for private review"),
 			NextAction:    "Review agency profile, feed base URL, license, and contact metadata before schedule review.",
 			AdminLink:     "/admin/operations/setup#publication-metadata",
-			ClaimBoundary: "Metadata completeness does not prove final-root readiness, compliance, or agency approval.",
+			ClaimBoundary: "Metadata completeness does not show final-root readiness, compliance, or agency approval.",
 		},
 		{
 			ID:            "active_schedule",

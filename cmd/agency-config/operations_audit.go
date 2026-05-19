@@ -87,7 +87,7 @@ func (h *handler) buildOperationsAuditView(ctx context.Context, now time.Time, a
 	if err != nil {
 		view.Status = operationsStatusBlocked
 		view.EmptyState = "audit log metadata could not be loaded"
-		view.NextAction = "Ask a technical helper to check database connectivity and audit-log query permissions from the operator environment."
+		view.NextAction = "Ask an administrator to check database connectivity and audit-log query permissions from the operator environment."
 		return view
 	}
 	if len(records) == 0 {

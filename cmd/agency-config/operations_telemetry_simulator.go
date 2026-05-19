@@ -320,7 +320,7 @@ func telemetrySimulatorDryRunPreview(scenarios []operationsTelemetryScenario, se
 		CurrentSignal: "scenario metadata is not available",
 		NextAction:    "Restore committed simulator fixtures, then return to this page and preview a synthetic scenario.",
 		Boundary:      "Browser dry-run preview reads committed fixture metadata only. It does not execute shell commands, send telemetry, read .cache diagnostics, collect tokens, or write database rows.",
-		DoesNotProve:  "A browser dry-run preview does not prove real vendor compatibility, hardware certification, production fleet reliability, real service telemetry quality, production-grade ETA quality, consumer acceptance, public launch, or CAL-ITP/Caltrans compliance.",
+		DoesNotProve:  "A browser dry-run preview does not show real vendor compatibility, hardware certification, production fleet reliability, real service telemetry quality, production-grade ETA quality, consumer acceptance, public launch, or CAL-ITP/Caltrans compliance.",
 	}
 	if loadErr != nil {
 		preview.CurrentSignal = loadErr.Error()
@@ -332,7 +332,7 @@ func telemetrySimulatorDryRunPreview(scenarios []operationsTelemetryScenario, se
 			preview.ScenarioID = scenario.Name
 			preview.CurrentSignal = fmt.Sprintf("%d committed synthetic event previews for %s", len(scenario.EventPreviews), scenario.Name)
 			preview.Events = append([]operationsTelemetryEvent(nil), scenario.EventPreviews...)
-			preview.NextAction = "Review this redacted synthetic preview in the browser, then ask a technical helper to run the shell dry-run before any intentional local send."
+			preview.NextAction = "Review this redacted synthetic preview in the browser, then ask an administrator to run the shell dry-run before any intentional local send."
 			return preview
 		}
 	}
@@ -392,7 +392,7 @@ func telemetrySimulatorCommand(id string, label string, command string, what str
 		WhatItDoes:        what,
 		OperatorPrep:      prep,
 		FailureNextAction: failure,
-		DoesNotProve:      "This command is a private synthetic diagnostic. It does not prove real vendor compatibility, hardware certification, production fleet reliability, real service telemetry quality, production-grade ETA quality, consumer acceptance, public launch, or CAL-ITP/Caltrans compliance.",
+		DoesNotProve:      "This command is a private synthetic diagnostic. It does not show real vendor compatibility, hardware certification, production fleet reliability, real service telemetry quality, production-grade ETA quality, consumer acceptance, public launch, or CAL-ITP/Caltrans compliance.",
 	}
 }
 

@@ -164,7 +164,7 @@ func buildFeedsJSONHealthRow(page operationsPage) operationsFeedHealthRow {
 		ValidatorContext:    "feeds.json is not itself a GTFS validator result; review each feed validator row separately.",
 		HealthContext:       "Metadata presence is a readiness signal, not a public fetch or consumer-ingestion proof.",
 		NextAction:          next,
-		DoesNotProve:        "Does not prove consumer acceptance, listing, display, ingestion, final-root ownership, or CAL-ITP/Caltrans compliance.",
+		DoesNotProve:        "This private view does not show consumer acceptance, listing, display, ingestion, final-root ownership, or CAL-ITP/Caltrans compliance.",
 		AdminLinks:          []string{"/admin/operations/feeds", "/admin/operations/setup"},
 		DocsLinks:           []string{"docs/requirements-calitp-compliance.md", "docs/tutorials/calitp-readiness-checklist.md"},
 	}
@@ -463,7 +463,7 @@ func feedHealthThresholdText(threshold string) string {
 func feedHealthNextAction(page operationsPage, feedType string, feed compliance.FeedMetadata, hasFeed bool, validation *compliance.ValidationHealthRow, reliability *compliance.ReliabilityFeedRow, status string) string {
 	if page.DiscoveryError != "" || !hasFeed || strings.TrimSpace(feed.CanonicalPublicURL) == "" {
 		if feedType == "schedule" {
-			return "Import GTFS by browser or CLI, then store publication metadata and rerun validation."
+			return "Import Schedule by browser or CLI, then store publication metadata and rerun validation."
 		}
 		return "Confirm the feed is configured and listed in feeds.json, then run validator health."
 	}
@@ -482,15 +482,15 @@ func feedHealthNextAction(page operationsPage, feedType string, feed compliance.
 func feedHealthDoesNotProve(feedType string) string {
 	switch feedType {
 	case "schedule":
-		return "Does not prove validator-clean production data, agency approval, final-root proof, consumer acceptance, or CAL-ITP/Caltrans compliance."
+		return "This private view does not show validator-clean production data, agency approval, final-root proof, consumer acceptance, or CAL-ITP/Caltrans compliance."
 	case "vehicle_positions":
-		return "Does not prove production AVL reliability, vendor compatibility, hardware certification, consumer display, or compliance."
+		return "This private view does not show production AVL reliability, vendor compatibility, hardware certification, consumer display, or compliance."
 	case "trip_updates":
-		return "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance."
+		return "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance."
 	case "alerts":
-		return "Does not prove consumer display, agency approval, public launch completion, or compliance."
+		return "This private view does not show consumer display, agency approval, public launch completion, or compliance."
 	default:
-		return "Does not prove consumer acceptance, public launch, SLA, uptime proof, production readiness, or compliance."
+		return "This private view does not show consumer acceptance, public launch, SLA, uptime proof, production readiness, or compliance."
 	}
 }
 
@@ -555,7 +555,7 @@ func vehiclePositionsUsefulness(page operationsPage) operationsRealtimeUsefulnes
 		StaleOrHeld:  fmt.Sprintf("%d stale latest telemetry rows", page.StaleCount),
 		NextAction:   next,
 		AdminLink:    "/admin/operations/telemetry",
-		DoesNotProve: "Does not prove real fleet reliability, vendor compatibility, hardware certification, consumer display, or compliance.",
+		DoesNotProve: "This private view does not show real fleet reliability, vendor compatibility, hardware certification, consumer display, or compliance.",
 	}
 }
 
@@ -571,7 +571,7 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 			Adapter:      "not available",
 			NextAction:   "Review telemetry and assignment confidence first; Trip Updates may be empty when prediction output is defensibly withheld.",
 			AdminLink:    "/admin/operations/feeds",
-			DoesNotProve: "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
+			DoesNotProve: "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
 		}
 	}
 	state := "generated"
@@ -588,7 +588,7 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 		Adapter:      firstNonEmpty(page.TripUpdatesQuality.AdapterName, "not available"),
 		NextAction:   "Review withheld reasons, matching confidence, stale telemetry, and adapter fallback state before relying on Trip Updates.",
 		AdminLink:    "/admin/operations/feeds",
-		DoesNotProve: "Does not prove production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
+		DoesNotProve: "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
 		Details:      page.TripUpdatesQuality.WithheldByReason,
 	}
 }
@@ -618,7 +618,7 @@ func alertsUsefulness(feedRows []operationsFeedHealthRow) operationsRealtimeUsef
 		StaleOrHeld:  "not available in this private summary",
 		NextAction:   next,
 		AdminLink:    "/admin/alerts/console",
-		DoesNotProve: "Does not prove consumer display, agency approval, public launch completion, or compliance.",
+		DoesNotProve: "This private view does not show consumer display, agency approval, public launch completion, or compliance.",
 	}
 }
 

@@ -69,13 +69,13 @@ type operationsMaintenancePanel struct {
 }
 
 type operationsMaintenancePanelRow struct {
-	ID                  string `json:"id"`
-	Label               string `json:"label"`
-	Status              string `json:"status"`
-	CurrentSignal       string `json:"current_signal"`
-	OperatorStep        string `json:"operator_step"`
-	TechnicalHelperStep string `json:"technical_helper_step"`
-	DoesNotProve        string `json:"does_not_prove"`
+	ID                string `json:"id"`
+	Label             string `json:"label"`
+	Status            string `json:"status"`
+	CurrentSignal     string `json:"current_signal"`
+	OperatorStep      string `json:"operator_step"`
+	AdministratorStep string `json:"administrator_step"`
+	DoesNotProve      string `json:"does_not_prove"`
 }
 
 type operationsMaintenanceSupport struct {
@@ -101,24 +101,24 @@ type operationsMaintenanceClaimFlags struct {
 
 func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 	rows := []operationsMaintenanceRow{
-		maintenanceRow("deployed_version", "Deployed commit/version", maintenanceEnvStatus("OPEN_TRANSIT_RT_COMMIT", "GIT_COMMIT", "APP_VERSION"), maintenanceVersionSignal(), "Set a non-secret commit or version environment value during deployment so support can identify the running build.", "Does not prove a release was tagged or published."),
-		maintenanceRow("active_feed_version", "Active feed version", maintenancePresentStatus(page.ActiveFeedVersion), firstNonEmpty(page.ActiveFeedVersion, "not available"), "Import or activate a schedule before reviewing realtime or validator state.", "Does not prove rollback execution is available in the browser."),
-		maintenanceRow("last_gtfs_import", "Last GTFS import / feed metadata", maintenanceTimeStatus(page.FeedsUpdatedAt), formatTimeForText(page.FeedsUpdatedAt), "Use GTFS import and quality pages to review the latest schedule state.", "Does not prove the imported schedule is validator clean."),
-		maintenanceRow("last_five_feed_check", "Last five-feed check", maintenanceLatestReliabilityStatus(page), maintenanceLatestReliabilitySignal(page), "Run local/reference feed checks or review reliability snapshots; missing data remains not configured.", "Does not prove public final-root readiness or consumer availability."),
-		maintenanceRow("validator_state", "Validator state", maintenanceValidatorStatus(page), fmt.Sprintf("overall=%s; tooling=%s", page.ValidationHealth.OverallStatus, page.ValidationHealth.ToolingStatus), "Install or review pinned/off-host validators and rerun private validator health.", "Does not prove compliance or consumer acceptance."),
-		maintenanceRow("backup_configuration", "Backup configuration", maintenanceEnvStatus("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"), maintenanceEnvPresenceSignal("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"), "Configure private backup output and document the restore owner before relying on backups.", "Does not prove a backup exists or a restore succeeded."),
-		maintenanceRow("restore_drill_configuration", "Restore-drill configuration", maintenanceEnvStatus("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), maintenanceEnvPresenceSignal("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), "Configure restore-drill settings without printing secret values, then run the private drill workflow.", "Does not prove restore readiness or disaster recovery coverage."),
-		maintenanceRow("telemetry_freshness", "Telemetry freshness", cockpitTelemetryStatus(page), telemetryEvidence(page), "Review devices and simulator guidance if Vehicle Positions are empty or stale.", "Does not prove real device reliability."),
-		maintenanceRow("service_health", "Service health", operationsStatusUnknown, "not available from this single request unless an operator runs deployment diagnostics", "Run local/reference diagnostics or loopback health checks through the deployment helper when needed.", "Does not prove uptime, SLA, or hosted service availability."),
+		maintenanceRow("deployed_version", "Deployed commit/version", maintenanceEnvStatus("OPEN_TRANSIT_RT_COMMIT", "GIT_COMMIT", "APP_VERSION"), maintenanceVersionSignal(), "Set a non-secret commit or version environment value during deployment so support can identify the running build.", "This private view does not show a release was tagged or published."),
+		maintenanceRow("active_feed_version", "Active feed version", maintenancePresentStatus(page.ActiveFeedVersion), firstNonEmpty(page.ActiveFeedVersion, "not available"), "Import or activate a schedule before reviewing realtime or validator state.", "This private view does not show rollback execution is available in the browser."),
+		maintenanceRow("last_gtfs_import", "Last GTFS import / feed metadata", maintenanceTimeStatus(page.FeedsUpdatedAt), formatTimeForText(page.FeedsUpdatedAt), "Use GTFS import and quality pages to review the latest schedule state.", "This private view does not show the imported schedule is validator clean."),
+		maintenanceRow("last_five_feed_check", "Last five-feed check", maintenanceLatestReliabilityStatus(page), maintenanceLatestReliabilitySignal(page), "Run local/reference feed checks or review reliability snapshots; missing data remains not configured.", "This private view does not show public final-root readiness or consumer availability."),
+		maintenanceRow("validator_state", "Validator state", maintenanceValidatorStatus(page), fmt.Sprintf("overall=%s; tooling=%s", page.ValidationHealth.OverallStatus, page.ValidationHealth.ToolingStatus), "Install or review pinned/off-host validators and rerun private validator health.", "This private view does not show compliance or consumer acceptance."),
+		maintenanceRow("backup_configuration", "Backup configuration", maintenanceEnvStatus("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"), maintenanceEnvPresenceSignal("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"), "Configure private backup output and document the restore owner before relying on backups.", "This private view does not show a backup exists or a restore succeeded."),
+		maintenanceRow("restore_drill_configuration", "Restore-drill configuration", maintenanceEnvStatus("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), maintenanceEnvPresenceSignal("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"), "Configure restore-drill settings without printing secret values, then run the private drill workflow.", "This private view does not show restore readiness or disaster recovery coverage."),
+		maintenanceRow("telemetry_freshness", "Telemetry freshness", cockpitTelemetryStatus(page), telemetryEvidence(page), "Review devices and simulator guidance if Vehicle Positions are empty or stale.", "This private view does not show real device reliability."),
+		maintenanceRow("service_health", "Service health", operationsStatusUnknown, "not available from this single request unless an operator runs deployment diagnostics", "Run local/reference diagnostics or loopback health checks through the deployment helper when needed.", "This private view does not show uptime, SLA, or hosted service availability."),
 	}
 	tasks := []operationsMaintenanceTask{
 		maintenanceTask("weekly_feed_health", "weekly", "Check five configured feed paths and feed health next actions.", cockpitFeedHealthStatus(page), "agency operator", "Open Feed Health and review each row."),
-		maintenanceTask("weekly_validators", "weekly", "Review validator health and stale reports.", cockpitValidationStatus(page), "agency operator or technical helper", "Open Validator Health; use off-host validation when the server is too small."),
+		maintenanceTask("weekly_validators", "weekly", "Review validator health and stale reports.", cockpitValidationStatus(page), "agency operator or administrator", "Open Validator Health; use off-host validation when the server is too small."),
 		maintenanceTask("weekly_telemetry", "weekly", "Review telemetry freshness, stale rows, and assignment confidence.", cockpitTelemetryStatus(page), "agency operator", "Open Devices and Telemetry."),
 		maintenanceTask("weekly_alerts", "weekly", "Check whether active alerts need to be created, updated, or archived.", alertStatus(page), "agency operator", "Open the Alerts Console and Alerts feed row."),
-		maintenanceTask("monthly_gtfs_update", "monthly", "Import updated GTFS and review counts, quality, validators, and feed health.", cockpitActiveFeedStatus(page), "schedule owner with agency operator", "Open Import GTFS."),
-		maintenanceTask("monthly_backup_restore", "monthly", "Confirm backup and restore-drill configuration presence.", maintenanceBackupTaskStatus(), "technical helper", "Configure private backup/restore values and keep secret values out of docs."),
-		maintenanceTask("as_needed_support_summary", "as needed", "Generate a local support bundle only when a technical helper needs diagnostics.", operationsStatusDiagnosticOnly, "technical helper", "Run the support-bundle helper from an operator shell and redact before sharing."),
+		maintenanceTask("monthly_gtfs_update", "monthly", "Import updated GTFS and review counts, quality, validators, and feed health.", cockpitActiveFeedStatus(page), "schedule owner with agency operator", "Open Import Schedule."),
+		maintenanceTask("monthly_backup_restore", "monthly", "Confirm backup and restore-drill configuration presence.", maintenanceBackupTaskStatus(), "administrator", "Configure private backup/restore values and keep secret values out of docs."),
+		maintenanceTask("as_needed_support_summary", "as needed", "Generate a local support bundle only when a deployment owner needs diagnostics.", operationsStatusDiagnosticOnly, "administrator", "Run the support-bundle helper from an operator shell and redact before sharing."),
 	}
 	overall := maintenanceOverall(rows, tasks)
 	return operationsMaintenanceView{
@@ -141,7 +141,7 @@ func buildOperationsMaintenance(page operationsPage) operationsMaintenanceView {
 			Command:    "make support-bundle",
 			OutputPath: ".cache/support-bundles/<timestamp>",
 			Instructions: []string{
-				"Run only from an operator-controlled shell when a technical helper needs diagnostics.",
+				"Run only from an operator-controlled shell when a deployment owner needs diagnostics.",
 				"Review and redact output before sharing outside the operator environment.",
 				"Do not place support bundles under docs/evidence unless a separate retained-evidence approval exists.",
 			},
@@ -159,7 +159,7 @@ func maintenanceTask(id, cadence, task, status, owner, next string) operationsMa
 }
 
 func maintenancePanelRow(id, label, status, signal, operatorStep, helperStep, doesNotProve string) operationsMaintenancePanelRow {
-	return operationsMaintenancePanelRow{ID: id, Label: label, Status: status, CurrentSignal: signal, OperatorStep: operatorStep, TechnicalHelperStep: helperStep, DoesNotProve: doesNotProve}
+	return operationsMaintenancePanelRow{ID: id, Label: label, Status: status, CurrentSignal: signal, OperatorStep: operatorStep, AdministratorStep: helperStep, DoesNotProve: doesNotProve}
 }
 
 func buildOperationsMaintenanceSmallHostReadiness() operationsMaintenancePanel {
@@ -171,7 +171,7 @@ func buildOperationsMaintenanceSmallHostReadiness() operationsMaintenancePanel {
 			"run deployment doctor, five-feed dry run, validator plan, backup configuration review, and rollback owner review before upgrade",
 			"Use this row as the first stop before changing a small-host deployment.",
 			"Run `make deployment-doctor`, dry-run feed checks, validator/tooling checks, and migration status from an operator shell.",
-			"Preflight sequence guidance does not prove deployment success, production readiness, uptime, SLA coverage, or release readiness.",
+			"Preflight sequence guidance does not show deployment success, production readiness, uptime, SLA coverage, or release readiness.",
 		),
 		maintenancePanelRow(
 			"off_host_validation_choice",
@@ -180,7 +180,7 @@ func buildOperationsMaintenanceSmallHostReadiness() operationsMaintenancePanel {
 			"prefer off-host or operator-workstation validators when CPU, memory, disk, or Java/Docker headroom is constrained",
 			"Treat missing validator tooling on a tiny host as a planning signal, not as a feed pass.",
 			"Use `docs/deployment/off-host-validation.md` and `make validate-public-feeds` dry runs before relying on public feed URLs.",
-			"Off-host validation guidance does not prove validator-clean feeds, compliance, final-root readiness, or consumer acceptance.",
+			"Off-host validation guidance does not show validator-clean feeds, compliance, final-root readiness, or consumer acceptance.",
 		),
 		maintenancePanelRow(
 			"resource_budget_review",
@@ -189,7 +189,7 @@ func buildOperationsMaintenanceSmallHostReadiness() operationsMaintenancePanel {
 			"small hosts should keep app DB pools conservative, avoid colocating heavy validators, and reserve headroom for Postgres/PostGIS",
 			"Review whether the deployment is small enough that validator, backup, and import work should run off-host.",
 			"Set a conservative `DB_MAX_CONNS`, review disk/swap/load summaries, and keep raw host output out of browser views.",
-			"Resource-budget review does not prove live capacity, hosted service availability, uptime, SLA coverage, or production readiness.",
+			"Resource-budget review does not show live capacity, hosted service availability, uptime, SLA coverage, or production readiness.",
 		),
 		maintenancePanelRow(
 			"backup_restore_recovery_path",
@@ -198,7 +198,7 @@ func buildOperationsMaintenanceSmallHostReadiness() operationsMaintenancePanel {
 			"backup target, non-live restore target, restore owner, and post-restore feed checks must be known before upgrade",
 			"Keep recovery marked needs-review until a deployment owner confirms private backup and non-live restore-drill settings.",
 			"Run backup/restore drills outside the browser, against explicit targets, and verify feeds after restore before documenting bounded results.",
-			"Recovery-path guidance does not prove a backup exists, restore succeeded, disaster recovery coverage exists, or evidence was created.",
+			"Recovery-path guidance does not show a backup exists, restore succeeded, disaster recovery coverage exists, or evidence was created.",
 		),
 		maintenancePanelRow(
 			"upgrade_recovery_stop_points",
@@ -206,14 +206,14 @@ func buildOperationsMaintenanceSmallHostReadiness() operationsMaintenancePanel {
 			operationsStatusNeedsReview,
 			"stop before migration, service restart, package switch, rollback, or public-root announcement if preflight blockers remain",
 			"Use the browser to see stop points; do not use it to execute upgrade, rollback, migration, or release actions.",
-			"Have a technical helper confirm migration status, rollback target, backup recency, and post-change feed checks before proceeding.",
-			"Stop-point guidance does not prove upgrade success, rollback success, release readiness, production readiness, or hosted availability.",
+			"Have an administrator confirm migration status, rollback target, backup recency, and post-change feed checks before proceeding.",
+			"Stop-point guidance does not show upgrade success, rollback success, release readiness, production readiness, or hosted availability.",
 		),
 	}
 	return operationsMaintenancePanel{
 		Status:     maintenancePanelOverall(rows),
 		Boundary:   "Small-host readiness is private checklist guidance only. The browser does not execute deployment preflight, validators, backups, restore drills, migrations, service changes, package publication, rollback, or release actions.",
-		NextAction: "Review the sequence before small-host upgrade or recovery work, then run bounded diagnostics from an operator shell when a technical helper is needed.",
+		NextAction: "Review the sequence before small-host upgrade or recovery work, then run bounded diagnostics from an operator shell when an administrator is needed.",
 		Rows:       rows,
 	}
 }
@@ -236,16 +236,16 @@ func buildOperationsMaintenanceMonitoringExport() operationsMaintenancePanel {
 			"destination presence may be recorded as booleans; destination values and send attempts stay out of the helper",
 			"Treat webhook and email rows as review prompts only.",
 			"Set destination values only in deployment-owned private runtime configuration; this console and helper never send by default.",
-			"Destination presence does not prove delivery, acknowledgement, consumer notification, or public incident handling.",
+			"Destination presence does not show delivery, acknowledgement, consumer notification, or public incident handling.",
 		),
 		maintenancePanelRow(
 			"monitoring_export_summary_json",
 			"Monitoring export summary JSON",
 			operationsStatusDiagnosticOnly,
 			"`make operations-reliability` writes monitoring_export and private_ops_summary sections into .cache/operations-reliability/<timestamp>/summary.json",
-			"Use the private JSON for local dashboards or technical-helper review only.",
+			"Use the private JSON for local dashboards or administrator review only.",
 			"Review summary.json and manifest.json; reject raw logs, backup dumps, secrets, DB URLs, destination values, and evidence paths.",
-			"Private summary JSON does not prove hosted monitoring, compliance, consumer acceptance, or production operations.",
+			"Private summary JSON does not show hosted monitoring, compliance, consumer acceptance, or production operations.",
 		),
 		maintenancePanelRow(
 			"no_send_default",
@@ -274,7 +274,7 @@ func buildOperationsMaintenanceBackupRestore() operationsMaintenancePanel {
 			maintenanceEnvPresenceSignal("BACKUP_DIR", "BACKUP_PATH", "OPEN_TRANSIT_BACKUP_DIR"),
 			"Keep backup configuration marked missing until a deployment owner supplies a private backup target.",
 			"Configure backup output outside the browser and keep backup contents out of docs/evidence unless a separate retained-evidence workflow is authorized.",
-			"Configuration presence does not prove a successful backup exists.",
+			"Configuration presence does not show a successful backup exists.",
 		),
 		maintenancePanelRow(
 			"restore_drill_configuration_presence",
@@ -283,7 +283,7 @@ func buildOperationsMaintenanceBackupRestore() operationsMaintenancePanel {
 			maintenanceEnvPresenceSignal("RESTORE_DATABASE_URL", "RESTORE_BACKUP_FILE", "RESTORE_DRILL_DATABASE_URL", "RESTORE_DRILL_BACKUP_FILE", "RESTORE_DRILL_TARGET", "OPEN_TRANSIT_RESTORE_DRILL"),
 			"Keep restore-drill readiness marked missing until a private restore target is configured.",
 			"Run restore drills only from an operator shell against an explicit non-live target; never paste restore URLs into the browser.",
-			"Configuration presence does not prove a restore succeeded or that disaster recovery coverage exists.",
+			"Configuration presence does not show a restore succeeded or that disaster recovery coverage exists.",
 		),
 		maintenancePanelRow(
 			"deployment_doctor_backup_restore",
@@ -321,7 +321,7 @@ func buildOperationsMaintenanceUpgradeRollback() operationsMaintenancePanel {
 			"review release notes, current commit, database migration status, active feed version, and backup configuration before upgrade",
 			"Use this checklist before a local/source upgrade; do not treat the browser as an upgrade executor.",
 			"Run `make check`, `make validate`, and deployment-specific prechecks from an operator shell before changing a deployment.",
-			"Precheck guidance does not prove release readiness or production readiness.",
+			"Precheck guidance does not show release readiness or production readiness.",
 		),
 		maintenancePanelRow(
 			"rollback_precheck",
@@ -330,7 +330,7 @@ func buildOperationsMaintenanceUpgradeRollback() operationsMaintenancePanel {
 			"confirm the rollback target, active feed version, migration direction, and restore owner before rollback",
 			"Keep rollback marked review-required until a deployment owner confirms the target and data implications.",
 			"Use documented rollback procedures outside the browser and avoid destructive database changes without a tested restore path.",
-			"A rollback checklist does not prove rollback success.",
+			"A rollback checklist does not show rollback success.",
 		),
 		maintenancePanelRow(
 			"migration_safety",
@@ -339,7 +339,7 @@ func buildOperationsMaintenanceUpgradeRollback() operationsMaintenancePanel {
 			"migrations are not run from the browser and must remain backward-compatible or explicitly reviewed",
 			"Review migration status and backup/restore readiness before any schema change.",
 			"Run `go run ./cmd/migrate status` or the deployment doctor from an operator shell when needed.",
-			"Migration status does not prove data-loss safety by itself.",
+			"Migration status does not show data-loss safety by itself.",
 		),
 		maintenancePanelRow(
 			"release_artifact_boundary",
@@ -348,13 +348,13 @@ func buildOperationsMaintenanceUpgradeRollback() operationsMaintenancePanel {
 			"no tag, package, image, push, or release publish action is exposed by this page",
 			"Use this page only to understand maintenance readiness.",
 			"Keep release-cut cleanup separate until a maintainer explicitly authorizes release actions.",
-			"Absence of browser release actions does not prove a release candidate is ready.",
+			"Absence of browser release actions does not show a release candidate is ready.",
 		),
 	}
 	return operationsMaintenancePanel{
 		Status:     maintenancePanelOverall(rows),
 		Boundary:   "Upgrade and rollback review is checklist-only. The browser does not tag, package, publish, run migrations, roll back services, or restore databases.",
-		NextAction: "Use the checklist to decide whether a technical helper must run shell-based upgrade, rollback, migration-status, or restore-readiness checks.",
+		NextAction: "Use the checklist to decide whether an administrator must run shell-based upgrade, rollback, migration-status, or restore-readiness checks.",
 		Rows:       rows,
 	}
 }
@@ -366,9 +366,9 @@ func buildOperationsMaintenanceSupportReview() operationsMaintenancePanel {
 			"Support bundle output scope",
 			operationsStatusDiagnosticOnly,
 			"support bundles are private local diagnostics under .cache/support-bundles/<timestamp>",
-			"Use support bundles only when a technical helper needs a bounded private diagnostic snapshot.",
+			"Use support bundles only when a deployment owner needs a bounded private diagnostic snapshot.",
 			"Run `make support-bundle` from an operator shell; the browser does not generate, upload, or inspect raw bundle files.",
-			"Support bundle creation does not prove evidence, compliance, production readiness, or external acceptance.",
+			"Support bundle creation does not show evidence, compliance, production readiness, or external acceptance.",
 		),
 		maintenancePanelRow(
 			"redaction_review",
@@ -377,7 +377,7 @@ func buildOperationsMaintenanceSupportReview() operationsMaintenancePanel {
 			"review manifest, excluded categories, generated file list, and private-value warnings before sharing",
 			"Treat every generated support bundle as private until a human has reviewed it.",
 			"Use the redaction policy and rerun the bundle if a private value appears in a shareable summary.",
-			"A helper review does not prove the output is safe for public release.",
+			"A helper review does not show the output is safe for public release.",
 		),
 		maintenancePanelRow(
 			"evidence_boundary",
@@ -395,7 +395,7 @@ func buildOperationsMaintenanceSupportReview() operationsMaintenancePanel {
 			"do not expose raw logs, database URLs, access tokens, cookies, private payloads, backup dumps, or unredacted files",
 			"Share only bounded facts required for the support question.",
 			"Remove private values and convert raw output into public-safe summaries before moving anything outside the operator environment.",
-			"A warning row does not prove local files contain no private data.",
+			"A warning row does not show local files contain no private data.",
 		),
 	}
 	return operationsMaintenancePanel{
@@ -414,7 +414,7 @@ func buildOperationsMaintenanceCadencePlan() operationsMaintenancePanel {
 			operationsStatusDiagnosticOnly,
 			"review feed health, telemetry freshness, alerts, and local diagnostic summary status on service days",
 			"Use the private Operations Console to decide whether an issue needs same-day attention.",
-			"Escalate stale telemetry, blocked feed checks, or alert lifecycle gaps to the technical helper.",
+			"Escalate stale telemetry, blocked feed checks, or alert lifecycle gaps to the administrator.",
 			"Daily checks do not prove uptime, SLA coverage, or public consumer display.",
 		),
 		maintenancePanelRow(
@@ -424,7 +424,7 @@ func buildOperationsMaintenanceCadencePlan() operationsMaintenancePanel {
 			"review validators, five-feed checks, backup and restore configuration, notification drafts, and reliability summaries",
 			"Confirm that routine health rows have a named owner before service changes pile up.",
 			"Run validator-health, deployment-doctor, operations-notify, and operations-reliability helpers from an operator shell when a fresh private summary is needed.",
-			"Weekly review does not prove validator-clean feeds, compliance, or release readiness.",
+			"Weekly review does not show validator-clean feeds, compliance, or release readiness.",
 		),
 		maintenancePanelRow(
 			"monthly_recovery_check",
@@ -433,7 +433,7 @@ func buildOperationsMaintenanceCadencePlan() operationsMaintenancePanel {
 			"review GTFS update cadence, backup target, restore-drill target, rollback owner, and upgrade notes",
 			"Keep recovery readiness marked review-required until a deployment owner confirms the non-live restore target.",
 			"Run restore drills only against explicit non-live targets and keep secret connection values out of browser and docs.",
-			"Recovery planning does not prove restore success or disaster recovery coverage.",
+			"Recovery planning does not show restore success or disaster recovery coverage.",
 		),
 		maintenancePanelRow(
 			"as_needed_support_check",
@@ -448,7 +448,7 @@ func buildOperationsMaintenanceCadencePlan() operationsMaintenancePanel {
 	return operationsMaintenancePanel{
 		Status:     maintenancePanelOverall(rows),
 		Boundary:   "Maintenance cadence rows are planning guidance only. They do not schedule jobs, send notifications, run validators, execute backups, or create proof.",
-		NextAction: "Use cadence rows to assign owners and decide when a technical helper should run private shell diagnostics.",
+		NextAction: "Use cadence rows to assign owners and decide when an administrator should run private shell diagnostics.",
 		Rows:       rows,
 	}
 }

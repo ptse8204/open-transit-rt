@@ -53,7 +53,7 @@ func buildOperationsMaintenanceDiagnostics() operationsMaintenanceDiagnostics {
 					maintenanceString(categories["backup_readiness"], "unknown"),
 					maintenanceString(categories["restore_readiness"], "unknown"),
 				)
-				return maintenanceStatusFromDiagnostic(overall), signal, "Review blocker/warning counts and keep missing backup or restore values visible until a technical helper configures them."
+				return maintenanceStatusFromDiagnostic(overall), signal, "Review blocker/warning counts and keep missing backup or restore values visible until an administrator configures them."
 			},
 			ClaimFlagsValid: func(data map[string]any) bool {
 				return maintenanceFalseFlags(data, "external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "hosted_saas_claimed", "sla_claimed", "uptime_guarantee_claimed", "vendor_compatibility_claimed", "hardware_certification_claimed", "production_grade_eta_claimed")
@@ -115,7 +115,7 @@ func buildOperationsMaintenanceDiagnostics() operationsMaintenanceDiagnostics {
 			Root:          maintenanceSupportBundleRoot,
 			Kind:          "support-bundles",
 			FileName:      "manifest.json",
-			MissingAction: "Run `make support-bundle` from an operator shell only when a technical helper needs redaction-safe diagnostics.",
+			MissingAction: "Run `make support-bundle` from an operator shell only when a deployment owner needs redaction-safe diagnostics.",
 			DoesNotProve:  "Support bundle manifests do not prove a support bundle is safe to share outside the operator environment or qualify as retained evidence.",
 			BuildSignal: func(data map[string]any) (string, string, string) {
 				included := maintenanceListLength(data["included"])
@@ -203,7 +203,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"Database connectivity",
 			operationsStatusMissing,
 			"no safe deployment-doctor summary found",
-			"Keep database status marked missing until a technical helper runs private deployment diagnostics.",
+			"Keep database status marked missing until an administrator runs private deployment diagnostics.",
 			"Run `make deployment-doctor` from an operator shell; values and raw migrator output stay outside the browser.",
 			"Database diagnostics do not prove production readiness or data-loss safety.",
 		),
@@ -223,7 +223,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"no safe deployment-doctor summary found",
 			"Keep spatial database capability marked missing until the private diagnostic summary records it.",
 			"Run the deployment doctor against the intended private database target when configured.",
-			"PostGIS status does not prove all geospatial queries are production safe.",
+			"PostGIS status does not show all geospatial queries are production safe.",
 		),
 		maintenancePanelRow(
 			"validator_tooling",
@@ -232,7 +232,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"no safe deployment-doctor summary found",
 			"Treat missing validator tooling as a reason to use off-host validation guidance.",
 			"Run `make deployment-doctor` or `./scripts/check-validators.sh` from an operator shell when a fresh tooling check is needed.",
-			"Validator tooling presence does not prove feeds are validator clean or compliant.",
+			"Validator tooling presence does not show feeds are validator clean or compliant.",
 		),
 		maintenancePanelRow(
 			"backup_storage_access",
@@ -241,7 +241,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"no safe deployment-doctor summary found",
 			"Keep backup storage status marked missing until a private backup target is configured and checked.",
 			"Run deployment diagnostics from an operator shell; do not expose backup paths, dumps, or raw filesystem output in the browser.",
-			"Backup storage access does not prove a backup exists or restore will succeed.",
+			"Backup storage access does not show a backup exists or restore will succeed.",
 		),
 		maintenancePanelRow(
 			"small_host_resources",
@@ -259,7 +259,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"no safe deployment-doctor summary found",
 			"Keep service dependency posture marked missing until static compose/systemd review has been recorded.",
 			"Run deployment diagnostics from an operator shell; do not start, stop, or reconfigure services from the browser.",
-			"Dependency review does not prove services are running or reachable.",
+			"Dependency review does not show services are running or reachable.",
 		),
 		maintenancePanelRow(
 			"proxy_exposure",
@@ -277,7 +277,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"no safe deployment-doctor summary found",
 			"Keep DB pool sizing under review on small hosts.",
 			"Set a conservative `DB_MAX_CONNS` in the private deployment environment and rerun deployment diagnostics.",
-			"Pool guidance does not prove live database capacity, data safety, or uptime.",
+			"Pool guidance does not show live database capacity, data safety, or uptime.",
 		),
 		maintenancePanelRow(
 			"upgrade_rollback_checklist",

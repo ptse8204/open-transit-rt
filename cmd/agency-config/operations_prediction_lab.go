@@ -183,7 +183,7 @@ func buildPredictionLab(page operationsPage) predictionLabView {
 	view := predictionLabView{
 		GeneratedAt: page.GeneratedAt,
 		AgencyID:    page.AgencyID,
-		Boundary:    "Private prediction diagnostics only. This page explains why Trip Updates and ETA-like outputs were emitted, withheld, or failed closed. It does not prove production-grade ETA quality, real-world ETA accuracy, consumer acceptance, CAL-ITP/Caltrans compliance, vendor compatibility, SLA coverage, hosted service readiness, or public launch readiness.",
+		Boundary:    "Private prediction diagnostics only. This page explains why Trip Updates and ETA-like outputs were emitted, withheld, or failed closed. It does not show production-grade ETA quality, real-world ETA accuracy, consumer acceptance, CAL-ITP/Caltrans compliance, vendor compatibility, SLA coverage, hosted service readiness, or public launch readiness.",
 		Commands: []predictionLabCommand{
 			{
 				ID:             "deterministic-prediction-tests",
@@ -295,7 +295,7 @@ func buildPredictionLabDeterministic(quality tripUpdatesQualityView) predictionL
 			Status:        checklistStatusOK,
 			CurrentSignal: "Trip Updates diagnostics are reviewed separately from Vehicle Positions feed publication.",
 			NextAction:    "Do not block Vehicle Positions on predictor availability or ETA-like output quality.",
-			DoesNotProve:  "Vehicle Positions availability does not prove ETA quality, consumer display, compliance, or production readiness.",
+			DoesNotProve:  "Vehicle Positions availability does not show ETA quality, consumer display, compliance, or production readiness.",
 		},
 		{
 			ID:            "assignment-confidence",
@@ -303,7 +303,7 @@ func buildPredictionLabDeterministic(quality tripUpdatesQualityView) predictionL
 			Status:        statusFromRateText(quality.UnknownAssignmentRate, quality.AmbiguousAssignmentRate),
 			CurrentSignal: fmt.Sprintf("unknown=%s; ambiguous=%s; manual_overrides=%d", firstNonEmpty(quality.UnknownAssignmentRate, "not recorded"), firstNonEmpty(quality.AmbiguousAssignmentRate, "not recorded"), quality.ManualOverrideAssignments),
 			NextAction:    "Keep trip descriptors unknown when assignment confidence is weak, ambiguous, or manually overridden.",
-			DoesNotProve:  "A matched assignment does not prove real-world ETA accuracy or consumer display.",
+			DoesNotProve:  "A matched assignment does not show real-world ETA accuracy or consumer display.",
 		},
 		{
 			ID:            "telemetry-freshness",
@@ -311,7 +311,7 @@ func buildPredictionLabDeterministic(quality tripUpdatesQualityView) predictionL
 			Status:        statusFromRateText(quality.StaleTelemetryRate),
 			CurrentSignal: fmt.Sprintf("stale=%s; rows=%d", firstNonEmpty(quality.StaleTelemetryRate, "not recorded"), quality.StaleTelemetryRows),
 			NextAction:    "Check device power, network, clocks, and reporting cadence before trusting ETA-like output.",
-			DoesNotProve:  "Fresh telemetry does not prove hardware certification, vendor compatibility, SLA, or production AVL reliability.",
+			DoesNotProve:  "Fresh telemetry does not show hardware certification, vendor compatibility, SLA, or production AVL reliability.",
 		},
 		{
 			ID:            "coverage",
@@ -354,7 +354,7 @@ func buildPredictionLabWithheldReasons(quality tripUpdatesQualityView) []predict
 			Count:        0,
 			WhatItMeans:  "The latest diagnostics did not include withheld-output reason counts.",
 			NextAction:   "Continue monitoring Trip Updates diagnostics, stale telemetry, assignment confidence, and future-stop coverage.",
-			DoesNotProve: "A quiet diagnostic row does not prove real-world ETA accuracy or production readiness.",
+			DoesNotProve: "A quiet diagnostic row does not show real-world ETA accuracy or production readiness.",
 		})
 	}
 	return reasons
@@ -489,7 +489,7 @@ func buildPredictionLabHandlingGuide(quality tripUpdatesQualityView) predictionL
 		Status:       status,
 		Boundary:     "Conservative ETA handling favors unknown, withheld, or fail-closed output over false certainty. This guide explains why the browser may show missing ETA-like output even when Vehicle Positions continue.",
 		NextAction:   nextAction,
-		DoesNotProve: "Conservative handling guidance does not prove real-world ETA accuracy, production-grade ETA quality, consumer display, compliance, vendor compatibility, hardware certification, SLA coverage, or release readiness.",
+		DoesNotProve: "Conservative handling guidance does not show real-world ETA accuracy, production-grade ETA quality, consumer display, compliance, vendor compatibility, hardware certification, SLA coverage, or release readiness.",
 		Rows: []predictionLabHandlingGuideRow{
 			{
 				ID:           "stale-telemetry",
@@ -497,7 +497,7 @@ func buildPredictionLabHandlingGuide(quality tripUpdatesQualityView) predictionL
 				ReviewSignal: fmt.Sprintf("stale=%s; latest stale rows=%d", firstNonEmpty(quality.StaleTelemetryRate, "not recorded"), quality.StaleTelemetryRows),
 				SafeBehavior: "Withhold Trip Updates or keep Vehicle Positions without a confident trip descriptor when the latest observation is too old.",
 				OperatorStep: "Check device power, clock sync, network delay, reporting cadence, and Realtime Center freshness before expecting ETA-like output.",
-				DoesNotProve: "Freshening one device does not prove production AVL reliability, hardware certification, SLA coverage, or route-wide ETA quality.",
+				DoesNotProve: "Freshening one device does not show production AVL reliability, hardware certification, SLA coverage, or route-wide ETA quality.",
 			},
 			{
 				ID:           "unknown-assignment",
@@ -505,7 +505,7 @@ func buildPredictionLabHandlingGuide(quality tripUpdatesQualityView) predictionL
 				ReviewSignal: fmt.Sprintf("unknown=%s; eligible candidates=%d", firstNonEmpty(quality.UnknownAssignmentRate, "not recorded"), quality.EligiblePredictionCandidates),
 				SafeBehavior: "Prefer unknown trip state over fabricating a trip descriptor or future stops from weak evidence.",
 				OperatorStep: "Review service day, route/trip hints, block continuity, after-midnight service, and manual override evidence.",
-				DoesNotProve: "Resolving an assignment does not prove consumer display, compliance, or real-world ETA accuracy.",
+				DoesNotProve: "Resolving an assignment does not show consumer display, compliance, or real-world ETA accuracy.",
 			},
 			{
 				ID:           "ambiguous-assignment",
@@ -513,15 +513,15 @@ func buildPredictionLabHandlingGuide(quality tripUpdatesQualityView) predictionL
 				ReviewSignal: fmt.Sprintf("ambiguous=%s; manual overrides=%d", firstNonEmpty(quality.AmbiguousAssignmentRate, "not recorded"), quality.ManualOverrideAssignments),
 				SafeBehavior: "Withhold ETA-like Trip Updates when multiple trip instances remain plausible.",
 				OperatorStep: "Use operator knowledge or schedule corrections only when staff have reliable local evidence; otherwise keep the output withheld.",
-				DoesNotProve: "Manual review does not prove agency approval, public consumer ingestion, or production-grade ETA quality.",
+				DoesNotProve: "Manual review does not show agency approval, public consumer ingestion, or production-grade ETA quality.",
 			},
 			{
 				ID:           "low-confidence-or-no-future-stops",
 				Situation:    "Confidence is low or no future stops are safe",
 				ReviewSignal: fmt.Sprintf("coverage=%s; future_stop_coverage=%s", firstNonEmpty(quality.TripUpdatesCoverageRate, "not recorded"), firstNonEmpty(quality.FutureStopCoverageRate, "not recorded")),
 				SafeBehavior: "Emit only the subset of Trip Updates that passes configured confidence, freshness, schedule, and future-stop checks.",
-				OperatorStep: "Review GTFS Workbench, active feed version, current stop sequence, and withheld reasons before changing thresholds.",
-				DoesNotProve: "Higher local coverage does not prove real-world ETA accuracy, consumer acceptance, compliance, or release readiness.",
+				OperatorStep: "Review Schedule Review, active feed version, current stop sequence, and withheld reasons before changing thresholds.",
+				DoesNotProve: "Higher local coverage does not show real-world ETA accuracy, consumer acceptance, compliance, or release readiness.",
 			},
 		},
 	}
@@ -532,7 +532,7 @@ func buildPredictionLabProofChecklist() predictionLabProofChecklist {
 		Status:       checklistStatusNeedsReview,
 		Boundary:     "Future ETA proof gates are separate authorization-gated work. They are listed so operators understand what is missing; this page does not collect or retain that proof.",
 		NextAction:   "Keep these gates separate from day-to-day private diagnostics until a maintainer explicitly authorizes evidence scope, retention, redaction, and stop conditions.",
-		DoesNotProve: "Listing future gates does not prove production-grade ETA quality, real-world ETA accuracy, compliance, consumer acceptance, vendor compatibility, hardware certification, hosted service readiness, SLA coverage, or release readiness.",
+		DoesNotProve: "Listing future gates does not show production-grade ETA quality, real-world ETA accuracy, compliance, consumer acceptance, vendor compatibility, hardware certification, hosted service readiness, SLA coverage, or release readiness.",
 		Rows: []predictionLabProofChecklistRow{
 			{
 				ID:                    "field-observed-events",
@@ -546,7 +546,7 @@ func buildPredictionLabProofChecklist() predictionLabProofChecklist {
 				FutureGate:            "Operating-day and route coverage review",
 				RequiredReview:        "Representative service days, route families, low-frequency trips, after-midnight service, detours, missing telemetry, and cancellation behavior.",
 				SeparateAuthorization: "Required before treating route/day coverage as evidence.",
-				DoesNotProve:          "One route, one day, or one successful fixture does not prove production-grade ETA quality.",
+				DoesNotProve:          "One route, one day, or one successful fixture does not show production-grade ETA quality.",
 			},
 			{
 				ID:                    "external-predictor-or-vendor",
@@ -573,7 +573,7 @@ func predictionLabReasonFor(reason string, count int) predictionLabReason {
 		Count:        count,
 		WhatItMeans:  "The predictor withheld output because the available evidence was not safe enough for ETA-like Trip Updates.",
 		NextAction:   "Review schedule state, fresh telemetry, assignment confidence, and active feed diagnostics before changing prediction settings.",
-		DoesNotProve: "A withheld reason does not prove production-grade ETA quality, real-world accuracy, consumer display, or compliance.",
+		DoesNotProve: "A withheld reason does not show production-grade ETA quality, real-world accuracy, consumer display, or compliance.",
 	}
 	switch reason {
 	case prediction.ReasonNoLatestTelemetry:
@@ -590,7 +590,7 @@ func predictionLabReasonFor(reason string, count int) predictionLabReason {
 		base.NextAction = "Improve telemetry quality or apply an explicit operator override when staff have reliable trip evidence."
 	case prediction.ReasonScheduleUnavailable:
 		base.WhatItMeans = "The active schedule data needed for future stop times was not available."
-		base.NextAction = "Review GTFS Workbench, active feed version, and schedule validation before relying on Trip Updates."
+		base.NextAction = "Review Schedule Review, active feed version, and schedule validation before relying on Trip Updates."
 	case prediction.ReasonNoFutureStops:
 		base.WhatItMeans = "No future stop updates were safe to emit for the current trip state."
 		base.NextAction = "Review current stop sequence, service day, and schedule timing before expecting ETA-like output."
@@ -633,7 +633,7 @@ func buildPredictionLabReviewRows(summary predictionLabSummary, reasons []predic
 			Area:         "Current prediction review",
 			Signal:       "No active withheld-output review rows are visible in this bounded summary.",
 			NextAction:   "Continue monitoring deterministic diagnostics and local aggregate backtests when available.",
-			DoesNotProve: "No visible review rows does not prove production-grade ETA quality, real-world accuracy, or consumer display.",
+			DoesNotProve: "No visible review rows does not show production-grade ETA quality, real-world accuracy, or consumer display.",
 		})
 	}
 	const limit = 10

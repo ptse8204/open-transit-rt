@@ -110,7 +110,7 @@ func consumerPreparationTargets(rows []consumerStatusView, runtimeRows []consume
 			PacketPath:      row.PacketPath,
 			Meaning:         "Prepared means the repository has a target-specific packet record path and current pointer for future review.",
 			NextAction:      "Review feed URLs and source-of-truth metadata privately; do not submit or change status without separate written authorization.",
-			DoesNotProve:    "Does not prove submission, review, acceptance, ingestion, listing, display, target approval, compliance, or public launch.",
+			DoesNotProve:    "This private view does not show submission, review, acceptance, ingestion, listing, display, target approval, compliance, or public launch.",
 			RuntimeObserved: runtimeObserved,
 		})
 	}

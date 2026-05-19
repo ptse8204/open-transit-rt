@@ -105,28 +105,28 @@ tbody tr:focus-within{outline:2px solid var(--color-focus);outline-offset:-2px}
 .workflow-summary div:first-child{border-top:0;padding-top:0}
 .workflow-summary dt{font-size:var(--font-small);font-weight:750;color:var(--color-muted)}
 .workflow-summary dd{margin:0}
-.workflow-steps{list-style:none;counter-reset:workflow;display:grid;grid-template-columns:repeat(auto-fit,minmax(22rem,1fr));gap:var(--space-4);padding:0;margin:var(--space-4) 0}
-.workflow-step{counter-increment:workflow;border:1px solid #96b8c0;border-radius:var(--radius-3);padding:var(--space-4);background:#f7fbfb;box-shadow:var(--shadow-1)}
+.workflow-steps{list-style:none;counter-reset:workflow;display:grid;grid-template-columns:1fr;gap:var(--space-3);padding:0;margin:var(--space-4) 0}
+.workflow-step{counter-increment:workflow;border:1px solid #96b8c0;border-radius:var(--radius-2);padding:var(--space-3);background:#f7fbfb;box-shadow:none}
 .workflow-step-header{display:grid;grid-template-columns:auto 1fr;gap:var(--space-3);align-items:start}
 .workflow-step-number::before{content:counter(workflow);display:inline-grid;place-items:center;width:2rem;height:2rem;border-radius:999px;background:var(--color-action);color:#fff;font-weight:800}
 .workflow-step h3{margin:0 0 var(--space-1)}
 .dashboard-tools,.dashboard-details{margin:var(--space-4) 0}
-.action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:var(--space-4);margin:var(--space-4) 0}
-.action-card{border:1px solid #96b8c0;border-radius:var(--radius-3);padding:var(--space-4);background:#f7fbfb;box-shadow:var(--shadow-1)}
+.action-grid{display:grid;grid-template-columns:1fr;gap:var(--space-3);margin:var(--space-4) 0}
+.action-card{border:1px solid #96b8c0;border-radius:var(--radius-2);padding:var(--space-3);background:#f7fbfb;box-shadow:none}
 .action-card h3{margin-top:0}
 .action-card p{margin:.45rem 0}
 .action-link{display:inline-flex;align-items:center;justify-content:center;min-height:2.25rem;border:1px solid var(--color-action-strong);border-radius:var(--radius-1);background:var(--color-action);color:#fff;text-decoration:none;font-weight:750;padding:.5rem .75rem;margin-top:var(--space-2)}
 .action-link:hover,.action-link:focus{background:var(--color-action-strong);color:#fff}
 .secondary-action{background:var(--color-surface);color:var(--color-action-strong)}
 .secondary-action:hover,.secondary-action:focus{background:#eef6f7;color:var(--color-action-strong)}
-.status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:var(--space-3);margin:var(--space-4) 0}
+.status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:var(--space-3);margin:var(--space-4) 0}
 .status-tile{border:1px solid var(--color-border);border-radius:var(--radius-2);padding:var(--space-3);background:var(--color-surface-raised)}
 .status-tile h3{font-size:1rem;margin:0 0 var(--space-2)}
 .compact-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-3) 0}
 .compact-actions a:not(.action-link){display:inline-flex;align-items:center;min-height:2.1rem;border:1px solid var(--color-border);border-radius:var(--radius-1);padding:.4rem .55rem;background:var(--color-surface-muted);text-decoration:none;font-weight:650}
-.card-grid,.feed-copy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:var(--space-4);margin:var(--space-4) 0}
-.feed-copy-grid{grid-template-columns:repeat(auto-fit,minmax(18rem,1fr))}
-.card,.feed-url-card{border:1px solid var(--color-border);border-radius:var(--radius-3);padding:var(--space-4);background:var(--color-surface-raised);box-shadow:var(--shadow-1)}
+.card-grid,.feed-copy-grid{display:grid;grid-template-columns:1fr;gap:var(--space-3);margin:var(--space-4) 0}
+.feed-copy-grid{grid-template-columns:1fr}
+.card,.feed-url-card{border:1px solid var(--color-border);border-radius:var(--radius-2);padding:var(--space-3);background:var(--color-surface);box-shadow:none}
 .card h3,.feed-url-card h3{margin-top:0}
 .card p,.feed-url-card p{margin:.45rem 0}
 .empty-state{border-color:#9dbfd6;background:#f5fbff}
