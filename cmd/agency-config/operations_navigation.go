@@ -86,16 +86,16 @@ func operationsPageNextAction(section string) string {
 	case "prediction-lab":
 		return "Review withheld Trip Updates reasons and keep ETA-like output behind the prediction adapter boundary."
 	case "connectors", "connector-workbench", "connector-tests":
-		return "Choose a connector category, review redaction and fail-closed behavior, then run synthetic conformance checks with a technical helper."
+		return "Choose a connector category, review redaction and fail-closed behavior, then have an administrator or integrator run synthetic conformance checks."
 	case "readiness", "checklist", "consumers":
 		return "Use readiness rows to prepare for future review without changing consumer status or claiming outside approval."
 	case "maintenance", "reliability":
-		return "Review routine maintenance and reliability rows, then decide whether a technical helper needs to run local diagnostics."
+		return "Review routine maintenance and reliability rows, then decide whether a deployment owner needs to run local diagnostics."
 	case "access", "audit", "evidence":
 		return "Use these support views to understand roles, recent audit metadata, and evidence boundaries without exposing raw private data."
 	case "help":
 		return "Pick the role-based guide or recovery topic that matches the user in front of the console."
 	default:
-		return "Return to Start Here and choose the next visible action."
+		return "Return to Start and choose the next visible action."
 	}
 }

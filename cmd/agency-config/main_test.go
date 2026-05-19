@@ -632,7 +632,7 @@ func TestOperationsConsoleRendersEmptyState(t *testing.T) {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Operations Console", "<title>Start Here</title>", `<h1 id="operations-page-title">Start Here</h1>`, "Normal browser path", "Technical-helper path", "Copy Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
+	for _, want := range []string{"Operations Console", "<title>Start</title>", `<h1 id="operations-page-title">Start</h1>`, "Normal browser path", "Technical-helper path", "Copy Feed URLs", "publication metadata is not configured yet", "telemetry repository is not available", "no Trip Updates diagnostics recorded yet"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body does not contain %q: %s", want, body)
 		}
@@ -957,7 +957,7 @@ func TestOperationsCockpitHTMLShowsNoCLIPrimaryFlow(t *testing.T) {
 	}
 	body := rr.Body.String()
 	for _, want := range []string{
-		"Start Here",
+		"Start",
 		"Operations workflow",
 		"Current status details",
 		"More tools",
@@ -973,7 +973,7 @@ func TestOperationsCockpitHTMLShowsNoCLIPrimaryFlow(t *testing.T) {
 		`id="cockpit-card-manage_devices_vehicles"`,
 		`id="cockpit-card-realtime_feed_state"`,
 		`id="cockpit-card-maintenance_tasks"`,
-		"Agency scope and all console pages",
+		"Agency scope and permissions",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("cockpit HTML missing %q: %s", want, body)
@@ -1641,7 +1641,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		t.Fatalf("dashboard did not escape script-like metadata: %s", body)
 	}
 	for _, want := range []string{
-		"Start Here",
+		"Start",
 		"Work through this in order",
 		"Operations workflow",
 		"Review realtime",
@@ -1680,9 +1680,9 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		}
 	}
 	startHereIndex := strings.Index(body, "Work through this in order")
-	helpIndex := strings.Index(body, "Help for Start Here")
+	helpIndex := strings.Index(body, "Help for Start")
 	if startHereIndex < 0 || helpIndex < 0 || startHereIndex > helpIndex {
-		t.Fatalf("dashboard should show Start Here before contextual help: start=%d help=%d body=%s", startHereIndex, helpIndex, body)
+		t.Fatalf("dashboard should show Start before contextual help: start=%d help=%d body=%s", startHereIndex, helpIndex, body)
 	}
 	for _, forbidden := range []string{`<form`, `method="post"`, "/admin/operations/first-run", "/public/operations", "agency approved", "consumer accepted", "production ready", "launch complete", "compliance achieved"} {
 		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
@@ -3310,16 +3310,16 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		`aria-label="Operations Console sections"`,
-		"Start Here",
-		`href="/admin/operations" aria-current="page">Start Here</a>`,
-		`href="/admin/operations/devices">Devices &amp; Tokens</a>`,
-		`href="/admin/operations/telemetry-simulator">Telemetry Simulator</a>`,
-		"GTFS Workbench",
+		"Start",
+		`href="/admin/operations" aria-current="page">Start</a>`,
+		`href="/admin/operations/devices">Devices</a>`,
+		`href="/admin/operations/telemetry-simulator">Simulator</a>`,
+		"Schedule Review",
 		"Realtime",
-		`href="/admin/operations/prediction-lab">Prediction Lab</a>`,
+		`href="/admin/operations/prediction-lab">Trip Updates</a>`,
 		"Connectors",
 		"Feeds",
-		"Maintenance",
+		"Maintain",
 		"Help",
 		`href="/admin/operations" aria-current="page"`,
 	} {
@@ -3364,7 +3364,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	if got := strings.Count(body, `aria-current="page"`); got != 1 {
 		t.Fatalf("aria-current count = %d, want 1: %s", got, body)
 	}
-	for _, oldLabel := range []string{">Dashboard</a>", ">Devices</a>", ">Simulator</a>"} {
+	for _, oldLabel := range []string{">Dashboard</a>", ">Start Here</a>", ">Devices &amp; Tokens</a>", ">Telemetry Simulator</a>"} {
 		if strings.Contains(body, oldLabel) {
 			t.Fatalf("navigation still contains old label %q: %s", oldLabel, body)
 		}
@@ -3482,15 +3482,15 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 		path  string
 		title string
 	}{
-		{path: "/admin/operations", title: "Start Here"},
-		{path: "/admin/operations/gtfs-workbench", title: "GTFS Workbench"},
-		{path: "/admin/operations/gtfs-import", title: "Import GTFS"},
-		{path: "/admin/operations/prediction-lab", title: "Prediction Lab"},
-		{path: "/admin/operations/telemetry", title: "Telemetry Freshness"},
-		{path: "/admin/operations/devices", title: "Devices &amp; Tokens"},
+		{path: "/admin/operations", title: "Start"},
+		{path: "/admin/operations/gtfs-workbench", title: "Schedule Review"},
+		{path: "/admin/operations/gtfs-import", title: "Import Schedule"},
+		{path: "/admin/operations/prediction-lab", title: "Trip Updates"},
+		{path: "/admin/operations/telemetry", title: "Telemetry"},
+		{path: "/admin/operations/devices", title: "Devices"},
 		{path: "/admin/operations/connectors/workbench", title: "Connector Workbench"},
 		{path: "/admin/operations/access", title: "Access &amp; Roles"},
-		{path: "/admin/operations/audit", title: "Audit History"},
+		{path: "/admin/operations/audit", title: "Audit Log"},
 		{path: "/admin/operations/help", title: "Help"},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
@@ -3507,10 +3507,10 @@ func TestOperationsRouteTitlesAndFirstClickLabelOrder(t *testing.T) {
 				}
 			}
 			if tc.path == "/admin/operations" {
-				firstClick := strings.Index(body, `<h1 id="operations-page-title">Start Here</h1>`)
+				firstClick := strings.Index(body, `<h1 id="operations-page-title">Start</h1>`)
 				helpPanel := strings.Index(body, `class="context-help"`)
 				if firstClick < 0 || helpPanel < 0 || firstClick > helpPanel {
-					t.Fatalf("Start Here label should appear before contextual help: firstClick=%d helpPanel=%d body=%s", firstClick, helpPanel, body)
+					t.Fatalf("Start label should appear before contextual help: firstClick=%d helpPanel=%d body=%s", firstClick, helpPanel, body)
 				}
 			}
 		})
@@ -3851,13 +3851,16 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`class="skip-link" href="#operations-main"`,
 		`class="skip-link" href="#operations-nav"`,
 		`<header class="operations-header" role="banner">`,
-		`<h1 id="operations-page-title">Start Here</h1>`,
+		`<h1 id="operations-page-title">Start</h1>`,
+		`<div class="operations-frame">`,
 		`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
 		`<section class="nav-group" aria-labelledby="nav-group-maintenance">`,
-		`<p id="nav-group-maintenance" class="nav-group-label">Maintenance</p>`,
+		`<p id="nav-group-maintenance" class="nav-group-label">Maintain</p>`,
 		`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 		`<script src="/admin/operations/assets/operations.js" defer></script>`,
-		`</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>`,
+		`</main>
+</div>
+<script src="/admin/operations/assets/operations.js" defer></script></body></html>`,
 		`:focus-visible`,
 		`summary:focus-visible`,
 		`@media (prefers-contrast:more)`,
@@ -4016,9 +4019,10 @@ func TestOperationsCoreRoutesUseSharedAppShellAndDesignTokens(t *testing.T) {
 			body := rr.Body.String()
 			for _, want := range []string{
 				`<header class="operations-header" role="banner">`,
-				`Private agency operations`,
+				`Private operations`,
 				`class="app-breadcrumb"`,
 				`class="app-meta"`,
+				`<div class="operations-frame">`,
 				`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
 				`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 				`:root{`,

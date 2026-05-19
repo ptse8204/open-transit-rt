@@ -2042,21 +2042,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <a class="skip-link" href="#operations-main">Skip to main content</a>
 <a class="skip-link" href="#operations-nav">Skip to section navigation</a>
 <header class="operations-header" role="banner">
-<p class="app-kicker">Private agency operations</p>
+<div class="header-title">
+<p class="app-kicker">Private operations</p>
 <p class="app-breadcrumb"><a href="/admin/operations">Operations Console</a> / {{.Title}}</p>
 <h1 id="operations-page-title">{{.Title}}</h1>
-<p class="app-meta"><span>Agency: <strong>{{.AgencyID}}</strong></span><span>environment: <span class="pill">{{.EnvironmentLabel}}</span></span><span>generated: {{formatTime .GeneratedAt}}</span></p>
+</div>
+<p class="app-meta"><span>Agency <strong>{{.AgencyID}}</strong></span><span>Environment <span class="pill">{{.EnvironmentLabel}}</span></span><span>Updated {{formatTime .GeneratedAt}}</span></p>
+</header>
+<div class="operations-frame">
+{{template "operationsNavPanel" .}}
+<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">
 {{if ne .Section "dashboard"}}
 <section class="page-next-action" aria-labelledby="page-next-action-heading">
-<h2 id="page-next-action-heading">What to do next</h2>
+<h2 id="page-next-action-heading">Next action</h2>
 <p>{{operationsPageNextAction .Section}}</p>
 </section>
-{{template "agencyScopePanel" .}}
 {{end}}
-</header>
-{{if ne .Section "dashboard"}}{{template "operationsNavPanel" .}}{{end}}
-{{if ne .Section "dashboard"}}{{template "contextHelpPanel" .}}{{end}}
-<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">
 {{end}}
 
 {{define "agencyScopePanel"}}
@@ -2071,7 +2072,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <div><dt>Query rule</dt><dd>{{.AgencyScope.QueryRule}}</dd></div>
 </dl>
 <p><strong>Next:</strong> {{.AgencyScope.NextAction}}</p>
-<p class="muted"><strong>Does not prove:</strong> {{.AgencyScope.DoesNotProve}}</p>
+<p class="muted"><strong>Limits:</strong> {{.AgencyScope.DoesNotProve}}</p>
 </section>
 {{end}}
 
@@ -2079,10 +2080,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">
 {{range .NavGroups}}<section class="nav-group" aria-labelledby="nav-group-{{.ID}}">
 <p id="nav-group-{{.ID}}" class="nav-group-label">{{.Label}}</p>
-<details class="nav-group-details"{{if .Current}} open{{end}}>
-<summary>Show pages</summary>
 <div class="nav-links">{{range .Items}}<a class="nav-link{{if .Current}} current{{end}}" href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .ExternalAdminSurface}} <span class="nav-surface">separate tool</span>{{end}}</a>{{end}}</div>
-</details>
 </section>{{end}}
 </nav>
 {{end}}
@@ -2094,7 +2092,22 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p class="muted"><a href="{{.ContextHelp.AllTopicsURL}}">Open all help topics</a> · <a href="{{.ContextHelp.JSONURL}}">Export private help JSON</a></p>
 </aside>{{end}}
 {{end}}
-{{define "layoutEnd"}}</main><script src="/admin/operations/assets/operations.js" defer></script></body></html>{{end}}
+{{define "layoutEnd"}}
+{{if ne .Section "dashboard"}}
+<section class="support-panels" aria-label="Page support">
+<details class="support-details">
+<summary>Agency scope and permissions</summary>
+{{template "agencyScopePanel" .}}
+</details>
+<details class="support-details">
+<summary>Help for this page</summary>
+{{template "contextHelpPanel" .}}
+</details>
+</section>
+{{end}}
+</main>
+</div>
+<script src="/admin/operations/assets/operations.js" defer></script></body></html>{{end}}
 
 {{define "access"}}
 {{template "layoutStart" .}}
@@ -2375,9 +2388,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 
 <details class="dashboard-details">
-<summary>Agency scope and all console pages</summary>
+<summary>Agency scope and permissions</summary>
 {{template "agencyScopePanel" .}}
-{{template "operationsNavPanel" .}}
 </details>
 
 <details class="dashboard-details">

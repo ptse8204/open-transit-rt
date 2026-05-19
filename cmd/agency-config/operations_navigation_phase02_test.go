@@ -35,9 +35,10 @@ func TestOperationsPhase02RegisteredRoutesArePrivateReachableAndNoStore(t *testi
 			for _, want := range []string{
 				`<header class="operations-header" role="banner">`,
 				`class="app-kicker">Private`,
+				`<div class="operations-frame">`,
 				`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
 				`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
-				`Does not prove`,
+				`<script src="/admin/operations/assets/operations.js" defer></script>`,
 			} {
 				if !strings.Contains(body, want) {
 					t.Fatalf("%s rendered body missing shared private shell marker %q: %s", route.Path, want, body)
@@ -228,7 +229,7 @@ func TestOperationsPhase02UserFacingLabelsAndActiveStateStayRegistryDriven(t *te
 		t.Fatalf("dashboard status = %d, want 200: %s", dashboardRR.Code, dashboardRR.Body.String())
 	}
 	body := dashboardRR.Body.String()
-	for _, staleLabel := range []string{">Dashboard</a>", ">Devices</a>", ">Simulator</a>", ">Validation</a>", ">Setup</a>"} {
+	for _, staleLabel := range []string{">Dashboard</a>", ">Start Here</a>", ">Devices &amp; Tokens</a>", ">Telemetry Simulator</a>", ">Validation Center</a>", ">Setup Details</a>"} {
 		if strings.Contains(body, staleLabel) {
 			t.Fatalf("dashboard navigation still contains stale label %q: %s", staleLabel, body)
 		}
