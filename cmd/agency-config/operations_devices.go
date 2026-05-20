@@ -39,6 +39,7 @@ type operationsDeviceFleetOnboardingView struct {
 	InventoryRows        []operationsDeviceFleetOnboardingRow
 	BulkImportRows       []operationsDeviceFleetOnboardingRow
 	TokenLifecycleRows   []operationsDeviceFleetOnboardingRow
+	IngestDiagnosticRows []operationsDeviceFleetOnboardingRow
 	FreshnessTriageRows  []operationsDeviceFleetOnboardingRow
 	BindingReviewRows    []operationsDeviceFleetOnboardingRow
 	TechnicalHandoffRows []operationsDeviceFleetOnboardingRow
@@ -153,6 +154,44 @@ func buildOperationsDeviceFleetOnboarding(page operationsPage) operationsDeviceF
 				OperatorStep:      "Confirm who installs the token, where it is stored, and when old copied commands or screenshots are destroyed.",
 				AdministratorStep: "Use private secret channels and redact command history; never ask the browser page to collect device token values.",
 				DoesNotProve:      "This private view does not show security compliance, audit completeness, or absence of prior exposure.",
+			},
+		},
+		IngestDiagnosticRows: []operationsDeviceFleetOnboardingRow{
+			{
+				ID:                "authenticated_ingest_contract",
+				Label:             "Authenticated ingest contract",
+				Status:            operationsStatusReady,
+				CurrentSignal:     "/v1/telemetry accepts bounded JSON with agency_id, device_id, vehicle_id, RFC3339 timestamp, valid coordinates, nonnegative speed/accuracy, 0-360 bearing, and a bound device credential.",
+				OperatorStep:      "If a sample is rejected, share the response status and safe reason category only; do not copy headers, credentials, or raw payloads.",
+				AdministratorStep: "Check device binding, agency scope, timestamp format, coordinate bounds, and body size before rotating credentials.",
+				DoesNotProve:      "A valid ingest contract does not show real hardware reliability, vendor compatibility, or production AVL coverage.",
+			},
+			{
+				ID:                "source_quality_flags",
+				Label:             "Stale or low-quality source diagnostics",
+				Status:            operationsStatusDiagnosticOnly,
+				CurrentSignal:     "Accepted responses may include safe quality flags such as stale_timestamp or low_gps_accuracy; future timestamps are rejected before storage.",
+				OperatorStep:      "Treat quality flags as setup review signals before relying on Vehicle Positions or Trip Updates.",
+				AdministratorStep: "Review device clock sync, GPS accuracy settings, reporting cadence, and adapter transforms using private logs only.",
+				DoesNotProve:      "A clear quality flag response does not prove the device is suitable for production service.",
+			},
+			{
+				ID:                "fail_closed_rejections",
+				Label:             "Fail-closed rejection categories",
+				Status:            operationsStatusReady,
+				CurrentSignal:     "Oversized JSON, invalid coordinates, invalid motion fields, future timestamps, missing or invalid credentials, unknown devices, and agency/vehicle binding mismatches fail before accepted storage.",
+				OperatorStep:      "Ask for the category and time of rejection, not the token, endpoint, header, or raw device payload.",
+				AdministratorStep: "Use server-owned logs and adapter conformance fixtures to separate malformed payload, unknown-device, invalid-token, and binding-mismatch cases.",
+				DoesNotProve:      "Rejected-payload categories are troubleshooting signals, not retained external evidence.",
+			},
+			{
+				ID:                "duplicate_ordering_review",
+				Label:             "Duplicate and ordering review",
+				Status:            operationsStatusDiagnosticOnly,
+				CurrentSignal:     "Duplicate and out_of_order events are stored as non-accepted rows so latest telemetry and matching continue to use the newest accepted observation.",
+				OperatorStep:      "Review repeated or out-of-order symptoms with the integrator before forcing assignments.",
+				AdministratorStep: "Check batching, retries, and adapter timestamp mapping before adjusting reporting cadence.",
+				DoesNotProve:      "Clean duplicate handling does not show production AVL reliability or ETA quality.",
 			},
 		},
 		FreshnessTriageRows: []operationsDeviceFleetOnboardingRow{

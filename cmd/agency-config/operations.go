@@ -3953,6 +3953,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
 {{range .DeviceFleetOnboarding.TokenLifecycleRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h4>Ingest Diagnostics</h4>
+<table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
+{{range .DeviceFleetOnboarding.IngestDiagnosticRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h4>Freshness And Unknown-Device Triage</h4>
 <table><thead><tr><th>ID</th><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Limits</th></tr></thead><tbody>
 {{range .DeviceFleetOnboarding.FreshnessTriageRows}}<tr id="device-onboarding-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}

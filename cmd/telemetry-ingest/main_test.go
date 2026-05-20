@@ -106,6 +106,10 @@ func TestTelemetryPostRejectsInvalidRequests(t *testing.T) {
 		{name: "invalid json", body: `{"agency_id":`},
 		{name: "invalid payload", body: `{"agency_id":"demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"2026-04-20T15:02:00Z","lat":99,"lon":-123.1}`},
 		{name: "timezone-less timestamp", body: `{"agency_id":"demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"2026-04-20T15:02:00","lat":49.2,"lon":-123.1}`},
+		{name: "whitespace agency id", body: `{"agency_id":" demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"2026-04-20T15:02:00Z","lat":49.2,"lon":-123.1}`},
+		{name: "negative speed", body: `{"agency_id":"demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"2026-04-20T15:02:00Z","lat":49.2,"lon":-123.1,"speed_mps":-1}`},
+		{name: "invalid bearing", body: `{"agency_id":"demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"2026-04-20T15:02:00Z","lat":49.2,"lon":-123.1,"bearing":361}`},
+		{name: "negative accuracy", body: `{"agency_id":"demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"2026-04-20T15:02:00Z","lat":49.2,"lon":-123.1,"accuracy_m":-1}`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			storeCalled = false
@@ -119,6 +123,82 @@ func TestTelemetryPostRejectsInvalidRequests(t *testing.T) {
 				t.Fatalf("store called for invalid request")
 			}
 		})
+	}
+}
+
+func TestTelemetryPostRejectsOversizedAndFuturePayloads(t *testing.T) {
+	storeCalled := false
+	handler := newHandler(fakeRepo{
+		storeFn: func(context.Context, telemetry.Event, json.RawMessage) (telemetry.StoreResult, error) {
+			storeCalled = true
+			return telemetry.StoreResult{}, nil
+		},
+		listFn: func(context.Context, string, int) ([]telemetry.StoredEvent, error) { return nil, nil },
+	}, fakePinger{})
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/telemetry", strings.NewReader(strings.Repeat(" ", maxTelemetryPayloadBytes+1)))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("oversized status code = %d, want 413; body=%s", rec.Code, rec.Body.String())
+	}
+	if storeCalled {
+		t.Fatalf("store called for oversized request")
+	}
+
+	future := time.Now().UTC().Add(telemetry.DefaultFutureThreshold + time.Minute).Format(time.RFC3339)
+	body := `{"agency_id":"demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"` + future + `","lat":49.2,"lon":-123.1}`
+	req = httptest.NewRequest(http.MethodPost, "/v1/telemetry", strings.NewReader(body))
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("future status code = %d, want 400; body=%s", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "timestamp is too far in the future") {
+		t.Fatalf("future rejection missing safe reason: %s", rec.Body.String())
+	}
+	if storeCalled {
+		t.Fatalf("store called for future timestamp")
+	}
+}
+
+func TestTelemetryPostReturnsRedactedQualityFlags(t *testing.T) {
+	receivedAt := time.Now().UTC()
+	var storedPayload json.RawMessage
+	handler := newHandler(fakeRepo{
+		storeFn: func(_ context.Context, event telemetry.Event, payload json.RawMessage) (telemetry.StoreResult, error) {
+			storedPayload = append(json.RawMessage(nil), payload...)
+			return telemetry.StoreResult{StoredEvent: telemetry.StoredEvent{
+				Event:        event,
+				ReceivedAt:   receivedAt,
+				IngestStatus: telemetry.IngestStatusAccepted,
+			}}, nil
+		},
+		listFn: func(context.Context, string, int) ([]telemetry.StoredEvent, error) { return nil, nil },
+	}, fakePinger{})
+
+	stale := time.Now().UTC().Add(-(telemetry.DefaultStaleSourceThreshold + time.Minute)).Format(time.RFC3339)
+	body := `{"agency_id":"demo-agency","device_id":"device-1","vehicle_id":"bus-1","timestamp":"` + stale + `","lat":49.2,"lon":-123.1,"accuracy_m":75}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/telemetry", strings.NewReader(body))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status code = %d, want 201; body=%s", rec.Code, rec.Body.String())
+	}
+	var response ingestResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if !telemetry.HasQualityFlag(response.QualityFlags, telemetry.QualityFlagStaleTimestamp) || !telemetry.HasQualityFlag(response.QualityFlags, telemetry.QualityFlagLowGPSAccuracy) {
+		t.Fatalf("quality_flags = %v, want stale and low GPS accuracy", response.QualityFlags)
+	}
+	for _, forbidden := range []string{"Authorization", "Bearer", "token", "payload_json", "private"} {
+		if strings.Contains(rec.Body.String(), forbidden) {
+			t.Fatalf("quality response leaked forbidden text %q: %s", forbidden, rec.Body.String())
+		}
+	}
+	if !strings.Contains(string(storedPayload), `"accuracy_m":75`) {
+		t.Fatalf("store did not receive original safe payload: %s", string(storedPayload))
 	}
 }
 
@@ -166,8 +246,10 @@ func TestTelemetryPostRequiresDeviceTokenWhenHardened(t *testing.T) {
 }
 
 func TestTelemetryPostRejectsDeviceBindingMismatchWhenHardened(t *testing.T) {
+	storeCalled := false
 	handler := newHandlerWithSecurity(fakeRepo{
 		storeFn: func(context.Context, telemetry.Event, json.RawMessage) (telemetry.StoreResult, error) {
+			storeCalled = true
 			return telemetry.StoreResult{}, nil
 		},
 		listFn: func(context.Context, string, int) ([]telemetry.StoredEvent, error) { return nil, nil },
@@ -184,6 +266,14 @@ func TestTelemetryPostRejectsDeviceBindingMismatchWhenHardened(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("status code = %d, want 401; body=%s", rec.Code, rec.Body.String())
+	}
+	if storeCalled {
+		t.Fatalf("store called for rejected device binding")
+	}
+	for _, forbidden := range []string{"bad-token", "Authorization", "Bearer", "device-1", "bus-1", validTelemetryPayload()} {
+		if strings.Contains(rec.Body.String(), forbidden) {
+			t.Fatalf("token failure leaked %q in response: %s", forbidden, rec.Body.String())
+		}
 	}
 }
 
