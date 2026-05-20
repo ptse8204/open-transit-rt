@@ -368,6 +368,96 @@ func (s *PostgresAdminStore) SetPasswordCredential(ctx context.Context, input Pa
 	return nil
 }
 
+func (s *PostgresAdminStore) CompleteBootstrapPassword(ctx context.Context, token string, password string, now time.Time) (Principal, error) {
+	if s == nil || s.pool == nil {
+		return Principal{}, fmt.Errorf("admin auth store is unavailable")
+	}
+	hash, err := HashPassword(password)
+	if err != nil {
+		return Principal{}, err
+	}
+	tokenHash := HashBootstrapToken(token)
+	if tokenHash == HashBootstrapToken("") {
+		return Principal{}, ErrBootstrapTokenInvalid
+	}
+	if now.IsZero() {
+		now = s.now().UTC()
+	} else {
+		now = now.UTC()
+	}
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return Principal{}, fmt.Errorf("begin first admin setup transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var record BootstrapTokenRecord
+	var usedAt *time.Time
+	err = tx.QueryRow(ctx, `
+		SELECT bt.id, bt.agency_id, bt.agency_user_id, au.email, COALESCE(au.auth_subject, au.email), bt.purpose, bt.expires_at, bt.used_at
+		FROM admin_bootstrap_token bt
+		JOIN agency_user au
+		  ON au.agency_id = bt.agency_id
+		 AND au.id = bt.agency_user_id
+		WHERE bt.token_hash = $1
+		FOR UPDATE
+	`, tokenHash).Scan(&record.ID, &record.AgencyID, &record.UserID, &record.Email, &record.Subject, &record.Purpose, &record.ExpiresAt, &usedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Principal{}, ErrBootstrapTokenInvalid
+	}
+	if err != nil {
+		return Principal{}, fmt.Errorf("load bootstrap token: %w", err)
+	}
+	if usedAt != nil {
+		return Principal{}, ErrBootstrapTokenInvalid
+	}
+	if now.After(record.ExpiresAt) {
+		return Principal{}, ErrBootstrapTokenExpired
+	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO admin_password_credential (
+			agency_id, agency_user_id, password_hash, password_hash_params, status,
+			failed_attempts, locked_until, password_changed_at, updated_at
+		)
+		VALUES ($1, $2, $3, '{"algorithm":"argon2id","version":1}'::jsonb, 'active', 0, NULL, $4, $4)
+		ON CONFLICT (agency_id, agency_user_id) DO UPDATE
+		SET password_hash = EXCLUDED.password_hash,
+		    password_hash_params = EXCLUDED.password_hash_params,
+		    status = 'active',
+		    failed_attempts = 0,
+		    locked_until = NULL,
+		    password_changed_at = EXCLUDED.password_changed_at,
+		    updated_at = EXCLUDED.updated_at
+	`, record.AgencyID, record.UserID, hash, now); err != nil {
+		return Principal{}, fmt.Errorf("store password credential: %w", err)
+	}
+	if _, err := tx.Exec(ctx, `UPDATE admin_bootstrap_token SET used_at = $1 WHERE id = $2`, now, record.ID); err != nil {
+		return Principal{}, fmt.Errorf("mark bootstrap token used: %w", err)
+	}
+	rows, err := tx.Query(ctx, `
+		SELECT role
+		FROM role_binding
+		WHERE agency_id = $1
+		  AND agency_user_id = $2
+		ORDER BY role
+	`, record.AgencyID, record.UserID)
+	if err != nil {
+		return Principal{}, fmt.Errorf("query role bindings: %w", err)
+	}
+	defer rows.Close()
+	roles, err := RowsToRoles(rows)
+	if err != nil {
+		return Principal{}, err
+	}
+	if len(roles) == 0 {
+		return Principal{}, ErrInvalidCredentials
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return Principal{}, fmt.Errorf("commit first admin setup transaction: %w", err)
+	}
+	return Principal{Subject: record.Subject, AgencyID: record.AgencyID, Roles: roles, Method: MethodCookie}, nil
+}
+
 func (s *PostgresAdminStore) AuthenticatePassword(ctx context.Context, agencyID string, email string, password string, now time.Time) (Principal, error) {
 	if s == nil || s.pool == nil {
 		return Principal{}, fmt.Errorf("admin auth store is unavailable")

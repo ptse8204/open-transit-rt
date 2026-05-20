@@ -251,10 +251,13 @@ sudo -u open-transit sh -lc '
 The command stores only a token hash, binds the user to the existing `admin`
 role, and prints the setup URL once. Do not paste the generated URL into
 tracked docs, evidence folders, issue comments, screenshots, or public logs.
-`/admin/local-login` remains local/demo-only and production-disabled. SSO/OIDC
-is not implemented in this roadmap; a future identity provider would issue the
-same internal `admin_session` cookie after identity verification and role
-mapping.
+Open the link through the deployment-owned admin access path, set the admin
+password, then use `/admin/login` for normal browser sign-in and `/admin/logout`
+to end the session. Successful password login issues the same signed
+`admin_session` cookie used by the admin middleware. `/admin/local-login`
+remains local/demo-only and production-disabled. SSO/OIDC is not implemented in
+this roadmap; a future identity provider would issue the same internal
+`admin_session` cookie after identity verification and role mapping.
 
 ## Service Supervision
 

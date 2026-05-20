@@ -71,6 +71,11 @@ type adminAuth interface {
 	Require(...auth.Role) func(http.Handler) http.Handler
 }
 
+type passwordAuthStore interface {
+	AuthenticatePassword(ctx context.Context, agencyID string, email string, password string, now time.Time) (auth.Principal, error)
+	CompleteBootstrapPassword(ctx context.Context, token string, password string, now time.Time) (auth.Principal, error)
+}
+
 type realtimeArtifactSource interface {
 	RealtimePB(ctx context.Context, feedType string) ([]byte, string, error)
 }
@@ -87,6 +92,8 @@ type handler struct {
 	admin      adminAuth
 	csrfSecret string
 	localLogin *localAdminLogin
+	loginFlow  *adminLoginFlow
+	passwords  passwordAuthStore
 	cache      *scheduleZIPCache
 	realtime   realtimeArtifactSource
 }
@@ -135,25 +142,36 @@ func newHandler(agencyID string, scheduleBuilder scheduleBuilder, store publicat
 }
 
 func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource) http.Handler {
+	return newHandlerWithRealtimeAndPasswordStore(agencyID, scheduleBuilder, store, deviceStore, ready, admin, realtime, nil)
+}
+
+func newHandlerWithRealtimeAndPasswordStore(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource, suppliedPasswordStore passwordAuthStore) http.Handler {
 	var telemetryRepo telemetry.Repository
 	var stateRepo state.Repository
 	var gtfsImporter gtfsImportRunner
+	passwordStore := suppliedPasswordStore
 	if pool, ok := ready.(*pgxpool.Pool); ok {
 		telemetryRepo = telemetry.NewPostgresRepository(pool)
 		stateRepo = state.NewPostgresRepository(pool)
 		gtfsImporter = gtfs.NewImportService(pool)
+		if passwordStore == nil {
+			passwordStore = auth.NewPostgresAdminStore(pool)
+		}
 	}
 	csrfSecret := os.Getenv("CSRF_SECRET")
-	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: csrfSecret, localLogin: newLocalAdminLoginFromEnv(agencyID, csrfSecret), cache: newScheduleZIPCache(), realtime: realtime}
+	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: csrfSecret, localLogin: newLocalAdminLoginFromEnv(agencyID, csrfSecret), loginFlow: newAdminLoginFlow(csrfSecret), passwords: passwordStore, cache: newScheduleZIPCache(), realtime: realtime}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
 	mux.HandleFunc("/public/gtfs/schedule.zip", h.publicScheduleZIP)
 	mux.HandleFunc("/public/feeds.json", h.publicFeedsJSON)
 	mux.HandleFunc("/public/agencies/", h.publicAgencyRoute)
+	mux.HandleFunc("/admin/login", h.adminLogin)
+	mux.HandleFunc("/admin/setup/first-admin", h.firstAdminSetup)
 	mux.HandleFunc("/admin/local-login", h.localAdminLogin)
 	mux.HandleFunc("/admin/local-login/", h.localAdminLogin)
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/admin/logout", adminRead(http.HandlerFunc(h.adminLogout)))
 	mux.Handle("/admin/operations/assets/operations.js", adminRead(http.HandlerFunc(h.operationsAsset)))
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
