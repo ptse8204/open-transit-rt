@@ -71,6 +71,7 @@ type operationsGTFSQualityFixRow struct {
 	Codes                 []string `json:"codes"`
 	Count                 int      `json:"count"`
 	LikelyOwner           string   `json:"likely_owner"`
+	RiskLevel             string   `json:"risk_level"`
 	AffectedFiles         string   `json:"affected_files"`
 	IssueSummary          string   `json:"issue_summary"`
 	WhyItMatters          string   `json:"why_it_matters"`
@@ -210,6 +211,7 @@ func gtfsQualityFixRowFromGroup(prefix string, section compliance.GTFSQualitySec
 		Codes:                 append([]string(nil), group.Codes...),
 		Count:                 group.Count,
 		LikelyOwner:           gtfsQualityLikelyOwner(group),
+		RiskLevel:             gtfsQualityRiskLevel(group),
 		AffectedFiles:         gtfsQualityAffectedFiles(group),
 		IssueSummary:          group.OperatorSummary,
 		WhyItMatters:          group.WhyItMatters,
@@ -232,6 +234,16 @@ func gtfsQualityDraftSuggestion(source string, group compliance.GTFSQualityGroup
 	switch group.Family {
 	case "route_short_name_too_long":
 		return "Manual draft candidate: review routes.txt naming fields with the route naming owner before changing route_short_name or route_long_name."
+	case "route_metadata":
+		return "Manual draft candidate: review routes.txt names, colors, route type, and agency links with the route owner before editing route metadata."
+	case "stop_location":
+		return "Manual draft candidate: review stops.txt coordinates and station hierarchy with the GIS or stop inventory owner before editing stops."
+	case "agency_metadata":
+		return "Manual draft candidate: review agency.txt metadata with the administrator before changing feed identity fields."
+	case "license_contact_metadata":
+		return "Manual draft candidate: review feed_info.txt, license, attribution, and contact metadata with the deployment owner before changing sharing prep fields."
+	case "missing_required_file":
+		return "Manual draft candidate only if GTFS Studio can author the missing file safely; otherwise regenerate the source export."
 	case "expired_calendar", "calendar_service_dates":
 		return "Manual draft candidate: review calendar.txt and calendar_dates.txt service coverage with the schedule owner before changing service dates."
 	case "bad_stop_times":
@@ -273,6 +285,7 @@ func gtfsQualityFixChecklist(page operationsPage, planner operationsGTFSQualityF
 	for index, row := range planner.Rows {
 		b.WriteString(fmt.Sprintf("%d. [%s] %s / %s (%d notice(s))\n", index+1, row.Severity, row.SourceLabel, row.Family, row.Count))
 		b.WriteString("   Owner: " + row.LikelyOwner + "\n")
+		b.WriteString("   Risk: " + row.RiskLevel + "\n")
 		b.WriteString("   Files: " + row.AffectedFiles + "\n")
 		b.WriteString("   Safe fix: " + row.SafeFixSuggestion + "\n")
 		b.WriteString("   Safe draft suggestion: " + row.DraftSuggestion + "\n")
@@ -292,11 +305,17 @@ func gtfsQualityLikelyOwner(group compliance.GTFSQualityGroup) string {
 		return "Schedule planner or GTFS source owner"
 	case "route_short_name_too_long":
 		return "Route naming owner"
+	case "route_metadata":
+		return "Route naming owner"
+	case "stop_location":
+		return "GIS or stop inventory owner"
+	case "agency_metadata", "license_contact_metadata":
+		return "Administrator with GTFS source owner"
 	case "unused_shape", "shape_ordering":
 		return "GIS or shapes maintainer"
 	case "bad_stop_times", "frequency_issues", "block_transition_issues":
 		return "Schedule planner with operations review"
-	case "missing_or_foreign_key_reference", "duplicate_ids":
+	case "missing_required_file", "missing_or_foreign_key_reference", "duplicate_ids":
 		return "GTFS export owner or source-system admin"
 	default:
 		if group.Source == compliance.GTFSQualitySourceInternalImporter {
@@ -306,10 +325,45 @@ func gtfsQualityLikelyOwner(group compliance.GTFSQualityGroup) string {
 	}
 }
 
+func gtfsQualityRiskLevel(group compliance.GTFSQualityGroup) string {
+	if strings.TrimSpace(group.RiskLevel) != "" {
+		return group.RiskLevel
+	}
+	switch group.Severity {
+	case compliance.GTFSQualityBlocking:
+		return "blocks import or reliable feed use"
+	case compliance.GTFSQualityNeedsReview:
+		switch group.Family {
+		case "expired_calendar", "calendar_service_dates", "missing_required_file", "missing_or_foreign_key_reference", "bad_stop_times", "frequency_issues", "block_transition_issues":
+			return "can break service availability or realtime usefulness"
+		case "agency_metadata", "license_contact_metadata":
+			return "can block sharing preparation or operator trust"
+		case "route_metadata", "stop_location", "shape_ordering", "unused_shape":
+			return "can degrade maps, matching, or downstream display"
+		default:
+			return "needs source-owner review before relying on the feed"
+		}
+	case compliance.GTFSQualityInformational:
+		return "track during normal data-quality review"
+	default:
+		return "unclassified impact; maintainer review needed"
+	}
+}
+
 func gtfsQualityAffectedFiles(group compliance.GTFSQualityGroup) string {
 	switch group.Family {
+	case "missing_required_file":
+		return "required GTFS file named in the validator notice"
 	case "expired_calendar", "calendar_service_dates":
 		return "calendar.txt / calendar_dates.txt"
+	case "agency_metadata":
+		return "agency.txt"
+	case "license_contact_metadata":
+		return "feed_info.txt / agency contact metadata"
+	case "route_metadata":
+		return "routes.txt"
+	case "stop_location":
+		return "stops.txt"
 	case "route_short_name_too_long":
 		return "routes.txt"
 	case "unused_shape":
@@ -340,6 +394,16 @@ func gtfsQualitySafeFixPath(source string, group compliance.GTFSQualityGroup) st
 		return "Remove or reconnect shapes only after confirming no active trip should use them, then rerun the static validator."
 	case "route_short_name_too_long":
 		return "Move descriptive text to route_long_name or agency source notes when appropriate, then export and rerun validation."
+	case "route_metadata":
+		return "Correct route type, names, colors, URLs, and agency links in routes.txt source data, then rerun validation."
+	case "stop_location":
+		return "Correct stop coordinates, location_type, parent station, and naming fields with the GIS or stop inventory owner."
+	case "agency_metadata":
+		return "Correct agency.txt name, timezone, URL, language, or contact context in the source export, then rerun validation."
+	case "license_contact_metadata":
+		return "Review feed_info.txt, license, attribution, and contact values with the administrator before authorized sharing preparation."
+	case "missing_required_file":
+		return "Regenerate the GTFS ZIP with the missing required file, then rerun import and static validation."
 	case "bad_stop_times":
 		return "Correct times, stop sequence order, and after-midnight formatting in the source schedule, then rerun validation and matching smoke checks."
 	case "frequency_issues":

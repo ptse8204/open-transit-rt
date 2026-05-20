@@ -2031,6 +2031,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 	},
 	"humanHeuristic":           humanHeuristicLabel,
 	"gtfsQualityLikelyOwner":   gtfsQualityLikelyOwner,
+	"gtfsQualityRiskLevel":     gtfsQualityRiskLevel,
 	"gtfsQualityAffectedFiles": gtfsQualityAffectedFiles,
 	"gtfsQualitySafeFixPath":   gtfsQualitySafeFixPath,
 	"gtfsQualityVerifyWith":    gtfsQualityVerifyWith,
@@ -3253,8 +3254,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 <h3>Issue Drilldowns</h3>
 {{if .ValidationCenter.IssueDrilldowns}}
-<table><thead><tr><th>Source</th><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Sample count</th><th>Likely owner</th><th>Affected files</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Safe fix path</th><th>Verify with</th><th>Escalate if</th><th>Boundary</th></tr></thead><tbody>
-{{range .ValidationCenter.IssueDrilldowns}}<tr><td><a href="{{.DetailsURL}}">{{.SourceLabel}}</a></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Severity}}</span></td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.SampleCount}}{{if .OverflowCount}}; {{.OverflowCount}} omitted{{end}}</td><td>{{.LikelyOwner}}</td><td>{{.AffectedFiles}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{.SafeFixPath}}</td><td>{{.VerifyWith}}</td><td>{{.EscalateIf}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+<table><thead><tr><th>Source</th><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Sample count</th><th>Likely owner</th><th>Risk level</th><th>Affected files</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Safe fix path</th><th>Verify with</th><th>Escalate if</th><th>Boundary</th></tr></thead><tbody>
+{{range .ValidationCenter.IssueDrilldowns}}<tr><td><a href="{{.DetailsURL}}">{{.SourceLabel}}</a></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Severity}}</span></td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.SampleCount}}{{if .OverflowCount}}; {{.OverflowCount}} omitted{{end}}</td><td>{{.LikelyOwner}}</td><td>{{.RiskLevel}}</td><td>{{.AffectedFiles}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{.SafeFixPath}}</td><td>{{.VerifyWith}}</td><td>{{.EscalateIf}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
 {{else}}
 <p class="muted">No grouped GTFS quality issue drilldowns are available. Open GTFS Quality when a source-specific validator or importer result needs review.</p>
@@ -3454,8 +3455,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>{{range .BeforeValidation}}{{.}}<br>{{end}}</td><td>{{range .AfterValidation}}{{.}}<br>{{end}}</td></tr>
 </tbody></table>
 {{if .Rows}}
-<table><thead><tr><th>Severity</th><th>Source</th><th>Family</th><th>Codes</th><th>Count</th><th>Likely owner</th><th>Affected files</th><th>Issue</th><th>Why it matters</th><th>Safe fix suggestion</th><th>Safe draft suggestion</th><th>Draft suggestion record</th><th>Before validation plan</th><th>After validation plan</th><th>Verify with</th><th>Escalate if</th><th>Samples</th><th>Boundary</th></tr></thead><tbody>
-{{range .Rows}}<tr><td>{{.Severity}}</td><td>{{.SourceLabel}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.LikelyOwner}}</td><td>{{.AffectedFiles}}</td><td>{{.IssueSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.SafeFixSuggestion}}</td><td>{{.DraftSuggestion}}</td><td>{{.DraftSuggestionRecord}}</td><td>{{.BeforeValidationPlan}}</td><td>{{.AfterValidationPlan}}</td><td>{{.VerifyWith}}</td><td>{{.EscalateIf}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.NoAutoApplyBoundary}}</td></tr>{{end}}
+<table><thead><tr><th>Severity</th><th>Source</th><th>Family</th><th>Codes</th><th>Count</th><th>Likely owner</th><th>Risk level</th><th>Affected files</th><th>Issue</th><th>Why it matters</th><th>Safe fix suggestion</th><th>Safe draft suggestion</th><th>Draft suggestion record</th><th>Before validation plan</th><th>After validation plan</th><th>Verify with</th><th>Escalate if</th><th>Samples</th><th>Boundary</th></tr></thead><tbody>
+{{range .Rows}}<tr><td>{{.Severity}}</td><td>{{.SourceLabel}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.LikelyOwner}}</td><td>{{.RiskLevel}}</td><td>{{.AffectedFiles}}</td><td>{{.IssueSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.SafeFixSuggestion}}</td><td>{{.DraftSuggestion}}</td><td>{{.DraftSuggestionRecord}}</td><td>{{.BeforeValidationPlan}}</td><td>{{.AfterValidationPlan}}</td><td>{{.VerifyWith}}</td><td>{{.EscalateIf}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.NoAutoApplyBoundary}}</td></tr>{{end}}
 </tbody></table>
 {{else}}<p class="warning">No fix planner rows are available yet. Import or publish GTFS and run validation before exporting a checklist.</p>{{end}}
 <h3>Private Fix Checklist</h3>
@@ -3595,8 +3596,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{if .OverflowCount}}<tr><th>Hidden issue overflow</th><td>{{.OverflowCount}} notices omitted by group cap</td></tr>{{end}}
 </tbody></table>
 {{if .Groups}}
-<table><thead><tr><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Likely owner</th><th>Affected files</th><th>Safe fix path</th><th>Verify with</th><th>Escalate if</th><th>Samples</th><th>Overflow</th></tr></thead><tbody>
-{{range .Groups}}<tr class="gtfs-quality-{{gtfsQualityGuidanceClass .}}"><td>{{.Severity}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{gtfsQualityLikelyOwner .}}</td><td>{{gtfsQualityAffectedFiles .}}</td><td>{{gtfsQualitySafeFixPath .Source .}}</td><td>{{gtfsQualityVerifyWith .Source .}}</td><td>{{gtfsQualityEscalation .}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.OverflowCount}}</td></tr>{{end}}
+<table><thead><tr><th>Severity</th><th>Family</th><th>Codes</th><th>Count</th><th>Operator summary</th><th>Why it matters</th><th>Recommended action</th><th>Likely owner</th><th>Risk level</th><th>Affected files</th><th>Safe fix path</th><th>Verify with</th><th>Escalate if</th><th>Samples</th><th>Overflow</th></tr></thead><tbody>
+{{range .Groups}}<tr class="gtfs-quality-{{gtfsQualityGuidanceClass .}}"><td>{{.Severity}}</td><td>{{.Family}}</td><td>{{join .Codes ", "}}</td><td>{{.Count}}</td><td>{{.OperatorSummary}}</td><td>{{.WhyItMatters}}</td><td>{{.RecommendedAction}}</td><td>{{gtfsQualityLikelyOwner .}}</td><td>{{gtfsQualityRiskLevel .}}</td><td>{{gtfsQualityAffectedFiles .}}</td><td>{{gtfsQualitySafeFixPath .Source .}}</td><td>{{gtfsQualityVerifyWith .Source .}}</td><td>{{gtfsQualityEscalation .}}</td><td>{{range .Samples}}<code>{{.}}</code><br>{{end}}</td><td>{{.OverflowCount}}</td></tr>{{end}}
 </tbody></table>
 {{else}}<p class="warning">No issue groups are available for this source. Next action: {{.RecommendedAction}}</p>{{end}}
 {{end}}

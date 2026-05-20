@@ -98,6 +98,35 @@ func TestGTFSQualityTriageTaxonomyAndSeverityOrdering(t *testing.T) {
 	}
 }
 
+func TestGTFSQualityTriagePracticalCategoriesRiskAndGroupedCounts(t *testing.T) {
+	record := ValidationReportRecord{Result: ValidationResult{AgencyID: "demo", FeedType: "schedule", ValidatorName: CanonicalStaticValidatorName, Status: "warning", Report: map[string]any{"raw_report": map[string]any{"notices": []any{
+		map[string]any{"code": "missing_required_file", "severity": "ERROR", "fileName": "stop_times.txt", "message": "missing required file", "totalNotices": 4},
+		map[string]any{"code": "agency_timezone_missing", "severity": "WARNING", "fileName": "agency.txt", "message": "agency timezone missing"},
+		map[string]any{"code": "feed_info_license_missing", "severity": "WARNING", "fileName": "feed_info.txt", "message": "license missing"},
+		map[string]any{"code": "route_color_invalid", "severity": "WARNING", "fileName": "routes.txt", "message": "route color invalid"},
+		map[string]any{"code": "stop_lat_invalid", "severity": "WARNING", "fileName": "stops.txt", "message": "stop_lat invalid"},
+	}}}}, CreatedAt: time.Now()}
+	triage := BuildGTFSQualityTriage(GTFSQualityTriageInput{Canonical: &record})
+	families := map[string]GTFSQualityGroup{}
+	for _, group := range triage.Canonical.Groups {
+		families[group.Family] = group
+		if group.RiskLevel == "" {
+			t.Fatalf("group missing risk level: %+v", group)
+		}
+	}
+	for _, family := range []string{"missing_required_file", "agency_metadata", "license_contact_metadata", "route_metadata", "stop_location"} {
+		if _, ok := families[family]; !ok {
+			t.Fatalf("missing family %s in %+v", family, triage.Canonical.Groups)
+		}
+	}
+	if got := families["missing_required_file"].Count; got != 4 {
+		t.Fatalf("grouped totalNotices count = %d, want 4", got)
+	}
+	if got := families["missing_required_file"].RiskLevel; got != "blocks import or reliable feed use" {
+		t.Fatalf("missing required risk = %q", got)
+	}
+}
+
 func TestGTFSQualityTriageStaleActiveFeed(t *testing.T) {
 	revision := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
 	current := ValidationReportRecord{Result: ValidationResult{AgencyID: "demo", FeedType: "schedule", FeedVersionID: "feed-v2", ValidatorName: CanonicalStaticValidatorName, Status: "passed", Report: map[string]any{"raw_report": map[string]any{"notices": []any{}}}}, CreatedAt: revision.Add(time.Minute)}
@@ -138,6 +167,24 @@ func TestGTFSQualityTriageHostileReport(t *testing.T) {
 	again := BuildGTFSQualityTriage(GTFSQualityTriageInput{Canonical: &record})
 	if !reflect.DeepEqual(triage.Canonical.Groups, again.Canonical.Groups) {
 		t.Fatalf("hostile report ordering is not deterministic")
+	}
+}
+
+func TestGTFSQualityTriageRedactsSecretLikeSamples(t *testing.T) {
+	record := ValidationReportRecord{Result: ValidationResult{AgencyID: "demo", FeedType: "schedule", ValidatorName: CanonicalStaticValidatorName, Status: "warning", WarningCount: 1, Report: map[string]any{"raw_report": map[string]any{"notices": []any{
+		map[string]any{"code": "mystery_notice", "severity": "WARNING", "file": "agency.txt", "message": "Authorization: Bearer TOKEN=SECRET database_url=postgres://user:pass@localhost/db Cookie admin_session webhook https://private.example/hook /Users/private/report.json"},
+	}}}}, CreatedAt: time.Now()}
+	triage := BuildGTFSQualityTriage(GTFSQualityTriageInput{Canonical: &record})
+	rendered := fmt.Sprintf("%+v", triage)
+	for _, forbidden := range []string{"Authorization", "Bearer", "TOKEN=SECRET", "database_url", "postgres://", "Cookie", "admin_session", "webhook", "private.example", "/Users/private"} {
+		if strings.Contains(rendered, forbidden) {
+			t.Fatalf("secret-like sample leaked %q: %+v", forbidden, triage)
+		}
+	}
+	for _, want := range []string{"{redacted_secret}", "{redacted_database}", "{redacted_url}", "{private_path}"} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("redacted sample missing %q: %+v", want, triage)
+		}
 	}
 }
 

@@ -4919,6 +4919,8 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 		"Likely owner",
 		"Affected files",
 		"Safe fix path",
+		"Risk level",
+		"can break service availability or realtime usefulness",
 		"Safe draft suggestion",
 		"Draft suggestion record",
 		"Before validation plan",
@@ -5002,7 +5004,7 @@ func TestGTFSQualityFixPlannerBoundsRowsAndNoMutationFlags(t *testing.T) {
 		t.Fatalf("unexpected mutation or claim flag: %+v", guidance.ClaimFlags)
 	}
 	for _, row := range guidance.FixPlanner.Rows {
-		if !strings.Contains(row.NoAutoApplyBoundary, "No automatic production edit") || !strings.Contains(row.DraftSuggestionRecord, "no persisted draft suggestion record") {
+		if row.RiskLevel == "" || !strings.Contains(row.NoAutoApplyBoundary, "No automatic production edit") || !strings.Contains(row.DraftSuggestionRecord, "no persisted draft suggestion record") {
 			t.Fatalf("planner row missing safe boundary: %+v", row)
 		}
 	}
@@ -5497,7 +5499,7 @@ func TestValidationCenterIssueDrilldownsFixOwnersAndNoRawSamples(t *testing.T) {
 		if issue.SampleCount > 0 && (strings.Contains(strings.Join(issue.Codes, ","), "/Users") || strings.Contains(strings.Join(issue.Codes, ","), "TOKEN")) {
 			t.Fatalf("issue codes leaked private text: %+v", issue)
 		}
-		if issue.LikelyOwner == "" || issue.AffectedFiles == "" || issue.SafeFixPath == "" || issue.VerifyWith == "" || issue.EscalateIf == "" || issue.DoesNotProve == "" {
+		if issue.LikelyOwner == "" || issue.RiskLevel == "" || issue.AffectedFiles == "" || issue.SafeFixPath == "" || issue.VerifyWith == "" || issue.EscalateIf == "" || issue.DoesNotProve == "" {
 			t.Fatalf("issue missing guidance fields: %+v", issue)
 		}
 	}
@@ -5509,7 +5511,7 @@ func TestValidationCenterIssueDrilldownsFixOwnersAndNoRawSamples(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	html := rr.Body.String()
-	for _, want := range []string{"Issue Drilldowns", "Likely owner", "Affected files", "Safe fix path", "Verify with", "Sample count"} {
+	for _, want := range []string{"Issue Drilldowns", "Likely owner", "Risk level", "Affected files", "Safe fix path", "Verify with", "Sample count"} {
 		if !strings.Contains(html, want) {
 			t.Fatalf("validation center issue HTML missing %q: %s", want, html)
 		}
@@ -8453,7 +8455,7 @@ func assertValidationCenterJSONAllowlist(t *testing.T, payload []byte) {
 			}
 		}
 	}
-	wantIssue := map[string]bool{"id": true, "source": true, "source_label": true, "status": true, "severity": true, "family": true, "codes": true, "count": true, "sample_count": true, "overflow_count": true, "likely_owner": true, "affected_files": true, "operator_summary": true, "why_it_matters": true, "recommended_action": true, "safe_fix_path": true, "verify_with": true, "escalate_if": true, "details_url": true, "does_not_prove": true}
+	wantIssue := map[string]bool{"id": true, "source": true, "source_label": true, "status": true, "severity": true, "family": true, "codes": true, "count": true, "sample_count": true, "overflow_count": true, "likely_owner": true, "risk_level": true, "affected_files": true, "operator_summary": true, "why_it_matters": true, "recommended_action": true, "safe_fix_path": true, "verify_with": true, "escalate_if": true, "details_url": true, "does_not_prove": true}
 	for _, item := range decoded["issue_drilldowns"].([]any) {
 		for key := range item.(map[string]any) {
 			if !wantIssue[key] {
