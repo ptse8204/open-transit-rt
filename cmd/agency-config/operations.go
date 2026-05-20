@@ -2278,12 +2278,12 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h2 id="issue-center-heading">Fix These First</h2>
 <p>{{.IssueCenter.Recommendation.Summary}} <a href="{{.IssueCenter.Recommendation.AdminLink}}">{{.IssueCenter.Recommendation.NextAction}}</a></p>
 <p class="muted">{{.IssueCenter.Boundary}}</p>
-<table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Why it matters</th><th>Next action</th><th>Source signal</th></tr></thead><tbody>
-{{range .IssueCenter.VisibleIssues}}<tr id="operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span><br><span class="muted">{{.SourceSurface}}</span></td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.SourceSignal}}</td></tr>{{end}}
+<table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Current signal</th><th>Why it matters</th><th>Next action</th><th>Source</th><th>Freshness</th></tr></thead><tbody>
+{{range .IssueCenter.VisibleIssues}}<tr id="operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td></tr>{{end}}
 </tbody></table>
 {{if .IssueCenter.Counts.Hidden}}<details id="all-operator-issues"><summary>All issue rows ({{.IssueCenter.Counts.Total}} total)</summary>
-<table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Why it matters</th><th>Next action</th><th>Source signal</th></tr></thead><tbody>
-{{range .IssueCenter.Issues}}<tr id="all-operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span><br><span class="muted">{{.SourceSurface}}</span></td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.SourceSignal}}</td></tr>{{end}}
+<table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Current signal</th><th>Why it matters</th><th>Next action</th><th>Source</th><th>Freshness</th><th>Dedupe key</th></tr></thead><tbody>
+{{range .IssueCenter.Issues}}<tr id="all-operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td><td><code>{{.DeduplicationKey}}</code></td></tr>{{end}}
 </tbody></table>
 </details>{{end}}
 </section>
@@ -2400,6 +2400,13 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "firstRunPanel" .FirstRun}}
 <table><tbody>
 <tr><th>Boundary</th><td>{{.Launchpad.Boundary}}</td></tr>
+</tbody></table>
+
+<h3>Operator Issue Center</h3>
+<p>{{.IssueCenter.Recommendation.Summary}} <a href="{{.IssueCenter.Recommendation.AdminLink}}">{{.IssueCenter.Recommendation.NextAction}}</a></p>
+<p class="muted">{{.IssueCenter.Boundary}}</p>
+<table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Current signal</th><th>Why it matters</th><th>Next action</th><th>Source</th><th>Freshness</th><th>Dedupe key</th></tr></thead><tbody>
+{{range .IssueCenter.Issues}}<tr id="launchpad-operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td><td><code>{{.DeduplicationKey}}</code></td></tr>{{end}}
 </tbody></table>
 
 <h3>Workflow Sections</h3>
@@ -3188,7 +3195,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <h2>Feed Health And Validation Center</h2>
 <p class="warning">{{.ValidationCenter.Boundary}}</p>
-<p><a href="/admin/operations/validation-center.json">Export private center JSON</a> · <a href="/admin/operations/feed-health">Open feed health</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/gtfs-quality">Open GTFS quality</a> · <a href="/admin/operations/readiness">Open readiness checklist</a></p>
+<p><a href="/admin/operations/validation-center.json">Export private center JSON</a> · <a href="/admin/operations#issue-center-heading">Open issue center</a> · <a href="/admin/operations/feed-health">Open feed health</a> · <a href="/admin/operations/validation-health">Open validator health</a> · <a href="/admin/operations/gtfs-quality">Open GTFS quality</a> · <a href="/admin/operations/readiness">Open readiness checklist</a></p>
 <div class="card-grid" aria-label="Validation center summary">
 <section class="card">
 <h3>Feed Rows</h3>
@@ -3270,6 +3277,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <h2>Feed Health Dashboard</h2>
 <p class="warning">{{.FeedHealth.Boundary}}</p>
+<p><a href="/admin/operations#issue-center-heading">Open issue center</a> · <a href="/admin/operations/validation-center">Open validation center</a> · <a href="/admin/operations/realtime">Open realtime output</a></p>
 <p>This command center tracks exactly five configured public route paths: <code>/public/feeds.json</code>, <code>/public/gtfs/schedule.zip</code>, <code>/public/gtfsrt/vehicle_positions.pb</code>, <code>/public/gtfsrt/trip_updates.pb</code>, and <code>/public/gtfsrt/alerts.pb</code>.</p>
 <div class="card-grid" aria-label="Feed health empty or blocked state guidance">
 <section class="card empty-state">
@@ -3707,7 +3715,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <h2>Realtime</h2>
 <p class="warning">{{.Realtime.Boundary}}</p>
-<p><a href="/admin/operations/realtime.json">Export private realtime JSON</a> · <a href="/admin/operations/telemetry">Open telemetry freshness</a> · <a href="/admin/operations/devices">Open device credentials</a> · <a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p>
+<p><a href="/admin/operations/realtime.json">Export private realtime JSON</a> · <a href="/admin/operations#issue-center-heading">Open issue center</a> · <a href="/admin/operations/telemetry">Open telemetry freshness</a> · <a href="/admin/operations/devices">Open device credentials</a> · <a href="/admin/operations/telemetry-simulator">Open simulator guide</a></p>
 <h3>GTFS-RT Usefulness</h3>
 <table><thead><tr><th>Feed</th><th>Publishable state</th><th>Reason</th><th>Next fix</th><th>Validator and feed-health connection</th></tr></thead><tbody>
 {{range .IssueCenter.RealtimeFeeds}}<tr id="realtime-gtfsrt-usefulness-{{.ID}}"><td><a href="{{.AdminLink}}">{{.Label}}</a></td><td><span class="status-chip status-{{statusClass .PublishState}}">{{.PublishState}}</span></td><td>{{.Reason}}</td><td>{{.NextFix}}</td><td>{{.ValidatorConnection}}<br>{{.FeedHealthConnection}}</td></tr>{{end}}
