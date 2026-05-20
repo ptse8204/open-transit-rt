@@ -56,7 +56,10 @@ make capture-ui-tour
 
 The capture script uses Playwright, a short-lived local admin session, and the
 real private `/admin/operations*` pages. It writes public-safe PNG files under
-`site/assets/screenshots/` and fails if the local app is not reachable.
+`site/assets/screenshots/`, removes its temporary browser state by default so
+the admin token is not left behind, and fails if the local app is not
+reachable. Use `KEEP_CAPTURE_STATE=true` only for local debugging, never for
+committed tutorial assets.
 
 ## Published Tutorial Asset
 

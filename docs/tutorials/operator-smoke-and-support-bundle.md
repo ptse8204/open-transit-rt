@@ -93,6 +93,9 @@ bodies, full validation reports, raw `.env` files, raw database dumps, raw
 telemetry, private vendor payloads, unredacted logs, or credential values. If
 `DATABASE_URL` is supplied, migration status is collected by running the Go
 migrator directly inside the script and sanitizing captured output.
+Generated manifests and copy/paste summaries use an output reference instead
+of an absolute local path, and public probe summaries keep only effective URL
+paths rather than hostnames or private endpoints.
 
 ## Admin URL And Token Rules
 
@@ -213,7 +216,7 @@ production AVL reliability proof. See
 ## What Is Safe To Share
 
 The copy/paste summaries printed by the scripts are intended to be shareable
-after the operator reviews them. They include output directory, public feed
+after the operator reviews them. They include an output reference, public feed
 summary, admin boundary result, authenticated readiness status, validator
 tooling status, validation API status, AVL dry-run status, and:
 
@@ -224,8 +227,13 @@ consumer_statuses_changed=false
 
 Before sharing bundle files, review the generated manifest and confirm no local
 private material was added outside the script. The support bundle runs a final
-redaction scan for secret-shaped values and fails closed if it detects obvious
-credential material.
+redaction scan for secret-shaped values, private paths, DB URLs with embedded
+credentials, private webhook URLs, sensitive headers, raw-payload labels, and
+hostile JSON secret fields. Run the sanitizer self-test with:
+
+```bash
+make test-support-bundle-redaction
+```
 
 ## What Must Never Be Shared
 
