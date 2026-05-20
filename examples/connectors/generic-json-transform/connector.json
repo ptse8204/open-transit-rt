@@ -1,0 +1,53 @@
+{
+  "schema_version": "open-transit-rt.connector.v1",
+  "connector_id": "example.generic-json-transform",
+  "type": "telemetry_source",
+  "display_name": "Synthetic generic JSON transform",
+  "description": "Synthetic dry-run transform that maps local flat JSON records into telemetry ingest events without sending.",
+  "mode": {
+    "name": "generic_json_transform_dry_run",
+    "disabled_by_default": true,
+    "requires_operator_confirmation": true
+  },
+  "input_contracts": [
+    {
+      "name": "Synthetic flat JSON records",
+      "description": "Local fixture with explicit field mapping, timeout, send gate, and synthetic vehicle observations.",
+      "schema": "open-transit-rt.telemetry.generic-json-transform.v1",
+      "media_types": ["application/json"],
+      "required_fields": ["synthetic_only", "send_enabled", "timeout_seconds", "field_map", "records"]
+    }
+  ],
+  "output_contracts": [
+    {
+      "name": "Telemetry ingest dry-run batch",
+      "description": "Dry-run telemetry event batch with network sends disabled and diagnostics redacted.",
+      "schema": "open-transit-rt.telemetry.event.v1",
+      "media_types": ["application/json"],
+      "produces": ["dry_run_stdout"]
+    }
+  ],
+  "failure_behavior": {
+    "timeout_seconds": 5,
+    "retry_policy": "operator rerun only",
+    "degraded_state": "no telemetry emitted",
+    "fail_closed": true
+  },
+  "redaction_policy": {
+    "secret_storage": "env_reference_only",
+    "redact_fields": ["authorization", "token", "raw_payload", "private_endpoint", "unmapped_fields"]
+  },
+  "claim_boundary": {
+    "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
+    "not_claimed": ["vendor compatibility", "hardware certification", "production AVL reliability", "consumer acceptance", "compliance", "production readiness"]
+  },
+  "docs_link": "examples/connectors/generic-json-transform/README.md",
+  "conformance_cases": [
+    {
+      "id": "synthetic-generic-json-transform-valid",
+      "description": "Valid synthetic flat JSON records are normalized in dry-run mode with send disabled.",
+      "fixture_path": "examples/connectors/generic-json-transform/fixtures/observations.json",
+      "expected_result": "pass"
+    }
+  ]
+}

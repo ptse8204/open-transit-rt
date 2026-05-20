@@ -7,6 +7,7 @@
     "testdata/connectors/valid/valid-validator.json",
     "testdata/connectors/valid/valid-monitoring-export.json",
     "testdata/connectors/valid/valid-consumer-discovery.json",
+    "examples/connectors/generic-json-transform/connector.json",
     "examples/connectors/telemetry-http-poller/connector.json",
     "examples/connectors/telemetry-csv-replay/connector.json",
     "examples/connectors/telemetry-webhook-sidecar/connector.json",

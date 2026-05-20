@@ -67,6 +67,32 @@ func TestBuildDecisionBlocksUnsafeFlagsAndMissingURLs(t *testing.T) {
 	}
 }
 
+func TestBuildDecisionRejectsPrivateDiscoveryURLs(t *testing.T) {
+	metadata, err := readMetadata("fixtures/feeds.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		name string
+		url  string
+	}{
+		{name: "loopback host", url: "https://localhost/public/feeds.json"},
+		{name: "private ip", url: "https://10.0.0.2/public/feeds.json"},
+		{name: "local host", url: "https://feeds.local/public/feeds.json"},
+		{name: "userinfo", url: "https://user@example.org/public/feeds.json"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			copy := metadata
+			copy.FeedBaseURL = tt.url
+			decision := BuildDecision(copy)
+			if decision.ReadyForLocalReview || len(decision.MissingFields) == 0 {
+				t.Fatalf("decision = %+v, want private URL blocker for %s", decision, tt.url)
+			}
+		})
+	}
+}
+
 func TestReadMetadataRejectsNonSyntheticFixture(t *testing.T) {
 	tmp := t.TempDir() + "/feeds.json"
 	if err := os.WriteFile(tmp, []byte(`{"synthetic_only":false}`), 0o600); err != nil {

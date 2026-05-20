@@ -2917,7 +2917,7 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 			t.Fatalf("registry entry must remain disabled, fail-closed, and conformance-backed: %+v", entry)
 		}
 	}
-	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.generic-json-transform", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("registry ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -3092,7 +3092,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 			t.Fatalf("manifest row must remain disabled, fail-closed, and conformance-backed: %+v", row)
 		}
 	}
-	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.generic-json-transform", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("manifest ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -7836,7 +7836,7 @@ func assertOperationsHelpSafeStrings(t *testing.T, body string) {
 
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
-	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 7 {
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 8 {
 		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
 	}
 	seenCatalogIDs := map[string]bool{}
@@ -7930,7 +7930,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 8 || len(view.Recipes) != 8 || len(view.RedactionTemplates) != 5 || len(view.DryRunCommands) != 5 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ConsumerGuide.Title == "" || len(view.ConsumerGuide.Rows) != 3 || len(view.ConsumerGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 12 || view.Conformance.CaseCount != 25 || len(view.Conformance.Groups) != 5 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 7 || len(view.ManifestReview.LintChecks) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 8 || len(view.Recipes) != 8 || len(view.RedactionTemplates) != 5 || len(view.DryRunCommands) != 5 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ConsumerGuide.Title == "" || len(view.ConsumerGuide.Rows) != 3 || len(view.ConsumerGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 13 || view.Conformance.CaseCount != 25 || len(view.Conformance.Groups) != 5 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 8 || len(view.ManifestReview.LintChecks) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenDecisions := map[string]bool{}
@@ -8098,7 +8098,7 @@ func assertConnectorWorkbenchConformanceShape(t *testing.T, view connectorWorkbe
 	t.Helper()
 	wantCases := map[string]int{"telemetry": 10, "prediction": 7, "validator": 2, "monitoring": 3, "consumer_discovery": 3}
 	seen := map[string]bool{}
-	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 12 || view.CaseCount != 25 || len(view.Groups) != 5 || len(view.RunnerCommands) != 4 {
+	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 13 || view.CaseCount != 25 || len(view.Groups) != 5 || len(view.RunnerCommands) != 4 {
 		t.Fatalf("invalid connector workbench conformance view: %+v", view)
 	}
 	for _, command := range view.RunnerCommands {

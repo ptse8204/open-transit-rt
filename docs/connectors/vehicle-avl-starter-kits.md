@@ -17,6 +17,7 @@ monitoring/export, consumer/discovery, and future extension rules, see
 | CSV replay | `examples/connectors/telemetry-csv-replay` | A technical helper has a small synthetic export and wants deterministic normalization. | Dry-run summary only; no network send. |
 | GPS/API polling | `examples/connectors/telemetry-http-poller` | A deployment-owned sidecar can poll a source and normalize a batch. | Dry-run summary only; no private endpoint or token in the manifest. |
 | Webhook sidecar | `examples/connectors/telemetry-webhook-sidecar` | A deployment-owned sidecar receives webhook-style batches and transforms them before calling `/v1/telemetry`. | Dry-run summary only; no listener or send path. |
+| Generic JSON transform | `examples/connectors/generic-json-transform` | A technical helper has flat JSON records and needs an explicit field map before building a deployment-owned adapter. | Dry-run summary only; `send_enabled=false` and `network_send=false`. |
 | Synthetic-only | `scripts/telemetry-simulator.sh` and `testdata/telemetry-simulator` | Operators need local training, stale/unknown/low-quality review, or reproducible examples. | Synthetic dry-run or local simulator flow only. |
 | Vendor payload transform | `cmd/avl-vendor-adapter` and `testdata/avl-vendor` | A technical helper needs a redaction-first example for mapping vendor-shaped payloads into the telemetry event model. | Dry-run by default; send mode requires explicit manifest and environment configuration. |
 

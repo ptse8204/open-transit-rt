@@ -124,6 +124,36 @@ func TestAdapterConformanceRejectsUnsafeFixtureText(t *testing.T) {
 	}
 }
 
+func TestAdapterConformanceRejectsUnsafeFixtureJSON(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+	}{
+		{name: "private endpoint", body: `{"synthetic_only":true,"url":"https://localhost/private"}`},
+		{name: "private path", body: `{"synthetic_only":true,"artifact":"/Users/operator/feed.zip"}`},
+		{name: "secret key", body: `{"synthetic_only":true,"api_key":"redacted"}`},
+		{name: "raw command key", body: `{"synthetic_only":true,"command":"validator --feed private.zip"}`},
+	}
+	root := repoRootForTest(t)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmp, tmpRel := tempSuiteDir(t, root, "unsafe-fixture-json")
+			fixtures := filepath.Join(tmp, "fixtures")
+			copyFile(t, filepath.Join(root, "testdata", "adapter-conformance", "suite.json"), filepath.Join(tmp, "suite.json"))
+			copyDir(t, filepath.Join(root, "testdata", "adapter-conformance", "fixtures"), fixtures)
+			if err := os.WriteFile(filepath.Join(fixtures, "telemetry-stale.json"), []byte(tt.body+"\n"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+
+			var stdout, stderr bytes.Buffer
+			code := run([]string{"telemetry", "--suite", tmpRel}, &stdout, &stderr)
+			if code == 0 || !strings.Contains(stderr.String(), "forbidden text") {
+				t.Fatalf("expected unsafe fixture rejection, code=%d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+			}
+		})
+	}
+}
+
 func repoRootForTest(t *testing.T) string {
 	t.Helper()
 	root, err := repoRoot()
