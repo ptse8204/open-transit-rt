@@ -11,6 +11,15 @@ They document what the current repo can run today. They do not claim hosted prod
 
 *Exact-behavior flow diagram for `make demo-agency-flow`, rendered from a reviewed SVG spec.*
 
+## Choose By Role
+
+| Role | Start with | Use when |
+| --- | --- | --- |
+| Agency staff | [Small-Agency Acceptance Script](small-agency-acceptance-script.md) and `/admin/operations/help` | Staff need a browser-first walkthrough, next actions, and clear limits without running commands. |
+| Administrator | [Agency First Run](agency-first-run.md), [GTFS Validation Triage](gtfs-validation-triage.md), and [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md) | Setup, import, validators, device tokens, and redacted diagnostics need an owner. |
+| Deployment owner | [Self-Hosted Operator Trial](self-hosted-operator-trial.md), [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md), and [Small-Agency Maintenance Guide](small-agency-maintenance-guide.md) | The host, public base URL, backup/restore, upgrade, monitoring, or recovery posture is the blocker. |
+| Integrator | [Integration Adapter Kit](../integration-adapter-kit.md), [External Adapter Conformance](external-adapter-conformance.md), and [Device And AVL Integration](device-avl-integration.md) | Telemetry, connector, predictor, validator, monitoring, or discovery contracts need local/synthetic review. |
+
 ## Agency Operations Cockpit / Start Here
 
 - [Agency First Run](agency-first-run.md): start the full local app package and understand the outputs.
@@ -19,7 +28,6 @@ They document what the current repo can run today. They do not claim hosted prod
 - [Agency Launchpad](agency-launchpad.md): run a private authenticated launchpad workflow across setup, GTFS, metadata, feeds, telemetry, validators, readiness, connector conformance, support bundle, and decision gate.
 - [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md): run strict smoke checks and collect redaction-safe diagnostics without creating evidence.
 - [Reference Deployment Doctor](../deployment/reference-deployment-doctor.md): run read-only reference deployment diagnostics without creating evidence.
-- [Operator Smoke And Support Bundle](operator-smoke-and-support-bundle.md): review validator tooling, artifact, stale-result, and next-action diagnostics without creating evidence.
 - [Self-Hosted Operations Notifications](self-hosted-operations-notifications.md): draft a private local notification summary from existing diagnostics without sending anything.
 - [Telemetry Simulator And Device Trial](telemetry-simulator-and-device-trial.md): send synthetic telemetry through real authenticated ingest for local/reference diagnostics.
 - [Prediction And ETA Lab](prediction-eta-lab.md): review private deterministic, shadow, withheld-output, and aggregate backtest diagnostics without making ETA-quality claims.

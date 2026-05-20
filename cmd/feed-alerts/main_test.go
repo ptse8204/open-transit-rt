@@ -250,6 +250,11 @@ func TestAlertsConsoleRendersWorkflowReviewSections(t *testing.T) {
 		"GTFS-RT Alerts validation",
 		"Missing-alert hints",
 		"Public Alerts feed usefulness",
+		"draft_review",
+		"Draft alert: confirm text, affected entities, active window, cause/effect, and archive plan before publishing.",
+		"Published without active end: keep only for an intentionally reviewed open-ended disruption.",
+		"start_date=20260421 start_time=08:00:00",
+		"Fix the highlighted window, scope, or cancellation-pairing issue, then validate the Alerts feed.",
 		"external_evidence_created",
 		"consumer_statuses_changed",
 		"browser_external_contact_enabled",
@@ -312,6 +317,49 @@ func TestAlertsConsoleCreatePublishArchiveAndRoleBoundary(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	if rr.Code != http.StatusSeeOther || !store.reconciled || store.reconcileAgency != "demo-agency" {
 		t.Fatalf("reconcile status = %d reconciled=%v agency=%q, want 303 demo-agency", rr.Code, store.reconciled, store.reconcileAgency)
+	}
+}
+
+func TestAlertsConsoleRejectsUnsafeAuthoringInputs(t *testing.T) {
+	tests := []struct {
+		name string
+		form string
+		want string
+	}{
+		{
+			name: "reversed window",
+			form: "agency_id=demo-agency&alert_key=a1&header_text=Alert&active_start=2026-05-20T14%3A00%3A00Z&active_end=2026-05-20T12%3A00%3A00Z",
+			want: "active_end must be after active_start",
+		},
+		{
+			name: "invalid RFC3339 window",
+			form: "agency_id=demo-agency&alert_key=a1&header_text=Alert&active_start=tomorrow",
+			want: "active_start must be RFC3339",
+		},
+		{
+			name: "trip date without trip selector",
+			form: "agency_id=demo-agency&alert_key=a1&header_text=Alert&route_id=r1&start_date=20260520",
+			want: "requires trip_id",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := &fakeAlertStore{}
+			handler := newHandler(&fakeAlertsBuilder{}, store, okPinger{})
+			req := httptest.NewRequest(http.MethodPost, "/admin/alerts/console", strings.NewReader(tt.form))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want rendered form with error: %s", rr.Code, rr.Body.String())
+			}
+			if !strings.Contains(rr.Body.String(), tt.want) {
+				t.Fatalf("body missing %q: %s", tt.want, rr.Body.String())
+			}
+			if store.upsert.AlertKey != "" {
+				t.Fatalf("unsafe alert was upserted: %+v", store.upsert)
+			}
+		})
 	}
 }
 

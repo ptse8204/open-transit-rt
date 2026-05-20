@@ -402,11 +402,10 @@ func parseJSON(text string) (any, bool) {
 	if start < 0 {
 		return nil, false
 	}
-	for end := len(trimmed); end > start; end-- {
-		var candidate any
-		if err := json.Unmarshal([]byte(trimmed[start:end]), &candidate); err == nil {
-			return candidate, true
-		}
+	decoder := json.NewDecoder(strings.NewReader(trimmed[start:]))
+	var candidate any
+	if err := decoder.Decode(&candidate); err == nil {
+		return candidate, true
 	}
 	return nil, false
 }

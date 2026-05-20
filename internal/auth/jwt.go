@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"open-transit-rt/internal/tenant"
 )
 
 const (
@@ -133,6 +135,9 @@ func (v *Verifier) validateClaims(claims Claims) error {
 	if claims.Subject == "" || claims.AgencyID == "" || claims.IssuedAt == 0 || claims.Expires == 0 || claims.Issuer == "" || claims.Audience == "" {
 		return ErrInvalidToken
 	}
+	if err := tenant.ValidateAgencyID(claims.AgencyID); err != nil {
+		return ErrInvalidToken
+	}
 	if claims.Issuer != v.config.Issuer || claims.Audience != v.config.Audience {
 		return ErrInvalidToken
 	}
@@ -163,6 +168,9 @@ func NewSigner(config JWTConfig) (*Signer, error) {
 func (s *Signer) Sign(subject string, agencyID string, ttl time.Duration) (string, Claims, error) {
 	if subject == "" || agencyID == "" {
 		return "", Claims{}, fmt.Errorf("subject and agency_id are required")
+	}
+	if err := tenant.ValidateAgencyID(agencyID); err != nil {
+		return "", Claims{}, fmt.Errorf("agency_id must be path-safe: %w", err)
 	}
 	if ttl <= 0 {
 		ttl = s.config.TTL

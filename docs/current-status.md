@@ -10,6 +10,27 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
+Phase 141 through Phase 160 of the better-software roadmap are complete. The
+closeout is recorded at
+`docs/roadmaps/better-software-phase-141-160-closeout.md`.
+
+The completed roadmap added executable product-quality gates, cleaner primary
+Operations Console UI, a unified operator issue center, safer GTFS import/diff
+review, validation fix guidance, telemetry and device hardening, clearer
+Vehicle Positions and Trip Updates diagnostics, practical Alerts workflow,
+connector runtime examples and health review, redacted monitoring exports,
+self-hosted recovery guidance, stronger tenant/role boundaries, public feed
+discovery and sharing prep, support bundle redaction, role-based help, explicit
+API/feed/extension contracts, and a refreshed release-candidate gate. The
+product-quality backlog remains in `docs/roadmap-status.md`.
+
+The recommended next software track is deeper realtime correctness: observed
+arrival/departure evaluation, delay propagation, cancellations, frequency
+service, after-midnight service, block continuity, repeated trip instances, and
+conservative Trip Updates quality measures. Release publication, real connector
+runtime hardening with deployment data, and evidence tracks remain separately
+authorization-gated.
+
 Post-rc2 Browser-First Product Roadmap phases 01 through 15 are complete.
 The closeout is recorded at
 `docs/roadmaps/post-rc2-browser-first-product/closeout.md`.

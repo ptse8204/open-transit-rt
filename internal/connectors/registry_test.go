@@ -13,8 +13,8 @@ func TestLoadExampleRegistryReturnsCommittedExampleManifests(t *testing.T) {
 	if len(registry.Diagnostics) != 0 {
 		t.Fatalf("LoadExampleRegistry diagnostics = %+v", registry.Diagnostics)
 	}
-	if len(registry.Entries) != 7 {
-		t.Fatalf("entries = %d, want 7: %+v", len(registry.Entries), registry.Entries)
+	if len(registry.Entries) != 8 {
+		t.Fatalf("entries = %d, want 8: %+v", len(registry.Entries), registry.Entries)
 	}
 
 	var ids []string

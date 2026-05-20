@@ -32,6 +32,7 @@ type ingestResponse struct {
 	VehicleID    string                 `json:"vehicle_id"`
 	ObservedAt   time.Time              `json:"observed_at"`
 	ReceivedAt   time.Time              `json:"received_at"`
+	QualityFlags []string               `json:"quality_flags,omitempty"`
 }
 
 type adminAuth interface {
@@ -104,9 +105,9 @@ func newHandlerWithSecurity(repo telemetry.Repository, deviceStore devices.Store
 			return
 		}
 
-		evt, payload, err := decodeTelemetryPayload(w, r)
+		evt, payload, qualityFlags, err := decodeTelemetryPayload(w, r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), telemetryRequestErrorStatus(err))
 			return
 		}
 		if requireDeviceToken {
@@ -147,6 +148,7 @@ func newHandlerWithSecurity(repo telemetry.Repository, deviceStore devices.Store
 			VehicleID:    result.VehicleID,
 			ObservedAt:   result.Timestamp,
 			ReceivedAt:   result.ReceivedAt,
+			QualityFlags: qualityFlags,
 		})
 	})
 
@@ -193,25 +195,50 @@ func (acceptingDeviceStore) ListBindings(context.Context, string) ([]devices.Bin
 	return nil, nil
 }
 
-func decodeTelemetryPayload(w http.ResponseWriter, r *http.Request) (telemetry.Event, json.RawMessage, error) {
+type telemetryRequestError struct {
+	status  int
+	message string
+}
+
+func (e telemetryRequestError) Error() string {
+	return e.message
+}
+
+func telemetryRequestErrorStatus(err error) int {
+	var requestErr telemetryRequestError
+	if errors.As(err, &requestErr) && requestErr.status != 0 {
+		return requestErr.status
+	}
+	return http.StatusBadRequest
+}
+
+func decodeTelemetryPayload(w http.ResponseWriter, r *http.Request) (telemetry.Event, json.RawMessage, []string, error) {
 	raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxTelemetryPayloadBytes))
 	if err != nil {
-		return telemetry.Event{}, nil, fmt.Errorf("invalid json")
+		var maxErr *http.MaxBytesError
+		if errors.As(err, &maxErr) {
+			return telemetry.Event{}, nil, nil, telemetryRequestError{status: http.StatusRequestEntityTooLarge, message: "telemetry payload too large"}
+		}
+		return telemetry.Event{}, nil, nil, telemetryRequestError{status: http.StatusBadRequest, message: "invalid json"}
 	}
 
 	var parsed any
 	if err := json.Unmarshal(raw, &parsed); err != nil {
-		return telemetry.Event{}, nil, fmt.Errorf("invalid json")
+		return telemetry.Event{}, nil, nil, telemetryRequestError{status: http.StatusBadRequest, message: "invalid json"}
 	}
 
 	var evt telemetry.Event
 	if err := json.Unmarshal(raw, &evt); err != nil {
-		return telemetry.Event{}, nil, fmt.Errorf("invalid telemetry payload")
+		return telemetry.Event{}, nil, nil, telemetryRequestError{status: http.StatusBadRequest, message: "invalid telemetry payload"}
 	}
 	if !evt.Valid() {
-		return telemetry.Event{}, nil, fmt.Errorf("invalid telemetry payload")
+		return telemetry.Event{}, nil, nil, telemetryRequestError{status: http.StatusBadRequest, message: "invalid telemetry payload"}
 	}
-	return evt, append(json.RawMessage(nil), raw...), nil
+	qualityFlags := evt.QualityFlags(time.Now().UTC())
+	if telemetry.HasQualityFlag(qualityFlags, telemetry.QualityFlagFutureTimestamp) {
+		return telemetry.Event{}, nil, nil, telemetryRequestError{status: http.StatusBadRequest, message: "invalid telemetry payload: timestamp is too far in the future"}
+	}
+	return evt, append(json.RawMessage(nil), raw...), qualityFlags, nil
 }
 
 func bearerToken(r *http.Request) string {

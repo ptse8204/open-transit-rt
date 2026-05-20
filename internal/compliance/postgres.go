@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"sort"
 	"strings"
@@ -1150,13 +1151,21 @@ func evaluateReadiness(cfg feedConfig, feeds []FeedMetadata) Readiness {
 	licenseComplete := cfg.LicenseName != "" && cfg.LicenseURL != ""
 	contactComplete := cfg.TechnicalContactEmail != ""
 	canonicalValidationComplete := true
+	activeScheduleListed := false
+	realtimeFeedsListed := true
 	for _, feedType := range RequiredFeedTypes {
 		feed, ok := feedMap[feedType]
 		if !ok || feed.CanonicalPublicURL == "" {
 			allRequired = false
 			httpsURLs = false
 			canonicalValidationComplete = false
+			if feedType != "schedule" {
+				realtimeFeedsListed = false
+			}
 			continue
+		}
+		if feedType == "schedule" && strings.EqualFold(feed.ActivationStatus, "active") && strings.TrimSpace(feed.ActiveFeedVersionID) != "" {
+			activeScheduleListed = true
 		}
 		parsed, err := url.Parse(feed.CanonicalPublicURL)
 		if err != nil || parsed.Scheme != "https" {
@@ -1177,13 +1186,35 @@ func evaluateReadiness(cfg feedConfig, feeds []FeedMetadata) Readiness {
 		discoverable = discoverable && httpsURLs && canonicalValidationComplete
 	}
 	return Readiness{
-		Discoverable:                discoverable,
-		HTTPSURLs:                   httpsURLs,
-		LicenseComplete:             licenseComplete,
-		ContactComplete:             contactComplete,
-		AllRequiredFeedsListed:      allRequired,
-		CanonicalValidationComplete: canonicalValidationComplete,
+		Discoverable:                     discoverable,
+		HTTPSURLs:                        httpsURLs,
+		LicenseComplete:                  licenseComplete,
+		ContactComplete:                  contactComplete,
+		AllRequiredFeedsListed:           allRequired,
+		CanonicalValidationComplete:      canonicalValidationComplete,
+		StablePublicBaseURL:              stablePublicBaseURL(cfg.PublicBaseURL),
+		PublicationEnvironmentConfigured: strings.TrimSpace(cfg.PublicationEnvironment) != "",
+		ActiveScheduleListed:             activeScheduleListed,
+		RealtimeFeedsListed:              realtimeFeedsListed,
 	}
+}
+
+func stablePublicBaseURL(raw string) bool {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" || parsed.User != nil || parsed.RawQuery != "" || parsed.Fragment != "" {
+		return false
+	}
+	host := strings.ToLower(parsed.Hostname())
+	if host == "localhost" || strings.HasSuffix(host, ".local") {
+		return false
+	}
+	if ip := net.ParseIP(host); ip != nil {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsUnspecified() {
+			return false
+		}
+		return true
+	}
+	return strings.Contains(host, ".")
 }
 
 func canonicalURLs(publicBaseURL string, feedBaseURL string) map[string]string {

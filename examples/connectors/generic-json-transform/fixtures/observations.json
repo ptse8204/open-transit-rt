@@ -1,0 +1,44 @@
+{
+  "synthetic_only": true,
+  "send_enabled": false,
+  "timeout_seconds": 5,
+  "field_map": {
+    "agency_id": "agency",
+    "device_id": "device",
+    "vehicle_id": "vehicle",
+    "timestamp": "observed_at",
+    "latitude": "lat",
+    "longitude": "lon",
+    "quality": "quality"
+  },
+  "records": [
+    {
+      "agency": "agency-demo",
+      "device": "device-201",
+      "vehicle": "vehicle-201",
+      "observed_at": "2026-05-10T15:00:00Z",
+      "lat": 34.05221,
+      "lon": -118.24368,
+      "quality": 0.96,
+      "operator_note": "redacted synthetic note"
+    },
+    {
+      "agency": "agency-demo",
+      "device": "device-202",
+      "vehicle": "vehicle-202",
+      "observed_at": "2026-05-10T15:00:10Z",
+      "lat": 34.05192,
+      "lon": -118.24411,
+      "quality": 0.94
+    },
+    {
+      "agency": "agency-demo",
+      "device": "device-low",
+      "vehicle": "vehicle-low",
+      "observed_at": "2026-05-10T15:00:20Z",
+      "lat": 34.0517,
+      "lon": -118.2445,
+      "quality": 0.12
+    }
+  ]
+}

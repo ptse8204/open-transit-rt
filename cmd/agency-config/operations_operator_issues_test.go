@@ -19,18 +19,38 @@ func TestOperationsIssueCenterPrioritizesDeduplicatesAndSummarizesRealtime(t *te
 		t.Fatalf("issue center did not expose issues: %+v", center.Counts)
 	}
 	seen := map[string]bool{}
+	seenKeys := map[string]bool{}
+	seenSources := map[string]bool{}
 	for _, issue := range center.Issues {
 		if seen[issue.ID] {
 			t.Fatalf("duplicate issue id %q in %+v", issue.ID, center.Issues)
 		}
 		seen[issue.ID] = true
-		if issue.Owner == "" || issue.WhyItMatters == "" || issue.NextAction == "" || issue.SourceSignal == "" {
-			t.Fatalf("issue missing required operator fields: %+v", issue)
+		if seenKeys[issue.DeduplicationKey] {
+			t.Fatalf("duplicate issue dedupe key %q in %+v", issue.DeduplicationKey, center.Issues)
+		}
+		seenKeys[issue.DeduplicationKey] = true
+		seenSources[issue.Source] = true
+		if issue.Owner == "" || issue.CurrentSignal == "" || issue.WhyItMatters == "" || issue.NextAction == "" || issue.RouteLink == "" || issue.Source == "" || issue.Freshness == "" || issue.DeduplicationKey == "" {
+			t.Fatalf("issue missing required V2 operator fields: %+v", issue)
+		}
+		if !strings.HasPrefix(issue.RouteLink, "/admin/") {
+			t.Fatalf("issue route link is not private admin route: %+v", issue)
+		}
+		switch issue.Owner {
+		case "operator", "administrator", "deployment owner", "developer/integrator":
+		default:
+			t.Fatalf("issue owner = %q, want plain owner category: %+v", issue.Owner, issue)
 		}
 	}
 	for _, want := range []string{"feed_trip_updates", "realtime_fleet"} {
 		if !seen[want] {
 			t.Fatalf("issue center missing %q in %+v", want, center.Issues)
+		}
+	}
+	for _, wantSource := range []string{"Feed Health", "Validation Center", "Realtime", "Devices", "Readiness", "Maintenance"} {
+		if !seenSources[wantSource] {
+			t.Fatalf("issue center missing source %q in %+v", wantSource, center.Issues)
 		}
 	}
 	if center.Issues[0].Severity != checklistStatusMissing {
@@ -70,7 +90,7 @@ func TestOperationsDashboardAndRealtimeShowIssueCenter(t *testing.T) {
 	enableIssueCenterValidatorTools(t)
 	store := issueCenterTestStore(t)
 	srv := issueCenterTestServer(store)
-	for _, path := range []string{"/admin/operations", "/admin/operations/feed-health", "/admin/operations/realtime"} {
+	for _, path := range []string{"/admin/operations", "/admin/operations/launchpad", "/admin/operations/feed-health", "/admin/operations/validation-center", "/admin/operations/realtime"} {
 		req := httptest.NewRequest(http.MethodGet, path, nil)
 		rr := httptest.NewRecorder()
 		srv.ServeHTTP(rr, req)
@@ -82,19 +102,62 @@ func TestOperationsDashboardAndRealtimeShowIssueCenter(t *testing.T) {
 			t.Fatalf("dashboard missing issue center: %s", body)
 		}
 		if path == "/admin/operations" {
-			for _, want := range []string{"Owner", "Why it matters", "Fix Trip Updates", "Review vehicle freshness", "All issue rows", "#all-operator-issues"} {
+			for _, want := range []string{"Owner", "Current signal", "Why it matters", "Source", "Freshness", "Fix Trip Updates", "Review vehicle freshness", "All issue rows", "#all-operator-issues"} {
 				if !strings.Contains(body, want) {
 					t.Fatalf("dashboard missing %q: %s", want, body)
 				}
 			}
 		}
+		if path == "/admin/operations/launchpad" {
+			for _, want := range []string{"Operator Issue Center", "Dedupe key", "Fix Trip Updates", "Review vehicle freshness"} {
+				if !strings.Contains(body, want) {
+					t.Fatalf("launchpad missing %q: %s", want, body)
+				}
+			}
+		}
 		if path == "/admin/operations/feed-health" || path == "/admin/operations/realtime" {
-			for _, want := range []string{"GTFS-RT Usefulness", "Vehicle Positions", "Trip Updates", "Alerts", "missing", "publishable"} {
+			for _, want := range []string{"Open issue center", "GTFS-RT Usefulness", "Vehicle Positions", "Trip Updates", "Alerts", "missing", "publishable"} {
 				if !strings.Contains(body, want) {
 					t.Fatalf("%s missing %q: %s", path, want, body)
 				}
 			}
 		}
+		if path == "/admin/operations/validation-center" && !strings.Contains(body, "Open issue center") {
+			t.Fatalf("validation center missing issue center link: %s", body)
+		}
+	}
+}
+
+func TestOperationsIssueCenterDeduplicatesByStableKey(t *testing.T) {
+	builder := operatorIssueBuilder{seen: map[string]bool{}}
+	builder.add(operationsOperatorIssue{
+		ID:               "feed_trip_updates",
+		Label:            "Fix Trip Updates",
+		Severity:         checklistStatusMissing,
+		Owner:            "developer/integrator",
+		CurrentSignal:    "missing feed row",
+		WhyItMatters:     "Trip Updates should not be relied on when missing.",
+		NextAction:       "Open feed health.",
+		RouteLink:        "/admin/operations/feed-health",
+		Source:           "Feed Health",
+		Freshness:        "generated 2026-05-19T12:00:00Z",
+		DeduplicationKey: "trip_updates_missing",
+	})
+	builder.add(operationsOperatorIssue{
+		ID:               "validation_trip_updates",
+		Label:            "Trip Updates validation",
+		Severity:         checklistStatusMissing,
+		Owner:            "developer/integrator",
+		CurrentSignal:    "same missing Trip Updates blocker",
+		WhyItMatters:     "Duplicate source row should collapse.",
+		NextAction:       "Open validation center.",
+		RouteLink:        "/admin/operations/validation-center",
+		Source:           "Validation Center",
+		Freshness:        "generated 2026-05-19T12:00:00Z",
+		DeduplicationKey: "trip_updates_missing",
+	})
+	if len(builder.issues) != 1 {
+		t.Fatalf("dedupe by stable key kept %d rows, want 1: %+v", len(builder.issues), builder.issues)
 	}
 }
 

@@ -13,6 +13,7 @@ type operationsHelpView struct {
 	GeneratedAt     time.Time                     `json:"generated_at"`
 	AgencyID        string                        `json:"agency_id"`
 	Boundary        string                        `json:"boundary"`
+	RolePaths       []operationsHelpRolePath      `json:"role_paths"`
 	RoleTours       []operationsHelpRoleTour      `json:"role_tours"`
 	FirstWeek       []operationsHelpFirstWeekItem `json:"first_week_checklist"`
 	Glossary        []operationsHelpGlossaryTerm  `json:"glossary"`
@@ -26,6 +27,18 @@ type operationsHelpView struct {
 	Topics          []operationsHelpTopic         `json:"topics"`
 	ContextualHelp  operationsContextHelp         `json:"contextual_help"`
 	ClaimFlags      operationsHelpClaimFlags      `json:"claim_flags"`
+}
+
+type operationsHelpRolePath struct {
+	ID          string `json:"id"`
+	Label       string `json:"label"`
+	UseWhen     string `json:"use_when"`
+	StartHere   string `json:"start_here"`
+	DoFirst     string `json:"do_first"`
+	ThenReview  string `json:"then_review"`
+	AskWhen     string `json:"ask_when"`
+	DoNotDo     string `json:"do_not_do"`
+	DoesNotShow string `json:"does_not_show"`
 }
 
 type operationsHelpRoleTour struct {
@@ -223,6 +236,7 @@ func buildOperationsHelpView(generatedAt time.Time, agencyID string, section str
 		GeneratedAt:     generatedAt,
 		AgencyID:        agencyID,
 		Boundary:        "Private authenticated Operations Console help only. Viewing it is read-only guidance: it creates no evidence, contacts no outside party, changes no consumer status, and records no approval or outside outcome.",
+		RolePaths:       operationsHelpRolePaths(),
 		RoleTours:       operationsHelpRoleTours(),
 		FirstWeek:       operationsHelpFirstWeekChecklist(),
 		Glossary:        operationsHelpGlossary(),
@@ -236,6 +250,55 @@ func buildOperationsHelpView(generatedAt time.Time, agencyID string, section str
 		Topics:          topics,
 		ContextualHelp:  context,
 		ClaimFlags:      operationsHelpClaimFlags{},
+	}
+}
+
+func operationsHelpRolePaths() []operationsHelpRolePath {
+	return []operationsHelpRolePath{
+		helpRolePath(
+			"agency_staff",
+			"Agency staff",
+			"Use this path when someone needs to understand what is missing, stale, blocked, or ready without running commands.",
+			"/admin/operations",
+			"Open Start and Issue Center, then follow the first linked next action.",
+			"Review Agency Setup, Feed Links & Health, Realtime Center, and Help only as browser guidance.",
+			"Ask an administrator when a row needs startup, import, validator tooling, device setup, backup, or deployment changes.",
+			"Do not copy tokens, raw logs, private GTFS, private URLs, or screenshots with private details into notes.",
+			"This path does not show approval, public launch, compliance, consumer acceptance, or production readiness.",
+		),
+		helpRolePath(
+			"administrator",
+			"Administrator",
+			"Use this path when setup, import, validators, devices, support bundles, or local diagnostic commands need an owner.",
+			"/admin/operations/setup-wizard",
+			"Review the setup stage that owns the blocker before running any command.",
+			"Use GTFS Workbench, Validation Health, Devices, Connectors, Maintenance, and Support Bundle guidance.",
+			"Ask a maintainer before evidence retention, release packaging, schema changes, external contact, or destructive recovery.",
+			"Do not paste credentials, database URLs, raw payloads, private paths, or unredacted command output into the browser.",
+			"This path does not show managed support, release readiness, hosted-service availability, SLA, or outside acceptance.",
+		),
+		helpRolePath(
+			"deployment_owner",
+			"Deployment owner",
+			"Use this path when the host, public base URL, backup/restore, upgrade, monitoring, or recovery posture is the likely blocker.",
+			"/admin/operations/maintenance",
+			"Review Maintenance and Reliability before changing service, proxy, database, or backup settings.",
+			"Run deployment-doctor, support-bundle, validate-public-feeds, and monitoring exports from an operator shell when safe.",
+			"Ask for written authorization before retaining evidence, contacting portals, changing consumer statuses, or publishing releases.",
+			"Do not expose private admin routes, weaken auth, or share local paths, endpoint names, webhook URLs, or raw logs.",
+			"This path does not show production hosting, uptime, SLA coverage, final-root ownership, or public-service launch.",
+		),
+		helpRolePath(
+			"integrator",
+			"Integrator",
+			"Use this path when telemetry, connector, predictor, validator, monitoring, or discovery contracts need a local/synthetic test plan.",
+			"/admin/operations/connectors/workbench",
+			"Choose the closest connector recipe and inspect synthetic conformance expectations first.",
+			"Review Connector Tests, Telemetry Simulator, Prediction & ETA Lab, external adapter conformance, and API boundaries.",
+			"Ask for separate authorization before real credentials, real vendor payloads, live endpoints, or network sends are introduced.",
+			"Do not claim named vendor compatibility, hardware certification, field reliability, or ETA quality from local fixtures.",
+			"This path does not show live integration fitness, vendor acceptance, equipment certification, or real-world ETA accuracy.",
+		),
 	}
 }
 
@@ -464,6 +527,20 @@ func safeFixtureLinks(values []string) []string {
 		out = append(out, trimmed)
 	}
 	return out
+}
+
+func helpRolePath(id string, label string, useWhen string, startHere string, doFirst string, thenReview string, askWhen string, doNotDo string, doesNotShow string) operationsHelpRolePath {
+	return operationsHelpRolePath{
+		ID:          id,
+		Label:       label,
+		UseWhen:     useWhen,
+		StartHere:   helpAdminLink(startHere),
+		DoFirst:     doFirst,
+		ThenReview:  thenReview,
+		AskWhen:     askWhen,
+		DoNotDo:     doNotDo,
+		DoesNotShow: doesNotShow,
+	}
 }
 
 func helpRoleTour(id string, label string, who string, startHere string, reviewFirst string, firstActions string, escalate string, doesNotProve string, adminLinks []string, docsLinks []string) operationsHelpRoleTour {

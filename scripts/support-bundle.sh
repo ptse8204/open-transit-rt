@@ -22,6 +22,7 @@ usage() {
   cat <<'EOF'
 Usage:
   scripts/support-bundle.sh
+  scripts/support-bundle.sh --self-test-redaction
 
 Environment:
   PUBLIC_BASE_URL                 Public feed root, default http://localhost:8080
@@ -40,6 +41,7 @@ Safety:
   This helper records redaction-safe diagnostics only.
   Cookie auth is not supported.
   Tokens, Authorization headers, cookies, JWTs, CSRF values, raw .env files, and DB passwords are never written.
+  The self-test mode exercises the sanitizer and generated-bundle scan without contacting services.
 EOF
 }
 
@@ -144,6 +146,46 @@ print(out)
 PY
 }
 
+support_bundle_ref() {
+  python3 - "$ROOT_DIR" "${OUT_REAL:-}" "$OUTPUT_DIR" <<'PY'
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1]).resolve()
+out_arg = sys.argv[2] or sys.argv[3]
+out = pathlib.Path(out_arg)
+if not out.is_absolute():
+    out = root / out
+out = out.resolve(strict=False)
+cache = (root / ".cache" / "support-bundles").resolve(strict=False)
+try:
+    rel = out.relative_to(cache)
+    print(f".cache/support-bundles/{rel.as_posix()}")
+except ValueError:
+    print(f"<support-bundle-output>/{out.name}")
+PY
+}
+
+url_path_ref() {
+  python3 - "$1" <<'PY'
+import sys
+from urllib.parse import urlsplit
+
+raw = sys.argv[1].strip()
+if not raw:
+    print("not_recorded")
+    raise SystemExit
+parts = urlsplit(raw)
+if parts.scheme not in ("http", "https") or not parts.netloc:
+    print("<redacted-url>")
+    raise SystemExit
+path = parts.path or "/"
+if parts.query:
+    path = f"{path}?<redacted-query>"
+print(path)
+PY
+}
+
 prepare_output_dir() {
   if [ -L "$OUTPUT_DIR" ]; then
     fail "OUTPUT_DIR must not be a symlink: $OUTPUT_DIR"
@@ -198,7 +240,7 @@ record_versions() {
   {
     printf 'generated_at_utc=%s\n' "$TIMESTAMP"
     printf 'uname='
-    uname -a 2>/dev/null || printf 'unavailable\n'
+    uname -srm 2>/dev/null || printf 'unavailable\n'
     printf 'go='
     if command -v go >/dev/null 2>&1; then go version; else printf 'unavailable\n'; fi
     printf 'git='
@@ -272,7 +314,9 @@ record_public_probe() {
     printf 'sha256=%s\n' "$sha"
     printf 'outcome=%s\n' "$outcome"
     printf 'curl_exit=%s\n' "$curl_exit"
-    sed -n '/^url_effective=/p;/^num_redirects=/p;/^content_type=/p' "$meta"
+    effective="$(sed -n 's/^url_effective=//p' "$meta" | tail -n 1)"
+    printf 'url_effective_path=%s\n' "$(url_path_ref "$effective")"
+    sed -n '/^num_redirects=/p;/^content_type=/p' "$meta"
   } >"$OUT_REAL/public/$label.summary"
   rm -f "$tmp" "$meta" "$headers"
 }
@@ -385,10 +429,12 @@ PY
 record_validator_tooling() {
   log "Record validator tooling status"
   mkdir -p "$OUT_REAL/validators"
+  raw="$TMP_DIR/validator-tooling.raw"
   set +e
-  ./scripts/check-validators.sh >"$OUT_REAL/validators/tooling.txt" 2>&1
+  ./scripts/check-validators.sh >"$raw" 2>&1
   rc=$?
   set -e
+  sanitize_file "$raw" "$OUT_REAL/validators/tooling.txt"
   case "$rc" in
     0) VALIDATOR_TOOLING_STATUS="passed" ;;
     11) VALIDATOR_TOOLING_STATUS="missing" ;;
@@ -410,10 +456,17 @@ import sys
 src, dst = sys.argv[1:3]
 text = open(src, encoding="utf-8", errors="replace").read()
 patterns = [
-    (re.compile(r"postgres://[^:\s/]+:[^@\s]+@", re.I), "postgres://<redacted-user>:<redacted-password>@"),
-    (re.compile(r"(?i)(Authorization:\s*Bearer\s+)[A-Za-z0-9._~+/=-]+"), r"\1<redacted>"),
-    (re.compile(r"(?i)(Cookie:\s*)[^\n\r]+"), r"\1<redacted>"),
-    (re.compile(r"(?i)(DATABASE_URL\s*=\s*)[^\n\r]+"), r"\1<redacted>"),
+    (re.compile(r"(?i)(DATABASE_URL\s*[:=]\s*)[^\n\r]+"), r"\1<redacted>"),
+    (re.compile(r"(?i)(\"(?:token|secret|password|authorization|cookie|api_key|webhook_url|database_url|private_key)\"\s*:\s*\")[^\"]+"), r"\1<redacted>"),
+    (re.compile(r"(?i)((?:[A-Z0-9_]*)(?:TOKEN|SECRET|PASSWORD|PRIVATE_KEY|WEBHOOK_URL|API_KEY|DATABASE_URL|DEVICE_TOKEN|ADMIN_TOKEN)(?:[A-Z0-9_]*)\s*[:=]\s*)[^\n\r,}]+"), r"\1<redacted>"),
+    (re.compile(r"(?i)(Authorization|Proxy-Authorization):\s*(?:Bearer|Basic)\s+[^\n\r]+"), r"\1: <redacted>"),
+    (re.compile(r"(?i)(Cookie|Set-Cookie|X-Api-Key|Api-Key|X-Webhook-Signature):\s*[^\n\r]+"), r"\1: <redacted>"),
+    (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{8,}"), "Bearer <redacted>"),
+    (re.compile(r"(?i)\bBasic\s+[A-Za-z0-9._~+/=-]{8,}"), "Basic <redacted>"),
+    (re.compile(r"(?i)(?:postgres|postgresql|mysql|mariadb|mongodb|redis)://[^\s\"'<>]+"), "<redacted-db-url>"),
+    (re.compile(r"(?i)https?://[^/\s:@]+:[^@\s]+@[^\s\"'<>]+"), "https://<redacted-user>:<redacted-password>@<redacted-host>"),
+    (re.compile(r"(?i)https://[^\s]*(?:hooks|webhook|discord|slack)[^\s]*(?:token|secret|key|/services/)[^\s]*"), "<redacted-webhook-url>"),
+    (re.compile(r"(?:(?<=\s)|(?<==)|^)(?:/Users/|/home/|/private/|/var/lib/|/etc/|[A-Za-z]:\\\\Users\\\\)[^\s\"']+"), "<redacted-private-path>"),
 ]
 for pattern, repl in patterns:
     text = pattern.sub(repl, text)
@@ -479,27 +532,32 @@ run_avl_dry_run() {
     printf 'status=%s\n' "$AVL_STATUS" >"$OUT_REAL/avl/summary"
     return 0
   fi
+  raw_stdout="$TMP_DIR/avl-telemetry.raw"
+  raw_stderr="$TMP_DIR/avl-diagnostics.raw"
   if go run ./cmd/avl-vendor-adapter --dry-run \
       --reference-time 2026-05-04T12:00:00Z \
       --mapping testdata/avl-vendor/mapping.json \
       testdata/avl-vendor/minimal-gps.json \
-      >"$OUT_REAL/avl/telemetry.json" \
-      2>"$OUT_REAL/avl/diagnostics.json"; then
+      >"$raw_stdout" \
+      2>"$raw_stderr"; then
     AVL_STATUS="passed"
   else
     AVL_STATUS="failed"
   fi
+  sanitize_file "$raw_stdout" "$OUT_REAL/avl/telemetry.json"
+  sanitize_file "$raw_stderr" "$OUT_REAL/avl/diagnostics.json"
   printf 'status=%s\nstdout=telemetry.json\nstderr=diagnostics.json\n' "$AVL_STATUS" >"$OUT_REAL/avl/summary"
 }
 
 write_manifest() {
+  bundle_ref="$(support_bundle_ref)"
   cat >"$OUT_REAL/manifest.md" <<EOF
 # Support Bundle Manifest
 
-- Output directory: \`$OUT_REAL\`
+- Output reference: \`$bundle_ref\`
 - Created at UTC: \`$TIMESTAMP\`
 - Included: command/runtime versions, git commit and dirty/clean state, public feed status/size/checksum summaries, unauthenticated admin boundary status, optional authenticated readiness summary, validator tooling status, local health summaries, optional sanitized migration status, synthetic AVL dry-run status.
-- Excluded: credential values, admin bearer values, auth headers, cookie values, JWT values, CSRF values, raw private telemetry, private vendor payloads, raw database dumps, raw environment files, private key material, ACME material, notification credentials, unredacted logs, and private operator payloads.
+- Excluded: credential values, admin bearer values, auth headers, cookie values, JWT values, CSRF values, private telemetry records, vendor payload contents, database dumps, environment files, private key material, ACME material, notification credentials, log files, and private operator payload contents.
 - Full validation reports are not stored by this support bundle.
 - external_evidence_created=false
 - consumer_statuses_changed=false
@@ -507,6 +565,7 @@ EOF
   cat >"$OUT_REAL/manifest.json" <<EOF
 {
   "created_at_utc": "$TIMESTAMP",
+  "output_ref": "$bundle_ref",
   "external_evidence_created": false,
   "consumer_statuses_changed": false,
   "included": [
@@ -522,12 +581,12 @@ EOF
   ],
   "excluded": [
     "credential values",
-    "raw telemetry",
-    "private vendor payloads",
-    "raw database dumps",
-    "raw environment files",
+    "private telemetry records",
+    "vendor payload contents",
+    "database dumps",
+    "environment files",
     "private key material",
-    "unredacted logs"
+    "log files"
   ]
 }
 EOF
@@ -535,7 +594,8 @@ EOF
 
 redaction_scan() {
   log "Run generated bundle redaction scan"
-  python3 - "$OUT_REAL" <<'PY'
+  scan_root="${1:-$OUT_REAL}"
+  python3 - "$scan_root" <<'PY'
 import pathlib
 import re
 import sys
@@ -543,12 +603,18 @@ import sys
 root = pathlib.Path(sys.argv[1])
 patterns = [
     ("authorization_bearer", re.compile(r"Authorization:\s*Bearer\s+[A-Za-z0-9._~+/=-]{8,}", re.I)),
+    ("generic_bearer_token", re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]{8,}", re.I)),
+    ("basic_auth_token", re.compile(r"\bBasic\s+[A-Za-z0-9._~+/=-]{8,}", re.I)),
     ("jwt_like_value", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b")),
-    ("postgres_password_url", re.compile(r"postgres(?:ql)?://[^:\s/]+:[^@\s]+@", re.I)),
+    ("db_password_url", re.compile(r"(?:postgres|postgresql|mysql|mariadb|mongodb|redis)://[^:\s/@]+:[^@\s]+@", re.I)),
+    ("url_userinfo", re.compile(r"https?://[^/\s:@]+:[^@\s]+@", re.I)),
     ("private_key", re.compile(r"BEGIN [A-Z ]*PRIVATE KEY")),
-    ("cookie_header", re.compile(r"^Cookie:\s*\S+", re.I | re.M)),
-    ("env_secret_assignment", re.compile(r"^(?:[A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PRIVATE_KEY|WEBHOOK)[A-Z0-9_]*)\s*=\s*\S+", re.I | re.M)),
+    ("sensitive_header", re.compile(r"^(?:Cookie|Set-Cookie|Authorization|Proxy-Authorization|X-Api-Key|Api-Key|X-Webhook-Signature):\s*(?!<redacted>)\S+", re.I | re.M)),
+    ("env_secret_assignment", re.compile(r"^(?:[A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PRIVATE_KEY|WEBHOOK|API_KEY|DATABASE_URL)[A-Z0-9_]*)\s*[:=]\s*(?!<redacted>)\S+", re.I | re.M)),
+    ("json_secret_field", re.compile(r'"(?:token|secret|password|authorization|cookie|api_key|webhook_url|database_url|private_key)"\s*:\s*"(?!<redacted>)[^"]+', re.I)),
     ("webhook_secret_url", re.compile(r"https://[^\s]*(?:hooks|webhook|discord|slack)[^\s]*(?:token|secret|key|/services/)[^\s]*", re.I)),
+    ("private_path", re.compile(r"(?:(?<=\s)|(?<==)|^)(?:/Users/|/home/|/private/|/var/lib/|/etc/|[A-Za-z]:\\\\Users\\\\)[^\s\"']+")),
+    ("raw_payload_label", re.compile(r"\braw[_ -]?(?:payload|telemetry|vendor|log)s?\b", re.I)),
 ]
 findings = []
 for path in root.rglob("*"):
@@ -569,12 +635,47 @@ if findings:
 PY
 }
 
+redaction_self_test() {
+  command -v python3 >/dev/null 2>&1 || fail "python3 is required"
+  TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/open-transit-rt-support-bundle-redaction.XXXXXX")"
+  out="$TMP_DIR/out"
+  raw="$TMP_DIR/raw.txt"
+  mkdir -p "$out"
+  cat >"$raw" <<'EOF'
+Authorization: Bearer supersecretbearertoken
+Proxy-Authorization: Basic Zm9vYmFyYmF6cXV4
+Cookie: admin_session=private-cookie
+Set-Cookie: admin_session=private-cookie
+X-Api-Key: private-api-key
+DATABASE_URL=postgres://user:pass@db.internal/open_transit_rt
+REDIS_URL=redis://user:pass@cache.internal/0
+ADMIN_TOKEN=private-admin-token
+DEVICE_TOKEN: private-device-token
+webhook_url=https://hooks.slack.com/services/T000/B000/private
+private_path=/Users/operator/private/support.log
+{"token":"json-token","password":"json-password","authorization":"Bearer json-token","database_url":"postgres://user:pass@db.internal/open_transit_rt","webhook_url":"https://hooks.slack.com/services/T000/B000/private"}
+EOF
+  sanitize_file "$raw" "$out/sanitized.txt"
+  cat >"$out/manifest.md" <<'EOF'
+# Redaction Self-Test Manifest
+
+- Output reference: `<support-bundle-output>/self-test`
+- external_evidence_created=false
+- consumer_statuses_changed=false
+EOF
+  redaction_scan "$out"
+  if grep -E 'supersecret|private-(api-key|admin-token|device-token|cookie)|user:pass|json-token|json-password|hooks\.slack|/Users/operator' "$out/sanitized.txt" >/dev/null 2>&1; then
+    fail "redaction self-test left private strings in sanitized output"
+  fi
+  printf 'support bundle redaction self-test passed\n'
+}
+
 copy_paste_summary() {
   public_line="$(awk -F, 'NR>1 {printf "%s:%s/%s ", $1, $5, $2}' "$PUBLIC_SUMMARY_CSV" | sed 's/[[:space:]]*$//')"
   cat <<EOF
 
 Support bundle copy/paste summary:
-  output_dir=$OUT_REAL
+  output_ref=$(support_bundle_ref)
   public_feed_summary=$public_line
   admin_boundary_result=$ADMIN_BOUNDARY_RESULT
   authenticated_readiness_status=$AUTH_READINESS_STATUS
@@ -598,6 +699,7 @@ parse_env() {
 main() {
   case "${1:-}" in
     -h|--help|help) usage; exit 0 ;;
+    --self-test-redaction) redaction_self_test; exit 0 ;;
     "") ;;
     *) usage; fail "unknown argument: $1" ;;
   esac

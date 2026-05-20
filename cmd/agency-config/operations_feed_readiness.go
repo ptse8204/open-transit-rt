@@ -10,6 +10,7 @@ type operationsFeedReadinessView struct {
 	Rows            []operationsFeedReadinessRow        `json:"rows"`
 	Metadata        []operationsFeedReadinessMetadata   `json:"metadata"`
 	SourceOfTruth   []operationsFeedReadinessGuide      `json:"source_of_truth"`
+	SharingPrep     []operationsFeedReadinessGuide      `json:"sharing_prep"`
 	OffHost         []operationsFeedReadinessGuide      `json:"off_host_validation"`
 	DocsPortal      []operationsFeedReadinessGuide      `json:"docs_portal"`
 	FutureChecklist []operationsFeedReadinessFutureGate `json:"future_checklist"`
@@ -88,6 +89,7 @@ func buildOperationsFeedReadiness(page operationsPage) operationsFeedReadinessVi
 		Rows:            feedReadinessRows(page),
 		Metadata:        feedReadinessMetadata(page),
 		SourceOfTruth:   feedReadinessSourceOfTruthGuidance(page),
+		SharingPrep:     feedReadinessSharingPrepGuidance(page),
 		OffHost:         feedReadinessOffHostGuidance(page),
 		DocsPortal:      feedReadinessDocsPortalGuidance(page),
 		FutureChecklist: feedReadinessFutureGates(),
@@ -144,13 +146,17 @@ func feedReadinessMetadataStatus(page operationsPage, id string) string {
 		return "publication metadata is not configured"
 	}
 	if id == "feeds_json" {
-		return fmt.Sprintf("public_base_url=%t; license=%t; contact=%t; all_required_listed=%t; https=%t; discoverable=%t",
+		return fmt.Sprintf("public_base_url=%t; license=%t; contact=%t; all_required_listed=%t; https=%t; discoverable=%t; stable_base_url=%t; publication_environment=%t; active_schedule=%t; realtime_feeds=%t",
 			strings.TrimSpace(page.Discovery.PublicBaseURL) != "",
 			page.Discovery.Readiness.LicenseComplete,
 			page.Discovery.Readiness.ContactComplete,
 			page.Discovery.Readiness.AllRequiredFeedsListed,
 			page.Discovery.Readiness.HTTPSURLs,
 			page.Discovery.Readiness.Discoverable,
+			page.Discovery.Readiness.StablePublicBaseURL,
+			page.Discovery.Readiness.PublicationEnvironmentConfigured,
+			page.Discovery.Readiness.ActiveScheduleListed,
+			page.Discovery.Readiness.RealtimeFeedsListed,
 		)
 	}
 	feed, ok := feedHealthMetadata(page, id)
@@ -216,11 +222,19 @@ func feedReadinessChecklist(id string) []string {
 func feedReadinessMetadata(page operationsPage) []operationsFeedReadinessMetadata {
 	return []operationsFeedReadinessMetadata{
 		feedReadinessMetadataRow("public_base_url", "Public base URL", strings.TrimSpace(page.Discovery.PublicBaseURL) != "" && page.DiscoveryError == "", firstNonEmpty(page.Discovery.PublicBaseURL, page.DiscoveryError, "missing"), "Set publication metadata before copying URLs outside the private console.", "This private view does not show final-root ownership or public website source-of-truth listing."),
+		feedReadinessMetadataRow("stable_public_base_url", "Stable public base URL", page.Discovery.Readiness.StablePublicBaseURL && page.DiscoveryError == "", feedReadinessBoolSignal("stable_public_base_url", page.Discovery.Readiness.StablePublicBaseURL), "Use an operator-reviewed HTTPS public root without localhost, private IPs, userinfo, query strings, fragments, or .local hosts before external sharing prep.", "Stable-base heuristics do not prove final-root ownership, DNS control, uptime, or consumer access."),
+		feedReadinessMetadataRow("publication_environment", "Publication environment", page.Discovery.Readiness.PublicationEnvironmentConfigured && page.DiscoveryError == "", firstNonEmpty(page.Discovery.PublicationEnvironment, "missing"), "Set a publication environment so reviewers can distinguish local/dev/pilot review from any future production path.", "Publication environment metadata does not prove production readiness or public launch."),
 		feedReadinessMetadataRow("license", "License metadata", page.Discovery.Readiness.LicenseComplete && page.DiscoveryError == "", firstNonEmpty(page.Discovery.License.Name, "missing"), "Add license name and URL before external feed review.", "This private view does not show legal approval or consumer acceptance."),
 		feedReadinessMetadataRow("contact", "Technical contact metadata", page.Discovery.Readiness.ContactComplete && page.DiscoveryError == "", firstNonEmpty(page.Discovery.TechnicalContactEmail, "missing"), "Add a monitored technical contact before external feed review.", "This private view does not show agency approval or managed support."),
 		feedReadinessMetadataRow("https", "HTTPS configured URLs", page.Discovery.Readiness.HTTPSURLs && page.DiscoveryError == "", fmt.Sprintf("all_https=%t", page.Discovery.Readiness.HTTPSURLs), "Review any HTTP/local URL before using it outside local/reference contexts.", "This private view does not show uptime, SLA, or hosted service availability."),
 		feedReadinessMetadataRow("all_required_feeds", "Expected feed set", page.Discovery.Readiness.AllRequiredFeedsListed && page.DiscoveryError == "", fmt.Sprintf("%d feed records; all_required_listed=%t", len(page.Discovery.Feeds), page.Discovery.Readiness.AllRequiredFeedsListed), "List feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts before public feed review.", "This private view does not show consumer ingestion, listing, display, or acceptance."),
+		feedReadinessMetadataRow("active_schedule", "Active schedule for sharing", page.Discovery.Readiness.ActiveScheduleListed && page.DiscoveryError == "", feedReadinessBoolSignal("active_schedule_listed", page.Discovery.Readiness.ActiveScheduleListed), "Publish or activate a schedule feed version before preparing feed metadata for outside review.", "An active schedule listing does not prove validator-clean GTFS, consumer ingestion, or compliance."),
+		feedReadinessMetadataRow("realtime_feed_set", "Realtime feed set", page.Discovery.Readiness.RealtimeFeedsListed && page.DiscoveryError == "", feedReadinessBoolSignal("vehicle_positions_trip_updates_alerts_listed", page.Discovery.Readiness.RealtimeFeedsListed), "List Vehicle Positions, Trip Updates, and Alerts in feeds.json before external sharing prep.", "Realtime feed listing does not prove useful Vehicle Positions, ETA quality, Alerts review, consumer display, or compliance."),
 	}
+}
+
+func feedReadinessBoolSignal(label string, ok bool) string {
+	return fmt.Sprintf("%s=%t", label, ok)
 }
 
 func feedReadinessMetadataRow(id string, label string, ok bool, signal string, next string, doesNotProve string) operationsFeedReadinessMetadata {
@@ -277,6 +291,54 @@ func feedReadinessSourceOfTruthGuidance(page operationsPage) []operationsFeedRea
 			"Capture portal screenshots, DNS screenshots, or private tickets only in a separately authorized evidence workflow with redaction review.",
 			"docs/assets/product-screenshots/README.md",
 			"Does not create retained evidence, final-root proof, consumer proof, or public launch proof.",
+		),
+	}
+}
+
+func feedReadinessSharingPrepGuidance(page operationsPage) []operationsFeedReadinessGuide {
+	metadataReady := page.Discovery.Readiness.StablePublicBaseURL &&
+		page.Discovery.Readiness.PublicationEnvironmentConfigured &&
+		page.Discovery.Readiness.LicenseComplete &&
+		page.Discovery.Readiness.ContactComplete &&
+		page.Discovery.Readiness.ActiveScheduleListed &&
+		page.Discovery.Readiness.RealtimeFeedsListed
+	return []operationsFeedReadinessGuide{
+		feedReadinessGuide(
+			"metadata_worksheet",
+			"Transitland/Mobility Database metadata worksheet",
+			feedReadinessGuideStatus(metadataReady && page.DiscoveryError == ""),
+			fmt.Sprintf("stable_base_url=%t; publication_environment=%t; license=%t; contact=%t; active_schedule=%t; realtime_feeds=%t",
+				page.Discovery.Readiness.StablePublicBaseURL,
+				page.Discovery.Readiness.PublicationEnvironmentConfigured,
+				page.Discovery.Readiness.LicenseComplete,
+				page.Discovery.Readiness.ContactComplete,
+				page.Discovery.Readiness.ActiveScheduleListed,
+				page.Discovery.Readiness.RealtimeFeedsListed,
+			),
+			"Use this as a private worksheet for metadata review before any separately authorized sharing workflow.",
+			"Do not submit to Transitland, Mobility Database, consumer portals, or regional catalogs from this repo or browser page.",
+			"docs/external-connection-readiness.md",
+			"Worksheet readiness does not show listing, acceptance, ingestion, display, compliance, final-root ownership, or public launch.",
+		),
+		feedReadinessGuide(
+			"stable_url_bundle",
+			"Stable URL bundle",
+			feedReadinessGuideStatus(page.Discovery.Readiness.StablePublicBaseURL && page.Discovery.Readiness.AllRequiredFeedsListed && page.Discovery.Readiness.HTTPSURLs && page.DiscoveryError == ""),
+			fmt.Sprintf("base=%s; all_required_listed=%t; https=%t", firstNonEmpty(page.Discovery.PublicBaseURL, "missing"), page.Discovery.Readiness.AllRequiredFeedsListed, page.Discovery.Readiness.HTTPSURLs),
+			"Review the five configured URLs together and keep them unchanged during external-sharing preparation.",
+			"Use `make validate-public-feeds` from an operator shell for local fetch checks; keep raw artifacts out of protected evidence unless separately authorized.",
+			"docs/deployment/reference-deployment-doctor.md",
+			"Stable URL review does not prove final-root control, public uptime, consumer fetches, or source-of-truth listing.",
+		),
+		feedReadinessGuide(
+			"consumer_status_guard",
+			"Consumer status guard",
+			operationsStatusBlocked,
+			"all consumer targets must remain prepared until target-originated retained proof exists",
+			"Treat prepared packet records as review material only.",
+			"Do not change consumer statuses, write protected tracker files, or contact targets without a separate written authorization.",
+			"docs/evidence/consumer-submissions/README.md",
+			"This guard does not show submission, review, listing, display, ingestion, acceptance, or approval.",
 		),
 	}
 }

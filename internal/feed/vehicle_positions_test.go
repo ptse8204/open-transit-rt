@@ -162,6 +162,23 @@ func TestVehiclePositionsSnapshotPublicationDecisions(t *testing.T) {
 			wantEntity: true,
 		},
 		{
+			name:  "missing schedule context",
+			event: feedStoredEvent(11, "bus-missing-schedule", generatedAt.Add(-30*time.Second), `{}`),
+			assignment: ptrAssignment(state.Assignment{
+				AgencyID:         "demo-agency",
+				VehicleID:        "bus-missing-schedule",
+				TelemetryEventID: 11,
+				State:            state.StateInService,
+				RouteID:          "route-10",
+				TripID:           "trip-10-0800",
+				Confidence:       0.9,
+				AssignmentSource: state.AssignmentSourceAutomatic,
+				DegradedState:    state.DegradedMissingScheduleData,
+			}),
+			wantReason: TripDescriptorOmissionMissingScheduleContext,
+			wantEntity: true,
+		},
+		{
 			name:  "manual override publishes below automatic threshold",
 			event: feedStoredEvent(8, "bus-manual", generatedAt.Add(-30*time.Second), `{}`),
 			assignment: ptrAssignment(state.Assignment{
@@ -275,37 +292,42 @@ func TestVehiclePositionsHealthRecordIsBoundedAndRedacted(t *testing.T) {
 		AgencyID:                "demo-agency",
 		GeneratedAt:             generatedAt,
 		VehicleLimit:            2000,
-		LatestTelemetryRowsRead: 3,
-		VehiclesInSnapshot:      3,
+		LatestTelemetryRowsRead: 5,
+		VehiclesInSnapshot:      5,
 		Truncated:               true,
 		Vehicles: []VehicleSnapshot{
 			{VehicleID: "bus-1", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-10 * time.Second)}}, IncludedInProtobuf: true, TripDescriptorPublished: true, TripDescriptorOmissionReason: TripDescriptorOmissionNone},
 			{VehicleID: "bus-2", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-20 * time.Second)}}, IncludedInProtobuf: true, TripDescriptorOmissionReason: TripDescriptorOmissionNoAssignment},
 			{VehicleID: "bus-3", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-10 * time.Minute)}}, IncludedInProtobuf: false, TripDescriptorOmissionReason: TripDescriptorOmissionSuppressedStaleTelemetry},
+			{VehicleID: "bus-4", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-15 * time.Second)}}, IncludedInProtobuf: true, TripDescriptorOmissionReason: TripDescriptorOmissionMissingScheduleContext},
+			{VehicleID: "bus-5", TelemetryEvent: telemetry.StoredEvent{Event: telemetry.Event{Timestamp: generatedAt.Add(-12 * time.Second)}}, IncludedInProtobuf: true, TripDescriptorOmissionReason: TripDescriptorOmissionBelowPublicationConfidence},
 		},
 	}
 	record := HealthRecordFromVehiclePositionsSnapshot(snapshot, 150*time.Millisecond)
-	if record.AgencyID != "demo-agency" || !record.EndpointAvailable || record.VehiclesInSnapshot != 3 || record.VehiclesInProtobuf != 2 || record.TripDescriptors != 1 || record.UnmatchedVehicles != 1 || record.StaleVehicles != 1 || record.SuppressedVehicles != 1 {
+	if record.AgencyID != "demo-agency" || !record.EndpointAvailable || record.VehiclesInSnapshot != 5 || record.VehiclesInProtobuf != 4 || record.TripDescriptors != 1 || record.UnmatchedVehicles != 1 || record.StaleVehicles != 1 || record.SuppressedVehicles != 1 || record.MissingScheduleContextVehicles != 1 || record.LowConfidenceVehicles != 1 {
 		t.Fatalf("record = %+v, want bounded aggregate counts", record)
 	}
-	if record.TripDescriptorOmissions[TripDescriptorOmissionNoAssignment] != 1 || record.TripDescriptorOmissions[TripDescriptorOmissionSuppressedStaleTelemetry] != 1 {
-		t.Fatalf("omissions = %+v, want no-assignment and suppressed stale counts", record.TripDescriptorOmissions)
+	if record.TripDescriptorOmissions[TripDescriptorOmissionNoAssignment] != 1 || record.TripDescriptorOmissions[TripDescriptorOmissionSuppressedStaleTelemetry] != 1 || record.TripDescriptorOmissions[TripDescriptorOmissionMissingScheduleContext] != 1 || record.TripDescriptorOmissions[TripDescriptorOmissionBelowPublicationConfidence] != 1 {
+		t.Fatalf("omissions = %+v, want no-assignment, suppressed stale, missing schedule, and low-confidence counts", record.TripDescriptorOmissions)
+	}
+	if record.UsefulnessStatus != "positions_with_partial_trip_context" || len(record.UsefulnessReasons) == 0 {
+		t.Fatalf("usefulness = %q reasons=%v, want partial trip-context diagnostics", record.UsefulnessStatus, record.UsefulnessReasons)
 	}
 	if record.FreshnessSeconds == nil || *record.FreshnessSeconds != 10 {
 		t.Fatalf("freshness = %+v, want 10", record.FreshnessSeconds)
 	}
-	if record.MatchedVehiclePercent == nil || *record.MatchedVehiclePercent < 33 || *record.MatchedVehiclePercent > 34 {
-		t.Fatalf("matched percent = %+v, want about 33.3", record.MatchedVehiclePercent)
+	if record.MatchedVehiclePercent == nil || *record.MatchedVehiclePercent < 19 || *record.MatchedVehiclePercent > 21 {
+		t.Fatalf("matched percent = %+v, want about 20", record.MatchedVehiclePercent)
 	}
 	review := snapshot.Debug().ReviewSummary
-	if review.VehiclesInProtobuf != 2 || review.TripDescriptorsPublished != 1 || review.StaleVehicles != 1 || review.SuppressedVehicles != 1 || review.UnmatchedVehicles != 1 {
+	if review.VehiclesInProtobuf != 4 || review.TripDescriptorsPublished != 1 || review.StaleVehicles != 1 || review.SuppressedVehicles != 1 || review.UnmatchedVehicles != 1 || review.MissingScheduleContextVehicles != 1 || review.LowConfidenceVehicles != 1 || review.UsefulnessStatus != "positions_with_partial_trip_context" {
 		t.Fatalf("debug review summary = %+v, want safe aggregate counts", review)
 	}
 	payload, err := snapshot.MarshalDebugJSON()
 	if err != nil {
 		t.Fatalf("marshal debug json: %v", err)
 	}
-	if !bytes.Contains(payload, []byte(`"review_summary"`)) || !bytes.Contains(payload, []byte(`"trip_descriptor_omissions"`)) {
+	if !bytes.Contains(payload, []byte(`"review_summary"`)) || !bytes.Contains(payload, []byte(`"trip_descriptor_omissions"`)) || !bytes.Contains(payload, []byte(`"public_feed_diagnostic"`)) || !bytes.Contains(payload, []byte(`"usefulness_status"`)) {
 		t.Fatalf("debug json missing review summary: %s", payload)
 	}
 }

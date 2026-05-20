@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
+	"strings"
 )
 
 const defaultDiscoveryFixture = "examples/connectors/consumer-discovery-metadata/fixtures/feeds.json"
@@ -126,5 +128,15 @@ func safePublicURLOrRole(name string, value string) bool {
 		return value != ""
 	}
 	parsed, err := url.Parse(value)
-	return err == nil && parsed.Scheme == "https" && parsed.Hostname() != ""
+	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" || parsed.User != nil {
+		return false
+	}
+	host := strings.ToLower(parsed.Hostname())
+	if host == "localhost" || strings.HasSuffix(host, ".local") {
+		return false
+	}
+	if ip := net.ParseIP(host); ip != nil && (ip.IsPrivate() || ip.IsLoopback() || ip.IsUnspecified() || ip.IsLinkLocalUnicast()) {
+		return false
+	}
+	return true
 }

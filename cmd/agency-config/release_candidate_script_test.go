@@ -48,8 +48,27 @@ func TestReleaseCandidateCheckDryRunExactFilesAndClaimFlags(t *testing.T) {
 		}
 	}
 	sequence, ok := summary["review_sequence"].([]any)
-	if !ok || len(sequence) < 5 {
-		t.Fatalf("review_sequence length = %d, want at least 5", len(sequence))
+	if !ok || len(sequence) < 6 {
+		t.Fatalf("review_sequence length = %d, want at least 6", len(sequence))
+	}
+	for _, id := range []string{
+		"check_links",
+		"product_ui_smoke",
+		"product_acceptance_audit",
+		"product_language_audit",
+		"ui_layout_audit",
+		"operations_route_inventory",
+		"api_contract_check",
+		"stable_filter_check",
+		"external_connection_check",
+		"adapter_conformance",
+		"connector_examples",
+		"gtfsrt_conformance",
+	} {
+		check := releaseCandidateCheckByID(t, summary, id)
+		if check["status"] != "not_checked" {
+			t.Fatalf("%s dry-run status = %v, want not_checked", id, check["status"])
+		}
 	}
 	inputs, ok := summary["release_note_inputs"].(map[string]any)
 	if !ok || inputs["validation"] == nil || inputs["claim_boundaries"] == nil {
@@ -65,6 +84,9 @@ func TestReleaseCandidateCheckDryRunExactFilesAndClaimFlags(t *testing.T) {
 		"Release Note Inputs",
 		"Local Package Audit Matrix",
 		"pre-tag local diagnostics",
+		"API/feed/extension contract check",
+		"Product UI smoke",
+		"GTFS-RT conformance harness",
 	} {
 		if !strings.Contains(summaryText, want) {
 			t.Fatalf("summary.md missing %q", want)
@@ -197,6 +219,9 @@ func TestReleaseCandidateCheckHelpAndDocsBoundary(t *testing.T) {
 		"production readiness",
 		"pre-tag",
 		"local diagnostics",
+		"API/feed/extension contract",
+		"product UI",
+		"GTFS-RT conformance",
 	} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("missing boundary phrase %q", want)

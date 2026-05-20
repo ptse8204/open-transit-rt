@@ -31,6 +31,25 @@ making unsupported external-integration claims.
 | Feed-consumer URL/metadata expectations | Public feed URLs and `/public/feeds.json` metadata can be reviewed locally. | No portal automation, no submissions, and no target status changes. |
 | Redaction | Fixtures, manifests, logs, screenshots, and summaries avoid secrets and private identifiers. | Review before committing any integration material. |
 
+## Feed Discovery Sharing Prep
+
+The private Operations Console treats `/public/feeds.json` as a review surface,
+not a submission workflow. Before a deployment owner prepares metadata for
+Transitland, Mobility Database, a regional catalog, or a consumer intake form,
+review these local signals:
+
+- stable HTTPS public base URL with no localhost, private IP, userinfo, query
+  string, fragment, or `.local` host;
+- publication environment set so reviewers can distinguish local, reference,
+  pilot, and any future production paths;
+- open-license metadata and monitored technical contact present;
+- active schedule feed version listed;
+- Vehicle Positions, Trip Updates, and Alerts listed in the discovery feed.
+
+These checks only prepare a private worksheet. They do not contact any portal,
+move consumer packet statuses, prove final-root ownership, prove consumer
+ingestion or display, or create compliance evidence.
+
 ## Ecosystem Direction
 
 Use this split when deciding whether a connector belongs in current support or

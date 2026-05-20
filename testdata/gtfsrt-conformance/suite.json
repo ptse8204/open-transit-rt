@@ -89,6 +89,76 @@
       "does_not_prove": "Does not prove consumer display, assignment quality, or production readiness."
     },
     {
+      "id": "vp-stale-emits-without-trip-descriptor",
+      "feed_type": "vehicle_positions",
+      "family": "stale_telemetry",
+      "scenario": "stale_vehicle_emitted_without_trip_descriptor",
+      "expected_status": "needs_review",
+      "assertions": [
+        "vehicle_position_may_emit_without_trip",
+        "trip_descriptor_omitted",
+        "omission_reason_stale_telemetry",
+        "vehicle_timestamp_present"
+      ],
+      "references": [
+        "testdata/telemetry/stale-vehicle.json",
+        "testdata/replay/stale-ambiguous-hard-pattern.json"
+      ],
+      "does_not_prove": "Does not prove production AVL reliability, uptime, consumer display, or vendor compatibility."
+    },
+    {
+      "id": "vp-low-confidence-no-trip-descriptor",
+      "feed_type": "vehicle_positions",
+      "family": "low_confidence_assignment",
+      "scenario": "low_confidence_assignment_omits_trip_descriptor",
+      "expected_status": "ok",
+      "assertions": [
+        "vehicle_position_may_emit_without_trip",
+        "trip_descriptor_omitted",
+        "omission_reason_below_publication_confidence",
+        "unknown_preferred_over_false_certainty"
+      ],
+      "references": [
+        "testdata/replay/ambiguous-assignment-visible.json"
+      ],
+      "does_not_prove": "Does not prove assignment quality, consumer display, or production readiness."
+    },
+    {
+      "id": "vp-assignment-telemetry-mismatch-no-trip-descriptor",
+      "feed_type": "vehicle_positions",
+      "family": "assignment_mismatch",
+      "scenario": "assignment_telemetry_mismatch_omits_trip_descriptor",
+      "expected_status": "needs_review",
+      "assertions": [
+        "vehicle_position_may_emit_without_trip",
+        "trip_descriptor_omitted",
+        "omission_reason_assignment_telemetry_mismatch",
+        "latest_telemetry_wins_over_stale_assignment"
+      ],
+      "references": [
+        "testdata/replay/ambiguous-assignment-visible.json"
+      ],
+      "does_not_prove": "Does not prove assignment quality, consumer display, or production readiness."
+    },
+    {
+      "id": "vp-missing-schedule-context-no-trip-descriptor",
+      "feed_type": "vehicle_positions",
+      "family": "static_gtfs_context",
+      "scenario": "missing_schedule_context_omits_trip_descriptor",
+      "expected_status": "needs_review",
+      "assertions": [
+        "vehicle_position_may_emit_without_trip",
+        "trip_descriptor_omitted",
+        "omission_reason_missing_schedule_context",
+        "active_gtfs_required_for_trip_context_review"
+      ],
+      "references": [
+        "testdata/gtfs/malformed",
+        "testdata/replay/noisy-off-shape-gps-degraded.json"
+      ],
+      "does_not_prove": "Does not prove static GTFS is valid, consumer display, compliance, or production readiness."
+    },
+    {
       "id": "vp-malformed-coordinate-fails",
       "feed_type": "vehicle_positions",
       "family": "malformed_realtime",

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -19,8 +20,12 @@ import (
 )
 
 const externalHTTPPath = "/v1/predict/trip-updates"
+const shadowExternalMinimumConfidence = 0.50
 
-var externalHTTPTokenEnvPattern = regexp.MustCompile(`^[A-Z_][A-Z0-9_]*$`)
+var (
+	externalHTTPTokenEnvPattern  = regexp.MustCompile(`^[A-Z_][A-Z0-9_]*$`)
+	shadowDiagnosticTokenPattern = regexp.MustCompile(`^[a-z0-9_:-]+$`)
+)
 
 type ExternalHTTPConfig struct {
 	URL              string
@@ -85,7 +90,7 @@ func (a *ExternalHTTPAdapter) PredictTripUpdates(ctx context.Context, request Re
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return externalHTTPFailure("request_failed", start, len(payload), 0, 0), nil
+		return externalHTTPFailure(externalHTTPRequestFailureType(err), start, len(payload), 0, 0), nil
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
@@ -428,6 +433,14 @@ func externalHTTPFailure(failure string, start time.Time, requestBytes int, resp
 	}
 }
 
+func externalHTTPRequestFailureType(err error) string {
+	var netErr net.Error
+	if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &netErr) && netErr.Timeout()) {
+		return "timeout"
+	}
+	return "request_failed"
+}
+
 func externalHTTPSuccessDetails(start time.Time, requestBytes int, responseBytes int, statusCode int, updateCount int) map[string]any {
 	return map[string]any{
 		"adapter_contract":      "external_trip_updates.v1",
@@ -478,14 +491,186 @@ func boundedShadowDiagnostics(deterministic Result, shadow Result, shadowErr err
 		status = StatusError
 		reason = ReasonAdapterError
 	}
-	return map[string]any{
-		"status":                           status,
-		"reason":                           reason,
-		"latency_ms":                       time.Since(start).Milliseconds(),
-		"deterministic_trip_updates_count": len(deterministic.TripUpdates),
-		"external_trip_updates_count":      len(shadow.TripUpdates),
-		"count_delta":                      len(shadow.TripUpdates) - len(deterministic.TripUpdates),
+	failureType := safeShadowDiagnosticToken(shadow.Diagnostics.Details["failure_type"])
+	httpStatusCode := safeShadowHTTPStatus(shadow.Diagnostics.Details["http_status_code"])
+	identityCounts := compareTripUpdateIdentities(deterministic.TripUpdates, shadow.TripUpdates)
+	lowConfidence := countExternalLowConfidence(shadow.TripUpdates)
+	missingConfidence := countExternalMissingConfidence(shadow.TripUpdates)
+	divergence := shadowDivergenceByReason(deterministic, shadow, shadowErr, status, reason, identityCounts, lowConfidence, missingConfidence)
+	divergenceStatus := shadowDivergenceStatus(divergence)
+	boundedStatus := safeShadowDiagnosticToken(status)
+	if boundedStatus == "" {
+		boundedStatus = "unknown"
 	}
+	boundedReason := safeShadowDiagnosticToken(reason)
+	if boundedReason == "" {
+		boundedReason = "not_recorded"
+	}
+	return map[string]any{
+		"status":                            boundedStatus,
+		"reason":                            boundedReason,
+		"failure_type":                      failureType,
+		"latency_ms":                        time.Since(start).Milliseconds(),
+		"http_status_code":                  httpStatusCode,
+		"fallback_used":                     true,
+		"shadow_only":                       true,
+		"external_output_public":            false,
+		"divergence_status":                 divergenceStatus,
+		"divergence_by_reason":              divergence,
+		"deterministic_trip_updates_count":  len(deterministic.TripUpdates),
+		"external_trip_updates_count":       len(shadow.TripUpdates),
+		"count_delta":                       len(shadow.TripUpdates) - len(deterministic.TripUpdates),
+		"matching_identity_count":           identityCounts.Matching,
+		"deterministic_only_count":          identityCounts.DeterministicOnly,
+		"external_only_count":               identityCounts.ExternalOnly,
+		"external_low_confidence_count":     lowConfidence,
+		"external_missing_confidence_count": missingConfidence,
+	}
+}
+
+type shadowIdentityCounts struct {
+	Matching          int
+	DeterministicOnly int
+	ExternalOnly      int
+}
+
+func compareTripUpdateIdentities(deterministic []TripUpdate, external []TripUpdate) shadowIdentityCounts {
+	deterministicIDs := make(map[string]int, len(deterministic))
+	externalIDs := make(map[string]int, len(external))
+	for _, update := range deterministic {
+		deterministicIDs[tripUpdateIdentity(update)]++
+	}
+	for _, update := range external {
+		externalIDs[tripUpdateIdentity(update)]++
+	}
+	counts := shadowIdentityCounts{}
+	for identity, deterministicCount := range deterministicIDs {
+		externalCount := externalIDs[identity]
+		if deterministicCount < externalCount {
+			counts.Matching += deterministicCount
+			counts.ExternalOnly += externalCount - deterministicCount
+		} else {
+			counts.Matching += externalCount
+			counts.DeterministicOnly += deterministicCount - externalCount
+		}
+		delete(externalIDs, identity)
+	}
+	for _, externalCount := range externalIDs {
+		counts.ExternalOnly += externalCount
+	}
+	return counts
+}
+
+func tripUpdateIdentity(update TripUpdate) string {
+	return strings.Join([]string{
+		update.AgencyID,
+		update.FeedVersionID,
+		update.TripID,
+		update.StartDate,
+		update.StartTime,
+		update.VehicleID,
+	}, "\x00")
+}
+
+func countExternalLowConfidence(updates []TripUpdate) int {
+	count := 0
+	for _, update := range updates {
+		if update.Confidence != nil && *update.Confidence < shadowExternalMinimumConfidence {
+			count++
+		}
+	}
+	return count
+}
+
+func countExternalMissingConfidence(updates []TripUpdate) int {
+	count := 0
+	for _, update := range updates {
+		if update.Confidence == nil {
+			count++
+		}
+	}
+	return count
+}
+
+func shadowDivergenceByReason(deterministic Result, shadow Result, shadowErr error, status string, reason string, identityCounts shadowIdentityCounts, lowConfidence int, missingConfidence int) map[string]int {
+	divergence := map[string]int{}
+	if shadowErr != nil || status == StatusError {
+		divergence["external_error"] = 1
+	}
+	if len(shadow.TripUpdates) != len(deterministic.TripUpdates) {
+		divergence["count_delta"] = absInt(len(shadow.TripUpdates) - len(deterministic.TripUpdates))
+	}
+	if identityCounts.DeterministicOnly > 0 || identityCounts.ExternalOnly > 0 {
+		divergence["trip_identity_delta"] = identityCounts.DeterministicOnly + identityCounts.ExternalOnly
+	}
+	if reason != "" && deterministic.Diagnostics.Reason != "" && reason != deterministic.Diagnostics.Reason {
+		divergence["reason_mismatch"] = 1
+	}
+	if lowConfidence > 0 {
+		divergence["external_low_confidence"] = lowConfidence
+	}
+	if missingConfidence > 0 {
+		divergence["external_missing_confidence"] = missingConfidence
+	}
+	return divergence
+}
+
+func shadowDivergenceStatus(divergence map[string]int) string {
+	if divergence["external_error"] > 0 {
+		return "external_error"
+	}
+	if divergence["trip_identity_delta"] > 0 {
+		return "trip_identity_delta"
+	}
+	if divergence["count_delta"] > 0 {
+		return "count_delta"
+	}
+	if divergence["external_low_confidence"] > 0 || divergence["external_missing_confidence"] > 0 {
+		return "external_confidence_review"
+	}
+	if divergence["reason_mismatch"] > 0 {
+		return "reason_mismatch"
+	}
+	return "aligned"
+}
+
+func safeShadowDiagnosticToken(value any) string {
+	token, ok := value.(string)
+	if !ok {
+		return ""
+	}
+	token = strings.ToLower(strings.TrimSpace(token))
+	if token == "" || len(token) > 64 || strings.Contains(token, "token") || strings.Contains(token, "secret") || strings.Contains(token, "host") || strings.ContainsAny(token, "/\\") || !shadowDiagnosticTokenPattern.MatchString(token) {
+		return ""
+	}
+	return token
+}
+
+func safeShadowHTTPStatus(value any) int {
+	status := 0
+	switch typed := value.(type) {
+	case int:
+		status = typed
+	case int32:
+		status = int(typed)
+	case int64:
+		status = int(typed)
+	case float64:
+		status = int(typed)
+	case float32:
+		status = int(typed)
+	}
+	if status < 100 || status > 599 {
+		return 0
+	}
+	return status
+}
+
+func absInt(value int) int {
+	if value < 0 {
+		return -value
+	}
+	return value
 }
 
 func copyDiagnosticsDetails(details map[string]any) map[string]any {

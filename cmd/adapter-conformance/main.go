@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -430,8 +431,91 @@ func scanUnsafe(body []byte, label string) error {
 			return fmt.Errorf("%s contains forbidden text %q", label, forbidden)
 		}
 	}
+	if err := scanUnsafeJSON(body, label); err != nil {
+		return err
+	}
 	return nil
 }
+
+func scanUnsafeJSON(body []byte, label string) error {
+	var decoded any
+	if err := json.Unmarshal(body, &decoded); err != nil {
+		return nil
+	}
+	return walkUnsafeJSON(label, "", decoded)
+}
+
+func walkUnsafeJSON(label string, field string, value any) error {
+	switch typed := value.(type) {
+	case map[string]any:
+		for key, child := range typed {
+			childField := key
+			if field != "" {
+				childField = field + "." + key
+			}
+			lowerKey := strings.ToLower(key)
+			if unsafeFixtureSecretKeyPattern.MatchString(lowerKey) {
+				return fmt.Errorf("%s contains forbidden text in %s: secret-bearing fields are not allowed", label, childField)
+			}
+			if lowerKey == "command" || lowerKey == "raw_command" || lowerKey == "shell" || lowerKey == "argv" || lowerKey == "args" {
+				return fmt.Errorf("%s contains forbidden text in %s: raw command fields are not allowed", label, childField)
+			}
+			if err := walkUnsafeJSON(label, childField, child); err != nil {
+				return err
+			}
+		}
+	case []any:
+		for i, child := range typed {
+			childField := fmt.Sprintf("%s[%d]", field, i)
+			if field == "" {
+				childField = fmt.Sprintf("[%d]", i)
+			}
+			if err := walkUnsafeJSON(label, childField, child); err != nil {
+				return err
+			}
+		}
+	case string:
+		if unsafeFixtureSecretValuePattern.MatchString(typed) {
+			return fmt.Errorf("%s contains forbidden text in %s: secret-like values are not allowed", label, field)
+		}
+		if isPrivateFixturePath(typed) {
+			return fmt.Errorf("%s contains forbidden text in %s: private filesystem paths are not allowed", label, field)
+		}
+		if containsUnsafeFixtureEndpoint(typed) {
+			return fmt.Errorf("%s contains forbidden text in %s: private endpoint strings are not allowed", label, field)
+		}
+	}
+	return nil
+}
+
+func isPrivateFixturePath(value string) bool {
+	trimmed := strings.TrimSpace(value)
+	return strings.HasPrefix(trimmed, "file://") ||
+		strings.HasPrefix(trimmed, "../") ||
+		strings.Contains(trimmed, "/../") ||
+		strings.HasPrefix(trimmed, "/Users/") ||
+		strings.HasPrefix(trimmed, "/home/") ||
+		strings.HasPrefix(trimmed, "/var/") ||
+		strings.HasPrefix(trimmed, "/tmp/") ||
+		strings.HasPrefix(trimmed, "/etc/")
+}
+
+func containsUnsafeFixtureEndpoint(value string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "" {
+		return false
+	}
+	if strings.Contains(normalized, "localhost") || strings.Contains(normalized, "[::1]") || strings.Contains(normalized, "::1") || strings.Contains(normalized, ".local") {
+		return true
+	}
+	return unsafeFixturePrivateEndpointPattern.MatchString(normalized)
+}
+
+var (
+	unsafeFixturePrivateEndpointPattern = regexp.MustCompile(`(^|[^0-9a-z])((10|127|0)\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:[0-9]{1,5})?($|[^0-9a-z])`)
+	unsafeFixtureSecretKeyPattern       = regexp.MustCompile(`(?i)(secret|password|passwd|token|api[_-]?key|private[_-]?key|credential)`)
+	unsafeFixtureSecretValuePattern     = regexp.MustCompile(`(?i)\b(bearer\s+[a-z0-9._~+/=-]{12,}|sk-[a-z0-9]{12,}|ghp_[a-z0-9_]{12,}|-----begin [a-z ]*private key-----)\b`)
+)
 
 func rel(root string, path string) string {
 	relative, err := filepath.Rel(root, path)

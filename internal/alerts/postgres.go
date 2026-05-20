@@ -30,6 +30,9 @@ func (r *PostgresRepository) UpsertAlert(ctx context.Context, input UpsertInput)
 	if input.HeaderText == "" {
 		return Alert{}, fmt.Errorf("header_text is required")
 	}
+	if err := ValidateUpsertInput(input); err != nil {
+		return Alert{}, err
+	}
 	if input.Now.IsZero() {
 		input.Now = time.Now().UTC()
 	}

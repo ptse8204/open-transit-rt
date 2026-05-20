@@ -10,6 +10,7 @@ STATE_FILE="${STATE_FILE:-.cache/ui-tour-storage.json}"
 AGENCY_ID="${AGENCY_ID:-demo-agency}"
 ADMIN_SUBJECT="${ADMIN_SUBJECT:-admin@example.com}"
 COMPOSE_FILE="${COMPOSE_FILE:-deploy/docker-compose.yml}"
+KEEP_CAPTURE_STATE="${KEEP_CAPTURE_STATE:-false}"
 
 usage() {
   cat <<'EOF'
@@ -23,6 +24,8 @@ Environment:
   OUT_DIR        Screenshot output directory. Default: site/assets/screenshots
   ADMIN_TOKEN    Optional pre-generated admin token. If absent, the script asks
                  the running agency-config container for a short-lived token.
+  STATE_FILE     Temporary browser storage state. Default: .cache/ui-tour-storage.json
+  KEEP_CAPTURE_STATE true|false; keep STATE_FILE after capture. Default: false.
 
 Prerequisite:
   Start the local app first:
@@ -45,6 +48,18 @@ fi
 need curl
 need npx
 need python3
+
+case "$KEEP_CAPTURE_STATE" in
+  true|false) ;;
+  *) echo "KEEP_CAPTURE_STATE must be true or false" >&2; exit 2 ;;
+esac
+
+cleanup_state() {
+  if [ "$KEEP_CAPTURE_STATE" != "true" ]; then
+    rm -f "$STATE_FILE"
+  fi
+}
+trap cleanup_state EXIT INT TERM
 
 if [ "${1:-}" = "--check" ]; then
   curl -fsS "$BASE_URL/admin/local-login" >/dev/null

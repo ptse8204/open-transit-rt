@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -655,19 +656,28 @@ func TestOperationsConsoleShowsServerOwnedAgencyScope(t *testing.T) {
 		t.Fatalf("same agency status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency scope", "<code>agency-a</code>", "authenticated principal agency", "locked to authenticated agency", "agency_id query values must match this agency", "operator, read_only", "URL edits"} {
+	for _, want := range []string{"Agency scope", "<code>agency-a</code>", "authenticated principal agency", "locked to authenticated agency", "agency_id query values must be path-segment-safe", "encoded-slash", "backslash", "operator, read_only", "URL edits"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("agency scope body missing %q: %s", want, body)
 		}
 	}
-	req = httptest.NewRequest(http.MethodGet, "/admin/operations?agency_id=agency-b", nil)
-	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusForbidden {
-		t.Fatalf("conflicting agency status = %d, want 403: %s", rr.Code, rr.Body.String())
-	}
-	if strings.Contains(rr.Body.String(), "agency-b") {
-		t.Fatalf("forbidden response leaked conflicting agency: %s", rr.Body.String())
+	for _, target := range []string{
+		"/admin/operations?agency_id=agency-b",
+		"/admin/operations?agency_id=agency-a%2Fbad",
+		"/admin/operations?agency_id=agency-a%5Cbad",
+		"/admin/operations?agency_id=.hidden",
+	} {
+		req = httptest.NewRequest(http.MethodGet, target, nil)
+		rr = httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("%s status = %d, want 403: %s", target, rr.Code, rr.Body.String())
+		}
+		for _, forbidden := range []string{"agency-b", "agency-a/bad", `agency-a\bad`, ".hidden"} {
+			if strings.Contains(rr.Body.String(), forbidden) {
+				t.Fatalf("%s forbidden response leaked conflicting agency %q: %s", target, forbidden, rr.Body.String())
+			}
+		}
 	}
 }
 
@@ -682,7 +692,7 @@ func TestOperationsAccessRolesAndDeniedUX(t *testing.T) {
 		t.Fatalf("access status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Access &amp; Roles", "Private role and agency-scope guidance", "Admin", "Editor", "Operator", "Read only", "Role is not allowed", "Agency scope conflict", "Form safety check failed", "operator, read_only"} {
+	for _, want := range []string{"Access &amp; Roles", "Private role and agency-scope guidance", "Admin", "Editor", "Operator", "Read only", "Role is not allowed", "Agency scope conflict", "Unsafe agency identifier", "Form safety check failed", "operator, read_only"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("access body missing %q: %s", want, body)
 		}
@@ -702,7 +712,7 @@ func TestOperationsAccessRolesAndDeniedUX(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
 		t.Fatalf("decode access JSON: %v", err)
 	}
-	if view.AgencyID != "demo-agency" || len(view.Roles) != 4 || len(view.Denied) != 3 || strings.Join(view.CurrentRoles, ",") != "operator,read_only" {
+	if view.AgencyID != "demo-agency" || len(view.Roles) != 4 || len(view.Denied) != 4 || strings.Join(view.CurrentRoles, ",") != "operator,read_only" {
 		t.Fatalf("unexpected access view: %+v", view)
 	}
 
@@ -747,6 +757,7 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 		"Configured feed URL review",
 		"Source-of-truth metadata checklist",
 		"Source-of-truth listing guidance",
+		"External sharing prep",
 		"Off-host validation guidance",
 		"Public docs portal alignment",
 		"Future final-root/evidence checklist",
@@ -759,7 +770,14 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 		"https://feeds.example.org/public/gtfsrt/alerts.pb",
 		"feeds.json is metadata, not a GTFS validator artifact",
 		"endpoint_available=true",
-		"public_base_url=true; license=true; contact=true; all_required_listed=true; https=true; discoverable=true",
+		"public_base_url=true; license=true; contact=true; all_required_listed=true; https=true; discoverable=true; stable_base_url=true; publication_environment=true; active_schedule=true; realtime_feeds=true",
+		"Stable public base URL",
+		"Publication environment",
+		"Active schedule for sharing",
+		"Realtime feed set",
+		"Transitland/Mobility Database metadata worksheet",
+		"Stable URL bundle",
+		"Consumer status guard",
 		"Provider or regional source-of-truth listing",
 		"Screenshot and diagram policy",
 		"Static schedule validator",
@@ -770,10 +788,7 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 		"Future operator checklist",
 		"docs/index.md",
 		"Requires separate written authorization",
-		"external_evidence_created",
-		"final_root_evidence_created",
-		"consumer_statuses_changed",
-		"consumer_submission_claimed",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("feeds body missing %q: %s", want, body)
@@ -787,7 +802,8 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 
 	urlOnlyDiscovery := validationHealthTestDiscovery(time.Date(2026, 5, 11, 12, 0, 0, 0, time.UTC))
 	urlOnlyDiscovery.PublicBaseURL = "https://feeds.example.org"
-	urlOnlyDiscovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true}
+	urlOnlyDiscovery.PublicationEnvironment = compliance.EnvironmentDev
+	urlOnlyDiscovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true, StablePublicBaseURL: true, PublicationEnvironmentConfigured: true, ActiveScheduleListed: true, RealtimeFeedsListed: true}
 	urlOnly := buildOperationsFeedReadiness(operationsPage{Discovery: urlOnlyDiscovery})
 	for _, row := range urlOnly.Rows {
 		if row.ID != "feeds_json" && row.Status == operationsStatusReady {
@@ -1053,7 +1069,8 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 			},
 			Readiness: compliance.Readiness{
 				Discoverable: true, HTTPSURLs: true, LicenseComplete: true, ContactComplete: true,
-				AllRequiredFeedsListed: true, CanonicalValidationComplete: true,
+				AllRequiredFeedsListed: true, CanonicalValidationComplete: true, StablePublicBaseURL: true,
+				PublicationEnvironmentConfigured: true, ActiveScheduleListed: true, RealtimeFeedsListed: true,
 			},
 		},
 		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
@@ -1583,7 +1600,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Launchpad", "First-run details", "First-Run Tasks", "Copy Feed URLs", "Normal browser path", "Administrator path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Agency Launchpad", "First-run details", "First-Run Tasks", "Copy Feed URLs", "Normal browser path", "Administrator path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Safety details", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1671,9 +1688,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"https://pilot.example.org/public/gtfsrt/alerts.pb",
 		"local wiring only",
 		"separate authorized intake",
-		"external_evidence_created",
-		"consumer_statuses_changed",
-		"compliance_claimed",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("dashboard body missing %q: %s", want, body)
@@ -2129,7 +2144,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"Schedule Review", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
+	for _, want := range []string{"Schedule Review", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Service Calendar Review", "Stop-time service coverage", "Frequency-based service", "Service exceptions", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
@@ -2220,6 +2235,16 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	counts, ok := preview["counts"].(map[string]any)
 	if !ok || counts["routes"] != float64(12) {
 		t.Fatalf("preview counts = %#v, want 12 routes", preview["counts"])
+	}
+	serviceWarnings, ok := preview["service_warnings"].([]any)
+	if !ok || len(serviceWarnings) < 4 {
+		t.Fatalf("preview service_warnings = %#v, want service review rows", preview["service_warnings"])
+	}
+	serviceWarningsBody := fmt.Sprint(serviceWarnings)
+	for _, want := range []string{"Service calendar source", "Service date range", "Stop-time service coverage", "Frequency-based service", "Service exceptions"} {
+		if !strings.Contains(serviceWarningsBody, want) {
+			t.Fatalf("service_warnings missing %q: %#v", want, serviceWarnings)
+		}
 	}
 	routes, ok := preview["routes"].([]any)
 	if !ok || len(routes) != 10 {
@@ -2363,6 +2388,69 @@ func TestGTFSImportUploadUsesTempFileAndImporter(t *testing.T) {
 	}
 }
 
+func TestGTFSImportZipPreflightSummarizesRequiredFilesAndServiceRows(t *testing.T) {
+	zipPath := writeGTFSPreflightZip(t, map[string]string{
+		"agency.txt":         "agency_id,agency_name,agency_url,agency_timezone\nA,Demo,https://example.org,America/Los_Angeles\n",
+		"routes.txt":         "route_id,agency_id,route_short_name,route_long_name,route_type\nR,A,1,Main,3\n",
+		"stops.txt":          "stop_id,stop_name,stop_lat,stop_lon\nS1,Main,34,-118\nS2,Second,34.1,-118.1\n",
+		"trips.txt":          "route_id,service_id,trip_id\nR,WKD,T1\n",
+		"stop_times.txt":     "trip_id,arrival_time,departure_time,stop_id,stop_sequence\nT1,23:50:00,23:50:00,S1,1\nT1,24:10:00,24:10:00,S2,2\n",
+		"calendar_dates.txt": "service_id,date,exception_type\nWKD,20260520,1\n",
+		"frequencies.txt":    "trip_id,start_time,end_time,headway_secs,exact_times\nT1,06:00:00,09:00:00,900,0\n",
+	})
+	rows := gtfsImportZipPreflight(zipPath)
+	if len(rows) != 8 {
+		t.Fatalf("preflight rows = %d, want 8: %+v", len(rows), rows)
+	}
+	seen := map[string]operationsGTFSChangeRow{}
+	for _, row := range rows {
+		seen[row.Label] = row
+		if row.CurrentSignal == "" || row.NextAction == "" || row.ClaimBoundary == "" {
+			t.Fatalf("preflight row missing guidance: %+v", row)
+		}
+		if strings.Contains(strings.ToLower(row.CurrentSignal), strings.ToLower(zipPath)) {
+			t.Fatalf("preflight leaked temp path: %+v", row)
+		}
+	}
+	for _, required := range []string{"agency.txt", "routes.txt", "stops.txt", "trips.txt", "stop_times.txt", "calendar.txt / calendar_dates.txt"} {
+		if seen[required].Status != "ok" {
+			t.Fatalf("%s status = %+v, want ok", required, seen[required])
+		}
+	}
+	if seen["shapes.txt"].Status != "optional" {
+		t.Fatalf("shapes status = %+v, want optional", seen["shapes.txt"])
+	}
+	if !strings.Contains(seen["calendar.txt / calendar_dates.txt"].CurrentSignal, "calendar_dates.txt has 1") {
+		t.Fatalf("calendar preflight signal = %q", seen["calendar.txt / calendar_dates.txt"].CurrentSignal)
+	}
+}
+
+func writeGTFSPreflightZip(t *testing.T, files map[string]string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "preflight.zip")
+	out, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create zip: %v", err)
+	}
+	zw := zip.NewWriter(out)
+	for name, body := range files {
+		w, err := zw.Create(name)
+		if err != nil {
+			t.Fatalf("create zip member %s: %v", name, err)
+		}
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Fatalf("write zip member %s: %v", name, err)
+		}
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatalf("close zip writer: %v", err)
+	}
+	if err := out.Close(); err != nil {
+		t.Fatalf("close zip file: %v", err)
+	}
+	return path
+}
+
 func TestGTFSImportValidationFailureRendersBoundedResult(t *testing.T) {
 	result := gtfs.ImportResult{
 		ImportID:       7,
@@ -2448,6 +2536,9 @@ func TestGTFSImportURLDownloadAndUnsafeRejection(t *testing.T) {
 	}
 	if string(importer.payload) != "downloaded zip" {
 		t.Fatalf("download payload = %q, want downloaded bytes", importer.payload)
+	}
+	if strings.Contains(rr.Body.String(), server.URL) || strings.Contains(rr.Body.String(), "127.0.0.1") || strings.Contains(strings.ToLower(rr.Body.String()), "localhost") {
+		t.Fatalf("download response leaked local URL: %s", rr.Body.String())
 	}
 }
 
@@ -2621,6 +2712,9 @@ func TestFeedHealthJSONShapeFlagsRowsAndMissingData(t *testing.T) {
 	if rowsByID["feeds_json"].Status != checklistStatusOK || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "all HTTPS=true") || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "discoverable=true") {
 		t.Fatalf("feeds_json row did not include HTTPS/discoverability readiness: %+v", rowsByID["feeds_json"])
 	}
+	if !strings.Contains(rowsByID["vehicle_positions"].HealthContext, "active schedule context=feed-v1") {
+		t.Fatalf("vehicle_positions row missing active schedule context: %+v", rowsByID["vehicle_positions"])
+	}
 	for _, id := range []string{"vehicle_positions", "trip_updates", "alerts"} {
 		if strings.Contains(strings.ToLower(rowsByID[id].Freshness), "generated") {
 			t.Fatalf("realtime row %s should not label revision metadata as generated freshness: %+v", id, rowsByID[id])
@@ -2688,7 +2782,7 @@ func TestFeedHealthHTMLPlainLanguageBoundariesAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five configured public route paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Limits"} {
+	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five configured public route paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "active schedule context", "Next action", "Limits"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -2807,6 +2901,17 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 	if hub.PluginDefinition != safePluginDefinition {
 		t.Fatalf("plugin definition = %q, want safe definition", hub.PluginDefinition)
 	}
+	wantHealthIDs := []string{"telemetry_source", "prediction", "validator", "monitoring_export", "consumer_discovery", "future_extension_model"}
+	var gotHealthIDs []string
+	for _, row := range hub.Health {
+		gotHealthIDs = append(gotHealthIDs, row.ID)
+		if row.ChecklistCopy == "" {
+			t.Fatalf("connector health checklist is not safe/copyable: %+v", row)
+		}
+	}
+	if strings.Join(gotHealthIDs, ",") != strings.Join(wantHealthIDs, ",") {
+		t.Fatalf("health ids = %v, want %v", gotHealthIDs, wantHealthIDs)
+	}
 	var ids []string
 	for _, category := range hub.Categories {
 		ids = append(ids, category.ID)
@@ -2842,7 +2947,7 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 			t.Fatalf("registry entry must remain disabled, fail-closed, and conformance-backed: %+v", entry)
 		}
 	}
-	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.generic-json-transform", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("registry ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -2869,7 +2974,7 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connectors", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
+	for _, want := range []string{"Connectors", "Connector Health Review", "Vehicle data setup", "Prediction setup", "Validator setup", "Monitoring export setup", "Feed discovery setup", "Future extension setup", "Setup checklist", "keep_send_enabled=false", "keep_network_send=false", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -3017,7 +3122,7 @@ func TestConnectorWorkbenchJSONShapeFlagsRecipesAndManifestReview(t *testing.T) 
 			t.Fatalf("manifest row must remain disabled, fail-closed, and conformance-backed: %+v", row)
 		}
 	}
-	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
+	wantRegistryIDs := []string{"example.consumer-discovery-metadata", "example.generic-json-transform", "example.monitoring-export", "example.predictor-sidecar-stub", "example.telemetry-csv-replay", "example.telemetry-http-poller", "example.telemetry-webhook-sidecar", "example.validator-allowlist"}
 	if strings.Join(registryIDs, ",") != strings.Join(wantRegistryIDs, ",") {
 		t.Fatalf("manifest ids = %v, want %v", registryIDs, wantRegistryIDs)
 	}
@@ -3694,6 +3799,13 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		`id="help-validators"`,
 		`id="help-telemetry"`,
 		`id="help-claims_evidence"`,
+		`id="help-path-agency_staff"`,
+		`id="help-path-administrator"`,
+		`id="help-path-deployment_owner"`,
+		`id="help-path-integrator"`,
+		"Role Quick Paths",
+		"Agency staff",
+		"Deployment owner",
 		`id="help-role-no_code_evaluator"`,
 		`id="help-role-director_manager"`,
 		`id="help-role-daily_operator"`,
@@ -3709,6 +3821,7 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"Demo Scenario Catalog",
 		"Trainer Script",
 		"Administrator Checklist",
+		"All Help Topics",
 		"docs/operator-training-guide.md",
 		"No-code evaluator",
 		"Director or manager",
@@ -3738,8 +3851,7 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"Trip Updates are empty, fallback, or withheld",
 		"Prepared packet visibility does not show submission",
 		safePluginDefinition,
-		`backend_command_execution_enabled`,
-		`consumer_statuses_changed`,
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("help HTML missing %q: %s", want, body)
@@ -3807,7 +3919,6 @@ func TestOperationsConsoleEmptyStateGuidanceAnswersFirstRunQuestions(t *testing.
 		"/admin/operations/help",
 	}
 	want := []string{
-		`class="card empty-state"`,
 		"What am I seeing?",
 		"Is this bad?",
 		"What should I do next?",
@@ -3828,6 +3939,9 @@ func TestOperationsConsoleEmptyStateGuidanceAnswersFirstRunQuestions(t *testing.
 				if !strings.Contains(body, text) {
 					t.Fatalf("%s empty-state guidance missing %q: %s", path, text, body)
 				}
+			}
+			if !strings.Contains(body, `class="card empty-state"`) && !strings.Contains(body, `class="section-note"`) {
+				t.Fatalf("%s empty-state guidance missing a stable container class: %s", path, body)
 			}
 		})
 	}
@@ -4230,7 +4344,7 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	if strings.Contains(text, `validation-health"`) && strings.Contains(text, `-X POST`) {
 		t.Fatalf("deployment doctor must not POST validation-health")
 	}
-	for _, want := range []string{"record_small_host_resources", "record_service_dependency_review", "record_postgres_capacity_review", "record_upgrade_rollback_review", "RESTORE_DRILL_DATABASE_URL", "hosted_saas_claimed"} {
+	for _, want := range []string{"record_small_host_resources", "record_service_dependency_review", "record_postgres_capacity_review", "record_upgrade_rollback_review", "record_install_upgrade_recovery_plan", "RESTORE_DRILL_DATABASE_URL", "hosted_saas_claimed"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("deployment doctor missing Phase 104 guard %q", want)
 		}
@@ -4266,6 +4380,47 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	if lastRespond != `respond "not found" 404` {
 		t.Fatalf("local Caddyfile final respond = %q, want unmatched 404 fallback:\n%s", lastRespond, caddyText)
 	}
+}
+
+func TestDeploymentDoctorScriptInstallRecoveryStopPoints(t *testing.T) {
+	root := referenceCheckRepoRoot(t)
+	outputRel := filepath.ToSlash(filepath.Join(referenceCheckTempRel(t, root, "deployment-doctor"), "out"))
+	cmd := exec.Command("sh", filepath.Join(root, "scripts", "deployment-doctor.sh"))
+	cmd.Dir = root
+	cmd.Env = append(os.Environ(),
+		"OUTPUT_DIR="+outputRel,
+		"FORCE=true",
+		"VALIDATOR_TOOLING_MODE=stub",
+		"CONNECT_TIMEOUT_SECONDS=1",
+		"REQUEST_TIMEOUT_SECONDS=1",
+		"MAX_FEED_BYTES=1024",
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("deployment doctor failed: %v\n%s", err, out)
+	}
+	summary := readReferenceCheckJSON(t, root, outputRel, "summary.json")
+	categories := summary["categories"].(map[string]any)
+	if categories["install_recovery"] == "" {
+		t.Fatalf("install_recovery category missing: %+v", categories)
+	}
+	plan := readReferenceCheckJSON(t, root, outputRel, filepath.ToSlash(filepath.Join("operations", "install-upgrade-recovery-plan.summary.json")))
+	stages := plan["stages"].([]any)
+	if len(stages) != 5 {
+		t.Fatalf("install recovery stages = %d, want 5: %+v", len(stages), stages)
+	}
+	for _, raw := range stages {
+		stage := raw.(map[string]any)
+		for _, key := range []string{"id", "status", "category_statuses", "next_action", "does_not_prove"} {
+			if stage[key] == "" || stage[key] == nil {
+				t.Fatalf("stage missing %s: %+v", key, stage)
+			}
+		}
+	}
+	if plan["browser_executes_destructive_actions"] != false || plan["shell_executes_destructive_actions"] != false {
+		t.Fatalf("install recovery plan must remain read-only: %+v", plan)
+	}
+	assertReferenceCheckNoLeakage(t, root, outputRel, string(out))
 }
 
 func TestValidatorHealthScriptDryRunOutputSafety(t *testing.T) {
@@ -4846,6 +5001,8 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 		"Likely owner",
 		"Affected files",
 		"Safe fix path",
+		"Risk level",
+		"can break service availability or realtime usefulness",
 		"Safe draft suggestion",
 		"Draft suggestion record",
 		"Before validation plan",
@@ -4861,10 +5018,7 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 		"does not edit GTFS",
 		"No automatic production edit",
 		"Advisory only; no persisted draft suggestion record",
-		"automatic_gtfs_edit_enabled",
-		"draft_suggestion_records_created",
-		"validator_semantics_changed",
-		"production_avl_reliability_claimed",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("GTFS quality guidance missing %q: %s", want, body)
@@ -4932,7 +5086,7 @@ func TestGTFSQualityFixPlannerBoundsRowsAndNoMutationFlags(t *testing.T) {
 		t.Fatalf("unexpected mutation or claim flag: %+v", guidance.ClaimFlags)
 	}
 	for _, row := range guidance.FixPlanner.Rows {
-		if !strings.Contains(row.NoAutoApplyBoundary, "No automatic production edit") || !strings.Contains(row.DraftSuggestionRecord, "no persisted draft suggestion record") {
+		if row.RiskLevel == "" || !strings.Contains(row.NoAutoApplyBoundary, "No automatic production edit") || !strings.Contains(row.DraftSuggestionRecord, "no persisted draft suggestion record") {
 			t.Fatalf("planner row missing safe boundary: %+v", row)
 		}
 	}
@@ -5342,7 +5496,7 @@ func TestValidationCenterHTMLPlainLanguageReadOnlyAndNoLeakage(t *testing.T) {
 		"Validator Health",
 		"GTFS Quality Summary",
 		"Prepared Consumer Tracker",
-		"Advanced Safety Details",
+		"Safety details",
 		"read-only",
 		"does not run validators",
 		"prepared only",
@@ -5427,7 +5581,7 @@ func TestValidationCenterIssueDrilldownsFixOwnersAndNoRawSamples(t *testing.T) {
 		if issue.SampleCount > 0 && (strings.Contains(strings.Join(issue.Codes, ","), "/Users") || strings.Contains(strings.Join(issue.Codes, ","), "TOKEN")) {
 			t.Fatalf("issue codes leaked private text: %+v", issue)
 		}
-		if issue.LikelyOwner == "" || issue.AffectedFiles == "" || issue.SafeFixPath == "" || issue.VerifyWith == "" || issue.EscalateIf == "" || issue.DoesNotProve == "" {
+		if issue.LikelyOwner == "" || issue.RiskLevel == "" || issue.AffectedFiles == "" || issue.SafeFixPath == "" || issue.VerifyWith == "" || issue.EscalateIf == "" || issue.DoesNotProve == "" {
 			t.Fatalf("issue missing guidance fields: %+v", issue)
 		}
 	}
@@ -5439,7 +5593,7 @@ func TestValidationCenterIssueDrilldownsFixOwnersAndNoRawSamples(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	html := rr.Body.String()
-	for _, want := range []string{"Issue Drilldowns", "Likely owner", "Affected files", "Safe fix path", "Verify with", "Sample count"} {
+	for _, want := range []string{"Issue Drilldowns", "Likely owner", "Risk level", "Affected files", "Safe fix path", "Verify with", "Sample count"} {
 		if !strings.Contains(html, want) {
 			t.Fatalf("validation center issue HTML missing %q: %s", want, html)
 		}
@@ -5695,14 +5849,14 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 	if view.SupportReview.Status != operationsStatusNeedsReview || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Status != operationsStatusNeedsReview || len(view.CadencePlan.Rows) != 4 {
 		t.Fatalf("unexpected support/cadence panels: support=%+v cadence=%+v", view.SupportReview, view.CadencePlan)
 	}
-	if view.MonitoringExport.Status != operationsStatusDiagnosticOnly || len(view.MonitoringExport.Rows) != 4 {
+	if view.MonitoringExport.Status != operationsStatusDiagnosticOnly || len(view.MonitoringExport.Rows) != 5 {
 		t.Fatalf("unexpected monitoring export panel: %+v", view.MonitoringExport)
 	}
-	if view.Infrastructure.Status != operationsStatusBlocked || len(view.Infrastructure.Rows) != 10 {
+	if view.Infrastructure.Status != operationsStatusBlocked || len(view.Infrastructure.Rows) != 11 {
 		t.Fatalf("unexpected infrastructure panel: %+v", view.Infrastructure)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "small_host_readiness", "small_host_preflight_sequence", "off_host_validation_choice", "resource_budget_review", "backup_restore_recovery_path", "upgrade_recovery_stop_points", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback_checklist"} {
+	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "small_host_readiness", "small_host_preflight_sequence", "off_host_validation_choice", "resource_budget_review", "backup_restore_recovery_path", "upgrade_recovery_stop_points", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "redacted_operations_export_formats", "feed_health", "connector_health", "validator_posture", "telemetry_freshness", "maintenance_tasks", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback_checklist", "install_recovery_plan", "install_recovery"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("maintenance JSON missing %q: %s", want, body)
 		}
@@ -5801,7 +5955,7 @@ func writeMaintenanceSummaryFixtures(t *testing.T) maintenanceSummaryTestRoots {
 		"generated_at_utc":               "20260512T010313Z",
 		"overall_status":                 "blocker",
 		"counts":                         map[string]any{"blocker": 2, "warning": 1, "unavailable": 0},
-		"categories":                     map[string]any{"backup_readiness": "blocker", "database": "skipped", "migrations": "skipped", "postgis": "skipped", "restore_readiness": "blocker", "validators": "passed", "small_host_resources": "warning", "service_dependencies": "passed", "proxy_exposure": "passed", "postgres_capacity": "warning", "upgrade_rollback": "passed"},
+		"categories":                     map[string]any{"backup_readiness": "blocker", "database": "skipped", "migrations": "skipped", "postgis": "skipped", "restore_readiness": "blocker", "validators": "passed", "small_host_resources": "warning", "service_dependencies": "passed", "proxy_exposure": "passed", "postgres_capacity": "warning", "upgrade_rollback": "passed", "install_recovery": "blocker"},
 		"external_evidence_created":      false,
 		"final_root_evidence_created":    false,
 		"consumer_statuses_changed":      false,
@@ -5938,7 +6092,7 @@ func TestValidationHealthHTMLMatchesJSONRows(t *testing.T) {
 			t.Fatalf("html missing feed row %q", row.FeedType)
 		}
 	}
-	for _, want := range []string{"external_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "private diagnostics"} {
+	for _, want := range []string{"Detailed safety booleans remain available", "private diagnostics"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html missing %q", want)
 		}
@@ -6614,7 +6768,7 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "synthetic_covered (5/5 synthetic cases)", "Conservative Handling Guide", "Telemetry is stale", "Assignment is ambiguous", "Future ETA Proof Gates", "Real observed arrival/departure comparison", "Required before collecting", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality", "make realtime-quality-backtest"} {
+	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "synthetic_covered (5/5 synthetic cases)", "Conservative Handling Guide", "Telemetry is stale", "Assignment is ambiguous", "Future ETA Proof Gates", "Real observed arrival/departure comparison", "Required before collecting", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "Detailed safety booleans remain available", "make realtime-quality", "make realtime-quality-backtest"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("prediction lab html missing %q: %s", want, body)
 		}
@@ -6988,6 +7142,12 @@ func TestOperationsDevicesShowsFleetOnboardingV2GuidanceSafely(t *testing.T) {
 		"the console does not import token values or generate bulk secrets",
 		"Rotate/rebind is the supported credential action",
 		"token recovery is intentionally unavailable",
+		"Ingest Diagnostics",
+		"Authenticated ingest contract",
+		"safe quality flags such as stale_timestamp or low_gps_accuracy",
+		"future timestamps are rejected before storage",
+		"invalid motion fields",
+		"Duplicate and out_of_order events are stored as non-accepted rows",
 		"Not-seen device triage",
 		"1 configured bindings have no latest accepted telemetry",
 		"Unknown-device and rejected-payload triage",
@@ -7100,10 +7260,7 @@ func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testi
 		"does not test a live vendor",
 		"SCENARIO=on-route make telemetry-simulator",
 		"SCENARIO=on-route RUN_MATCHER=true make telemetry-simulator",
-		"backend_command_execution_enabled",
-		"telemetry_sent_by_web_request",
-		"device_token_collected_by_browser",
-		"cache_diagnostics_read_enabled",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("simulator guide missing %q: %s", want, body)
@@ -7349,9 +7506,7 @@ func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
 		"Runtime deployment note is",
 		"docs tracker status remains",
 		"Requires separate written authorization",
-		"consumer_statuses_changed",
-		"consumer_submission_claimed",
-		"external_contact_performed",
+		"Detailed safety booleans remain available",
 		"every docs/evidence consumer target at prepared",
 		"Database workflow notes are shown separately",
 	} {
@@ -7606,11 +7761,25 @@ func assertFirstRunFlagsFalse(t *testing.T, flags operationsFirstRunClaimFlags) 
 
 func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.TrainingGuide.DocsPath == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 || len(view.QuickTasks) != 7 || len(view.Handoff) != 6 || len(view.DemoScenarios) != 6 || len(view.TrainerScript) != 6 || len(view.HelperChecklist) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.TrainingGuide.DocsPath == "" || len(view.Topics) != 7 || len(view.RolePaths) != 4 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 || len(view.QuickTasks) != 7 || len(view.Handoff) != 6 || len(view.DemoScenarios) != 6 || len(view.TrainerScript) != 6 || len(view.HelperChecklist) != 7 {
 		t.Fatalf("invalid help top-level shape: %+v", view)
 	}
 	if view.TrainingGuide.DocsPath != "docs/operator-training-guide.md" || view.TrainingGuide.Label == "" || view.TrainingGuide.Audience == "" || view.TrainingGuide.HowToUse == "" || view.TrainingGuide.Boundary == "" {
 		t.Fatalf("invalid training guide link: %+v", view.TrainingGuide)
+	}
+	wantRolePaths := []string{"agency_staff", "administrator", "deployment_owner", "integrator"}
+	var gotRolePaths []string
+	for _, path := range view.RolePaths {
+		gotRolePaths = append(gotRolePaths, path.ID)
+		if path.ID == "" || path.Label == "" || path.UseWhen == "" || path.StartHere == "" || path.DoFirst == "" || path.ThenReview == "" || path.AskWhen == "" || path.DoNotDo == "" || path.DoesNotShow == "" {
+			t.Fatalf("invalid role path shape: %+v", path)
+		}
+		if !strings.HasPrefix(path.StartHere, "/admin/") {
+			t.Fatalf("role path %s has unsafe start link %q", path.ID, path.StartHere)
+		}
+	}
+	if strings.Join(gotRolePaths, ",") != strings.Join(wantRolePaths, ",") {
+		t.Fatalf("role path ids = %v, want %v", gotRolePaths, wantRolePaths)
 	}
 	wantRoles := []string{"no_code_evaluator", "director_manager", "daily_operator", "administrator", "integrator"}
 	var gotRoles []string
@@ -7760,8 +7929,24 @@ func assertOperationsHelpSafeStrings(t *testing.T, body string) {
 
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
-	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 7 {
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Health) != 6 || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 8 {
 		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
+	}
+	seenHealthIDs := map[string]bool{}
+	for _, row := range hub.Health {
+		if row.ID == "" || row.Label == "" || row.Owner == "" || row.Status == "" || row.Configured == "" || row.DryRunReady == "" || row.SendState == "" || row.LastSyntheticCheck == "" || row.RedactionStatus == "" || row.IssueCategory == "" || len(row.IssueLinks) == 0 || len(row.SetupChecklist) == 0 || row.ChecklistCopy == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid connector health row shape: %+v", row)
+		}
+		if seenHealthIDs[row.ID] {
+			t.Fatalf("duplicate connector health id %q", row.ID)
+		}
+		seenHealthIDs[row.ID] = true
+		for _, link := range row.IssueLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("connector health row %s has unsafe issue link %q", row.ID, link)
+			}
+		}
+		assertConnectorHealthChecklistSafe(t, row)
 	}
 	seenCatalogIDs := map[string]bool{}
 	for _, row := range hub.Catalog {
@@ -7823,6 +8008,21 @@ func assertConnectorHubFlagsFalse(t *testing.T, flags connectorHubClaimFlags) {
 	}
 }
 
+func assertConnectorHealthChecklistSafe(t *testing.T, row connectorHealthRow) {
+	t.Helper()
+	joined := strings.ToLower(strings.Join(append(append([]string{}, row.SetupChecklist...), row.ChecklistCopy), "\n"))
+	for _, forbidden := range []string{"authorization:", "bearer ", "set-cookie", "database_url", "token_hash", "payload_json", "file://", "/users/", "/home/", "/var/", "/tmp/", "/etc/", "postgres://", "localhost", "127.0.0.1", "192.168.", "10.0.0.", ".local", "http://"} {
+		if strings.Contains(joined, forbidden) {
+			t.Fatalf("connector health checklist %s leaks forbidden %q: %s", row.ID, forbidden, joined)
+		}
+	}
+	for _, forbidden := range []string{"api_key", "private_key", "password", "credential"} {
+		if strings.Contains(joined, forbidden) {
+			t.Fatalf("connector health checklist %s includes secret-like key %q: %s", row.ID, forbidden, joined)
+		}
+	}
+}
+
 func assertConnectorTestsShape(t *testing.T, view connectorTestsView) {
 	t.Helper()
 	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.Commands) != 9 {
@@ -7854,7 +8054,7 @@ func assertConnectorTestsFlagsFalse(t *testing.T, flags connectorTestsClaimFlags
 
 func assertConnectorWorkbenchShape(t *testing.T, view connectorWorkbenchView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 8 || len(view.Recipes) != 8 || len(view.RedactionTemplates) != 5 || len(view.DryRunCommands) != 5 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ConsumerGuide.Title == "" || len(view.ConsumerGuide.Rows) != 3 || len(view.ConsumerGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 12 || view.Conformance.CaseCount != 25 || len(view.Conformance.Groups) != 5 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 7 || len(view.ManifestReview.LintChecks) != 5 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || len(view.DecisionTree) != 8 || len(view.Recipes) != 8 || len(view.RedactionTemplates) != 5 || len(view.DryRunCommands) != 5 || view.TelemetryPreview.Boundary == "" || len(view.TelemetryPreview.Sources) != 2 || len(view.TelemetryPreview.Rows) != 6 || view.WebhookBoundary.Title == "" || len(view.WebhookBoundary.Rows) != 4 || len(view.WebhookBoundary.DocsLinks) != 3 || view.PredictionGuide.Title == "" || len(view.PredictionGuide.Rows) != 3 || len(view.PredictionGuide.DocsLinks) != 3 || view.MonitoringGuide.Title == "" || len(view.MonitoringGuide.Rows) != 3 || len(view.MonitoringGuide.DocsLinks) != 3 || view.ConsumerGuide.Title == "" || len(view.ConsumerGuide.Rows) != 3 || len(view.ConsumerGuide.DocsLinks) != 3 || view.Conformance.Boundary == "" || view.Conformance.SuitePath != "testdata/adapter-conformance/suite.json" || view.Conformance.Status == "" || !view.Conformance.SyntheticOnly || view.Conformance.ManifestCount != 13 || view.Conformance.CaseCount != 25 || len(view.Conformance.Groups) != 5 || len(view.Conformance.RunnerCommands) != 4 || view.ManifestReview.Title == "" || view.ManifestReview.PluginDefinition != safePluginDefinition || len(view.ManifestReview.Rows) != 8 || len(view.ManifestReview.LintChecks) != 5 {
 		t.Fatalf("invalid connector workbench top-level shape: %+v", view)
 	}
 	seenDecisions := map[string]bool{}
@@ -8022,7 +8222,7 @@ func assertConnectorWorkbenchConformanceShape(t *testing.T, view connectorWorkbe
 	t.Helper()
 	wantCases := map[string]int{"telemetry": 10, "prediction": 7, "validator": 2, "monitoring": 3, "consumer_discovery": 3}
 	seen := map[string]bool{}
-	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 12 || view.CaseCount != 25 || len(view.Groups) != 5 || len(view.RunnerCommands) != 4 {
+	if view.Boundary == "" || view.SuitePath == "" || view.Status == "" || !view.SyntheticOnly || view.ManifestCount != 13 || view.CaseCount != 25 || len(view.Groups) != 5 || len(view.RunnerCommands) != 4 {
 		t.Fatalf("invalid connector workbench conformance view: %+v", view)
 	}
 	for _, command := range view.RunnerCommands {
@@ -8114,7 +8314,7 @@ func assertOperationsCockpitFlagsFalse(t *testing.T, flags operationsCockpitClai
 
 func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.SmallHostReadiness.Boundary == "" || view.SmallHostReadiness.Status == "" || view.SmallHostReadiness.NextAction == "" || len(view.SmallHostReadiness.Rows) != 5 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 4 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 10 || len(view.Tasks) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.SmallHostReadiness.Boundary == "" || view.SmallHostReadiness.Status == "" || view.SmallHostReadiness.NextAction == "" || len(view.SmallHostReadiness.Rows) != 5 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 5 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 11 || len(view.Tasks) != 7 {
 		t.Fatalf("invalid maintenance shape: %+v", view)
 	}
 	seen := map[string]bool{}
@@ -8388,7 +8588,7 @@ func assertValidationCenterJSONAllowlist(t *testing.T, payload []byte) {
 			}
 		}
 	}
-	wantIssue := map[string]bool{"id": true, "source": true, "source_label": true, "status": true, "severity": true, "family": true, "codes": true, "count": true, "sample_count": true, "overflow_count": true, "likely_owner": true, "affected_files": true, "operator_summary": true, "why_it_matters": true, "recommended_action": true, "safe_fix_path": true, "verify_with": true, "escalate_if": true, "details_url": true, "does_not_prove": true}
+	wantIssue := map[string]bool{"id": true, "source": true, "source_label": true, "status": true, "severity": true, "family": true, "codes": true, "count": true, "sample_count": true, "overflow_count": true, "likely_owner": true, "risk_level": true, "affected_files": true, "operator_summary": true, "why_it_matters": true, "recommended_action": true, "safe_fix_path": true, "verify_with": true, "escalate_if": true, "details_url": true, "does_not_prove": true}
 	for _, item := range decoded["issue_drilldowns"].([]any) {
 		for key := range item.(map[string]any) {
 			if !wantIssue[key] {
@@ -8860,8 +9060,9 @@ func feedHealthTestStore(t testing.TB) *fakePublicationStore {
 	discovery.GeneratedAt = now
 	discovery.PublicBaseURL = "https://feeds.example.org"
 	discovery.TechnicalContactEmail = "ops@example.org"
+	discovery.PublicationEnvironment = compliance.EnvironmentDev
 	discovery.License = compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"}
-	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true}
+	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true, StablePublicBaseURL: true, PublicationEnvironmentConfigured: true, ActiveScheduleListed: true, RealtimeFeedsListed: true}
 	for i := range discovery.Feeds {
 		discovery.Feeds[i].LastValidationStatus = "passed"
 		discovery.Feeds[i].LastValidationAt = &now

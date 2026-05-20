@@ -88,6 +88,7 @@ type operationsValidationCenterIssue struct {
 	SampleCount       int      `json:"sample_count"`
 	OverflowCount     int      `json:"overflow_count"`
 	LikelyOwner       string   `json:"likely_owner"`
+	RiskLevel         string   `json:"risk_level"`
 	AffectedFiles     string   `json:"affected_files"`
 	OperatorSummary   string   `json:"operator_summary"`
 	WhyItMatters      string   `json:"why_it_matters"`
@@ -301,6 +302,7 @@ func validationCenterIssuesFromSection(prefix string, section compliance.GTFSQua
 			SampleCount:       0,
 			OverflowCount:     section.OverflowCount,
 			LikelyOwner:       "GTFS source owner with technical maintainer review",
+			RiskLevel:         "unclassified impact; maintainer review needed",
 			AffectedFiles:     "not available from the current sanitized summary",
 			OperatorSummary:   firstNonEmpty(section.OperatorSummary, "No grouped issue rows are available for this source."),
 			WhyItMatters:      "A non-ok source summary without grouped issues still needs operator review before stronger feed-readiness language.",
@@ -328,6 +330,7 @@ func validationCenterIssueFromGroup(prefix string, section compliance.GTFSQualit
 		SampleCount:       len(group.Samples),
 		OverflowCount:     group.OverflowCount,
 		LikelyOwner:       gtfsQualityLikelyOwner(group),
+		RiskLevel:         gtfsQualityRiskLevel(group),
 		AffectedFiles:     gtfsQualityAffectedFiles(group),
 		OperatorSummary:   group.OperatorSummary,
 		WhyItMatters:      group.WhyItMatters,

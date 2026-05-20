@@ -89,6 +89,59 @@ func TestAlertsDebugIncludesOutputAndPersistenceStatus(t *testing.T) {
 	}
 }
 
+func TestAlertsSnapshotRejectsInvalidActiveWindow(t *testing.T) {
+	generatedAt := time.Date(2026, 4, 21, 12, 0, 0, 0, time.UTC)
+	activeStart := generatedAt.Add(time.Hour)
+	activeEnd := generatedAt
+	builder, err := NewBuilder(fakeAlertRepo{alerts: []domainalerts.Alert{{
+		AgencyID:    "demo-agency",
+		AlertKey:    "bad-window",
+		Status:      domainalerts.StatusPublished,
+		HeaderText:  "Bad window",
+		ActiveStart: &activeStart,
+		ActiveEnd:   &activeEnd,
+	}}}, &fakeHealthRepo{}, Config{AgencyID: "demo-agency"})
+	if err != nil {
+		t.Fatalf("new builder: %v", err)
+	}
+	snapshot, err := builder.Snapshot(context.Background(), generatedAt)
+	if err != nil {
+		t.Fatalf("snapshot: %v", err)
+	}
+	if _, err := snapshot.MarshalProto(); err == nil {
+		t.Fatalf("MarshalProto succeeded for invalid active window")
+	}
+}
+
+func TestAlertsSnapshotBuildsAgencyWideSelectorWhenNoEntities(t *testing.T) {
+	generatedAt := time.Date(2026, 4, 21, 12, 0, 0, 0, time.UTC)
+	builder, err := NewBuilder(fakeAlertRepo{alerts: []domainalerts.Alert{{
+		AgencyID:   "demo-agency",
+		AlertKey:   "systemwide",
+		Status:     domainalerts.StatusPublished,
+		HeaderText: "Systemwide notice",
+	}}}, &fakeHealthRepo{}, Config{AgencyID: "demo-agency"})
+	if err != nil {
+		t.Fatalf("new builder: %v", err)
+	}
+	snapshot, err := builder.Snapshot(context.Background(), generatedAt)
+	if err != nil {
+		t.Fatalf("snapshot: %v", err)
+	}
+	payload, err := snapshot.MarshalProto()
+	if err != nil {
+		t.Fatalf("marshal proto: %v", err)
+	}
+	var message gtfsrt.FeedMessage
+	if err := proto.Unmarshal(payload, &message); err != nil {
+		t.Fatalf("unmarshal feed: %v", err)
+	}
+	entities := message.Entity[0].GetAlert().GetInformedEntity()
+	if len(entities) != 1 || entities[0].GetAgencyId() != "demo-agency" || entities[0].GetRouteId() != "" || entities[0].GetTrip().GetTripId() != "" {
+		t.Fatalf("informed entities = %+v, want agency-wide selector only", entities)
+	}
+}
+
 type fakeAlertRepo struct {
 	alerts []domainalerts.Alert
 }

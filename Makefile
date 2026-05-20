@@ -10,7 +10,7 @@ migrate-up migrate-down migrate-status migrate-redo run-telemetry-ingest test-in
 migrate-up migrate-down migrate-status migrate-redo test-integration: export MIGRATIONS_DIR := $(MIGRATIONS_DIR)
 test-integration: export TEST_DATABASE_URL := $(TEST_DATABASE_URL)
 
-.PHONY: help check check-links check-stable-filter build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up capture-ui-tour product-ui-smoke telemetry-simulator operator-smoke support-bundle deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check external-connection-check adapter-conformance gtfsrt-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-product-language test-product-language audit-ui-layout audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
+.PHONY: help check check-links check-stable-filter build build-linux-amd64 deps db-up db-down migrate-up migrate-down migrate-status migrate-redo seed dev bootstrap demo-agency-flow agency-app-up agency-app-down agency-app-logs agency-app-reset agency-pilot-up capture-ui-tour product-ui-smoke telemetry-simulator operator-smoke support-bundle test-support-bundle-redaction deployment-doctor validator-health operations-notify operations-reliability oci-reference-check validate-public-feeds multi-agency-hosting test-multi-agency-hosting install-confidence test-install-confidence release-candidate-check test-release-candidate-check api-contract-check external-connection-check adapter-conformance gtfsrt-conformance test-connector-examples caltrans-readiness-check release-package audit-release-package test-release-package audit-vendor-equivalent-pack test-vendor-equivalent-pack collect-hosted-evidence audit-hosted-evidence collect-final-root-evidence audit-final-root-evidence test-final-root-evidence generate-compliance-evidence-packet audit-compliance-evidence-packet test-compliance-evidence-packet audit-final-claim-review test-final-claim-review audit-product-acceptance test-product-acceptance audit-product-language test-product-language audit-ui-layout audit-product-roadmap-baseline audit-operations-route-inventory test-operations-route-inventory pilot-ops-help run-agency-config run-telemetry-ingest run-feed-vehicle-positions run-feed-trip-updates run-feed-alerts run-gtfs-studio fmt lint test test-integration smoke validate realtime-quality realtime-quality-backtest validators-install validators-check oci-build oci-setup oci-push oci-units oci-deploy oci-status oci-start oci-stop oci-restart oci-logs oci-update-dns oci-collect
 
 help:
 	@printf '%s\n' 'Open Transit RT command map'
@@ -28,6 +28,7 @@ help:
 	@printf '%s\n' '  make audit-product-language     Check primary product wording guardrails'
 	@printf '%s\n' '  make test-product-language      Test product wording guardrails'
 	@printf '%s\n' '  make audit-ui-layout            Check static public/console layout guardrails'
+	@printf '%s\n' '  make audit-product-roadmap-baseline Check product-quality roadmap baseline'
 	@printf '%s\n' '  make test                       Go unit tests'
 	@printf '%s\n' '  make validate                   Full repo validation; requires pinned validators'
 	@printf '%s\n' ''
@@ -39,10 +40,12 @@ help:
 	@printf '%s\n' ''
 	@printf '%s\n' 'Release/readiness:'
 	@printf '%s\n' '  make release-candidate-check    Local release-candidate diagnostic summary'
+	@printf '%s\n' '  make api-contract-check         Verify API, feed, and extension contract inventory'
 	@printf '%s\n' '  make product-ui-smoke           Render private product routes with reference settings'
 	@printf '%s\n' '  make install-confidence         Run local fresh-clone/archive install diagnostics'
 	@printf '%s\n' '  make oci-reference-check        Private OCI/reference deployment diagnostic summary'
 	@printf '%s\n' '  make validate-public-feeds      Off-host five-feed fetch and validator diagnostic'
+	@printf '%s\n' '  make test-support-bundle-redaction Test support-bundle sanitizer and scan'
 	@printf '%s\n' '  make test-release-candidate-check Test release-candidate diagnostic boundaries'
 	@printf '%s\n' '  make release-package            Generate a local .cache source package'
 	@printf '%s\n' '  make audit-release-package      Audit an existing local release package'
@@ -65,7 +68,7 @@ check:
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git diff --check; else echo "Skipping git diff --check outside a git worktree."; fi
 	@scripts/check-consumer-tracker.sh >/dev/null
 	@for f in testdata/connectors/valid/*.json testdata/connectors/invalid/*.json examples/connectors/*/connector.json examples/connectors/*/fixtures/*.json testdata/adapter-conformance/suite.json testdata/adapter-conformance/fixtures/*.json testdata/gtfsrt-conformance/*.json testdata/telemetry-simulator/*.json; do python3 -m json.tool "$$f" >/dev/null; done
-	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/capture-ui-tour.sh scripts/product-ui-smoke.sh scripts/install-confidence.sh scripts/test-install-confidence.sh scripts/release-candidate-check.sh scripts/oci-reference-check.sh scripts/validate-public-feeds.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/audit-product-language.sh scripts/audit-ui-layout.sh scripts/check-consumer-tracker.sh scripts/check-internal-links.sh scripts/check-stable-filter.sh scripts/test-product-acceptance.sh scripts/test-product-language.sh scripts/audit-operations-route-inventory.sh scripts/test-operations-route-inventory.sh; do sh -n "$$s"; done
+	@for s in scripts/bootstrap-dev.sh scripts/agency-local-app.sh scripts/agency-pilot-onboard.sh scripts/capture-ui-tour.sh scripts/product-ui-smoke.sh scripts/support-bundle.sh scripts/install-confidence.sh scripts/test-install-confidence.sh scripts/release-candidate-check.sh scripts/api-contract-check.sh scripts/oci-reference-check.sh scripts/validate-public-feeds.sh scripts/external-connection-check.sh scripts/caltrans-readiness-check.sh scripts/audit-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/audit-product-language.sh scripts/audit-ui-layout.sh scripts/audit-product-roadmap-baseline.sh scripts/check-consumer-tracker.sh scripts/check-internal-links.sh scripts/check-stable-filter.sh scripts/test-product-acceptance.sh scripts/test-product-language.sh scripts/audit-operations-route-inventory.sh scripts/test-operations-route-inventory.sh; do sh -n "$$s"; done
 	@scripts/bootstrap-dev.sh --help >/dev/null
 	@scripts/agency-local-app.sh --help >/dev/null
 	@scripts/install-confidence.sh --help >/dev/null
@@ -73,8 +76,11 @@ check:
 	@scripts/audit-product-acceptance.sh >/dev/null
 	@scripts/audit-product-language.sh >/dev/null
 	@scripts/audit-ui-layout.sh >/dev/null
+	@scripts/audit-product-roadmap-baseline.sh >/dev/null
 	@scripts/audit-operations-route-inventory.sh >/dev/null
 	@scripts/product-ui-smoke.sh >/dev/null
+	@scripts/support-bundle.sh --self-test-redaction >/dev/null
+	@scripts/api-contract-check.sh >/dev/null
 	@scripts/check-internal-links.sh >/dev/null
 	@scripts/check-stable-filter.sh --skip-ref-check >/dev/null
 	@scripts/release-candidate-check.sh --help >/dev/null
@@ -153,6 +159,9 @@ operator-smoke:
 support-bundle:
 	@./scripts/support-bundle.sh
 
+test-support-bundle-redaction:
+	@./scripts/support-bundle.sh --self-test-redaction
+
 deployment-doctor:
 	@./scripts/deployment-doctor.sh
 
@@ -188,6 +197,9 @@ release-candidate-check:
 
 test-release-candidate-check:
 	@go test ./cmd/agency-config -run TestReleaseCandidateCheck
+
+api-contract-check:
+	@./scripts/api-contract-check.sh
 
 external-connection-check:
 	@./scripts/external-connection-check.sh
@@ -260,6 +272,9 @@ test-product-language:
 
 audit-ui-layout:
 	./scripts/audit-ui-layout.sh
+
+audit-product-roadmap-baseline:
+	./scripts/audit-product-roadmap-baseline.sh
 
 audit-operations-route-inventory:
 	./scripts/audit-operations-route-inventory.sh
@@ -463,23 +478,31 @@ validate:
 	@test -f scripts/test-final-claim-review.sh
 	@test -f scripts/test-product-acceptance.sh
 	@sh -n scripts/audit-final-claim-review.sh scripts/test-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/test-product-acceptance.sh
-	@test -f docs/phase-60-final-claim-review-and-public-closeout.md
-	@test -f docs/handoffs/phase-60.md
-	@test -f docs/phase-55-compliance-evidence-packet-generator.md
-	@test -f docs/handoffs/phase-55.md
-	@test -f docs/phase-56-multi-agency-hosting-hardening.md
-	@test -f docs/handoffs/phase-56.md
-	@test -f docs/phase-57-release-packaging-and-supply-chain.md
+	@test -f docs/current-status.md
+	@test -f docs/handoffs/latest.md
+	@test -f docs/api-contracts.md
 	@test -f docs/release-candidate-readiness.md
+	@test -f docs/release-checklist.md
+	@test -f docs/release-process.md
+	@test -f docs/release-notes-template.md
 	@test -f docs/deployment/oci-reference-check.md
+	@test -f docs/deployment/oci-reference-deployment.md
 	@test -f docs/deployment/off-host-validation.md
+	@test -f docs/deployment/reference-deployment-doctor.md
+	@test -f docs/product-language-guide.md
 	@test -f docs/tutorials/no-cli-agency-first-run.md
 	@test -f docs/tutorials/small-agency-maintenance-guide.md
-	@test -f docs/roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md
+	@test -f docs/tutorials/staff-training-demo-kit.md
+	@test -f docs/roadmaps/external-connector-runtime-integration/README.md
+	@test -f docs/roadmaps/external-connector-runtime-integration/phase-plan.md
+	@test -f docs/roadmaps/post-rc2-browser-first-product/README.md
+	@test -f docs/roadmaps/post-rc2-browser-first-product/closeout.md
 	@test -f docs/caltrans-readiness-gap-report.md
 	@test -f docs/connectors/plugin-contract.md
+	@test -f docs/connectors/catalog.md
+	@test -f docs/connectors/redaction-first-recipes.md
 	@test -f docs/external-connection-readiness.md
-	@test -f docs/phase-58-optional-marketplace-vendor-equivalent-pack.md
+	@test -f docs/integration-adapter-kit.md
 	@test -f docs/vendor-equivalent-pack/README.md
 	@test -f docs/vendor-equivalent-pack/byod-hardware-intake-template.md
 	@test -f docs/vendor-equivalent-pack/implementation-plan-template.md
@@ -501,37 +524,14 @@ validate:
 	@rm -rf .cache/validate/realtime-quality-backtest
 	@go run ./cmd/realtime-quality-backtest --observed testdata/realtime-quality-backtest/observed-events.json --predictions testdata/realtime-quality-backtest/prediction-samples.json --output-dir .cache/validate/realtime-quality-backtest --generated-at 2026-05-09T20:00:00Z >/dev/null
 	@test -f docs/integration-adapter-kit.md
-	@test -f docs/phase-39-calitp-readiness-workflow.md
-	@test -f docs/handoffs/phase-39.md
 	@test -f docs/tutorials/calitp-readiness-checklist.md
-	@test -f docs/phase-40-guided-self-hosted-operator-trial.md
 	@test -f docs/tutorials/self-hosted-operator-trial.md
-	@test -f docs/handoffs/phase-40.md
-	@test -f docs/phase-41-operator-smoke-support-bundle.md
 	@test -f docs/tutorials/operator-smoke-and-support-bundle.md
 	@test -f docs/tutorials/agency-launchpad.md
-	@test -f docs/handoffs/phase-41.md
-	@test -f docs/deployment/reference-deployment-doctor.md
-	@test -f docs/phase-42-reference-deployment-doctor.md
-	@test -f docs/handoffs/phase-42.md
-	@test -f docs/phase-43-operator-ux-setup-v2.md
-	@test -f docs/handoffs/phase-43.md
-	@test -f docs/phase-44-telemetry-simulator-and-device-trial.md
 	@test -f docs/tutorials/telemetry-simulator-and-device-trial.md
 	@test -f docs/tutorials/external-adapter-conformance.md
-	@test -f docs/handoffs/phase-44.md
-	@test -f docs/phase-45-gtfs-quality-triage-loop.md
 	@test -f docs/tutorials/gtfs-validation-triage.md
-	@test -f docs/handoffs/phase-45.md
-	@test -f docs/phase-46-validator-automation-and-health-gates.md
-	@test -f docs/handoffs/phase-46.md
-	@test -f docs/phase-47-self-hosted-operations-notifications.md
 	@test -f docs/tutorials/self-hosted-operations-notifications.md
-	@test -f docs/handoffs/phase-47.md
-	@test -f docs/phase-48-avl-adapter-runtime-path.md
-	@test -f docs/handoffs/phase-48.md
-	@test -f docs/phase-49-external-predictor-runtime-adapter.md
-	@test -f docs/phase-50-realtime-quality-backtesting.md
 	@test -f docs/roadmap-to-calitp-compliance-and-gap-closure.md
 	@scripts/check-consumer-tracker.sh >/dev/null
 	@test -f testdata/avl-vendor/README.md
@@ -611,7 +611,7 @@ validate:
 	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local
 	@test -f deploy/Caddyfile.local
-	@python3 -c 'from pathlib import Path; import re; s=Path("deploy/Caddyfile.local").read_text(); lines=[line.strip() for line in s.splitlines() if line.strip() and not line.strip().startswith("#")]; assert "@local_root {" in lines and "path /" in lines, "Caddyfile.local must define an explicit exact local-root matcher"; assert "respond @local_root \"Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth.\" 200" in lines, "Caddyfile.local must return the local app message at exact /"; assert "respond \"not found\" 404" in lines, "Caddyfile.local must include an explicit unmatched 404 fallback"; assert not any(re.fullmatch(r"respond\s+\"[^\"]*\"\s+200", line) for line in lines), "Caddyfile.local must not contain an unconditional 200 catch-all"; assert [line for line in lines if line.startswith("respond ")][-1] == "respond \"not found\" 404", "Caddyfile.local final respond must be the unmatched 404 fallback"'
+	@python3 -c 'from pathlib import Path; import re; s=Path("deploy/Caddyfile.local").read_text(); lines=[line.strip() for line in s.splitlines() if line.strip() and not line.strip().startswith("#")]; assert "@local_root {" in lines and "path /" in lines, "Caddyfile.local must define an explicit exact local-root matcher"; assert "respond @local_root \"Open Transit RT local app is running. Start local browser setup at /admin/local-login. Public feeds are under /public/ and admin routes require auth.\" 200" in lines, "Caddyfile.local must return the local app message at exact /"; assert "respond \"not found\" 404" in lines, "Caddyfile.local must include an explicit unmatched 404 fallback"; assert not any(re.fullmatch(r"respond\s+\"[^\"]*\"\s+200", line) for line in lines), "Caddyfile.local must not contain an unconditional 200 catch-all"; assert [line for line in lines if line.startswith("respond ")][-1] == "respond \"not found\" 404", "Caddyfile.local final respond must be the unmatched 404 fallback"'
 	@test -f deploy/systemd/open-transit-validator-cycle.service
 	@test -f deploy/systemd/open-transit-backup.service
 	@test -f deploy/systemd/open-transit-feed-monitor.service

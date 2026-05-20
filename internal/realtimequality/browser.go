@@ -59,7 +59,7 @@ func LoadBacktestBrowser(root string, limit int) (BacktestBrowser, error) {
 	}
 	browser := BacktestBrowser{
 		Status:   "missing",
-		Boundary: "Private local aggregate backtest summaries only. This reader verifies exact output files, schema versions, aggregate-only manifest flags, and forbidden-claim flags before returning bounded metrics. It does not execute backtests, read source-row inputs, contact predictors, create evidence, alter public feeds, or prove production-grade ETA quality.",
+		Boundary: "Private local aggregate backtest summaries only. This reader verifies exact output files, schema versions, aggregate-only manifest settings, and unsupported-claim guardrails before returning bounded metrics. It does not execute backtests, read source-row inputs, contact predictors, create evidence, alter public feeds, or prove production-grade ETA quality.",
 		RootRef:  rootRef,
 		Message:  "No local realtime quality backtest summaries are available yet.",
 	}

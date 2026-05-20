@@ -2,9 +2,12 @@ package main
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"open-transit-rt/internal/auth"
+	"open-transit-rt/internal/compliance"
 	connectorpkg "open-transit-rt/internal/connectors"
 )
 
@@ -15,6 +18,7 @@ type connectorHubView struct {
 	AgencyID         string                 `json:"agency_id"`
 	Boundary         string                 `json:"boundary"`
 	PluginDefinition string                 `json:"plugin_definition"`
+	Health           []connectorHealthRow   `json:"health"`
 	Catalog          []connectorCatalogRow  `json:"catalog"`
 	Categories       []connectorCategory    `json:"categories"`
 	Registry         connectorpkg.Registry  `json:"registry"`
@@ -46,6 +50,24 @@ type connectorCategory struct {
 	AdminLinks         []string `json:"admin_links"`
 	DocsLinks          []string `json:"docs_links"`
 	ClaimBoundary      string   `json:"claim_boundary"`
+}
+
+type connectorHealthRow struct {
+	ID                 string   `json:"id"`
+	Label              string   `json:"label"`
+	Owner              string   `json:"owner"`
+	Status             string   `json:"status"`
+	Configured         string   `json:"configured"`
+	DryRunReady        string   `json:"dry_run_ready"`
+	SendState          string   `json:"send_state"`
+	LastSyntheticCheck string   `json:"last_synthetic_check"`
+	RedactionStatus    string   `json:"redaction_status"`
+	KnownBlockers      []string `json:"known_blockers"`
+	IssueCategory      string   `json:"issue_category"`
+	IssueLinks         []string `json:"issue_links"`
+	SetupChecklist     []string `json:"setup_checklist"`
+	ChecklistCopy      string   `json:"checklist_copy"`
+	DoesNotProve       string   `json:"does_not_prove"`
 }
 
 type connectorHubClaimFlags struct {
@@ -81,6 +103,7 @@ func (h *handler) renderConnectorHubJSON(w http.ResponseWriter, r *http.Request)
 }
 
 func buildConnectorHub(page operationsPage) connectorHubView {
+	registry := connectorRegistryForSection(page.Section)
 	categories := []connectorCategory{
 		connectorCategoryView(
 			"telemetry_source",
@@ -172,11 +195,345 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 		AgencyID:         page.AgencyID,
 		Boundary:         "Private authenticated Connectors only; viewing it creates no evidence, contacts no external party, changes no consumer status, and records no approval, compatibility, compliance, hosted-service, SLA, production-readiness, or ETA-quality outcome. Treat it as the starting point for manifest, redaction, fail-closed, and adapter-conformance review.",
 		PluginDefinition: safePluginDefinition,
+		Health:           connectorHealthRows(page, registry),
 		Catalog:          connectorCatalogRows(),
 		Categories:       categories,
-		Registry:         connectorRegistryForSection(page.Section),
+		Registry:         registry,
 		ClaimFlags:       connectorHubClaimFlags{},
 	}
+}
+
+func connectorHealthRows(page operationsPage, registry connectorpkg.Registry) []connectorHealthRow {
+	return []connectorHealthRow{
+		connectorHealthRowView(
+			"telemetry_source",
+			"Vehicle data setup",
+			"administrator",
+			connectorTypeStatus(registry, connectorpkg.TypeTelemetrySource, connectorTelemetryBlockers(page, registry)),
+			connectorConfiguredSignal(registry, connectorpkg.TypeTelemetrySource, "telemetry source"),
+			connectorDryRunSignal(registry, connectorpkg.TypeTelemetrySource, "make test-connector-examples"),
+			"Example sends are disabled; authenticated /v1/telemetry ingest needs a deployment-owned device token outside this page.",
+			"Browser does not record runs. First check: make test-connector-examples.",
+			connectorRedactionSignal(registry, connectorpkg.TypeTelemetrySource),
+			connectorTelemetryBlockers(page, registry),
+			"telemetry",
+			[]string{"/admin/operations/devices", "/admin/operations/telemetry", "/admin/operations/realtime", "/admin/operations/connectors/tests"},
+			[]string{
+				"choose_manifest=example.telemetry-csv-replay|example.telemetry-http-poller|example.telemetry-webhook-sidecar|example.generic-json-transform",
+				"keep_send_enabled=false",
+				"keep_network_send=false",
+				"map_agency_device_vehicle_timestamp_lat_lon_quality",
+				"run_make_test_connector_examples_before_real_source",
+			},
+			"Real device proof, vendor compatibility, hardware certification, production AVL reliability, compliance, consumer acceptance, or production readiness.",
+		),
+		connectorHealthRowView(
+			"prediction",
+			"Prediction setup",
+			"developer/integrator",
+			connectorTypeStatus(registry, connectorpkg.TypePrediction, connectorPredictionBlockers(page, registry)),
+			connectorConfiguredSignal(registry, connectorpkg.TypePrediction, "prediction"),
+			connectorDryRunSignal(registry, connectorpkg.TypePrediction, "go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance"),
+			"Optional sidecars are disabled by default; Vehicle Positions publishing stays independent.",
+			"Browser does not record runs. First check: adapter-conformance prediction.",
+			connectorRedactionSignal(registry, connectorpkg.TypePrediction),
+			connectorPredictionBlockers(page, registry),
+			"prediction",
+			[]string{"/admin/operations/prediction-lab", "/admin/operations/realtime", "/admin/operations/feed-health", "/admin/operations/connectors/tests"},
+			[]string{
+				"choose_manifest=example.predictor-sidecar-stub",
+				"keep_public_mutation=false",
+				"require_vehicle_positions_reference",
+				"withhold_on_timeout_malformed_stale_wrong_agency_low_confidence",
+				"run_adapter_conformance_prediction",
+			},
+			"Production-grade ETA quality, real-world accuracy, named predictor support, consumer acceptance, or production readiness.",
+		),
+		connectorHealthRowView(
+			"validator",
+			"Validator setup",
+			"administrator",
+			connectorTypeStatus(registry, connectorpkg.TypeValidator, connectorValidatorBlockers(page, registry)),
+			connectorConfiguredSignal(registry, connectorpkg.TypeValidator, "validator"),
+			connectorDryRunSignal(registry, connectorpkg.TypeValidator, "go run ./cmd/adapter-conformance validator --suite testdata/adapter-conformance"),
+			"Validator IDs are allowlisted; browser pages never accept raw validator commands.",
+			"Browser does not record runs. First check: adapter-conformance validator.",
+			connectorRedactionSignal(registry, connectorpkg.TypeValidator),
+			connectorValidatorBlockers(page, registry),
+			"validation",
+			[]string{"/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/gtfs-quality", "/admin/operations/connectors/tests"},
+			[]string{
+				"choose_manifest=example.validator-allowlist",
+				"keep_validator_id_allowlisted",
+				"keep_artifact_paths_private_and_redacted",
+				"record_not_run_or_blocked_instead_of_success",
+				"run_adapter_conformance_validator",
+			},
+			"Validator-clean proof, CAL-ITP/Caltrans compliance, consumer acceptance, public launch, or production readiness.",
+		),
+		connectorHealthRowView(
+			"monitoring_export",
+			"Monitoring export setup",
+			"deployment owner",
+			connectorTypeStatus(registry, connectorpkg.TypeMonitoringExport, connectorMonitoringBlockers(page, registry)),
+			connectorConfiguredSignal(registry, connectorpkg.TypeMonitoringExport, "monitoring export"),
+			connectorDryRunSignal(registry, connectorpkg.TypeMonitoringExport, "go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance"),
+			"Example notification and export sends are disabled; any destination is deployment-owned outside this page.",
+			"Browser does not record runs. First check: adapter-conformance monitoring.",
+			connectorRedactionSignal(registry, connectorpkg.TypeMonitoringExport),
+			connectorMonitoringBlockers(page, registry),
+			"monitoring",
+			[]string{"/admin/operations/maintenance", "/admin/operations/reliability", "/admin/operations/validation-health", "/admin/operations/connectors/tests"},
+			[]string{
+				"choose_manifest=example.monitoring-export",
+				"keep_send_by_default=false",
+				"redact_destination_and_contact_fields",
+				"review_health_digest_before_delivery",
+				"run_adapter_conformance_monitoring",
+			},
+			"SLA coverage, uptime guarantee, hosted service availability, notification delivery, compliance, retained evidence, or production readiness.",
+		),
+		connectorHealthRowView(
+			"consumer_discovery",
+			"Feed discovery setup",
+			"deployment owner",
+			connectorTypeStatus(registry, connectorpkg.TypeConsumerDiscovery, connectorConsumerDiscoveryBlockers(page, registry)),
+			connectorConfiguredSignal(registry, connectorpkg.TypeConsumerDiscovery, "consumer discovery"),
+			connectorDryRunSignal(registry, connectorpkg.TypeConsumerDiscovery, "go run ./cmd/adapter-conformance consumer_discovery --suite testdata/adapter-conformance"),
+			"Submission automation and consumer status mutation stay disabled.",
+			"Browser does not record runs. First check: adapter-conformance consumer_discovery.",
+			connectorRedactionSignal(registry, connectorpkg.TypeConsumerDiscovery),
+			connectorConsumerDiscoveryBlockers(page, registry),
+			"consumer discovery",
+			[]string{"/admin/operations/feeds", "/admin/operations/consumers", "/admin/operations/readiness", "/admin/operations/connectors/tests"},
+			[]string{
+				"choose_manifest=example.consumer-discovery-metadata",
+				"keep_submit_enabled=false",
+				"keep_status_mutation=false",
+				"review_public_base_url_license_contact_feed_urls",
+				"run_adapter_conformance_consumer_discovery",
+			},
+			"Consumer submission, review, acceptance, ingestion, listing, display, compliance, public launch, or production readiness.",
+		),
+		connectorHealthRowView(
+			"future_extension_model",
+			"Future extension setup",
+			"developer/integrator",
+			connectorFutureExtensionStatus(registry),
+			"Manifest-based examples are the only reviewed extension shape.",
+			"Ready when make external-connection-check and adapter-conformance pass.",
+			"Arbitrary backend plugin loading and browser command execution are disabled.",
+			"Browser does not record runs. First check: make external-connection-check.",
+			connectorRegistryRedactionStatus(registry),
+			connectorRegistryBlockers(registry),
+			"extension governance",
+			[]string{"/admin/operations/connectors/workbench", "/admin/operations/connectors/tests"},
+			[]string{
+				"keep_plugin_model=sidecar_or_manifest",
+				"reject_dynamic_backend_loading",
+				"reject_manifest_commands_and_private_endpoints",
+				"add_synthetic_fixture_and_conformance_case",
+				"run_external_connection_check",
+			},
+			"Runtime plugin distribution, unreviewed extension execution, vendor compatibility, compliance, or production readiness.",
+		),
+	}
+}
+
+func connectorHealthRowView(id string, label string, owner string, status string, configured string, dryRunReady string, sendState string, lastSyntheticCheck string, redactionStatus string, blockers []string, issueCategory string, issueLinks []string, checklist []string, doesNotProve string) connectorHealthRow {
+	cleanChecklist := cleanLaunchpadList(checklist)
+	return connectorHealthRow{
+		ID:                 id,
+		Label:              firstNonEmpty(label, "Connector setup"),
+		Owner:              firstNonEmpty(owner, "administrator"),
+		Status:             firstNonEmpty(status, checklistStatusNeedsReview),
+		Configured:         firstNonEmpty(configured, "Review connector manifest configuration."),
+		DryRunReady:        firstNonEmpty(dryRunReady, "Run fixed local checks before integration work."),
+		SendState:          firstNonEmpty(sendState, "Sends are disabled by default."),
+		LastSyntheticCheck: firstNonEmpty(lastSyntheticCheck, "Browser does not record synthetic check runs."),
+		RedactionStatus:    firstNonEmpty(redactionStatus, "Review redaction policy before use."),
+		KnownBlockers:      cleanConnectorOptionalList(blockers),
+		IssueCategory:      firstNonEmpty(issueCategory, "connectors"),
+		IssueLinks:         safeAdminLinks(issueLinks),
+		SetupChecklist:     cleanChecklist,
+		ChecklistCopy:      strings.Join(cleanChecklist, "\n"),
+		DoesNotProve:       firstNonEmpty(doesNotProve, "Compatibility, compliance, production readiness, or consumer acceptance."),
+	}
+}
+
+func cleanConnectorOptionalList(values []string) []string {
+	var out []string
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" || unsafePrivateString(trimmed) {
+			continue
+		}
+		out = append(out, trimmed)
+	}
+	return out
+}
+
+func connectorTypeStatus(registry connectorpkg.Registry, connectorType string, blockers []string) string {
+	if len(registry.Diagnostics) > 0 {
+		return checklistStatusBlocked
+	}
+	if len(connectorRegistryEntries(registry, connectorType)) == 0 {
+		return checklistStatusBlocked
+	}
+	if len(blockers) > 0 {
+		return checklistStatusNeedsReview
+	}
+	return "covered"
+}
+
+func connectorFutureExtensionStatus(registry connectorpkg.Registry) string {
+	if len(registry.Diagnostics) > 0 {
+		return checklistStatusBlocked
+	}
+	return "policy"
+}
+
+func connectorConfiguredSignal(registry connectorpkg.Registry, connectorType string, label string) string {
+	entries := connectorRegistryEntries(registry, connectorType)
+	if len(entries) == 0 {
+		return "No " + label + " example manifest loaded."
+	}
+	return strconv.Itoa(len(entries)) + " committed " + label + " example manifest(s) loaded: " + strings.Join(connectorRegistryEntryIDs(entries), ", ")
+}
+
+func connectorDryRunSignal(registry connectorpkg.Registry, connectorType string, command string) string {
+	entries := connectorRegistryEntries(registry, connectorType)
+	if len(registry.Diagnostics) > 0 {
+		return "Blocked until registry diagnostics are fixed."
+	}
+	if len(entries) == 0 {
+		return "Blocked until a committed synthetic manifest is loaded."
+	}
+	return "Ready for fixed operator-shell check: " + command
+}
+
+func connectorRedactionSignal(registry connectorpkg.Registry, connectorType string) string {
+	entries := connectorRegistryEntries(registry, connectorType)
+	if len(entries) == 0 {
+		return "No redaction policy loaded."
+	}
+	return "Loaded policies use secret storage " + strings.Join(connectorRegistrySecretStorage(entries), "/") + " with bounded diagnostics."
+}
+
+func connectorRegistryRedactionStatus(registry connectorpkg.Registry) string {
+	if len(registry.Diagnostics) > 0 {
+		return "Registry diagnostics must be fixed before redaction review is trusted."
+	}
+	return "Manifest validation rejects secrets, private endpoints, private paths, raw commands, status mutation, and unsupported claims."
+}
+
+func connectorTelemetryBlockers(page operationsPage, registry connectorpkg.Registry) []string {
+	blockers := connectorRegistryTypeBlockers(registry, connectorpkg.TypeTelemetrySource, "telemetry source")
+	if page.DeviceError != "" {
+		blockers = append(blockers, "Device binding store is unavailable; open Devices before real telemetry setup.")
+	}
+	if len(page.Devices) == 0 {
+		blockers = append(blockers, "No active device binding is visible; bind devices before real telemetry ingest.")
+	}
+	if page.TelemetryError != "" {
+		blockers = append(blockers, "Telemetry diagnostics are unavailable; review telemetry before connector setup.")
+	}
+	return blockers
+}
+
+func connectorPredictionBlockers(page operationsPage, registry connectorpkg.Registry) []string {
+	blockers := connectorRegistryTypeBlockers(registry, connectorpkg.TypePrediction, "prediction")
+	if page.ActiveFeedVersion == "" {
+		blockers = append(blockers, "No active GTFS feed version is visible; prediction input review is incomplete.")
+	}
+	return blockers
+}
+
+func connectorValidatorBlockers(page operationsPage, registry connectorpkg.Registry) []string {
+	blockers := connectorRegistryTypeBlockers(registry, connectorpkg.TypeValidator, "validator")
+	status := strings.TrimSpace(page.ValidationHealth.OverallStatus)
+	switch status {
+	case "", compliance.ValidationHealthStatusConfigured, compliance.ValidationHealthStatusInstalled, compliance.ValidationHealthStatusRecorded, compliance.ValidationHealthStatusRunnable, compliance.ValidationHealthStatusConfiguredForTests, compliance.ValidationHealthStatusStub, compliance.ValidationHealthStatusSkipped:
+	default:
+		blockers = append(blockers, "Validation health is "+status+"; open Validation Health before relying on validator connectors.")
+	}
+	return blockers
+}
+
+func connectorMonitoringBlockers(page operationsPage, registry connectorpkg.Registry) []string {
+	blockers := connectorRegistryTypeBlockers(registry, connectorpkg.TypeMonitoringExport, "monitoring export")
+	if page.ReliabilityError != "" {
+		blockers = append(blockers, "Reliability summaries are unavailable; open Maintenance before enabling monitoring export.")
+	}
+	return blockers
+}
+
+func connectorConsumerDiscoveryBlockers(page operationsPage, registry connectorpkg.Registry) []string {
+	blockers := connectorRegistryTypeBlockers(registry, connectorpkg.TypeConsumerDiscovery, "consumer discovery")
+	if page.DiscoveryError != "" {
+		blockers = append(blockers, "Feed discovery metadata is unavailable; open Feeds before sharing preparation.")
+	}
+	if strings.TrimSpace(page.Discovery.PublicBaseURL) == "" {
+		blockers = append(blockers, "Public base URL is not configured for discovery review.")
+	}
+	if strings.TrimSpace(page.Discovery.TechnicalContactEmail) == "" {
+		blockers = append(blockers, "Technical contact metadata is missing for discovery review.")
+	}
+	if strings.TrimSpace(page.Discovery.License.Name) == "" {
+		blockers = append(blockers, "License metadata is missing for discovery review.")
+	}
+	return blockers
+}
+
+func connectorRegistryTypeBlockers(registry connectorpkg.Registry, connectorType string, label string) []string {
+	blockers := connectorRegistryBlockers(registry)
+	if len(connectorRegistryEntries(registry, connectorType)) == 0 {
+		blockers = append(blockers, "No "+label+" example manifest loaded.")
+	}
+	return blockers
+}
+
+func connectorRegistryBlockers(registry connectorpkg.Registry) []string {
+	if len(registry.Diagnostics) == 0 {
+		return nil
+	}
+	blockers := make([]string, 0, len(registry.Diagnostics))
+	for _, diagnostic := range registry.Diagnostics {
+		blockers = append(blockers, "Registry diagnostic "+firstNonEmpty(diagnostic.Code, diagnostic.Level)+" needs review.")
+	}
+	return blockers
+}
+
+func connectorRegistryEntries(registry connectorpkg.Registry, connectorType string) []connectorpkg.RegistryEntry {
+	var entries []connectorpkg.RegistryEntry
+	for _, entry := range registry.Entries {
+		if entry.ConnectorType == connectorType {
+			entries = append(entries, entry)
+		}
+	}
+	return entries
+}
+
+func connectorRegistryEntryIDs(entries []connectorpkg.RegistryEntry) []string {
+	ids := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		ids = append(ids, firstNonEmpty(entry.ConnectorID, "connector"))
+	}
+	return ids
+}
+
+func connectorRegistrySecretStorage(entries []connectorpkg.RegistryEntry) []string {
+	seen := map[string]bool{}
+	values := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		value := firstNonEmpty(entry.RedactionPolicy.SecretStorage, "none")
+		if seen[value] {
+			continue
+		}
+		seen[value] = true
+		values = append(values, value)
+	}
+	return values
 }
 
 func connectorCatalogRows() []connectorCatalogRow {
@@ -219,11 +576,11 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"Vehicle / GPS / AVL",
 			"Generic JSON transform adapter",
 			"covered",
-			"`cmd/avl-vendor-adapter --dry-run` with `testdata/avl-vendor` fixtures.",
+			"`examples/connectors/generic-json-transform` with explicit field mapping and send disabled.",
 			"/admin/operations/connectors/workbench and /admin/operations/realtime",
-			"go test ./cmd/avl-vendor-adapter",
+			"go test ./examples/connectors/generic-json-transform",
 			"Vendor compatibility, real AVL reliability, production readiness, consumer acceptance, compliance, or ETA quality.",
-			[]string{"docs/connectors/catalog.md", "docs/connectors/vehicle-avl-starter-kits.md", "docs/integration-adapter-kit.md"},
+			[]string{"docs/connectors/catalog.md", "docs/connectors/vehicle-avl-starter-kits.md", "docs/connectors/redaction-first-recipes.md"},
 		),
 		connectorCatalogRowView(
 			"vendor_shaped_synthetic_examples",
@@ -507,9 +864,6 @@ func connectorCatalogRowView(id string, group string, label string, status strin
 }
 
 func connectorRegistryForSection(section string) connectorpkg.Registry {
-	if section != "connectors" {
-		return connectorpkg.Registry{}
-	}
 	return connectorpkg.LoadExampleRegistry()
 }
 

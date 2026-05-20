@@ -16,6 +16,7 @@ production-grade ETA claims.
 | --- | --- | --- | --- |
 | CSV vehicle locations | `examples/connectors/telemetry-csv-replay` | `make test-connector-examples` | Rows include private identifiers, unredacted real fleet locations, credentials, or unclear device ownership. |
 | GPS polling API | `examples/connectors/telemetry-http-poller` | `make external-connection-check` | A manifest needs live URLs, bearer values, private endpoint text, or source payload bodies. |
+| Flat JSON records | `examples/connectors/generic-json-transform` | `go test ./examples/connectors/generic-json-transform` | Field mapping is ambiguous, `send_enabled=true`, private fields are copied into output, or timeout review is missing. |
 | AVL source can POST | Deployment-owned receiver before `/v1/telemetry` | `go run ./cmd/adapter-conformance telemetry --suite testdata/adapter-conformance` | Auth, agency mapping, device binding, timestamp handling, or redaction is not reviewed. |
 | Synthetic telemetry only | Simulator and committed conformance fixtures | `make telemetry-simulator` | Real credentials, real payloads, retained evidence, or a public claim would be needed. |
 | External prediction sidecar | `internal/prediction.Adapter` shadow/fail-closed boundary | `go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance` | Output is stale, malformed, wrong-agency, low-confidence, lacks Vehicle Positions reference, or attempts public mutation. |

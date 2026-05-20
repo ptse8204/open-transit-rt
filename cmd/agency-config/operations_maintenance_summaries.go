@@ -288,6 +288,15 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 			"Run private preflight, backup, migration-status, feed-fetch, and validator checks before upgrade or rollback decisions.",
 			"Checklist diagnostics do not execute or prove upgrade, rollback, backup, restore, or validation success.",
 		),
+		maintenancePanelRow(
+			"install_recovery_plan",
+			"Install and recovery stop-point plan",
+			operationsStatusMissing,
+			"no safe deployment-doctor summary found",
+			"Use stop-point status before install, upgrade, backup, restore, rollback, or public sharing decisions.",
+			"Run `make deployment-doctor` from an operator shell; review the install_recovery category before migration, service restart, rollback, or feed-sharing work.",
+			"Stop-point diagnostics do not execute or prove install, upgrade, backup, restore, rollback, production readiness, SLA coverage, uptime, compliance, or consumer acceptance.",
+		),
 	}
 	rootRef, ok := maintenanceSummaryRootRef(maintenanceDeploymentDoctorRoot, "deployment-doctor")
 	if !ok {
@@ -323,6 +332,7 @@ func buildOperationsMaintenanceInfrastructureChecks() operationsMaintenancePanel
 		{id: "proxy_exposure", category: "proxy_exposure"},
 		{id: "postgres_capacity", category: "postgres_capacity"},
 		{id: "upgrade_rollback_checklist", category: "upgrade_rollback"},
+		{id: "install_recovery_plan", category: "install_recovery"},
 	}
 	for i := range rows {
 		for _, update := range updates {
@@ -351,7 +361,7 @@ func maintenanceInfrastructurePanel(rows []operationsMaintenancePanelRow, forced
 	return operationsMaintenancePanel{
 		Status:     maintenancePanelOverall(rows),
 		Boundary:   "Infrastructure checks are read-only deployment-doctor category summaries. The browser does not connect to databases, inspect private paths, run validators, run migrations, execute disk checks, change proxy rules, start services, or run backup/restore.",
-		NextAction: "Run deployment diagnostics from an operator shell when fresh database, migration, PostGIS, validator, backup-storage, resource, service dependency, proxy, pool, or upgrade/rollback status is needed.",
+		NextAction: "Run deployment diagnostics from an operator shell when fresh database, migration, PostGIS, validator, backup-storage, resource, service dependency, proxy, pool, upgrade/rollback, or install/recovery stop-point status is needed.",
 		Rows:       rows,
 	}
 }

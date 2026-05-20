@@ -14,6 +14,7 @@ func TestExampleConnectorManifestsAndFixtures(t *testing.T) {
 	root := filepath.Join("..", "..")
 	expected := []string{
 		"consumer-discovery-metadata",
+		"generic-json-transform",
 		"monitoring-export",
 		"predictor-sidecar-stub",
 		"telemetry-csv-replay",

@@ -14,5 +14,45 @@
       "operator_contact": "redacted@example.invalid",
       "raw_payload": "{\"synthetic\":true}"
     }
+  ],
+  "feed_health": [
+    {
+      "id": "vehicle_positions",
+      "status": "needs_review",
+      "summary": "Vehicle Positions include one stale vehicle bucket",
+      "next_action": "Review Feed Health and telemetry freshness before sharing realtime URLs"
+    }
+  ],
+  "connector_health": [
+    {
+      "id": "telemetry_source",
+      "status": "needs_review",
+      "summary": "Telemetry connector remains dry-run and no-send",
+      "next_action": "Run adapter conformance and keep credentials outside browser review"
+    }
+  ],
+  "validator_posture": [
+    {
+      "id": "gtfs_realtime",
+      "status": "needs_review",
+      "summary": "Realtime validator posture needs a current private protobuf artifact",
+      "next_action": "Run validator health from an operator shell"
+    }
+  ],
+  "telemetry_freshness": [
+    {
+      "id": "fleet_freshness",
+      "status": "warning",
+      "summary": "One synthetic vehicle is stale",
+      "next_action": "Review Devices before using public Vehicle Positions"
+    }
+  ],
+  "maintenance_tasks": [
+    {
+      "id": "weekly_validators",
+      "status": "needs_review",
+      "summary": "Weekly validator review is due in this synthetic fixture",
+      "next_action": "Review Validator Health and Operations Reliability summaries"
+    }
   ]
 }

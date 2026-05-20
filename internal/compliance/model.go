@@ -83,12 +83,16 @@ type FeedMetadata struct {
 }
 
 type Readiness struct {
-	Discoverable                bool `json:"discoverable"`
-	HTTPSURLs                   bool `json:"https_urls"`
-	LicenseComplete             bool `json:"license_complete"`
-	ContactComplete             bool `json:"contact_complete"`
-	AllRequiredFeedsListed      bool `json:"all_required_feeds_listed"`
-	CanonicalValidationComplete bool `json:"canonical_validation_complete"`
+	Discoverable                     bool `json:"discoverable"`
+	HTTPSURLs                        bool `json:"https_urls"`
+	LicenseComplete                  bool `json:"license_complete"`
+	ContactComplete                  bool `json:"contact_complete"`
+	AllRequiredFeedsListed           bool `json:"all_required_feeds_listed"`
+	CanonicalValidationComplete      bool `json:"canonical_validation_complete"`
+	StablePublicBaseURL              bool `json:"stable_public_base_url"`
+	PublicationEnvironmentConfigured bool `json:"publication_environment_configured"`
+	ActiveScheduleListed             bool `json:"active_schedule_listed"`
+	RealtimeFeedsListed              bool `json:"realtime_feeds_listed"`
 }
 
 type ConsumerInput struct {

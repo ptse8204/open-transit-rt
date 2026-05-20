@@ -54,6 +54,7 @@ type GTFSQualityGroup struct {
 	Family            string
 	Codes             []string
 	Severity          string
+	RiskLevel         string
 	Count             int
 	OperatorSummary   string
 	WhyItMatters      string
@@ -195,13 +196,14 @@ func groupsFromReport(source string, result ValidationResult) ([]GTFSQualityGrou
 				Family:            family,
 				Codes:             []string{code},
 				Severity:          severity,
+				RiskLevel:         riskLevelForNotice(family, severity),
 				OperatorSummary:   guidance.summary,
 				WhyItMatters:      guidance.why,
 				RecommendedAction: guidance.action,
 			}}
 			builders[key] = builder
 		}
-		builder.group.Count++
+		builder.group.Count += noticeCount(notice)
 		if len(builder.group.Samples) < GTFSQualityMaxSamples {
 			builder.group.Samples = appendSample(builder.group.Samples, sampleFromMap(notice))
 		}
@@ -316,9 +318,36 @@ func noticeSeverity(notice map[string]any, result ValidationResult) string {
 	}
 }
 
+func noticeCount(notice map[string]any) int {
+	for _, key := range []string{"totalNotices", "total_notices", "count"} {
+		switch typed := notice[key].(type) {
+		case int:
+			if typed > 0 {
+				return typed
+			}
+		case int64:
+			if typed > 0 {
+				return int(typed)
+			}
+		case float64:
+			if typed > 0 {
+				return int(typed)
+			}
+		case string:
+			parsed, err := strconv.Atoi(strings.TrimSpace(typed))
+			if err == nil && parsed > 0 {
+				return parsed
+			}
+		}
+	}
+	return 1
+}
+
 func noticeFamily(code string, notice map[string]any) string {
-	lower := strings.ToLower(code + " " + scalarString(notice["message"]) + " " + scalarString(notice["filename"]) + " " + scalarString(notice["file"]))
+	lower := strings.ToLower(code + " " + scalarString(notice["message"]) + " " + scalarString(notice["filename"]) + " " + scalarString(notice["fileName"]) + " " + scalarString(notice["file"]))
 	switch {
+	case strings.Contains(lower, "missing_required") || strings.Contains(lower, "missing required") || strings.Contains(lower, "required_file") || strings.Contains(lower, "required file") || strings.Contains(lower, "file_not_found"):
+		return "missing_required_file"
 	case strings.Contains(lower, "expired_calendar"):
 		return "expired_calendar"
 	case strings.Contains(lower, "route_short_name_too_long"):
@@ -327,6 +356,10 @@ func noticeFamily(code string, notice map[string]any) string {
 		return "unused_shape"
 	case strings.Contains(lower, "foreign") || strings.Contains(lower, "missing") && strings.Contains(lower, "reference"):
 		return "missing_or_foreign_key_reference"
+	case strings.Contains(lower, "agency") && (strings.Contains(lower, "name") || strings.Contains(lower, "timezone") || strings.Contains(lower, "url") || strings.Contains(lower, "lang") || strings.Contains(lower, "phone")):
+		return "agency_metadata"
+	case strings.Contains(lower, "feed_info") || strings.Contains(lower, "license") || strings.Contains(lower, "contact") || strings.Contains(lower, "attribution"):
+		return "license_contact_metadata"
 	case strings.Contains(lower, "stop_time") || strings.Contains(lower, "stop_times") || strings.Contains(lower, "arrival_time") || strings.Contains(lower, "departure_time"):
 		return "bad_stop_times"
 	case strings.Contains(lower, "duplicate"):
@@ -339,6 +372,10 @@ func noticeFamily(code string, notice map[string]any) string {
 		return "frequency_issues"
 	case strings.Contains(lower, "block_id") || strings.Contains(lower, "block transition") || strings.Contains(lower, "block"):
 		return "block_transition_issues"
+	case strings.Contains(lower, "route"):
+		return "route_metadata"
+	case strings.Contains(lower, "stop_lat") || strings.Contains(lower, "stop_lon") || strings.Contains(lower, "stop_location") || strings.Contains(lower, "location_type") || strings.Contains(lower, "parent_station"):
+		return "stop_location"
 	default:
 		return "unknown"
 	}
@@ -352,10 +389,20 @@ type noticeGuidance struct {
 
 func guidanceForNotice(family string, code string, severity string) noticeGuidance {
 	switch family {
+	case "missing_required_file":
+		return noticeGuidance{"A required GTFS file appears missing from the schedule package.", "Missing required files can block import, validation, feed discovery, and realtime matching setup.", "Regenerate the GTFS ZIP with all required files and rerun import plus static validation."}
 	case "expired_calendar":
 		return noticeGuidance{"Service calendar dates appear expired or out of useful range.", "Expired service can make a schedule look unavailable even when routes and trips exist.", "Confirm service dates with the agency schedule owner and update calendar or calendar_dates before rerunning validation."}
+	case "agency_metadata":
+		return noticeGuidance{"Agency metadata needs review.", "Agency name, timezone, language, URL, and contact context affect feed identity and downstream interpretation.", "Correct agency.txt metadata in the source system, then re-export and rerun validation."}
+	case "license_contact_metadata":
+		return noticeGuidance{"Feed license or contact metadata needs review.", "License and contact metadata help deployment owners prepare safe external sharing without implying acceptance.", "Review feed_info.txt, license, attribution, and contact values with the administrator before sharing URLs."}
 	case "route_short_name_too_long":
 		return noticeGuidance{"A route short name is longer than expected for rider-facing display.", "Long short names can render poorly in maps, signs, and downstream consumer displays.", "Review route naming with the operator and move descriptive text to route_long_name when appropriate."}
+	case "route_metadata":
+		return noticeGuidance{"Route metadata needs review.", "Route type, names, colors, URLs, or agency links affect schedule usability and downstream display.", "Review routes.txt with the route naming owner and correct source metadata before rerunning validation."}
+	case "stop_location":
+		return noticeGuidance{"Stop location or station metadata needs review.", "Bad stop coordinates or parent/location fields can break maps, rider guidance, and matching context.", "Review stops.txt coordinates and station hierarchy with the GIS or stop inventory owner."}
 	case "unused_shape":
 		return noticeGuidance{"A shape record is not referenced by active trips.", "Unused shapes add noise and can hide shape maintenance mistakes.", "Remove unused shapes only after confirming no planned trip should reference them."}
 	case "missing_or_foreign_key_reference":
@@ -377,6 +424,28 @@ func guidanceForNotice(family string, code string, severity string) noticeGuidan
 	}
 }
 
+func riskLevelForNotice(family string, severity string) string {
+	switch severity {
+	case GTFSQualityBlocking:
+		return "blocks import or reliable feed use"
+	case GTFSQualityNeedsReview:
+		switch family {
+		case "expired_calendar", "calendar_service_dates", "missing_required_file", "missing_or_foreign_key_reference", "bad_stop_times", "frequency_issues", "block_transition_issues":
+			return "can break service availability or realtime usefulness"
+		case "agency_metadata", "license_contact_metadata":
+			return "can block sharing preparation or operator trust"
+		case "route_metadata", "stop_location", "shape_ordering", "unused_shape":
+			return "can degrade maps, matching, or downstream display"
+		default:
+			return "needs source-owner review before relying on the feed"
+		}
+	case GTFSQualityInformational:
+		return "track during normal data-quality review"
+	default:
+		return "unclassified impact; maintainer review needed"
+	}
+}
+
 func unknownGroup(source string, count int) GTFSQualityGroup {
 	guidance := guidanceForNotice("unknown", "unknown", GTFSQualityUnknown)
 	return GTFSQualityGroup{
@@ -384,6 +453,7 @@ func unknownGroup(source string, count int) GTFSQualityGroup {
 		Family:            "unknown",
 		Codes:             []string{"unknown"},
 		Severity:          GTFSQualityUnknown,
+		RiskLevel:         riskLevelForNotice("unknown", GTFSQualityUnknown),
 		Count:             count,
 		OperatorSummary:   guidance.summary,
 		WhyItMatters:      guidance.why,
@@ -505,8 +575,29 @@ func truncateSample(value string) string {
 }
 
 func scrubPrivateText(value string) string {
-	for _, marker := range []string{"/tmp/private", "/var/folders", "/private/var", "\\tmp\\private"} {
+	for _, marker := range []string{"/tmp/private", "/var/folders", "/private/var", "\\tmp\\private", "/users/private", "/users/", "/var/lib", "/etc/"} {
 		value = strings.ReplaceAll(value, marker, "{private_path}")
+		value = strings.ReplaceAll(value, strings.ToUpper(marker), "{private_path}")
 	}
-	return value
+	redacted := make([]string, 0, 8)
+	for _, field := range strings.Fields(value) {
+		lower := strings.ToLower(field)
+		switch {
+		case strings.Contains(lower, "/tmp/private"), strings.Contains(lower, "/users/"), strings.Contains(lower, "/var/lib"), strings.Contains(lower, "/etc/"), strings.Contains(lower, "\\tmp\\private"):
+			redacted = append(redacted, "{private_path}")
+		case strings.Contains(lower, "authorization:"), strings.Contains(lower, "bearer"), strings.Contains(lower, "token="), strings.Contains(lower, "secret"), strings.Contains(lower, "password"), strings.Contains(lower, "cookie"), strings.Contains(lower, "admin_session"):
+			redacted = append(redacted, "{redacted_secret}")
+		case strings.Contains(lower, "postgres://"), strings.Contains(lower, "postgresql://"), strings.Contains(lower, "database_url"), strings.Contains(lower, "restore_database_url"):
+			redacted = append(redacted, "{redacted_database}")
+		case strings.HasPrefix(lower, "http://"), strings.HasPrefix(lower, "https://"), strings.Contains(lower, "webhook"):
+			redacted = append(redacted, "{redacted_url}")
+		default:
+			redacted = append(redacted, field)
+		}
+		if len(redacted) >= 64 {
+			redacted = append(redacted, "{truncated}")
+			break
+		}
+	}
+	return strings.Join(redacted, " ")
 }

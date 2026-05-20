@@ -199,6 +199,9 @@ func buildEntity(alert domainalerts.Alert) (*gtfsrt.FeedEntity, error) {
 	if alert.HeaderText == "" {
 		return nil, fmt.Errorf("alert header text is required")
 	}
+	if alert.ActiveStart != nil && alert.ActiveEnd != nil && alert.ActiveEnd.Before(*alert.ActiveStart) {
+		return nil, fmt.Errorf("alert active_end must be after active_start")
+	}
 	cause := alertCause(alert.Cause)
 	effect := alertEffect(alert.Effect)
 	rtAlert := &gtfsrt.Alert{

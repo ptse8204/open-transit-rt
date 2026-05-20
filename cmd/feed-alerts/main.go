@@ -262,7 +262,12 @@ func (h *handler) adminAlerts(w http.ResponseWriter, r *http.Request) {
 		}
 		input.AgencyID = principal.AgencyID
 		input.ActorID = principal.Subject
-		alert, err := h.alerts.UpsertAlert(r.Context(), input.toUpsertInput())
+		upsert := input.toUpsertInput()
+		if err := domainalerts.ValidateUpsertInput(upsert); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		alert, err := h.alerts.UpsertAlert(r.Context(), upsert)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -397,6 +402,7 @@ type alertConsolePage struct {
 	AgencyID       string
 	Status         string
 	Alerts         []domainalerts.Alert
+	AlertRows      []alertConsoleAlertRow
 	CSRFToken      string
 	Error          string
 	LifecycleRows  []alertConsoleReviewRow
@@ -417,6 +423,13 @@ type alertConsoleReviewRow struct {
 	Signal       string
 	NextAction   string
 	DoesNotProve string
+}
+
+type alertConsoleAlertRow struct {
+	Alert            domainalerts.Alert
+	ReviewStatus     string
+	ReviewNotes      []string
+	ReviewNextAction string
 }
 
 type alertDisruptionTemplateRow struct {
@@ -479,11 +492,25 @@ func (h *handler) alertsConsole(w http.ResponseWriter, r *http.Request) {
 			Publish:         checkbox(r, "publish"),
 			Now:             time.Now().UTC(),
 		}
-		if start := parseOptionalTime(r.FormValue("active_start")); start != nil {
+		start, err := parseOptionalTime("active_start", r.FormValue("active_start"))
+		if err != nil {
+			h.renderAlertsConsole(w, r, principal, err.Error())
+			return
+		}
+		if start != nil {
 			input.ActiveStart = start
 		}
-		if end := parseOptionalTime(r.FormValue("active_end")); end != nil {
+		end, err := parseOptionalTime("active_end", r.FormValue("active_end"))
+		if err != nil {
+			h.renderAlertsConsole(w, r, principal, err.Error())
+			return
+		}
+		if end != nil {
 			input.ActiveEnd = end
+		}
+		if err := domainalerts.ValidateUpsertInput(input); err != nil {
+			h.renderAlertsConsole(w, r, principal, err.Error())
+			return
 		}
 		if _, err := h.alerts.UpsertAlert(r.Context(), input); err != nil {
 			h.renderAlertsConsole(w, r, principal, err.Error())
@@ -556,6 +583,7 @@ func (h *handler) renderAlertsConsole(w http.ResponseWriter, r *http.Request, pr
 		AgencyID:       principal.AgencyID,
 		Status:         status,
 		Alerts:         alerts,
+		AlertRows:      alertConsoleRows(alerts, now),
 		CSRFToken:      alertCSRFToken(h.csrfSecret, principal),
 		Error:          formError,
 		LifecycleRows:  alertLifecycleRows(alerts, now),
@@ -824,6 +852,108 @@ func alertUsefulnessRows(alerts []domainalerts.Alert, now time.Time) []alertCons
 	}}
 }
 
+func alertConsoleRows(alerts []domainalerts.Alert, now time.Time) []alertConsoleAlertRow {
+	rows := make([]alertConsoleAlertRow, 0, len(alerts))
+	for _, alert := range alerts {
+		rows = append(rows, alertConsoleAlertRow{
+			Alert:            alert,
+			ReviewStatus:     alertReviewStatusForRecord(alert, now),
+			ReviewNotes:      alertReviewNotes(alert, now),
+			ReviewNextAction: alertReviewNextAction(alert, now),
+		})
+	}
+	return rows
+}
+
+func alertReviewStatusForRecord(alert domainalerts.Alert, now time.Time) string {
+	if alert.Status == domainalerts.StatusArchived {
+		return "archived"
+	}
+	for _, note := range alertReviewNotes(alert, now) {
+		lower := strings.ToLower(note)
+		if strings.Contains(lower, "expired") || strings.Contains(lower, "without active end") || strings.Contains(lower, "agency-wide") || strings.Contains(lower, "missing trip selector") || strings.Contains(lower, "missing start_date") || strings.Contains(lower, "missing start_time") {
+			return "needs_review"
+		}
+	}
+	if alert.Status == domainalerts.StatusDraft {
+		return "draft_review"
+	}
+	return "ready_for_local_review"
+}
+
+func alertReviewNotes(alert domainalerts.Alert, now time.Time) []string {
+	var notes []string
+	if alert.Status == domainalerts.StatusDraft {
+		notes = append(notes, "Draft alert: confirm text, affected entities, active window, cause/effect, and archive plan before publishing.")
+	}
+	if alert.Status == domainalerts.StatusArchived {
+		notes = append(notes, "Archived alert: keep for audit history; create a new draft if the disruption returns.")
+	}
+	if alert.Status == domainalerts.StatusPublished {
+		switch alertWindowState(alert, now) {
+		case "expired":
+			notes = append(notes, "Expired published alert: archive it or update the active window before relying on the Alerts feed.")
+		case "upcoming":
+			notes = append(notes, "Upcoming published alert: confirm operators expect it to appear before the active window.")
+		default:
+			notes = append(notes, "Active published alert: validate Alerts feed output and archive when the disruption ends.")
+		}
+		if alert.ActiveEnd == nil {
+			notes = append(notes, "Published without active end: keep only for an intentionally reviewed open-ended disruption.")
+		}
+	}
+	if len(alert.Entities) == 0 {
+		notes = append(notes, "Agency-wide selector: confirm the disruption applies to the whole agency before publishing.")
+	}
+	if alertLooksLikeCancellation(alert) {
+		if !alertHasTripEntity(alert) {
+			notes = append(notes, "Canceled-trip alert missing trip selector: include trip_id, start_date, and start_time when known.")
+		} else {
+			for _, entity := range alert.Entities {
+				if entity.TripID == "" {
+					continue
+				}
+				if entity.StartDate == "" {
+					notes = append(notes, "Canceled-trip selector missing start_date: add it before relying on cancellation pairing.")
+				}
+				if entity.StartTime == "" {
+					notes = append(notes, "Canceled-trip selector missing start_time: add it to disambiguate repeated trip instances.")
+				}
+			}
+		}
+	}
+	if len(notes) == 0 {
+		notes = append(notes, "No immediate lifecycle blocker found in this bounded private review.")
+	}
+	return notes
+}
+
+func alertReviewNextAction(alert domainalerts.Alert, now time.Time) string {
+	switch alertReviewStatusForRecord(alert, now) {
+	case "needs_review":
+		return "Fix the highlighted window, scope, or cancellation-pairing issue, then validate the Alerts feed."
+	case "draft_review":
+		return "Complete operator review and publish only after the message and affected services are approved."
+	case "archived":
+		return "No feed action unless this disruption recurs."
+	default:
+		return "Keep feed health and GTFS-RT Alerts validation in the review loop."
+	}
+}
+
+func alertLooksLikeCancellation(alert domainalerts.Alert) bool {
+	return alert.SourceType == domainalerts.SourceCancellationReconciler || strings.HasPrefix(alert.AlertKey, "canceled:")
+}
+
+func alertHasTripEntity(alert domainalerts.Alert) bool {
+	for _, entity := range alert.Entities {
+		if entity.TripID != "" {
+			return true
+		}
+	}
+	return false
+}
+
 func countAlertsWithStatus(alerts []domainalerts.Alert, status string) int {
 	total := 0
 	for _, alert := range alerts {
@@ -848,17 +978,17 @@ func alertEntitiesFromForm(r *http.Request) []domainalerts.InformedEntity {
 	return []domainalerts.InformedEntity{entity}
 }
 
-func parseOptionalTime(raw string) *time.Time {
+func parseOptionalTime(field string, raw string) (*time.Time, error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
-		return nil
+		return nil, nil
 	}
 	parsed, err := time.Parse(time.RFC3339, raw)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("%s must be RFC3339", field)
 	}
 	t := parsed.UTC()
-	return &t
+	return &t, nil
 }
 
 func alertCSRFToken(secret string, principal auth.Principal) string {
@@ -935,11 +1065,11 @@ th{background:#f6f8fa}.warning{background:#fff8c5;padding:.5rem} form{max-width:
 </tbody></table>
 <h2>Alerts</h2>
 <p>Filter: <a href="/admin/alerts/console">all</a> <a href="/admin/alerts/console?status=draft">draft</a> <a href="/admin/alerts/console?status=published">published</a> <a href="/admin/alerts/console?status=archived">archived</a></p>
-{{if not .Alerts}}<p class="warning">No alerts are recorded for this filter. Next action: create a draft alert below when an agency-approved service message exists.</p>{{else}}
-<table><thead><tr><th>ID</th><th>Status</th><th>Key</th><th>Header</th><th>Cause/effect</th><th>Active window</th><th>Affected entities</th><th>Actions</th></tr></thead><tbody>
-{{range .Alerts}}<tr><td>{{.ID}}</td><td>{{.Status}}</td><td>{{.AlertKey}}</td><td>{{.HeaderText}}</td><td>{{.Cause}} / {{.Effect}}</td><td>{{formatTimePtr .ActiveStart}} to {{formatTimePtr .ActiveEnd}}</td><td>{{range .Entities}}route={{.RouteID}} trip={{.TripID}} stop={{.StopID}} {{end}}</td><td>
-<form method="post" action="/admin/alerts/console/{{.ID}}/publish"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><button>Publish</button></form>
-<form method="post" action="/admin/alerts/console/{{.ID}}/archive"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><input name="reason" placeholder="archive reason"><button>Archive</button></form>
+{{if not .AlertRows}}<p class="warning">No alerts are recorded for this filter. Next action: create a draft alert below when an agency-approved service message exists.</p>{{else}}
+<table><thead><tr><th>ID</th><th>Status</th><th>Review</th><th>Key</th><th>Header</th><th>Cause/effect</th><th>Active window</th><th>Affected entities</th><th>Actions</th></tr></thead><tbody>
+{{range .AlertRows}}<tr><td>{{.Alert.ID}}</td><td>{{.Alert.Status}}</td><td>{{.ReviewStatus}}<br>{{range .ReviewNotes}}{{.}}<br>{{end}}Next: {{.ReviewNextAction}}</td><td>{{.Alert.AlertKey}}</td><td>{{.Alert.HeaderText}}</td><td>{{.Alert.Cause}} / {{.Alert.Effect}}</td><td>{{formatTimePtr .Alert.ActiveStart}} to {{formatTimePtr .Alert.ActiveEnd}}</td><td>{{range .Alert.Entities}}route={{.RouteID}} trip={{.TripID}} stop={{.StopID}} start_date={{.StartDate}} start_time={{.StartTime}}<br>{{end}}</td><td>
+<form method="post" action="/admin/alerts/console/{{.Alert.ID}}/publish"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><button>Publish</button></form>
+<form method="post" action="/admin/alerts/console/{{.Alert.ID}}/archive"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><input name="reason" placeholder="archive reason"><button>Archive</button></form>
 </td></tr>{{end}}
 </tbody></table>{{end}}
 

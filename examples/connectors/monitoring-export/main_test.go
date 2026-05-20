@@ -41,4 +41,7 @@ func TestBuildExportBatchRedactsAndDoesNotSend(t *testing.T) {
 	if batch.Incidents[0].ID == "" || batch.Incidents[0].Summary == "" {
 		t.Fatalf("redacted incident lost public fields: %+v", batch.Incidents[0])
 	}
+	if len(batch.FeedHealth) != 1 || len(batch.ConnectorHealth) != 1 || len(batch.ValidatorPosture) != 1 || len(batch.TelemetryFreshness) != 1 || len(batch.MaintenanceTasks) != 1 {
+		t.Fatalf("category exports missing: feed=%+v connector=%+v validator=%+v telemetry=%+v maintenance=%+v", batch.FeedHealth, batch.ConnectorHealth, batch.ValidatorPosture, batch.TelemetryFreshness, batch.MaintenanceTasks)
+	}
 }
