@@ -2173,22 +2173,35 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Limits:</strong> Help text does not show compliance, agency adoption, consumer acceptance, final-root readiness, hosted service availability, production readiness, vendor compatibility, SLA coverage, hardware certification, or ETA quality.</p>
 </section>
 <p><a href="/admin/operations/help.json">Export private help JSON</a> · <a href="/admin/operations">Back to Operations Console</a></p>
+<h3>Role Quick Paths</h3>
+<table><thead><tr><th>Role</th><th>Use when</th><th>Start</th><th>Do first</th><th>Then review</th><th>Ask for help when</th><th>Do not do</th><th>Limits</th></tr></thead><tbody>
+{{range .Help.RolePaths}}<tr id="help-path-{{.ID}}"><td>{{.Label}}</td><td>{{.UseWhen}}</td><td><a href="{{.StartHere}}">{{.StartHere}}</a></td><td>{{.DoFirst}}</td><td>{{.ThenReview}}</td><td>{{.AskWhen}}</td><td>{{.DoNotDo}}</td><td>{{.DoesNotShow}}</td></tr>{{end}}
+</tbody></table>
+<details><summary>Role-Based Tours</summary>
 <h3>Role-Based Tours</h3>
 <table><thead><tr><th>Role</th><th>Who</th><th>Start</th><th>Review first</th><th>First actions</th><th>Ask for help when</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.RoleTours}}<tr id="help-role-{{.ID}}"><td>{{.Label}}</td><td>{{.Who}}</td><td><a href="{{.StartHere}}">{{.StartHere}}</a></td><td>{{.ReviewFirst}}</td><td>{{.FirstActions}}</td><td>{{.EscalateWhen}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>First-Week Checklist</summary>
 <h3>First-Week Checklist</h3>
 <table><thead><tr><th>When</th><th>Role</th><th>Task</th><th>Review</th><th>Done when</th><th>Next action</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.FirstWeek}}<tr id="help-first-week-{{.ID}}"><td>{{.Day}}</td><td>{{.Role}}</td><td>{{.Task}}</td><td>{{.Review}}</td><td>{{.DoneWhen}}</td><td>{{.NextAction}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>Plain-Language Glossary</summary>
 <h3>Plain-Language Glossary</h3>
 <table><thead><tr><th>Term</th><th>Plain meaning</th><th>Technical meaning</th><th>Where to review</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.Glossary}}<tr id="help-glossary-{{.ID}}"><td>{{.Term}}</td><td>{{.PlainMeaning}}</td><td>{{.TechnicalMeaning}}</td><td>{{.WhereToReview}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>Common Mistake Recovery</summary>
 <h3>Common Mistake Recovery</h3>
 <table><thead><tr><th>What the operator sees</th><th>Likely cause</th><th>Safe next step</th><th>Escalate when</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.Recovery}}<tr id="help-recovery-{{.ID}}"><td>{{.WhatOperatorSees}}</td><td>{{.LikelyCause}}</td><td>{{.SafeNextStep}}</td><td>{{.EscalationTrigger}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>Printable Staff Training Guide</summary>
 <h3>Printable Staff Training Guide</h3>
 <table><tbody>
 <tr><th>Guide</th><td>{{.Help.TrainingGuide.Label}}</td></tr>
@@ -2197,30 +2210,42 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>How to use</th><td>{{.Help.TrainingGuide.HowToUse}}</td></tr>
 <tr><th>Boundary</th><td>{{.Help.TrainingGuide.Boundary}}</td></tr>
 </tbody></table>
+</details>
 <h3>Quick Tasks</h3>
 <table><thead><tr><th>Task</th><th>Role</th><th>Review steps</th><th>Done when</th><th>Escalate when</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.QuickTasks}}<tr id="help-quick-task-{{.ID}}"><td>{{.Label}}</td><td>{{.PrimaryRole}}</td><td>{{.ReviewSteps}}</td><td>{{.DoneWhen}}</td><td>{{.Escalation}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<details><summary>Staff Handoff Checklist</summary>
 <h3>Staff Handoff Checklist</h3>
 <table><thead><tr><th>Area</th><th>From</th><th>To</th><th>Confirm</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.Handoff}}<tr id="help-handoff-{{.ID}}"><td>{{.Area}}</td><td>{{.FromRole}}</td><td>{{.ToRole}}</td><td>{{.Confirm}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>Demo Scenario Catalog</summary>
 <h3>Demo Scenario Catalog</h3>
 <p class="section-note">Use these committed local/synthetic fixtures for training. They are teaching scenarios, not agency evidence or vendor proof.</p>
 <table><thead><tr><th>Scenario</th><th>Audience</th><th>Fixtures</th><th>Exercise</th><th>Done when</th><th>Recovery prompt</th><th>Console</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.DemoScenarios}}<tr id="help-demo-scenario-{{.ID}}"><td>{{.Label}}<br><code>{{.ID}}</code></td><td>{{.Audience}}</td><td>{{range .FixturePaths}}<code>{{.}}</code><br>{{end}}</td><td>{{.Exercise}}</td><td>{{.DoneWhen}}</td><td>{{.RecoveryPrompt}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>Trainer Script</summary>
 <h3>Trainer Script</h3>
 <table><thead><tr><th>Segment</th><th>Minutes</th><th>Talk track</th><th>Ask participant</th><th>Console</th><th>Boundary</th></tr></thead><tbody>
 {{range .Help.TrainerScript}}<tr id="help-trainer-step-{{.ID}}"><td>{{.Segment}}</td><td>{{.Minutes}}</td><td>{{.TalkTrack}}</td><td>{{.AskParticipant}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td>{{.Boundary}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>Administrator Checklist</summary>
 <h3>Administrator Checklist</h3>
 <table><thead><tr><th>Area</th><th>Collect</th><th>Do not collect</th><th>Console</th><th>Docs</th><th>Needs separate authorization when</th></tr></thead><tbody>
 {{range .Help.HelperChecklist}}<tr id="help-helper-check-{{.ID}}"><td>{{.Area}}</td><td>{{.Collect}}</td><td>{{.DoNotCollect}}</td><td><a href="{{.ConsoleLink}}">{{.ConsoleLink}}</a></td><td><code>{{.DocsLink}}</code></td><td>{{.NeedsAuthorizationWhen}}</td></tr>{{end}}
 </tbody></table>
+</details>
+<details><summary>All Help Topics</summary>
+<h3>All Help Topics</h3>
 <table><thead><tr><th>Topic</th><th>Summary</th><th>Review</th><th>Next action</th><th>Console</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
 {{range .Help.Topics}}<tr id="help-{{.ID}}"><td>{{.Label}}{{if .PluginDefinition}}<br><span class="muted">{{.PluginDefinition}}</span>{{end}}</td><td>{{.Summary}}</td><td>{{.WhatToReview}}</td><td>{{.NextAction}}</td><td>{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.DoesNotProve}} {{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
+</details>
 <details><summary>Safety details</summary>{{template "jsonSafetyNote" .}}</details>
 <p class="muted">Help is private guidance. Stronger outside statements require separate retained authorization and source-specific proof.</p>
 {{template "layoutEnd" .}}

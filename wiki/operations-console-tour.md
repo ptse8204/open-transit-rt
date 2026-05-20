@@ -25,6 +25,22 @@ site:
 7. Understand what remains before outside approval, compliance, production, or
    consumer-acceptance claims.
 
+## Role Quick Paths
+
+Use `/admin/operations/help` when a reviewer is unsure where to start.
+
+| Role | Start | First check |
+| --- | --- | --- |
+| Agency staff | `/admin/operations` | Issue Center and the first linked next action. |
+| Administrator | `/admin/operations/setup-wizard` | Setup stage that owns the blocker before running commands. |
+| Deployment owner | `/admin/operations/maintenance` | Maintenance, Reliability, deployment doctor, backup/restore, and public base URL posture. |
+| Integrator | `/admin/operations/connectors/workbench` | Connector recipe, synthetic conformance expectations, and no-send boundaries. |
+
+These paths are private guidance. They do not create retained evidence, contact
+outside parties, move consumer status, or prove compliance, production
+readiness, consumer acceptance, vendor compatibility, SLA coverage, or ETA
+quality.
+
 ## Home
 
 The home page starts with **Agency Operations Cockpit / Start Here**. Use it

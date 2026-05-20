@@ -3799,6 +3799,13 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		`id="help-validators"`,
 		`id="help-telemetry"`,
 		`id="help-claims_evidence"`,
+		`id="help-path-agency_staff"`,
+		`id="help-path-administrator"`,
+		`id="help-path-deployment_owner"`,
+		`id="help-path-integrator"`,
+		"Role Quick Paths",
+		"Agency staff",
+		"Deployment owner",
 		`id="help-role-no_code_evaluator"`,
 		`id="help-role-director_manager"`,
 		`id="help-role-daily_operator"`,
@@ -3814,6 +3821,7 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"Demo Scenario Catalog",
 		"Trainer Script",
 		"Administrator Checklist",
+		"All Help Topics",
 		"docs/operator-training-guide.md",
 		"No-code evaluator",
 		"Director or manager",
@@ -7753,11 +7761,25 @@ func assertFirstRunFlagsFalse(t *testing.T, flags operationsFirstRunClaimFlags) 
 
 func assertOperationsHelpShape(t *testing.T, view operationsHelpView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.TrainingGuide.DocsPath == "" || len(view.Topics) != 7 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 || len(view.QuickTasks) != 7 || len(view.Handoff) != 6 || len(view.DemoScenarios) != 6 || len(view.TrainerScript) != 6 || len(view.HelperChecklist) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.TrainingGuide.DocsPath == "" || len(view.Topics) != 7 || len(view.RolePaths) != 4 || len(view.RoleTours) != 5 || len(view.FirstWeek) != 7 || len(view.Glossary) != 11 || len(view.Recovery) != 8 || len(view.QuickTasks) != 7 || len(view.Handoff) != 6 || len(view.DemoScenarios) != 6 || len(view.TrainerScript) != 6 || len(view.HelperChecklist) != 7 {
 		t.Fatalf("invalid help top-level shape: %+v", view)
 	}
 	if view.TrainingGuide.DocsPath != "docs/operator-training-guide.md" || view.TrainingGuide.Label == "" || view.TrainingGuide.Audience == "" || view.TrainingGuide.HowToUse == "" || view.TrainingGuide.Boundary == "" {
 		t.Fatalf("invalid training guide link: %+v", view.TrainingGuide)
+	}
+	wantRolePaths := []string{"agency_staff", "administrator", "deployment_owner", "integrator"}
+	var gotRolePaths []string
+	for _, path := range view.RolePaths {
+		gotRolePaths = append(gotRolePaths, path.ID)
+		if path.ID == "" || path.Label == "" || path.UseWhen == "" || path.StartHere == "" || path.DoFirst == "" || path.ThenReview == "" || path.AskWhen == "" || path.DoNotDo == "" || path.DoesNotShow == "" {
+			t.Fatalf("invalid role path shape: %+v", path)
+		}
+		if !strings.HasPrefix(path.StartHere, "/admin/") {
+			t.Fatalf("role path %s has unsafe start link %q", path.ID, path.StartHere)
+		}
+	}
+	if strings.Join(gotRolePaths, ",") != strings.Join(wantRolePaths, ",") {
+		t.Fatalf("role path ids = %v, want %v", gotRolePaths, wantRolePaths)
 	}
 	wantRoles := []string{"no_code_evaluator", "director_manager", "daily_operator", "administrator", "integrator"}
 	var gotRoles []string
