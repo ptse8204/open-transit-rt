@@ -72,6 +72,7 @@ type operationsPage struct {
 	Maintenance            operationsMaintenanceView
 	IssueCenter            operationsIssueCenterView
 	Access                 operationsAccessView
+	AdminUsers             operationsAdminUsersView
 	Audit                  operationsAuditView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
@@ -284,6 +285,15 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderConnectorTestsJSON(w, r)
+	case "admin/users":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, adminUsersPostMaxBytes)
+		}
+		h.renderAdminUsers(w, r)
+	case "admin/users.json":
+		w.Header().Set("Cache-Control", "no-store")
+		h.renderAdminUsersJSON(w, r)
 	case "help":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
@@ -1160,6 +1170,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ConnectorTests = buildConnectorTests(page)
 	page.IssueCenter = buildOperationsIssueCenter(page)
 	page.Cockpit = buildOperationsCockpit(page)
+	page.AdminUsers = h.buildOperationsAdminUsersView(r, principal, "")
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
 	page.ContextHelp = page.Help.ContextualHelp
 	return page
@@ -2129,6 +2140,60 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Access-Denied Guidance</h3>
 <table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .Access.Denied}}<tr id="access-denied-{{.ID}}"><td>{{.Scenario}}</td><td>{{.WhatHappened}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "admin-users"}}
+{{template "layoutStart" .}}
+<h2>Users &amp; Roles</h2>
+<p class="warning">{{.AdminUsers.Boundary}}</p>
+<p><a href="/admin/operations/admin/users.json">Export private users JSON</a> · <a href="/admin/operations/access">Open Access &amp; Roles</a></p>
+{{if .AdminUsers.Notice}}<p class="section-note">{{.AdminUsers.Notice}}</p>{{end}}
+{{if .AdminUsers.Error}}<p class="warning" role="alert">{{.AdminUsers.Error}}</p>{{end}}
+{{if .AdminUsers.ResetLink}}<section class="section-note" aria-labelledby="reset-link-heading">
+<h3 id="reset-link-heading">One-time password setup link</h3>
+<p>This link is shown once. Do not paste it into docs/evidence, screenshots, issue comments, tickets, or public logs.</p>
+<p><code>{{.AdminUsers.ResetLink}}</code></p>
+</section>{{end}}
+<table><tbody>
+<tr><th>Agency</th><td><code>{{.AdminUsers.AgencyID}}</code></td></tr>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .AdminUsers.Status}}">{{.AdminUsers.Status}}</span></td></tr>
+<tr><th>Password resets</th><td>{{.AdminUsers.PasswordResets}}</td></tr>
+<tr><th>Username/password invitations</th><td>{{.AdminUsers.EmailAllowlist}}</td></tr>
+<tr><th>Future SSO</th><td>{{.AdminUsers.FutureSSO}}</td></tr>
+<tr><th>Next action</th><td>{{.AdminUsers.NextAction}}</td></tr>
+<tr><th>Limits</th><td>{{.AdminUsers.DoesNotProve}}</td></tr>
+</tbody></table>
+<h3>Current Users</h3>
+{{if .AdminUsers.Users}}
+<table><thead><tr><th>Email</th><th>Display name</th><th>Subject</th><th>Roles</th><th>Status</th><th>Password</th><th>Last login</th><th>Password link</th><th>Disable</th></tr></thead><tbody>
+{{range .AdminUsers.Users}}<tr id="admin-user-{{.ID}}">
+<td>{{.Email}}</td><td>{{.DisplayName}}</td><td><code>{{.Subject}}</code></td><td>{{join .Roles ", "}}</td><td>{{.Status}}</td><td>{{.PasswordStatus}}</td><td>{{.LastLoginAt}}</td>
+<td><form method="post" action="/admin/operations/admin/users"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><input type="hidden" name="action" value="password_reset"><input type="hidden" name="user_id" value="{{.ID}}"><button type="submit">Generate</button></form></td>
+<td>{{if .CanDisable}}<form method="post" action="/admin/operations/admin/users"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><input type="hidden" name="action" value="disable_user"><input type="hidden" name="user_id" value="{{.ID}}"><input type="hidden" name="reason" value="disabled from admin users page"><button type="submit">Disable</button></form>{{else}}not available{{end}}</td>
+</tr>{{end}}
+</tbody></table>
+{{else}}<p class="muted">No users are visible for this agency.</p>{{end}}
+<h3>Create User</h3>
+<form method="post" action="/admin/operations/admin/users" class="stacked-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="agency_id" value="{{.AgencyID}}">
+<input type="hidden" name="action" value="create_user">
+<label for="admin-user-email">Email</label>
+<input id="admin-user-email" name="email" type="email" autocomplete="off" required>
+<label for="admin-user-display-name">Display name</label>
+<input id="admin-user-display-name" name="display_name" type="text" maxlength="120">
+<label for="admin-user-subject">Auth subject override</label>
+<input id="admin-user-subject" name="auth_subject" type="text" maxlength="180" placeholder="leave blank to use email">
+<fieldset><legend>Roles</legend>
+{{range .AdminUsers.Roles}}<label><input type="checkbox" name="role" value="{{.ID}}"> {{.Label}} — {{.Description}}</label>{{end}}
+</fieldset>
+<button type="submit">Create or update user</button>
+</form>
+<h3>Claim Boundaries</h3>
+<table><thead><tr><th>Area</th><th>Status</th></tr></thead><tbody>
+{{range .AdminUsers.ClaimBoundaries}}<tr><td>{{.Label}}</td><td>{{.Status}}</td></tr>{{end}}
 </tbody></table>
 {{template "layoutEnd" .}}
 {{end}}

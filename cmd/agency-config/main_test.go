@@ -3672,15 +3672,18 @@ func TestOperationsRouteRegistryCentralizesCanonicalInventory(t *testing.T) {
 		paths[route.Path] = true
 	}
 
-	if got := len(operationsCanonicalHTMLRoutes()); got != 28 {
-		t.Fatalf("canonical HTML route count = %d, want 28", got)
+	if got := len(operationsCanonicalHTMLRoutes()); got != 29 {
+		t.Fatalf("canonical HTML route count = %d, want 29", got)
 	}
 	jsonRoutes := operationsCanonicalJSONRoutes()
-	if got := len(jsonRoutes); got != 20 {
-		t.Fatalf("canonical JSON route count = %d, want 20: %v", got, jsonRoutes)
+	if got := len(jsonRoutes); got != 21 {
+		t.Fatalf("canonical JSON route count = %d, want 21: %v", got, jsonRoutes)
 	}
 	if !containsString(jsonRoutes, "/admin/operations/checklist.json") {
 		t.Fatalf("registry must include checklist JSON route: %v", jsonRoutes)
+	}
+	if !containsString(jsonRoutes, "/admin/operations/admin/users.json") {
+		t.Fatalf("registry must include admin users JSON route: %v", jsonRoutes)
 	}
 	commands := operationsCommandRoutes()
 	if len(commands) != 1 || commands[0].Path != "/admin/operations/validation-health/refresh.json" || commands[0].Method != http.MethodPost || !commands[0].NoStore {

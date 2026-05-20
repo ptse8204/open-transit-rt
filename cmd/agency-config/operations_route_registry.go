@@ -34,6 +34,7 @@ var operationsRouteGroupRegistry = []operationsRouteGroupMeta{
 	{ID: "connectors", Label: "Connectors"},
 	{ID: "readiness", Label: "Readiness"},
 	{ID: "maintenance", Label: "Maintain"},
+	{ID: "admin", Label: "Admin"},
 	{ID: "help", Label: "Support"},
 }
 
@@ -60,6 +61,7 @@ var operationsRouteRegistry = []operationsRouteMeta{
 	{Section: "connectors", Path: "/admin/operations/connectors", JSONPath: "/admin/operations/connectors.json", NavLabel: "Connectors", PageTitle: "Connectors", GroupID: "connectors", Methods: []string{"GET"}, NoStore: true},
 	{Section: "connector-workbench", Path: "/admin/operations/connectors/workbench", JSONPath: "/admin/operations/connectors/workbench.json", NavLabel: "Connector Workbench", PageTitle: "Connector Workbench", GroupID: "connectors", Methods: []string{"GET"}, NoStore: true},
 	{Section: "connector-tests", Path: "/admin/operations/connectors/tests", JSONPath: "/admin/operations/connectors/tests.json", NavLabel: "Connector Checks", PageTitle: "Connector Checks", GroupID: "connectors", Methods: []string{"GET"}, NoStore: true},
+	{Section: "admin-users", Path: "/admin/operations/admin/users", JSONPath: "/admin/operations/admin/users.json", NavLabel: "Users & Roles", PageTitle: "Users & Roles", GroupID: "admin", Methods: []string{"GET", "POST"}, NoStore: true},
 	{Section: "readiness", Path: "/admin/operations/readiness", JSONPath: "/admin/operations/readiness.json", NavLabel: "Readiness", PageTitle: "Readiness", GroupID: "readiness", Methods: []string{"GET"}, NoStore: true},
 	{Section: "checklist", Path: "/admin/operations/checklist", JSONPath: "/admin/operations/checklist.json", NavLabel: "Checklist", PageTitle: "Checklist", GroupID: "readiness", Methods: []string{"GET"}, NoStore: true},
 	{Section: "consumers", Path: "/admin/operations/consumers", NavLabel: "External Sharing Prep", PageTitle: "External Sharing Prep", GroupID: "readiness", Methods: []string{"GET"}, NoStore: true},
