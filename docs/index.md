@@ -33,6 +33,7 @@ Use this page to choose the right guide without reading project-history files.
 - [Reference Deployment Doctor](deployment/reference-deployment-doctor.md)
 - [Off-Host Public Feed Validation](deployment/off-host-validation.md)
 - [Dependencies](dependencies.md)
+- [API, Feed, And Extension Contracts](api-contracts.md)
 
 The authenticated `/admin/operations*` routes are the private product UI for
 both local evaluation and self-hosted/reference deployments. Use the public
@@ -44,6 +45,7 @@ HTTPS, secret, validator, backup, and monitoring ownership.
 - [Connector Catalog](connectors/catalog.md)
 - [Connector Cookbook](../wiki/connector-cookbook.md)
 - [Integration Adapter Kit](integration-adapter-kit.md)
+- [API, Feed, And Extension Contracts](api-contracts.md)
 - [Device And AVL Integration](tutorials/device-avl-integration.md)
 - [External Adapter Conformance](tutorials/external-adapter-conformance.md)
 - [Contributing Connectors](connectors/contributing-connectors.md)

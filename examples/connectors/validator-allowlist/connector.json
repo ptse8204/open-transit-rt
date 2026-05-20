@@ -39,7 +39,7 @@
   },
   "claim_boundary": {
     "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
-    "not_claimed": ["compliance proof", "consumer acceptance", "production readiness"]
+    "not_claimed": ["compliance proof", "consumer acceptance", "production readiness", "vendor compatibility"]
   },
   "docs_link": "examples/connectors/validator-allowlist/README.md",
   "conformance_cases": [

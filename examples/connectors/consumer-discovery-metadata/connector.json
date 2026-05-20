@@ -39,7 +39,7 @@
   },
   "claim_boundary": {
     "positive_claims": ["adapter contract only", "synthetic conformance tested", "disabled by default", "redacted diagnostics only", "no status mutation"],
-    "not_claimed": ["consumer submission", "consumer acceptance", "consumer listing", "consumer display", "status transition", "compliance", "production readiness"]
+    "not_claimed": ["consumer submission", "consumer acceptance", "consumer listing", "consumer display", "status transition", "compliance", "production readiness", "vendor compatibility"]
   },
   "docs_link": "examples/connectors/consumer-discovery-metadata/README.md",
   "conformance_cases": [
