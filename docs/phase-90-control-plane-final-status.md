@@ -26,6 +26,7 @@ closeout is preserved on the `archive/agent-history` branch.
 - `/admin/operations/connectors`
 - `/admin/operations/connectors/workbench`
 - `/admin/operations/connectors/tests`
+- `/admin/operations/admin/sessions`
 - `/admin/operations/admin/users`
 - `/admin/operations/readiness`
 - `/admin/operations/checklist`
@@ -55,6 +56,7 @@ closeout is preserved on the `archive/agent-history` branch.
 - `/admin/operations/access.json`
 - `/admin/operations/telemetry-simulator.json`
 - `/admin/operations/connectors/tests.json`
+- `/admin/operations/admin/sessions.json`
 - `/admin/operations/admin/users.json`
 - `/admin/operations/reliability.json`
 - `/admin/operations/feed-health.json`

@@ -259,6 +259,12 @@ remains local/demo-only and production-disabled. SSO/OIDC is not implemented in
 this roadmap; a future identity provider would issue the same internal
 `admin_session` cookie after identity verification and role mapping.
 
+Inside the private Operations Console, **Admin -> Login & Sessions** shows the
+current signed-in subject, agency, roles, auth mode, session TTL, password-login
+status, local demo-login status, and the SSO/OIDC future boundary without
+rendering tokens or credential values. **Admin -> Users & Roles** is admin-only
+and is the browser path for role assignments and one-time password reset links.
+
 ## Service Supervision
 
 The reference service set is:

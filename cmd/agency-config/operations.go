@@ -72,6 +72,8 @@ type operationsPage struct {
 	Maintenance            operationsMaintenanceView
 	IssueCenter            operationsIssueCenterView
 	Access                 operationsAccessView
+	Session                operationsSessionBannerView
+	AuthStatus             operationsAuthStatusView
 	AdminUsers             operationsAdminUsersView
 	Audit                  operationsAuditView
 	TelemetrySimulator     operationsTelemetrySimulatorView
@@ -294,6 +296,12 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	case "admin/users.json":
 		w.Header().Set("Cache-Control", "no-store")
 		h.renderAdminUsersJSON(w, r)
+	case "admin/sessions":
+		w.Header().Set("Cache-Control", "no-store")
+		h.renderAuthStatus(w, r)
+	case "admin/sessions.json":
+		w.Header().Set("Cache-Control", "no-store")
+		h.renderAuthStatusJSON(w, r)
 	case "help":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
@@ -1170,6 +1178,8 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ConnectorTests = buildConnectorTests(page)
 	page.IssueCenter = buildOperationsIssueCenter(page)
 	page.Cockpit = buildOperationsCockpit(page)
+	page.Session = h.buildOperationsSessionBanner(principal)
+	page.AuthStatus = h.buildOperationsAuthStatus(r, principal, page.GeneratedAt)
 	page.AdminUsers = h.buildOperationsAdminUsersView(r, principal, "")
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
 	page.ContextHelp = page.Help.ContextualHelp
@@ -2062,6 +2072,13 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h1 id="operations-page-title">{{.Title}}</h1>
 </div>
 <p class="app-meta"><span>Agency <strong>{{.AgencyID}}</strong></span><span>Environment <span class="pill">{{.EnvironmentLabel}}</span></span><span>Updated {{formatTime .GeneratedAt}}</span></p>
+<div class="session-banner" aria-label="Signed-in admin session">
+<span>Signed in as <strong>{{.Session.Subject}}</strong></span>
+<span>Agency <code>{{.Session.Agency}}</code></span>
+<span>Roles {{join .Session.Roles ", "}}</span>
+<span>Auth {{.Session.Method}}</span>
+<a class="session-logout" href="/admin/operations/admin/sessions#logout">Logout</a>
+</div>
 </header>
 <div class="operations-frame">
 {{template "operationsNavPanel" .}}
@@ -2141,6 +2158,35 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .Access.Denied}}<tr id="access-denied-{{.ID}}"><td>{{.Scenario}}</td><td>{{.WhatHappened}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "admin-sessions"}}
+{{template "layoutStart" .}}
+<h2>Login &amp; Sessions</h2>
+<p class="warning">{{.AuthStatus.Boundary}}</p>
+<p><a href="/admin/operations/admin/sessions.json">Export private session JSON</a> · <a href="/admin/operations/admin/users">Open Users &amp; Roles</a></p>
+<table><tbody>
+<tr><th>Signed-in subject</th><td><code>{{.AuthStatus.Session.Subject}}</code></td></tr>
+<tr><th>Agency</th><td><code>{{.AuthStatus.Session.Agency}}</code></td></tr>
+<tr><th>Roles</th><td>{{join .AuthStatus.Session.Roles ", "}}</td></tr>
+<tr><th>Current auth mode</th><td>{{.AuthStatus.ActiveAuthMode}}</td></tr>
+<tr><th>Password login</th><td>{{.AuthStatus.PasswordLogin}}</td></tr>
+<tr><th>Local demo login</th><td>{{.AuthStatus.LocalDemoLogin}}</td></tr>
+<tr><th>SSO/OIDC</th><td>{{.AuthStatus.SSOStatus}}</td></tr>
+<tr><th>Session TTL</th><td>{{.AuthStatus.SessionTTL}}</td></tr>
+<tr><th>Cookie policy</th><td>{{.AuthStatus.CookiePolicy}}</td></tr>
+<tr><th>Bearer support</th><td>{{.AuthStatus.BearerSupport}}</td></tr>
+<tr><th>CSRF policy</th><td>{{.AuthStatus.CSRFPolicy}}</td></tr>
+<tr><th>Password reset</th><td>{{.AuthStatus.PasswordReset}}</td></tr>
+<tr><th>Future SSO direction</th><td>{{.AuthStatus.FutureSSODirection}}</td></tr>
+<tr><th>Next action</th><td>{{.AuthStatus.NextAction}}</td></tr>
+<tr><th>Limits</th><td>{{.AuthStatus.DoesNotProve}}</td></tr>
+</tbody></table>
+<form id="logout" method="post" action="/admin/logout">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<button type="submit">Logout</button>
+</form>
 {{template "layoutEnd" .}}
 {{end}}
 

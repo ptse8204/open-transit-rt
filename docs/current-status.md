@@ -10,16 +10,19 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 161 of the production login, setup, dashboard, and connector
+Phase 165 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-20. The roadmap is recorded at
-`docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. The first
-checkpoint locks the existing production auth boundary before username/password
-login work begins: local demo sign-in stays disabled in production, anonymous
-private Operations Console access stays `401`, rotated JWTs are rejected, new
-Bearer and `admin_session` JWTs are accepted, cookie-authenticated unsafe POSTs
-still require CSRF, and the public edge remains feed-only. SSO/OIDC remains
-deferred; future SSO must issue the same internal signed `admin_session` only
-after external identity verification and role mapping.
+`docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
+161-164 locked the production auth boundary, added Argon2id-backed password
+credentials, first-admin setup links, `/admin/login`, `/admin/logout`, and
+admin-only Users & Roles management. Phase 165 adds signed-in user/session
+visibility and a Login & Sessions page. Local demo sign-in stays disabled in
+production, anonymous private Operations Console access stays `401`, rotated
+JWTs are rejected, new Bearer and `admin_session` JWTs are accepted,
+cookie-authenticated unsafe POSTs still require CSRF, and the public edge
+remains feed-only. SSO/OIDC remains deferred; future SSO must issue the same
+internal signed `admin_session` only after external identity verification and
+role mapping.
 
 Phase 141 through Phase 160 of the better-software roadmap are complete. The
 closeout is recorded at

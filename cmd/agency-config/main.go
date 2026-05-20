@@ -185,6 +185,8 @@ func newHandlerWithRealtimeAndPasswordStore(agencyID string, scheduleBuilder sch
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
 	mux.Handle("/admin/logout", adminRead(http.HandlerFunc(h.adminLogout)))
 	mux.Handle("/admin/operations/assets/operations.js", adminRead(http.HandlerFunc(h.operationsAsset)))
+	mux.Handle("/admin/operations/admin/sessions", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/admin/sessions.json", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/admin/users", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations/admin/users.json", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))

@@ -146,8 +146,8 @@ for row in registry_rows(registry_block("operationsCommandRouteRegistry"), "{Sec
         COMMAND_ROUTES[path] = method
 
 EXPECTED_COUNTS = {
-    "html": 29,
-    "json": 21,
+    "html": 30,
+    "json": 22,
     "command": 1,
     "external": 2,
 }

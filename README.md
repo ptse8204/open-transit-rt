@@ -38,7 +38,8 @@ or proof that any agency, vendor, consumer, or regulator has accepted a feed.
 
 ## Start In The Browser
 
-After an administrator starts the app, agency staff open:
+For local/demo evaluation, after an administrator starts the app, agency staff
+open:
 
 ```text
 http://localhost:8080/admin/local-login
@@ -47,9 +48,15 @@ http://localhost:8080/admin/local-login
 Select **Start setup**. The local-only page creates a short private browser
 session and opens the Operations Console.
 
+For self-hosted production-style deployments, an operator generates a one-time
+first-admin setup link from the server console, sets the first password in the
+browser, then signs in at `/admin/login`. Successful password login issues the
+internal signed `admin_session` cookie; `/admin/local-login` remains
+local/demo-only and disabled in production. SSO/OIDC is not implemented yet.
+
 Use the visible action groups in this order: **Start**, **Setup**, **GTFS**,
 **Feeds**, **Realtime**, **Vehicles**, **Connectors**, **Readiness**,
-**Maintenance**, and **Help**.
+**Maintenance**, **Admin**, and **Help**.
 
 Normal browser review does not require manual tokens, curl, DevTools, or a
 header extension. An administrator or deployment owner is still needed for

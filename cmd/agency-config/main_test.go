@@ -957,7 +957,7 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 			t.Fatalf("audit body missing %q: %s", want, body)
 		}
 	}
-	for _, forbidden := range []string{"operator@example.com", "because dispatch requested it", "old_value_json", "new_value_json", "payload_json", "Authorization", "Bearer ", "postgres://", "/Users/", "secret"} {
+	for _, forbidden := range []string{"because dispatch requested it", "old_value_json", "new_value_json", "payload_json", "Authorization", "Bearer ", "postgres://", "/Users/", "secret"} {
 		if strings.Contains(body, forbidden) {
 			t.Fatalf("audit body leaked %q: %s", forbidden, body)
 		}
@@ -3672,18 +3672,21 @@ func TestOperationsRouteRegistryCentralizesCanonicalInventory(t *testing.T) {
 		paths[route.Path] = true
 	}
 
-	if got := len(operationsCanonicalHTMLRoutes()); got != 29 {
-		t.Fatalf("canonical HTML route count = %d, want 29", got)
+	if got := len(operationsCanonicalHTMLRoutes()); got != 30 {
+		t.Fatalf("canonical HTML route count = %d, want 30", got)
 	}
 	jsonRoutes := operationsCanonicalJSONRoutes()
-	if got := len(jsonRoutes); got != 21 {
-		t.Fatalf("canonical JSON route count = %d, want 21: %v", got, jsonRoutes)
+	if got := len(jsonRoutes); got != 22 {
+		t.Fatalf("canonical JSON route count = %d, want 22: %v", got, jsonRoutes)
 	}
 	if !containsString(jsonRoutes, "/admin/operations/checklist.json") {
 		t.Fatalf("registry must include checklist JSON route: %v", jsonRoutes)
 	}
 	if !containsString(jsonRoutes, "/admin/operations/admin/users.json") {
 		t.Fatalf("registry must include admin users JSON route: %v", jsonRoutes)
+	}
+	if !containsString(jsonRoutes, "/admin/operations/admin/sessions.json") {
+		t.Fatalf("registry must include login sessions JSON route: %v", jsonRoutes)
 	}
 	commands := operationsCommandRoutes()
 	if len(commands) != 1 || commands[0].Path != "/admin/operations/validation-health/refresh.json" || commands[0].Method != http.MethodPost || !commands[0].NoStore {

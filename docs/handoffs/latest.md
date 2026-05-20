@@ -9,16 +9,18 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 161 of the production login, setup, dashboard, and connector
+Phase 165 of the production login, setup, dashboard, and connector
 configuration roadmap is active. The roadmap file is
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
-Phase 161 is the executable baseline for the maintainer-confirmed production
-auth boundary: `/admin/local-login` is production-disabled, anonymous
-`/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
-Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without
-CSRF remain forbidden, and the public edge remains feed-only. Username/password
-login is next; SSO/OIDC is explicitly deferred and must later map external
-identity into the same internal signed `admin_session` session model.
+Phases 161-164 locked the maintainer-confirmed production auth boundary, added
+password credentials, first-admin setup links, production `/admin/login` and
+`/admin/logout`, and admin-only Users & Roles management. Phase 165 adds the
+signed-in session banner and Login & Sessions status page. `/admin/local-login`
+is still production-disabled, anonymous `/admin/operations` is unauthorized,
+old JWTs fail after secret rotation, new Bearer and `admin_session` JWTs work,
+cookie-authenticated unsafe POSTs without CSRF remain forbidden, and the public
+edge remains feed-only. SSO/OIDC is explicitly deferred and must later map
+external identity into the same internal signed `admin_session` session model.
 
 Phase 141 through Phase 160 of the better-software roadmap are complete. The
 closeout is

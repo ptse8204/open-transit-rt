@@ -830,3 +830,11 @@ deployments a production browser entry path. SSO/OIDC is deliberately deferred:
 a future provider integration must verify the external identity, map it to an
 internal subject, agency, and roles, then issue the same signed
 `admin_session` cookie used by the current admin middleware.
+
+Phase 165 makes that boundary visible in the private admin UI. The shared
+Operations Console shell shows the current signed-in subject, agency, roles,
+auth method, and a CSRF-protected logout action. The Login & Sessions page
+reports password-login status, local demo-login status, `admin_session` cookie
+policy, Bearer support, session TTL, password-reset guidance, and the explicit
+future SSO/OIDC direction. It does not add OIDC discovery, redirect, callback,
+JWKS, claim mapping, provider configuration, or provider logout endpoints.

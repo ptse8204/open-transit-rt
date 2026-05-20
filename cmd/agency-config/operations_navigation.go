@@ -87,6 +87,8 @@ func operationsPageNextAction(section string) string {
 		return "Review withheld Trip Updates reasons and keep ETA-like output behind the prediction adapter boundary."
 	case "connectors", "connector-workbench", "connector-tests":
 		return "Choose a connector category, review redaction and fail-closed behavior, then have an administrator or integrator run synthetic conformance checks."
+	case "admin-sessions":
+		return "Review the current session, enabled login modes, cookie behavior, and future SSO boundary without exposing tokens or credentials."
 	case "admin-users":
 		return "Review users scoped to this agency, assign the smallest needed role, and generate password reset links only when a recipient is ready."
 	case "readiness", "checklist", "consumers":
