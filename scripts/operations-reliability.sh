@@ -405,6 +405,14 @@ def build_private_ops_summary(overall, validator, doctor, notify, monitoring_exp
         "summary_json": "summary.json",
         "manifest_json": "manifest.json",
         "scope": "private diagnostic summary only",
+        "export_formats": {
+            "feed_health": "status, source, next_action rows only",
+            "connector_health": "category status, redaction state, no-send blockers only",
+            "validator_posture": "validator id, feed type, health status, stale status only",
+            "telemetry_freshness": "freshness bucket counts and stale/unmatched summaries only",
+            "maintenance_tasks": "cadence, owner category, status, next step only",
+        },
+        "redaction_boundary": "no endpoint values, tokens, private paths, raw payloads, DB URLs, notification destinations, or retained evidence paths",
         "sources": {
             "validator_health": validator["status"],
             "deployment_doctor": doctor["status"],
@@ -517,6 +525,8 @@ summary_md.extend([
     f"- summary_json: {private_ops_summary['summary_json']}",
     f"- monitoring_export_status: {private_ops_summary['monitoring_export_status']}",
     "- notification_not_sent: true",
+    "- export_formats: feed_health, connector_health, validator_posture, telemetry_freshness, maintenance_tasks",
+    "- redaction_boundary: no endpoint values, tokens, private paths, raw payloads, DB URLs, notification destinations, or retained evidence paths",
 ])
 
 manifest_md = [

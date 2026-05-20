@@ -248,6 +248,15 @@ func buildOperationsMaintenanceMonitoringExport() operationsMaintenancePanel {
 			"Private summary JSON does not show hosted monitoring, compliance, consumer acceptance, or production operations.",
 		),
 		maintenancePanelRow(
+			"redacted_operations_export_formats",
+			"Redacted operations export formats",
+			operationsStatusDiagnosticOnly,
+			"private_ops_summary.export_formats lists feed_health, connector_health, validator_posture, telemetry_freshness, and maintenance_tasks",
+			"Use these categories for local dashboards or administrator review only.",
+			"Keep exported rows to status, owner/source category, summary, and next action; exclude endpoints, tokens, private paths, raw payloads, and destinations.",
+			"Export formats do not show live monitoring, notification delivery, SLA coverage, hosted service availability, compliance, or production readiness.",
+		),
+		maintenancePanelRow(
 			"no_send_default",
 			"No-send default",
 			operationsStatusReady,

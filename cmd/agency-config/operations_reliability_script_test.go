@@ -41,6 +41,15 @@ func TestOperationsReliabilityScriptExactFilesDefaultFlagsAndNoSend(t *testing.T
 	if privateOps["notification_not_sent"] != true || privateOps["monitoring_export_status"] == "" || privateOps["summary_json"] != "summary.json" || privateOps["manifest_json"] != "manifest.json" {
 		t.Fatalf("private ops summary invalid: %+v", privateOps)
 	}
+	exportFormats := privateOps["export_formats"].(map[string]any)
+	for _, key := range []string{"feed_health", "connector_health", "validator_posture", "telemetry_freshness", "maintenance_tasks"} {
+		if exportFormats[key] == "" {
+			t.Fatalf("export format %s missing: %+v", key, exportFormats)
+		}
+	}
+	if privateOps["redaction_boundary"] == "" {
+		t.Fatalf("redaction boundary missing: %+v", privateOps)
+	}
 	flags := summary["claim_flags"].(map[string]any)
 	for _, flag := range []string{
 		"external_evidence_created",

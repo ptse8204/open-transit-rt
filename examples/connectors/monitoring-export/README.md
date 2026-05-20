@@ -20,6 +20,12 @@ to build a no-send export batch. The helper copies synthetic metrics, keeps
 only public incident fields, and marks `send_enabled`, `network_send`,
 `status_mutation`, and `evidence_write` as false.
 
+The fixture also carries categorical export rows for feed health, connector
+health, validator posture, telemetry freshness, and maintenance tasks. Those
+rows are deliberately status/summary/next-action only, so local dashboards can
+start from useful operational buckets without copying endpoint values, private
+paths, raw payloads, contact details, or credentials.
+
 Deployment-owned monitoring can adapt this shape after operator configuration,
 but the public example does not carry webhook URLs, credentials, private
 operator contacts, raw payloads, notification sends, or retained evidence.

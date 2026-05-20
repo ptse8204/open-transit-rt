@@ -11,16 +11,16 @@
   "input_contracts": [
     {
       "name": "Synthetic monitoring diagnostics",
-      "description": "Local metrics and incidents prepared for redacted dry-run export.",
+      "description": "Local metrics, incidents, and categorical health summaries prepared for redacted dry-run export.",
       "schema": "open-transit-rt.monitoring.synthetic-diagnostics.v1",
       "media_types": ["application/json"],
-      "required_fields": ["synthetic_only", "agency_id", "metrics", "incidents"]
+      "required_fields": ["synthetic_only", "agency_id", "metrics", "incidents", "feed_health", "connector_health", "validator_posture", "telemetry_freshness", "maintenance_tasks"]
     }
   ],
   "output_contracts": [
     {
       "name": "Redacted monitoring batch",
-      "description": "Dry-run diagnostic export with sending, evidence writes, and status mutation disabled.",
+      "description": "Dry-run diagnostic export with categorical summaries, sending, evidence writes, and status mutation disabled.",
       "schema": "open-transit-rt.monitoring.redacted-batch.v1",
       "media_types": ["application/json"],
       "produces": ["dry_run_stdout"]
