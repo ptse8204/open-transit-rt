@@ -98,14 +98,17 @@ func TestOperationsDashboardAndRealtimeShowIssueCenter(t *testing.T) {
 			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
 		}
 		body := rr.Body.String()
-		if !strings.Contains(body, "Fix These First") && path == "/admin/operations" {
+		if !strings.Contains(body, "Top Issues") && path == "/admin/operations" {
 			t.Fatalf("dashboard missing issue center: %s", body)
 		}
 		if path == "/admin/operations" {
-			for _, want := range []string{"Owner", "Current signal", "Why it matters", "Source", "Freshness", "Fix Trip Updates", "Review vehicle freshness", "All issue rows", "#all-operator-issues"} {
+			for _, want := range []string{"Category Summary", "Owner", "Current signal", "Why it matters", "Source", "Freshness", "Fix Trip Updates", "Review vehicle freshness", "All issue rows", "dashboard-top-issue-"} {
 				if !strings.Contains(body, want) {
 					t.Fatalf("dashboard missing %q: %s", want, body)
 				}
+			}
+			if got := strings.Count(body, `id="dashboard-top-issue-`); got > 3 {
+				t.Fatalf("dashboard top issue count = %d, want at most 3: %s", got, body)
 			}
 		}
 		if path == "/admin/operations/launchpad" {

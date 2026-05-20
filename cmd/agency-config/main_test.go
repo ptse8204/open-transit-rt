@@ -1042,6 +1042,12 @@ func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	}
 	assertOperationsCockpitShape(t, view)
 	assertOperationsCockpitFlagsFalse(t, view.ClaimFlags)
+	if len(view.Dashboard.TopIssues) > 3 || len(view.Dashboard.Categories) != 9 {
+		t.Fatalf("unexpected dashboard JSON model: top=%d categories=%d view=%+v", len(view.Dashboard.TopIssues), len(view.Dashboard.Categories), view.Dashboard)
+	}
+	if view.Dashboard.Boundary == "" || view.Dashboard.PrimaryNextAction == "" {
+		t.Fatalf("dashboard JSON missing boundary or next action: %+v", view.Dashboard)
+	}
 	if view.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
 	}
@@ -1781,6 +1787,9 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 	}
 	for _, want := range []string{
 		"Start",
+		"Dashboard",
+		"Top Issues",
+		"Category Summary",
 		"Work through this in order",
 		"Operations workflow",
 		"Review realtime",

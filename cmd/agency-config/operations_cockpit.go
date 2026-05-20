@@ -22,6 +22,7 @@ type operationsCockpitView struct {
 	ActionQueue   []operationsCockpitAction  `json:"action_queue"`
 	SetupProgress []operationsCockpitRow     `json:"setup_progress"`
 	PrimaryCards  []operationsCockpitCard    `json:"primary_cards"`
+	Dashboard     operationsDashboardView    `json:"dashboard"`
 	ClaimFlags    operationsCockpitClaimFlag `json:"claim_flags"`
 }
 

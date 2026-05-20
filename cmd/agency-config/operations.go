@@ -57,6 +57,7 @@ type operationsPage struct {
 	Checklist              operatorChecklistView
 	Cockpit                operationsCockpitView
 	FirstRun               operationsFirstRunView
+	Dashboard              operationsDashboardView
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
@@ -1181,6 +1182,8 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Session = h.buildOperationsSessionBanner(principal)
 	page.AuthStatus = h.buildOperationsAuthStatus(r, principal, page.GeneratedAt)
 	page.AdminUsers = h.buildOperationsAdminUsersView(r, principal, "")
+	page.Dashboard = buildOperationsDashboard(page)
+	page.Cockpit.Dashboard = page.Dashboard
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
 	page.ContextHelp = page.Help.ContextualHelp
 	return page
@@ -2395,9 +2398,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <section class="workflow-hero" aria-labelledby="workflow-hero-heading">
 <div>
-<h2 id="workflow-hero-heading">Work through this in order</h2>
-<p>Open the first step that is missing, blocked, or needs review. Use the main button in that step before opening secondary tools.</p>
-<p class="compact-actions"><a class="action-link" href="/admin/operations/setup-wizard">Start setup</a><a class="action-link" href="/admin/operations/gtfs-import">Import Schedule</a><a class="action-link" href="/admin/operations/feed-health">Check feeds</a><a class="action-link secondary-action" href="/admin/operations/help">Get help</a></p>
+<h2 id="workflow-hero-heading">Dashboard</h2>
+<p>{{.Dashboard.PrimaryNextAction}}</p>
+<p class="compact-actions"><a class="action-link" href="/admin/operations/setup-wizard">Continue setup</a><a class="action-link" href="/admin/operations/feed-health">Check feeds</a><a class="action-link" href="/admin/operations/realtime">Review realtime</a><a class="action-link secondary-action" href="/admin/operations/help">Get help</a></p>
 </div>
 <aside class="workflow-summary" aria-label="Current local summary">
 <h3>Current snapshot</h3>
@@ -2412,21 +2415,49 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </section>
 
 <section class="issue-center" aria-labelledby="issue-center-heading">
-<h2 id="issue-center-heading">Fix These First</h2>
+<h2 id="issue-center-heading">Top Issues</h2>
 <p>{{.IssueCenter.Recommendation.Summary}} <a href="{{.IssueCenter.Recommendation.AdminLink}}">{{.IssueCenter.Recommendation.NextAction}}</a></p>
-<p class="muted">{{.IssueCenter.Boundary}}</p>
+<p class="muted">{{.Dashboard.Boundary}}</p>
+{{if .Dashboard.TopIssues}}
 <table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Current signal</th><th>Why it matters</th><th>Next action</th><th>Source</th><th>Freshness</th></tr></thead><tbody>
-{{range .IssueCenter.VisibleIssues}}<tr id="operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td></tr>{{end}}
+{{range .Dashboard.TopIssues}}<tr id="dashboard-top-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td></tr>{{end}}
 </tbody></table>
-{{if .IssueCenter.Counts.Hidden}}<details id="all-operator-issues"><summary>All issue rows ({{.IssueCenter.Counts.Total}} total)</summary>
+{{else}}<p class="section-note">No blocked, missing, or needs-review issue is visible in the bounded private summary.</p>{{end}}
+{{if .Dashboard.HealthySummaries}}
+<h3>Healthy category summaries</h3>
+<table><thead><tr><th>Category</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .Dashboard.HealthySummaries}}<tr id="dashboard-healthy-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.HealthySignal}}</td><td><a href="{{.AdminLink}}">{{.NextAction}}</a></td></tr>{{end}}
+</tbody></table>
+{{end}}
+{{if .Dashboard.HiddenIssueCount}}<details id="all-operator-issues"><summary>All issue rows ({{.IssueCenter.Counts.Total}} total)</summary>
 <table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Current signal</th><th>Why it matters</th><th>Next action</th><th>Source</th><th>Freshness</th><th>Dedupe key</th></tr></thead><tbody>
 {{range .IssueCenter.Issues}}<tr id="all-operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td><td><code>{{.DeduplicationKey}}</code></td></tr>{{end}}
 </tbody></table>
 </details>{{end}}
 </section>
 
-<section aria-labelledby="workflow-heading">
-<h2 id="workflow-heading">Operations workflow</h2>
+<section aria-labelledby="dashboard-categories-heading">
+<h2 id="dashboard-categories-heading">Category Summary</h2>
+<div class="status-grid">
+{{range .Dashboard.Categories}}<section class="status-tile" id="dashboard-category-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.Summary}}</p>
+<p><a href="{{.AdminLink}}">{{.NextAction}}</a></p>
+<p class="muted">{{.DoesNotProve}}</p>
+</section>{{end}}
+</div>
+</section>
+
+<section aria-labelledby="dashboard-tools-heading" class="dashboard-tools">
+<h2 id="dashboard-tools-heading">Tools</h2>
+<p class="compact-actions"><a href="/admin/operations/connectors">Connectors</a><a href="/admin/operations/validation-health">Validators</a><a href="/admin/operations/admin/sessions">Login &amp; Sessions</a><a href="/admin/operations.json">Export JSON</a></p>
+<p class="muted">{{.Cockpit.Boundary}}</p>
+</section>
+
+<details class="dashboard-details">
+<summary>Operations workflow</summary>
+<p>Work through this in order when starting from an empty deployment.</p>
 <ol class="workflow-steps">
 {{range .Cockpit.ActionQueue}}<li class="workflow-step" id="cockpit-action-{{.ID}}">
 <div class="workflow-step-header">
@@ -2445,13 +2476,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </details>
 </li>{{end}}
 </ol>
-</section>
-
-<section aria-labelledby="dashboard-tools-heading" class="dashboard-tools">
-<h2 id="dashboard-tools-heading">Tools when you need them</h2>
-<p class="compact-actions"><a href="/admin/operations/connectors">Connectors</a><a href="/admin/operations/validation-health">Validators</a><a href="/admin/operations/help">Help</a><a href="/admin/operations.json">Export JSON</a></p>
-<p class="muted">{{.Cockpit.Boundary}}</p>
-</section>
+</details>
 
 <details class="dashboard-details">
 <summary>Agency scope and permissions</summary>
