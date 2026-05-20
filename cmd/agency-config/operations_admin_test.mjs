@@ -87,6 +87,15 @@ test("copyableText rejects missing sentinel values", () => {
   assert.equal(operations.copyableText("", "unknown"), "");
 });
 
+test("copyableText rejects private or secret-like values", () => {
+  assert.equal(operations.copyableText("Authorization: Bearer abcdefghijklmnop", ""), "");
+  assert.equal(operations.copyableText("https://localhost/private", ""), "");
+  assert.equal(operations.copyableText("https://10.0.0.2/private", ""), "");
+  assert.equal(operations.copyableText("/Users/operator/feed.zip", ""), "");
+  assert.equal(operations.copyableText("api_key=redacted", ""), "");
+  assert.equal(operations.copyableText("keep_send_enabled=false\nkeep_network_send=false", ""), "keep_send_enabled=false\nkeep_network_send=false");
+});
+
 test("review row filtering keeps local diagnostic language", () => {
   assert.equal(operations.rowMatchesFilterText("Vehicle Positions stale next action", "stale", "needs_action", ""), true);
   assert.equal(operations.rowMatchesFilterText("Schedule configured current", "ok", "needs_action", ""), false);

@@ -2882,6 +2882,17 @@ func TestConnectorHubJSONShapeFlagsAndCategories(t *testing.T) {
 	if hub.PluginDefinition != safePluginDefinition {
 		t.Fatalf("plugin definition = %q, want safe definition", hub.PluginDefinition)
 	}
+	wantHealthIDs := []string{"telemetry_source", "prediction", "validator", "monitoring_export", "consumer_discovery", "future_extension_model"}
+	var gotHealthIDs []string
+	for _, row := range hub.Health {
+		gotHealthIDs = append(gotHealthIDs, row.ID)
+		if row.ChecklistCopy == "" {
+			t.Fatalf("connector health checklist is not safe/copyable: %+v", row)
+		}
+	}
+	if strings.Join(gotHealthIDs, ",") != strings.Join(wantHealthIDs, ",") {
+		t.Fatalf("health ids = %v, want %v", gotHealthIDs, wantHealthIDs)
+	}
 	var ids []string
 	for _, category := range hub.Categories {
 		ids = append(ids, category.ID)
@@ -2944,7 +2955,7 @@ func TestConnectorHubHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Connectors", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
+	for _, want := range []string{"Connectors", "Connector Health Review", "Vehicle data setup", "Prediction setup", "Validator setup", "Monitoring export setup", "Feed discovery setup", "Future extension setup", "Setup checklist", "keep_send_enabled=false", "keep_network_send=false", "Connector Catalog", "CSV replay adapter", "HTTP polling adapter", "Webhook sidecar adapter", "Generic JSON transform adapter", "TheTransitClock candidate notes", "Consumer packet preparedness", "No arbitrary dynamic backend plugin loading", "Safe plugin definition", "optional sidecar, command adapter, manifest, or connector process", "not arbitrary dynamic code loaded into the backend", "Vehicle / GPS / AVL connectors", "Prediction connectors", "Validator connectors", "Monitoring / export connectors", "Consumer / discovery connectors", "Future connector extension model", "Manifest Registry", "Synthetic telemetry HTTP poller", "Synthetic telemetry webhook sidecar", "Synthetic predictor sidecar stub", "Synthetic monitoring export", "Synthetic consumer discovery metadata", "disabled by default", "fail closed", "synthetic cases"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -7836,8 +7847,24 @@ func assertOperationsHelpSafeStrings(t *testing.T, body string) {
 
 func assertConnectorHubShape(t *testing.T, hub connectorHubView) {
 	t.Helper()
-	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 8 {
+	if hub.AgencyID == "" || hub.Boundary == "" || hub.PluginDefinition == "" || len(hub.Health) != 6 || len(hub.Catalog) != 28 || len(hub.Categories) != 6 || len(hub.Registry.Entries) != 8 {
 		t.Fatalf("invalid connector hub top-level shape: %+v", hub)
+	}
+	seenHealthIDs := map[string]bool{}
+	for _, row := range hub.Health {
+		if row.ID == "" || row.Label == "" || row.Owner == "" || row.Status == "" || row.Configured == "" || row.DryRunReady == "" || row.SendState == "" || row.LastSyntheticCheck == "" || row.RedactionStatus == "" || row.IssueCategory == "" || len(row.IssueLinks) == 0 || len(row.SetupChecklist) == 0 || row.ChecklistCopy == "" || row.DoesNotProve == "" {
+			t.Fatalf("invalid connector health row shape: %+v", row)
+		}
+		if seenHealthIDs[row.ID] {
+			t.Fatalf("duplicate connector health id %q", row.ID)
+		}
+		seenHealthIDs[row.ID] = true
+		for _, link := range row.IssueLinks {
+			if !strings.HasPrefix(link, "/admin/") {
+				t.Fatalf("connector health row %s has unsafe issue link %q", row.ID, link)
+			}
+		}
+		assertConnectorHealthChecklistSafe(t, row)
 	}
 	seenCatalogIDs := map[string]bool{}
 	for _, row := range hub.Catalog {
@@ -7896,6 +7923,21 @@ func assertConnectorHubFlagsFalse(t *testing.T, flags connectorHubClaimFlags) {
 	t.Helper()
 	if flags.DynamicBackendPluginLoadingEnabled || flags.VendorCompatibilityClaimed || flags.HardwareCertificationClaimed || flags.ConsumerStatusesChanged || flags.ExternalEvidenceCreated || flags.ComplianceClaimed || flags.ProductionReadinessClaimed || flags.HostedSaaSClaimed || flags.ProductionGradeETAClaimed {
 		t.Fatalf("connector hub flags must all be false: %+v", flags)
+	}
+}
+
+func assertConnectorHealthChecklistSafe(t *testing.T, row connectorHealthRow) {
+	t.Helper()
+	joined := strings.ToLower(strings.Join(append(append([]string{}, row.SetupChecklist...), row.ChecklistCopy), "\n"))
+	for _, forbidden := range []string{"authorization:", "bearer ", "set-cookie", "database_url", "token_hash", "payload_json", "file://", "/users/", "/home/", "/var/", "/tmp/", "/etc/", "postgres://", "localhost", "127.0.0.1", "192.168.", "10.0.0.", ".local", "http://"} {
+		if strings.Contains(joined, forbidden) {
+			t.Fatalf("connector health checklist %s leaks forbidden %q: %s", row.ID, forbidden, joined)
+		}
+	}
+	for _, forbidden := range []string{"api_key", "private_key", "password", "credential"} {
+		if strings.Contains(joined, forbidden) {
+			t.Fatalf("connector health checklist %s includes secret-like key %q: %s", row.ID, forbidden, joined)
+		}
 	}
 }
 

@@ -2509,6 +2509,24 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Limits:</strong> Connector guidance does not show vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, SLA coverage, production readiness, or ETA quality.</p>
 </section>
 <details><summary>Safety details</summary><p><strong>Safe plugin definition:</strong> {{.ConnectorHub.PluginDefinition}}</p>{{template "jsonSafetyNote" .}}</details>
+<h3>Connector Health Review</h3>
+<p>Use these private rows to see which connector category is ready for a local synthetic check, which owner should act next, and which setup checklist is safe to copy. Checklist values are fixed labels only; they do not include endpoints, tokens, payloads, or local paths.</p>
+<table aria-label="Connector health review"><thead><tr><th>Connector area</th><th>Status</th><th>Configured</th><th>Dry-run readiness</th><th>Send state</th><th>Redaction</th><th>Blockers</th><th>Issue links</th><th>Setup checklist</th><th>Limits</th></tr></thead><tbody>
+{{range .ConnectorHub.Health}}
+<tr>
+<td><strong>{{.Label}}</strong><br><code>{{.ID}}</code><br>Owner: {{.Owner}}</td>
+<td>{{.Status}}</td>
+<td>{{.Configured}}</td>
+<td>{{.DryRunReady}}<br><span class="muted">{{.LastSyntheticCheck}}</span></td>
+<td>{{.SendState}}</td>
+<td>{{.RedactionStatus}}</td>
+<td>{{if .KnownBlockers}}{{range .KnownBlockers}}{{.}}<br>{{end}}{{else}}No current private blocker from loaded examples.{{end}}</td>
+<td>{{.IssueCategory}}<br>{{range .IssueLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td>
+<td><code class="copy-value" data-copy-value="{{.ChecklistCopy}}">{{range .SetupChecklist}}{{.}}<br>{{end}}</code></td>
+<td>{{.DoesNotProve}}</td>
+</tr>
+{{end}}
+</tbody></table>
 <h3>Connector Catalog</h3>
 <p>Use this catalog to choose a starter shape, copy the matching example or contract, and run the first local check before any deployment-owned integration work.</p>
 <table><thead><tr><th>Category</th><th>Connector</th><th>Status</th><th>Start with</th><th>Browser review</th><th>First safe check</th><th>Limits</th><th>Docs</th></tr></thead><tbody>

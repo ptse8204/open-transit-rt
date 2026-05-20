@@ -211,6 +211,25 @@
     if (/^(missing|not configured|not configured yet|not available|unknown)$/i.test(text)) {
       return "";
     }
+    var lower = text.toLowerCase();
+    if (/(authorization:|set-cookie|database_url|restore_database_url|token_hash|payload_json|raw telemetry|postgres:\/\/)/i.test(text)) {
+      return "";
+    }
+    if (/\b(bearer\s+[a-z0-9._~+/=-]{12,}|sk-[a-z0-9]{12,}|ghp_[a-z0-9_]{12,}|-----begin [a-z ]*private key-----)\b/i.test(text)) {
+      return "";
+    }
+    if (/(^|[\s._-])(secret|password|passwd|api[_-]?key|private[_-]?key|credential)([\s._=-]|$)/i.test(text)) {
+      return "";
+    }
+    if (lower.indexOf("file://") !== -1 || lower.indexOf("../") !== -1 || /(^|\s)\/(users|home|var|tmp|etc)\//i.test(text)) {
+      return "";
+    }
+    if (lower.indexOf("localhost") !== -1 || lower.indexOf("[::1]") !== -1 || lower.indexOf("::1") !== -1 || lower.indexOf(".local") !== -1) {
+      return "";
+    }
+    if (/(^|[^0-9a-z])((10|127|0)\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3})(:[0-9]{1,5})?($|[^0-9a-z])/i.test(text)) {
+      return "";
+    }
     return text;
   }
 
@@ -281,12 +300,12 @@
       var statusID = "copy-status-" + index;
       button.type = "button";
       button.className = "copy-action";
-      button.textContent = "Copy configured URL";
+      button.textContent = "Copy value";
       button.setAttribute("aria-describedby", statusID);
       status.id = statusID;
       status.className = "review-status";
       status.setAttribute("aria-live", "polite");
-      status.textContent = "Configured value is visible for manual copy.";
+      status.textContent = "Value is visible for manual copy.";
       value.insertAdjacentElement("afterend", status);
       value.insertAdjacentElement("afterend", button);
       button.addEventListener("click", function () {

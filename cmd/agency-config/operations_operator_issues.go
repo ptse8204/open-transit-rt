@@ -344,6 +344,32 @@ func (b *operatorIssueBuilder) addDeviceIssues(page operationsPage) {
 }
 
 func (b *operatorIssueBuilder) addConnectorIssues(page operationsPage) {
+	for _, row := range page.ConnectorHub.Health {
+		if len(row.KnownBlockers) == 0 {
+			continue
+		}
+		status := issueSeverityFromStatus(row.Status)
+		if status == checklistStatusOK || status == checklistStatusUnknown {
+			status = checklistStatusNeedsReview
+		}
+		signal := strings.Join(row.KnownBlockers, "; ")
+		b.add(operationsOperatorIssue{
+			ID:               "connector_health_" + safeIssueID(row.ID),
+			Label:            "Review " + row.Label,
+			Severity:         status,
+			Owner:            firstNonEmpty(row.Owner, "developer/integrator"),
+			CurrentSignal:    signal,
+			WhyItMatters:     "Connector setup should stay dry-run ready, redacted, and no-send until an administrator or integrator reviews the related private workflow.",
+			NextAction:       "Open Connectors, follow the safe checklist, then use the linked private workflow for " + firstNonEmpty(row.IssueCategory, "connector") + " blockers.",
+			RouteLink:        "/admin/operations/connectors",
+			Source:           "Connectors",
+			Freshness:        issueFreshness(page.ConnectorHub.GeneratedAt),
+			DeduplicationKey: "connector_health_" + safeIssueID(row.ID),
+			AdminLink:        "/admin/operations/connectors",
+			SourceSignal:     signal,
+			SourceSurface:    "Connectors",
+		})
+	}
 	for _, diagnostic := range page.ConnectorHub.Registry.Diagnostics {
 		status := connectorDiagnosticSeverity(diagnostic.Level)
 		if status == checklistStatusOK {
