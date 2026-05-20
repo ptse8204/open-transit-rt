@@ -3018,6 +3018,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .GTFSWorkbench.Preview.RequiredFiles}}<tr data-review-row data-review-status="{{.Status}}" data-review-name="{{.File}}"><td><code>{{.File}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 {{range .GTFSWorkbench.Preview.Sections}}<tr data-review-row data-review-status="{{.Status}}" data-review-name="{{.Label}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}} Showing {{.RowsShown}} of {{.TotalRows}} rows; {{.OverflowCount}} omitted by cap.</td><td>Review the bounded rows below, then fix the source GTFS or draft data if the signal needs action.</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
+{{if .GTFSWorkbench.Preview.ServiceWarnings}}<h4>Service Calendar Review</h4>
+<table><thead><tr><th>Check</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
+{{range .GTFSWorkbench.Preview.ServiceWarnings}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>{{end}}
 {{if .GTFSWorkbench.Preview.Agency}}<h4>Agency Preview</h4>
 <table><thead><tr><th>Agency ID</th><th>Name</th><th>Timezone</th></tr></thead><tbody>
 {{range .GTFSWorkbench.Preview.Agency}}<tr><td><code>{{.AgencyID}}</code></td><td>{{.Name}}</td><td>{{.Timezone}}</td></tr>{{end}}
@@ -3092,6 +3096,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Update comparison</th><td>{{.GTFSImportSource.UpdateComparison}}</td></tr>
 <tr><th>Rollback visibility</th><td>{{.GTFSImportSource.RollbackVisibility}}</td></tr>
 </tbody></table>
+{{if .GTFSImportSource.Preflight}}<h3>Temporary ZIP Preflight</h3>
+<table><thead><tr><th>File</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
+{{range .GTFSImportSource.Preflight}}<tr><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+</tbody></table>{{end}}
 {{end}}
 {{if .GTFSImportResult}}
 <h3>Last Import Attempt From This Page</h3>

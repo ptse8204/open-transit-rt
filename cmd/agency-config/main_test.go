@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -2124,7 +2125,7 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	rr := httptest.NewRecorder()
 	srv.ServeHTTP(rr, req)
 	body := rr.Body.String()
-	for _, want := range []string{"Schedule Review", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
+	for _, want := range []string{"Schedule Review", "Current Schedule", "Latest Import", "Source checksum", "Agency Review Summary", "Required files", "Row counts", "Service dates", "Routes, stops, and trips", "What changed", "Validation Issue Triage", "Likely owner", "Plain-English meaning", "Suggested fix path", "Safe next action", "Schedule planner with operations review", "Import Change Signals", "Active Vs Previous Schedule Comparison", "File-Level Row Count Diff", "Route / Stop / Trip / Service Change Summary", "Draft-only rollback command design", "Draft Publish Review", "Draft Publish Checklist", "Schedule History And Rollback Guidance", "Rollback Guidance", "Recent Feed Versions", "Preview filters", "Required File Checklist", "Service Calendar Review", "Stop-time service coverage", "Frequency-based service", "Service exceptions", "Routes Preview", "Stops Preview", "Calendar / Service Preview", "No POST action exists"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("workbench HTML missing %q: %s", want, body)
 		}
@@ -2215,6 +2216,16 @@ func TestGTFSWorkbenchRoutesPrivateReadOnlyAndJSONBounded(t *testing.T) {
 	counts, ok := preview["counts"].(map[string]any)
 	if !ok || counts["routes"] != float64(12) {
 		t.Fatalf("preview counts = %#v, want 12 routes", preview["counts"])
+	}
+	serviceWarnings, ok := preview["service_warnings"].([]any)
+	if !ok || len(serviceWarnings) < 4 {
+		t.Fatalf("preview service_warnings = %#v, want service review rows", preview["service_warnings"])
+	}
+	serviceWarningsBody := fmt.Sprint(serviceWarnings)
+	for _, want := range []string{"Service calendar source", "Service date range", "Stop-time service coverage", "Frequency-based service", "Service exceptions"} {
+		if !strings.Contains(serviceWarningsBody, want) {
+			t.Fatalf("service_warnings missing %q: %#v", want, serviceWarnings)
+		}
 	}
 	routes, ok := preview["routes"].([]any)
 	if !ok || len(routes) != 10 {
@@ -2358,6 +2369,69 @@ func TestGTFSImportUploadUsesTempFileAndImporter(t *testing.T) {
 	}
 }
 
+func TestGTFSImportZipPreflightSummarizesRequiredFilesAndServiceRows(t *testing.T) {
+	zipPath := writeGTFSPreflightZip(t, map[string]string{
+		"agency.txt":         "agency_id,agency_name,agency_url,agency_timezone\nA,Demo,https://example.org,America/Los_Angeles\n",
+		"routes.txt":         "route_id,agency_id,route_short_name,route_long_name,route_type\nR,A,1,Main,3\n",
+		"stops.txt":          "stop_id,stop_name,stop_lat,stop_lon\nS1,Main,34,-118\nS2,Second,34.1,-118.1\n",
+		"trips.txt":          "route_id,service_id,trip_id\nR,WKD,T1\n",
+		"stop_times.txt":     "trip_id,arrival_time,departure_time,stop_id,stop_sequence\nT1,23:50:00,23:50:00,S1,1\nT1,24:10:00,24:10:00,S2,2\n",
+		"calendar_dates.txt": "service_id,date,exception_type\nWKD,20260520,1\n",
+		"frequencies.txt":    "trip_id,start_time,end_time,headway_secs,exact_times\nT1,06:00:00,09:00:00,900,0\n",
+	})
+	rows := gtfsImportZipPreflight(zipPath)
+	if len(rows) != 8 {
+		t.Fatalf("preflight rows = %d, want 8: %+v", len(rows), rows)
+	}
+	seen := map[string]operationsGTFSChangeRow{}
+	for _, row := range rows {
+		seen[row.Label] = row
+		if row.CurrentSignal == "" || row.NextAction == "" || row.ClaimBoundary == "" {
+			t.Fatalf("preflight row missing guidance: %+v", row)
+		}
+		if strings.Contains(strings.ToLower(row.CurrentSignal), strings.ToLower(zipPath)) {
+			t.Fatalf("preflight leaked temp path: %+v", row)
+		}
+	}
+	for _, required := range []string{"agency.txt", "routes.txt", "stops.txt", "trips.txt", "stop_times.txt", "calendar.txt / calendar_dates.txt"} {
+		if seen[required].Status != "ok" {
+			t.Fatalf("%s status = %+v, want ok", required, seen[required])
+		}
+	}
+	if seen["shapes.txt"].Status != "optional" {
+		t.Fatalf("shapes status = %+v, want optional", seen["shapes.txt"])
+	}
+	if !strings.Contains(seen["calendar.txt / calendar_dates.txt"].CurrentSignal, "calendar_dates.txt has 1") {
+		t.Fatalf("calendar preflight signal = %q", seen["calendar.txt / calendar_dates.txt"].CurrentSignal)
+	}
+}
+
+func writeGTFSPreflightZip(t *testing.T, files map[string]string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "preflight.zip")
+	out, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create zip: %v", err)
+	}
+	zw := zip.NewWriter(out)
+	for name, body := range files {
+		w, err := zw.Create(name)
+		if err != nil {
+			t.Fatalf("create zip member %s: %v", name, err)
+		}
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Fatalf("write zip member %s: %v", name, err)
+		}
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatalf("close zip writer: %v", err)
+	}
+	if err := out.Close(); err != nil {
+		t.Fatalf("close zip file: %v", err)
+	}
+	return path
+}
+
 func TestGTFSImportValidationFailureRendersBoundedResult(t *testing.T) {
 	result := gtfs.ImportResult{
 		ImportID:       7,
@@ -2443,6 +2517,9 @@ func TestGTFSImportURLDownloadAndUnsafeRejection(t *testing.T) {
 	}
 	if string(importer.payload) != "downloaded zip" {
 		t.Fatalf("download payload = %q, want downloaded bytes", importer.payload)
+	}
+	if strings.Contains(rr.Body.String(), server.URL) || strings.Contains(rr.Body.String(), "127.0.0.1") || strings.Contains(strings.ToLower(rr.Body.String()), "localhost") {
+		t.Fatalf("download response leaked local URL: %s", rr.Body.String())
 	}
 }
 

@@ -204,20 +204,21 @@ type operationsGTFSValidationSummary struct {
 }
 
 type operationsGTFSPreviewSummary struct {
-	Status        string                                    `json:"status"`
-	RowLimit      int                                       `json:"row_limit"`
-	CurrentSignal string                                    `json:"current_signal"`
-	NextAction    string                                    `json:"next_action"`
-	ClaimBoundary string                                    `json:"claim_boundary"`
-	Counts        compliance.GTFSSchedulePreviewCounts      `json:"counts"`
-	RequiredFiles []operationsGTFSRequiredFileStatus        `json:"required_files"`
-	Sections      []operationsGTFSPreviewSection            `json:"sections"`
-	Agency        []operationsGTFSScheduleAgencyRow         `json:"agency"`
-	Routes        []compliance.GTFSScheduleRoutePreview     `json:"routes"`
-	Stops         []compliance.GTFSScheduleStopPreview      `json:"stops"`
-	Trips         []compliance.GTFSScheduleTripPreview      `json:"trips"`
-	Calendar      []compliance.GTFSScheduleCalendarPreview  `json:"calendar"`
-	Frequencies   []compliance.GTFSScheduleFrequencyPreview `json:"frequencies"`
+	Status          string                                    `json:"status"`
+	RowLimit        int                                       `json:"row_limit"`
+	CurrentSignal   string                                    `json:"current_signal"`
+	NextAction      string                                    `json:"next_action"`
+	ClaimBoundary   string                                    `json:"claim_boundary"`
+	Counts          compliance.GTFSSchedulePreviewCounts      `json:"counts"`
+	RequiredFiles   []operationsGTFSRequiredFileStatus        `json:"required_files"`
+	Sections        []operationsGTFSPreviewSection            `json:"sections"`
+	ServiceWarnings []operationsGTFSChangeRow                 `json:"service_warnings"`
+	Agency          []operationsGTFSScheduleAgencyRow         `json:"agency"`
+	Routes          []compliance.GTFSScheduleRoutePreview     `json:"routes"`
+	Stops           []compliance.GTFSScheduleStopPreview      `json:"stops"`
+	Trips           []compliance.GTFSScheduleTripPreview      `json:"trips"`
+	Calendar        []compliance.GTFSScheduleCalendarPreview  `json:"calendar"`
+	Frequencies     []compliance.GTFSScheduleFrequencyPreview `json:"frequencies"`
 }
 
 type operationsGTFSRequiredFileStatus struct {
@@ -349,7 +350,7 @@ func (h *handler) buildGTFSWorkbenchView(r *http.Request, page operationsPage) o
 	view.Import = h.buildGTFSImportSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.Quality = buildGTFSWorkbenchQualitySummary(page.GTFSQuality)
 	view.ValidationHealth = buildGTFSWorkbenchValidationSummary(page.ValidationHealth)
-	view.Preview = h.buildGTFSPreviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
+	view.Preview = h.buildGTFSPreviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID, page.GeneratedAt)
 	view.DraftReview = h.buildGTFSDraftReviewSummary(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.ScheduleHistory = h.buildGTFSScheduleHistory(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID)
 	view.VersionComparison = h.buildGTFSVersionComparison(r.Context(), page.AgencyID, view.ActiveFeedVersion.FeedVersionID, view.ScheduleHistory)
@@ -584,7 +585,7 @@ func buildGTFSActiveFeedVersion(discovery compliance.FeedDiscovery) operationsGT
 	return row
 }
 
-func (h *handler) buildGTFSPreviewSummary(ctx context.Context, agencyID string, feedVersionID string) operationsGTFSPreviewSummary {
+func (h *handler) buildGTFSPreviewSummary(ctx context.Context, agencyID string, feedVersionID string, generatedAt time.Time) operationsGTFSPreviewSummary {
 	summary := operationsGTFSPreviewSummary{
 		Status:        "missing",
 		RowLimit:      gtfsWorkbenchPreviewRowLimit,
@@ -613,6 +614,7 @@ func (h *handler) buildGTFSPreviewSummary(ctx context.Context, agencyID string, 
 	summary.Counts = preview.Counts
 	summary.RequiredFiles = gtfsRequiredFileStatuses(preview)
 	summary.Sections = gtfsPreviewSections(preview)
+	summary.ServiceWarnings = gtfsPreviewServiceWarnings(preview, generatedAt)
 	if preview.Agency.AgencyID != "" || preview.Agency.Name != "" {
 		summary.Agency = []operationsGTFSScheduleAgencyRow{{
 			AgencyID: preview.Agency.AgencyID,
@@ -683,6 +685,106 @@ func gtfsPreviewSections(preview compliance.GTFSSchedulePreview) []operationsGTF
 		previewSection("calendar", "Calendar / Service", gtfsPreviewCountStatus(preview.Counts.Calendar+preview.Counts.CalendarDates), len(preview.Calendar), preview.Counts.Calendar, "Calendar rows show weekly service windows; exception count is summarized separately.", boundary),
 		previewSection("frequencies", "Frequencies", gtfsPreviewOptionalCountStatus(preview.Counts.Frequencies), len(preview.Frequencies), preview.Counts.Frequencies, "Frequency rows show headway-based service where present.", boundary),
 	}
+}
+
+func gtfsPreviewServiceWarnings(preview compliance.GTFSSchedulePreview, generatedAt time.Time) []operationsGTFSChangeRow {
+	boundary := "Service-calendar review is a bounded private signal from stored preview rows only. It does not prove complete service coverage, validator success, agency approval, or consumer acceptance."
+	rows := []operationsGTFSChangeRow{
+		gtfsWorkbenchChangeRow("Service calendar source", gtfsPreviewServiceSourceStatus(preview.Counts), gtfsPreviewServiceSourceSignal(preview.Counts), "Confirm service IDs, weekday patterns, exception-only service, and holiday handling with the schedule owner.", boundary),
+	}
+	if len(preview.Calendar) == 0 {
+		rows = append(rows, gtfsWorkbenchChangeRow("Service date range", "missing", "No bounded calendar rows are visible for date-range review.", "Use validator output and source GTFS review to confirm service coverage before relying on active trips.", boundary))
+	} else {
+		start, end := gtfsPreviewCalendarBounds(preview.Calendar)
+		rows = append(rows, gtfsWorkbenchChangeRow("Service date range", gtfsPreviewServiceRangeStatus(start, end, generatedAt), gtfsPreviewServiceRangeSignal(start, end, generatedAt), "Review service start and end dates before relying on matching, Vehicle Positions trip descriptors, or Trip Updates.", boundary))
+	}
+	rows = append(rows, gtfsWorkbenchChangeRow("Stop-time service coverage", gtfsPreviewStopTimeStatus(preview.Counts), gtfsPreviewStopTimeSignal(preview.Counts), "Review stop_times.txt for ordering, after-midnight times, timepoint coverage, and repeated trip patterns in source GTFS or validator output.", boundary))
+	if preview.Counts.Frequencies > 0 {
+		rows = append(rows, gtfsWorkbenchChangeRow("Frequency-based service", "needs_review", fmt.Sprintf("%d frequency row(s) are stored for the active preview.", preview.Counts.Frequencies), "Confirm headways, exact_times values, and repeated trip-instance behavior before relying on matching.", boundary))
+	}
+	if preview.Counts.CalendarDates > 0 {
+		rows = append(rows, gtfsWorkbenchChangeRow("Service exceptions", "needs_review", fmt.Sprintf("%d calendar exception row(s) are stored.", preview.Counts.CalendarDates), "Review added and removed service dates, holidays, and cancellation expectations before publishing wider guidance.", boundary))
+	}
+	return rows
+}
+
+func gtfsPreviewStopTimeStatus(counts compliance.GTFSSchedulePreviewCounts) string {
+	if counts.StopTimes == 0 {
+		return "blocked"
+	}
+	if counts.Trips > 0 && counts.StopTimes < counts.Trips {
+		return "needs_review"
+	}
+	return "needs_review"
+}
+
+func gtfsPreviewStopTimeSignal(counts compliance.GTFSSchedulePreviewCounts) string {
+	if counts.StopTimes == 0 {
+		return "No stop_times.txt rows are stored, so trips cannot be reviewed against service-day timing."
+	}
+	return fmt.Sprintf("%d stop_times.txt row(s) are stored for %d trip row(s); after-midnight and repeated-trip timing still require source or validator review.", counts.StopTimes, counts.Trips)
+}
+
+func gtfsPreviewServiceSourceStatus(counts compliance.GTFSSchedulePreviewCounts) string {
+	if counts.Calendar+counts.CalendarDates == 0 {
+		return "blocked"
+	}
+	if counts.Calendar == 0 && counts.CalendarDates > 0 {
+		return "needs_review"
+	}
+	return "ok"
+}
+
+func gtfsPreviewServiceSourceSignal(counts compliance.GTFSSchedulePreviewCounts) string {
+	if counts.Calendar+counts.CalendarDates == 0 {
+		return "No calendar.txt or calendar_dates.txt rows are stored for the active preview."
+	}
+	if counts.Calendar == 0 {
+		return fmt.Sprintf("Exception-only service is visible with %d calendar_dates.txt row(s) and no calendar.txt rows.", counts.CalendarDates)
+	}
+	return fmt.Sprintf("%d calendar.txt row(s) and %d calendar_dates.txt row(s) are stored.", counts.Calendar, counts.CalendarDates)
+}
+
+func gtfsPreviewCalendarBounds(rows []compliance.GTFSScheduleCalendarPreview) (string, string) {
+	start := ""
+	end := ""
+	for _, row := range rows {
+		if row.StartDate != "" && (start == "" || row.StartDate < start) {
+			start = row.StartDate
+		}
+		if row.EndDate != "" && (end == "" || row.EndDate > end) {
+			end = row.EndDate
+		}
+	}
+	return start, end
+}
+
+func gtfsPreviewServiceRangeStatus(start string, end string, generatedAt time.Time) string {
+	today := generatedAt.UTC().Format("20060102")
+	switch {
+	case start == "" || end == "":
+		return "needs_review"
+	case end < today:
+		return "blocked"
+	case start > today:
+		return "needs_review"
+	default:
+		return "ok"
+	}
+}
+
+func gtfsPreviewServiceRangeSignal(start string, end string, generatedAt time.Time) string {
+	today := generatedAt.UTC().Format("20060102")
+	if start == "" || end == "" {
+		return "Bounded calendar rows do not include both start_date and end_date."
+	}
+	if end < today {
+		return fmt.Sprintf("Bounded service calendar appears expired: %s to %s; request date is %s.", start, end, today)
+	}
+	if start > today {
+		return fmt.Sprintf("Bounded service calendar starts in the future: %s to %s; request date is %s.", start, end, today)
+	}
+	return fmt.Sprintf("Bounded service calendar covers request date %s with dates from %s to %s.", today, start, end)
 }
 
 func previewSection(id string, label string, status string, rowsShown int, totalRows int, signal string, boundary string) operationsGTFSPreviewSection {
