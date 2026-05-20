@@ -17,6 +17,122 @@ import (
 )
 
 func TestOperationsConsoleReferenceDeploymentProductSmoke(t *testing.T) {
+	srv, store := newReferenceDeploymentProductSmokeServer(t)
+
+	for _, route := range operationsCanonicalHTMLRoutes() {
+		req := httptest.NewRequest(http.MethodGet, route.Path, nil)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", route.Path, rr.Code, rr.Body.String())
+		}
+		if got := rr.Header().Get("Cache-Control"); route.NoStore && got != "no-store" {
+			t.Fatalf("%s Cache-Control = %q, want no-store", route.Path, got)
+		}
+		body := rr.Body.String()
+		for _, want := range []string{"Operations Console", "reference", "demo-agency"} {
+			if !strings.Contains(body, want) {
+				t.Fatalf("%s missing %q: %s", route.Path, want, body)
+			}
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	body := rr.Body.String()
+	for _, want := range []string{
+		"Start setup",
+		"Check feeds",
+		"Connect vehicles",
+		"Maintain system",
+		"https://feeds.example.org",
+		"Private Operations Console for local/self-hosted evaluation",
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("dashboard missing %q: %s", want, body)
+		}
+	}
+
+	unauthenticated := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, authRejectAll{})
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	rr = httptest.NewRecorder()
+	unauthenticated.ServeHTTP(rr, req)
+	if rr.Code == http.StatusOK {
+		t.Fatalf("unauthenticated /admin/operations returned 200")
+	}
+	req = httptest.NewRequest(http.MethodGet, "/public/operations", nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code == http.StatusOK {
+		t.Fatalf("/public/operations returned 200; private product routes must stay under /admin/operations")
+	}
+}
+
+func TestOperationsConsoleRenderedHTMLAvoidsAuditVocabulary(t *testing.T) {
+	srv, _ := newReferenceDeploymentProductSmokeServer(t)
+	banned := []string{
+		"claim flags",
+		"external_evidence_created",
+		"consumer_statuses_changed",
+		"production_grade_eta_claimed",
+		"hosted_saas_claimed",
+		"dynamic_backend_plugin_loading_enabled",
+		"backend_command_execution_enabled",
+		"production_readiness_claimed",
+	}
+	for _, route := range operationsCanonicalHTMLRoutes() {
+		req := httptest.NewRequest(http.MethodGet, route.Path, nil)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", route.Path, rr.Code, rr.Body.String())
+		}
+		body := strings.ToLower(rr.Body.String())
+		for _, phrase := range banned {
+			if strings.Contains(body, strings.ToLower(phrase)) {
+				t.Fatalf("%s rendered primary HTML contains audit vocabulary %q", route.Path, phrase)
+			}
+		}
+	}
+}
+
+func TestOperationsConsoleRenderedPrimaryLayoutDebt(t *testing.T) {
+	srv, _ := newReferenceDeploymentProductSmokeServer(t)
+	primaryPaths := []string{
+		"/admin/operations/help",
+		"/admin/operations/launchpad",
+		"/admin/operations/connectors",
+		"/admin/operations/connectors/workbench",
+		"/admin/operations/connectors/tests",
+	}
+	for _, path := range primaryPaths {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		srv.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
+		}
+		mainHTML := renderedMainHTML(rr.Body.String())
+		for _, marker := range []string{`class="card-grid`, `class="status-grid`} {
+			if strings.Contains(mainHTML, marker) {
+				t.Fatalf("%s primary content still uses %s", path, marker)
+			}
+		}
+	}
+}
+
+func renderedMainHTML(html string) string {
+	start := strings.Index(strings.ToLower(html), "<main")
+	end := strings.LastIndex(strings.ToLower(html), "</main>")
+	if start < 0 || end < 0 || end <= start {
+		return html
+	}
+	return html[start:end]
+}
+
+func newReferenceDeploymentProductSmokeServer(t *testing.T) (http.Handler, *fakePublicationStore) {
+	t.Helper()
 	t.Setenv("PUBLICATION_ENVIRONMENT", "reference")
 	now := time.Date(2026, 5, 18, 12, 0, 0, 0, time.UTC)
 	discovery := validationHealthTestDiscovery(now)
@@ -101,53 +217,5 @@ func TestOperationsConsoleReferenceDeploymentProductSmoke(t *testing.T) {
 	}, auth.TestAuthenticator{Principal: auth.Principal{
 		Subject: "admin@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleAdmin}, Method: auth.MethodBearer,
 	}})
-
-	for _, route := range operationsCanonicalHTMLRoutes() {
-		req := httptest.NewRequest(http.MethodGet, route.Path, nil)
-		rr := httptest.NewRecorder()
-		srv.ServeHTTP(rr, req)
-		if rr.Code != http.StatusOK {
-			t.Fatalf("%s status = %d, want 200: %s", route.Path, rr.Code, rr.Body.String())
-		}
-		if got := rr.Header().Get("Cache-Control"); route.NoStore && got != "no-store" {
-			t.Fatalf("%s Cache-Control = %q, want no-store", route.Path, got)
-		}
-		body := rr.Body.String()
-		for _, want := range []string{"Operations Console", "reference", "demo-agency"} {
-			if !strings.Contains(body, want) {
-				t.Fatalf("%s missing %q: %s", route.Path, want, body)
-			}
-		}
-	}
-
-	req := httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
-	rr := httptest.NewRecorder()
-	srv.ServeHTTP(rr, req)
-	body := rr.Body.String()
-	for _, want := range []string{
-		"Start setup",
-		"Check feeds",
-		"Connect vehicles",
-		"Maintain system",
-		"https://feeds.example.org",
-		"Private Operations Console for local/self-hosted evaluation",
-	} {
-		if !strings.Contains(body, want) {
-			t.Fatalf("dashboard missing %q: %s", want, body)
-		}
-	}
-
-	unauthenticated := newOperationsTestHandler(&handler{store: store, devices: fakeDeviceStore{}}, authRejectAll{})
-	req = httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
-	rr = httptest.NewRecorder()
-	unauthenticated.ServeHTTP(rr, req)
-	if rr.Code == http.StatusOK {
-		t.Fatalf("unauthenticated /admin/operations returned 200")
-	}
-	req = httptest.NewRequest(http.MethodGet, "/public/operations", nil)
-	rr = httptest.NewRecorder()
-	srv.ServeHTTP(rr, req)
-	if rr.Code == http.StatusOK {
-		t.Fatalf("/public/operations returned 200; private product routes must stay under /admin/operations")
-	}
+	return srv, store
 }

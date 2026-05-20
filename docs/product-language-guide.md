@@ -68,13 +68,16 @@ Use layouts that make the next action visible quickly:
 
 ## Audit Scope
 
-`make audit-product-language` checks primary user-facing source for banned
-phrases and raw internal flag names where they would appear as copy. It
-intentionally excludes evidence archives, release ledgers, tests, JSON field
-definitions, and the prompt file used to request this work.
+`make audit-product-language` checks primary user-facing source and rendered
+Operations Console HTML for banned phrases and raw internal flag names where
+they would appear as copy. It intentionally excludes evidence archives, release
+ledgers, tests, JSON field definitions, and the prompt file used to request
+this work.
 
-`make audit-ui-layout` checks stable static layout rules. It is not a visual
-review replacement; it exists to catch obvious regressions before review.
+`make audit-ui-layout` checks stable static layout rules and a rendered
+Operations Console subset where card-grid/status-grid debt previously returned.
+It is not a visual review replacement; it exists to catch obvious regressions
+before review.
 
 `make product-ui-smoke` renders the private Operations Console through the Go
 handler with reference-deployment-style settings so `/admin/operations*` stays

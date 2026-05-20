@@ -770,10 +770,7 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 		"Future operator checklist",
 		"docs/index.md",
 		"Requires separate written authorization",
-		"external_evidence_created",
-		"final_root_evidence_created",
-		"consumer_statuses_changed",
-		"consumer_submission_claimed",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("feeds body missing %q: %s", want, body)
@@ -1583,7 +1580,7 @@ func TestOperationsLaunchpadHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Launchpad", "First-run details", "First-Run Tasks", "Copy Feed URLs", "Normal browser path", "Administrator path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Advanced safety details for this first-run guide", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
+	for _, want := range []string{"Agency Launchpad", "First-run details", "First-Run Tasks", "Copy Feed URLs", "Normal browser path", "Administrator path", "Validation health", "Realtime feeds: Vehicle Positions, Trip Updates, Alerts", "Maintenance and support checks", "Safety details", "creates no evidence", "contacts no external party", "changes no consumer status", "Setup", "GTFS", "Metadata", "Five expected feeds", "Telemetry", "Validators", "Readiness", "Connector conformance", "Support bundle", "Decision gate"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -1671,9 +1668,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"https://pilot.example.org/public/gtfsrt/alerts.pb",
 		"local wiring only",
 		"separate authorized intake",
-		"external_evidence_created",
-		"consumer_statuses_changed",
-		"compliance_claimed",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("dashboard body missing %q: %s", want, body)
@@ -3738,8 +3733,7 @@ func TestOperationsHelpHTMLRendersTopicsBoundariesAndNoForms(t *testing.T) {
 		"Trip Updates are empty, fallback, or withheld",
 		"Prepared packet visibility does not show submission",
 		safePluginDefinition,
-		`backend_command_execution_enabled`,
-		`consumer_statuses_changed`,
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("help HTML missing %q: %s", want, body)
@@ -3807,7 +3801,6 @@ func TestOperationsConsoleEmptyStateGuidanceAnswersFirstRunQuestions(t *testing.
 		"/admin/operations/help",
 	}
 	want := []string{
-		`class="card empty-state"`,
 		"What am I seeing?",
 		"Is this bad?",
 		"What should I do next?",
@@ -3828,6 +3821,9 @@ func TestOperationsConsoleEmptyStateGuidanceAnswersFirstRunQuestions(t *testing.
 				if !strings.Contains(body, text) {
 					t.Fatalf("%s empty-state guidance missing %q: %s", path, text, body)
 				}
+			}
+			if !strings.Contains(body, `class="card empty-state"`) && !strings.Contains(body, `class="section-note"`) {
+				t.Fatalf("%s empty-state guidance missing a stable container class: %s", path, body)
 			}
 		})
 	}
@@ -4861,10 +4857,7 @@ func TestGTFSQualityGuidanceShowsActionableFixPathsSafely(t *testing.T) {
 		"does not edit GTFS",
 		"No automatic production edit",
 		"Advisory only; no persisted draft suggestion record",
-		"automatic_gtfs_edit_enabled",
-		"draft_suggestion_records_created",
-		"validator_semantics_changed",
-		"production_avl_reliability_claimed",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("GTFS quality guidance missing %q: %s", want, body)
@@ -5342,7 +5335,7 @@ func TestValidationCenterHTMLPlainLanguageReadOnlyAndNoLeakage(t *testing.T) {
 		"Validator Health",
 		"GTFS Quality Summary",
 		"Prepared Consumer Tracker",
-		"Advanced Safety Details",
+		"Safety details",
 		"read-only",
 		"does not run validators",
 		"prepared only",
@@ -5938,7 +5931,7 @@ func TestValidationHealthHTMLMatchesJSONRows(t *testing.T) {
 			t.Fatalf("html missing feed row %q", row.FeedType)
 		}
 	}
-	for _, want := range []string{"external_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "private diagnostics"} {
+	for _, want := range []string{"Detailed safety booleans remain available", "private diagnostics"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html missing %q", want)
 		}
@@ -6614,7 +6607,7 @@ func TestPredictionLabHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "synthetic_covered (5/5 synthetic cases)", "Conservative Handling Guide", "Telemetry is stale", "Assignment is ambiguous", "Future ETA Proof Gates", "Real observed arrival/departure comparison", "Required before collecting", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "browser_predictor_run_enabled", "external_network_contacted", "make realtime-quality", "make realtime-quality-backtest"} {
+	for _, want := range []string{"Prediction &amp; ETA Lab", "Trip Updates Decision", "Safe Fallback", "Deterministic Predictor Diagnostics", "Why ETAs Are Missing", "External Predictor Shadow Review", "External HTTP shadow", "deterministic=1; external=1; delta=&#43;0", "Backtest Summary", ".cache/realtime-quality-backtest/20260514T120000Z", "manual_override_review=1", "synthetic_covered (5/5 synthetic cases)", "Conservative Handling Guide", "Telemetry is stale", "Assignment is ambiguous", "Future ETA Proof Gates", "Real observed arrival/departure comparison", "Required before collecting", "Stale Telemetry", "Vehicle Positions stay independent", "Needs Operator Review", "Fixed Local Checks", "Detailed safety booleans remain available", "make realtime-quality", "make realtime-quality-backtest"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("prediction lab html missing %q: %s", want, body)
 		}
@@ -7100,10 +7093,7 @@ func TestOperationsTelemetrySimulatorGuideListsSyntheticScenariosSafely(t *testi
 		"does not test a live vendor",
 		"SCENARIO=on-route make telemetry-simulator",
 		"SCENARIO=on-route RUN_MATCHER=true make telemetry-simulator",
-		"backend_command_execution_enabled",
-		"telemetry_sent_by_web_request",
-		"device_token_collected_by_browser",
-		"cache_diagnostics_read_enabled",
+		"Detailed safety booleans remain available",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("simulator guide missing %q: %s", want, body)
@@ -7349,9 +7339,7 @@ func TestOperationsConsumersDoNotInventAcceptanceClaims(t *testing.T) {
 		"Runtime deployment note is",
 		"docs tracker status remains",
 		"Requires separate written authorization",
-		"consumer_statuses_changed",
-		"consumer_submission_claimed",
-		"external_contact_performed",
+		"Detailed safety booleans remain available",
 		"every docs/evidence consumer target at prepared",
 		"Database workflow notes are shown separately",
 	} {

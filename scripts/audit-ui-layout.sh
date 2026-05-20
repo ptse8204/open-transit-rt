@@ -32,6 +32,8 @@ esac
 
 cd "$ROOT_DIR"
 
+go test ./cmd/agency-config -run TestOperationsConsoleRenderedPrimaryLayoutDebt >/dev/null
+
 python3 - "$ROOT_DIR" <<'PY'
 from __future__ import annotations
 
