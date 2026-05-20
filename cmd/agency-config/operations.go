@@ -3407,6 +3407,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
 {{range .FeedReadiness.SourceOfTruth}}<tr id="feed-readiness-source-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+<h3>External sharing prep</h3>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
+{{range .FeedReadiness.SharingPrep}}<tr id="feed-readiness-sharing-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
 <h3>Off-host validation guidance</h3>
 <table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Operator step</th><th>Administrator step</th><th>Docs</th><th>Limits</th></tr></thead><tbody>
 {{range .FeedReadiness.OffHost}}<tr id="feed-readiness-off-host-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.OperatorStep}}</td><td>{{.AdministratorStep}}</td><td>{{if .DocsLink}}<code>{{.DocsLink}}</code>{{end}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}

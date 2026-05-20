@@ -142,7 +142,7 @@ func newReferenceDeploymentProductSmokeServer(t *testing.T) (http.Handler, *fake
 	discovery.TechnicalContactEmail = "ops@example.org"
 	discovery.PublicationEnvironment = "reference"
 	discovery.License = compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"}
-	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true, CanonicalValidationComplete: true}
+	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true, CanonicalValidationComplete: true, StablePublicBaseURL: true, PublicationEnvironmentConfigured: true, ActiveScheduleListed: true, RealtimeFeedsListed: true}
 	for i := range discovery.Feeds {
 		discovery.Feeds[i].LastValidationStatus = "passed"
 		discovery.Feeds[i].LastValidationAt = &now

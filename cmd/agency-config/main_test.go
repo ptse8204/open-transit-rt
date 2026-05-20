@@ -757,6 +757,7 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 		"Configured feed URL review",
 		"Source-of-truth metadata checklist",
 		"Source-of-truth listing guidance",
+		"External sharing prep",
 		"Off-host validation guidance",
 		"Public docs portal alignment",
 		"Future final-root/evidence checklist",
@@ -769,7 +770,14 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 		"https://feeds.example.org/public/gtfsrt/alerts.pb",
 		"feeds.json is metadata, not a GTFS validator artifact",
 		"endpoint_available=true",
-		"public_base_url=true; license=true; contact=true; all_required_listed=true; https=true; discoverable=true",
+		"public_base_url=true; license=true; contact=true; all_required_listed=true; https=true; discoverable=true; stable_base_url=true; publication_environment=true; active_schedule=true; realtime_feeds=true",
+		"Stable public base URL",
+		"Publication environment",
+		"Active schedule for sharing",
+		"Realtime feed set",
+		"Transitland/Mobility Database metadata worksheet",
+		"Stable URL bundle",
+		"Consumer status guard",
 		"Provider or regional source-of-truth listing",
 		"Screenshot and diagram policy",
 		"Static schedule validator",
@@ -794,7 +802,8 @@ func TestOperationsFeedsPageShowsPublicFeedReadinessReview(t *testing.T) {
 
 	urlOnlyDiscovery := validationHealthTestDiscovery(time.Date(2026, 5, 11, 12, 0, 0, 0, time.UTC))
 	urlOnlyDiscovery.PublicBaseURL = "https://feeds.example.org"
-	urlOnlyDiscovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true}
+	urlOnlyDiscovery.PublicationEnvironment = compliance.EnvironmentDev
+	urlOnlyDiscovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true, StablePublicBaseURL: true, PublicationEnvironmentConfigured: true, ActiveScheduleListed: true, RealtimeFeedsListed: true}
 	urlOnly := buildOperationsFeedReadiness(operationsPage{Discovery: urlOnlyDiscovery})
 	for _, row := range urlOnly.Rows {
 		if row.ID != "feeds_json" && row.Status == operationsStatusReady {
@@ -1060,7 +1069,8 @@ func TestOperationsReadinessWorkflowRendersEvidenceBoundedRows(t *testing.T) {
 			},
 			Readiness: compliance.Readiness{
 				Discoverable: true, HTTPSURLs: true, LicenseComplete: true, ContactComplete: true,
-				AllRequiredFeedsListed: true, CanonicalValidationComplete: true,
+				AllRequiredFeedsListed: true, CanonicalValidationComplete: true, StablePublicBaseURL: true,
+				PublicationEnvironmentConfigured: true, ActiveScheduleListed: true, RealtimeFeedsListed: true,
 			},
 		},
 		scorecard: compliance.Scorecard{AgencyID: "demo-agency", SnapshotAt: now, OverallStatus: compliance.StatusYellow},
@@ -9028,8 +9038,9 @@ func feedHealthTestStore(t testing.TB) *fakePublicationStore {
 	discovery.GeneratedAt = now
 	discovery.PublicBaseURL = "https://feeds.example.org"
 	discovery.TechnicalContactEmail = "ops@example.org"
+	discovery.PublicationEnvironment = compliance.EnvironmentDev
 	discovery.License = compliance.License{Name: "CC BY 4.0", URL: "https://example.org/license"}
-	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true}
+	discovery.Readiness = compliance.Readiness{AllRequiredFeedsListed: true, LicenseComplete: true, ContactComplete: true, HTTPSURLs: true, Discoverable: true, StablePublicBaseURL: true, PublicationEnvironmentConfigured: true, ActiveScheduleListed: true, RealtimeFeedsListed: true}
 	for i := range discovery.Feeds {
 		discovery.Feeds[i].LastValidationStatus = "passed"
 		discovery.Feeds[i].LastValidationAt = &now

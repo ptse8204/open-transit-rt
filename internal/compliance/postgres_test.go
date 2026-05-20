@@ -32,13 +32,48 @@ func TestReadinessRequiresHTTPSOnlyInProductionDiscoverability(t *testing.T) {
 		{FeedType: "alerts", CanonicalPublicURL: "http://localhost/public/gtfsrt/alerts.pb", LicenseName: cfg.LicenseName, LicenseURL: cfg.LicenseURL, ContactEmail: cfg.TechnicalContactEmail, LastValidationStatus: "passed"},
 	}
 	dev := evaluateReadiness(cfg, feeds)
-	if !dev.Discoverable || dev.HTTPSURLs {
-		t.Fatalf("dev readiness = %+v, want discoverable with non-HTTPS flagged", dev)
+	if !dev.Discoverable || dev.HTTPSURLs || dev.StablePublicBaseURL || !dev.PublicationEnvironmentConfigured || dev.ActiveScheduleListed {
+		t.Fatalf("dev readiness = %+v, want discoverable with non-HTTPS/stable/active-schedule flagged", dev)
 	}
 	cfg.PublicationEnvironment = EnvironmentProduction
 	production := evaluateReadiness(cfg, feeds)
 	if production.Discoverable || production.HTTPSURLs {
 		t.Fatalf("production readiness = %+v, want non-HTTPS to block discoverability", production)
+	}
+}
+
+func TestReadinessSharingPrepMetadataChecks(t *testing.T) {
+	cfg := feedConfig{
+		PublicBaseURL:          "https://feeds.example.org",
+		FeedBaseURL:            "https://feeds.example.org/public",
+		TechnicalContactEmail:  "ops@example.org",
+		LicenseName:            "CC BY 4.0",
+		LicenseURL:             "https://creativecommons.org/licenses/by/4.0/",
+		PublicationEnvironment: EnvironmentProduction,
+	}
+	now := time.Date(2026, 5, 20, 12, 0, 0, 0, time.UTC)
+	feeds := []FeedMetadata{
+		{FeedType: "schedule", CanonicalPublicURL: "https://feeds.example.org/public/gtfs/schedule.zip", ActivationStatus: "active", ActiveFeedVersionID: "feed-v1", RevisionTimestamp: &now, LicenseName: cfg.LicenseName, LicenseURL: cfg.LicenseURL, ContactEmail: cfg.TechnicalContactEmail, LastValidationStatus: "passed"},
+		{FeedType: "vehicle_positions", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/vehicle_positions.pb", LicenseName: cfg.LicenseName, LicenseURL: cfg.LicenseURL, ContactEmail: cfg.TechnicalContactEmail, LastValidationStatus: "passed"},
+		{FeedType: "trip_updates", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/trip_updates.pb", LicenseName: cfg.LicenseName, LicenseURL: cfg.LicenseURL, ContactEmail: cfg.TechnicalContactEmail, LastValidationStatus: "warning"},
+		{FeedType: "alerts", CanonicalPublicURL: "https://feeds.example.org/public/gtfsrt/alerts.pb", LicenseName: cfg.LicenseName, LicenseURL: cfg.LicenseURL, ContactEmail: cfg.TechnicalContactEmail, LastValidationStatus: "passed"},
+	}
+	ready := evaluateReadiness(cfg, feeds)
+	if !ready.StablePublicBaseURL || !ready.PublicationEnvironmentConfigured || !ready.ActiveScheduleListed || !ready.RealtimeFeedsListed || !ready.AllRequiredFeedsListed || !ready.Discoverable {
+		t.Fatalf("sharing-prep readiness = %+v, want all metadata checks true", ready)
+	}
+
+	cfg.PublicBaseURL = "https://user:secret@feeds.example.org"
+	if evaluateReadiness(cfg, feeds).StablePublicBaseURL {
+		t.Fatalf("userinfo base URL was considered stable")
+	}
+	cfg.PublicBaseURL = "https://127.0.0.1"
+	if evaluateReadiness(cfg, feeds).StablePublicBaseURL {
+		t.Fatalf("loopback base URL was considered stable")
+	}
+	feeds = feeds[:3]
+	if evaluateReadiness(feedConfig{PublicBaseURL: "https://feeds.example.org"}, feeds).RealtimeFeedsListed {
+		t.Fatalf("missing alerts feed still counted as complete realtime feed set")
 	}
 }
 
