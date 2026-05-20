@@ -12,6 +12,7 @@ import (
 type ReconcileResult struct {
 	CreatedOrUpdated int `json:"created_or_updated"`
 	LinkedReviews    int `json:"linked_reviews"`
+	ArchivedStale    int `json:"archived_stale"`
 }
 
 func (r *PostgresRepository) ReconcileCanceledTripAlerts(ctx context.Context, agencyID string, actorID string, at time.Time) (ReconcileResult, error) {
@@ -95,7 +96,57 @@ func (r *PostgresRepository) ReconcileCanceledTripAlerts(ctx context.Context, ag
 	if err := rows.Err(); err != nil {
 		return ReconcileResult{}, fmt.Errorf("iterate canceled trip overrides: %w", err)
 	}
+	archived, err := r.archiveStaleCancellationAlerts(ctx, agencyID, actorID, at)
+	if err != nil {
+		return ReconcileResult{}, err
+	}
+	result.ArchivedStale = archived
 	return result, nil
+}
+
+func (r *PostgresRepository) archiveStaleCancellationAlerts(ctx context.Context, agencyID string, actorID string, at time.Time) (int, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT alert.id
+		FROM service_alert alert
+		WHERE alert.agency_id = $1
+		  AND alert.status = 'published'
+		  AND alert.source_type = 'cancellation_reconciler'
+		  AND NOT EXISTS (
+		    SELECT 1
+		    FROM manual_override mo
+		    WHERE mo.agency_id = alert.agency_id
+		      AND mo.id::text = alert.source_id
+		      AND mo.override_type = 'canceled_trip'
+		      AND mo.state = 'canceled'
+		      AND mo.cleared_at IS NULL
+		      AND (mo.expires_at IS NULL OR mo.expires_at > $2)
+		      AND mo.trip_id IS NOT NULL
+		      AND mo.start_date IS NOT NULL
+		      AND mo.start_time IS NOT NULL
+		  )
+		ORDER BY alert.id
+	`, agencyID, at)
+	if err != nil {
+		return 0, fmt.Errorf("query stale cancellation alerts: %w", err)
+	}
+	defer rows.Close()
+	var alertIDs []int64
+	for rows.Next() {
+		var alertID int64
+		if err := rows.Scan(&alertID); err != nil {
+			return 0, fmt.Errorf("scan stale cancellation alert: %w", err)
+		}
+		alertIDs = append(alertIDs, alertID)
+	}
+	if err := rows.Err(); err != nil {
+		return 0, fmt.Errorf("iterate stale cancellation alerts: %w", err)
+	}
+	for _, alertID := range alertIDs {
+		if err := r.ArchiveAlert(ctx, agencyID, alertID, actorID, "canceled trip override no longer active", at); err != nil {
+			return 0, fmt.Errorf("archive stale cancellation alert: %w", err)
+		}
+	}
+	return len(alertIDs), nil
 }
 
 func (r *PostgresRepository) activeFeedVersionID(ctx context.Context, agencyID string) (string, error) {

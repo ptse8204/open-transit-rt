@@ -112,7 +112,7 @@ func TestPostgresAlertsRepositoryIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reconcile canceled trip alerts: %v", err)
 	}
-	if result.CreatedOrUpdated != 1 || result.LinkedReviews != 1 {
+	if result.CreatedOrUpdated != 1 || result.LinkedReviews != 1 || result.ArchivedStale != 0 {
 		t.Fatalf("reconcile result = %+v, want one alert and one linked review", result)
 	}
 	var linkedStatus string
@@ -140,6 +140,34 @@ func TestPostgresAlertsRepositoryIntegration(t *testing.T) {
 	}
 	if otherOpen != 1 {
 		t.Fatalf("other-agency open reviews = %d, want untouched by demo-agency reconciliation", otherOpen)
+	}
+	if _, err := pool.Exec(ctx, `
+		UPDATE manual_override
+		SET cleared_at = $1
+		WHERE agency_id = 'demo-agency'
+		  AND override_type = 'canceled_trip'
+		  AND trip_id = 'trip-10'
+	`, now.Add(30*time.Minute)); err != nil {
+		t.Fatalf("clear cancellation override: %v", err)
+	}
+	result, err = repo.ReconcileCanceledTripAlerts(ctx, "demo-agency", "operator@example.com", now.Add(time.Hour))
+	if err != nil {
+		t.Fatalf("reconcile after cleared override: %v", err)
+	}
+	if result.CreatedOrUpdated != 0 || result.ArchivedStale != 1 {
+		t.Fatalf("second reconcile result = %+v, want one stale cancellation alert archived", result)
+	}
+	var canceledAlertStatus string
+	if err := pool.QueryRow(ctx, `
+		SELECT status
+		FROM service_alert
+		WHERE agency_id = 'demo-agency'
+		  AND alert_key = 'canceled:trip-10:20260421:08:00:00'
+	`).Scan(&canceledAlertStatus); err != nil {
+		t.Fatalf("query canceled alert status: %v", err)
+	}
+	if canceledAlertStatus != StatusArchived {
+		t.Fatalf("canceled alert status = %q, want archived after cleared override", canceledAlertStatus)
 	}
 }
 
