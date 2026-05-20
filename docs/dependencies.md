@@ -54,6 +54,7 @@ This table is the current external dependency and integration status. It separat
 | MobilityData GTFS Validator | Integrated as validation tooling | Pinned `v7.1.0` JAR installed by `make validators-install` and checked by `make validators-check`; invoked through allowlisted validator IDs. |
 | MobilityData GTFS Realtime Validator | Integrated as validation tooling | Docker-backed wrapper pinned by image digest; invoked through allowlisted validator IDs with server-derived artifacts. |
 | GTFS Realtime protobuf Go bindings | Integrated | Used only at feed serialization boundaries. |
+| `golang.org/x/crypto/argon2` | Integrated auth library | Used for DB-backed admin password credential hashing with Argon2id. Plaintext passwords are never stored; one-time setup/reset tokens are stored hashed only. |
 | Go toolchain | Integrated developer/runtime build tool | Version follows `go.mod`; used for build, test, and service commands. |
 | Docker / Docker Compose | Integrated local tooling | Provisions local Postgres/PostGIS, supports the Docker-backed GTFS-RT validator wrapper, and supports deployment-owned local app image builds; Phase 66 keeps image distribution source/local-only with no published production registry image. |
 | Task | Optional local tooling | Mirrors Make targets; Makefile remains independently supported. |

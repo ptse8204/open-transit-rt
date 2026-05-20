@@ -815,3 +815,18 @@ POSTs still require CSRF through the existing middleware.
 The local reverse proxy binds to `127.0.0.1:8080` for the demo app package.
 Production deployments must keep using deployment-owned admin access controls,
 real secrets, HTTPS/TLS, and network boundaries.
+
+## ADR-0058 -- Use internal password credentials before SSO/OIDC
+
+Phase 162 starts production browser login with database-backed username and
+password credentials plus one-time first-admin setup links. Passwords are
+hashed with Argon2id from `golang.org/x/crypto/argon2`; plaintext passwords
+and plaintext bootstrap/reset tokens are never stored. Bootstrap links are
+generated from the server/operator console, printed once, stored as hashes,
+short-lived, and single-use.
+
+This keeps `/admin/local-login` as local/demo-only while giving self-hosted
+deployments a production browser entry path. SSO/OIDC is deliberately deferred:
+a future provider integration must verify the external identity, map it to an
+internal subject, agency, and roles, then issue the same signed
+`admin_session` cookie used by the current admin middleware.

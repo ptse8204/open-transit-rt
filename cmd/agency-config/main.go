@@ -92,6 +92,13 @@ type handler struct {
 }
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "bootstrap-admin-link":
+			os.Exit(runBootstrapAdminLink(os.Args[2:], os.Stdout, os.Stderr, os.Getenv))
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

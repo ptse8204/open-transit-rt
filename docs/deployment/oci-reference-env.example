@@ -46,6 +46,8 @@ ADMIN_JWT_ISSUER=open-transit-rt-reference
 ADMIN_JWT_AUDIENCE=open-transit-rt-admin
 ADMIN_JWT_TTL=8h
 CSRF_SECRET=replace-with-generated-secret
+PASSWORD_LOGIN_ENABLED=true
+ADMIN_BOOTSTRAP_CREATED_BY=operator_console
 
 ###############################################################################
 # device token secret

@@ -230,6 +230,32 @@ OCI_REMOTE_DIR=/opt/open-transit-rt \
 scripts/oci-pilot.sh migrate
 ```
 
+## First Admin Bootstrap Link
+
+After migrations are applied, create the first admin user and one-time setup
+link from the server/operator console:
+
+```sh
+sudo -u open-transit sh -lc '
+  set -a
+  . /opt/open-transit-rt/env
+  set +a
+  /opt/open-transit-rt/bin/agency-config bootstrap-admin-link \
+    --agency-id "$AGENCY_ID" \
+    --email admin@example.org \
+    --base-url http://127.0.0.1:8081 \
+    --ttl 30m
+'
+```
+
+The command stores only a token hash, binds the user to the existing `admin`
+role, and prints the setup URL once. Do not paste the generated URL into
+tracked docs, evidence folders, issue comments, screenshots, or public logs.
+`/admin/local-login` remains local/demo-only and production-disabled. SSO/OIDC
+is not implemented in this roadmap; a future identity provider would issue the
+same internal `admin_session` cookie after identity verification and role
+mapping.
+
 ## Service Supervision
 
 The reference service set is:
