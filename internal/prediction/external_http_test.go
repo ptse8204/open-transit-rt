@@ -311,6 +311,32 @@ func TestExternalHTTPFailuresReturnAdapterErrorDiagnostics(t *testing.T) {
 			maxResp: 1024,
 			want:    "missing_start_time",
 		},
+		{
+			name: "wrong scope",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				writeExternalHTTPResponse(t, w, externalHTTPResponseDTO{
+					SchemaVersion: "external_trip_updates.v1",
+					AgencyID:      "other-agency",
+					FeedVersionID: "feed-demo",
+					GeneratedAt:   time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC),
+				})
+			},
+			maxResp: 1024,
+			want:    "wrong_scope",
+		},
+		{
+			name: "stale response timestamp",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				writeExternalHTTPResponse(t, w, externalHTTPResponseDTO{
+					SchemaVersion: "external_trip_updates.v1",
+					AgencyID:      "demo-agency",
+					FeedVersionID: "feed-demo",
+					GeneratedAt:   time.Date(2026, 5, 9, 11, 59, 59, 0, time.UTC),
+				})
+			},
+			maxResp: 1024,
+			want:    "stale_response_timestamp",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -397,7 +423,7 @@ func TestExternalHTTPTimeoutReturnsRedactedAdapterError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("predict returned hard error: %v", err)
 	}
-	assertAdapterFailure(t, result, "request_failed")
+	assertAdapterFailure(t, result, "timeout")
 	rendered := fmtAny(result.Diagnostics.Details)
 	for _, forbidden := range []string{secret, "PREDICTOR_TOKEN", "raw body", "private", mustURLHost(t, server.URL), externalHTTPPath} {
 		if strings.Contains(rendered, forbidden) {
@@ -471,6 +497,87 @@ func TestExternalHTTPShadowReturnsDeterministicOutputWithBoundedDiagnostics(t *t
 	if !strings.Contains(rendered, "external_http_shadow") || strings.Contains(rendered, "secret") || strings.Contains(rendered, "predictor.example") {
 		t.Fatalf("shadow diagnostics not bounded/redacted: %+v", result.Diagnostics.Details)
 	}
+	shadow := shadowDetailsFromResult(t, result)
+	if shadow["fallback_used"] != true || shadow["shadow_only"] != true || shadow["external_output_public"] != false {
+		t.Fatalf("shadow fallback/public flags = %+v, want deterministic fallback and non-public external output", shadow)
+	}
+	if shadow["divergence_status"] != "external_error" {
+		t.Fatalf("shadow divergence = %+v, want external_error", shadow)
+	}
+}
+
+func TestExternalHTTPShadowSummarizesDivergenceAndConfidenceWithoutRawDetails(t *testing.T) {
+	lowConfidence := 0.25
+	highConfidence := 0.92
+	generatedAt := time.Date(2026, 5, 9, 12, 0, 0, 0, time.UTC)
+	deterministic := &stubPredictionAdapter{name: "deterministic", result: Result{
+		Diagnostics: Diagnostics{Status: StatusOK, Reason: ReasonPredictionsAvailable},
+		TripUpdates: []TripUpdate{{
+			AgencyID:      "demo-agency",
+			FeedVersionID: "feed-demo",
+			VehicleID:     "bus-10",
+			TripID:        "trip-10",
+			StartDate:     "20260509",
+			StartTime:     "08:00:00",
+			Confidence:    &highConfidence,
+		}},
+	}}
+	external := &stubPredictionAdapter{name: "external_http", result: Result{
+		Diagnostics: Diagnostics{
+			Status:  StatusOK,
+			Reason:  ReasonNoEligiblePredictions,
+			Details: map[string]any{"raw_response": "token=secret host=predictor.example"},
+		},
+		TripUpdates: []TripUpdate{
+			{
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-demo",
+				VehicleID:     "bus-10",
+				TripID:        "trip-10",
+				StartDate:     "20260509",
+				StartTime:     "08:00:00",
+				Confidence:    &lowConfidence,
+			},
+			{
+				AgencyID:      "demo-agency",
+				FeedVersionID: "feed-demo",
+				VehicleID:     "bus-11",
+				TripID:        "trip-11",
+				StartDate:     "20260509",
+				StartTime:     "09:00:00",
+				Confidence:    &highConfidence,
+			},
+		},
+	}}
+	adapter, err := NewExternalHTTPShadowAdapter(deterministic, external)
+	if err != nil {
+		t.Fatalf("new shadow adapter: %v", err)
+	}
+	result, err := adapter.PredictTripUpdates(context.Background(), predictionRequest(generatedAt, nil, nil))
+	if err != nil {
+		t.Fatalf("shadow predict: %v", err)
+	}
+	if len(result.TripUpdates) != 1 || result.TripUpdates[0].TripID != "trip-10" {
+		t.Fatalf("trip updates = %+v, want deterministic output only", result.TripUpdates)
+	}
+	shadow := shadowDetailsFromResult(t, result)
+	if shadow["divergence_status"] != "trip_identity_delta" || shadow["matching_identity_count"] != 1 || shadow["external_only_count"] != 1 || shadow["count_delta"] != 1 {
+		t.Fatalf("shadow identity summary = %+v, want bounded divergence counts", shadow)
+	}
+	if shadow["external_low_confidence_count"] != 1 || shadow["external_missing_confidence_count"] != 0 {
+		t.Fatalf("shadow confidence summary = %+v, want low-confidence external count", shadow)
+	}
+	reasons, ok := shadow["divergence_by_reason"].(map[string]int)
+	if !ok {
+		t.Fatalf("divergence_by_reason = %T %+v, want map[string]int", shadow["divergence_by_reason"], shadow["divergence_by_reason"])
+	}
+	if reasons["trip_identity_delta"] != 1 || reasons["external_low_confidence"] != 1 || reasons["reason_mismatch"] != 1 {
+		t.Fatalf("divergence_by_reason = %+v, want identity/confidence/reason review", reasons)
+	}
+	rendered := fmtAny(result.Diagnostics.Details)
+	if strings.Contains(rendered, "secret") || strings.Contains(rendered, "predictor.example") || strings.Contains(rendered, "raw_response") {
+		t.Fatalf("shadow diagnostics include raw external details: %s", rendered)
+	}
 }
 
 func testEnv(values map[string]string) EnvLookup {
@@ -517,6 +624,15 @@ func assertAdapterFailure(t *testing.T, result Result, failureType string) {
 	if result.Diagnostics.Details["failure_type"] != failureType {
 		t.Fatalf("details = %+v, want failure_type %s", result.Diagnostics.Details, failureType)
 	}
+}
+
+func shadowDetailsFromResult(t *testing.T, result Result) map[string]any {
+	t.Helper()
+	shadow, ok := result.Diagnostics.Details["external_http_shadow"].(map[string]any)
+	if !ok {
+		t.Fatalf("external_http_shadow = %T %+v, want map", result.Diagnostics.Details["external_http_shadow"], result.Diagnostics.Details)
+	}
+	return shadow
 }
 
 type stubPredictionAdapter struct {

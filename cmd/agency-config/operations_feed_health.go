@@ -8,6 +8,7 @@ import (
 
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
+	"open-transit-rt/internal/prediction"
 )
 
 type operationsFeedHealthView struct {
@@ -591,11 +592,13 @@ func tripUpdatesUsefulness(page operationsPage) operationsRealtimeUsefulnessRow 
 			DoesNotProve: "This private view does not show production-grade ETA quality, real-world ETA accuracy, consumer display, or compliance.",
 		}
 	}
-	state := "publishable"
+	state := "ready_for_local_review"
 	if page.TripUpdatesQuality.TripUpdatesEmitted == 0 {
 		state = "withheld"
 	} else if page.TripUpdatesQuality.StaleTelemetryRows > 0 {
 		state = "stale"
+	} else if countViewTotal(page.TripUpdatesQuality.WithheldByReason) > 0 || page.TripUpdatesQuality.UnknownAssignments > 0 || page.TripUpdatesQuality.AmbiguousAssignments > 0 || page.TripUpdatesQuality.DiagnosticsReason == prediction.ReasonPartialPredictions {
+		state = "needs_review"
 	}
 	return operationsRealtimeUsefulnessRow{
 		ID:           "trip_updates",

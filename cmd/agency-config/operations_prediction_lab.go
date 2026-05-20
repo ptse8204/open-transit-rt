@@ -390,8 +390,8 @@ func buildPredictionLabShadowReview(quality tripUpdatesQualityView) predictionLa
 		Status:          firstNonEmpty(shadow.Status, "unknown"),
 		Reason:          firstNonEmpty(shadow.Reason, "not recorded"),
 		Latency:         latencyText(shadow.LatencyMS),
-		CountComparison: fmt.Sprintf("deterministic=%d; external=%d; delta=%+d", shadow.DeterministicCount, shadow.ExternalCount, shadow.CountDelta),
-		FailureBehavior: "Shadow mode keeps deterministic Trip Updates as public output and records bounded diagnostic deltas only.",
+		CountComparison: shadowCountComparison(shadow),
+		FailureBehavior: shadowFailureBehavior(shadow),
 		FirstSafeCheck:  "go test ./internal/prediction -run ExternalHTTP",
 		DoesNotProve:    review.DoesNotProve,
 	}}
@@ -401,10 +401,19 @@ func buildPredictionLabShadowReview(quality tripUpdatesQualityView) predictionLa
 type predictionLabShadowDetailsView struct {
 	Status             string
 	Reason             string
+	FailureType        string
+	DivergenceStatus   string
+	FallbackUsed       bool
 	LatencyMS          int
+	HTTPStatusCode     int
 	DeterministicCount int
 	ExternalCount      int
 	CountDelta         int
+	MatchingCount      int
+	DeterministicOnly  int
+	ExternalOnly       int
+	LowConfidenceCount int
+	MissingConfidence  int
 }
 
 func predictionLabShadowDetails(details map[string]any) (predictionLabShadowDetailsView, bool) {
@@ -422,11 +431,64 @@ func predictionLabShadowDetails(details map[string]any) (predictionLabShadowDeta
 	return predictionLabShadowDetailsView{
 		Status:             safeDiagnosticToken(shadowMap["status"]),
 		Reason:             safeDiagnosticToken(shadowMap["reason"]),
+		FailureType:        safeDiagnosticToken(shadowMap["failure_type"]),
+		DivergenceStatus:   safeDiagnosticToken(shadowMap["divergence_status"]),
+		FallbackUsed:       boolFromAny(shadowMap["fallback_used"]),
 		LatencyMS:          intFromAny(shadowMap["latency_ms"]),
+		HTTPStatusCode:     intFromAny(shadowMap["http_status_code"]),
 		DeterministicCount: intFromAny(shadowMap["deterministic_trip_updates_count"]),
 		ExternalCount:      intFromAny(shadowMap["external_trip_updates_count"]),
 		CountDelta:         intFromAny(shadowMap["count_delta"]),
+		MatchingCount:      intFromAny(shadowMap["matching_identity_count"]),
+		DeterministicOnly:  intFromAny(shadowMap["deterministic_only_count"]),
+		ExternalOnly:       intFromAny(shadowMap["external_only_count"]),
+		LowConfidenceCount: intFromAny(shadowMap["external_low_confidence_count"]),
+		MissingConfidence:  intFromAny(shadowMap["external_missing_confidence_count"]),
 	}, true
+}
+
+func shadowCountComparison(shadow predictionLabShadowDetailsView) string {
+	parts := []string{
+		fmt.Sprintf("deterministic=%d", shadow.DeterministicCount),
+		fmt.Sprintf("external=%d", shadow.ExternalCount),
+		fmt.Sprintf("delta=%+d", shadow.CountDelta),
+	}
+	if shadow.MatchingCount > 0 || shadow.DeterministicOnly > 0 || shadow.ExternalOnly > 0 {
+		parts = append(parts,
+			fmt.Sprintf("matching=%d", shadow.MatchingCount),
+			fmt.Sprintf("deterministic-only=%d", shadow.DeterministicOnly),
+			fmt.Sprintf("external-only=%d", shadow.ExternalOnly),
+		)
+	}
+	if shadow.LowConfidenceCount > 0 || shadow.MissingConfidence > 0 {
+		parts = append(parts,
+			fmt.Sprintf("external-low-confidence=%d", shadow.LowConfidenceCount),
+			fmt.Sprintf("external-missing-confidence=%d", shadow.MissingConfidence),
+		)
+	}
+	if shadow.DivergenceStatus != "" {
+		parts = append(parts, "divergence="+shadow.DivergenceStatus)
+	}
+	return strings.Join(parts, "; ")
+}
+
+func shadowFailureBehavior(shadow predictionLabShadowDetailsView) string {
+	parts := []string{"Shadow mode keeps deterministic Trip Updates as public output and records bounded diagnostic deltas only."}
+	if shadow.FallbackUsed {
+		parts = append(parts, "Fallback used.")
+	} else {
+		parts = append(parts, "Fallback state not recorded.")
+	}
+	if shadow.FailureType != "" {
+		parts = append(parts, "External failure="+shadow.FailureType+".")
+	}
+	if shadow.HTTPStatusCode > 0 {
+		parts = append(parts, fmt.Sprintf("HTTP status=%d.", shadow.HTTPStatusCode))
+	}
+	if shadow.LowConfidenceCount > 0 || shadow.MissingConfidence > 0 {
+		parts = append(parts, "External confidence output needs review before any public use.")
+	}
+	return strings.Join(parts, " ")
 }
 
 func statusFromShadowStatus(status string) string {
@@ -473,6 +535,11 @@ func intFromAny(value any) int {
 	default:
 		return 0
 	}
+}
+
+func boolFromAny(value any) bool {
+	typed, ok := value.(bool)
+	return ok && typed
 }
 
 func buildPredictionLabHandlingGuide(quality tripUpdatesQualityView) predictionLabHandlingGuide {
