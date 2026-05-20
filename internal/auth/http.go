@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"open-transit-rt/internal/appconfig"
+	"open-transit-rt/internal/tenant"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -73,6 +74,9 @@ func NewPostgresRoleStore(pool *pgxpool.Pool) *PostgresRoleStore {
 }
 
 func (s *PostgresRoleStore) RolesForSubject(ctx context.Context, agencyID string, subject string) ([]Role, error) {
+	if err := tenant.ValidateAgencyID(agencyID); err != nil {
+		return nil, fmt.Errorf("agency_id must be path-safe: %w", err)
+	}
 	rows, err := s.pool.Query(ctx, `
 		SELECT rb.role
 		FROM agency_user au
@@ -268,7 +272,17 @@ func RequireRole(w http.ResponseWriter, r *http.Request, roles ...Role) (Princip
 }
 
 func RequireAgencyQueryMatch(w http.ResponseWriter, r *http.Request, principal Principal) bool {
+	if err := tenant.ValidateAgencyID(strings.TrimSpace(principal.AgencyID)); err != nil {
+		writeAccessDenied(w, r, "signed-in agency scope is not a safe agency identifier")
+		return false
+	}
 	requestAgency := strings.TrimSpace(r.URL.Query().Get("agency_id"))
+	if requestAgency != "" {
+		if err := tenant.ValidateAgencyID(requestAgency); err != nil {
+			writeAccessDenied(w, r, "requested agency scope is not a safe agency identifier")
+			return false
+		}
+	}
 	if requestAgency != "" && requestAgency != principal.AgencyID {
 		writeAccessDenied(w, r, "requested agency scope does not match the signed-in agency")
 		return false
@@ -277,7 +291,18 @@ func RequireAgencyQueryMatch(w http.ResponseWriter, r *http.Request, principal P
 }
 
 func RejectAgencyConflict(w http.ResponseWriter, agencyID string, principal Principal) bool {
-	if strings.TrimSpace(agencyID) != "" && agencyID != principal.AgencyID {
+	if err := tenant.ValidateAgencyID(strings.TrimSpace(principal.AgencyID)); err != nil {
+		writeAccessDenied(w, nil, "signed-in agency scope is not a safe agency identifier")
+		return true
+	}
+	agencyID = strings.TrimSpace(agencyID)
+	if agencyID != "" {
+		if err := tenant.ValidateAgencyID(agencyID); err != nil {
+			writeAccessDenied(w, nil, "requested agency scope is not a safe agency identifier")
+			return true
+		}
+	}
+	if agencyID != "" && agencyID != principal.AgencyID {
 		writeAccessDenied(w, nil, "requested agency scope does not match the signed-in agency")
 		return true
 	}

@@ -115,6 +115,13 @@ func buildOperationsAccessView(now time.Time, principal auth.Principal) operatio
 				DoesNotProve: "Agency-scope denial does not reveal whether the requested agency has data.",
 			},
 			{
+				ID:           "unsafe_agency_scope",
+				Scenario:     "Unsafe agency identifier",
+				WhatHappened: "The requested agency scope was not a single safe path segment, so the request stopped before page data loaded.",
+				NextAction:   "Use the agency identifier from the signed-in session. Do not use encoded slashes, backslashes, dot segments, hidden segments, spaces, or punctuation in agency query values.",
+				DoesNotProve: "Unsafe-scope denial does not reveal whether another agency or path exists.",
+			},
+			{
 				ID:           "form_safety_check",
 				Scenario:     "Form safety check failed",
 				WhatHappened: "A browser form was submitted without the expected server-generated safety value.",

@@ -2,7 +2,10 @@ package auth
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -66,6 +69,35 @@ func TestJWTAcceptsOldSecretForRotation(t *testing.T) {
 	}
 }
 
+func TestJWTRejectsUnsafeAgencyID(t *testing.T) {
+	cfg := JWTConfig{Secrets: []string{"test-secret"}, Issuer: "open-transit-rt", Audience: "admin-api", ClockSkew: time.Minute, TTL: time.Hour}
+	signer, err := NewSigner(cfg)
+	if err != nil {
+		t.Fatalf("new signer: %v", err)
+	}
+	for _, agencyID := range []string{"agency/bad", `agency\bad`, ".hidden", "agency.bad", "agency%2Fbad"} {
+		if _, _, err := signer.Sign("operator@example.com", agencyID, time.Hour); err == nil {
+			t.Fatalf("Sign accepted unsafe agency_id %q", agencyID)
+		}
+	}
+
+	verifier, err := NewVerifier(cfg)
+	if err != nil {
+		t.Fatalf("new verifier: %v", err)
+	}
+	token := signedTestToken(t, cfg.Secrets[0], Claims{
+		Subject:  "operator@example.com",
+		AgencyID: "agency/bad",
+		IssuedAt: time.Now().Add(-time.Minute).Unix(),
+		Expires:  time.Now().Add(time.Hour).Unix(),
+		Issuer:   cfg.Issuer,
+		Audience: cfg.Audience,
+	})
+	if _, err := verifier.Verify(token); err == nil {
+		t.Fatalf("Verify accepted signed token with unsafe agency_id")
+	}
+}
+
 func TestCSRFTokenBindsToPrincipal(t *testing.T) {
 	principal := Principal{Subject: "operator@example.com", AgencyID: "demo-agency"}
 	token := CSRFToken("csrf-secret", principal)
@@ -76,6 +108,22 @@ func TestCSRFTokenBindsToPrincipal(t *testing.T) {
 	if token == other {
 		t.Fatalf("csrf token did not bind to agency")
 	}
+}
+
+func signedTestToken(t *testing.T, secret string, claims Claims) string {
+	t.Helper()
+	headerJSON, err := json.Marshal(map[string]string{"alg": "HS256", "typ": "JWT"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	claimsJSON, err := json.Marshal(claims)
+	if err != nil {
+		t.Fatal(err)
+	}
+	signingInput := encodeSegment(headerJSON) + "." + encodeSegment(claimsJSON)
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, _ = mac.Write([]byte(signingInput))
+	return signingInput + "." + encodeSegment(mac.Sum(nil))
 }
 
 func TestPostgresRoleStoreScopesRolesByClaimAgency(t *testing.T) {

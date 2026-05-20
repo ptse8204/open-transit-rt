@@ -57,3 +57,60 @@ func TestWriteAccessDeniedNonHTMLDoesNotExposeReason(t *testing.T) {
 		t.Fatalf("non-HTML body leaked denial reason: %s", body)
 	}
 }
+
+func TestRequireAgencyQueryMatchRejectsUnsafeAgencyID(t *testing.T) {
+	principal := Principal{Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []Role{RoleReadOnly}, Method: MethodBearer}
+	for _, target := range []string{
+		"/admin/operations?agency_id=demo-agency",
+		"/admin/operations",
+	} {
+		req := httptest.NewRequest(http.MethodGet, target, nil)
+		rr := httptest.NewRecorder()
+		if !RequireAgencyQueryMatch(rr, req, principal) {
+			t.Fatalf("RequireAgencyQueryMatch(%q) rejected valid scope: %d %s", target, rr.Code, rr.Body.String())
+		}
+	}
+
+	for _, target := range []string{
+		"/admin/operations?agency_id=demo-agency%2Fbad",
+		"/admin/operations?agency_id=demo-agency%5Cbad",
+		"/admin/operations?agency_id=.hidden",
+		"/admin/operations?agency_id=agency.bad",
+		"/admin/operations?agency_id=other-agency",
+	} {
+		req := httptest.NewRequest(http.MethodGet, target, nil)
+		req.Header.Set("Accept", "application/json")
+		rr := httptest.NewRecorder()
+		if RequireAgencyQueryMatch(rr, req, principal) {
+			t.Fatalf("RequireAgencyQueryMatch(%q) succeeded, want rejection", target)
+		}
+		if rr.Code != http.StatusForbidden || rr.Header().Get("Cache-Control") != "no-store" {
+			t.Fatalf("unsafe/conflicting scope response = %d cache=%q body=%s", rr.Code, rr.Header().Get("Cache-Control"), rr.Body.String())
+		}
+		forbidden := []string{"other-agency", "demo-agency/bad", `demo-agency\bad`, ".hidden", "agency.bad"}
+		for _, value := range forbidden {
+			if strings.Contains(rr.Body.String(), value) {
+				t.Fatalf("forbidden response leaked agency value %q: %s", value, rr.Body.String())
+			}
+		}
+	}
+}
+
+func TestRejectAgencyConflictRejectsUnsafeAgencyID(t *testing.T) {
+	principal := Principal{Subject: "operator@example.com", AgencyID: "demo-agency", Roles: []Role{RoleAdmin}, Method: MethodBearer}
+	for _, agencyID := range []string{"", "demo-agency"} {
+		rr := httptest.NewRecorder()
+		if RejectAgencyConflict(rr, agencyID, principal) {
+			t.Fatalf("RejectAgencyConflict(%q) rejected valid scope", agencyID)
+		}
+	}
+	for _, agencyID := range []string{"other-agency", "demo-agency/bad", `demo-agency\bad`, ".hidden"} {
+		rr := httptest.NewRecorder()
+		if !RejectAgencyConflict(rr, agencyID, principal) {
+			t.Fatalf("RejectAgencyConflict(%q) succeeded, want rejection", agencyID)
+		}
+		if rr.Code != http.StatusForbidden || rr.Header().Get("Cache-Control") != "no-store" {
+			t.Fatalf("unsafe/conflicting form scope response = %d cache=%q body=%s", rr.Code, rr.Header().Get("Cache-Control"), rr.Body.String())
+		}
+	}
+}

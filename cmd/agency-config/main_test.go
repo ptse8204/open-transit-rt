@@ -656,19 +656,28 @@ func TestOperationsConsoleShowsServerOwnedAgencyScope(t *testing.T) {
 		t.Fatalf("same agency status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency scope", "<code>agency-a</code>", "authenticated principal agency", "locked to authenticated agency", "agency_id query values must match this agency", "operator, read_only", "URL edits"} {
+	for _, want := range []string{"Agency scope", "<code>agency-a</code>", "authenticated principal agency", "locked to authenticated agency", "agency_id query values must be path-segment-safe", "encoded-slash", "backslash", "operator, read_only", "URL edits"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("agency scope body missing %q: %s", want, body)
 		}
 	}
-	req = httptest.NewRequest(http.MethodGet, "/admin/operations?agency_id=agency-b", nil)
-	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusForbidden {
-		t.Fatalf("conflicting agency status = %d, want 403: %s", rr.Code, rr.Body.String())
-	}
-	if strings.Contains(rr.Body.String(), "agency-b") {
-		t.Fatalf("forbidden response leaked conflicting agency: %s", rr.Body.String())
+	for _, target := range []string{
+		"/admin/operations?agency_id=agency-b",
+		"/admin/operations?agency_id=agency-a%2Fbad",
+		"/admin/operations?agency_id=agency-a%5Cbad",
+		"/admin/operations?agency_id=.hidden",
+	} {
+		req = httptest.NewRequest(http.MethodGet, target, nil)
+		rr = httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("%s status = %d, want 403: %s", target, rr.Code, rr.Body.String())
+		}
+		for _, forbidden := range []string{"agency-b", "agency-a/bad", `agency-a\bad`, ".hidden"} {
+			if strings.Contains(rr.Body.String(), forbidden) {
+				t.Fatalf("%s forbidden response leaked conflicting agency %q: %s", target, forbidden, rr.Body.String())
+			}
+		}
 	}
 }
 
@@ -683,7 +692,7 @@ func TestOperationsAccessRolesAndDeniedUX(t *testing.T) {
 		t.Fatalf("access status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Access &amp; Roles", "Private role and agency-scope guidance", "Admin", "Editor", "Operator", "Read only", "Role is not allowed", "Agency scope conflict", "Form safety check failed", "operator, read_only"} {
+	for _, want := range []string{"Access &amp; Roles", "Private role and agency-scope guidance", "Admin", "Editor", "Operator", "Read only", "Role is not allowed", "Agency scope conflict", "Unsafe agency identifier", "Form safety check failed", "operator, read_only"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("access body missing %q: %s", want, body)
 		}
@@ -703,7 +712,7 @@ func TestOperationsAccessRolesAndDeniedUX(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
 		t.Fatalf("decode access JSON: %v", err)
 	}
-	if view.AgencyID != "demo-agency" || len(view.Roles) != 4 || len(view.Denied) != 3 || strings.Join(view.CurrentRoles, ",") != "operator,read_only" {
+	if view.AgencyID != "demo-agency" || len(view.Roles) != 4 || len(view.Denied) != 4 || strings.Join(view.CurrentRoles, ",") != "operator,read_only" {
 		t.Fatalf("unexpected access view: %+v", view)
 	}
 
