@@ -10,6 +10,15 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
+Phase 141 of the Phase 141-160 better software roadmap is complete. It added
+`make audit-product-roadmap-baseline` as an executable baseline guard across
+Operations Console routes, public site source, connector examples, release and
+audit Make targets, roadmap status categories, and protected consumer tracker
+boundaries. The product-quality backlog now lives in
+`docs/roadmap-status.md` grouped by operator workflow, GTFS data quality,
+GTFS-RT usefulness, connectors, deployment and observability, security and
+redaction, and release gates.
+
 Post-rc2 Browser-First Product Roadmap phases 01 through 15 are complete.
 The closeout is recorded at
 `docs/roadmaps/post-rc2-browser-first-product/closeout.md`.

@@ -9,6 +9,13 @@ continuation context is indexed from
 
 ## Active Phase
 
+Phase 141 of the Phase 141-160 better software roadmap is complete. Continue
+with Phase 142, using `make audit-product-roadmap-baseline` to keep the
+product-quality track tied to executable routes, site source, connector
+examples, release/audit Make targets, roadmap status categories, and protected
+consumer tracker boundaries. The grouped backlog is in
+`docs/roadmap-status.md`.
+
 Post-rc2 Browser-First Product Roadmap phases 01 through 15 are complete.
 The closeout is `docs/roadmaps/post-rc2-browser-first-product/closeout.md`.
 
