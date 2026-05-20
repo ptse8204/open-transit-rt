@@ -9,17 +9,19 @@ import (
 )
 
 type operationsSetupWizardView struct {
-	GeneratedAt    time.Time                             `json:"generated_at"`
-	AgencyID       string                                `json:"agency_id"`
-	Boundary       string                                `json:"boundary"`
-	Summary        operationsSetupWizardSummary          `json:"summary"`
-	Blockers       []operationsSetupWizardBlocker        `json:"blockers"`
-	Diagnostics    []operationsSetupWizardDiagnostic     `json:"diagnostics"`
-	RoleVisibility []operationsSetupWizardRoleVisibility `json:"role_visibility"`
-	TechnicalHelp  []operationsSetupWizardTechnicalHelp  `json:"technical_help"`
-	Stages         []operationsSetupWizardStage          `json:"stages"`
-	Counts         operationsSetupWizardCounts           `json:"counts"`
-	ClaimFlags     setupWizardClaimFlags                 `json:"claim_flags"`
+	GeneratedAt     time.Time                             `json:"generated_at"`
+	AgencyID        string                                `json:"agency_id"`
+	Boundary        string                                `json:"boundary"`
+	SkipActionLabel string                                `json:"skip_action_label"`
+	SkipLink        string                                `json:"skip_link"`
+	Summary         operationsSetupWizardSummary          `json:"summary"`
+	Blockers        []operationsSetupWizardBlocker        `json:"blockers"`
+	Diagnostics     []operationsSetupWizardDiagnostic     `json:"diagnostics"`
+	RoleVisibility  []operationsSetupWizardRoleVisibility `json:"role_visibility"`
+	TechnicalHelp   []operationsSetupWizardTechnicalHelp  `json:"technical_help"`
+	Stages          []operationsSetupWizardStage          `json:"stages"`
+	Counts          operationsSetupWizardCounts           `json:"counts"`
+	ClaimFlags      setupWizardClaimFlags                 `json:"claim_flags"`
 }
 
 type operationsSetupWizardSummary struct {
@@ -40,10 +42,13 @@ type operationsSetupWizardStage struct {
 	ID            string   `json:"id"`
 	Label         string   `json:"label"`
 	Status        string   `json:"status"`
+	WhyItMatters  string   `json:"why_it_matters"`
 	CurrentSignal string   `json:"current_signal"`
 	PrimaryAction string   `json:"primary_action"`
 	ActionLabel   string   `json:"action_label"`
 	AdminLink     string   `json:"admin_link"`
+	SkipLabel     string   `json:"skip_label"`
+	SkipLink      string   `json:"skip_link"`
 	DocsLinks     []string `json:"docs_links"`
 	ClaimBoundary string   `json:"claim_boundary"`
 }
@@ -128,9 +133,21 @@ func (h *handler) renderSetupWizardJSON(w http.ResponseWriter, r *http.Request) 
 func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 	stages := []operationsSetupWizardStage{
 		setupWizardStage(
+			"create_sign_in_admin",
+			"Create or sign in admin",
+			userAccessSetupStatus(page),
+			"Admin access is needed before a self-hosted agency can safely manage setup, users, connectors, and credentials.",
+			strings.Join(page.PrincipalRoles, ", "),
+			"Use the first-admin setup link or sign in with an existing admin account before inviting staff.",
+			"/admin/operations/admin/sessions",
+			[]string{"docs/deployment/oci-reference-deployment.md"},
+			"Admin sign-in does not prove SSO support, production readiness, or multi-tenant hosting.",
+		),
+		setupWizardStage(
 			"agency_profile",
 			"Agency profile",
 			metadataStatus(page.Discovery.AgencyName),
+			"Agency profile data anchors operator review and future public feed metadata.",
 			firstNonEmpty(page.Discovery.AgencyName, page.DiscoveryError, "agency profile metadata is missing"),
 			"Review agency name and timezone-related GTFS inputs before stronger setup conclusions.",
 			"/admin/operations/setup",
@@ -138,19 +155,32 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 			"Agency profile metadata is an operator-entered setup signal, not agency approval.",
 		),
 		setupWizardStage(
-			"publication_metadata",
-			"Public feed information",
+			"public_feed_urls",
+			"Public feed URLs",
+			fiveFeedsLaunchpadStatus(page),
+			"Stable public feed URLs are the operator-facing contract for schedule and realtime publication.",
+			fiveFeedsLaunchpadSignal(page),
+			"Review feeds.json plus schedule, Vehicle Positions, Trip Updates, and Alerts URL rows.",
+			"/admin/operations/feed-health",
+			[]string{"docs/requirements-calitp-compliance.md", "docs/tutorials/operator-smoke-and-support-bundle.md"},
+			"Listed feed URLs are readiness signals, not consumer acceptance, final-root proof, or correctness proof.",
+		),
+		setupWizardStage(
+			"license_contact",
+			"License and contact",
 			metadataStatus(page.Discovery.License.Name, page.Discovery.License.URL, page.Discovery.TechnicalContactEmail),
+			"Open license and monitored contact metadata are expected before future authorized sharing prep.",
 			licenseContactEvidence(page),
-			"Store or review public base URL, feed base URL, open license, contact, and environment values.",
+			"Store or review open license, technical contact, publication environment, and related metadata.",
 			"/admin/operations/setup#publication-metadata",
 			[]string{"docs/compliance-evidence-checklist.md", "docs/tutorials/calitp-readiness-checklist.md"},
 			"Publication metadata completeness is not final-root proof, compliance proof, or agency approval.",
 		),
 		setupWizardStage(
-			"gtfs",
-			"Schedule data",
+			"import_schedule",
+			"Import schedule",
 			gtfsLaunchpadStatus(page),
+			"Static GTFS is required before matching, Vehicle Positions context, validators, and public schedule URLs can be useful.",
 			gtfsLaunchpadSignal(page),
 			"Use browser import, the CLI import path, or GTFS Studio draft publish; then review validation feedback.",
 			"/admin/operations/gtfs-import",
@@ -158,39 +188,21 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 			"GTFS setup status does not claim validator-clean data, public launch, or Caltrans/CAL-ITP compliance.",
 		),
 		setupWizardStage(
-			"feeds",
-			"Feed links",
-			fiveFeedsLaunchpadStatus(page),
-			fiveFeedsLaunchpadSignal(page),
-			"Review plain-language health for feeds.json, schedule, Vehicle Positions, Trip Updates, and Alerts without changing public routes.",
-			"/admin/operations/feed-health",
-			[]string{"docs/requirements-calitp-compliance.md", "docs/tutorials/operator-smoke-and-support-bundle.md"},
-			"Listed feed URLs are readiness signals, not consumer acceptance or correctness proof.",
-		),
-		setupWizardStage(
-			"telemetry",
-			"Vehicle telemetry",
-			telemetryLaunchpadStatus(page),
-			telemetryLaunchpadSignal(page),
-			"Bind devices and send authenticated sample telemetry through existing ingest flows.",
-			"/admin/operations/telemetry-simulator",
+			"bind_vehicle_source",
+			"Bind vehicle/device source",
+			vehicleSourceSetupStatus(page),
+			"Vehicle/device bindings connect incoming GPS or AVL observations to agency vehicles without exposing token values.",
+			firstNonEmpty(deviceEvidence(page), telemetryLaunchpadSignal(page)),
+			"Bind devices, review credentials, and send only authenticated sample telemetry through existing ingest flows.",
+			"/admin/operations/devices",
 			[]string{"docs/tutorials/telemetry-simulator-and-device-trial.md", "docs/tutorials/device-avl-integration.md"},
 			"Telemetry visibility does not show real vendor compatibility, hardware certification, or fleet reliability.",
 		),
 		setupWizardStage(
-			"validators",
-			"Validation",
-			validatorLaunchpadStatus(page),
-			validatorLaunchpadSignal(page),
-			"Review private validator health and run only server-side allowlisted validators from existing admin paths.",
-			"/admin/operations/validation-health",
-			[]string{"docs/release-candidate-readiness.md", "docs/tutorials/gtfs-validation-triage.md"},
-			"Validator records are supporting diagnostics only, not compliance proof or consumer acceptance.",
-		),
-		setupWizardStage(
-			"connectors",
-			"Optional connectors",
+			"configure_connector",
+			"Configure connector",
 			checklistStatusNeedsReview,
+			"Connector setup is how deployment-owned vehicle, predictor, validator, monitoring, and discovery integrations stay separate from examples.",
 			"connector hub describes sidecar, manifest, command-adapter, and conformance paths without dynamic backend plugin loading",
 			"Review connector boundaries before connecting optional external systems.",
 			"/admin/operations/connectors",
@@ -198,9 +210,32 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 			"Connector setup does not claim vendor compatibility, external acceptance, hosted service availability, or production ETA quality.",
 		),
 		setupWizardStage(
-			"readiness",
-			"Readiness review",
+			"validate_feeds",
+			"Validate feeds",
+			validatorLaunchpadStatus(page),
+			"Static and realtime validators help find feed defects before future sharing or routine operations.",
+			validatorLaunchpadSignal(page),
+			"Review private validator health and run only server-side allowlisted validators from existing admin paths.",
+			"/admin/operations/validation-health",
+			[]string{"docs/release-candidate-readiness.md", "docs/tutorials/gtfs-validation-triage.md"},
+			"Validator records are supporting diagnostics only, not compliance proof or consumer acceptance.",
+		),
+		setupWizardStage(
+			"maintenance_backup_owner",
+			"Maintenance and backup owner",
+			maintenanceSetupStatus(page),
+			"Self-hosted deployments need a named owner for backup, restore, upgrade, and support-bundle routines.",
+			firstNonEmpty(page.Maintenance.OverallStatus, "maintenance status not recorded"),
+			"Review maintenance tasks and assign an operator-owned backup/restore path outside the browser.",
+			"/admin/operations/maintenance",
+			[]string{"docs/tutorials/small-agency-maintenance-guide.md", "docs/runbooks/production-operations-hardening.md"},
+			"Maintenance review does not prove uptime, SLA, hosted service availability, or production readiness.",
+		),
+		setupWizardStage(
+			"sharing_readiness",
+			"Sharing readiness",
 			readinessLaunchpadStatus(page),
+			"Sharing readiness keeps future public-feed review honest without claiming acceptance or compliance.",
 			readinessLaunchpadSignal(page),
 			"Review readiness rows and private checklist rows, keeping missing evidence marked missing.",
 			"/admin/operations/readiness",
@@ -209,21 +244,23 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		),
 	}
 	return operationsSetupWizardView{
-		GeneratedAt:    page.GeneratedAt,
-		AgencyID:       page.AgencyID,
-		Boundary:       "Private authenticated setup wizard only; viewing it creates no evidence, changes no state, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, or production-readiness outcome.",
-		Summary:        setupWizardSummary(stages),
-		Blockers:       setupWizardBlockers(stages),
-		Diagnostics:    setupWizardDiagnostics(page),
-		RoleVisibility: setupWizardRoleVisibility(page),
-		TechnicalHelp:  setupWizardTechnicalHelp(),
-		Stages:         stages,
-		Counts:         setupWizardCounts(stages),
-		ClaimFlags:     setupWizardClaimFlags{},
+		GeneratedAt:     page.GeneratedAt,
+		AgencyID:        page.AgencyID,
+		Boundary:        "Private authenticated setup wizard only; viewing it creates no evidence, changes no state, contacts no external party, opens no public route, and records no approval, compliance, public launch, hosted-service, vendor, SLA, or production-readiness outcome.",
+		SkipActionLabel: "Skip to dashboard",
+		SkipLink:        "/admin/operations",
+		Summary:         setupWizardSummary(stages),
+		Blockers:        setupWizardBlockers(stages),
+		Diagnostics:     setupWizardDiagnostics(page),
+		RoleVisibility:  setupWizardRoleVisibility(page),
+		TechnicalHelp:   setupWizardTechnicalHelp(),
+		Stages:          stages,
+		Counts:          setupWizardCounts(stages),
+		ClaimFlags:      setupWizardClaimFlags{},
 	}
 }
 
-func setupWizardStage(id string, label string, status string, signal string, action string, adminLink string, docsLinks []string, boundary string) operationsSetupWizardStage {
+func setupWizardStage(id string, label string, status string, why string, signal string, action string, adminLink string, docsLinks []string, boundary string) operationsSetupWizardStage {
 	links := safeAdminLinks([]string{adminLink})
 	cleanAdminLink := ""
 	if len(links) > 0 {
@@ -233,10 +270,13 @@ func setupWizardStage(id string, label string, status string, signal string, act
 		ID:            id,
 		Label:         label,
 		Status:        normalizeChecklistStatus(status),
+		WhyItMatters:  firstNonEmpty(why, "This setup step supports the next private operator workflow."),
 		CurrentSignal: firstNonEmpty(signal, "unknown"),
 		PrimaryAction: firstNonEmpty(action, "Review this stage in the private Operations Console."),
 		ActionLabel:   setupWizardActionLabel(id),
 		AdminLink:     cleanAdminLink,
+		SkipLabel:     "Skip for now",
+		SkipLink:      "/admin/operations",
 		DocsLinks:     safeDocsLinks(docsLinks),
 		ClaimBoundary: firstNonEmpty(boundary, privateBoundary()),
 	}
@@ -291,23 +331,62 @@ func setupWizardSummary(stages []operationsSetupWizardStage) operationsSetupWiza
 	}
 }
 
+func userAccessSetupStatus(page operationsPage) string {
+	if len(page.PrincipalRoles) == 0 {
+		return checklistStatusMissing
+	}
+	return checklistStatusOK
+}
+
+func vehicleSourceSetupStatus(page operationsPage) string {
+	if len(page.Devices) > 0 || len(page.DeviceRows) > 0 {
+		return checklistStatusOK
+	}
+	if len(page.Telemetry) > 0 {
+		return checklistStatusNeedsReview
+	}
+	return checklistStatusMissing
+}
+
+func maintenanceSetupStatus(page operationsPage) string {
+	status := strings.TrimSpace(page.Maintenance.OverallStatus)
+	switch normalizeChecklistStatus(status) {
+	case checklistStatusOK, checklistStatusNeedsReview, checklistStatusMissing, checklistStatusBlocked, checklistStatusUnknown:
+		return normalizeChecklistStatus(status)
+	}
+	switch status {
+	case "ready", "recorded", "configured", operationsStatusReady:
+		return checklistStatusOK
+	case "blocked", "missing", "failed":
+		return checklistStatusBlocked
+	case "":
+		return checklistStatusUnknown
+	default:
+		return checklistStatusNeedsReview
+	}
+}
+
 func setupWizardActionLabel(id string) string {
 	switch id {
+	case "create_sign_in_admin":
+		return "Review login"
 	case "agency_profile":
 		return "Review profile"
-	case "publication_metadata":
-		return "Review feed information"
-	case "gtfs":
+	case "public_feed_urls":
+		return "Check feed URLs"
+	case "license_contact":
+		return "Review license/contact"
+	case "import_schedule":
 		return "Open schedule import"
-	case "feeds":
-		return "Check feed links"
-	case "telemetry":
-		return "Review telemetry"
-	case "validators":
-		return "Open validation"
-	case "connectors":
+	case "bind_vehicle_source":
+		return "Review devices"
+	case "configure_connector":
 		return "Review connectors"
-	case "readiness":
+	case "validate_feeds":
+		return "Open validation"
+	case "maintenance_backup_owner":
+		return "Open maintenance"
+	case "sharing_readiness":
 		return "Review readiness"
 	default:
 		return "Open section"

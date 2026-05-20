@@ -12,11 +12,22 @@ type operationsDashboardView struct {
 	GeneratedAt       time.Time                     `json:"generated_at"`
 	AgencyID          string                        `json:"agency_id"`
 	Boundary          string                        `json:"boundary"`
+	SetupReminder     operationsSetupReminderView   `json:"setup_reminder"`
 	TopIssues         []operationsOperatorIssue     `json:"top_issues"`
 	HealthySummaries  []operationsDashboardCategory `json:"healthy_summaries"`
 	Categories        []operationsDashboardCategory `json:"categories"`
 	HiddenIssueCount  int                           `json:"hidden_issue_count"`
 	PrimaryNextAction string                        `json:"primary_next_action"`
+}
+
+type operationsSetupReminderView struct {
+	Incomplete  bool   `json:"incomplete"`
+	Status      string `json:"status"`
+	Message     string `json:"message"`
+	ActionLabel string `json:"action_label"`
+	ActionLink  string `json:"action_link"`
+	SkipLabel   string `json:"skip_label"`
+	SkipLink    string `json:"skip_link"`
 }
 
 type operationsDashboardCategory struct {
@@ -42,11 +53,29 @@ func buildOperationsDashboard(page operationsPage) operationsDashboardView {
 		GeneratedAt:       page.GeneratedAt,
 		AgencyID:          page.AgencyID,
 		Boundary:          "Private dashboard summary only. It prioritizes existing records and does not mutate feeds, create evidence, contact external systems, change consumer status, or prove compliance, production readiness, uptime, vendor compatibility, production AVL reliability, or ETA quality.",
+		SetupReminder:     setupReminderFromWizard(page.SetupWizard),
 		TopIssues:         top,
 		HealthySummaries:  healthy,
 		Categories:        categories,
 		HiddenIssueCount:  maxInt(0, len(page.IssueCenter.Issues)-len(top)),
 		PrimaryNextAction: next,
+	}
+}
+
+func setupReminderFromWizard(wizard operationsSetupWizardView) operationsSetupReminderView {
+	incomplete := wizard.Summary.Status != checklistStatusOK
+	message := "Setup is complete in the bounded private wizard model."
+	if incomplete {
+		message = fmt.Sprintf("Setup is incomplete: %d of %d steps are complete; next step is %s.", wizard.Summary.CompletedStages, wizard.Counts.Stages, firstNonEmpty(wizard.Summary.NextStageLabel, "not available"))
+	}
+	return operationsSetupReminderView{
+		Incomplete:  incomplete,
+		Status:      firstNonEmpty(wizard.Summary.Status, checklistStatusUnknown),
+		Message:     message,
+		ActionLabel: "Continue setup",
+		ActionLink:  firstNonEmpty(wizard.Summary.NextActionLink, "/admin/operations/setup-wizard"),
+		SkipLabel:   "Stay on dashboard",
+		SkipLink:    "/admin/operations",
 	}
 }
 

@@ -1048,6 +1048,9 @@ func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	if view.Dashboard.Boundary == "" || view.Dashboard.PrimaryNextAction == "" {
 		t.Fatalf("dashboard JSON missing boundary or next action: %+v", view.Dashboard)
 	}
+	if view.Dashboard.SetupReminder.ActionLabel == "" || view.Dashboard.SetupReminder.SkipLink != "/admin/operations" {
+		t.Fatalf("dashboard JSON missing setup reminder: %+v", view.Dashboard.SetupReminder)
+	}
 	if view.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
 	}
@@ -1790,6 +1793,9 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"Dashboard",
 		"Top Issues",
 		"Category Summary",
+		"Setup reminder",
+		"Continue setup",
+		"Stay on dashboard",
 		"Work through this in order",
 		"Operations workflow",
 		"Review realtime",
@@ -1952,7 +1958,7 @@ func TestSetupWizardJSONShapeFlagsAndStages(t *testing.T) {
 	for _, stage := range wizard.Stages {
 		ids = append(ids, stage.ID)
 	}
-	wantIDs := []string{"agency_profile", "publication_metadata", "gtfs", "feeds", "telemetry", "validators", "connectors", "readiness"}
+	wantIDs := []string{"create_sign_in_admin", "agency_profile", "public_feed_urls", "license_contact", "import_schedule", "bind_vehicle_source", "configure_connector", "validate_feeds", "maintenance_backup_owner", "sharing_readiness"}
 	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
 		t.Fatalf("stage ids = %v, want %v", ids, wantIDs)
 	}
@@ -1970,7 +1976,7 @@ func TestSetupWizardJSONShapeFlagsAndStages(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &missing); err != nil {
 		t.Fatalf("decode missing setup wizard: %v", err)
 	}
-	for _, id := range []string{"agency_profile", "publication_metadata", "gtfs", "feeds", "telemetry"} {
+	for _, id := range []string{"agency_profile", "public_feed_urls", "license_contact", "import_schedule", "bind_vehicle_source"} {
 		if status := setupWizardStageStatus(missing, id); status == checklistStatusOK {
 			t.Fatalf("missing-data stage %s status = ok, want missing/unknown/review/blocker", id)
 		}
@@ -1996,7 +2002,7 @@ func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Administrator Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Public feed information", "Schedule data", "Feed links", "Vehicle telemetry", "Validation", "Optional connectors", "Readiness review"} {
+	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Administrator Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Skip to dashboard", "Why it matters", "Skip for now", "Create or sign in admin", "Agency profile", "Public feed URLs", "License and contact", "Import schedule", "Bind vehicle/device source", "Configure connector", "Validate feeds", "Maintenance and backup owner", "Sharing readiness"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -7752,13 +7758,13 @@ func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
 
 func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 	t.Helper()
-	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Blockers) == 0 || len(wizard.Diagnostics) != 8 || len(wizard.RoleVisibility) != 3 || len(wizard.TechnicalHelp) != 4 || len(wizard.Stages) != 8 || wizard.Counts.Stages != len(wizard.Stages) {
+	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.SkipActionLabel == "" || wizard.SkipLink != "/admin/operations" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Blockers) == 0 || len(wizard.Diagnostics) != 8 || len(wizard.RoleVisibility) != 3 || len(wizard.TechnicalHelp) != 4 || len(wizard.Stages) != 10 || wizard.Counts.Stages != len(wizard.Stages) {
 		t.Fatalf("invalid setup wizard top-level shape: %+v", wizard)
 	}
 	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
 	seenIDs := map[string]bool{}
 	for _, stage := range wizard.Stages {
-		if stage.ID == "" || stage.Label == "" || stage.Status == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.ActionLabel == "" || stage.AdminLink == "" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
+		if stage.ID == "" || stage.Label == "" || stage.Status == "" || stage.WhyItMatters == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.ActionLabel == "" || stage.AdminLink == "" || stage.SkipLabel == "" || stage.SkipLink != "/admin/operations" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
 			t.Fatalf("invalid setup wizard stage shape: %+v", stage)
 		}
 		if seenIDs[stage.ID] {

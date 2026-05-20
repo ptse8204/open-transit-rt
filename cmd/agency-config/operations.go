@@ -2413,6 +2413,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </dl>{{end}}
 </aside>
 </section>
+{{if .Dashboard.SetupReminder.Incomplete}}<section class="section-note" aria-labelledby="setup-reminder-heading">
+<h2 id="setup-reminder-heading">Setup reminder</h2>
+<p>{{.Dashboard.SetupReminder.Message}}</p>
+<p class="compact-actions"><a class="action-link" href="{{.Dashboard.SetupReminder.ActionLink}}">{{.Dashboard.SetupReminder.ActionLabel}}</a><a class="action-link secondary-action" href="{{.Dashboard.SetupReminder.SkipLink}}">{{.Dashboard.SetupReminder.SkipLabel}}</a></p>
+</section>{{end}}
 
 <section class="issue-center" aria-labelledby="issue-center-heading">
 <h2 id="issue-center-heading">Top Issues</h2>
@@ -2588,7 +2593,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <h2>Agency Setup</h2>
 <p class="warning">Set up the agency profile, schedule data, feed links, validation, and first telemetry review. This private page helps operators prepare the system; it does not publish feeds, contact outside services, or prove compliance.</p>
-<p><a href="/admin/operations/setup-wizard.json">Export private setup JSON</a> · <a href="/admin/operations/setup">Open advanced setup details</a> · <a href="/admin/operations/checklist">Open private checklist</a></p>
+<p><a href="/admin/operations/setup-wizard.json">Export private setup JSON</a> · <a href="/admin/operations/setup">Open advanced setup details</a> · <a href="/admin/operations/checklist">Open private checklist</a> · <a href="{{.SetupWizard.SkipLink}}">{{.SetupWizard.SkipActionLabel}}</a></p>
 <div class="card-grid" aria-label="Agency setup progress">
 <section class="card">
 <h3>Setup Progress</h3>
@@ -2637,9 +2642,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .SetupWizard.Stages}}<section class="card">
 <h3>{{.Label}}</h3>
 <p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p><strong>Why it matters:</strong> {{.WhyItMatters}}</p>
 <p><strong>What we see:</strong> {{.CurrentSignal}}</p>
 <p><strong>Next step:</strong> {{.PrimaryAction}}</p>
 {{if .AdminLink}}<p><a href="{{.AdminLink}}">{{.ActionLabel}}</a></p>{{end}}
+<p><a href="{{.SkipLink}}">{{.SkipLabel}}</a></p>
 <p class="muted">{{.ClaimBoundary}}</p>
 </section>{{end}}
 </div>

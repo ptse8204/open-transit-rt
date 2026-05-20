@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 166 of the production login, setup, dashboard, and connector
+Phase 167 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-20. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -18,7 +18,9 @@ credentials, first-admin setup links, `/admin/login`, `/admin/logout`, and
 admin-only Users & Roles management. Phase 165 added signed-in user/session
 visibility and a Login & Sessions page. Phase 166 reshaped the Operations
 landing page into a dashboard with top-three issues, compact category
-summaries, and longer workflow details behind disclosures. Local demo sign-in
+summaries, and longer workflow details behind disclosures. Phase 167 refactored
+the setup wizard into ten skippable steps with why-it-matters text and a
+persistent dashboard reminder while remaining GET-only. Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated
 JWTs are rejected, new Bearer and `admin_session` JWTs are accepted,
