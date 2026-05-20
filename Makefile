@@ -478,23 +478,31 @@ validate:
 	@test -f scripts/test-final-claim-review.sh
 	@test -f scripts/test-product-acceptance.sh
 	@sh -n scripts/audit-final-claim-review.sh scripts/test-final-claim-review.sh scripts/audit-product-acceptance.sh scripts/test-product-acceptance.sh
-	@test -f docs/phase-60-final-claim-review-and-public-closeout.md
-	@test -f docs/handoffs/phase-60.md
-	@test -f docs/phase-55-compliance-evidence-packet-generator.md
-	@test -f docs/handoffs/phase-55.md
-	@test -f docs/phase-56-multi-agency-hosting-hardening.md
-	@test -f docs/handoffs/phase-56.md
-	@test -f docs/phase-57-release-packaging-and-supply-chain.md
+	@test -f docs/current-status.md
+	@test -f docs/handoffs/latest.md
+	@test -f docs/api-contracts.md
 	@test -f docs/release-candidate-readiness.md
+	@test -f docs/release-checklist.md
+	@test -f docs/release-process.md
+	@test -f docs/release-notes-template.md
 	@test -f docs/deployment/oci-reference-check.md
+	@test -f docs/deployment/oci-reference-deployment.md
 	@test -f docs/deployment/off-host-validation.md
+	@test -f docs/deployment/reference-deployment-doctor.md
+	@test -f docs/product-language-guide.md
 	@test -f docs/tutorials/no-cli-agency-first-run.md
 	@test -f docs/tutorials/small-agency-maintenance-guide.md
-	@test -f docs/roadmaps/agency-first-connector-platform/adoption-productization-roadmap.md
+	@test -f docs/tutorials/staff-training-demo-kit.md
+	@test -f docs/roadmaps/external-connector-runtime-integration/README.md
+	@test -f docs/roadmaps/external-connector-runtime-integration/phase-plan.md
+	@test -f docs/roadmaps/post-rc2-browser-first-product/README.md
+	@test -f docs/roadmaps/post-rc2-browser-first-product/closeout.md
 	@test -f docs/caltrans-readiness-gap-report.md
 	@test -f docs/connectors/plugin-contract.md
+	@test -f docs/connectors/catalog.md
+	@test -f docs/connectors/redaction-first-recipes.md
 	@test -f docs/external-connection-readiness.md
-	@test -f docs/phase-58-optional-marketplace-vendor-equivalent-pack.md
+	@test -f docs/integration-adapter-kit.md
 	@test -f docs/vendor-equivalent-pack/README.md
 	@test -f docs/vendor-equivalent-pack/byod-hardware-intake-template.md
 	@test -f docs/vendor-equivalent-pack/implementation-plan-template.md
@@ -516,37 +524,14 @@ validate:
 	@rm -rf .cache/validate/realtime-quality-backtest
 	@go run ./cmd/realtime-quality-backtest --observed testdata/realtime-quality-backtest/observed-events.json --predictions testdata/realtime-quality-backtest/prediction-samples.json --output-dir .cache/validate/realtime-quality-backtest --generated-at 2026-05-09T20:00:00Z >/dev/null
 	@test -f docs/integration-adapter-kit.md
-	@test -f docs/phase-39-calitp-readiness-workflow.md
-	@test -f docs/handoffs/phase-39.md
 	@test -f docs/tutorials/calitp-readiness-checklist.md
-	@test -f docs/phase-40-guided-self-hosted-operator-trial.md
 	@test -f docs/tutorials/self-hosted-operator-trial.md
-	@test -f docs/handoffs/phase-40.md
-	@test -f docs/phase-41-operator-smoke-support-bundle.md
 	@test -f docs/tutorials/operator-smoke-and-support-bundle.md
 	@test -f docs/tutorials/agency-launchpad.md
-	@test -f docs/handoffs/phase-41.md
-	@test -f docs/deployment/reference-deployment-doctor.md
-	@test -f docs/phase-42-reference-deployment-doctor.md
-	@test -f docs/handoffs/phase-42.md
-	@test -f docs/phase-43-operator-ux-setup-v2.md
-	@test -f docs/handoffs/phase-43.md
-	@test -f docs/phase-44-telemetry-simulator-and-device-trial.md
 	@test -f docs/tutorials/telemetry-simulator-and-device-trial.md
 	@test -f docs/tutorials/external-adapter-conformance.md
-	@test -f docs/handoffs/phase-44.md
-	@test -f docs/phase-45-gtfs-quality-triage-loop.md
 	@test -f docs/tutorials/gtfs-validation-triage.md
-	@test -f docs/handoffs/phase-45.md
-	@test -f docs/phase-46-validator-automation-and-health-gates.md
-	@test -f docs/handoffs/phase-46.md
-	@test -f docs/phase-47-self-hosted-operations-notifications.md
 	@test -f docs/tutorials/self-hosted-operations-notifications.md
-	@test -f docs/handoffs/phase-47.md
-	@test -f docs/phase-48-avl-adapter-runtime-path.md
-	@test -f docs/handoffs/phase-48.md
-	@test -f docs/phase-49-external-predictor-runtime-adapter.md
-	@test -f docs/phase-50-realtime-quality-backtesting.md
 	@test -f docs/roadmap-to-calitp-compliance-and-gap-closure.md
 	@scripts/check-consumer-tracker.sh >/dev/null
 	@test -f testdata/avl-vendor/README.md
@@ -626,7 +611,7 @@ validate:
 	@test -f scripts/pilot-ops.sh
 	@test -f deploy/Dockerfile.local
 	@test -f deploy/Caddyfile.local
-	@python3 -c 'from pathlib import Path; import re; s=Path("deploy/Caddyfile.local").read_text(); lines=[line.strip() for line in s.splitlines() if line.strip() and not line.strip().startswith("#")]; assert "@local_root {" in lines and "path /" in lines, "Caddyfile.local must define an explicit exact local-root matcher"; assert "respond @local_root \"Open Transit RT local app is running. Public feeds are under /public/ and admin routes require auth.\" 200" in lines, "Caddyfile.local must return the local app message at exact /"; assert "respond \"not found\" 404" in lines, "Caddyfile.local must include an explicit unmatched 404 fallback"; assert not any(re.fullmatch(r"respond\s+\"[^\"]*\"\s+200", line) for line in lines), "Caddyfile.local must not contain an unconditional 200 catch-all"; assert [line for line in lines if line.startswith("respond ")][-1] == "respond \"not found\" 404", "Caddyfile.local final respond must be the unmatched 404 fallback"'
+	@python3 -c 'from pathlib import Path; import re; s=Path("deploy/Caddyfile.local").read_text(); lines=[line.strip() for line in s.splitlines() if line.strip() and not line.strip().startswith("#")]; assert "@local_root {" in lines and "path /" in lines, "Caddyfile.local must define an explicit exact local-root matcher"; assert "respond @local_root \"Open Transit RT local app is running. Start local browser setup at /admin/local-login. Public feeds are under /public/ and admin routes require auth.\" 200" in lines, "Caddyfile.local must return the local app message at exact /"; assert "respond \"not found\" 404" in lines, "Caddyfile.local must include an explicit unmatched 404 fallback"; assert not any(re.fullmatch(r"respond\s+\"[^\"]*\"\s+200", line) for line in lines), "Caddyfile.local must not contain an unconditional 200 catch-all"; assert [line for line in lines if line.startswith("respond ")][-1] == "respond \"not found\" 404", "Caddyfile.local final respond must be the unmatched 404 fallback"'
 	@test -f deploy/systemd/open-transit-validator-cycle.service
 	@test -f deploy/systemd/open-transit-backup.service
 	@test -f deploy/systemd/open-transit-feed-monitor.service

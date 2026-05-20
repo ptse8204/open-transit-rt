@@ -214,8 +214,17 @@ for path in \
   deploy/docker-compose.yml \
   scripts/check-validators.sh \
   scripts/audit-final-claim-review.sh \
+  scripts/audit-product-acceptance.sh \
+  scripts/audit-product-language.sh \
+  scripts/audit-ui-layout.sh \
+  scripts/audit-operations-route-inventory.sh \
+  scripts/api-contract-check.sh \
+  scripts/check-internal-links.sh \
+  scripts/check-stable-filter.sh \
+  scripts/external-connection-check.sh \
   scripts/agency-local-app.sh \
   scripts/agency-pilot-onboard.sh \
+  scripts/product-ui-smoke.sh \
   scripts/telemetry-simulator.sh \
   scripts/deployment-doctor.sh \
   scripts/validator-health.sh \
@@ -225,7 +234,8 @@ for path in \
   docs/release-candidate-readiness.md \
   docs/release-process.md \
   docs/release-checklist.md \
-  docs/release-notes-template.md
+  docs/release-notes-template.md \
+  docs/api-contracts.md
 do
   file_check "file_$path" "Required file $path" "$path"
 done
@@ -269,6 +279,18 @@ fi
 
 run_check "compose_config" "Docker Compose config" "docker compose -f deploy/docker-compose.yml config >/dev/null"
 run_check_final_blocker_detail "validators_check" "Pinned validator install/check" "VALIDATOR_TOOLING_MODE=pinned scripts/check-validators.sh"
+run_check "check_links" "Internal documentation link check" "scripts/check-internal-links.sh"
+run_check "product_ui_smoke" "Product UI smoke" "scripts/product-ui-smoke.sh"
+run_check "product_acceptance_audit" "Product acceptance audit" "scripts/audit-product-acceptance.sh"
+run_check "product_language_audit" "Product language audit" "scripts/audit-product-language.sh"
+run_check "ui_layout_audit" "UI layout audit" "scripts/audit-ui-layout.sh"
+run_check "operations_route_inventory" "Operations route inventory audit" "scripts/audit-operations-route-inventory.sh"
+run_check "api_contract_check" "API/feed/extension contract check" "scripts/api-contract-check.sh"
+run_check "stable_filter_check" "Stable branch filter check" "scripts/check-stable-filter.sh --skip-ref-check"
+run_check "external_connection_check" "External connection check" "scripts/external-connection-check.sh"
+run_check "adapter_conformance" "Adapter conformance suite" "go run ./cmd/adapter-conformance run --suite testdata/adapter-conformance"
+run_check "connector_examples" "Synthetic connector example tests" "go test ./examples/connectors/..."
+run_check "gtfsrt_conformance" "GTFS-RT conformance harness" "go test ./internal/gtfsrtconformance ./cmd/gtfsrt-conformance"
 run_check "claim_audit" "Final claim audit" "scripts/audit-final-claim-review.sh"
 add_check "validate" "Repository validation command" "not_checked" "run make validate after reviewing this summary; this helper keeps repo output bounded to its five diagnostics files"
 add_check "test" "Go unit tests command" "not_checked" "run make test after reviewing this summary; this helper keeps repo output bounded to its five diagnostics files"
@@ -376,8 +398,14 @@ review_sequence = [
     {
         "step": "release_candidate_diagnostic",
         "command": "make release-candidate-check",
-        "expected": "private .cache summary with passed, needs_review, not_checked, or blocker rows",
+        "expected": "private .cache summary covering product UI, links, connectors, GTFS-RT conformance, API contracts, and claim boundaries",
         "blocker_handling": "record exact blockers; do not convert the summary into production or compliance proof",
+    },
+    {
+        "step": "product_quality_followup",
+        "command": "make product-ui-smoke && make external-connection-check && make adapter-conformance && make gtfsrt-conformance && make api-contract-check",
+        "expected": "the same product-quality gates are reproducible outside the release-candidate summary",
+        "blocker_handling": "fix product, connector, feed, or contract failures before drafting stronger release notes",
     },
     {
         "step": "package_audit",
@@ -411,6 +439,12 @@ release_note_inputs = {
         "make validate or exact validator blocker",
         "make test",
         "make test-release-package",
+        "make check-links",
+        "make product-ui-smoke",
+        "make external-connection-check",
+        "make adapter-conformance",
+        "make gtfsrt-conformance",
+        "make api-contract-check",
         "docker compose -f deploy/docker-compose.yml config",
         "make audit-final-claim-review",
     ],

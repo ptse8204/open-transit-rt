@@ -64,6 +64,14 @@ The readiness check summarizes:
 - clean checkout source metadata;
 - pinned validator tooling status;
 - Docker Compose configuration;
+- internal documentation links;
+- product UI smoke checks for the private Operations Console;
+- product acceptance, product-language, UI-layout, and operations-route audits;
+- API/feed/extension contract checks for telemetry, public feeds, admin JSON
+  companions, connector manifests, adapter fixtures, and prediction DTOs;
+- stable branch filtering rules;
+- external connection checks, adapter conformance, connector examples, and
+  GTFS-RT conformance;
 - final claim audit status;
 - Go validation, test, and smoke command follow-ups;
 - local app startup path;
@@ -151,11 +159,30 @@ readiness.
 
    Review `summary.md`, `summary.json`, `manifest.md`, `manifest.json`, and
    `check-log.txt` under `.cache/release-candidate-check/<timestamp>/`. The
-   summary captures source metadata such as `git describe --tags --always
-   --dirty`, commit SHA, branch, dirty state, and pre-tag review mode for
-   release-note drafting.
+   summary captures source metadata, product UI checks, internal links,
+   connector and GTFS-RT conformance, API/feed/extension contract status,
+   claim boundaries, `git describe --tags --always --dirty`, commit SHA,
+   branch, dirty state, and pre-tag review mode for release-note drafting.
 
-4. Run validator, test, package, and Docker Compose checks as the local
+4. Re-run product-quality gates outside the summary when a release note or
+   branch-readiness decision depends on them:
+
+   ```sh
+   make product-ui-smoke
+   make check-links
+   make external-connection-check
+   make adapter-conformance
+   make test-connector-examples
+   make gtfsrt-conformance
+   make api-contract-check
+   make check-stable-filter
+   ```
+
+   Fix product, connector, feed, contract, or stable-filter drift before
+   drafting stronger release notes. These checks remain local diagnostics and
+   do not contact consumers or publish anything.
+
+5. Run validator, test, package, and Docker Compose checks as the local
    environment allows:
 
    ```sh
@@ -170,7 +197,7 @@ readiness.
    unavailable, record the exact command and blocker. Do not convert a skipped
    or blocked check into a readiness or compliance claim.
 
-5. Generate and audit a local source package only when a maintainer needs a
+6. Generate and audit a local source package only when a maintainer needs a
    package review:
 
    ```sh
@@ -182,7 +209,7 @@ readiness.
    Release packages under `.cache` are local diagnostics until a maintainer
    cuts an actual release.
 
-6. Run external-connection maturity checks:
+7. Run external-connection maturity checks:
 
    ```sh
    make external-connection-check
@@ -197,7 +224,7 @@ readiness.
    feed-consumer URL/metadata workflows do not automate submissions or status
    changes.
 
-7. Draft release notes from `docs/release-notes-template.md`. State `None`
+8. Draft release notes from `docs/release-notes-template.md`. State `None`
    for unchanged migration, security, dependency, operations, and evidence or
    claim sections. List blocked commands exactly.
 
@@ -234,6 +261,10 @@ claims.
 | --- | --- | --- |
 | `make check` | No-network repo validation passes | Fix before continuing |
 | `make release-candidate-check` | `.cache/release-candidate-check/<timestamp>/` with five files | Record blocker rows; do not claim production readiness |
+| `make product-ui-smoke` | Private Operations Console product routes render with reference settings | Fix route, role, or browser-first product drift |
+| `make check-links` | Internal Markdown/site links resolve locally | Fix broken navigation before release notes |
+| `make api-contract-check` | Telemetry, feed, admin JSON, connector, adapter, and prediction contracts match docs | Fix contract drift or document deliberate changes before release notes |
+| `make check-stable-filter` | Stable branch filtering rules match expected product files | Fix filter drift before propagating product files |
 | `make validate` | Validator-backed repo validation passes | Record Java, Docker, network, or pinned-tool blocker exactly |
 | `make test` | Go tests pass | Fix or record blocker before tagging |
 | `make test-release-package` | Local package helper tests pass | Fix package helper before relying on package diagnostics |
@@ -241,6 +272,7 @@ claims.
 | `make audit-final-claim-review` | Claim and consumer tracker audit passes | Fix unsupported wording or protected status drift before continuing |
 | `make external-connection-check` | Connector manifests pass local checks | Fix manifest or boundary drift before stronger connector wording |
 | `make adapter-conformance` | Synthetic adapter conformance passes | Record exact unsupported adapter cases |
+| `make gtfsrt-conformance` | Offline GTFS-RT protobuf conformance harness passes | Fix feed-contract or fixture drift before release notes |
 | `make telemetry-simulator` | Synthetic/local telemetry reaches the authenticated ingest path when configured | Record app, token, or local service blockers |
 
 ## Release Note Inputs
