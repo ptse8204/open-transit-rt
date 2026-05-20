@@ -112,6 +112,8 @@ The doctor checks:
 - restore-drill readiness without running restore;
 - upgrade/rollback checklist presence without executing upgrades, rollbacks,
   backups, restores, migrations, or validators;
+- install, upgrade, backup, restore, and rollback stop-point synthesis derived
+  from the preceding categories;
 - git/release identity;
 - consumer tracker shape, requiring the seven expected targets to remain
   `prepared`.
@@ -126,6 +128,27 @@ agency ID, overall/tooling status, false claim flags, and bounded per-feed
 status fields. It never runs validators, never POSTs the route, never stores
 raw reports, and is private diagnostics only.
 
+## Install And Recovery Stop Points
+
+The doctor writes an additional private summary:
+
+```text
+operations/install-upgrade-recovery-plan.summary.json
+```
+
+It groups the current diagnostic state into five stop points:
+
+- environment and URL preflight;
+- database and migration stop point;
+- backup and restore stop point;
+- service and proxy stop point;
+- post-change verification.
+
+The stop-point summary is derived only from existing doctor checks. It does
+not run migrations, create backups, restore databases, restart services,
+change proxy rules, publish releases, create evidence, contact consumers, or
+change consumer statuses.
+
 ## Outputs
 
 The output directory includes:
@@ -135,6 +158,7 @@ The output directory includes:
 - `manifest.json`
 - `manifest.md`
 - supporting status summaries
+- `operations/install-upgrade-recovery-plan.summary.json`
 
 `summary.json` and `manifest.json` are validated before the command exits.
 The summary includes counts for `passed`, `blocker`, `warning`, `skipped`, and

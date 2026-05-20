@@ -4317,7 +4317,7 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	if strings.Contains(text, `validation-health"`) && strings.Contains(text, `-X POST`) {
 		t.Fatalf("deployment doctor must not POST validation-health")
 	}
-	for _, want := range []string{"record_small_host_resources", "record_service_dependency_review", "record_postgres_capacity_review", "record_upgrade_rollback_review", "RESTORE_DRILL_DATABASE_URL", "hosted_saas_claimed"} {
+	for _, want := range []string{"record_small_host_resources", "record_service_dependency_review", "record_postgres_capacity_review", "record_upgrade_rollback_review", "record_install_upgrade_recovery_plan", "RESTORE_DRILL_DATABASE_URL", "hosted_saas_claimed"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("deployment doctor missing Phase 104 guard %q", want)
 		}
@@ -4353,6 +4353,47 @@ func TestDeploymentDoctorAndCaddyLocalRouteGuards(t *testing.T) {
 	if lastRespond != `respond "not found" 404` {
 		t.Fatalf("local Caddyfile final respond = %q, want unmatched 404 fallback:\n%s", lastRespond, caddyText)
 	}
+}
+
+func TestDeploymentDoctorScriptInstallRecoveryStopPoints(t *testing.T) {
+	root := referenceCheckRepoRoot(t)
+	outputRel := filepath.ToSlash(filepath.Join(referenceCheckTempRel(t, root, "deployment-doctor"), "out"))
+	cmd := exec.Command("sh", filepath.Join(root, "scripts", "deployment-doctor.sh"))
+	cmd.Dir = root
+	cmd.Env = append(os.Environ(),
+		"OUTPUT_DIR="+outputRel,
+		"FORCE=true",
+		"VALIDATOR_TOOLING_MODE=stub",
+		"CONNECT_TIMEOUT_SECONDS=1",
+		"REQUEST_TIMEOUT_SECONDS=1",
+		"MAX_FEED_BYTES=1024",
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("deployment doctor failed: %v\n%s", err, out)
+	}
+	summary := readReferenceCheckJSON(t, root, outputRel, "summary.json")
+	categories := summary["categories"].(map[string]any)
+	if categories["install_recovery"] == "" {
+		t.Fatalf("install_recovery category missing: %+v", categories)
+	}
+	plan := readReferenceCheckJSON(t, root, outputRel, filepath.ToSlash(filepath.Join("operations", "install-upgrade-recovery-plan.summary.json")))
+	stages := plan["stages"].([]any)
+	if len(stages) != 5 {
+		t.Fatalf("install recovery stages = %d, want 5: %+v", len(stages), stages)
+	}
+	for _, raw := range stages {
+		stage := raw.(map[string]any)
+		for _, key := range []string{"id", "status", "category_statuses", "next_action", "does_not_prove"} {
+			if stage[key] == "" || stage[key] == nil {
+				t.Fatalf("stage missing %s: %+v", key, stage)
+			}
+		}
+	}
+	if plan["browser_executes_destructive_actions"] != false || plan["shell_executes_destructive_actions"] != false {
+		t.Fatalf("install recovery plan must remain read-only: %+v", plan)
+	}
+	assertReferenceCheckNoLeakage(t, root, outputRel, string(out))
 }
 
 func TestValidatorHealthScriptDryRunOutputSafety(t *testing.T) {
@@ -5784,11 +5825,11 @@ func TestOperationsMaintenanceRoutesJSONShapeFlagsAndPrivateBoundaries(t *testin
 	if view.MonitoringExport.Status != operationsStatusDiagnosticOnly || len(view.MonitoringExport.Rows) != 5 {
 		t.Fatalf("unexpected monitoring export panel: %+v", view.MonitoringExport)
 	}
-	if view.Infrastructure.Status != operationsStatusBlocked || len(view.Infrastructure.Rows) != 10 {
+	if view.Infrastructure.Status != operationsStatusBlocked || len(view.Infrastructure.Rows) != 11 {
 		t.Fatalf("unexpected infrastructure panel: %+v", view.Infrastructure)
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "small_host_readiness", "small_host_preflight_sequence", "off_host_validation_choice", "resource_budget_review", "backup_restore_recovery_path", "upgrade_recovery_stop_points", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "redacted_operations_export_formats", "feed_health", "connector_health", "validator_posture", "telemetry_freshness", "maintenance_tasks", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback_checklist"} {
+	for _, want := range []string{"values withheld", "not configured", "make support-bundle", ".cache/support-bundles/", "deployment_doctor", "operations_reliability", "operations_notify", "support_bundle_manifest", "backup=blocker", "not_sent=true", "small_host_readiness", "small_host_preflight_sequence", "off_host_validation_choice", "resource_budget_review", "backup_restore_recovery_path", "upgrade_recovery_stop_points", "backup_configuration_presence", "restore_drill_configuration_presence", "upgrade_precheck", "rollback_precheck", "browser_destructive_actions", "release_artifact_boundary", "support_bundle_output_scope", "redaction_review", "evidence_boundary", "private_output_warning", "daily_operating_check", "weekly_maintenance_check", "monthly_recovery_check", "as_needed_support_check", "operations_notify_health_digest", "redacted_channel_guidance", "monitoring_export_summary_json", "redacted_operations_export_formats", "feed_health", "connector_health", "validator_posture", "telemetry_freshness", "maintenance_tasks", "no_send_default", "browser_send_enabled=false", "webhook_send_enabled=false", "email_send_enabled=false", "database_connectivity", "migration_status", "postgis_extension", "validator_tooling", "backup_storage_access", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback_checklist", "install_recovery_plan", "install_recovery"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("maintenance JSON missing %q: %s", want, body)
 		}
@@ -5887,7 +5928,7 @@ func writeMaintenanceSummaryFixtures(t *testing.T) maintenanceSummaryTestRoots {
 		"generated_at_utc":               "20260512T010313Z",
 		"overall_status":                 "blocker",
 		"counts":                         map[string]any{"blocker": 2, "warning": 1, "unavailable": 0},
-		"categories":                     map[string]any{"backup_readiness": "blocker", "database": "skipped", "migrations": "skipped", "postgis": "skipped", "restore_readiness": "blocker", "validators": "passed", "small_host_resources": "warning", "service_dependencies": "passed", "proxy_exposure": "passed", "postgres_capacity": "warning", "upgrade_rollback": "passed"},
+		"categories":                     map[string]any{"backup_readiness": "blocker", "database": "skipped", "migrations": "skipped", "postgis": "skipped", "restore_readiness": "blocker", "validators": "passed", "small_host_resources": "warning", "service_dependencies": "passed", "proxy_exposure": "passed", "postgres_capacity": "warning", "upgrade_rollback": "passed", "install_recovery": "blocker"},
 		"external_evidence_created":      false,
 		"final_root_evidence_created":    false,
 		"consumer_statuses_changed":      false,
@@ -8232,7 +8273,7 @@ func assertOperationsCockpitFlagsFalse(t *testing.T, flags operationsCockpitClai
 
 func assertMaintenanceShape(t *testing.T, view operationsMaintenanceView) {
 	t.Helper()
-	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.SmallHostReadiness.Boundary == "" || view.SmallHostReadiness.Status == "" || view.SmallHostReadiness.NextAction == "" || len(view.SmallHostReadiness.Rows) != 5 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 5 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 10 || len(view.Tasks) != 7 {
+	if view.GeneratedAt.IsZero() || view.AgencyID == "" || view.Boundary == "" || view.OverallStatus == "" || len(view.SummaryRows) != 9 || view.Diagnostics.Boundary == "" || view.Diagnostics.Status == "" || len(view.Diagnostics.Rows) != 4 || view.SmallHostReadiness.Boundary == "" || view.SmallHostReadiness.Status == "" || view.SmallHostReadiness.NextAction == "" || len(view.SmallHostReadiness.Rows) != 5 || view.BackupRestore.Boundary == "" || view.BackupRestore.Status == "" || view.BackupRestore.NextAction == "" || len(view.BackupRestore.Rows) != 4 || view.UpgradeRollback.Boundary == "" || view.UpgradeRollback.Status == "" || view.UpgradeRollback.NextAction == "" || len(view.UpgradeRollback.Rows) != 4 || view.SupportReview.Boundary == "" || view.SupportReview.Status == "" || view.SupportReview.NextAction == "" || len(view.SupportReview.Rows) != 4 || view.CadencePlan.Boundary == "" || view.CadencePlan.Status == "" || view.CadencePlan.NextAction == "" || len(view.CadencePlan.Rows) != 4 || view.MonitoringExport.Boundary == "" || view.MonitoringExport.Status == "" || view.MonitoringExport.NextAction == "" || len(view.MonitoringExport.Rows) != 5 || view.Infrastructure.Boundary == "" || view.Infrastructure.Status == "" || view.Infrastructure.NextAction == "" || len(view.Infrastructure.Rows) != 11 || len(view.Tasks) != 7 {
 		t.Fatalf("invalid maintenance shape: %+v", view)
 	}
 	seen := map[string]bool{}

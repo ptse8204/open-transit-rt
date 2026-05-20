@@ -131,10 +131,14 @@ Upgrade order:
 
 On a small host, run `make deployment-doctor` before the upgrade and review the
 `small_host_resources`, `postgres_capacity`, `proxy_exposure`, and
-`upgrade_rollback` categories. If resource guidance recommends off-host
-validators, use `docs/deployment/off-host-validation.md` from an operator
-workstation instead of forcing Java or Docker onto the server. These diagnostics
-are private preflight signals only and do not approve the upgrade.
+`upgrade_rollback` categories. Also review `install_recovery`, which synthesizes
+environment, migration, backup/restore, service/proxy, and post-change
+verification stop points into
+`.cache/deployment-doctor/<timestamp>/operations/install-upgrade-recovery-plan.summary.json`.
+If resource guidance recommends off-host validators, use
+`docs/deployment/off-host-validation.md` from an operator workstation instead
+of forcing Java or Docker onto the server. These diagnostics are private
+preflight signals only and do not approve the upgrade.
 
 For Makefile-based deployments:
 

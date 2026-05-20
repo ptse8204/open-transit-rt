@@ -438,6 +438,23 @@ the operator is intentionally performing an incident restore:
 Use `docs/runbooks/templates/restore-event-template.md` for private operator
 records, and redact before committing any summary.
 
+Before using backup, restore, upgrade, or rollback procedures, run the
+deployment doctor and review the `install_recovery` category plus the private
+stop-point summary:
+
+```sh
+PUBLIC_BASE_URL=https://feeds.example.org make deployment-doctor
+```
+
+The summary is written under
+`.cache/deployment-doctor/<timestamp>/operations/install-upgrade-recovery-plan.summary.json`
+and groups the current state into environment, migration, backup/restore,
+service/proxy, and post-change verification stop points. Treat any blocker as
+a pause before migration, service restart, rollback, restore, or public feed
+sharing. The summary is private diagnostic guidance only; it does not execute
+or prove backup, restore, upgrade, rollback, production readiness, SLA/uptime,
+compliance, or consumer acceptance.
+
 ## Feed Monitor
 
 Run the feed monitor dry-run before enabling its timer:
@@ -518,6 +535,8 @@ Before an update:
 3. Retain previous binaries in a private operator directory.
 4. Run `migrate status`.
 5. Confirm the five public feed URLs are healthy.
+6. Run `make deployment-doctor` and review the `install_recovery` stop-point
+   summary before migration, service restart, rollback, or public sharing work.
 
 Update by uploading new binaries and migrations, running migrations, restarting
 services, and running the smoke checklist.

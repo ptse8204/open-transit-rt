@@ -1186,6 +1186,95 @@ with open(out, "w", encoding="utf-8") as handle:
 PY
 }
 
+record_install_upgrade_recovery_plan() {
+  log "Build install, upgrade, backup, restore, and rollback stop-point plan"
+  mkdir -p "$OUT_REAL/operations"
+  checks="$TMP_DIR/install-recovery.checks.tsv"
+  python3 - "$CHECKS_TSV" "$OUT_REAL/operations/install-upgrade-recovery-plan.summary.json" >"$checks" <<'PY'
+import csv
+import json
+import sys
+
+checks_path, out_path = sys.argv[1:3]
+with open(checks_path, encoding="utf-8", newline="") as handle:
+    rows = list(csv.DictReader(handle, delimiter="\t"))
+
+rank = {"passed": 0, "skipped": 1, "unavailable": 2, "warning": 3, "blocker": 4}
+
+def category_status(category):
+    statuses = [row["status"] for row in rows if row["category"] == category]
+    if not statuses:
+        return "skipped"
+    return max(statuses, key=lambda status: rank.get(status, 2))
+
+def stage_status(categories):
+    statuses = [category_status(category) for category in categories]
+    return max(statuses, key=lambda status: rank.get(status, 2))
+
+stages = [
+    {
+        "id": "environment_preflight",
+        "label": "Environment and URL preflight",
+        "categories": ["env", "generated_secret", "url"],
+        "next_action": "Resolve missing required env values, placeholder secrets, unsafe base URLs, or missing generated secrets before install or upgrade work.",
+    },
+    {
+        "id": "migration_stop_point",
+        "label": "Database and migration stop point",
+        "categories": ["database", "migrations", "postgis", "postgres_capacity"],
+        "next_action": "Review read-only migration status, PostGIS availability, and pool budget before schema changes or service restarts.",
+    },
+    {
+        "id": "backup_restore_stop_point",
+        "label": "Backup and restore stop point",
+        "categories": ["backup_readiness", "restore_readiness"],
+        "next_action": "Keep upgrades and rollback work paused until private backup output and non-live restore-drill inputs are configured.",
+    },
+    {
+        "id": "service_proxy_stop_point",
+        "label": "Service and proxy stop point",
+        "categories": ["service_dependencies", "proxy_exposure", "service_health", "admin_boundary", "https_posture"],
+        "next_action": "Review service dependency, loopback health, public/private route boundary, and proxy exposure before sharing public feed URLs.",
+    },
+    {
+        "id": "post_change_verification",
+        "label": "Post-change verification",
+        "categories": ["public_feed_edge", "validators", "consumer_tracker"],
+        "next_action": "After any install, upgrade, restore, or rollback, re-run five-feed fetches, validators, and the consumer-status guard before external sharing.",
+    },
+]
+
+for stage in stages:
+    category_map = {category: category_status(category) for category in stage["categories"]}
+    stage["status"] = stage_status(stage["categories"])
+    stage["category_statuses"] = category_map
+    stage["does_not_prove"] = "This stop point does not execute or prove install, upgrade, backup, restore, rollback, production readiness, compliance, SLA coverage, uptime, or consumer acceptance."
+
+overall = max((stage["status"] for stage in stages), key=lambda status: rank.get(status, 2))
+summary = {
+    "overall_status": overall,
+    "stages": stages,
+    "browser_executes_destructive_actions": False,
+    "shell_executes_destructive_actions": False,
+    "allowed_output": "private .cache deployment-doctor stop-point summary only",
+    "boundary": "Read-only stop-point synthesis derived from deployment-doctor checks. It does not run migrations, create backups, restore databases, restart services, change proxy rules, publish releases, create evidence, contact consumers, or change statuses.",
+    "does_not_prove": "Does not prove install success, upgrade safety, backup success, restore success, rollback success, production readiness, compliance, SLA coverage, uptime, hosted service availability, or consumer acceptance.",
+}
+with open(out_path, "w", encoding="utf-8") as handle:
+    json.dump(summary, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+
+for stage in stages:
+    detail = f"{stage['id']}={stage['status']}; categories=" + ",".join(f"{k}:{v}" for k, v in stage["category_statuses"].items())
+    print("\t".join(("install_recovery", stage["id"], stage["status"], detail)))
+PY
+  while IFS="$(printf '\t')" read -r category name status detail
+  do
+    [ -n "$category" ] || continue
+    add_check "$category" "$name" "$status" "$detail"
+  done <"$checks"
+}
+
 record_release_identity() {
   log "Record release and git identity"
   mkdir -p "$OUT_REAL/system"
@@ -1330,6 +1419,7 @@ summary = {
         "proxy_exposure": category_status("proxy_exposure"),
         "postgres_capacity": category_status("postgres_capacity"),
         "upgrade_rollback": category_status("upgrade_rollback"),
+        "install_recovery": category_status("install_recovery"),
     },
     **flags,
     "checks": checks,
@@ -1351,6 +1441,7 @@ manifest = {
         "validator tooling status",
         "backup and restore-drill readiness statuses",
         "upgrade and rollback checklist posture",
+        "install, upgrade, backup, restore, and rollback stop-point plan",
         "git/release identity",
         "consumer tracker prepared-only guard",
     ],
@@ -1447,7 +1538,7 @@ print(f"  output_dir={out}")
 print(f"  blocker_count={counts['blocker']}")
 print(f"  warning_count={counts['warning']}")
 print(f"  unavailable_count={counts['unavailable']}")
-for key in ("public_feed_edge", "admin_boundary", "database", "migrations", "postgis", "validators", "backup_readiness", "restore_readiness", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback"):
+for key in ("public_feed_edge", "admin_boundary", "database", "migrations", "postgis", "validators", "backup_readiness", "restore_readiness", "small_host_resources", "service_dependencies", "proxy_exposure", "postgres_capacity", "upgrade_rollback", "install_recovery"):
     print(f"  {key}={cat[key]}")
 for key in ("external_evidence_created", "final_root_evidence_created", "consumer_statuses_changed", "compliance_claimed", "production_readiness_claimed", "hosted_saas_claimed", "sla_claimed", "uptime_guarantee_claimed"):
     print(f"  {key}={str(data[key]).lower()}")
@@ -1493,6 +1584,7 @@ main() {
   record_release_identity
   record_recent_private_diagnostics
   record_consumer_tracker_guard
+  record_install_upgrade_recovery_plan
   write_reports
   redaction_scan
   copy_paste_summary

@@ -18,7 +18,7 @@ packet, and not final-root proof.
 - [Reference Deployment Doctor](reference-deployment-doctor.md) - read-only
   private diagnostics for env, small-host resources, services, proxy exposure,
   validators, DB/PostGIS/pool guidance, backups, restore-drill readiness, and
-  upgrade/rollback checklist posture.
+  upgrade/rollback plus install/recovery stop-point posture.
 - [OCI Reference Check](oci-reference-check.md) - private reference diagnostic
   helper for public five-feed fetches, optional SSH loopback health, backup/
   restore configuration presence, and all-false claim flags.
