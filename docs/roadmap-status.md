@@ -15,6 +15,13 @@ Current product direction:
 
 - reduce the technical capability required to set up, evaluate, and operate
   GTFS / GTFS-Realtime workflows;
+- keep the production auth boundary locked while adding username/password
+  login and deferring SSO/OIDC to a future identity-source adapter that issues
+  the same internal `admin_session`;
+- make the private Operations Console dashboard-first with setup reminders,
+  focused config pages, and smaller navigation groups;
+- distinguish connector examples from configured per-agency connector
+  instances before activation or dry-run status is shown;
 - keep normal local evaluation browser-first after startup;
 - keep connector support split between works-today/local-supported paths and
   planned/candidate items;

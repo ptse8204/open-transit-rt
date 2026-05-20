@@ -543,6 +543,128 @@ func TestLocalAdminLoginPreservesBearerAndCookieCSRFBehavior(t *testing.T) {
 	}
 }
 
+func TestProductionAuthBoundaryRegression(t *testing.T) {
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("AGENCY_ID", "demo-agency")
+	t.Setenv("ADMIN_JWT_SECRET", "rotated-admin-secret")
+	t.Setenv("ADMIN_JWT_OLD_SECRETS", "")
+	t.Setenv("ADMIN_JWT_ISSUER", "test-issuer")
+	t.Setenv("ADMIN_JWT_AUDIENCE", "test-audience")
+	t.Setenv("CSRF_SECRET", "rotated-csrf-secret")
+	t.Setenv("LOCAL_ADMIN_LOGIN_ENABLED", "false")
+
+	cfg := auth.JWTConfig{Secrets: []string{"rotated-admin-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour}
+	verifier, err := auth.NewVerifier(cfg)
+	if err != nil {
+		t.Fatalf("verifier: %v", err)
+	}
+	admin := auth.NewMiddleware(verifier, auth.StaticRoleStore{Roles: []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly}}, "rotated-csrf-secret")
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-demo", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip bytes")}},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		admin,
+		&fakeRealtimeArtifacts{},
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/local-login", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("production local login status = %d, want 404", rr.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("anonymous operations status = %d, want 401", rr.Code)
+	}
+
+	oldSigner, err := auth.NewSigner(auth.JWTConfig{Secrets: []string{"old-admin-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour})
+	if err != nil {
+		t.Fatalf("old signer: %v", err)
+	}
+	oldToken, _, err := oldSigner.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign old token: %v", err)
+	}
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	req.Header.Set("Authorization", "Bearer "+oldToken)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("old token status = %d, want 401", rr.Code)
+	}
+
+	newSigner, err := auth.NewSigner(cfg)
+	if err != nil {
+		t.Fatalf("new signer: %v", err)
+	}
+	newToken, _, err := newSigner.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign new token: %v", err)
+	}
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	req.Header.Set("Authorization", "Bearer "+newToken)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("new bearer status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: newToken})
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("new admin_session cookie status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:18081/admin/operations/validation-health/refresh.json", strings.NewReader("action=refresh"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: newToken})
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("cookie unsafe POST without CSRF status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+
+	for _, target := range []string{
+		"/public/feeds.json",
+		"/public/gtfs/schedule.zip",
+	} {
+		req = httptest.NewRequest(http.MethodGet, "http://localhost:18081"+target, nil)
+		rr = httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("public agency-config feed %s status = %d, want 200: %s", target, rr.Code, rr.Body.String())
+		}
+	}
+
+	caddy, err := os.ReadFile(filepath.Join("..", "..", "deploy", "oci", "Caddyfile"))
+	if err != nil {
+		t.Fatalf("read oci Caddyfile: %v", err)
+	}
+	caddyText := string(caddy)
+	for _, publicPath := range []string{
+		"/public/feeds.json",
+		"/public/gtfs/*",
+		"/public/gtfsrt/vehicle_positions.pb",
+		"/public/gtfsrt/trip_updates.pb",
+		"/public/gtfsrt/alerts.pb",
+	} {
+		if !strings.Contains(caddyText, publicPath) {
+			t.Fatalf("production edge config missing public path %s:\n%s", publicPath, caddyText)
+		}
+	}
+	if strings.Contains(caddyText, "handle /admin") || strings.Contains(caddyText, "reverse_proxy 127.0.0.1:8081\n  }\n\n  handle {\n") {
+		t.Fatalf("production edge config appears to expose admin routes:\n%s", caddyText)
+	}
+}
+
 func TestAgencyConfigAdminAgencyBoundaries(t *testing.T) {
 	store := &fakePublicationStore{
 		scorecard: compliance.Scorecard{AgencyID: "agency-a", OverallStatus: compliance.StatusYellow},
