@@ -73,6 +73,8 @@ func operationsPageNextAction(section string) string {
 		return "Choose the workflow section that matches the current blocker and follow its linked console page."
 	case "setup-wizard", "setup":
 		return "Confirm agency metadata, feed URL metadata, license, contact, and role visibility before importing or sharing feed links."
+	case "config", "config-agency", "config-feeds", "config-auth", "config-deployment", "config-advanced":
+		return "Review one focused settings area at a time; keep secrets, raw diagnostics, and advanced safety details out of broad setup pages."
 	case "gtfs-workbench", "gtfs-import", "gtfs-quality":
 		return "Review the active schedule, import or update GTFS when needed, then check validation and feed health."
 	case "feeds", "feed-health":

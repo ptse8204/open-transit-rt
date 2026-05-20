@@ -76,6 +76,7 @@ type operationsPage struct {
 	Session                operationsSessionBannerView
 	AuthStatus             operationsAuthStatusView
 	AdminUsers             operationsAdminUsersView
+	Config                 operationsConfigView
 	Audit                  operationsAuditView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
@@ -303,6 +304,13 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 	case "admin/sessions.json":
 		w.Header().Set("Cache-Control", "no-store")
 		h.renderAuthStatusJSON(w, r)
+	case "config", "config/agency", "config/feeds", "config/auth", "config/deployment", "config/advanced":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderOperationsConfig(w, r, operationsConfigSectionFromPath(trimmed))
 	case "help":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
@@ -1182,6 +1190,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Session = h.buildOperationsSessionBanner(principal)
 	page.AuthStatus = h.buildOperationsAuthStatus(r, principal, page.GeneratedAt)
 	page.AdminUsers = h.buildOperationsAdminUsersView(r, principal, "")
+	page.Config = buildOperationsConfig(page)
 	page.Dashboard = buildOperationsDashboard(page)
 	page.Cockpit.Dashboard = page.Dashboard
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
@@ -2161,6 +2170,56 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .Access.Denied}}<tr id="access-denied-{{.ID}}"><td>{{.Scenario}}</td><td>{{.WhatHappened}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
 </tbody></table>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "config"}}
+{{template "layoutStart" .}}
+<h2>{{.Config.Title}}</h2>
+<p class="warning">{{.Config.Boundary}}</p>
+<p><a href="/admin/operations">Back to Dashboard</a> · <a href="/admin/operations/setup-wizard">Continue setup wizard</a></p>
+<div class="card-grid" aria-label="Focused config sections">
+{{range .Config.Sections}}<section class="card" id="config-section-{{.ID}}">
+<h3><a href="{{.Path}}">{{.Label}}</a></h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.Summary}}</p>
+<p><strong>Next:</strong> {{.NextAction}}</p>
+</section>{{end}}
+</div>
+<h3>Current Settings</h3>
+<table><thead><tr><th>Setting</th><th>Current value</th><th>Status</th><th>Next action</th></tr></thead><tbody>
+{{range .Config.Rows}}<tr><td>{{.Label}}</td><td>{{.Value}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+{{if eq .Config.ActiveSection "feeds"}}
+<h3 id="publication-metadata">Publication Metadata</h3>
+<p class="muted">This focused form uses the existing publication bootstrap/update action and derives agency ID from the authenticated admin principal. It stores metadata only; it does not prove feed validation, consumer acceptance, or compliance.</p>
+{{if .PublicationError}}<p class="warning">{{.PublicationError}}. Existing JSON admin API path: <code>/admin/publication/bootstrap</code>.</p>{{end}}
+{{if .IsAdmin}}
+<form method="post" action="/admin/operations/setup#publication-metadata">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="publication_bootstrap">
+<label for="config_public_base_url">Public base URL</label><input id="config_public_base_url" type="url" name="public_base_url" maxlength="2048" required value="{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else}}{{.Discovery.PublicBaseURL}}{{end}}">
+<label for="config_feed_base_url">Feed base URL</label><input id="config_feed_base_url" type="url" name="feed_base_url" maxlength="2048" required value="{{.PublicationConfig.FeedBaseURL}}">
+<label for="config_technical_contact_email">Technical contact email</label><input id="config_technical_contact_email" type="email" name="technical_contact_email" maxlength="320" value="{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else}}{{.Discovery.TechnicalContactEmail}}{{end}}">
+<label for="config_license_name">License name</label><input id="config_license_name" name="license_name" maxlength="160" value="{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else}}{{.Discovery.License.Name}}{{end}}">
+<label for="config_license_url">License URL</label><input id="config_license_url" type="url" name="license_url" maxlength="2048" value="{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else}}{{.Discovery.License.URL}}{{end}}">
+<label for="config_publication_environment">Publication environment</label><input id="config_publication_environment" name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}">
+<button type="submit">Store publication metadata</button>
+</form>
+{{else}}
+<p class="warning">Publication metadata changes require an admin role. This account can review feed URL settings but cannot submit setup forms.</p>
+{{end}}
+{{end}}
+{{if eq .Config.ActiveSection "auth"}}
+<p><a href="/admin/operations/admin/sessions">Open Login &amp; Sessions</a> · <a href="/admin/operations/admin/users">Open Users &amp; Roles</a></p>
+{{end}}
+{{if eq .Config.ActiveSection "advanced"}}
+<details class="support-details" open>
+<summary>Private advanced exports</summary>
+<p><a href="/admin/operations.json">Operations JSON</a> · <a href="/admin/operations/checklist.json">Checklist JSON</a> · <a href="/admin/operations/audit.json">Audit JSON</a></p>
+<p class="muted">{{.Config.ClaimBoundary}}</p>
+</details>
+{{end}}
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -4342,7 +4401,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 
 <h2 id="publication-metadata">Publication Metadata</h2>
-<p class="muted">Source: publication metadata and feed discovery. This form uses the existing publication bootstrap/update repository behavior and derives agency ID from the authenticated admin principal.</p>
+<p class="muted">Source: publication metadata and feed discovery. Editing moved to focused config so setup diagnostics stay short and review-oriented.</p>
 {{if .PublicationError}}<p class="warning">{{.PublicationError}}. Existing JSON admin API path: <code>/admin/publication/bootstrap</code>.</p>{{end}}
 <table><tbody>
 <tr><th>Agency ID</th><td><code>{{.AgencyID}}</code> (read-only authenticated principal)</td></tr>
@@ -4355,19 +4414,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Publication environment</th><td>{{if .PublicationConfig.PublicationEnvironment}}{{.PublicationConfig.PublicationEnvironment}}{{else if .Discovery.PublicationEnvironment}}{{.Discovery.PublicationEnvironment}}{{else}}missing{{end}}</td></tr>
 </tbody></table>
 {{if .IsAdmin}}
-<form method="post" action="/admin/operations/setup">
-<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-<input type="hidden" name="action" value="publication_bootstrap">
-<label for="setup_public_base_url">Public base URL</label><input id="setup_public_base_url" type="url" name="public_base_url" maxlength="2048" required value="{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else}}{{.Discovery.PublicBaseURL}}{{end}}">
-<label for="setup_feed_base_url">Feed base URL</label><input id="setup_feed_base_url" type="url" name="feed_base_url" maxlength="2048" required value="{{.PublicationConfig.FeedBaseURL}}">
-<label for="setup_technical_contact_email">Technical contact email</label><input id="setup_technical_contact_email" type="email" name="technical_contact_email" maxlength="320" value="{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else}}{{.Discovery.TechnicalContactEmail}}{{end}}">
-<label for="setup_license_name">License name</label><input id="setup_license_name" name="license_name" maxlength="160" value="{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else}}{{.Discovery.License.Name}}{{end}}">
-<label for="setup_license_url">License URL</label><input id="setup_license_url" type="url" name="license_url" maxlength="2048" value="{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else}}{{.Discovery.License.URL}}{{end}}">
-<label for="setup_publication_environment">Publication environment</label><input id="setup_publication_environment" name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}">
-<button type="submit">Store publication metadata</button>
-</form>
+<p><a href="/admin/operations/config/feeds">Edit publication metadata in Public Feed URLs</a></p>
 {{else}}
-<p class="warning">Publication metadata changes require an admin role. This account can review setup status but cannot submit setup forms.</p>
+<p class="warning">Publication metadata changes require an admin role. This account can review setup status and open <a href="/admin/operations/config/feeds">Public Feed URLs</a>, but cannot submit setup forms.</p>
 {{end}}
 
 <h2>GTFS Import And Authoring</h2>

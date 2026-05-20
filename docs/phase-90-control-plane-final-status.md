@@ -11,6 +11,12 @@ closeout is preserved on the `archive/agent-history` branch.
 - `/admin/operations/setup-wizard`
 - `/admin/operations/setup`
 - `/admin/operations/access`
+- `/admin/operations/config`
+- `/admin/operations/config/agency`
+- `/admin/operations/config/feeds`
+- `/admin/operations/config/auth`
+- `/admin/operations/config/deployment`
+- `/admin/operations/config/advanced`
 - `/admin/operations/gtfs-workbench`
 - `/admin/operations/gtfs-import`
 - `/admin/operations/gtfs-quality`

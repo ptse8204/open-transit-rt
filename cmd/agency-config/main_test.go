@@ -3687,8 +3687,8 @@ func TestOperationsRouteRegistryCentralizesCanonicalInventory(t *testing.T) {
 		paths[route.Path] = true
 	}
 
-	if got := len(operationsCanonicalHTMLRoutes()); got != 30 {
-		t.Fatalf("canonical HTML route count = %d, want 30", got)
+	if got := len(operationsCanonicalHTMLRoutes()); got != 36 {
+		t.Fatalf("canonical HTML route count = %d, want 36", got)
 	}
 	jsonRoutes := operationsCanonicalJSONRoutes()
 	if got := len(jsonRoutes); got != 22 {
@@ -4430,25 +4430,32 @@ func TestOperationsConsoleFormsUseLabelsAndSubmitButtonsWithoutChangingContracts
 		{
 			path: "/admin/operations/setup",
 			want: []string{
+				`/admin/operations/config/feeds`,
 				`<form method="post" action="/admin/operations/setup">`,
-				`name="action" value="publication_bootstrap"`,
-				`for="setup_public_base_url"`,
-				`id="setup_public_base_url" type="url" name="public_base_url"`,
-				`for="setup_feed_base_url"`,
-				`id="setup_feed_base_url" type="url" name="feed_base_url"`,
-				`for="setup_technical_contact_email"`,
-				`id="setup_technical_contact_email" type="email" name="technical_contact_email"`,
-				`for="setup_license_name"`,
-				`id="setup_license_name" name="license_name"`,
-				`for="setup_license_url"`,
-				`id="setup_license_url" type="url" name="license_url"`,
-				`for="setup_publication_environment"`,
-				`id="setup_publication_environment" name="publication_environment"`,
-				`<button type="submit">Store publication metadata</button>`,
 				`name="action" value="run_validation"`,
 				`for="setup_validation_feed_type"`,
 				`id="setup_validation_feed_type" name="feed_type"`,
 				`<button type="submit">Run allowlisted validation</button>`,
+			},
+		},
+		{
+			path: "/admin/operations/config/feeds",
+			want: []string{
+				`<form method="post" action="/admin/operations/setup#publication-metadata">`,
+				`name="action" value="publication_bootstrap"`,
+				`for="config_public_base_url"`,
+				`id="config_public_base_url" type="url" name="public_base_url"`,
+				`for="config_feed_base_url"`,
+				`id="config_feed_base_url" type="url" name="feed_base_url"`,
+				`for="config_technical_contact_email"`,
+				`id="config_technical_contact_email" type="email" name="technical_contact_email"`,
+				`for="config_license_name"`,
+				`id="config_license_name" name="license_name"`,
+				`for="config_license_url"`,
+				`id="config_license_url" type="url" name="license_url"`,
+				`for="config_publication_environment"`,
+				`id="config_publication_environment" name="publication_environment"`,
+				`<button type="submit">Store publication metadata</button>`,
 			},
 		},
 	} {
