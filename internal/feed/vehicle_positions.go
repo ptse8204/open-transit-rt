@@ -26,6 +26,7 @@ const (
 	TripDescriptorOmissionMissingTripID               = "missing_trip_id"
 	TripDescriptorOmissionManualStateWithoutTrip      = "manual_state_without_trip"
 	TripDescriptorOmissionDegradedAssignment          = "degraded_assignment"
+	TripDescriptorOmissionMissingScheduleContext      = "missing_schedule_context"
 	TripDescriptorOmissionBelowPublicationConfidence  = "below_publication_confidence"
 )
 
@@ -172,6 +173,10 @@ func (b *VehiclePositionsBuilder) vehicleSnapshot(event telemetry.StoredEvent, a
 	}
 	if vehicle.AssignmentTelemetryMismatch {
 		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionAssignmentTelemetryMismatch
+		return vehicle
+	}
+	if assignment.DegradedState == state.DegradedMissingScheduleData {
+		vehicle.TripDescriptorOmissionReason = TripDescriptorOmissionMissingScheduleContext
 		return vehicle
 	}
 	if degradedAssignmentBlocksTripDescriptor(assignment.DegradedState) {
@@ -345,6 +350,7 @@ type VehicleDebugSnapshot struct {
 	AssignmentTelemetryMismatch  bool              `json:"assignment_telemetry_mismatch"`
 	TripDescriptorPublished      bool              `json:"trip_descriptor_published"`
 	TripDescriptorOmissionReason string            `json:"trip_descriptor_omission_reason"`
+	PublicFeedDiagnostic         string            `json:"public_feed_diagnostic"`
 	Assignment                   *state.Assignment `json:"assignment,omitempty"`
 }
 
@@ -356,18 +362,22 @@ type DebugPosition struct {
 }
 
 type VehiclePositionsReview struct {
-	VehiclesInSnapshot            int            `json:"vehicles_in_snapshot"`
-	VehiclesInProtobuf            int            `json:"vehicles_in_protobuf"`
-	TripDescriptorsPublished      int            `json:"trip_descriptors_published"`
-	TripDescriptorOmissions       map[string]int `json:"trip_descriptor_omissions"`
-	StaleVehicles                 int            `json:"stale_vehicles"`
-	SuppressedVehicles            int            `json:"suppressed_vehicles"`
-	UnmatchedVehicles             int            `json:"unmatched_vehicles"`
-	AssignmentTelemetryMismatches int            `json:"assignment_telemetry_mismatches"`
-	Truncated                     bool           `json:"truncated"`
-	TruncatedVehicleCountMin      int            `json:"truncated_vehicle_count_min"`
-	LatestTelemetryRowsRead       int            `json:"latest_telemetry_rows_read"`
-	NoTelemetry                   bool           `json:"no_telemetry"`
+	VehiclesInSnapshot             int            `json:"vehicles_in_snapshot"`
+	VehiclesInProtobuf             int            `json:"vehicles_in_protobuf"`
+	TripDescriptorsPublished       int            `json:"trip_descriptors_published"`
+	TripDescriptorOmissions        map[string]int `json:"trip_descriptor_omissions"`
+	StaleVehicles                  int            `json:"stale_vehicles"`
+	SuppressedVehicles             int            `json:"suppressed_vehicles"`
+	UnmatchedVehicles              int            `json:"unmatched_vehicles"`
+	MissingScheduleContextVehicles int            `json:"missing_schedule_context_vehicles"`
+	LowConfidenceVehicles          int            `json:"low_confidence_vehicles"`
+	AssignmentTelemetryMismatches  int            `json:"assignment_telemetry_mismatches"`
+	Truncated                      bool           `json:"truncated"`
+	TruncatedVehicleCountMin       int            `json:"truncated_vehicle_count_min"`
+	LatestTelemetryRowsRead        int            `json:"latest_telemetry_rows_read"`
+	NoTelemetry                    bool           `json:"no_telemetry"`
+	UsefulnessStatus               string         `json:"usefulness_status"`
+	UsefulnessReasons              []string       `json:"usefulness_reasons"`
 }
 
 func (s VehiclePositionsSnapshot) ReviewSummary() VehiclePositionsReview {
@@ -399,10 +409,17 @@ func (s VehiclePositionsSnapshot) ReviewSummary() VehiclePositionsReview {
 		if vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionNoAssignment {
 			review.UnmatchedVehicles++
 		}
+		if vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionMissingScheduleContext {
+			review.MissingScheduleContextVehicles++
+		}
+		if vehicle.TripDescriptorOmissionReason == TripDescriptorOmissionBelowPublicationConfidence {
+			review.LowConfidenceVehicles++
+		}
 		if vehicle.AssignmentTelemetryMismatch {
 			review.AssignmentTelemetryMismatches++
 		}
 	}
+	review.UsefulnessStatus, review.UsefulnessReasons = vehiclePositionsUsefulness(review)
 	return review
 }
 
@@ -432,6 +449,7 @@ func (s VehiclePositionsSnapshot) Debug() VehiclePositionsDebug {
 			AssignmentTelemetryMismatch:  vehicle.AssignmentTelemetryMismatch,
 			TripDescriptorPublished:      vehicle.TripDescriptorPublished,
 			TripDescriptorOmissionReason: vehicle.TripDescriptorOmissionReason,
+			PublicFeedDiagnostic:         vehiclePublicFeedDiagnostic(vehicle),
 		}
 		if hasNumericPayloadField(vehicle.TelemetryEvent.PayloadJSON, "bearing") {
 			debugVehicle.Position.Bearing = vehicle.TelemetryEvent.Bearing
@@ -462,6 +480,82 @@ func degradedAssignmentBlocksTripDescriptor(degraded state.DegradedState) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func vehiclePositionsUsefulness(review VehiclePositionsReview) (string, []string) {
+	if review.NoTelemetry || review.VehiclesInSnapshot == 0 {
+		return "empty_no_telemetry", []string{"no accepted latest telemetry rows are available"}
+	}
+	var reasons []string
+	if review.SuppressedVehicles > 0 {
+		reasons = append(reasons, "some stale vehicles were suppressed")
+	}
+	if review.StaleVehicles > 0 {
+		reasons = append(reasons, "stale telemetry is present")
+	}
+	if review.UnmatchedVehicles > 0 {
+		reasons = append(reasons, "some vehicles have no current assignment")
+	}
+	if review.MissingScheduleContextVehicles > 0 {
+		reasons = append(reasons, "active schedule context is missing for some assignments")
+	}
+	if review.LowConfidenceVehicles > 0 {
+		reasons = append(reasons, "some assignments are below the publication confidence threshold")
+	}
+	if review.AssignmentTelemetryMismatches > 0 {
+		reasons = append(reasons, "some assignments do not match the latest telemetry event")
+	}
+	if review.VehiclesInProtobuf == 0 {
+		return "empty_after_suppression", appendIfMissing(reasons, "no vehicles are emitted in the protobuf")
+	}
+	if review.TripDescriptorsPublished == 0 {
+		return "positions_without_trip_context", appendIfMissing(reasons, "vehicle positions emit without trip descriptors")
+	}
+	if len(reasons) > 0 {
+		return "positions_with_partial_trip_context", reasons
+	}
+	return "positions_with_trip_context", []string{"fresh vehicle positions include conservative trip descriptors"}
+}
+
+func appendIfMissing(values []string, value string) []string {
+	for _, existing := range values {
+		if existing == value {
+			return values
+		}
+	}
+	return append(values, value)
+}
+
+func vehiclePublicFeedDiagnostic(vehicle VehicleSnapshot) string {
+	switch vehicle.TripDescriptorOmissionReason {
+	case TripDescriptorOmissionNone:
+		if vehicle.TripDescriptorPublished {
+			return "trip descriptor included from conservative assignment evidence"
+		}
+		return "vehicle position emitted without an omission reason"
+	case TripDescriptorOmissionSuppressedStaleTelemetry:
+		return "vehicle omitted from protobuf because telemetry is beyond the stale suppression threshold"
+	case TripDescriptorOmissionStaleTelemetry:
+		return "vehicle emitted without trip descriptor because telemetry is stale"
+	case TripDescriptorOmissionNoAssignment:
+		return "vehicle emitted without trip descriptor because no current assignment is available"
+	case TripDescriptorOmissionAssignmentTelemetryMismatch:
+		return "vehicle emitted without trip descriptor because assignment evidence does not match the latest telemetry event"
+	case TripDescriptorOmissionMissingScheduleContext:
+		return "vehicle emitted without trip descriptor because active schedule context is missing"
+	case TripDescriptorOmissionBelowPublicationConfidence:
+		return "vehicle emitted without trip descriptor because assignment confidence is below the publication threshold"
+	case TripDescriptorOmissionDegradedAssignment:
+		return "vehicle emitted without trip descriptor because assignment state is degraded"
+	case TripDescriptorOmissionNotInService:
+		return "vehicle emitted without trip descriptor because assignment state is not in service"
+	case TripDescriptorOmissionMissingTripID:
+		return "vehicle emitted without trip descriptor because the assignment has no trip_id"
+	case TripDescriptorOmissionManualStateWithoutTrip:
+		return "vehicle emitted without trip descriptor because manual state has no trip_id"
+	default:
+		return "vehicle position emitted with conservative trip context review needed"
 	}
 }
 

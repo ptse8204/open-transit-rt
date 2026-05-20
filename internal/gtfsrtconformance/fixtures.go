@@ -36,6 +36,10 @@ var requiredFixtureCases = map[string][]string{
 		"frequency_non_exact_trip_descriptor_review",
 		"suppressed_vehicle_after_stale_threshold",
 		"vehicle_position_without_assignment_trip_descriptor",
+		"stale_vehicle_emitted_without_trip_descriptor",
+		"low_confidence_assignment_omits_trip_descriptor",
+		"assignment_telemetry_mismatch_omits_trip_descriptor",
+		"missing_schedule_context_omits_trip_descriptor",
 		"invalid_latitude_or_longitude",
 	},
 	FeedTripUpdates: {

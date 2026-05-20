@@ -2693,6 +2693,9 @@ func TestFeedHealthJSONShapeFlagsRowsAndMissingData(t *testing.T) {
 	if rowsByID["feeds_json"].Status != checklistStatusOK || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "all HTTPS=true") || !strings.Contains(rowsByID["feeds_json"].CurrentSignal, "discoverable=true") {
 		t.Fatalf("feeds_json row did not include HTTPS/discoverability readiness: %+v", rowsByID["feeds_json"])
 	}
+	if !strings.Contains(rowsByID["vehicle_positions"].HealthContext, "active schedule context=feed-v1") {
+		t.Fatalf("vehicle_positions row missing active schedule context: %+v", rowsByID["vehicle_positions"])
+	}
 	for _, id := range []string{"vehicle_positions", "trip_updates", "alerts"} {
 		if strings.Contains(strings.ToLower(rowsByID[id].Freshness), "generated") {
 			t.Fatalf("realtime row %s should not label revision metadata as generated freshness: %+v", id, rowsByID[id])
@@ -2760,7 +2763,7 @@ func TestFeedHealthHTMLPlainLanguageBoundariesAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five configured public route paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "Next action", "Limits"} {
+	for _, want := range []string{"Feed Health Dashboard", "command center tracks exactly five configured public route paths", "/public/feeds.json", "/public/gtfs/schedule.zip", "/public/gtfsrt/vehicle_positions.pb", "/public/gtfsrt/trip_updates.pb", "/public/gtfsrt/alerts.pb", "feeds.json", "Static GTFS Schedule", "Vehicle Positions", "Trip Updates", "Alerts", "Public path", "What this means", "Freshness", "Validator context", "Health context", "active schedule context", "Next action", "Limits"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}

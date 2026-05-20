@@ -442,10 +442,21 @@ func feedHealthHealthContext(page operationsPage, feedType string, feed complian
 			parts = append(parts, page.TripUpdatesQuality.Message)
 		}
 	}
+	if feedType == "vehicle_positions" {
+		parts = append(parts, vehiclePositionsScheduleContext(page))
+	}
 	if len(parts) == 0 {
 		return "no private feed-health snapshot is recorded"
 	}
 	return strings.Join(parts, "; ")
+}
+
+func vehiclePositionsScheduleContext(page operationsPage) string {
+	schedule, hasSchedule := feedHealthMetadata(page, "schedule")
+	if !hasSchedule || strings.TrimSpace(schedule.ActiveFeedVersionID) == "" {
+		return "active schedule context is missing; publish or import GTFS before relying on trip descriptors"
+	}
+	return "active schedule context=" + schedule.ActiveFeedVersionID
 }
 
 func feedHealthThresholdText(threshold string) string {
@@ -466,6 +477,12 @@ func feedHealthNextAction(page operationsPage, feedType string, feed compliance.
 			return "Import Schedule by browser or CLI, then store publication metadata and rerun validation."
 		}
 		return "Confirm the feed is configured and listed in feeds.json, then run validator health."
+	}
+	if feedType == "vehicle_positions" {
+		schedule, hasSchedule := feedHealthMetadata(page, "schedule")
+		if !hasSchedule || strings.TrimSpace(schedule.ActiveFeedVersionID) == "" {
+			return "Import or publish the active GTFS schedule, then review Vehicle Positions trip descriptor omissions again."
+		}
 	}
 	if validation != nil && validation.HealthStatus != compliance.ValidationHealthStatusRecorded {
 		return validation.NextAction

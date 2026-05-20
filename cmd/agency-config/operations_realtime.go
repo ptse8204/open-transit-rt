@@ -544,13 +544,14 @@ func vehiclePositionsUsefulnessScore(page operationsPage, summary operationsReal
 		HelpfulSignal:        helpful,
 		NeedsReviewSignal:    needs,
 		ConsumerSafeBehavior: "Emit only defensible vehicle position fields; suppress stale rows when configured and omit trip descriptors when assignment confidence is weak.",
-		NextAction:           "Review telemetry freshness, stale suppression, assignment confidence, Vehicle Positions feed health, and realtime validation together.",
+		NextAction:           "Review telemetry freshness, stale suppression, assignment confidence, active schedule context, Vehicle Positions feed health, and realtime validation together.",
 		DoesNotProve:         "This private view does not show field reliability, vendor compatibility, hardware certification, consumer display, compliance, SLA, uptime, or production readiness.",
 		Details: []countView{
 			{Label: "fresh_telemetry", Count: summary.FreshTelemetryRows},
 			{Label: "stale_telemetry", Count: summary.StaleTelemetryRows},
 			{Label: "matched_assignments", Count: summary.MatchedAssignments},
 			{Label: "unknown_assignments", Count: summary.UnknownAssignments},
+			{Label: "low_confidence_rows", Count: summary.LowConfidenceRows},
 		},
 	}
 }

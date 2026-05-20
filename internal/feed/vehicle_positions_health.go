@@ -10,23 +10,27 @@ import (
 )
 
 type VehiclePositionsHealthRecord struct {
-	AgencyID                string
-	SnapshotAt              time.Time
-	EndpointAvailable       bool
-	FreshnessSeconds        *float64
-	GenerationLatencyMS     *float64
-	MatchedVehiclePercent   *float64
-	VehiclesInSnapshot      int
-	VehiclesInProtobuf      int
-	TripDescriptors         int
-	StaleVehicles           int
-	UnmatchedVehicles       int
-	SuppressedVehicles      int
-	AssignmentMismatches    int
-	TripDescriptorOmissions map[string]int
-	Truncated               bool
-	VehicleLimit            int
-	LatestTelemetryRowsRead int
+	AgencyID                       string
+	SnapshotAt                     time.Time
+	EndpointAvailable              bool
+	FreshnessSeconds               *float64
+	GenerationLatencyMS            *float64
+	MatchedVehiclePercent          *float64
+	VehiclesInSnapshot             int
+	VehiclesInProtobuf             int
+	TripDescriptors                int
+	StaleVehicles                  int
+	UnmatchedVehicles              int
+	SuppressedVehicles             int
+	MissingScheduleContextVehicles int
+	LowConfidenceVehicles          int
+	AssignmentMismatches           int
+	TripDescriptorOmissions        map[string]int
+	UsefulnessStatus               string
+	UsefulnessReasons              []string
+	Truncated                      bool
+	VehicleLimit                   int
+	LatestTelemetryRowsRead        int
 }
 
 type VehiclePositionsHealthRepository struct {
@@ -49,19 +53,23 @@ func (r *VehiclePositionsHealthRepository) SaveVehiclePositionsHealth(ctx contex
 		snapshotAt = time.Now().UTC()
 	}
 	details := map[string]any{
-		"diagnostics_status":         "observed",
-		"diagnostics_reason":         "vehicle_positions_feed_generated",
-		"vehicles_in_snapshot":       boundedNonNegative(record.VehiclesInSnapshot),
-		"vehicles_in_protobuf":       boundedNonNegative(record.VehiclesInProtobuf),
-		"trip_descriptors":           boundedNonNegative(record.TripDescriptors),
-		"stale_vehicles":             boundedNonNegative(record.StaleVehicles),
-		"unmatched_vehicles":         boundedNonNegative(record.UnmatchedVehicles),
-		"suppressed_vehicles":        boundedNonNegative(record.SuppressedVehicles),
-		"assignment_mismatches":      boundedNonNegative(record.AssignmentMismatches),
-		"trip_descriptor_omissions":  boundedCountMap(record.TripDescriptorOmissions),
-		"truncated":                  record.Truncated,
-		"vehicle_limit":              boundedNonNegative(record.VehicleLimit),
-		"latest_telemetry_rows_read": boundedNonNegative(record.LatestTelemetryRowsRead),
+		"diagnostics_status":                "observed",
+		"diagnostics_reason":                "vehicle_positions_feed_generated",
+		"vehicles_in_snapshot":              boundedNonNegative(record.VehiclesInSnapshot),
+		"vehicles_in_protobuf":              boundedNonNegative(record.VehiclesInProtobuf),
+		"trip_descriptors":                  boundedNonNegative(record.TripDescriptors),
+		"stale_vehicles":                    boundedNonNegative(record.StaleVehicles),
+		"unmatched_vehicles":                boundedNonNegative(record.UnmatchedVehicles),
+		"suppressed_vehicles":               boundedNonNegative(record.SuppressedVehicles),
+		"missing_schedule_context_vehicles": boundedNonNegative(record.MissingScheduleContextVehicles),
+		"low_confidence_vehicles":           boundedNonNegative(record.LowConfidenceVehicles),
+		"assignment_mismatches":             boundedNonNegative(record.AssignmentMismatches),
+		"trip_descriptor_omissions":         boundedCountMap(record.TripDescriptorOmissions),
+		"usefulness_status":                 boundedHealthText(record.UsefulnessStatus),
+		"usefulness_reasons":                boundedStringList(record.UsefulnessReasons),
+		"truncated":                         record.Truncated,
+		"vehicle_limit":                     boundedNonNegative(record.VehicleLimit),
+		"latest_telemetry_rows_read":        boundedNonNegative(record.LatestTelemetryRowsRead),
 	}
 	payload, err := json.Marshal(details)
 	if err != nil {
@@ -108,23 +116,27 @@ func HealthRecordFromVehiclePositionsSnapshot(snapshot VehiclePositionsSnapshot,
 	latency := float64(generationLatency.Milliseconds())
 	matched := matchedVehiclePercent(snapshot.Vehicles)
 	return VehiclePositionsHealthRecord{
-		AgencyID:                snapshot.AgencyID,
-		SnapshotAt:              snapshot.GeneratedAt,
-		EndpointAvailable:       true,
-		FreshnessSeconds:        freshness,
-		GenerationLatencyMS:     &latency,
-		MatchedVehiclePercent:   matched,
-		VehiclesInSnapshot:      snapshot.VehiclesInSnapshot,
-		VehiclesInProtobuf:      review.VehiclesInProtobuf,
-		TripDescriptors:         review.TripDescriptorsPublished,
-		StaleVehicles:           review.StaleVehicles,
-		UnmatchedVehicles:       review.UnmatchedVehicles,
-		SuppressedVehicles:      review.SuppressedVehicles,
-		AssignmentMismatches:    review.AssignmentTelemetryMismatches,
-		TripDescriptorOmissions: review.TripDescriptorOmissions,
-		Truncated:               snapshot.Truncated,
-		VehicleLimit:            snapshot.VehicleLimit,
-		LatestTelemetryRowsRead: snapshot.LatestTelemetryRowsRead,
+		AgencyID:                       snapshot.AgencyID,
+		SnapshotAt:                     snapshot.GeneratedAt,
+		EndpointAvailable:              true,
+		FreshnessSeconds:               freshness,
+		GenerationLatencyMS:            &latency,
+		MatchedVehiclePercent:          matched,
+		VehiclesInSnapshot:             snapshot.VehiclesInSnapshot,
+		VehiclesInProtobuf:             review.VehiclesInProtobuf,
+		TripDescriptors:                review.TripDescriptorsPublished,
+		StaleVehicles:                  review.StaleVehicles,
+		UnmatchedVehicles:              review.UnmatchedVehicles,
+		SuppressedVehicles:             review.SuppressedVehicles,
+		MissingScheduleContextVehicles: review.MissingScheduleContextVehicles,
+		LowConfidenceVehicles:          review.LowConfidenceVehicles,
+		AssignmentMismatches:           review.AssignmentTelemetryMismatches,
+		TripDescriptorOmissions:        review.TripDescriptorOmissions,
+		UsefulnessStatus:               review.UsefulnessStatus,
+		UsefulnessReasons:              review.UsefulnessReasons,
+		Truncated:                      snapshot.Truncated,
+		VehicleLimit:                   snapshot.VehicleLimit,
+		LatestTelemetryRowsRead:        snapshot.LatestTelemetryRowsRead,
 	}
 }
 
@@ -159,6 +171,28 @@ func boundedCountMap(input map[string]int) map[string]int {
 			continue
 		}
 		out[key] = boundedNonNegative(value)
+	}
+	return out
+}
+
+func boundedHealthText(value string) string {
+	if len(value) > 80 {
+		return value[:80]
+	}
+	return value
+}
+
+func boundedStringList(values []string) []string {
+	const maxItems = 8
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if value == "" {
+			continue
+		}
+		out = append(out, boundedHealthText(value))
+		if len(out) >= maxItems {
+			break
+		}
 	}
 	return out
 }
