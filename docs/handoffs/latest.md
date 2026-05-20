@@ -9,12 +9,22 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 141 of the Phase 141-160 better software roadmap is complete. Continue
-with Phase 142, using `make audit-product-roadmap-baseline` to keep the
-product-quality track tied to executable routes, site source, connector
-examples, release/audit Make targets, roadmap status categories, and protected
-consumer tracker boundaries. The grouped backlog is in
-`docs/roadmap-status.md`.
+Phase 141 through Phase 160 of the better-software roadmap are complete. The
+closeout is
+`docs/roadmaps/better-software-phase-141-160-closeout.md`. The roadmap added
+executable product-quality gates, operator issue triage, safer GTFS import and
+validation review, telemetry/device hardening, clearer GTFS-Realtime
+diagnostics, connector runtime examples and health review, redacted monitoring
+exports, self-hosted recovery guidance, tenant/role hardening, public feed
+sharing preparation, support-bundle redaction, role-based help, API/feed
+contract checks, and a refreshed release-candidate gate.
+
+Recommended next work is a software track for deeper realtime correctness:
+observed arrival/departure evaluation, delay propagation, cancellation handling,
+frequency and after-midnight service, block continuity, repeated trip
+instances, and conservative Trip Updates quality measures. Release publication,
+real connector runtime hardening with deployment data, and evidence tracks
+remain separately authorization-gated.
 
 Post-rc2 Browser-First Product Roadmap phases 01 through 15 are complete.
 The closeout is `docs/roadmaps/post-rc2-browser-first-product/closeout.md`.
