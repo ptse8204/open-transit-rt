@@ -106,3 +106,47 @@ func TestConnectorInstanceUpsertValidationRejectsSecretsAndEndpoints(t *testing.
 		})
 	}
 }
+
+func TestConnectorDryRunJobValidationRejectsRawPayloadSignals(t *testing.T) {
+	base := CreateDryRunJobInput{
+		AgencyID:            "demo-agency",
+		ConnectorInstanceID: 10,
+		Status:              "passed",
+		RedactedSummary:     json.RawMessage(`{"summary":"two accepted rows, no raw payload retained"}`),
+		AcceptedCount:       2,
+		RejectedCount:       0,
+		DroppedCount:        0,
+		RedactionScanStatus: "passed",
+	}
+	if _, err := normalizeCreateDryRunJobInput(base); err != nil {
+		t.Fatalf("valid dry-run input rejected: %v", err)
+	}
+	for name, input := range map[string]CreateDryRunJobInput{
+		"endpoint": func() CreateDryRunJobInput {
+			next := base
+			next.RedactedSummary = json.RawMessage(`{"summary":"sent to https://private.example.test"}`)
+			return next
+		}(),
+		"secret": func() CreateDryRunJobInput {
+			next := base
+			next.RedactedSummary = json.RawMessage(`{"password":"inline"}`)
+			return next
+		}(),
+		"negative_count": func() CreateDryRunJobInput {
+			next := base
+			next.AcceptedCount = -1
+			return next
+		}(),
+		"bad_status": func() CreateDryRunJobInput {
+			next := base
+			next.Status = "running"
+			return next
+		}(),
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := normalizeCreateDryRunJobInput(input); err == nil {
+				t.Fatalf("unsafe dry-run input was accepted: %+v", input)
+			}
+		})
+	}
+}

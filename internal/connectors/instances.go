@@ -57,6 +57,22 @@ type Instance struct {
 	UpdatedAt     time.Time       `json:"updated_at"`
 }
 
+type DryRunJob struct {
+	ID                  int64           `json:"id"`
+	AgencyID            string          `json:"agency_id"`
+	ConnectorInstanceID int64           `json:"connector_instance_id"`
+	Status              string          `json:"status"`
+	StartedAt           time.Time       `json:"started_at"`
+	FinishedAt          time.Time       `json:"finished_at"`
+	RedactedSummary     json.RawMessage `json:"redacted_summary,omitempty"`
+	AcceptedCount       int             `json:"accepted_count"`
+	RejectedCount       int             `json:"rejected_count"`
+	DroppedCount        int             `json:"dropped_count"`
+	RedactionScanStatus string          `json:"redaction_scan_status"`
+	CreatedBy           string          `json:"created_by"`
+	CreatedAt           time.Time       `json:"created_at"`
+}
+
 type UpsertInstanceInput struct {
 	AgencyID      string
 	ConnectorType string
@@ -71,12 +87,27 @@ type UpsertInstanceInput struct {
 	Now           time.Time
 }
 
+type CreateDryRunJobInput struct {
+	AgencyID            string
+	ConnectorInstanceID int64
+	Status              string
+	RedactedSummary     json.RawMessage
+	AcceptedCount       int
+	RejectedCount       int
+	DroppedCount        int
+	RedactionScanStatus string
+	ActorID             string
+	Now                 time.Time
+}
+
 type InstanceRepository interface {
 	ListInstances(ctx context.Context, agencyID string) ([]Instance, error)
+	ListDryRunJobs(ctx context.Context, agencyID string, limit int) ([]DryRunJob, error)
 }
 
 type InstanceWriter interface {
 	UpsertInstance(ctx context.Context, input UpsertInstanceInput) (Instance, error)
+	CreateDryRunJob(ctx context.Context, input CreateDryRunJobInput) (DryRunJob, error)
 }
 
 type PostgresInstanceStore struct {
@@ -121,6 +152,44 @@ func (s *PostgresInstanceStore) ListInstances(ctx context.Context, agencyID stri
 	return instances, nil
 }
 
+func (s *PostgresInstanceStore) ListDryRunJobs(ctx context.Context, agencyID string, limit int) ([]DryRunJob, error) {
+	if s == nil || s.pool == nil {
+		return nil, fmt.Errorf("connector instance store is unavailable")
+	}
+	agencyID = strings.TrimSpace(agencyID)
+	if err := tenant.ValidateAgencyID(agencyID); err != nil {
+		return nil, fmt.Errorf("agency_id must be path-safe: %w", err)
+	}
+	if limit <= 0 || limit > 200 {
+		limit = 50
+	}
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, agency_id, connector_instance_id, status, started_at, finished_at,
+		       redacted_summary, accepted_count, rejected_count, dropped_count,
+		       redaction_scan_status, created_by, created_at
+		FROM connector_dry_run_job
+		WHERE agency_id = $1
+		ORDER BY created_at DESC, id DESC
+		LIMIT $2
+	`, agencyID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("list connector dry-run jobs: %w", err)
+	}
+	defer rows.Close()
+	var jobs []DryRunJob
+	for rows.Next() {
+		job, err := scanDryRunJob(rows)
+		if err != nil {
+			return nil, fmt.Errorf("scan connector dry-run job: %w", err)
+		}
+		jobs = append(jobs, job)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate connector dry-run jobs: %w", err)
+	}
+	return jobs, nil
+}
+
 func (s *PostgresInstanceStore) UpsertInstance(ctx context.Context, input UpsertInstanceInput) (Instance, error) {
 	if s == nil || s.pool == nil {
 		return Instance{}, fmt.Errorf("connector instance store is unavailable")
@@ -161,6 +230,66 @@ func (s *PostgresInstanceStore) UpsertInstance(ctx context.Context, input Upsert
 	return inst, nil
 }
 
+func (s *PostgresInstanceStore) CreateDryRunJob(ctx context.Context, input CreateDryRunJobInput) (DryRunJob, error) {
+	if s == nil || s.pool == nil {
+		return DryRunJob{}, fmt.Errorf("connector instance store is unavailable")
+	}
+	input, err := normalizeCreateDryRunJobInput(input)
+	if err != nil {
+		return DryRunJob{}, err
+	}
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return DryRunJob{}, fmt.Errorf("begin connector dry-run transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+	var agencyID string
+	if err := tx.QueryRow(ctx, `
+		SELECT agency_id
+		FROM connector_instance
+		WHERE id = $1 AND agency_id = $2
+	`, input.ConnectorInstanceID, input.AgencyID).Scan(&agencyID); err != nil {
+		return DryRunJob{}, fmt.Errorf("connector instance not found: %w", err)
+	}
+	nextState := StateConfiguredNotTested
+	if input.Status == "passed" && input.RedactionScanStatus == "passed" {
+		nextState = StateDryRunPassed
+	}
+	if input.Status == "failed" || input.Status == "blocked" || input.RedactionScanStatus != "passed" {
+		nextState = StateBlocked
+	}
+	row := tx.QueryRow(ctx, `
+		INSERT INTO connector_dry_run_job (
+		  agency_id, connector_instance_id, status, started_at, finished_at,
+		  redacted_summary, accepted_count, rejected_count, dropped_count,
+		  redaction_scan_status, created_by, created_at
+		)
+		VALUES ($1, $2, $3, $4, $4, $5::jsonb, $6, $7, $8, $9, $10, $4)
+		RETURNING id, agency_id, connector_instance_id, status, started_at, finished_at,
+		          redacted_summary, accepted_count, rejected_count, dropped_count,
+		          redaction_scan_status, created_by, created_at
+	`, input.AgencyID, input.ConnectorInstanceID, input.Status, input.Now, []byte(input.RedactedSummary), input.AcceptedCount, input.RejectedCount, input.DroppedCount, input.RedactionScanStatus, input.ActorID)
+	job, err := scanDryRunJob(row)
+	if err != nil {
+		return DryRunJob{}, fmt.Errorf("insert connector dry-run job: %w", err)
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE connector_instance
+		SET dry_run_status = $1,
+		    state = $2,
+		    last_checked_at = $3,
+		    updated_by = $4,
+		    updated_at = $3
+		WHERE agency_id = $5 AND id = $6
+	`, input.Status, string(nextState), input.Now, input.ActorID, input.AgencyID, input.ConnectorInstanceID); err != nil {
+		return DryRunJob{}, fmt.Errorf("update connector dry-run status: %w", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return DryRunJob{}, fmt.Errorf("commit connector dry-run transaction: %w", err)
+	}
+	return job, nil
+}
+
 func ParseInstanceState(value string) (InstanceState, error) {
 	normalized := InstanceState(strings.TrimSpace(value))
 	for _, allowed := range SupportedInstanceStates {
@@ -169,6 +298,47 @@ func ParseInstanceState(value string) (InstanceState, error) {
 		}
 	}
 	return "", fmt.Errorf("unsupported connector instance state %q", value)
+}
+
+func normalizeCreateDryRunJobInput(input CreateDryRunJobInput) (CreateDryRunJobInput, error) {
+	input.AgencyID = strings.TrimSpace(input.AgencyID)
+	if err := tenant.ValidateAgencyID(input.AgencyID); err != nil {
+		return input, fmt.Errorf("agency_id must be path-safe: %w", err)
+	}
+	if input.ConnectorInstanceID <= 0 {
+		return input, fmt.Errorf("connector instance id is required")
+	}
+	switch strings.TrimSpace(input.Status) {
+	case "passed", "failed", "blocked":
+		input.Status = strings.TrimSpace(input.Status)
+	default:
+		return input, fmt.Errorf("unsupported dry-run status")
+	}
+	switch strings.TrimSpace(input.RedactionScanStatus) {
+	case "passed", "failed", "blocked":
+		input.RedactionScanStatus = strings.TrimSpace(input.RedactionScanStatus)
+	default:
+		return input, fmt.Errorf("unsupported redaction scan status")
+	}
+	if input.AcceptedCount < 0 || input.RejectedCount < 0 || input.DroppedCount < 0 {
+		return input, fmt.Errorf("dry-run counts must be non-negative")
+	}
+	if input.RedactedSummary == nil {
+		input.RedactedSummary = json.RawMessage(`{}`)
+	}
+	if err := validateInstanceConfig(input.RedactedSummary); err != nil {
+		return input, err
+	}
+	input.RedactedSummary = safeJSONObject(input.RedactedSummary)
+	input.ActorID = strings.TrimSpace(input.ActorID)
+	if input.ActorID == "" {
+		input.ActorID = "operator_console"
+	}
+	input.Now = input.Now.UTC()
+	if input.Now.IsZero() {
+		input.Now = time.Now().UTC()
+	}
+	return input, nil
 }
 
 func normalizeUpsertInstanceInput(input UpsertInstanceInput) (UpsertInstanceInput, error) {
@@ -351,6 +521,30 @@ func scanConnectorInstance(row instanceScanner) (Instance, error) {
 	}
 	inst.SecretRefs = cleanStringList(inst.SecretRefs)
 	return inst, nil
+}
+
+func scanDryRunJob(row instanceScanner) (DryRunJob, error) {
+	var job DryRunJob
+	var summaryRaw []byte
+	if err := row.Scan(
+		&job.ID,
+		&job.AgencyID,
+		&job.ConnectorInstanceID,
+		&job.Status,
+		&job.StartedAt,
+		&job.FinishedAt,
+		&summaryRaw,
+		&job.AcceptedCount,
+		&job.RejectedCount,
+		&job.DroppedCount,
+		&job.RedactionScanStatus,
+		&job.CreatedBy,
+		&job.CreatedAt,
+	); err != nil {
+		return DryRunJob{}, err
+	}
+	job.RedactedSummary = safeJSONObject(summaryRaw)
+	return job, nil
 }
 
 func (i Instance) DeploymentConfigExists() bool {

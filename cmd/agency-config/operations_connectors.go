@@ -32,6 +32,10 @@ type connectorInstanceStore interface {
 	ListInstances(ctx context.Context, agencyID string) ([]connectorpkg.Instance, error)
 }
 
+type connectorDryRunReader interface {
+	ListDryRunJobs(ctx context.Context, agencyID string, limit int) ([]connectorpkg.DryRunJob, error)
+}
+
 type connectorInstanceSummary struct {
 	ConnectorTypes      int    `json:"connector_types"`
 	ConfiguredInstances int    `json:"configured_instances"`
@@ -249,6 +253,18 @@ func (h *handler) connectorInstancesForPage(r *http.Request, agencyID string) ([
 		return nil, "connector instance records are not available"
 	}
 	return instances, ""
+}
+
+func (h *handler) connectorDryRunJobsForPage(r *http.Request, agencyID string) ([]connectorpkg.DryRunJob, string) {
+	reader, ok := h.connectorInstances.(connectorDryRunReader)
+	if h == nil || h.connectorInstances == nil || !ok || reader == nil {
+		return nil, ""
+	}
+	jobs, err := reader.ListDryRunJobs(r.Context(), agencyID, 50)
+	if err != nil {
+		return nil, "connector dry-run records are not available"
+	}
+	return jobs, ""
 }
 
 func connectorInstanceRows(page operationsPage, registry connectorpkg.Registry) []connectorInstanceRow {

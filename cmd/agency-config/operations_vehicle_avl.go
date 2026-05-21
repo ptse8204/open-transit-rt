@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -24,10 +25,25 @@ type vehicleAVLSetupView struct {
 	SourceShapes   []vehicleAVLShape      `json:"source_shapes"`
 	FieldMappings  []vehicleAVLField      `json:"field_mappings"`
 	Instances      []connectorInstanceRow `json:"instances"`
+	Configured     []connectorInstanceRow `json:"configured_instances"`
+	DryRuns        []vehicleAVLDryRunRow  `json:"dry_runs"`
+	DryRunError    string                 `json:"dry_run_error,omitempty"`
 	NextAction     string                 `json:"next_action"`
 	DryRunBoundary string                 `json:"dry_run_boundary"`
 	ActivationGate string                 `json:"activation_gate"`
 	DoesNotProve   string                 `json:"does_not_prove"`
+}
+
+type vehicleAVLDryRunRow struct {
+	ID          int64  `json:"id"`
+	InstanceID  int64  `json:"instance_id"`
+	Connector   string `json:"connector"`
+	Status      string `json:"status"`
+	Counts      string `json:"counts"`
+	Redaction   string `json:"redaction"`
+	Summary     string `json:"summary"`
+	FinishedAt  string `json:"finished_at"`
+	DoesNotKeep string `json:"does_not_keep"`
 }
 
 type vehicleAVLShape struct {
@@ -53,6 +69,10 @@ type vehicleAVLConfigMetadata struct {
 
 type connectorInstanceWriter interface {
 	UpsertInstance(ctx context.Context, input connectorpkg.UpsertInstanceInput) (connectorpkg.Instance, error)
+}
+
+type connectorDryRunWriter interface {
+	CreateDryRunJob(ctx context.Context, input connectorpkg.CreateDryRunJobInput) (connectorpkg.DryRunJob, error)
 }
 
 func (h *handler) renderVehicleAVLSetup(w http.ResponseWriter, r *http.Request) {
@@ -90,10 +110,17 @@ func (h *handler) operationsVehicleAVLPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	page := h.buildOperationsPage(r, principal, "vehicle-avl-setup")
-	if strings.TrimSpace(r.FormValue("action")) != "save_vehicle_avl_connector" {
+	switch strings.TrimSpace(r.FormValue("action")) {
+	case "save_vehicle_avl_connector":
+		h.operationsVehicleAVLMetadataPost(w, r, principal, page)
+	case "record_vehicle_avl_dry_run":
+		h.operationsVehicleAVLDryRunPost(w, r, principal, page)
+	default:
 		http.Error(w, "unknown connector action", http.StatusBadRequest)
-		return
 	}
+}
+
+func (h *handler) operationsVehicleAVLMetadataPost(w http.ResponseWriter, r *http.Request, principal auth.Principal, page operationsPage) {
 	writer, ok := h.connectorInstances.(connectorInstanceWriter)
 	if !ok || writer == nil {
 		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "connector instance writer is not available in this runtime")
@@ -116,12 +143,39 @@ func (h *handler) operationsVehicleAVLPost(w http.ResponseWriter, r *http.Reques
 	renderOperationsTemplate(w, "vehicle-avl-setup", page)
 }
 
+func (h *handler) operationsVehicleAVLDryRunPost(w http.ResponseWriter, r *http.Request, principal auth.Principal, page operationsPage) {
+	writer, ok := h.connectorInstances.(connectorDryRunWriter)
+	if !ok || writer == nil {
+		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "connector dry-run writer is not available in this runtime")
+		renderOperationsTemplate(w, "vehicle-avl-setup", page)
+		return
+	}
+	input, err := vehicleAVLDryRunInput(r, principal)
+	if err != nil {
+		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", err.Error())
+		renderOperationsTemplate(w, "vehicle-avl-setup", page)
+		return
+	}
+	if _, err := writer.CreateDryRunJob(r.Context(), input); err != nil {
+		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "vehicle connector dry-run result could not be recorded")
+		renderOperationsTemplate(w, "vehicle-avl-setup", page)
+		return
+	}
+	page = h.buildOperationsPage(r, principal, "vehicle-avl-setup")
+	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "Vehicle / GPS / AVL dry-run result was recorded with a redacted summary only.", "")
+	renderOperationsTemplate(w, "vehicle-avl-setup", page)
+}
+
 func buildVehicleAVLSetup(page operationsPage, notice string, errText string) vehicleAVLSetupView {
 	registry := connectorRegistryForSection("connectors")
 	var instances []connectorInstanceRow
+	var configured []connectorInstanceRow
 	for _, row := range connectorInstanceRows(page, registry) {
 		if row.ConnectorType == connectorpkg.TypeTelemetrySource {
 			instances = append(instances, row)
+			if row.State != string(connectorpkg.StateExampleAvailable) && row.State != string(connectorpkg.StateNotConfigured) {
+				configured = append(configured, row)
+			}
 		}
 	}
 	return vehicleAVLSetupView{
@@ -133,11 +187,53 @@ func buildVehicleAVLSetup(page operationsPage, notice string, errText string) ve
 		SourceShapes:   vehicleAVLShapes(),
 		FieldMappings:  vehicleAVLFields(),
 		Instances:      instances,
+		Configured:     configured,
+		DryRuns:        vehicleAVLDryRunRows(page, configured),
+		DryRunError:    page.ConnectorDryRunError,
 		NextAction:     "Choose the closest source shape, map the required fields, save metadata, then run a server-owned dry-run before activation review.",
 		DryRunBoundary: "Dry-run is required and remains server-owned. This browser page records configuration metadata only.",
 		ActivationGate: "Activation stays blocked until mapping, dry-run, device bindings, token refs, stale/future/quality rules, and redaction checks pass.",
 		DoesNotProve:   "This setup page does not prove vendor compatibility, hardware certification, production AVL reliability, consumer acceptance, compliance, uptime, or ETA quality.",
 	}
+}
+
+func vehicleAVLDryRunRows(page operationsPage, instances []connectorInstanceRow) []vehicleAVLDryRunRow {
+	names := make(map[int64]string)
+	for _, row := range instances {
+		id, err := strconv.ParseInt(row.ID, 10, 64)
+		if err == nil {
+			names[id] = row.DisplayName
+		}
+	}
+	var rows []vehicleAVLDryRunRow
+	for _, job := range page.ConnectorDryRunJobs {
+		if names[job.ConnectorInstanceID] == "" {
+			continue
+		}
+		rows = append(rows, vehicleAVLDryRunRow{
+			ID:          job.ID,
+			InstanceID:  job.ConnectorInstanceID,
+			Connector:   names[job.ConnectorInstanceID],
+			Status:      job.Status,
+			Counts:      fmt.Sprintf("accepted=%d rejected=%d dropped=%d", job.AcceptedCount, job.RejectedCount, job.DroppedCount),
+			Redaction:   job.RedactionScanStatus,
+			Summary:     dryRunSummaryText(job.RedactedSummary),
+			FinishedAt:  job.FinishedAt.UTC().Format(time.RFC3339),
+			DoesNotKeep: "Raw payloads are not retained by default.",
+		})
+	}
+	return rows
+}
+
+func dryRunSummaryText(raw json.RawMessage) string {
+	var obj map[string]any
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		return "summary unavailable"
+	}
+	if value, ok := obj["summary"].(string); ok && strings.TrimSpace(value) != "" {
+		return strings.TrimSpace(value)
+	}
+	return "redacted summary recorded"
 }
 
 func vehicleAVLShapes() []vehicleAVLShape {
@@ -223,6 +319,75 @@ func vehicleAVLInstanceInput(r *http.Request, principal auth.Principal) (connect
 		ActorID:       principal.Subject,
 		Now:           time.Now().UTC(),
 	}, nil
+}
+
+func vehicleAVLDryRunInput(r *http.Request, principal auth.Principal) (connectorpkg.CreateDryRunJobInput, error) {
+	instanceID, err := strconv.ParseInt(strings.TrimSpace(r.FormValue("connector_instance_id")), 10, 64)
+	if err != nil || instanceID <= 0 {
+		return connectorpkg.CreateDryRunJobInput{}, fmt.Errorf("connector instance is required")
+	}
+	summary := strings.TrimSpace(r.FormValue("redacted_summary"))
+	if summary == "" {
+		return connectorpkg.CreateDryRunJobInput{}, fmt.Errorf("redacted summary is required")
+	}
+	if err := validateRedactedDryRunSummary(summary); err != nil {
+		return connectorpkg.CreateDryRunJobInput{}, err
+	}
+	summaryJSON, err := json.Marshal(map[string]any{
+		"summary":              summary,
+		"raw_payload_retained": false,
+		"browser_executed":     false,
+	})
+	if err != nil {
+		return connectorpkg.CreateDryRunJobInput{}, err
+	}
+	accepted, err := dryRunCount(r, "accepted_count")
+	if err != nil {
+		return connectorpkg.CreateDryRunJobInput{}, err
+	}
+	rejected, err := dryRunCount(r, "rejected_count")
+	if err != nil {
+		return connectorpkg.CreateDryRunJobInput{}, err
+	}
+	dropped, err := dryRunCount(r, "dropped_count")
+	if err != nil {
+		return connectorpkg.CreateDryRunJobInput{}, err
+	}
+	return connectorpkg.CreateDryRunJobInput{
+		AgencyID:            principal.AgencyID,
+		ConnectorInstanceID: instanceID,
+		Status:              strings.TrimSpace(r.FormValue("dry_run_status")),
+		RedactedSummary:     summaryJSON,
+		AcceptedCount:       accepted,
+		RejectedCount:       rejected,
+		DroppedCount:        dropped,
+		RedactionScanStatus: strings.TrimSpace(r.FormValue("redaction_scan_status")),
+		ActorID:             principal.Subject,
+		Now:                 time.Now().UTC(),
+	}, nil
+}
+
+func dryRunCount(r *http.Request, name string) (int, error) {
+	raw := strings.TrimSpace(r.FormValue(name))
+	if raw == "" {
+		return 0, nil
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil || value < 0 || value > 100000 {
+		return 0, fmt.Errorf("%s must be a non-negative bounded count", strings.ReplaceAll(name, "_", " "))
+	}
+	return value, nil
+}
+
+func validateRedactedDryRunSummary(value string) error {
+	if len(value) > 300 {
+		return fmt.Errorf("redacted summary is too long")
+	}
+	lower := strings.ToLower(value)
+	if strings.Contains(value, "://") || strings.Contains(lower, "password=") || strings.Contains(lower, "token=") || strings.Contains(lower, "secret=") {
+		return fmt.Errorf("redacted summary must not contain endpoints or inline secrets")
+	}
+	return nil
 }
 
 func vehicleAVLShapeAllowed(shape string) bool {

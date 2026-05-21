@@ -861,3 +861,9 @@ instance, plus deployment-owned secret reference labels. Saving that metadata
 sets the instance to `configured_not_tested`; dry-run, device binding,
 activation, accepted telemetry, and live reliability remain separate signals
 and later gates.
+
+Phase 171 adds server-owned dry-run result records. The browser can record
+bounded redacted summaries, accepted/rejected/dropped counts, and redaction
+scan status for a configured connector instance. The record updates instance
+dry-run state, but it does not store raw payloads, run adapter commands, start
+sidecars, contact external systems, or prove live AVL reliability.

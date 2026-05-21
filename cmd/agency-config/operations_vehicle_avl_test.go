@@ -129,6 +129,84 @@ func TestVehicleAVLSetupPostRejectsUnsafeMetadata(t *testing.T) {
 	}
 }
 
+func TestVehicleAVLDryRunPostStoresRedactedResult(t *testing.T) {
+	store := &fakeVehicleAVLConnectorStore{instances: []connectorpkg.Instance{{
+		ID:            101,
+		AgencyID:      "demo-agency",
+		ConnectorType: connectorpkg.TypeTelemetrySource,
+		ConnectorKind: "generic_json_transform",
+		DisplayName:   "Agency AVL poller",
+		State:         connectorpkg.StateConfiguredNotTested,
+		DryRunStatus:  "not_run",
+	}}}
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}, connectorInstances: store}, auth.TestAuthenticator{Principal: phase02AdminPrincipal()})
+	form := url.Values{
+		"action":                {"record_vehicle_avl_dry_run"},
+		"connector_instance_id": {"101"},
+		"dry_run_status":        {"passed"},
+		"redaction_scan_status": {"passed"},
+		"accepted_count":        {"2"},
+		"rejected_count":        {"1"},
+		"dropped_count":         {"0"},
+		"redacted_summary":      {"Synthetic fixture accepted two rows; no raw payload retained"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/connectors/vehicle-avl", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("dry-run post status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.savedDryRun.ConnectorInstanceID != 101 || store.savedDryRun.Status != "passed" || store.savedDryRun.AcceptedCount != 2 {
+		t.Fatalf("saved dry-run = %+v", store.savedDryRun)
+	}
+	raw := strings.ToLower(string(store.savedDryRun.RedactedSummary))
+	for _, forbidden := range []string{"http://", "https://", "password=", "token=", "secret=", "raw_payload\":true"} {
+		if strings.Contains(raw, forbidden) {
+			t.Fatalf("dry-run summary leaked forbidden value %q: %s", forbidden, raw)
+		}
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"dry-run result was recorded", string(connectorpkg.StateDryRunPassed), "accepted=2 rejected=1 dropped=0"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("dry-run response missing %q: %s", want, body)
+		}
+	}
+}
+
+func TestVehicleAVLDryRunPostRejectsRawSummary(t *testing.T) {
+	store := &fakeVehicleAVLConnectorStore{instances: []connectorpkg.Instance{{
+		ID:            101,
+		AgencyID:      "demo-agency",
+		ConnectorType: connectorpkg.TypeTelemetrySource,
+		ConnectorKind: "generic_json_transform",
+		DisplayName:   "Agency AVL poller",
+		State:         connectorpkg.StateConfiguredNotTested,
+		DryRunStatus:  "not_run",
+	}}}
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}, connectorInstances: store}, auth.TestAuthenticator{Principal: phase02AdminPrincipal()})
+	form := url.Values{
+		"action":                {"record_vehicle_avl_dry_run"},
+		"connector_instance_id": {"101"},
+		"dry_run_status":        {"passed"},
+		"redaction_scan_status": {"passed"},
+		"redacted_summary":      {"payload sent to https://private.example.test with token=value"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/connectors/vehicle-avl", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("dry-run validation status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), "must not contain endpoints or inline secrets") {
+		t.Fatalf("response missing raw summary validation error: %s", rr.Body.String())
+	}
+	if store.savedDryRun.ConnectorInstanceID != 0 {
+		t.Fatalf("unsafe dry-run was saved: %+v", store.savedDryRun)
+	}
+}
+
 func vehicleAVLValidForm() url.Values {
 	return url.Values{
 		"action":                   {"save_vehicle_avl_connector"},
@@ -152,12 +230,18 @@ func vehicleAVLValidForm() url.Values {
 }
 
 type fakeVehicleAVLConnectorStore struct {
-	instances []connectorpkg.Instance
-	saved     connectorpkg.UpsertInstanceInput
+	instances   []connectorpkg.Instance
+	saved       connectorpkg.UpsertInstanceInput
+	jobs        []connectorpkg.DryRunJob
+	savedDryRun connectorpkg.CreateDryRunJobInput
 }
 
 func (f *fakeVehicleAVLConnectorStore) ListInstances(context.Context, string) ([]connectorpkg.Instance, error) {
 	return f.instances, nil
+}
+
+func (f *fakeVehicleAVLConnectorStore) ListDryRunJobs(context.Context, string, int) ([]connectorpkg.DryRunJob, error) {
+	return f.jobs, nil
 }
 
 func (f *fakeVehicleAVLConnectorStore) UpsertInstance(_ context.Context, input connectorpkg.UpsertInstanceInput) (connectorpkg.Instance, error) {
@@ -176,4 +260,35 @@ func (f *fakeVehicleAVLConnectorStore) UpsertInstance(_ context.Context, input c
 	}
 	f.instances = append(f.instances, instance)
 	return instance, nil
+}
+
+func (f *fakeVehicleAVLConnectorStore) CreateDryRunJob(_ context.Context, input connectorpkg.CreateDryRunJobInput) (connectorpkg.DryRunJob, error) {
+	f.savedDryRun = input
+	job := connectorpkg.DryRunJob{
+		ID:                  501,
+		AgencyID:            input.AgencyID,
+		ConnectorInstanceID: input.ConnectorInstanceID,
+		Status:              input.Status,
+		StartedAt:           input.Now,
+		FinishedAt:          input.Now,
+		RedactedSummary:     input.RedactedSummary,
+		AcceptedCount:       input.AcceptedCount,
+		RejectedCount:       input.RejectedCount,
+		DroppedCount:        input.DroppedCount,
+		RedactionScanStatus: input.RedactionScanStatus,
+		CreatedBy:           input.ActorID,
+		CreatedAt:           input.Now,
+	}
+	f.jobs = append([]connectorpkg.DryRunJob{job}, f.jobs...)
+	for i := range f.instances {
+		if f.instances[i].ID == input.ConnectorInstanceID {
+			f.instances[i].DryRunStatus = input.Status
+			if input.Status == "passed" && input.RedactionScanStatus == "passed" {
+				f.instances[i].State = connectorpkg.StateDryRunPassed
+			} else {
+				f.instances[i].State = connectorpkg.StateBlocked
+			}
+		}
+	}
+	return job, nil
 }

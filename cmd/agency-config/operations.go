@@ -64,6 +64,8 @@ type operationsPage struct {
 	ConnectorHub           connectorHubView
 	ConnectorInstances     []connectorpkg.Instance
 	ConnectorInstanceError string
+	ConnectorDryRunJobs    []connectorpkg.DryRunJob
+	ConnectorDryRunError   string
 	VehicleAVLSetup        vehicleAVLSetupView
 	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
@@ -1205,6 +1207,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorInstances, page.ConnectorInstanceError = h.connectorInstancesForPage(r, principal.AgencyID)
+	page.ConnectorDryRunJobs, page.ConnectorDryRunError = h.connectorDryRunJobsForPage(r, principal.AgencyID)
 	page.ConnectorHub = buildConnectorHub(page)
 	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "")
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
@@ -2761,6 +2764,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Shape</th><th>Use when</th><th>First safe check</th><th>Browser limit</th></tr></thead><tbody>
 {{range .VehicleAVLSetup.SourceShapes}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Summary}}</td><td>{{.FirstCheck}}</td><td>{{.DoesNotRun}}</td></tr>{{end}}
 </tbody></table>
+<h3>Dry-run Review</h3>
+{{if .VehicleAVLSetup.DryRunError}}<p class="warning">{{.VehicleAVLSetup.DryRunError}}</p>{{end}}
+<table><thead><tr><th>Connector</th><th>Status</th><th>Counts</th><th>Redaction scan</th><th>Summary</th><th>Finished</th><th>Retention</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.DryRuns}}<tr><td>{{.Connector}}<br><code>{{.InstanceID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.Counts}}</td><td>{{.Redaction}}</td><td>{{.Summary}}</td><td>{{.FinishedAt}}</td><td>{{.DoesNotKeep}}</td></tr>{{else}}<tr><td colspan="7">No vehicle connector dry-run results recorded yet.</td></tr>{{end}}
+</tbody></table>
 {{if .IsAdmin}}
 <h3 id="vehicle-avl-form">Save Vehicle Connector Metadata</h3>
 <form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-form">
@@ -2775,6 +2783,23 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </fieldset>
 <button type="submit">Save vehicle connector metadata</button>
 </form>
+<h3 id="vehicle-avl-dry-run-form">Record Server-Owned Dry-run Result</h3>
+{{if .VehicleAVLSetup.Configured}}
+<form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-dry-run-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="record_vehicle_avl_dry_run">
+<label for="vehicle_avl_dry_run_instance">Connector instance</label><select id="vehicle_avl_dry_run_instance" name="connector_instance_id">{{range .VehicleAVLSetup.Configured}}<option value="{{.ID}}">{{.DisplayName}} — {{.State}}</option>{{end}}</select>
+<label for="vehicle_avl_dry_run_status">Dry-run status</label><select id="vehicle_avl_dry_run_status" name="dry_run_status"><option value="passed">passed</option><option value="failed">failed</option><option value="blocked">blocked</option></select>
+<label for="vehicle_avl_redaction_scan_status">Redaction scan</label><select id="vehicle_avl_redaction_scan_status" name="redaction_scan_status"><option value="passed">passed</option><option value="failed">failed</option><option value="blocked">blocked</option></select>
+<label for="vehicle_avl_accepted_count">Accepted count</label><input id="vehicle_avl_accepted_count" name="accepted_count" type="number" min="0" max="100000" value="0">
+<label for="vehicle_avl_rejected_count">Rejected count</label><input id="vehicle_avl_rejected_count" name="rejected_count" type="number" min="0" max="100000" value="0">
+<label for="vehicle_avl_dropped_count">Dropped count</label><input id="vehicle_avl_dropped_count" name="dropped_count" type="number" min="0" max="100000" value="0">
+<label for="vehicle_avl_redacted_summary">Redacted summary</label><input id="vehicle_avl_redacted_summary" name="redacted_summary" maxlength="300" required placeholder="Synthetic fixture accepted two rows; no raw payload retained">
+<button type="submit">Record redacted dry-run result</button>
+</form>
+{{else}}
+<p class="warning">Save a vehicle connector instance before recording a dry-run result.</p>
+{{end}}
 {{else}}
 <p class="warning">Vehicle connector metadata changes require an admin role. This account can review field mapping requirements but cannot save connector configuration.</p>
 {{end}}

@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 170 of the production login, setup, dashboard, and connector
+Phase 171 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-20. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -32,7 +32,10 @@ and `blocked`. Phase 170 adds the first connector setup workflow at
 `/admin/operations/connectors/vehicle-avl` for Vehicle / GPS / AVL metadata,
 field mapping, source-shape selection, and secret reference labels; saving
 metadata resets the instance to `configured_not_tested` and dry-run remains
-required before activation. Local demo sign-in
+required before activation. Phase 171 adds connector dry-run job records and
+Vehicle / GPS / AVL dry-run review: admins can record bounded redacted
+server-owned dry-run results, counts, and redaction scan status without raw
+payload retention or browser command execution. Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated
 JWTs are rejected, new Bearer and `admin_session` JWTs are accepted,
