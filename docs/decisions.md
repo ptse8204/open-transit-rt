@@ -918,3 +918,10 @@ the reminder for the current browser session/current next setup blocker using
 a non-auth session cookie under `/admin/operations`; stale dismissals do not
 hide a changed blocker. The reminder does not mutate setup state, create
 evidence, contact external systems, or change consumer status.
+
+Phase 178 makes the public/user-facing docs match the product layer that now
+exists: production-style self-hosting uses one-time first-admin setup links,
+password login at `/admin/login`, and the internal signed `admin_session`.
+Docs and site copy must keep `/admin/local-login` local/demo-only, describe
+SSO/OIDC as deferred, and distinguish configured connector instances from
+committed examples.

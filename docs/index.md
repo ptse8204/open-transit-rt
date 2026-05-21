@@ -27,6 +27,7 @@ Use this page to choose the right guide without reading project-history files.
 ## Administrators And Deployment Owners
 
 - [Self-Hosted Operator Trial](tutorials/self-hosted-operator-trial.md)
+- [Production Login, Setup, And Connectors](tutorials/production-login-setup-connectors.md)
 - [Reusable Agency Onboarding](tutorials/reusable-agency-onboarding.md)
 - [Operator Smoke And Support Bundle](tutorials/operator-smoke-and-support-bundle.md)
 - [Deploy With Docker Compose](tutorials/deploy-with-docker-compose.md)

@@ -54,9 +54,8 @@ browser, then signs in at `/admin/login`. Successful password login issues the
 internal signed `admin_session` cookie; `/admin/local-login` remains
 local/demo-only and disabled in production. SSO/OIDC is not implemented yet.
 
-Use the visible action groups in this order: **Start**, **Setup**, **GTFS**,
-**Feeds**, **Realtime**, **Vehicles**, **Connectors**, **Readiness**,
-**Maintenance**, **Admin**, and **Help**.
+Use the visible action groups in this order: **Dashboard**, **Setup**,
+**Data**, **Realtime**, **Connectors**, **Operations**, and **Admin**.
 
 Normal browser review does not require manual tokens, curl, DevTools, or a
 header extension. An administrator or deployment owner is still needed for
@@ -104,6 +103,7 @@ More help:
 - [Small Agency Quick Start](wiki/small-agency-quick-start.md)
 - [Browser-First Setup](wiki/browser-first-setup.md)
 - [No Command Line First Run](docs/tutorials/no-cli-agency-first-run.md)
+- [Production Login, Setup, And Connectors](docs/tutorials/production-login-setup-connectors.md)
 - [Small Agency Maintenance Guide](docs/tutorials/small-agency-maintenance-guide.md)
 - [Video Recording Guide](docs/tutorials/video-recording-guide.md)
 
@@ -169,9 +169,19 @@ Connector review starts in the browser:
 
 ```text
 /admin/operations/connectors
+/admin/operations/connectors/vehicle-avl
+/admin/operations/connectors/prediction
+/admin/operations/connectors/validators
+/admin/operations/connectors/monitoring
+/admin/operations/connectors/discovery
 /admin/operations/connectors/workbench
 /admin/operations/connectors/tests
 ```
+
+The Connectors overview separates committed examples from deployment-owned
+configured instances. Example manifests do not mean a connector is configured
+or active. Vehicle/GPS/AVL setup is first because the intended realtime ingest
+path is adapter or sidecar output into authenticated `POST /v1/telemetry`.
 
 ### Works Today / Local-Supported
 

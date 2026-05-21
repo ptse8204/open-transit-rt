@@ -47,6 +47,7 @@
         <li><div><strong>Prepare the server</strong><span>Use an operator-owned Linux host, database, reverse proxy, and private service account.</span></div></li>
         <li><div><strong>Configure secrets</strong><span>Set database, admin, CSRF, and device-token secrets in private env files.</span></div></li>
         <li><div><strong>Run migrations</strong><span>Apply database migrations before starting app services.</span></div></li>
+        <li><div><strong>Create the first admin</strong><span>Generate a one-time setup link from the server, set the first password, then use <code>/admin/login</code>.</span></div></li>
         <li><div><strong>Start private services</strong><span>Run agency-config, telemetry ingest, and feed services behind the reverse proxy.</span></div></li>
         <li><div><strong>Open the console</strong><span>Use the private Operations Console to set up the agency and import a schedule.</span></div></li>
         <li><div><strong>Check the five feeds</strong><span>Confirm discovery, schedule, Vehicle Positions, Trip Updates, and Alerts paths.</span></div></li>
@@ -71,6 +72,7 @@
           <tr><td>Schedule import and active feed version</td><td>Operator or administrator</td><td><code>/admin/operations/gtfs-import</code></td></tr>
           <tr><td>Public feed base URL and reverse proxy</td><td>Deployment owner</td><td><code>/admin/operations/feed-health</code></td></tr>
           <tr><td>Vehicle data, device tokens, sidecars</td><td>Administrator and integrator</td><td><code>/admin/operations/devices</code></td></tr>
+          <tr><td>Connector instances and dry-runs</td><td>Administrator and integrator</td><td><code>/admin/operations/connectors/vehicle-avl</code></td></tr>
           <tr><td>Backups, validators, monitoring, updates</td><td>Deployment owner</td><td><code>/admin/operations/maintenance</code></td></tr>
         </tbody>
       </table>

@@ -45,6 +45,14 @@ admin URL, admin token, and database URL.
 Do not expose admin, debug, GTFS Studio, or Operations Console routes on the
 anonymous public feed edge.
 
+For a production-style browser login, create the first admin from the operator
+shell with the deployment guide's `bootstrap-admin-link` command, open the
+one-time setup link through the private admin path, set the password, then use
+`/admin/login`. `/admin/local-login` is local/demo-only and stays disabled in
+production. SSO/OIDC is not implemented; future SSO must issue the same
+internal `admin_session` only after external identity verification and role
+mapping.
+
 ## 2. Choose A GTFS Source
 
 For a real local/reference evaluation, provide the agency ID from
@@ -129,12 +137,14 @@ Use the admin URL and token printed by onboarding, or use the private admin
 boundary from the reference deployment:
 
 ```text
+/admin/operations
+/admin/operations/setup-wizard
 /admin/operations/readiness
 ```
 
-The readiness page must stay behind admin authentication, SSH tunnel, VPN, or
-another private/admin-protected boundary. Do not expose
-`/admin/operations/readiness` on the public edge.
+These private pages must stay behind admin authentication, SSH tunnel, VPN, or
+another private/admin-protected boundary. Do not expose `/admin/operations*`
+on the public edge.
 
 Review the readiness rows for public URLs, static GTFS, Vehicle Positions,
 Trip Updates, Alerts, license/contact metadata, validation, telemetry
@@ -146,11 +156,17 @@ Also open:
 
 ```text
 /admin/operations/maintenance
+/admin/operations/connectors
+/admin/operations/connectors/vehicle-avl
 ```
 
 Use it for backup/restore configuration presence, latest import/check signals,
 telemetry freshness, validator state, service-health availability, and
 weekly/monthly maintenance next actions.
+
+The connector overview distinguishes committed examples from configured
+connector instances. For vehicle/GPS/AVL, review the guided setup page before
+running a synthetic adapter dry-run or configuring deployment-owned sidecars.
 
 ## 5. Run, Skip, Or Blocker-Document Validators
 

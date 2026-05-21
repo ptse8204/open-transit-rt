@@ -234,12 +234,17 @@ Open:
 
 ```text
 /admin/operations/connectors
+/admin/operations/connectors/vehicle-avl
+/admin/operations/connectors/prediction
+/admin/operations/connectors/validators
+/admin/operations/connectors/monitoring
+/admin/operations/connectors/discovery
 ```
 
-The Connector Hub explains sidecar, manifest, command-adapter, telemetry,
-prediction, validator, monitoring, and discovery paths. Start with synthetic
-examples and local conformance checks before connecting any external GPS/AVL or
-prediction system.
+The Connector Hub separates examples from configured connector instances. Use
+Vehicle/GPS/AVL setup first, then prediction, validators, monitoring, and
+discovery. Start with synthetic examples and local conformance checks before
+connecting any external GPS/AVL or prediction system.
 
 ## What Needs A Technical Helper
 

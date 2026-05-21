@@ -42,11 +42,20 @@ product routes as the local evaluator:
 
 ```text
 /admin/operations
+/admin/login
+/admin/logout
 /admin/operations/setup-wizard
+/admin/operations/admin/sessions
+/admin/operations/admin/users
 /admin/operations/feed-health
 /admin/operations/gtfs-import
 /admin/operations/gtfs-workbench
 /admin/operations/connectors
+/admin/operations/connectors/vehicle-avl
+/admin/operations/connectors/prediction
+/admin/operations/connectors/validators
+/admin/operations/connectors/monitoring
+/admin/operations/connectors/discovery
 /admin/operations/validation-health
 /admin/operations/readiness
 /admin/operations/maintenance
