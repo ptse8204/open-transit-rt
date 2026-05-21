@@ -100,6 +100,14 @@ type CreateDryRunJobInput struct {
 	Now                 time.Time
 }
 
+type UpdateInstanceStateInput struct {
+	AgencyID string
+	ID       int64
+	State    InstanceState
+	ActorID  string
+	Now      time.Time
+}
+
 type InstanceRepository interface {
 	ListInstances(ctx context.Context, agencyID string) ([]Instance, error)
 	ListDryRunJobs(ctx context.Context, agencyID string, limit int) ([]DryRunJob, error)
@@ -108,6 +116,7 @@ type InstanceRepository interface {
 type InstanceWriter interface {
 	UpsertInstance(ctx context.Context, input UpsertInstanceInput) (Instance, error)
 	CreateDryRunJob(ctx context.Context, input CreateDryRunJobInput) (DryRunJob, error)
+	UpdateInstanceState(ctx context.Context, input UpdateInstanceStateInput) (Instance, error)
 }
 
 type PostgresInstanceStore struct {
@@ -290,6 +299,33 @@ func (s *PostgresInstanceStore) CreateDryRunJob(ctx context.Context, input Creat
 	return job, nil
 }
 
+func (s *PostgresInstanceStore) UpdateInstanceState(ctx context.Context, input UpdateInstanceStateInput) (Instance, error) {
+	if s == nil || s.pool == nil {
+		return Instance{}, fmt.Errorf("connector instance store is unavailable")
+	}
+	input, err := normalizeUpdateInstanceStateInput(input)
+	if err != nil {
+		return Instance{}, err
+	}
+	row := s.pool.QueryRow(ctx, `
+		UPDATE connector_instance
+		SET state = $1,
+		    activated_at = CASE WHEN $1 = 'active' THEN $2 ELSE activated_at END,
+		    disabled_at = CASE WHEN $1 = 'active' THEN NULL ELSE disabled_at END,
+		    updated_by = $3,
+		    updated_at = $2
+		WHERE agency_id = $4 AND id = $5
+		RETURNING id, agency_id, connector_type, connector_kind, display_name, state, owner,
+		          config_json, secret_refs, dry_run_status, last_checked_at, activated_at,
+		          disabled_at, created_by, updated_by, created_at, updated_at
+	`, string(input.State), input.Now, input.ActorID, input.AgencyID, input.ID)
+	inst, err := scanConnectorInstance(row)
+	if err != nil {
+		return Instance{}, fmt.Errorf("update connector instance state: %w", err)
+	}
+	return inst, nil
+}
+
 func ParseInstanceState(value string) (InstanceState, error) {
 	normalized := InstanceState(strings.TrimSpace(value))
 	for _, allowed := range SupportedInstanceStates {
@@ -298,6 +334,28 @@ func ParseInstanceState(value string) (InstanceState, error) {
 		}
 	}
 	return "", fmt.Errorf("unsupported connector instance state %q", value)
+}
+
+func normalizeUpdateInstanceStateInput(input UpdateInstanceStateInput) (UpdateInstanceStateInput, error) {
+	input.AgencyID = strings.TrimSpace(input.AgencyID)
+	if err := tenant.ValidateAgencyID(input.AgencyID); err != nil {
+		return input, fmt.Errorf("agency_id must be path-safe: %w", err)
+	}
+	if input.ID <= 0 {
+		return input, fmt.Errorf("connector instance id is required")
+	}
+	if _, err := ParseInstanceState(string(input.State)); err != nil {
+		return input, err
+	}
+	input.ActorID = strings.TrimSpace(input.ActorID)
+	if input.ActorID == "" {
+		input.ActorID = "operator_console"
+	}
+	input.Now = input.Now.UTC()
+	if input.Now.IsZero() {
+		input.Now = time.Now().UTC()
+	}
+	return input, nil
 }
 
 func normalizeCreateDryRunJobInput(input CreateDryRunJobInput) (CreateDryRunJobInput, error) {

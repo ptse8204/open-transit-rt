@@ -17,21 +17,23 @@ import (
 const vehicleAVLPostMaxBytes = 64 << 10
 
 type vehicleAVLSetupView struct {
-	GeneratedAt    time.Time              `json:"generated_at"`
-	AgencyID       string                 `json:"agency_id"`
-	Boundary       string                 `json:"boundary"`
-	Notice         string                 `json:"notice,omitempty"`
-	Error          string                 `json:"error,omitempty"`
-	SourceShapes   []vehicleAVLShape      `json:"source_shapes"`
-	FieldMappings  []vehicleAVLField      `json:"field_mappings"`
-	Instances      []connectorInstanceRow `json:"instances"`
-	Configured     []connectorInstanceRow `json:"configured_instances"`
-	DryRuns        []vehicleAVLDryRunRow  `json:"dry_runs"`
-	DryRunError    string                 `json:"dry_run_error,omitempty"`
-	NextAction     string                 `json:"next_action"`
-	DryRunBoundary string                 `json:"dry_run_boundary"`
-	ActivationGate string                 `json:"activation_gate"`
-	DoesNotProve   string                 `json:"does_not_prove"`
+	GeneratedAt    time.Time                 `json:"generated_at"`
+	AgencyID       string                    `json:"agency_id"`
+	Boundary       string                    `json:"boundary"`
+	Notice         string                    `json:"notice,omitempty"`
+	Error          string                    `json:"error,omitempty"`
+	SourceShapes   []vehicleAVLShape         `json:"source_shapes"`
+	FieldMappings  []vehicleAVLField         `json:"field_mappings"`
+	Instances      []connectorInstanceRow    `json:"instances"`
+	Configured     []connectorInstanceRow    `json:"configured_instances"`
+	DryRuns        []vehicleAVLDryRunRow     `json:"dry_runs"`
+	DryRunError    string                    `json:"dry_run_error,omitempty"`
+	Activation     []vehicleAVLActivationRow `json:"activation"`
+	ReadyInstances []connectorInstanceRow    `json:"ready_instances"`
+	NextAction     string                    `json:"next_action"`
+	DryRunBoundary string                    `json:"dry_run_boundary"`
+	ActivationGate string                    `json:"activation_gate"`
+	DoesNotProve   string                    `json:"does_not_prove"`
 }
 
 type vehicleAVLDryRunRow struct {
@@ -44,6 +46,16 @@ type vehicleAVLDryRunRow struct {
 	Summary     string `json:"summary"`
 	FinishedAt  string `json:"finished_at"`
 	DoesNotKeep string `json:"does_not_keep"`
+}
+
+type vehicleAVLActivationRow struct {
+	InstanceID    int64  `json:"instance_id"`
+	Connector     string `json:"connector"`
+	CheckID       string `json:"check_id"`
+	Label         string `json:"label"`
+	Status        string `json:"status"`
+	CurrentSignal string `json:"current_signal"`
+	NextAction    string `json:"next_action"`
 }
 
 type vehicleAVLShape struct {
@@ -73,6 +85,10 @@ type connectorInstanceWriter interface {
 
 type connectorDryRunWriter interface {
 	CreateDryRunJob(ctx context.Context, input connectorpkg.CreateDryRunJobInput) (connectorpkg.DryRunJob, error)
+}
+
+type connectorInstanceStateWriter interface {
+	UpdateInstanceState(ctx context.Context, input connectorpkg.UpdateInstanceStateInput) (connectorpkg.Instance, error)
 }
 
 func (h *handler) renderVehicleAVLSetup(w http.ResponseWriter, r *http.Request) {
@@ -115,9 +131,45 @@ func (h *handler) operationsVehicleAVLPost(w http.ResponseWriter, r *http.Reques
 		h.operationsVehicleAVLMetadataPost(w, r, principal, page)
 	case "record_vehicle_avl_dry_run":
 		h.operationsVehicleAVLDryRunPost(w, r, principal, page)
+	case "mark_vehicle_avl_ready":
+		h.operationsVehicleAVLReadyPost(w, r, principal, page)
 	default:
 		http.Error(w, "unknown connector action", http.StatusBadRequest)
 	}
+}
+
+func (h *handler) operationsVehicleAVLReadyPost(w http.ResponseWriter, r *http.Request, principal auth.Principal, page operationsPage) {
+	writer, ok := h.connectorInstances.(connectorInstanceStateWriter)
+	if !ok || writer == nil {
+		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "connector state writer is not available in this runtime")
+		renderOperationsTemplate(w, "vehicle-avl-setup", page)
+		return
+	}
+	instanceID, err := strconv.ParseInt(strings.TrimSpace(r.FormValue("connector_instance_id")), 10, 64)
+	if err != nil || instanceID <= 0 {
+		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "connector instance is required")
+		renderOperationsTemplate(w, "vehicle-avl-setup", page)
+		return
+	}
+	if !vehicleAVLReadyInstanceIDs(page)[instanceID] {
+		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "activation readiness checks must pass before marking a connector ready")
+		renderOperationsTemplate(w, "vehicle-avl-setup", page)
+		return
+	}
+	if _, err := writer.UpdateInstanceState(r.Context(), connectorpkg.UpdateInstanceStateInput{
+		AgencyID: principal.AgencyID,
+		ID:       instanceID,
+		State:    connectorpkg.StateReadyForActivation,
+		ActorID:  principal.Subject,
+		Now:      time.Now().UTC(),
+	}); err != nil {
+		page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "connector could not be marked ready for deployment-owned activation")
+		renderOperationsTemplate(w, "vehicle-avl-setup", page)
+		return
+	}
+	page = h.buildOperationsPage(r, principal, "vehicle-avl-setup")
+	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "Connector was marked ready for deployment-owned activation. The browser did not start a sidecar or contact an external source.", "")
+	renderOperationsTemplate(w, "vehicle-avl-setup", page)
 }
 
 func (h *handler) operationsVehicleAVLMetadataPost(w http.ResponseWriter, r *http.Request, principal auth.Principal, page operationsPage) {
@@ -190,11 +242,134 @@ func buildVehicleAVLSetup(page operationsPage, notice string, errText string) ve
 		Configured:     configured,
 		DryRuns:        vehicleAVLDryRunRows(page, configured),
 		DryRunError:    page.ConnectorDryRunError,
+		Activation:     vehicleAVLActivationRows(page, configured),
+		ReadyInstances: vehicleAVLReadyInstances(page, configured),
 		NextAction:     "Choose the closest source shape, map the required fields, save metadata, then run a server-owned dry-run before activation review.",
 		DryRunBoundary: "Dry-run is required and remains server-owned. This browser page records configuration metadata only.",
 		ActivationGate: "Activation stays blocked until mapping, dry-run, device bindings, token refs, stale/future/quality rules, and redaction checks pass.",
 		DoesNotProve:   "This setup page does not prove vendor compatibility, hardware certification, production AVL reliability, consumer acceptance, compliance, uptime, or ETA quality.",
 	}
+}
+
+func vehicleAVLReadyInstanceIDs(page operationsPage) map[int64]bool {
+	ready := make(map[int64]bool)
+	for _, row := range vehicleAVLReadyInstances(page, configuredVehicleAVLRows(page)) {
+		id, err := strconv.ParseInt(row.ID, 10, 64)
+		if err == nil {
+			ready[id] = true
+		}
+	}
+	return ready
+}
+
+func configuredVehicleAVLRows(page operationsPage) []connectorInstanceRow {
+	registry := connectorRegistryForSection("connectors")
+	var configured []connectorInstanceRow
+	for _, row := range connectorInstanceRows(page, registry) {
+		if row.ConnectorType == connectorpkg.TypeTelemetrySource && row.State != string(connectorpkg.StateExampleAvailable) && row.State != string(connectorpkg.StateNotConfigured) {
+			configured = append(configured, row)
+		}
+	}
+	return configured
+}
+
+func vehicleAVLReadyInstances(page operationsPage, instances []connectorInstanceRow) []connectorInstanceRow {
+	readyIDs := make(map[int64]bool)
+	for _, check := range vehicleAVLActivationRows(page, instances) {
+		if check.Status != "passed" {
+			readyIDs[check.InstanceID] = false
+			continue
+		}
+		if _, ok := readyIDs[check.InstanceID]; !ok {
+			readyIDs[check.InstanceID] = true
+		}
+	}
+	var ready []connectorInstanceRow
+	for _, row := range instances {
+		id, err := strconv.ParseInt(row.ID, 10, 64)
+		if err == nil && readyIDs[id] && row.State != string(connectorpkg.StateReadyForActivation) && row.State != string(connectorpkg.StateActive) {
+			ready = append(ready, row)
+		}
+	}
+	return ready
+}
+
+func vehicleAVLActivationRows(page operationsPage, instances []connectorInstanceRow) []vehicleAVLActivationRow {
+	instanceByID := make(map[int64]connectorpkg.Instance)
+	for _, instance := range page.ConnectorInstances {
+		if instance.ConnectorType == connectorpkg.TypeTelemetrySource {
+			instanceByID[instance.ID] = instance
+		}
+	}
+	latestJob := latestDryRunJobsByInstance(page.ConnectorDryRunJobs)
+	var rows []vehicleAVLActivationRow
+	for _, row := range instances {
+		id, err := strconv.ParseInt(row.ID, 10, 64)
+		if err != nil {
+			continue
+		}
+		instance := instanceByID[id]
+		job := latestJob[id]
+		rows = append(rows,
+			activationRow(id, row.DisplayName, "configured", "Connector configured", row.State != string(connectorpkg.StateExampleAvailable) && row.State != string(connectorpkg.StateNotConfigured), row.State, "Save connector metadata before activation review."),
+			activationRow(id, row.DisplayName, "field_map", "Required field map", vehicleAVLRequiredFieldMapValid(instance), "required telemetry fields mapped", "Map agency, device, vehicle, timestamp, latitude, longitude, and quality fields."),
+			activationRow(id, row.DisplayName, "dry_run", "Dry-run passed", row.State == string(connectorpkg.StateDryRunPassed) || row.State == string(connectorpkg.StateReadyForActivation) || row.State == string(connectorpkg.StateActive), row.DryRunStatus, "Record a passed server-owned dry-run result."),
+			activationRow(id, row.DisplayName, "device_bindings", "Device bindings exist", len(page.Devices) > 0, fmt.Sprintf("%d device binding(s)", len(page.Devices)), "Create or review device bindings before activation."),
+			activationRow(id, row.DisplayName, "token_refs", "Token reference labels", len(instance.SecretRefs) > 0, fmt.Sprintf("%d secret reference label(s)", len(instance.SecretRefs)), "Store only deployment-owned secret reference labels, not token values."),
+			activationRow(id, row.DisplayName, "target_path", "Telemetry target path", vehicleAVLTargetPathSafe(instance), "/v1/telemetry", "Use authenticated POST /v1/telemetry through a deployment-owned sidecar."),
+			activationRow(id, row.DisplayName, "freshness_rules", "Stale/future/quality rules", page.StaleThreshold > 0, page.StaleThreshold.String(), "Keep stale telemetry and quality rules configured before activation."),
+			activationRow(id, row.DisplayName, "redaction_scan", "Redaction scan passed", job.ID > 0 && job.RedactionScanStatus == "passed", firstNonEmpty(job.RedactionScanStatus, "not recorded"), "Record a passed redaction scan with the dry-run result."),
+		)
+	}
+	return rows
+}
+
+func activationRow(instanceID int64, connector string, checkID string, label string, passed bool, signal string, next string) vehicleAVLActivationRow {
+	status := "blocked"
+	if passed {
+		status = "passed"
+	}
+	return vehicleAVLActivationRow{
+		InstanceID:    instanceID,
+		Connector:     connector,
+		CheckID:       checkID,
+		Label:         label,
+		Status:        status,
+		CurrentSignal: firstNonEmpty(signal, "not configured"),
+		NextAction:    next,
+	}
+}
+
+func latestDryRunJobsByInstance(jobs []connectorpkg.DryRunJob) map[int64]connectorpkg.DryRunJob {
+	out := make(map[int64]connectorpkg.DryRunJob)
+	for _, job := range jobs {
+		if existing, ok := out[job.ConnectorInstanceID]; !ok || job.CreatedAt.After(existing.CreatedAt) || job.ID > existing.ID {
+			out[job.ConnectorInstanceID] = job
+		}
+	}
+	return out
+}
+
+func vehicleAVLRequiredFieldMapValid(instance connectorpkg.Instance) bool {
+	var metadata vehicleAVLConfigMetadata
+	if err := json.Unmarshal(instance.ConfigJSON, &metadata); err != nil {
+		return false
+	}
+	for _, field := range vehicleAVLFields() {
+		if field.Required && strings.TrimSpace(metadata.FieldMap[field.ID]) == "" {
+			return false
+		}
+	}
+	return true
+}
+
+func vehicleAVLTargetPathSafe(instance connectorpkg.Instance) bool {
+	var metadata vehicleAVLConfigMetadata
+	if err := json.Unmarshal(instance.ConfigJSON, &metadata); err != nil {
+		return false
+	}
+	value, _ := metadata.Safety["target_path"].(string)
+	return value == "/v1/telemetry"
 }
 
 func vehicleAVLDryRunRows(page operationsPage, instances []connectorInstanceRow) []vehicleAVLDryRunRow {

@@ -2769,6 +2769,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <table><thead><tr><th>Connector</th><th>Status</th><th>Counts</th><th>Redaction scan</th><th>Summary</th><th>Finished</th><th>Retention</th></tr></thead><tbody>
 {{range .VehicleAVLSetup.DryRuns}}<tr><td>{{.Connector}}<br><code>{{.InstanceID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.Counts}}</td><td>{{.Redaction}}</td><td>{{.Summary}}</td><td>{{.FinishedAt}}</td><td>{{.DoesNotKeep}}</td></tr>{{else}}<tr><td colspan="7">No vehicle connector dry-run results recorded yet.</td></tr>{{end}}
 </tbody></table>
+<h3>Activation Gate</h3>
+<p class="muted">The browser can mark a connector ready for deployment-owned activation only after every check passes. It does not start external sidecars or contact AVL sources.</p>
+<table><thead><tr><th>Connector</th><th>Check</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.Activation}}<tr><td>{{.Connector}}<br><code>{{.InstanceID}}</code></td><td>{{.Label}}<br><span class="muted">{{.CheckID}}</span></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td></tr>{{else}}<tr><td colspan="5">Save a configured vehicle connector instance before activation checks appear.</td></tr>{{end}}
+</tbody></table>
 {{if .IsAdmin}}
 <h3 id="vehicle-avl-form">Save Vehicle Connector Metadata</h3>
 <form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-form">
@@ -2799,6 +2804,17 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </form>
 {{else}}
 <p class="warning">Save a vehicle connector instance before recording a dry-run result.</p>
+{{end}}
+<h3 id="vehicle-avl-ready-form">Deployment-Owned Activation Readiness</h3>
+{{if .VehicleAVLSetup.ReadyInstances}}
+<form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-ready-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="mark_vehicle_avl_ready">
+<label for="vehicle_avl_ready_instance">Connector instance</label><select id="vehicle_avl_ready_instance" name="connector_instance_id">{{range .VehicleAVLSetup.ReadyInstances}}<option value="{{.ID}}">{{.DisplayName}}</option>{{end}}</select>
+<button type="submit">Mark ready for deployment-owned activation</button>
+</form>
+{{else}}
+<p class="warning">No vehicle connector has passed every activation-readiness check yet.</p>
 {{end}}
 {{else}}
 <p class="warning">Vehicle connector metadata changes require an admin role. This account can review field mapping requirements but cannot save connector configuration.</p>

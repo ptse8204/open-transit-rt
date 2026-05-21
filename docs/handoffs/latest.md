@@ -9,7 +9,7 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 171 of the production login, setup, dashboard, and connector
+Phase 172 of the production login, setup, dashboard, and connector
 configuration roadmap is active. The roadmap file is
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
 Phases 161-164 locked the maintainer-confirmed production auth boundary, added
@@ -35,7 +35,11 @@ and resets the instance to `configured_not_tested`; dry-run and activation
 remain separate later gates. Phase 171 adds connector dry-run job records and
 Vehicle / GPS / AVL dry-run review: admins can record bounded redacted
 server-owned dry-run results, counts, and redaction scan status without raw
-payload retention or browser command execution.
+payload retention or browser command execution. Phase 172 adds the vehicle
+connector activation gate: mapping, passed dry-run, device bindings, secret
+reference labels, safe `/v1/telemetry` target shape, stale/future/quality
+rules, and redaction scan must pass before an admin can mark the connector
+ready for deployment-owned activation.
 `/admin/local-login` is still production-disabled, anonymous
 `/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
 Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without

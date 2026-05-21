@@ -8,9 +8,11 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"open-transit-rt/internal/auth"
 	connectorpkg "open-transit-rt/internal/connectors"
+	"open-transit-rt/internal/devices"
 )
 
 func TestVehicleAVLSetupRendersAdminMetadataForm(t *testing.T) {
@@ -207,6 +209,95 @@ func TestVehicleAVLDryRunPostRejectsRawSummary(t *testing.T) {
 	}
 }
 
+func TestVehicleAVLActivationGateMarksReadyOnlyAfterChecksPass(t *testing.T) {
+	now := time.Date(2026, 5, 20, 12, 0, 0, 0, time.UTC)
+	config := json.RawMessage(`{"source_shape":"generic_json_transform","field_map":{"agency_id":"agency_id","device_id":"device.id","vehicle_id":"vehicle.id","observed_timestamp":"observed_at","lat":"position.lat","lon":"position.lon","quality":"quality"},"safety":{"target_path":"/v1/telemetry"}}`)
+	store := &fakeVehicleAVLConnectorStore{
+		instances: []connectorpkg.Instance{{
+			ID:            101,
+			AgencyID:      "demo-agency",
+			ConnectorType: connectorpkg.TypeTelemetrySource,
+			ConnectorKind: "generic_json_transform",
+			DisplayName:   "Agency AVL poller",
+			State:         connectorpkg.StateDryRunPassed,
+			ConfigJSON:    config,
+			SecretRefs:    []string{"AVL_HTTP_TOKEN_REF"},
+			DryRunStatus:  "passed",
+		}},
+		jobs: []connectorpkg.DryRunJob{{
+			ID:                  501,
+			AgencyID:            "demo-agency",
+			ConnectorInstanceID: 101,
+			Status:              "passed",
+			FinishedAt:          now,
+			CreatedAt:           now,
+			RedactionScanStatus: "passed",
+			RedactedSummary:     json.RawMessage(`{"summary":"redacted fixture passed"}`),
+		}},
+	}
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStoreWithBindings{bindings: []devices.Binding{{AgencyID: "demo-agency", DeviceID: "device-1", VehicleID: "bus-1"}}}, connectorInstances: store}, auth.TestAuthenticator{Principal: phase02AdminPrincipal()})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors/vehicle-avl", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("vehicle avl status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{"Activation Gate", "Mark ready for deployment-owned activation", "Device bindings exist", "Redaction scan passed"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("activation gate missing %q: %s", want, body)
+		}
+	}
+
+	form := url.Values{"action": {"mark_vehicle_avl_ready"}, "connector_instance_id": {"101"}}
+	req = httptest.NewRequest(http.MethodPost, "/admin/operations/connectors/vehicle-avl", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("ready post status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.savedState.State != connectorpkg.StateReadyForActivation {
+		t.Fatalf("saved state = %+v", store.savedState)
+	}
+	if !strings.Contains(rr.Body.String(), "ready for deployment-owned activation") {
+		t.Fatalf("ready response missing readiness copy: %s", rr.Body.String())
+	}
+}
+
+func TestVehicleAVLActivationGateBlocksWhenDeviceBindingMissing(t *testing.T) {
+	config := json.RawMessage(`{"source_shape":"generic_json_transform","field_map":{"agency_id":"agency_id","device_id":"device.id","vehicle_id":"vehicle.id","observed_timestamp":"observed_at","lat":"position.lat","lon":"position.lon","quality":"quality"},"safety":{"target_path":"/v1/telemetry"}}`)
+	store := &fakeVehicleAVLConnectorStore{
+		instances: []connectorpkg.Instance{{
+			ID:            101,
+			AgencyID:      "demo-agency",
+			ConnectorType: connectorpkg.TypeTelemetrySource,
+			ConnectorKind: "generic_json_transform",
+			DisplayName:   "Agency AVL poller",
+			State:         connectorpkg.StateDryRunPassed,
+			ConfigJSON:    config,
+			SecretRefs:    []string{"AVL_HTTP_TOKEN_REF"},
+			DryRunStatus:  "passed",
+		}},
+		jobs: []connectorpkg.DryRunJob{{ID: 501, ConnectorInstanceID: 101, Status: "passed", RedactionScanStatus: "passed", RedactedSummary: json.RawMessage(`{"summary":"redacted fixture passed"}`)}},
+	}
+	handler := newOperationsTestHandler(&handler{store: feedHealthTestStore(t), devices: fakeDeviceStore{}, connectorInstances: store}, auth.TestAuthenticator{Principal: phase02AdminPrincipal()})
+	form := url.Values{"action": {"mark_vehicle_avl_ready"}, "connector_instance_id": {"101"}}
+	req := httptest.NewRequest(http.MethodPost, "/admin/operations/connectors/vehicle-avl", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("blocked ready post status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if store.savedState.ID != 0 {
+		t.Fatalf("state was updated despite missing device binding: %+v", store.savedState)
+	}
+	if !strings.Contains(rr.Body.String(), "activation readiness checks must pass") {
+		t.Fatalf("response missing blocked activation message: %s", rr.Body.String())
+	}
+}
+
 func vehicleAVLValidForm() url.Values {
 	return url.Values{
 		"action":                   {"save_vehicle_avl_connector"},
@@ -234,6 +325,7 @@ type fakeVehicleAVLConnectorStore struct {
 	saved       connectorpkg.UpsertInstanceInput
 	jobs        []connectorpkg.DryRunJob
 	savedDryRun connectorpkg.CreateDryRunJobInput
+	savedState  connectorpkg.UpdateInstanceStateInput
 }
 
 func (f *fakeVehicleAVLConnectorStore) ListInstances(context.Context, string) ([]connectorpkg.Instance, error) {
@@ -291,4 +383,15 @@ func (f *fakeVehicleAVLConnectorStore) CreateDryRunJob(_ context.Context, input 
 		}
 	}
 	return job, nil
+}
+
+func (f *fakeVehicleAVLConnectorStore) UpdateInstanceState(_ context.Context, input connectorpkg.UpdateInstanceStateInput) (connectorpkg.Instance, error) {
+	f.savedState = input
+	for i := range f.instances {
+		if f.instances[i].ID == input.ID {
+			f.instances[i].State = input.State
+			return f.instances[i], nil
+		}
+	}
+	return connectorpkg.Instance{}, nil
 }

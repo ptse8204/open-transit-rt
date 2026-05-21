@@ -150,3 +150,26 @@ func TestConnectorDryRunJobValidationRejectsRawPayloadSignals(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectorInstanceStateTransitionValidation(t *testing.T) {
+	input := UpdateInstanceStateInput{
+		AgencyID: "demo-agency",
+		ID:       12,
+		State:    StateReadyForActivation,
+		ActorID:  "admin@example.org",
+	}
+	if _, err := normalizeUpdateInstanceStateInput(input); err != nil {
+		t.Fatalf("valid state update rejected: %v", err)
+	}
+	for name, input := range map[string]UpdateInstanceStateInput{
+		"bad agency": {AgencyID: "../bad", ID: 12, State: StateReadyForActivation},
+		"missing id": {AgencyID: "demo-agency", State: StateReadyForActivation},
+		"bad state":  {AgencyID: "demo-agency", ID: 12, State: InstanceState("ready")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := normalizeUpdateInstanceStateInput(input); err == nil {
+				t.Fatalf("invalid state update accepted: %+v", input)
+			}
+		})
+	}
+}

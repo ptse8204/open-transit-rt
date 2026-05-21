@@ -867,3 +867,10 @@ bounded redacted summaries, accepted/rejected/dropped counts, and redaction
 scan status for a configured connector instance. The record updates instance
 dry-run state, but it does not store raw payloads, run adapter commands, start
 sidecars, contact external systems, or prove live AVL reliability.
+
+Phase 172 adds an activation-readiness transition for vehicle connectors. The
+browser may mark a telemetry-source connector `ready_for_activation` only after
+metadata, required field mapping, a passed dry-run, device bindings, secret
+reference labels, `/v1/telemetry` target shape, stale/future/quality rules, and
+redaction scan all pass. This transition does not start or supervise an
+external connector process; actual activation remains deployment-owned.
