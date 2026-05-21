@@ -69,6 +69,8 @@ type operationsPage struct {
 	VehicleAVLSetup        vehicleAVLSetupView
 	PredictionConnector    predictionConnectorView
 	ValidatorConnector     validatorConnectorView
+	MonitoringConnector    monitoringConnectorView
+	DiscoveryConnector     discoveryConnectorView
 	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
@@ -351,6 +353,42 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderValidatorConnectorJSON(w, r)
+	case "connectors/monitoring":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderMonitoringConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, monitoringDiscoveryConnectorPostMaxBytes)
+			h.operationsMonitoringConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/monitoring.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderMonitoringConnectorJSON(w, r)
+	case "connectors/discovery":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderDiscoveryConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, monitoringDiscoveryConnectorPostMaxBytes)
+			h.operationsDiscoveryConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/discovery.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderDiscoveryConnectorJSON(w, r)
 	case "admin/users":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method == http.MethodPost {
@@ -1250,6 +1288,8 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "")
 	page.PredictionConnector = buildPredictionConnector(page, "", "")
 	page.ValidatorConnector = buildValidatorConnector(page, "", "")
+	page.MonitoringConnector = buildMonitoringConnector(page, "", "")
+	page.DiscoveryConnector = buildDiscoveryConnector(page, "", "")
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
 	page.IssueCenter = buildOperationsIssueCenter(page)
@@ -2981,6 +3021,89 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Limits</th><td>{{.ValidatorConnector.DoesNotProve}}</td></tr>
 </tbody></table>
 <p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/validation-health">Open Validation Health</a> · <a href="/admin/operations/validation-center">Open Validation Center</a> · <a href="/admin/operations/gtfs-quality">Open Schedule Quality</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "monitoring-setup"}}
+{{template "layoutStart" .}}
+<h2>Monitoring Setup</h2>
+<p class="warning">{{.MonitoringConnector.Boundary}}</p>
+{{if .MonitoringConnector.Notice}}<p class="ok">{{.MonitoringConnector.Notice}}</p>{{end}}
+{{if .MonitoringConnector.Error}}<p class="bad">{{.MonitoringConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.MonitoringConnector.NextAction}}</p>
+<p class="warning">{{.MonitoringConnector.NoSendDefault}}</p>
+<h3>Configured Monitoring Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .MonitoringConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Health Digest Preview</h3>
+<table><thead><tr><th>Source</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .MonitoringConnector.DigestPreview}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>No-send Destinations</h3>
+<table><thead><tr><th>Mode</th><th>Reference</th><th>Send state</th><th>First check</th><th>Limits</th></tr></thead><tbody>
+{{range .MonitoringConnector.Destinations}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><code>{{.Reference}}</code></td><td>{{.SendState}}</td><td><code>{{.FirstCheck}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="monitoring-connector-form">Save Monitoring Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/monitoring#monitoring-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_monitoring_connector">
+<label for="monitoring_display_name">Display name</label><input id="monitoring_display_name" name="display_name" maxlength="160" value="Health digest preview">
+<label for="monitoring_owner">Owner</label><input id="monitoring_owner" name="owner" maxlength="160" placeholder="monitoring owner">
+<label for="monitoring_mode">Mode</label><select id="monitoring_mode" name="mode"><option value="health_digest_no_send">Health digest no-send</option><option value="redacted_export_no_send">Redacted export no-send</option></select>
+<label for="monitoring_destination_ref">Destination ref label</label><input id="monitoring_destination_ref" name="destination_ref" maxlength="80" value="MONITORING_DIGEST_DESTINATION_REF">
+<button type="submit">Save monitoring connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Monitoring connector metadata changes require an admin role. This account can review no-send digest state but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>No-send default</th><td>{{.MonitoringConnector.NoSendDefault}}</td></tr>
+<tr><th>Redaction</th><td>{{.MonitoringConnector.RedactionBoundary}}</td></tr>
+<tr><th>Limits</th><td>{{.MonitoringConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/reliability">Open Reliability</a> · <a href="/admin/operations/maintenance">Open Maintenance</a> · <a href="/admin/operations/validation-health">Open Validation Health</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "discovery-setup"}}
+{{template "layoutStart" .}}
+<h2>Discovery Setup</h2>
+<p class="warning">{{.DiscoveryConnector.Boundary}}</p>
+{{if .DiscoveryConnector.Notice}}<p class="ok">{{.DiscoveryConnector.Notice}}</p>{{end}}
+{{if .DiscoveryConnector.Error}}<p class="bad">{{.DiscoveryConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.DiscoveryConnector.NextAction}}</p>
+<p class="warning">{{.DiscoveryConnector.NoAutomation}}</p>
+<h3>Configured Discovery Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .DiscoveryConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Discovery Readiness</h3>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
+{{range .DiscoveryConnector.Readiness}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="discovery-connector-form">Save Discovery Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/discovery#discovery-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_discovery_connector">
+<label for="discovery_display_name">Display name</label><input id="discovery_display_name" name="display_name" maxlength="160" value="Feed discovery readiness">
+<label for="discovery_owner">Owner</label><input id="discovery_owner" name="owner" maxlength="160" placeholder="sharing prep owner">
+<label for="discovery_public_base_ref">Public base URL env ref</label><input id="discovery_public_base_ref" name="public_base_url_env_ref" maxlength="80" value="PUBLIC_FEED_BASE_URL">
+<label for="discovery_license_contact_ref">License/contact owner ref</label><input id="discovery_license_contact_ref" name="license_contact_owner_ref" maxlength="80" value="PUBLIC_FEED_METADATA_OWNER">
+<button type="submit">Save discovery connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Discovery connector metadata changes require an admin role. This account can review sharing prep but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>No portal automation</th><td>{{.DiscoveryConnector.NoAutomation}}</td></tr>
+<tr><th>Limits</th><td>{{.DiscoveryConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/feeds">Open Feed URLs</a> · <a href="/admin/operations/consumers">Open External Sharing Prep</a> · <a href="/admin/operations/readiness">Open Readiness</a></p>
 {{template "layoutEnd" .}}
 {{end}}
 

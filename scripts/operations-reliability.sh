@@ -267,7 +267,6 @@ def unsafe_text(text):
         "webhook_url=",
         "https://hooks.",
         "secret=",
-        "secret:",
         "\"secret\"",
         "password",
         "token_hash",
@@ -281,7 +280,9 @@ def unsafe_text(text):
         "/etc/",
         "/var/lib/",
     ]
-    return any(pattern in lower for pattern in patterns)
+    if any(pattern in lower for pattern in patterns):
+        return True
+    return bool(re.search(r"(?<![a-z0-9_])secret\s*:", lower))
 
 
 def safe_string(value, default="unknown"):

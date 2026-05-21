@@ -3687,12 +3687,12 @@ func TestOperationsRouteRegistryCentralizesCanonicalInventory(t *testing.T) {
 		paths[route.Path] = true
 	}
 
-	if got := len(operationsCanonicalHTMLRoutes()); got != 39 {
-		t.Fatalf("canonical HTML route count = %d, want 39", got)
+	if got := len(operationsCanonicalHTMLRoutes()); got != 41 {
+		t.Fatalf("canonical HTML route count = %d, want 41", got)
 	}
 	jsonRoutes := operationsCanonicalJSONRoutes()
-	if got := len(jsonRoutes); got != 25 {
-		t.Fatalf("canonical JSON route count = %d, want 25: %v", got, jsonRoutes)
+	if got := len(jsonRoutes); got != 27 {
+		t.Fatalf("canonical JSON route count = %d, want 27: %v", got, jsonRoutes)
 	}
 	if !containsString(jsonRoutes, "/admin/operations/checklist.json") {
 		t.Fatalf("registry must include checklist JSON route: %v", jsonRoutes)

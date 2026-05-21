@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 174 of the production login, setup, dashboard, and connector
+Phase 175 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-20. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -53,7 +53,13 @@ deployment-owned env reference labels. Validator execution remains in the
 existing server-owned Validation Health flow, raw commands and private artifact
 paths are blocked, and validator status remains supporting diagnostics rather
 than compliance, acceptance, final-root, production, SLA, or public-launch
-proof.
+proof. Phase 175 adds Monitoring Setup and Discovery Setup at
+`/admin/operations/connectors/monitoring` and
+`/admin/operations/connectors/discovery`. Monitoring/export configuration is
+no-send by default and stores only destination reference labels plus redacted
+digest metadata. Discovery configuration reviews `/public/feeds.json`,
+license/contact, and public-root readiness while keeping portal automation and
+consumer status mutation disabled.
 Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated

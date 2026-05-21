@@ -196,7 +196,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 			[]string{"private redacted monitoring/export summaries"},
 			"Default examples write local private summaries only and require deployment-owned configuration before any external send.",
 			[]string{"make operations-reliability", "make operations-notify"},
-			[]string{"/admin/operations/reliability", "/admin/operations/validation-health"},
+			[]string{"/admin/operations/connectors/monitoring", "/admin/operations/reliability", "/admin/operations/validation-health"},
 			[]string{"docs/connectors/catalog.md", "docs/tutorials/self-hosted-operations-notifications.md", "docs/deployment/reference-deployment-doctor.md"},
 			"Monitoring connectors do not prove SLA coverage, uptime guarantees, hosted service availability, or production readiness.",
 		),
@@ -210,7 +210,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 			[]string{"prepared consumer packet records", "private readiness summaries"},
 			"Do not contact targets or change statuses without retained target-originated or operator-retained authorization artifacts.",
 			[]string{"make external-connection-check", "make audit-final-claim-review"},
-			[]string{"/admin/operations/consumers", "/admin/operations/readiness"},
+			[]string{"/admin/operations/connectors/discovery", "/admin/operations/consumers", "/admin/operations/readiness"},
 			[]string{"docs/connectors/catalog.md", "docs/consumer-submission-evidence.md", "docs/evidence/consumer-submissions/README.md", "docs/compliance-evidence-checklist.md"},
 			"Prepared packets are not submission, review, acceptance, ingestion, listing, display, compliance, or public launch proof.",
 		),
@@ -422,9 +422,9 @@ func connectorSafeLinks(connectorType string) []string {
 	case connectorpkg.TypeValidator:
 		return []string{"/admin/operations/connectors/validators", "/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeMonitoringExport:
-		return []string{"/admin/operations/maintenance", "/admin/operations/reliability", "/admin/operations/connectors/tests"}
+		return []string{"/admin/operations/connectors/monitoring", "/admin/operations/maintenance", "/admin/operations/reliability", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeConsumerDiscovery:
-		return []string{"/admin/operations/feeds", "/admin/operations/consumers", "/admin/operations/readiness"}
+		return []string{"/admin/operations/connectors/discovery", "/admin/operations/feeds", "/admin/operations/consumers", "/admin/operations/readiness"}
 	default:
 		return []string{"/admin/operations/connectors/tests"}
 	}
@@ -538,7 +538,7 @@ func connectorHealthRows(page operationsPage, registry connectorpkg.Registry) []
 			connectorRedactionSignal(registry, connectorpkg.TypeMonitoringExport),
 			connectorMonitoringBlockers(page, registry),
 			"monitoring",
-			[]string{"/admin/operations/maintenance", "/admin/operations/reliability", "/admin/operations/validation-health", "/admin/operations/connectors/tests"},
+			[]string{"/admin/operations/connectors/monitoring", "/admin/operations/maintenance", "/admin/operations/reliability", "/admin/operations/validation-health", "/admin/operations/connectors/tests"},
 			[]string{
 				"choose_manifest=example.monitoring-export",
 				"keep_send_by_default=false",
@@ -560,7 +560,7 @@ func connectorHealthRows(page operationsPage, registry connectorpkg.Registry) []
 			connectorRedactionSignal(registry, connectorpkg.TypeConsumerDiscovery),
 			connectorConsumerDiscoveryBlockers(page, registry),
 			"consumer discovery",
-			[]string{"/admin/operations/feeds", "/admin/operations/consumers", "/admin/operations/readiness", "/admin/operations/connectors/tests"},
+			[]string{"/admin/operations/connectors/discovery", "/admin/operations/feeds", "/admin/operations/consumers", "/admin/operations/readiness", "/admin/operations/connectors/tests"},
 			[]string{
 				"choose_manifest=example.consumer-discovery-metadata",
 				"keep_submit_enabled=false",
@@ -1025,7 +1025,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"Local health summaries",
 			"available",
 			"Private feed, validator, telemetry, maintenance, and reliability summaries.",
-			"/admin/operations/feed-health and /admin/operations/maintenance",
+			"/admin/operations/connectors/monitoring and /admin/operations/maintenance",
 			"make operations-reliability",
 			"SLA coverage, uptime guarantee, hosted service availability, production readiness, or retained evidence.",
 			[]string{"docs/connectors/catalog.md", "docs/tutorials/small-agency-maintenance-guide.md", "docs/runbooks/monitoring-and-alerting.md"},
@@ -1036,7 +1036,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"Operations notify draft",
 			"review_only",
 			"Deployment-owned notification draft workflow with no send by default.",
-			"/admin/operations/maintenance",
+			"/admin/operations/connectors/monitoring",
 			"make operations-notify",
 			"Notification delivery, incident response maturity, SLA, uptime, hosted service availability, or evidence creation.",
 			[]string{"docs/connectors/catalog.md", "docs/tutorials/self-hosted-operations-notifications.md", "docs/evidence/redaction-policy.md"},
@@ -1047,7 +1047,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"Monitoring/export helper",
 			"covered",
 			"`examples/connectors/monitoring-export` with redacted no-send batches.",
-			"/admin/operations/connectors/workbench",
+			"/admin/operations/connectors/monitoring and /admin/operations/connectors/workbench",
 			"go run ./cmd/adapter-conformance monitoring --suite testdata/adapter-conformance",
 			"Notification delivery, SLA coverage, uptime guarantee, hosted service availability, production readiness, or retained evidence.",
 			[]string{"docs/connectors/catalog.md", "docs/tutorials/self-hosted-operations-notifications.md", "docs/connectors/redaction-first-recipes.md"},
@@ -1058,7 +1058,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"Deployment-owned monitoring boundary",
 			"needs_review",
 			"Any real monitoring destination, credential, retention, and alert routing stays outside this browser page.",
-			"/admin/operations/maintenance",
+			"/admin/operations/connectors/monitoring",
 			"make external-connection-check",
 			"Hosted service availability, paid support, SLA coverage, uptime guarantee, production readiness, or agency approval.",
 			[]string{"docs/connectors/catalog.md", "docs/runbooks/monitoring-and-alerting.md", "docs/support-boundaries.md"},
@@ -1069,7 +1069,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"`/public/feeds.json`",
 			"available",
 			"Public feed metadata endpoint for a running local or self-hosted instance.",
-			"/admin/operations/feeds and /admin/operations/readiness",
+			"/admin/operations/connectors/discovery and /admin/operations/feeds",
 			"make smoke",
 			"Consumer submission, review, acceptance, ingestion, listing, display, compliance, or production readiness.",
 			[]string{"docs/connectors/catalog.md", "docs/release-candidate-readiness.md", "docs/consumer-submission-evidence.md"},
@@ -1124,7 +1124,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"Consumer packet preparedness",
 			"prepared_only",
 			"Prepared URL and metadata review without external submission automation or status movement.",
-			"/admin/operations/consumers and /admin/operations/readiness",
+			"/admin/operations/connectors/discovery and /admin/operations/consumers",
 			"scripts/check-consumer-tracker.sh",
 			"Consumer submission, review, acceptance, ingestion, listing, display, compliance, or public launch.",
 			[]string{"docs/connectors/catalog.md", "docs/consumer-submission-evidence.md", "docs/evidence/consumer-submissions/README.md"},

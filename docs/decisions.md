@@ -892,3 +892,12 @@ validator commands, argv, binary paths, private artifacts, or validator output
 blobs. Actual validator execution remains in Validation Health, and validator
 results remain supporting diagnostics rather than compliance, acceptance,
 final-root, public-launch, production, SLA, or agency-approval proof.
+
+Phase 175 completes the first connector family with monitoring/export and
+consumer-discovery configuration review. Monitoring/export instances store
+no-send destination reference labels and redacted digest metadata only; the
+browser does not send notifications, write exports, or contact destinations.
+Discovery instances store public-base and license/contact owner reference
+labels while reviewing `/public/feeds.json` readiness; portal automation,
+consumer contact, evidence creation, and consumer status mutation remain
+disabled.
