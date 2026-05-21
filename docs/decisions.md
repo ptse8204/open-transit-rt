@@ -854,3 +854,10 @@ pages can review instance state and safe links, but they do not execute
 connector commands, start sidecars, contact vendors or consumers, create
 evidence, or prove compatibility, compliance, acceptance, SLA coverage, AVL
 reliability, or ETA quality.
+
+Phase 170 makes Vehicle / GPS / AVL the first connector setup workflow. The
+browser can save source-shape and field-map metadata for a telemetry-source
+instance, plus deployment-owned secret reference labels. Saving that metadata
+sets the instance to `configured_not_tested`; dry-run, device binding,
+activation, accepted telemetry, and live reliability remain separate signals
+and later gates.

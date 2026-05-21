@@ -62,3 +62,47 @@ func TestConnectorInstanceConfigSummaryIsMetadataOnly(t *testing.T) {
 		t.Fatalf("secret refs = %v", clean)
 	}
 }
+
+func TestConnectorInstanceUpsertValidationRejectsSecretsAndEndpoints(t *testing.T) {
+	base := UpsertInstanceInput{
+		AgencyID:      "demo-agency",
+		ConnectorType: TypeTelemetrySource,
+		ConnectorKind: "http_polling",
+		DisplayName:   "Agency AVL poller",
+		State:         StateConfiguredNotTested,
+		ConfigJSON:    json.RawMessage(`{"source_shape":"http_polling","field_map":{"vehicle_id":"vehicle.id"}}`),
+		SecretRefs:    []string{"AVL_HTTP_TOKEN_REF"},
+		DryRunStatus:  "not_run",
+	}
+	if _, err := normalizeUpsertInstanceInput(base); err != nil {
+		t.Fatalf("valid input rejected: %v", err)
+	}
+	for name, input := range map[string]UpsertInstanceInput{
+		"endpoint": func() UpsertInstanceInput {
+			next := base
+			next.ConfigJSON = json.RawMessage(`{"endpoint":"https://private.example.test/avl"}`)
+			return next
+		}(),
+		"secret_key": func() UpsertInstanceInput {
+			next := base
+			next.ConfigJSON = json.RawMessage(`{"api_token":"inline"}`)
+			return next
+		}(),
+		"bad_secret_ref": func() UpsertInstanceInput {
+			next := base
+			next.SecretRefs = []string{"not-a-secret"}
+			return next
+		}(),
+		"bad_state": func() UpsertInstanceInput {
+			next := base
+			next.State = InstanceState("configured")
+			return next
+		}(),
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := normalizeUpsertInstanceInput(input); err == nil {
+				t.Fatalf("unsafe input was accepted: %+v", input)
+			}
+		})
+	}
+}

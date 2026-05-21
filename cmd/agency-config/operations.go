@@ -64,6 +64,7 @@ type operationsPage struct {
 	ConnectorHub           connectorHubView
 	ConnectorInstances     []connectorpkg.Instance
 	ConnectorInstanceError string
+	VehicleAVLSetup        vehicleAVLSetupView
 	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
@@ -292,6 +293,24 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderConnectorTestsJSON(w, r)
+	case "connectors/vehicle-avl":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderVehicleAVLSetup(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, vehicleAVLPostMaxBytes)
+			h.operationsVehicleAVLPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/vehicle-avl.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderVehicleAVLSetupJSON(w, r)
 	case "admin/users":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method == http.MethodPost {
@@ -1187,6 +1206,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.SetupWizard = buildOperationsSetupWizard(page)
 	page.ConnectorInstances, page.ConnectorInstanceError = h.connectorInstancesForPage(r, principal.AgencyID)
 	page.ConnectorHub = buildConnectorHub(page)
+	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "")
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
 	page.IssueCenter = buildOperationsIssueCenter(page)
@@ -2723,6 +2743,48 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.ActionLabel}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">This wizard is GET-only. It does not upload GTFS, mutate setup state, run validators, contact external systems, or create public routes.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "vehicle-avl-setup"}}
+{{template "layoutStart" .}}
+<h2>Vehicle / GPS / AVL Setup</h2>
+<p class="warning">{{.VehicleAVLSetup.Boundary}}</p>
+{{if .VehicleAVLSetup.Notice}}<p class="ok">{{.VehicleAVLSetup.Notice}}</p>{{end}}
+{{if .VehicleAVLSetup.Error}}<p class="bad">{{.VehicleAVLSetup.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.VehicleAVLSetup.NextAction}}</p>
+<h3>Current Vehicle Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Source Shape</h3>
+<table><thead><tr><th>Shape</th><th>Use when</th><th>First safe check</th><th>Browser limit</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.SourceShapes}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Summary}}</td><td>{{.FirstCheck}}</td><td>{{.DoesNotRun}}</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="vehicle-avl-form">Save Vehicle Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_vehicle_avl_connector">
+<label for="vehicle_avl_display_name">Display name</label><input id="vehicle_avl_display_name" name="display_name" maxlength="160" required value="Vehicle AVL source">
+<label for="vehicle_avl_owner">Owner</label><input id="vehicle_avl_owner" name="owner" maxlength="160" placeholder="ops@example.org or operations owner">
+<label for="vehicle_avl_source_shape">Source shape</label><select id="vehicle_avl_source_shape" name="source_shape">{{range .VehicleAVLSetup.SourceShapes}}<option value="{{.ID}}">{{.Label}}</option>{{end}}</select>
+<label for="vehicle_avl_secret_ref">Secret reference label</label><input id="vehicle_avl_secret_ref" name="secret_ref" maxlength="80" placeholder="AVL_HTTP_TOKEN_REF">
+<fieldset><legend>Field mapping</legend>
+{{range .VehicleAVLSetup.FieldMappings}}<label for="vehicle_avl_field_{{.ID}}">{{.Label}}{{if .Required}} *{{end}}</label><input id="vehicle_avl_field_{{.ID}}" name="field_{{.ID}}" maxlength="120" {{if .Required}}required{{end}} value="{{.Example}}">{{end}}
+</fieldset>
+<button type="submit">Save vehicle connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Vehicle connector metadata changes require an admin role. This account can review field mapping requirements but cannot save connector configuration.</p>
+{{end}}
+<h3>Dry-run And Activation Boundary</h3>
+<table><tbody>
+<tr><th>Dry-run</th><td>{{.VehicleAVLSetup.DryRunBoundary}}</td></tr>
+<tr><th>Activation gate</th><td>{{.VehicleAVLSetup.ActivationGate}}</td></tr>
+<tr><th>Limits</th><td>{{.VehicleAVLSetup.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/connectors/workbench">Open Connector Workbench</a> · <a href="/admin/operations/devices">Open Devices</a></p>
 {{template "layoutEnd" .}}
 {{end}}
 

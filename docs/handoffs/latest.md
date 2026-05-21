@@ -9,7 +9,7 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 169 of the production login, setup, dashboard, and connector
+Phase 170 of the production login, setup, dashboard, and connector
 configuration roadmap is active. The roadmap file is
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
 Phases 161-164 locked the maintainer-confirmed production auth boundary, added
@@ -27,7 +27,12 @@ checks remain the mutation boundary. Phase 169 adds DB-backed per-agency
 connector instance records and updates Connectors so committed examples are
 shown separately from configured instances with explicit states such as
 `example_available`, `configured_not_tested`, `dry_run_passed`,
-`ready_for_activation`, `active`, and `blocked`.
+`ready_for_activation`, `active`, and `blocked`. Phase 170 adds the first
+connector setup workflow at `/admin/operations/connectors/vehicle-avl` for
+Vehicle / GPS / AVL source shapes, field mapping, owner metadata, and secret
+reference labels. Saving metadata stores only redacted/non-secret configuration
+and resets the instance to `configured_not_tested`; dry-run and activation
+remain separate later gates.
 `/admin/local-login` is still production-disabled, anonymous
 `/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
 Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without

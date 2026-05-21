@@ -150,7 +150,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 			[]string{"Open Transit RT telemetry.Event records", "private redacted adapter diagnostics"},
 			"Fail closed before ingest when mapping, credentials, timestamps, or payload quality are unsafe.",
 			[]string{"make telemetry-simulator", "make adapter-conformance", "make test-connector-examples"},
-			[]string{"/admin/operations/connectors/workbench", "/admin/operations/devices", "/admin/operations/telemetry"},
+			[]string{"/admin/operations/connectors/vehicle-avl", "/admin/operations/connectors/workbench", "/admin/operations/devices", "/admin/operations/telemetry"},
 			[]string{"docs/connectors/catalog.md", "docs/connectors/vehicle-avl-starter-kits.md", "docs/integration-adapter-kit.md", "docs/tutorials/device-avl-integration.md"},
 			"Telemetry connectors do not prove real vendor compatibility, hardware certification, production AVL reliability, or agency adoption.",
 		),
@@ -400,7 +400,7 @@ func connectorInstanceNextAction(instance connectorpkg.Instance) string {
 func connectorSafeLinks(connectorType string) []string {
 	switch connectorType {
 	case connectorpkg.TypeTelemetrySource:
-		return []string{"/admin/operations/connectors/workbench", "/admin/operations/devices", "/admin/operations/telemetry"}
+		return []string{"/admin/operations/connectors/vehicle-avl", "/admin/operations/connectors/workbench", "/admin/operations/devices", "/admin/operations/telemetry"}
 	case connectorpkg.TypePrediction:
 		return []string{"/admin/operations/prediction-lab", "/admin/operations/realtime", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeValidator:
@@ -456,7 +456,7 @@ func connectorHealthRows(page operationsPage, registry connectorpkg.Registry) []
 			connectorRedactionSignal(registry, connectorpkg.TypeTelemetrySource),
 			connectorTelemetryBlockers(page, registry),
 			"telemetry",
-			[]string{"/admin/operations/devices", "/admin/operations/telemetry", "/admin/operations/realtime", "/admin/operations/connectors/tests"},
+			[]string{"/admin/operations/connectors/vehicle-avl", "/admin/operations/devices", "/admin/operations/telemetry", "/admin/operations/realtime", "/admin/operations/connectors/tests"},
 			[]string{
 				"choose_manifest=example.telemetry-csv-replay|example.telemetry-http-poller|example.telemetry-webhook-sidecar|example.generic-json-transform",
 				"keep_send_enabled=false",
