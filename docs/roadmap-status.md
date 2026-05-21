@@ -4,6 +4,7 @@ Active status now lives in:
 
 - [Current Status](current-status.md)
 - [Latest Handoff](handoffs/latest.md)
+- [Production Login, Setup, Dashboard, And Connector Configuration Closeout](roadmaps/production-login-setup-connectors-phase-161-180-closeout.md)
 - [External Connector Runtime Roadmap](roadmaps/external-connector-runtime-integration/README.md)
 - [Post-rc2 Browser-First Closeout](roadmaps/post-rc2-browser-first-product/closeout.md)
 - [Agent History Archive](agent-history-archive.md)
@@ -27,6 +28,12 @@ Current product direction:
   planned/candidate items;
 - keep unsupported production, compliance, consumer, vendor, SLA, AVL, and ETA
   claims unsupported.
+
+The Phase 161-180 production login, setup, dashboard, and connector
+configuration roadmap is complete. Its recommended next software track is
+deeper realtime correctness. SSO/OIDC, release publication, and real connector
+runtime hardening with authorized deployment data remain separate future
+tracks.
 
 ## Better Software Product-Quality Backlog
 

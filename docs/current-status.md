@@ -10,10 +10,12 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 179 of the production login, setup, dashboard, and connector
-configuration roadmap is active on 2026-05-21. The roadmap is recorded at
-`docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
-161-164 locked the production auth boundary, added Argon2id-backed password
+Phase 161-180 of the production login, setup, dashboard, and connector
+configuration roadmap is complete as of 2026-05-21. The roadmap is recorded at
+`docs/roadmaps/production-login-setup-connectors-phase-161-180.md`, and the
+closeout is recorded at
+`docs/roadmaps/production-login-setup-connectors-phase-161-180-closeout.md`.
+Phases 161-164 locked the production auth boundary, added Argon2id-backed password
 credentials, first-admin setup links, `/admin/login`, `/admin/logout`, and
 admin-only Users & Roles management. Phase 165 added signed-in user/session
 visibility and a Login & Sessions page. Phase 166 reshaped the Operations
@@ -86,6 +88,10 @@ evidence, contact external parties, mutate consumer status, tag, publish, or
 prove production readiness, compliance, consumer acceptance, agency adoption,
 hosted SaaS, vendor compatibility, SLA coverage, AVL reliability, ETA quality,
 or final-root readiness.
+Phase 180 closes the roadmap with status, handoff, and closeout updates. The
+recommended next software track is deeper realtime correctness. SSO/OIDC,
+release publication, and real connector runtime hardening with authorized data
+remain separate future tracks.
 Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated

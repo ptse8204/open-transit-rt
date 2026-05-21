@@ -42,3 +42,24 @@ coverage before adding browser password login:
 
 The local demo sign-in behavior remains available outside production when
 explicitly enabled on loopback.
+
+## Closeout
+
+Phases 161-180 are complete. The closeout is
+`docs/roadmaps/production-login-setup-connectors-phase-161-180-closeout.md`.
+
+The completed roadmap added username/password login, first-admin setup links,
+DB-backed user and role management, session/status UX, a dashboard-first
+Operations Console, a persistent skippable setup wizard, focused config pages,
+truthful connector instance state, Vehicle / GPS / AVL connector setup,
+redacted dry-run review, activation readiness gates, prediction/validator/
+monitoring/discovery connector configuration, shorter navigation, and release
+gate rows for the new auth/setup/connector risks.
+
+SSO/OIDC remains deferred and should be implemented later as an identity source
+that verifies external identity, maps it to internal agency subjects and roles,
+and issues the same internal signed `admin_session`. The roadmap does not
+prove compliance, production readiness, consumer acceptance, agency adoption,
+final-root readiness, hosted service availability, vendor compatibility, SLA
+coverage, production AVL reliability, production-grade ETA quality, or
+real-world ETA accuracy.

@@ -935,3 +935,11 @@ instances, and connector dry-run redaction. These rows are local diagnostics
 only; passing them is not production readiness, compliance, consumer
 acceptance, agency adoption, hosted SaaS, vendor compatibility, SLA, AVL
 reliability, ETA quality, or final-root proof.
+
+Phase 180 closes the production login, setup, dashboard, and connector
+configuration roadmap without adding stronger claims. The next recommended
+software track is deeper realtime correctness. SSO/OIDC remains future work
+and should reuse the internal signed `admin_session` session model after
+external identity verification and role mapping. Release publication and real
+connector runtime hardening with authorized deployment data remain separate
+maintainer decisions.

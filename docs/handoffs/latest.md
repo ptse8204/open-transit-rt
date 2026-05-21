@@ -9,9 +9,11 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 179 of the production login, setup, dashboard, and connector
-configuration roadmap is active. The roadmap file is
-`docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
+Phase 161-180 of the production login, setup, dashboard, and connector
+configuration roadmap is complete. The roadmap file is
+`docs/roadmaps/production-login-setup-connectors-phase-161-180.md`, and the
+closeout is
+`docs/roadmaps/production-login-setup-connectors-phase-161-180-closeout.md`.
 Phases 161-164 locked the maintainer-confirmed production auth boundary, added
 password credentials, first-admin setup links, production `/admin/login` and
 `/admin/logout`, and admin-only Users & Roles management. Phase 165 adds the
@@ -90,6 +92,10 @@ only: it does not write retained evidence, contact external parties, change
 consumer status, tag, publish, or prove production readiness, compliance,
 consumer acceptance, agency adoption, hosted SaaS, vendor compatibility, SLA
 coverage, AVL reliability, ETA quality, or final-root readiness.
+Phase 180 closes the roadmap with status, handoff, and closeout updates. The
+recommended next software track is deeper realtime correctness. SSO/OIDC,
+release publication, and real connector runtime hardening with authorized data
+remain separate future tracks.
 `/admin/local-login` is still production-disabled, anonymous
 `/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
 Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without
