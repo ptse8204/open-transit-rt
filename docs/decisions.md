@@ -901,3 +901,12 @@ Discovery instances store public-base and license/contact owner reference
 labels while reviewing `/public/feeds.json` readiness; portal automation,
 consumer contact, evidence creation, and consumer status mutation remain
 disabled.
+
+Phase 176 collapses the private Operations Console navigation into seven
+top-level categories: Dashboard, Setup, Data, Realtime, Connectors,
+Operations, and Admin. Focused configuration pages remain private routes, but
+the nav no longer exposes separate GTFS, feeds, vehicles, readiness,
+maintenance, and support groupings. The Connectors overview shows configured
+instances first and keeps secondary health, catalog, category, and committed
+manifest registry diagnostics in disclosure sections so the first browser view
+does not become a giant diagnostic page.

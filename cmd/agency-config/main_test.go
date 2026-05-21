@@ -3552,16 +3552,17 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		`aria-label="Operations Console sections"`,
-		"Start",
-		`href="/admin/operations" aria-current="page">Start</a>`,
+		"Dashboard",
+		"Setup",
+		"Data",
+		"Operations",
+		`href="/admin/operations" aria-current="page">Overview</a>`,
 		`href="/admin/operations/devices">Devices</a>`,
 		`href="/admin/operations/telemetry-simulator">Simulator</a>`,
 		"Schedule Review",
 		"Realtime",
 		`href="/admin/operations/prediction-lab">Trip Updates</a>`,
 		"Connectors",
-		"Feeds",
-		"Maintain",
 		"Help",
 		`href="/admin/operations" aria-current="page"`,
 	} {
@@ -3606,7 +3607,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	if got := strings.Count(body, `aria-current="page"`); got != 1 {
 		t.Fatalf("aria-current count = %d, want 1: %s", got, body)
 	}
-	for _, oldLabel := range []string{">Dashboard</a>", ">Start Here</a>", ">Devices &amp; Tokens</a>", ">Telemetry Simulator</a>"} {
+	for _, oldLabel := range []string{">Start</a>", ">Start Here</a>", ">Devices &amp; Tokens</a>", ">Telemetry Simulator</a>"} {
 		if strings.Contains(body, oldLabel) {
 			t.Fatalf("navigation still contains old label %q: %s", oldLabel, body)
 		}
@@ -4111,8 +4112,8 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`<h1 id="operations-page-title">Start</h1>`,
 		`<div class="operations-frame">`,
 		`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
-		`<section class="nav-group" aria-labelledby="nav-group-maintenance">`,
-		`<p id="nav-group-maintenance" class="nav-group-label">Maintain</p>`,
+		`<section class="nav-group" aria-labelledby="nav-group-operations">`,
+		`<p id="nav-group-operations" class="nav-group-label">Operations</p>`,
 		`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 		`<script src="/admin/operations/assets/operations.js" defer></script>`,
 		`</main>

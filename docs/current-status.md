@@ -10,8 +10,8 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 175 of the production login, setup, dashboard, and connector
-configuration roadmap is active on 2026-05-20. The roadmap is recorded at
+Phase 176 of the production login, setup, dashboard, and connector
+configuration roadmap is active on 2026-05-21. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
 credentials, first-admin setup links, `/admin/login`, `/admin/logout`, and
@@ -60,6 +60,12 @@ no-send by default and stores only destination reference labels plus redacted
 digest metadata. Discovery configuration reviews `/public/feeds.json`,
 license/contact, and public-root readiness while keeping portal automation and
 consumer status mutation disabled.
+Phase 176 refines the Operations Console information architecture to the
+shorter top-level groups Dashboard, Setup, Data, Realtime, Connectors,
+Operations, and Admin. The Connectors overview now leaves configured
+instances visible first and moves secondary health, catalog, category, and
+manifest-registry diagnostics behind disclosure sections so the first view is
+not a long audit page.
 Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated
@@ -122,8 +128,8 @@ without auth, cookie-auth unsafe POSTs still require CSRF, Bearer-token API
 auth still works, and the local sign-in handoff is production-disabled and
 localhost-only.
 
-The Operations Console Start page is now action-first with Start, Setup, GTFS,
-Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help groups.
+The Operations Console Start page is now action-first with Dashboard, Setup,
+Data, Realtime, Connectors, Operations, and Admin groups.
 Long route lists, feed details, first-run diagnostics, and caveats are kept
 behind details/help panels so normal users see status and next actions first.
 

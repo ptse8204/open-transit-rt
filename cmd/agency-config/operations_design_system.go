@@ -169,6 +169,8 @@ button{padding:.55rem .85rem;min-height:2.25rem;border:1px solid var(--color-act
 button:hover{background:var(--color-action-strong)}
 details{border:1px solid var(--color-border);border-radius:var(--radius-2);padding:var(--space-3);margin:var(--space-3) 0;background:var(--color-surface-raised)}
 summary{font-weight:750;cursor:pointer}
+.page-section-details>summary{min-height:2rem;display:flex;align-items:center;color:var(--color-action-strong)}
+.page-section-details:not([open]){background:var(--color-surface)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 @media (prefers-contrast:more){:root{--color-page:#fff;--color-surface:#fff;--color-surface-muted:#f2f2f2;--color-text:#000;--color-muted:#1f2937;--color-border:#111827;--color-border-strong:#000;--color-action:#003f8c;--color-action-strong:#001f4d;--color-focus:#ffbf00}.status-ready,.status-ready-for-local-review,.status-ok,.status-configured,.status-recorded,.status-needs-review,.status-warning,.status-yellow,.status-missing,.status-blocked,.status-failed,.status-red,.status-unknown,.status-diagnostic-only,.status-not-run,.status-not-available{border-color:#000}.nav-link.current{background:#000;color:#fff}}
 @media (max-width:900px){.operations-header{display:grid;align-items:start}.app-meta{justify-content:flex-start}.operations-frame{grid-template-columns:1fr}.operations-nav{position:static;max-height:none}.nav-links{grid-template-columns:repeat(auto-fit,minmax(10rem,1fr))}}

@@ -9,7 +9,7 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 175 of the production login, setup, dashboard, and connector
+Phase 176 of the production login, setup, dashboard, and connector
 configuration roadmap is active. The roadmap file is
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
 Phases 161-164 locked the maintainer-confirmed production auth boundary, added
@@ -65,6 +65,11 @@ Discovery records public-base and license/contact owner reference labels while
 reviewing `/public/feeds.json` metadata readiness. Neither page sends
 notifications, writes exports, automates portals, contacts consumers, creates
 evidence, or changes consumer status.
+Phase 176 refines the private Operations Console IA to seven top-level
+navigation groups: Dashboard, Setup, Data, Realtime, Connectors, Operations,
+and Admin. It keeps the Connectors overview focused by showing configured
+instances first and moving secondary health-review, catalog, category, and
+manifest-registry diagnostics behind disclosure sections.
 `/admin/local-login` is still production-disabled, anonymous
 `/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
 Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without
@@ -123,8 +128,8 @@ unsafe POSTs still require CSRF, and Bearer-token API auth remains available
 for technical checks.
 
 The Operations Console Start page now leads with an action queue and concise
-status cards. Navigation groups are Start, Setup, GTFS, Feeds, Realtime,
-Vehicles, Connectors, Readiness, Maintenance, and Help. Long route lists,
+status cards. Navigation groups are Dashboard, Setup, Data, Realtime,
+Connectors, Operations, and Admin. Long route lists,
 diagnostics, feed details, and caveats are behind details/help panels.
 
 The public site is published from `site/` to `gh-pages` and live at

@@ -3140,6 +3140,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tr>
 {{end}}
 </tbody></table>
+<details class="page-section-details"><summary>Connector health review</summary>
 <h3>Connector Health Review</h3>
 <p>Use these private rows to see which connector category is ready for a local synthetic check, which owner should act next, and which setup checklist is safe to copy. Checklist values are fixed labels only; they do not include endpoints, tokens, payloads, or local paths.</p>
 <table aria-label="Connector health review"><thead><tr><th>Connector area</th><th>Status</th><th>Configured</th><th>Dry-run readiness</th><th>Send state</th><th>Redaction</th><th>Blockers</th><th>Issue links</th><th>Setup checklist</th><th>Limits</th></tr></thead><tbody>
@@ -3158,6 +3159,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tr>
 {{end}}
 </tbody></table>
+</details>
+<details class="page-section-details"><summary>Connector catalog and categories</summary>
 <h3>Connector Catalog</h3>
 <p>Use this catalog to choose a starter shape, copy the matching example or contract, and run the first local check before any deployment-owned integration work.</p>
 <table><thead><tr><th>Category</th><th>Connector</th><th>Status</th><th>Start with</th><th>Browser review</th><th>First safe check</th><th>Limits</th><th>Docs</th></tr></thead><tbody>
@@ -3179,6 +3182,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.Summary}}</td><td>{{.ConnectorShape}}</td><td>Inputs: {{join .Inputs ", "}}<br>Outputs: {{join .Outputs ", "}}</td><td>{{.FailureBehavior}}</td><td>{{range .CommandSuggestions}}<code>{{.}}</code><br>{{end}}{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>
 {{end}}
 </tbody></table>
+</details>
+<details class="page-section-details"><summary>Manifest registry</summary>
 <h3>Manifest Registry</h3>
 <p>Read-only registry of committed synthetic connector example manifests. It does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.</p>
 {{if .ConnectorHub.Registry.Diagnostics}}
@@ -3202,6 +3207,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td colspan="8">No committed connector manifests were loaded. Review diagnostics and run <code>make external-connection-check</code>.</td></tr>
 {{end}}
 </tbody></table>
+</details>
 <p><a href="/admin/operations/connectors/tests">Open connector test instructions</a> for fixed offline checks.</p>
 <p class="muted">Connectors is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
 {{template "layoutEnd" .}}
