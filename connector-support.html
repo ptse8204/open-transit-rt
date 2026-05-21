@@ -28,7 +28,7 @@
     <div>
       <p class="tag">Connector support</p>
       <h1>Separate supported local paths from future integration candidates.</h1>
-      <p class="lead">Open Transit RT uses explicit adapters for vehicle telemetry, prediction, validation, monitoring, and discovery workflows. Review the current path before connecting real systems.</p>
+      <p class="lead">Open Transit RT uses explicit adapters for vehicle telemetry, prediction, validation, monitoring, and discovery workflows. Review configured instances separately from examples before connecting real systems.</p>
       <div class="actions">
         <a class="button primary" href="connect-vehicles.html">Connect vehicle data</a>
         <a class="button" href="connectors.html">Detailed connector table</a>
@@ -36,7 +36,7 @@
     </div>
     <aside class="summary-panel">
       <h2>Plain rule</h2>
-      <p>Supported means implemented for local or self-hosted evaluation. Candidate means roadmap direction, not compatibility.</p>
+      <p>Supported means implemented for local or self-hosted evaluation. Example manifests are not configured or active connectors.</p>
     </aside>
   </section>
 
@@ -46,11 +46,11 @@
       <table class="task-table">
         <thead><tr><th>Area</th><th>Supported path</th><th>Where to review</th></tr></thead>
         <tbody>
-          <tr><td>Vehicle data</td><td>CSV replay, HTTP polling, webhook sidecar, generic JSON transform, authenticated telemetry POST.</td><td><code>/admin/operations/connectors</code></td></tr>
-          <tr><td>Prediction</td><td>Deterministic built-in predictor and external HTTP predictor adapter with shadow mode.</td><td><code>/admin/operations/prediction-lab</code></td></tr>
-          <tr><td>Validation</td><td>MobilityData static GTFS and GTFS Realtime validator wrappers when tooling is installed.</td><td><code>/admin/operations/validation-health</code></td></tr>
-          <tr><td>Monitoring and export</td><td>Local monitoring/export helper and private summaries.</td><td><code>/admin/operations/maintenance</code></td></tr>
-          <tr><td>Discovery</td><td><code>/public/feeds.json</code> plus schedule and realtime feed URLs.</td><td><code>/admin/operations/feed-health</code></td></tr>
+          <tr><td>Vehicle data</td><td>CSV replay, HTTP polling, webhook sidecar, generic JSON transform, authenticated telemetry POST.</td><td><code>/admin/operations/connectors/vehicle-avl</code></td></tr>
+          <tr><td>Prediction</td><td>Deterministic built-in predictor and external HTTP predictor adapter with shadow/fail-closed metadata.</td><td><code>/admin/operations/connectors/prediction</code></td></tr>
+          <tr><td>Validation</td><td>MobilityData static GTFS and GTFS Realtime validator wrappers when tooling is installed.</td><td><code>/admin/operations/connectors/validators</code></td></tr>
+          <tr><td>Monitoring and export</td><td>No-send monitoring/export setup with redacted digest metadata.</td><td><code>/admin/operations/connectors/monitoring</code></td></tr>
+          <tr><td>Discovery</td><td><code>/public/feeds.json</code> readiness, license/contact metadata, and public URL warnings without portal automation.</td><td><code>/admin/operations/connectors/discovery</code></td></tr>
         </tbody>
       </table>
     </div>
