@@ -87,7 +87,7 @@ func operationsPageNextAction(section string) string {
 		return "Review device bindings and freshness, then use safe simulator or deployment-owned telemetry guidance."
 	case "prediction-lab":
 		return "Review withheld Trip Updates reasons and keep ETA-like output behind the prediction adapter boundary."
-	case "connectors", "vehicle-avl-setup", "connector-workbench", "connector-tests":
+	case "connectors", "vehicle-avl-setup", "prediction-setup", "connector-workbench", "connector-tests":
 		return "Choose a connector category, review redaction and fail-closed behavior, then have an administrator or integrator run synthetic conformance checks."
 	case "admin-sessions":
 		return "Review the current session, enabled login modes, cookie behavior, and future SSO boundary without exposing tokens or credentials."

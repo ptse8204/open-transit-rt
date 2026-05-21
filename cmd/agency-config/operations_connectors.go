@@ -168,7 +168,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 			[]string{"Trip Updates feed", "bounded diagnostics"},
 			"Return deterministic output or valid empty Trip Updates with adapter diagnostics when an optional sidecar fails.",
 			[]string{"make adapter-conformance", "go test ./internal/prediction"},
-			[]string{"/admin/operations/feeds", "/admin/operations/reliability"},
+			[]string{"/admin/operations/connectors/prediction", "/admin/operations/prediction-lab", "/admin/operations/realtime"},
 			[]string{"docs/connectors/catalog.md", "docs/requirements-trip-updates.md", "docs/integration-adapter-kit.md", "docs/tutorials/external-adapter-conformance.md"},
 			"Prediction connectors do not prove production-grade ETA quality, consumer acceptance, or named predictor compatibility.",
 		),
@@ -418,7 +418,7 @@ func connectorSafeLinks(connectorType string) []string {
 	case connectorpkg.TypeTelemetrySource:
 		return []string{"/admin/operations/connectors/vehicle-avl", "/admin/operations/connectors/workbench", "/admin/operations/devices", "/admin/operations/telemetry"}
 	case connectorpkg.TypePrediction:
-		return []string{"/admin/operations/prediction-lab", "/admin/operations/realtime", "/admin/operations/connectors/tests"}
+		return []string{"/admin/operations/connectors/prediction", "/admin/operations/prediction-lab", "/admin/operations/realtime", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeValidator:
 		return []string{"/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeMonitoringExport:
@@ -494,7 +494,7 @@ func connectorHealthRows(page operationsPage, registry connectorpkg.Registry) []
 			connectorRedactionSignal(registry, connectorpkg.TypePrediction),
 			connectorPredictionBlockers(page, registry),
 			"prediction",
-			[]string{"/admin/operations/prediction-lab", "/admin/operations/realtime", "/admin/operations/feed-health", "/admin/operations/connectors/tests"},
+			[]string{"/admin/operations/connectors/prediction", "/admin/operations/prediction-lab", "/admin/operations/realtime", "/admin/operations/feed-health", "/admin/operations/connectors/tests"},
 			[]string{
 				"choose_manifest=example.predictor-sidecar-stub",
 				"keep_public_mutation=false",
@@ -926,7 +926,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"Deterministic built-in predictor",
 			"available",
 			"Existing deterministic prediction adapter boundary.",
-			"/admin/operations/prediction-lab and /admin/operations/realtime",
+			"/admin/operations/connectors/prediction and /admin/operations/prediction-lab",
 			"go test ./internal/prediction",
 			"Production-grade ETA quality, real-world ETA accuracy, consumer acceptance, or production readiness.",
 			[]string{"docs/connectors/catalog.md", "docs/requirements-trip-updates.md", "docs/tutorials/prediction-eta-lab.md"},
@@ -937,7 +937,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"External HTTP predictor adapter",
 			"review_only",
 			"`examples/connectors/predictor-sidecar-stub` with sanitized synthetic request/response fixtures.",
-			"/admin/operations/connectors/workbench and /admin/operations/prediction-lab",
+			"/admin/operations/connectors/prediction and /admin/operations/connectors/workbench",
 			"go run ./cmd/adapter-conformance prediction --suite testdata/adapter-conformance",
 			"Named predictor compatibility, live service behavior, production readiness, consumer acceptance, or ETA quality.",
 			[]string{"docs/connectors/catalog.md", "docs/requirements-trip-updates.md", "docs/tutorials/external-adapter-conformance.md"},

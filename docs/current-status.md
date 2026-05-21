@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 172 of the production login, setup, dashboard, and connector
+Phase 173 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-20. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -39,7 +39,14 @@ payload retention or browser command execution. Phase 172 adds the vehicle
 connector activation gate: mapping, passed dry-run, device bindings, secret
 reference labels, safe `/v1/telemetry` target shape, stale/future/quality
 rules, and redaction scan must pass before an admin can mark the connector
-ready for deployment-owned activation. Local demo sign-in
+ready for deployment-owned activation. Phase 173 adds Prediction Setup at
+`/admin/operations/connectors/prediction`: admins can save deterministic,
+external HTTP shadow, or external HTTP fail-closed connector metadata using
+deployment-owned env reference labels and the fixed
+`/v1/predict/trip-updates` sidecar path. Vehicle Positions remain independent,
+external prediction is not enabled by the browser, and the page does not store
+predictor URLs, token values, raw sidecar payloads, or ETA-quality proof.
+Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated
 JWTs are rejected, new Bearer and `admin_session` JWTs are accepted,

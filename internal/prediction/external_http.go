@@ -20,6 +20,7 @@ import (
 )
 
 const externalHTTPPath = "/v1/predict/trip-updates"
+const ExternalHTTPTripUpdatesPath = externalHTTPPath
 const shadowExternalMinimumConfidence = 0.50
 
 var (

@@ -874,3 +874,12 @@ metadata, required field mapping, a passed dry-run, device bindings, secret
 reference labels, `/v1/telemetry` target shape, stale/future/quality rules, and
 redaction scan all pass. This transition does not start or supervise an
 external connector process; actual activation remains deployment-owned.
+
+Phase 173 adds prediction connector configuration review while preserving the
+existing `internal/prediction.Adapter` boundary. The browser can save
+deterministic default, external HTTP shadow, or external HTTP fail-closed
+connector metadata, but it stores only deployment-owned env reference labels,
+the fixed `/v1/predict/trip-updates` path, bounded timeout metadata, and
+secret ref labels. It does not store live predictor URLs or token values, does
+not make external prediction the default, and does not let optional prediction
+sidecars block Vehicle Positions.

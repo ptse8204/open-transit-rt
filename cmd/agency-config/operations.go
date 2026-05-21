@@ -67,6 +67,7 @@ type operationsPage struct {
 	ConnectorDryRunJobs    []connectorpkg.DryRunJob
 	ConnectorDryRunError   string
 	VehicleAVLSetup        vehicleAVLSetupView
+	PredictionConnector    predictionConnectorView
 	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
@@ -313,6 +314,24 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderVehicleAVLSetupJSON(w, r)
+	case "connectors/prediction":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderPredictionConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, predictionConnectorPostMaxBytes)
+			h.operationsPredictionConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/prediction.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderPredictionConnectorJSON(w, r)
 	case "admin/users":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method == http.MethodPost {
@@ -1210,6 +1229,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ConnectorDryRunJobs, page.ConnectorDryRunError = h.connectorDryRunJobsForPage(r, principal.AgencyID)
 	page.ConnectorHub = buildConnectorHub(page)
 	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "")
+	page.PredictionConnector = buildPredictionConnector(page, "", "")
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
 	page.IssueCenter = buildOperationsIssueCenter(page)
@@ -2826,6 +2846,70 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Limits</th><td>{{.VehicleAVLSetup.DoesNotProve}}</td></tr>
 </tbody></table>
 <p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/connectors/workbench">Open Connector Workbench</a> · <a href="/admin/operations/devices">Open Devices</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "prediction-setup"}}
+{{template "layoutStart" .}}
+<h2>Prediction Setup</h2>
+<p class="warning">{{.PredictionConnector.Boundary}}</p>
+{{if .PredictionConnector.Notice}}<p class="ok">{{.PredictionConnector.Notice}}</p>{{end}}
+{{if .PredictionConnector.Error}}<p class="bad">{{.PredictionConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.PredictionConnector.NextAction}}</p>
+<section class="card">
+<h3>Current Prediction Mode</h3>
+<table><tbody>
+<tr><th>Mode</th><td><code>{{.PredictionConnector.CurrentMode.Mode}}</code></td></tr>
+<tr><th>Adapter</th><td><code>{{.PredictionConnector.CurrentMode.AdapterName}}</code></td></tr>
+<tr><th>State</th><td><span class="status-chip status-{{statusClass .PredictionConnector.CurrentMode.State}}">{{.PredictionConnector.CurrentMode.State}}</span></td></tr>
+<tr><th>Public Trip Updates</th><td>{{.PredictionConnector.CurrentMode.PublicOutput}}</td></tr>
+<tr><th>Vehicle Positions</th><td>{{.PredictionConnector.CurrentMode.VehiclePositions}}</td></tr>
+<tr><th>Withheld signal</th><td>{{.PredictionConnector.CurrentMode.WithheldSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.PredictionConnector.CurrentMode.NextAction}}</td></tr>
+</tbody></table>
+</section>
+<p class="warning">{{.PredictionConnector.VehiclePositionsIndependence}}</p>
+<h3>Configured Prediction Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .PredictionConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Supported Modes</h3>
+<table><thead><tr><th>Mode</th><th>Summary</th><th>Public output</th><th>Failure behavior</th><th>First check</th><th>Browser limit</th></tr></thead><tbody>
+{{range .PredictionConnector.Modes}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Summary}}</td><td>{{.PublicOutput}}</td><td>{{.FailureBehavior}}</td><td><code>{{.FirstCheck}}</code></td><td>{{.DoesNotEnable}}</td></tr>{{end}}
+</tbody></table>
+<h3>External HTTP Rules</h3>
+<table><thead><tr><th>Rule</th><th>Required</th><th>Stored by browser</th></tr></thead><tbody>
+{{range .PredictionConnector.ExternalHTTPRules}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Required}}</td><td>{{.BrowserKeeps}}</td></tr>{{end}}
+</tbody></table>
+<h3>Why Trip Updates May Be Missing</h3>
+<table><thead><tr><th>Reason</th><th>Count</th><th>What it means</th><th>Next action</th></tr></thead><tbody>
+{{range .PredictionConnector.WithheldReasons}}<tr><td><strong>{{.Label}}</strong><br><code>{{.Reason}}</code></td><td>{{.Count}}</td><td>{{.WhatItMeans}}</td><td>{{.NextAction}}</td></tr>{{else}}<tr><td colspan="4">No withheld reason rows are available yet. Review Prediction Lab after fresh telemetry and schedule context exist.</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="prediction-connector-form">Save Prediction Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/prediction#prediction-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_prediction_connector">
+<label for="prediction_display_name">Display name</label><input id="prediction_display_name" name="display_name" maxlength="160" value="External HTTP prediction shadow">
+<label for="prediction_owner">Owner</label><input id="prediction_owner" name="owner" maxlength="160" placeholder="integrations owner">
+<label for="prediction_mode">Mode</label><select id="prediction_mode" name="mode">{{range .PredictionConnector.Modes}}<option value="{{.ID}}"{{if eq .ID "external_http_shadow"}} selected{{end}}>{{.Label}}</option>{{end}}</select>
+<label for="prediction_endpoint_ref">Endpoint URL env ref</label><input id="prediction_endpoint_ref" name="endpoint_url_env_ref" maxlength="80" value="TRIP_UPDATES_EXTERNAL_HTTP_URL">
+<label for="prediction_allowed_hosts_ref">Allowed hosts env ref</label><input id="prediction_allowed_hosts_ref" name="allowed_hosts_env_ref" maxlength="80" value="TRIP_UPDATES_EXTERNAL_HTTP_ALLOWED_HOSTS">
+<label for="prediction_path">Exact sidecar path</label><input id="prediction_path" name="path" maxlength="80" value="/v1/predict/trip-updates">
+<label for="prediction_token_ref">Optional token ref</label><input id="prediction_token_ref" name="token_ref" maxlength="80" placeholder="PREDICTOR_TOKEN">
+<label for="prediction_timeout">Timeout seconds</label><input id="prediction_timeout" name="timeout_seconds" type="number" min="1" max="30" value="2">
+<button type="submit">Save prediction connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Prediction connector metadata changes require an admin role. This account can review the prediction boundary but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>External prediction default</th><td>External HTTP prediction is not enabled by this page. Runtime env must be changed by a deployment owner after review.</td></tr>
+<tr><th>Vehicle Positions</th><td>{{.PredictionConnector.VehiclePositionsIndependence}}</td></tr>
+<tr><th>Limits</th><td>{{.PredictionConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/prediction-lab">Open Prediction Lab</a> · <a href="/admin/operations/realtime">Open Realtime Center</a></p>
 {{template "layoutEnd" .}}
 {{end}}
 
