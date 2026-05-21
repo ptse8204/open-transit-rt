@@ -670,7 +670,24 @@ func (h *handler) renderOperations(w http.ResponseWriter, r *http.Request, secti
 		return
 	}
 	page := h.buildOperationsPage(r, principal, section)
+	if normalizeOperationsNavSection(section) == "dashboard" {
+		writeSetupReminderDismissalCookie(w, r, page.Dashboard.SetupReminder)
+	}
 	renderOperationsTemplate(w, section, page)
+}
+
+func writeSetupReminderDismissalCookie(w http.ResponseWriter, r *http.Request, reminder operationsSetupReminderView) {
+	if r.URL.Query().Get("setup_reminder") != "dismissed" || !reminder.Dismissed || reminder.BlockerKey == "" {
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     setupReminderDismissedCookieName,
+		Value:    reminder.BlockerKey,
+		Path:     "/admin/operations",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   adminCookieSecure(r),
+	})
 }
 
 func (h *handler) renderOperationsCockpitJSON(w http.ResponseWriter, r *http.Request) {
@@ -1298,7 +1315,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.AuthStatus = h.buildOperationsAuthStatus(r, principal, page.GeneratedAt)
 	page.AdminUsers = h.buildOperationsAdminUsersView(r, principal, "")
 	page.Config = buildOperationsConfig(page)
-	page.Dashboard = buildOperationsDashboard(page)
+	page.Dashboard = buildOperationsDashboard(page, r)
 	page.Cockpit.Dashboard = page.Dashboard
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
 	page.ContextHelp = page.Help.ContextualHelp
@@ -2579,10 +2596,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </dl>{{end}}
 </aside>
 </section>
-{{if .Dashboard.SetupReminder.Incomplete}}<section class="section-note" aria-labelledby="setup-reminder-heading">
+{{if .Dashboard.SetupReminder.Visible}}<section class="section-note" aria-labelledby="setup-reminder-heading">
 <h2 id="setup-reminder-heading">Setup reminder</h2>
 <p>{{.Dashboard.SetupReminder.Message}}</p>
-<p class="compact-actions"><a class="action-link" href="{{.Dashboard.SetupReminder.ActionLink}}">{{.Dashboard.SetupReminder.ActionLabel}}</a><a class="action-link secondary-action" href="{{.Dashboard.SetupReminder.SkipLink}}">{{.Dashboard.SetupReminder.SkipLabel}}</a></p>
+<p class="compact-actions"><a class="action-link" href="{{.Dashboard.SetupReminder.ActionLink}}">{{.Dashboard.SetupReminder.ActionLabel}}</a><a class="action-link secondary-action" href="{{.Dashboard.SetupReminder.SkipLink}}">{{.Dashboard.SetupReminder.SkipLabel}}</a><a class="action-link secondary-action" href="{{.Dashboard.SetupReminder.DismissLink}}">{{.Dashboard.SetupReminder.DismissLabel}}</a></p>
 </section>{{end}}
 
 <section class="issue-center" aria-labelledby="issue-center-heading">
@@ -2779,6 +2796,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><a href="/admin/operations/setup#publication-metadata">Review publication metadata</a></p>
 </section>
 </div>
+<h3>Completion Model</h3>
+<table><thead><tr><th>Level</th><th>Status</th><th>Complete</th><th>Incomplete</th><th>Meaning</th></tr></thead><tbody>
+{{range .SetupWizard.Completion}}<tr><td>{{.Label}}<br><code>{{.Requirement}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.Complete}} of {{.Total}}</td><td>{{.Incomplete}}</td><td>{{.Meaning}}</td></tr>{{end}}
+</tbody></table>
 {{if .SetupWizard.Blockers}}
 <h3>Review Blocks And Next Actions</h3>
 <table><thead><tr><th>Stage</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Console</th></tr></thead><tbody>
@@ -2822,8 +2843,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "jsonSafetyNote" .}}
 </details>
 <h3>Detailed Setup Signals</h3>
-<table><thead><tr><th>ID</th><th>Stage</th><th>Status</th><th>Current signal</th><th>Primary action</th><th>Console</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
-{{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.ActionLabel}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Stage</th><th>Level</th><th>Status</th><th>Current signal</th><th>Primary action</th><th>Console</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
+{{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Requirement}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.ActionLabel}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">This wizard is GET-only. It does not upload GTFS, mutate setup state, run validators, contact external systems, or create public routes.</p>
 {{template "layoutEnd" .}}

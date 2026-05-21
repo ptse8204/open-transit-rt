@@ -20,6 +20,7 @@ type operationsSetupWizardView struct {
 	RoleVisibility  []operationsSetupWizardRoleVisibility `json:"role_visibility"`
 	TechnicalHelp   []operationsSetupWizardTechnicalHelp  `json:"technical_help"`
 	Stages          []operationsSetupWizardStage          `json:"stages"`
+	Completion      []operationsSetupCompletionBucket     `json:"completion"`
 	Counts          operationsSetupWizardCounts           `json:"counts"`
 	ClaimFlags      setupWizardClaimFlags                 `json:"claim_flags"`
 }
@@ -41,6 +42,7 @@ type operationsSetupWizardSummary struct {
 type operationsSetupWizardStage struct {
 	ID            string   `json:"id"`
 	Label         string   `json:"label"`
+	Requirement   string   `json:"requirement"`
 	Status        string   `json:"status"`
 	WhyItMatters  string   `json:"why_it_matters"`
 	CurrentSignal string   `json:"current_signal"`
@@ -51,6 +53,16 @@ type operationsSetupWizardStage struct {
 	SkipLink      string   `json:"skip_link"`
 	DocsLinks     []string `json:"docs_links"`
 	ClaimBoundary string   `json:"claim_boundary"`
+}
+
+type operationsSetupCompletionBucket struct {
+	Requirement string `json:"requirement"`
+	Label       string `json:"label"`
+	Total       int    `json:"total"`
+	Complete    int    `json:"complete"`
+	Incomplete  int    `json:"incomplete"`
+	Status      string `json:"status"`
+	Meaning     string `json:"meaning"`
 }
 
 type operationsSetupWizardBlocker struct {
@@ -255,6 +267,7 @@ func buildOperationsSetupWizard(page operationsPage) operationsSetupWizardView {
 		RoleVisibility:  setupWizardRoleVisibility(page),
 		TechnicalHelp:   setupWizardTechnicalHelp(),
 		Stages:          stages,
+		Completion:      setupWizardCompletion(stages),
 		Counts:          setupWizardCounts(stages),
 		ClaimFlags:      setupWizardClaimFlags{},
 	}
@@ -269,6 +282,7 @@ func setupWizardStage(id string, label string, status string, why string, signal
 	return operationsSetupWizardStage{
 		ID:            id,
 		Label:         label,
+		Requirement:   setupWizardRequirement(id),
 		Status:        normalizeChecklistStatus(status),
 		WhyItMatters:  firstNonEmpty(why, "This setup step supports the next private operator workflow."),
 		CurrentSignal: firstNonEmpty(signal, "unknown"),
@@ -280,6 +294,49 @@ func setupWizardStage(id string, label string, status string, why string, signal
 		DocsLinks:     safeDocsLinks(docsLinks),
 		ClaimBoundary: firstNonEmpty(boundary, privateBoundary()),
 	}
+}
+
+func setupWizardRequirement(id string) string {
+	switch id {
+	case "maintenance_backup_owner":
+		return "recommended"
+	case "sharing_readiness":
+		return "optional"
+	default:
+		return "required"
+	}
+}
+
+func setupWizardCompletion(stages []operationsSetupWizardStage) []operationsSetupCompletionBucket {
+	order := []struct {
+		id      string
+		label   string
+		meaning string
+	}{
+		{id: "required", label: "Required", meaning: "Needed for the main self-hosted product path before routine operation review."},
+		{id: "recommended", label: "Recommended", meaning: "Important for safer operation, but does not block reaching the dashboard."},
+		{id: "optional", label: "Optional", meaning: "Useful for future sharing preparation when separately authorized."},
+	}
+	buckets := make([]operationsSetupCompletionBucket, 0, len(order))
+	for _, spec := range order {
+		bucket := operationsSetupCompletionBucket{Requirement: spec.id, Label: spec.label, Status: checklistStatusOK, Meaning: spec.meaning}
+		for _, stage := range stages {
+			if stage.Requirement != spec.id {
+				continue
+			}
+			bucket.Total++
+			if normalizeChecklistStatus(stage.Status) == checklistStatusOK {
+				bucket.Complete++
+			} else {
+				bucket.Incomplete++
+			}
+		}
+		if bucket.Incomplete > 0 {
+			bucket.Status = checklistStatusNeedsReview
+		}
+		buckets = append(buckets, bucket)
+	}
+	return buckets
 }
 
 func setupWizardCounts(stages []operationsSetupWizardStage) operationsSetupWizardCounts {

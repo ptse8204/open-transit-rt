@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 176 of the production login, setup, dashboard, and connector
+Phase 177 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-21. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -66,6 +66,12 @@ Operations, and Admin. The Connectors overview now leaves configured
 instances visible first and moves secondary health, catalog, category, and
 manifest-registry diagnostics behind disclosure sections so the first view is
 not a long audit page.
+Phase 177 adds a setup completion model with required, recommended, and
+optional buckets. The dashboard setup reminder remains visible while setup is
+incomplete, can be dismissed only for the current browser session for the
+current next setup blocker, and reappears when the blocker changes. Dashboard
+top issues still cap at three and fill remaining first-screen space with
+compact healthy/current category summaries.
 Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated

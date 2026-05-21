@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
 
 const dashboardTopIssueLimit = 3
+const setupReminderDismissedCookieName = "setup_reminder_dismissed"
 
 type operationsDashboardView struct {
 	GeneratedAt       time.Time                     `json:"generated_at"`
@@ -21,13 +24,18 @@ type operationsDashboardView struct {
 }
 
 type operationsSetupReminderView struct {
-	Incomplete  bool   `json:"incomplete"`
-	Status      string `json:"status"`
-	Message     string `json:"message"`
-	ActionLabel string `json:"action_label"`
-	ActionLink  string `json:"action_link"`
-	SkipLabel   string `json:"skip_label"`
-	SkipLink    string `json:"skip_link"`
+	Incomplete   bool   `json:"incomplete"`
+	Visible      bool   `json:"visible"`
+	Dismissed    bool   `json:"dismissed"`
+	Status       string `json:"status"`
+	BlockerKey   string `json:"blocker_key"`
+	Message      string `json:"message"`
+	ActionLabel  string `json:"action_label"`
+	ActionLink   string `json:"action_link"`
+	SkipLabel    string `json:"skip_label"`
+	SkipLink     string `json:"skip_link"`
+	DismissLabel string `json:"dismiss_label"`
+	DismissLink  string `json:"dismiss_link"`
 }
 
 type operationsDashboardCategory struct {
@@ -41,7 +49,7 @@ type operationsDashboardCategory struct {
 	HealthySignal string `json:"healthy_signal"`
 }
 
-func buildOperationsDashboard(page operationsPage) operationsDashboardView {
+func buildOperationsDashboard(page operationsPage, r *http.Request) operationsDashboardView {
 	top := topDashboardIssues(page.IssueCenter.Issues)
 	categories := dashboardCategories(page)
 	healthy := dashboardHealthyFallback(categories, dashboardTopIssueLimit-len(top))
@@ -53,7 +61,7 @@ func buildOperationsDashboard(page operationsPage) operationsDashboardView {
 		GeneratedAt:       page.GeneratedAt,
 		AgencyID:          page.AgencyID,
 		Boundary:          "Private dashboard summary only. It prioritizes existing records and does not mutate feeds, create evidence, contact external systems, change consumer status, or prove compliance, production readiness, uptime, vendor compatibility, production AVL reliability, or ETA quality.",
-		SetupReminder:     setupReminderFromWizard(page.SetupWizard),
+		SetupReminder:     setupReminderFromWizard(page.SetupWizard, setupReminderDismissedStage(r)),
 		TopIssues:         top,
 		HealthySummaries:  healthy,
 		Categories:        categories,
@@ -62,21 +70,52 @@ func buildOperationsDashboard(page operationsPage) operationsDashboardView {
 	}
 }
 
-func setupReminderFromWizard(wizard operationsSetupWizardView) operationsSetupReminderView {
+func setupReminderFromWizard(wizard operationsSetupWizardView, dismissedStage string) operationsSetupReminderView {
 	incomplete := wizard.Summary.Status != checklistStatusOK
+	blockerKey := firstNonEmpty(wizard.Summary.NextStageID, "complete")
+	dismissed := incomplete && dismissedStage != "" && dismissedStage == blockerKey
 	message := "Setup is complete in the bounded private wizard model."
 	if incomplete {
-		message = fmt.Sprintf("Setup is incomplete: %d of %d steps are complete; next step is %s.", wizard.Summary.CompletedStages, wizard.Counts.Stages, firstNonEmpty(wizard.Summary.NextStageLabel, "not available"))
+		required := setupCompletionBucket(wizard.Completion, "required")
+		message = fmt.Sprintf("Setup is incomplete: %d of %d required steps are complete; next step is %s.", required.Complete, required.Total, firstNonEmpty(wizard.Summary.NextStageLabel, "not available"))
 	}
 	return operationsSetupReminderView{
-		Incomplete:  incomplete,
-		Status:      firstNonEmpty(wizard.Summary.Status, checklistStatusUnknown),
-		Message:     message,
-		ActionLabel: "Continue setup",
-		ActionLink:  firstNonEmpty(wizard.Summary.NextActionLink, "/admin/operations/setup-wizard"),
-		SkipLabel:   "Stay on dashboard",
-		SkipLink:    "/admin/operations",
+		Incomplete:   incomplete,
+		Visible:      incomplete && !dismissed,
+		Dismissed:    dismissed,
+		Status:       firstNonEmpty(wizard.Summary.Status, checklistStatusUnknown),
+		BlockerKey:   blockerKey,
+		Message:      message,
+		ActionLabel:  "Continue setup",
+		ActionLink:   firstNonEmpty(wizard.Summary.NextActionLink, "/admin/operations/setup-wizard"),
+		SkipLabel:    "Stay on dashboard",
+		SkipLink:     "/admin/operations",
+		DismissLabel: "Dismiss for this session",
+		DismissLink:  "/admin/operations?setup_reminder=dismissed&setup_blocker=" + url.QueryEscape(blockerKey),
 	}
+}
+
+func setupCompletionBucket(buckets []operationsSetupCompletionBucket, requirement string) operationsSetupCompletionBucket {
+	for _, bucket := range buckets {
+		if bucket.Requirement == requirement {
+			return bucket
+		}
+	}
+	return operationsSetupCompletionBucket{Requirement: requirement, Label: requirement, Status: checklistStatusUnknown}
+}
+
+func setupReminderDismissedStage(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	if r.URL.Query().Get("setup_reminder") == "dismissed" {
+		return r.URL.Query().Get("setup_blocker")
+	}
+	cookie, err := r.Cookie(setupReminderDismissedCookieName)
+	if err != nil {
+		return ""
+	}
+	return cookie.Value
 }
 
 func topDashboardIssues(issues []operationsOperatorIssue) []operationsOperatorIssue {
@@ -98,16 +137,21 @@ func dashboardHealthyFallback(categories []operationsDashboardCategory, limit in
 		return nil
 	}
 	var healthy []operationsDashboardCategory
+	seen := make(map[string]bool, len(categories))
 	for _, category := range categories {
 		status := normalizeChecklistStatus(category.Status)
 		if status == checklistStatusOK || category.Status == operationsStatusReady {
 			healthy = append(healthy, category)
+			seen[category.ID] = true
 			if len(healthy) == limit {
 				return healthy
 			}
 		}
 	}
 	for _, category := range categories {
+		if seen[category.ID] {
+			continue
+		}
 		healthy = append(healthy, category)
 		if len(healthy) == limit {
 			return healthy

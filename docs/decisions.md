@@ -910,3 +910,11 @@ maintenance, and support groupings. The Connectors overview shows configured
 instances first and keeps secondary health, catalog, category, and committed
 manifest registry diagnostics in disclosure sections so the first browser view
 does not become a giant diagnostic page.
+
+Phase 177 treats setup completion as a private product model with required,
+recommended, and optional buckets instead of a blocking gate. The dashboard
+reminder remains visible while setup is incomplete, but operators may dismiss
+the reminder for the current browser session/current next setup blocker using
+a non-auth session cookie under `/admin/operations`; stale dismissals do not
+hide a changed blocker. The reminder does not mutate setup state, create
+evidence, contact external systems, or change consumer status.

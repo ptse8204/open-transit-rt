@@ -1048,7 +1048,7 @@ func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	if view.Dashboard.Boundary == "" || view.Dashboard.PrimaryNextAction == "" {
 		t.Fatalf("dashboard JSON missing boundary or next action: %+v", view.Dashboard)
 	}
-	if view.Dashboard.SetupReminder.ActionLabel == "" || view.Dashboard.SetupReminder.SkipLink != "/admin/operations" {
+	if view.Dashboard.SetupReminder.ActionLabel == "" || view.Dashboard.SetupReminder.SkipLink != "/admin/operations" || view.Dashboard.SetupReminder.DismissLink == "" || view.Dashboard.SetupReminder.BlockerKey == "" {
 		t.Fatalf("dashboard JSON missing setup reminder: %+v", view.Dashboard.SetupReminder)
 	}
 	if view.AgencyID != "demo-agency" {
@@ -1796,6 +1796,7 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		"Setup reminder",
 		"Continue setup",
 		"Stay on dashboard",
+		"Dismiss for this session",
 		"Work through this in order",
 		"Operations workflow",
 		"Review realtime",
@@ -1840,6 +1841,65 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
 			t.Fatalf("dashboard contains forbidden %q: %s", forbidden, body)
 		}
+	}
+}
+
+func TestOperationsDashboardSetupReminderDismissalIsSessionScoped(t *testing.T) {
+	srv := newOperationsTestHandler(&handler{
+		store:   &fakePublicationStore{discoveryErr: errors.New("missing discovery")},
+		devices: fakeDeviceStore{},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations.json", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("json status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var view operationsCockpitView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode cockpit JSON: %v", err)
+	}
+	blocker := view.Dashboard.SetupReminder.BlockerKey
+	if blocker == "" || !view.Dashboard.SetupReminder.Visible || !view.Dashboard.SetupReminder.Incomplete {
+		t.Fatalf("unexpected setup reminder before dismissal: %+v", view.Dashboard.SetupReminder)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations?setup_reminder=dismissed&setup_blocker="+url.QueryEscape(blocker), nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("dismiss status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if strings.Contains(rr.Body.String(), "Setup reminder") {
+		t.Fatalf("setup reminder should be hidden after matching dismissal: %s", rr.Body.String())
+	}
+	var dismissal *http.Cookie
+	for _, cookie := range rr.Result().Cookies() {
+		if cookie.Name == setupReminderDismissedCookieName {
+			dismissal = cookie
+			break
+		}
+	}
+	if dismissal == nil || dismissal.Value != blocker || dismissal.Path != "/admin/operations" || !dismissal.HttpOnly || dismissal.SameSite != http.SameSiteLaxMode {
+		t.Fatalf("dismissal cookie invalid: %+v", dismissal)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	req.AddCookie(dismissal)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if strings.Contains(rr.Body.String(), "Setup reminder") {
+		t.Fatalf("setup reminder should remain hidden with matching session cookie: %s", rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	req.AddCookie(&http.Cookie{Name: setupReminderDismissedCookieName, Value: "old_blocker"})
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if !strings.Contains(rr.Body.String(), "Setup reminder") {
+		t.Fatalf("stale dismissal must not hide unresolved setup blocker: %s", rr.Body.String())
 	}
 }
 
@@ -2002,7 +2062,7 @@ func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Administrator Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Skip to dashboard", "Why it matters", "Skip for now", "Create or sign in admin", "Agency profile", "Public feed URLs", "License and contact", "Import schedule", "Bind vehicle/device source", "Configure connector", "Validate feeds", "Maintenance and backup owner", "Sharing readiness"} {
+	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Completion Model", "Required", "Recommended", "Optional", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Administrator Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Skip to dashboard", "Why it matters", "Skip for now", "Create or sign in admin", "Agency profile", "Public feed URLs", "License and contact", "Import schedule", "Bind vehicle/device source", "Configure connector", "Validate feeds", "Maintenance and backup owner", "Sharing readiness"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -7766,19 +7826,21 @@ func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
 
 func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 	t.Helper()
-	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.SkipActionLabel == "" || wizard.SkipLink != "/admin/operations" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Blockers) == 0 || len(wizard.Diagnostics) != 8 || len(wizard.RoleVisibility) != 3 || len(wizard.TechnicalHelp) != 4 || len(wizard.Stages) != 10 || wizard.Counts.Stages != len(wizard.Stages) {
+	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.SkipActionLabel == "" || wizard.SkipLink != "/admin/operations" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Blockers) == 0 || len(wizard.Diagnostics) != 8 || len(wizard.RoleVisibility) != 3 || len(wizard.TechnicalHelp) != 4 || len(wizard.Stages) != 10 || len(wizard.Completion) != 3 || wizard.Counts.Stages != len(wizard.Stages) {
 		t.Fatalf("invalid setup wizard top-level shape: %+v", wizard)
 	}
 	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
 	seenIDs := map[string]bool{}
+	seenRequirements := map[string]bool{}
 	for _, stage := range wizard.Stages {
-		if stage.ID == "" || stage.Label == "" || stage.Status == "" || stage.WhyItMatters == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.ActionLabel == "" || stage.AdminLink == "" || stage.SkipLabel == "" || stage.SkipLink != "/admin/operations" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
+		if stage.ID == "" || stage.Label == "" || stage.Requirement == "" || stage.Status == "" || stage.WhyItMatters == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.ActionLabel == "" || stage.AdminLink == "" || stage.SkipLabel == "" || stage.SkipLink != "/admin/operations" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
 			t.Fatalf("invalid setup wizard stage shape: %+v", stage)
 		}
 		if seenIDs[stage.ID] {
 			t.Fatalf("duplicate setup wizard stage id %q", stage.ID)
 		}
 		seenIDs[stage.ID] = true
+		seenRequirements[stage.Requirement] = true
 		if !allowedStatuses[stage.Status] {
 			t.Fatalf("stage %q status = %q, want neutral status", stage.ID, stage.Status)
 		}
@@ -7789,6 +7851,19 @@ func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 			if !strings.HasPrefix(link, "docs/") {
 				t.Fatalf("stage %s has unsafe docs link %q", stage.ID, link)
 			}
+		}
+	}
+	for _, requirement := range []string{"required", "recommended", "optional"} {
+		if !seenRequirements[requirement] {
+			t.Fatalf("setup wizard missing %s stage in completion model: %+v", requirement, wizard.Stages)
+		}
+	}
+	for _, bucket := range wizard.Completion {
+		if bucket.Requirement == "" || bucket.Label == "" || bucket.Status == "" || bucket.Total < bucket.Complete || bucket.Total < bucket.Incomplete || bucket.Meaning == "" {
+			t.Fatalf("invalid setup wizard completion bucket: %+v", bucket)
+		}
+		if !allowedStatuses[bucket.Status] {
+			t.Fatalf("completion bucket %q status = %q, want neutral status", bucket.Requirement, bucket.Status)
 		}
 	}
 	for _, blocker := range wizard.Blockers {

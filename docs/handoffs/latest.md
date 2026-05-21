@@ -9,7 +9,7 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 176 of the production login, setup, dashboard, and connector
+Phase 177 of the production login, setup, dashboard, and connector
 configuration roadmap is active. The roadmap file is
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
 Phases 161-164 locked the maintainer-confirmed production auth boundary, added
@@ -70,6 +70,12 @@ navigation groups: Dashboard, Setup, Data, Realtime, Connectors, Operations,
 and Admin. It keeps the Connectors overview focused by showing configured
 instances first and moving secondary health-review, catalog, category, and
 manifest-registry diagnostics behind disclosure sections.
+Phase 177 adds required, recommended, and optional setup completion buckets.
+The dashboard reminder stays tied to incomplete setup, can be dismissed only
+for the current browser session/current next setup blocker, and returns when
+that blocker changes. Dashboard issue ordering remains capped to the top three
+non-healthy issues and uses compact healthy/current category rows when fewer
+than three issues are present.
 `/admin/local-login` is still production-disabled, anonymous
 `/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
 Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without
