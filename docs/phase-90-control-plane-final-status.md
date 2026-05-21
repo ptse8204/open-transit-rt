@@ -32,6 +32,7 @@ closeout is preserved on the `archive/agent-history` branch.
 - `/admin/operations/connectors`
 - `/admin/operations/connectors/vehicle-avl`
 - `/admin/operations/connectors/prediction`
+- `/admin/operations/connectors/validators`
 - `/admin/operations/connectors/workbench`
 - `/admin/operations/connectors/tests`
 - `/admin/operations/admin/sessions`
@@ -53,6 +54,7 @@ closeout is preserved on the `archive/agent-history` branch.
 - `/admin/operations/connectors.json`
 - `/admin/operations/connectors/vehicle-avl.json`
 - `/admin/operations/connectors/prediction.json`
+- `/admin/operations/connectors/validators.json`
 - `/admin/operations/gtfs-workbench.json`
 - `/admin/operations/connectors/workbench.json`
 - `/admin/operations/launchpad.json`

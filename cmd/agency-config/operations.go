@@ -68,6 +68,7 @@ type operationsPage struct {
 	ConnectorDryRunError   string
 	VehicleAVLSetup        vehicleAVLSetupView
 	PredictionConnector    predictionConnectorView
+	ValidatorConnector     validatorConnectorView
 	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
@@ -332,6 +333,24 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderPredictionConnectorJSON(w, r)
+	case "connectors/validators":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderValidatorConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, validatorConnectorPostMaxBytes)
+			h.operationsValidatorConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/validators.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderValidatorConnectorJSON(w, r)
 	case "admin/users":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method == http.MethodPost {
@@ -1230,6 +1249,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.ConnectorHub = buildConnectorHub(page)
 	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "")
 	page.PredictionConnector = buildPredictionConnector(page, "", "")
+	page.ValidatorConnector = buildValidatorConnector(page, "", "")
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
 	page.IssueCenter = buildOperationsIssueCenter(page)
@@ -2910,6 +2930,57 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Limits</th><td>{{.PredictionConnector.DoesNotProve}}</td></tr>
 </tbody></table>
 <p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/prediction-lab">Open Prediction Lab</a> · <a href="/admin/operations/realtime">Open Realtime Center</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "validator-setup"}}
+{{template "layoutStart" .}}
+<h2>Validator Setup</h2>
+<p class="warning">{{.ValidatorConnector.Boundary}}</p>
+{{if .ValidatorConnector.Notice}}<p class="ok">{{.ValidatorConnector.Notice}}</p>{{end}}
+{{if .ValidatorConnector.Error}}<p class="bad">{{.ValidatorConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.ValidatorConnector.NextAction}}</p>
+<p class="warning">{{.ValidatorConnector.RawCommandBlocked}}</p>
+<h3>Configured Validator Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .ValidatorConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Allowlisted Validators</h3>
+<table><thead><tr><th>Validator</th><th>Feeds</th><th>Env refs</th><th>First check</th><th>Failure behavior</th><th>Limits</th></tr></thead><tbody>
+{{range .ValidatorConnector.Allowlisted}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{join .FeedTypes ", "}}</td><td><code>{{.PathEnvRef}}</code><br><code>{{.VersionEnvRef}}</code>{{if .ArgsEnvRef}}<br><code>{{.ArgsEnvRef}}</code>{{end}}</td><td><code>{{.FirstCheck}}</code></td><td>{{.FailureBehavior}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Validator Health Summary</h3>
+<table><thead><tr><th>Feed</th><th>Validator</th><th>Tooling</th><th>Artifact</th><th>Latest result</th><th>Health</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
+{{range .ValidatorConnector.HealthRows}}<tr><td>{{.FeedType}}</td><td><code>{{.ValidatorID}}</code><br>{{.ValidatorName}}</td><td>{{.ToolingStatus}}</td><td>{{.ArtifactStatus}}</td><td>{{.LatestResultStatus}}<br><span class="muted">{{.LatestResultAt}}</span></td><td><span class="status-chip status-{{statusClass .HealthStatus}}">{{.HealthStatus}}</span></td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{else}}<tr><td colspan="8">No validator health rows are available yet.</td></tr>{{end}}
+</tbody></table>
+<h3>Safety Rules</h3>
+<table><thead><tr><th>Rule</th><th>Required</th><th>Blocked</th></tr></thead><tbody>
+{{range .ValidatorConnector.Rules}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Rule}}</td><td>{{.Blocked}}</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="validator-connector-form">Save Validator Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/validators#validator-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_validator_connector">
+<label for="validator_display_name">Display name</label><input id="validator_display_name" name="display_name" maxlength="160" value="Static GTFS validator">
+<label for="validator_owner">Owner</label><input id="validator_owner" name="owner" maxlength="160" placeholder="validation owner">
+<label for="validator_id">Validator</label><select id="validator_id" name="validator_id">{{range .ValidatorConnector.Allowlisted}}<option value="{{.ID}}">{{.Label}}</option>{{end}}</select>
+<label for="validator_tooling_path_env_ref">Tooling path env ref</label><input id="validator_tooling_path_env_ref" name="tooling_path_env_ref" maxlength="80" value="GTFS_VALIDATOR_PATH">
+<label for="validator_version_env_ref">Version env ref</label><input id="validator_version_env_ref" name="version_env_ref" maxlength="80" value="GTFS_VALIDATOR_VERSION">
+<label for="validator_args_env_ref">Optional args env ref</label><input id="validator_args_env_ref" name="args_env_ref" maxlength="80" placeholder="GTFS_RT_VALIDATOR_ARGS">
+<label for="validator_timeout">Timeout seconds</label><input id="validator_timeout" name="timeout_seconds" type="number" min="1" max="600" value="120">
+<button type="submit">Save validator connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Validator connector metadata changes require an admin role. This account can review validator status but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>Execution</th><td>Validator runs stay in Validation Health and use server-owned artifacts and allowlisted IDs.</td></tr>
+<tr><th>Raw commands</th><td>{{.ValidatorConnector.RawCommandBlocked}}</td></tr>
+<tr><th>Limits</th><td>{{.ValidatorConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/validation-health">Open Validation Health</a> · <a href="/admin/operations/validation-center">Open Validation Center</a> · <a href="/admin/operations/gtfs-quality">Open Schedule Quality</a></p>
 {{template "layoutEnd" .}}
 {{end}}
 

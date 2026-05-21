@@ -60,10 +60,14 @@ DEVICE_TOKEN_PEPPER=replace-with-generated-secret
 ###############################################################################
 
 VALIDATOR_TOOLING_MODE=pinned
+# Validator Setup in the admin console stores these env variable names as
+# reference labels only. The browser must not receive raw commands, argv,
+# private paths, validator output, or validator credentials.
 GTFS_VALIDATOR_PATH=/opt/open-transit-rt/.cache/validators/gtfs-validator-7.1.0-cli.jar
 GTFS_VALIDATOR_VERSION=v7.1.0
 GTFS_RT_VALIDATOR_PATH=/opt/open-transit-rt/.cache/validators/gtfs-rt-validator-wrapper.sh
 GTFS_RT_VALIDATOR_VERSION=replace-with-pinned-gtfs-rt-validator-digest
+GTFS_RT_VALIDATOR_ARGS="--schedule {schedule_zip} --realtime {realtime_pb} --feed_type {feed_type} --output_dir {output_dir}"
 GTFS_RT_VALIDATOR_READY_TIMEOUT_SECONDS=60
 JAVA_BINARY=/usr/bin/java
 

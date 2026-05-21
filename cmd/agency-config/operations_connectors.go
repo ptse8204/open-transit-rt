@@ -182,7 +182,7 @@ func buildConnectorHub(page operationsPage) connectorHubView {
 			[]string{"normalized validation_report rows", "private validator health diagnostics"},
 			"Missing or failing tooling records not-run, missing, warning, failed, or blocked states instead of pretending success.",
 			[]string{"make validators-check", "make validator-health"},
-			[]string{"/admin/operations/validation-health", "/admin/operations/gtfs-quality"},
+			[]string{"/admin/operations/connectors/validators", "/admin/operations/validation-health", "/admin/operations/validation-center"},
 			[]string{"docs/connectors/catalog.md", "docs/dependencies.md", "docs/tutorials/gtfs-validation-triage.md", "docs/release-candidate-readiness.md"},
 			"Validator records are supporting signals only; they are not CAL-ITP/Caltrans compliance or consumer acceptance.",
 		),
@@ -420,7 +420,7 @@ func connectorSafeLinks(connectorType string) []string {
 	case connectorpkg.TypePrediction:
 		return []string{"/admin/operations/connectors/prediction", "/admin/operations/prediction-lab", "/admin/operations/realtime", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeValidator:
-		return []string{"/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/connectors/tests"}
+		return []string{"/admin/operations/connectors/validators", "/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeMonitoringExport:
 		return []string{"/admin/operations/maintenance", "/admin/operations/reliability", "/admin/operations/connectors/tests"}
 	case connectorpkg.TypeConsumerDiscovery:
@@ -516,7 +516,7 @@ func connectorHealthRows(page operationsPage, registry connectorpkg.Registry) []
 			connectorRedactionSignal(registry, connectorpkg.TypeValidator),
 			connectorValidatorBlockers(page, registry),
 			"validation",
-			[]string{"/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/gtfs-quality", "/admin/operations/connectors/tests"},
+			[]string{"/admin/operations/connectors/validators", "/admin/operations/validation-health", "/admin/operations/validation-center", "/admin/operations/gtfs-quality", "/admin/operations/connectors/tests"},
 			[]string{
 				"choose_manifest=example.validator-allowlist",
 				"keep_validator_id_allowlisted",
@@ -981,7 +981,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"MobilityData static GTFS validator",
 			"available",
 			"Server-owned static GTFS validator tooling when installed by an administrator.",
-			"/admin/operations/validation-health and /admin/operations/validation-center",
+			"/admin/operations/connectors/validators and /admin/operations/validation-health",
 			"make validators-check",
 			"Validator-clean proof, CAL-ITP/Caltrans compliance, consumer acceptance, public launch, or production readiness.",
 			[]string{"docs/connectors/catalog.md", "docs/dependencies.md", "docs/tutorials/gtfs-validation-triage.md"},
@@ -992,7 +992,7 @@ func connectorCatalogRows() []connectorCatalogRow {
 			"MobilityData GTFS Realtime validator",
 			"available",
 			"Server-owned GTFS Realtime validator wrapper when installed by an administrator.",
-			"/admin/operations/validation-health and /admin/operations/realtime",
+			"/admin/operations/connectors/validators and /admin/operations/realtime",
 			"make gtfsrt-conformance",
 			"Validator-clean proof, consumer acceptance, production readiness, public launch, or compliance.",
 			[]string{"docs/connectors/catalog.md", "docs/dependencies.md", "docs/tutorials/external-adapter-conformance.md"},

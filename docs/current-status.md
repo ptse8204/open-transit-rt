@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 173 of the production login, setup, dashboard, and connector
+Phase 174 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-20. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -46,6 +46,14 @@ deployment-owned env reference labels and the fixed
 `/v1/predict/trip-updates` sidecar path. Vehicle Positions remain independent,
 external prediction is not enabled by the browser, and the page does not store
 predictor URLs, token values, raw sidecar payloads, or ETA-quality proof.
+Phase 174 adds Validator Setup at
+`/admin/operations/connectors/validators`: admins can save static or realtime
+validator connector metadata using allowlisted validator IDs and
+deployment-owned env reference labels. Validator execution remains in the
+existing server-owned Validation Health flow, raw commands and private artifact
+paths are blocked, and validator status remains supporting diagnostics rather
+than compliance, acceptance, final-root, production, SLA, or public-launch
+proof.
 Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated

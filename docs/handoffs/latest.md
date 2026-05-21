@@ -9,7 +9,7 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 173 of the production login, setup, dashboard, and connector
+Phase 174 of the production login, setup, dashboard, and connector
 configuration roadmap is active. The roadmap file is
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
 Phases 161-164 locked the maintainer-confirmed production auth boundary, added
@@ -48,7 +48,14 @@ stores only deployment-owned reference labels, the fixed
 labels; it does not store live predictor URLs, token values, raw sidecar
 payloads, browser-run commands, or ETA-quality proof. Vehicle Positions remain
 independent of optional prediction sidecars and external prediction is not
-enabled by the browser.
+enabled by the browser. Phase 174 adds Validator Setup at
+`/admin/operations/connectors/validators` and
+`/admin/operations/connectors/validators.json`. The page supports
+`static-mobilitydata` and `realtime-mobilitydata` allowlisted validator IDs,
+tooling/version/args env reference labels, bounded timeout metadata, current
+Validation Health rows, and links to Validation Center and Schedule Quality.
+It does not accept raw commands, argv, private artifact paths, validator output
+artifacts, or compliance/acceptance proof claims.
 `/admin/local-login` is still production-disabled, anonymous
 `/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
 Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without

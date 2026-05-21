@@ -883,3 +883,12 @@ the fixed `/v1/predict/trip-updates` path, bounded timeout metadata, and
 secret ref labels. It does not store live predictor URLs or token values, does
 not make external prediction the default, and does not let optional prediction
 sidecars block Vehicle Positions.
+
+Phase 174 adds validator connector configuration review for the existing
+server-owned validator boundary. The browser can save only the allowlisted
+`static-mobilitydata` or `realtime-mobilitydata` validator IDs, env reference
+labels, feed coverage, and bounded timeout metadata. It does not accept raw
+validator commands, argv, binary paths, private artifacts, or validator output
+blobs. Actual validator execution remains in Validation Health, and validator
+results remain supporting diagnostics rather than compliance, acceptance,
+final-root, public-launch, production, SLA, or agency-approval proof.
