@@ -838,3 +838,19 @@ reports password-login status, local demo-login status, `admin_session` cookie
 policy, Bearer support, session TTL, password-reset guidance, and the explicit
 future SSO/OIDC direction. It does not add OIDC discovery, redirect, callback,
 JWKS, claim mapping, provider configuration, or provider logout endpoints.
+
+## ADR-0059 -- Separate connector examples from configured instances
+
+Phase 169 adds per-agency connector instance records as the product state for
+connector configuration. Committed connector manifests remain example and
+contract material; loading them into the example registry never means an agency
+has configured, dry-run-tested, activation-ready, or active connectors.
+
+Connector instance state is explicit: `example_available`, `not_configured`,
+`configured_not_tested`, `dry_run_passed`, `ready_for_activation`, `active`,
+or `blocked`. Instance records may store redacted/non-secret config metadata
+and secret reference labels, but not secret values or raw payloads. Browser
+pages can review instance state and safe links, but they do not execute
+connector commands, start sidecars, contact vendors or consumers, create
+evidence, or prove compatibility, compliance, acceptance, SLA coverage, AVL
+reliability, or ETA quality.

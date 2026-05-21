@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 168 of the production login, setup, dashboard, and connector
+Phase 169 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-20. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -24,7 +24,11 @@ persistent dashboard reminder while remaining GET-only. Phase 168 adds focused
 config pages for agency profile, public feed URLs, login settings, deployment
 settings, and advanced review; publication metadata editing moved out of setup
 diagnostics while preserving the existing admin-only setup POST and CSRF
-boundary. Local demo sign-in
+boundary. Phase 169 adds DB-backed per-agency connector instance records and
+updates the Connectors page so example manifests are separated from configured
+instances with explicit states such as `example_available`,
+`configured_not_tested`, `dry_run_passed`, `ready_for_activation`, `active`,
+and `blocked`. Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated
 JWTs are rejected, new Bearer and `admin_session` JWTs are accepted,

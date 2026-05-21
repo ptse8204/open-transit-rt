@@ -19,6 +19,7 @@ import (
 	domainalerts "open-transit-rt/internal/alerts"
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
+	"open-transit-rt/internal/connectors"
 	appdb "open-transit-rt/internal/db"
 	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/feed"
@@ -88,22 +89,23 @@ type realtimeArtifactSource interface {
 }
 
 type handler struct {
-	agencyID   string
-	schedule   scheduleBuilder
-	store      publicationStore
-	devices    devices.Store
-	telemetry  telemetry.Repository
-	state      state.Repository
-	gtfsImport gtfsImportRunner
-	ready      pinger
-	admin      adminAuth
-	csrfSecret string
-	localLogin *localAdminLogin
-	loginFlow  *adminLoginFlow
-	passwords  passwordAuthStore
-	users      adminUserStore
-	cache      *scheduleZIPCache
-	realtime   realtimeArtifactSource
+	agencyID           string
+	schedule           scheduleBuilder
+	store              publicationStore
+	devices            devices.Store
+	telemetry          telemetry.Repository
+	state              state.Repository
+	gtfsImport         gtfsImportRunner
+	ready              pinger
+	admin              adminAuth
+	csrfSecret         string
+	localLogin         *localAdminLogin
+	loginFlow          *adminLoginFlow
+	passwords          passwordAuthStore
+	users              adminUserStore
+	connectorInstances connectorInstanceStore
+	cache              *scheduleZIPCache
+	realtime           realtimeArtifactSource
 }
 
 func main() {
@@ -157,12 +159,14 @@ func newHandlerWithRealtimeAndPasswordStore(agencyID string, scheduleBuilder sch
 	var telemetryRepo telemetry.Repository
 	var stateRepo state.Repository
 	var gtfsImporter gtfsImportRunner
+	var connectorInstances connectorInstanceStore
 	passwordStore := suppliedPasswordStore
 	var userStore adminUserStore
 	if pool, ok := ready.(*pgxpool.Pool); ok {
 		telemetryRepo = telemetry.NewPostgresRepository(pool)
 		stateRepo = state.NewPostgresRepository(pool)
 		gtfsImporter = gtfs.NewImportService(pool)
+		connectorInstances = connectors.NewPostgresInstanceStore(pool)
 		if passwordStore == nil {
 			passwordStore = auth.NewPostgresAdminStore(pool)
 		}
@@ -171,7 +175,7 @@ func newHandlerWithRealtimeAndPasswordStore(agencyID string, scheduleBuilder sch
 		userStore = store
 	}
 	csrfSecret := os.Getenv("CSRF_SECRET")
-	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: csrfSecret, localLogin: newLocalAdminLoginFromEnv(agencyID, csrfSecret), loginFlow: newAdminLoginFlow(csrfSecret), passwords: passwordStore, users: userStore, cache: newScheduleZIPCache(), realtime: realtime}
+	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: csrfSecret, localLogin: newLocalAdminLoginFromEnv(agencyID, csrfSecret), loginFlow: newAdminLoginFlow(csrfSecret), passwords: passwordStore, users: userStore, connectorInstances: connectorInstances, cache: newScheduleZIPCache(), realtime: realtime}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)

@@ -14,6 +14,7 @@ import (
 	"open-transit-rt/internal/admincontrol"
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
+	connectorpkg "open-transit-rt/internal/connectors"
 	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/prediction"
 	"open-transit-rt/internal/state"
@@ -61,6 +62,8 @@ type operationsPage struct {
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
+	ConnectorInstances     []connectorpkg.Instance
+	ConnectorInstanceError string
 	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
@@ -1182,6 +1185,7 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.FirstRun = buildOperationsFirstRun(page)
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
+	page.ConnectorInstances, page.ConnectorInstanceError = h.connectorInstancesForPage(r, principal.AgencyID)
 	page.ConnectorHub = buildConnectorHub(page)
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
@@ -2736,6 +2740,25 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Limits:</strong> Connector guidance does not show vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, SLA coverage, production readiness, or ETA quality.</p>
 </section>
 <details><summary>Safety details</summary><p><strong>Safe plugin definition:</strong> {{.ConnectorHub.PluginDefinition}}</p>{{template "jsonSafetyNote" .}}</details>
+<h3>Configured Connector Instances</h3>
+{{if .ConnectorInstanceError}}<p class="warning">{{.ConnectorInstanceError}}</p>{{end}}
+<p>{{.ConnectorHub.InstanceSummary.Boundary}}</p>
+<table aria-label="Configured connector instances"><thead><tr><th>Connector type</th><th>State</th><th>Owner</th><th>Examples</th><th>Deployment config</th><th>Dry-run / activation</th><th>Last signal</th><th>Next action</th><th>Safe links</th><th>Limits</th></tr></thead><tbody>
+{{range .ConnectorHub.Instances}}
+<tr>
+<td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorType}}</code><br><span class="muted">{{.ConnectorKind}}</span></td>
+<td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td>
+<td>{{.Owner}}</td>
+<td>{{.ExamplesAvailable}} available<br><span class="muted">examples are not configuration</span></td>
+<td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span>{{if .SecretRefs}}<br>{{range .SecretRefs}}<code>{{.}}</code><br>{{end}}{{end}}</td>
+<td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td>
+<td>{{.LastSignal}}</td>
+<td>{{.NextAction}}</td>
+<td>{{range .SafeLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td>
+<td>{{.Limits}}</td>
+</tr>
+{{end}}
+</tbody></table>
 <h3>Connector Health Review</h3>
 <p>Use these private rows to see which connector category is ready for a local synthetic check, which owner should act next, and which setup checklist is safe to copy. Checklist values are fixed labels only; they do not include endpoints, tokens, payloads, or local paths.</p>
 <table aria-label="Connector health review"><thead><tr><th>Connector area</th><th>Status</th><th>Configured</th><th>Dry-run readiness</th><th>Send state</th><th>Redaction</th><th>Blockers</th><th>Issue links</th><th>Setup checklist</th><th>Limits</th></tr></thead><tbody>
