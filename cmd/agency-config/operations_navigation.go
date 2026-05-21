@@ -73,6 +73,8 @@ func operationsPageNextAction(section string) string {
 		return "Choose the workflow section that matches the current blocker and follow its linked console page."
 	case "setup-wizard", "setup":
 		return "Confirm agency metadata, feed URL metadata, license, contact, and role visibility before importing or sharing feed links."
+	case "config", "config-agency", "config-feeds", "config-auth", "config-deployment", "config-advanced":
+		return "Review one focused settings area at a time; keep secrets, raw diagnostics, and advanced safety details out of broad setup pages."
 	case "gtfs-workbench", "gtfs-import", "gtfs-quality":
 		return "Review the active schedule, import or update GTFS when needed, then check validation and feed health."
 	case "feeds", "feed-health":
@@ -85,8 +87,12 @@ func operationsPageNextAction(section string) string {
 		return "Review device bindings and freshness, then use safe simulator or deployment-owned telemetry guidance."
 	case "prediction-lab":
 		return "Review withheld Trip Updates reasons and keep ETA-like output behind the prediction adapter boundary."
-	case "connectors", "connector-workbench", "connector-tests":
+	case "connectors", "vehicle-avl-setup", "prediction-setup", "validator-setup", "monitoring-setup", "discovery-setup", "connector-workbench", "connector-tests":
 		return "Choose a connector category, review redaction and fail-closed behavior, then have an administrator or integrator run synthetic conformance checks."
+	case "admin-sessions":
+		return "Review the current session, enabled login modes, cookie behavior, and future SSO boundary without exposing tokens or credentials."
+	case "admin-users":
+		return "Review users scoped to this agency, assign the smallest needed role, and generate password reset links only when a recipient is ready."
 	case "readiness", "checklist", "consumers":
 		return "Use readiness rows to prepare for future review without changing consumer status or claiming outside approval."
 	case "maintenance", "reliability":

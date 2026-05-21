@@ -71,6 +71,7 @@
         <thead><tr><th>Question</th><th>Local evaluation</th><th>Self-hosted reference operation</th></tr></thead>
         <tbody>
           <tr><td>Where does the console run?</td><td>On a local machine after startup.</td><td>On an operator-owned server behind private admin access.</td></tr>
+          <tr><td>How does browser login work?</td><td>Local/demo sign-in at <code>/admin/local-login</code>.</td><td>One-time first-admin setup link, then password sign-in at <code>/admin/login</code>.</td></tr>
           <tr><td>Where are feed URLs served?</td><td>Local or demo URLs for evaluation.</td><td>Stable deployment-owned URLs through the public feed paths.</td></tr>
           <tr><td>Who owns secrets?</td><td>The local administrator.</td><td>The deployment owner, with private env files and rotation plans.</td></tr>
           <tr><td>When can URLs be shared?</td><td>For local review only.</td><td>Only after agency and deployment-owner review authorizes sharing.</td></tr>
@@ -86,6 +87,7 @@
       <li><strong>Validators</strong><span>Installing and configuring static GTFS and GTFS Realtime validator tooling.</span></li>
       <li><strong>Secrets and device tokens</strong><span>Creating, rotating, and storing credentials outside public docs and screenshots.</span></li>
       <li><strong>Self-hosting</strong><span>DNS, TLS, reverse proxy, systemd, backups, monitoring, and update planning.</span></li>
+      <li><strong>First admin</strong><span>Generating the one-time setup link, assigning roles, and keeping reset links out of public logs.</span></li>
     </ul>
   </section>
 

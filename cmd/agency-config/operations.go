@@ -14,6 +14,7 @@ import (
 	"open-transit-rt/internal/admincontrol"
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
+	connectorpkg "open-transit-rt/internal/connectors"
 	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/prediction"
 	"open-transit-rt/internal/state"
@@ -57,9 +58,19 @@ type operationsPage struct {
 	Checklist              operatorChecklistView
 	Cockpit                operationsCockpitView
 	FirstRun               operationsFirstRunView
+	Dashboard              operationsDashboardView
 	Launchpad              agencyLaunchpadView
 	SetupWizard            operationsSetupWizardView
 	ConnectorHub           connectorHubView
+	ConnectorInstances     []connectorpkg.Instance
+	ConnectorInstanceError string
+	ConnectorDryRunJobs    []connectorpkg.DryRunJob
+	ConnectorDryRunError   string
+	VehicleAVLSetup        vehicleAVLSetupView
+	PredictionConnector    predictionConnectorView
+	ValidatorConnector     validatorConnectorView
+	MonitoringConnector    monitoringConnectorView
+	DiscoveryConnector     discoveryConnectorView
 	ConnectorWorkbench     connectorWorkbenchView
 	ConnectorTests         connectorTestsView
 	Help                   operationsHelpView
@@ -72,6 +83,10 @@ type operationsPage struct {
 	Maintenance            operationsMaintenanceView
 	IssueCenter            operationsIssueCenterView
 	Access                 operationsAccessView
+	Session                operationsSessionBannerView
+	AuthStatus             operationsAuthStatusView
+	AdminUsers             operationsAdminUsersView
+	Config                 operationsConfigView
 	Audit                  operationsAuditView
 	TelemetrySimulator     operationsTelemetrySimulatorView
 	GTFSImportResult       *gtfsImportResultView
@@ -284,6 +299,118 @@ func (h *handler) operationsRoot(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.renderConnectorTestsJSON(w, r)
+	case "connectors/vehicle-avl":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderVehicleAVLSetup(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, vehicleAVLPostMaxBytes)
+			h.operationsVehicleAVLPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/vehicle-avl.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderVehicleAVLSetupJSON(w, r)
+	case "connectors/prediction":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderPredictionConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, predictionConnectorPostMaxBytes)
+			h.operationsPredictionConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/prediction.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderPredictionConnectorJSON(w, r)
+	case "connectors/validators":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderValidatorConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, validatorConnectorPostMaxBytes)
+			h.operationsValidatorConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/validators.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderValidatorConnectorJSON(w, r)
+	case "connectors/monitoring":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderMonitoringConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, monitoringDiscoveryConnectorPostMaxBytes)
+			h.operationsMonitoringConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/monitoring.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderMonitoringConnectorJSON(w, r)
+	case "connectors/discovery":
+		w.Header().Set("Cache-Control", "no-store")
+		switch r.Method {
+		case http.MethodGet:
+			h.renderDiscoveryConnector(w, r)
+		case http.MethodPost:
+			r.Body = http.MaxBytesReader(w, r.Body, monitoringDiscoveryConnectorPostMaxBytes)
+			h.operationsDiscoveryConnectorPost(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	case "connectors/discovery.json":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderDiscoveryConnectorJSON(w, r)
+	case "admin/users":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method == http.MethodPost {
+			r.Body = http.MaxBytesReader(w, r.Body, adminUsersPostMaxBytes)
+		}
+		h.renderAdminUsers(w, r)
+	case "admin/users.json":
+		w.Header().Set("Cache-Control", "no-store")
+		h.renderAdminUsersJSON(w, r)
+	case "admin/sessions":
+		w.Header().Set("Cache-Control", "no-store")
+		h.renderAuthStatus(w, r)
+	case "admin/sessions.json":
+		w.Header().Set("Cache-Control", "no-store")
+		h.renderAuthStatusJSON(w, r)
+	case "config", "config/agency", "config/feeds", "config/auth", "config/deployment", "config/advanced":
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h.renderOperationsConfig(w, r, operationsConfigSectionFromPath(trimmed))
 	case "help":
 		w.Header().Set("Cache-Control", "no-store")
 		if r.Method != http.MethodGet {
@@ -543,7 +670,24 @@ func (h *handler) renderOperations(w http.ResponseWriter, r *http.Request, secti
 		return
 	}
 	page := h.buildOperationsPage(r, principal, section)
+	if normalizeOperationsNavSection(section) == "dashboard" {
+		writeSetupReminderDismissalCookie(w, r, page.Dashboard.SetupReminder)
+	}
 	renderOperationsTemplate(w, section, page)
+}
+
+func writeSetupReminderDismissalCookie(w http.ResponseWriter, r *http.Request, reminder operationsSetupReminderView) {
+	if r.URL.Query().Get("setup_reminder") != "dismissed" || !reminder.Dismissed || reminder.BlockerKey == "" {
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     setupReminderDismissedCookieName,
+		Value:    reminder.BlockerKey,
+		Path:     "/admin/operations",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   adminCookieSecure(r),
+	})
 }
 
 func (h *handler) renderOperationsCockpitJSON(w http.ResponseWriter, r *http.Request) {
@@ -1155,11 +1299,24 @@ func (h *handler) buildOperationsPage(r *http.Request, principal auth.Principal,
 	page.FirstRun = buildOperationsFirstRun(page)
 	page.Launchpad = buildAgencyLaunchpad(page)
 	page.SetupWizard = buildOperationsSetupWizard(page)
+	page.ConnectorInstances, page.ConnectorInstanceError = h.connectorInstancesForPage(r, principal.AgencyID)
+	page.ConnectorDryRunJobs, page.ConnectorDryRunError = h.connectorDryRunJobsForPage(r, principal.AgencyID)
 	page.ConnectorHub = buildConnectorHub(page)
+	page.VehicleAVLSetup = buildVehicleAVLSetup(page, "", "")
+	page.PredictionConnector = buildPredictionConnector(page, "", "")
+	page.ValidatorConnector = buildValidatorConnector(page, "", "")
+	page.MonitoringConnector = buildMonitoringConnector(page, "", "")
+	page.DiscoveryConnector = buildDiscoveryConnector(page, "", "")
 	page.ConnectorWorkbench = buildConnectorWorkbench(page)
 	page.ConnectorTests = buildConnectorTests(page)
 	page.IssueCenter = buildOperationsIssueCenter(page)
 	page.Cockpit = buildOperationsCockpit(page)
+	page.Session = h.buildOperationsSessionBanner(principal)
+	page.AuthStatus = h.buildOperationsAuthStatus(r, principal, page.GeneratedAt)
+	page.AdminUsers = h.buildOperationsAdminUsersView(r, principal, "")
+	page.Config = buildOperationsConfig(page)
+	page.Dashboard = buildOperationsDashboard(page, r)
+	page.Cockpit.Dashboard = page.Dashboard
 	page.Help = buildOperationsHelpView(page.GeneratedAt, page.AgencyID, page.Section)
 	page.ContextHelp = page.Help.ContextualHelp
 	return page
@@ -2051,6 +2208,13 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h1 id="operations-page-title">{{.Title}}</h1>
 </div>
 <p class="app-meta"><span>Agency <strong>{{.AgencyID}}</strong></span><span>Environment <span class="pill">{{.EnvironmentLabel}}</span></span><span>Updated {{formatTime .GeneratedAt}}</span></p>
+<div class="session-banner" aria-label="Signed-in admin session">
+<span>Signed in as <strong>{{.Session.Subject}}</strong></span>
+<span>Agency <code>{{.Session.Agency}}</code></span>
+<span>Roles {{join .Session.Roles ", "}}</span>
+<span>Auth {{.Session.Method}}</span>
+<a class="session-logout" href="/admin/operations/admin/sessions#logout">Logout</a>
+</div>
 </header>
 <div class="operations-frame">
 {{template "operationsNavPanel" .}}
@@ -2129,6 +2293,139 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <h3>Access-Denied Guidance</h3>
 <table><thead><tr><th>Scenario</th><th>What happened</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
 {{range .Access.Denied}}<tr id="access-denied-{{.ID}}"><td>{{.Scenario}}</td><td>{{.WhatHappened}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "config"}}
+{{template "layoutStart" .}}
+<h2>{{.Config.Title}}</h2>
+<p class="warning">{{.Config.Boundary}}</p>
+<p><a href="/admin/operations">Back to Dashboard</a> · <a href="/admin/operations/setup-wizard">Continue setup wizard</a></p>
+<div class="card-grid" aria-label="Focused config sections">
+{{range .Config.Sections}}<section class="card" id="config-section-{{.ID}}">
+<h3><a href="{{.Path}}">{{.Label}}</a></h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.Summary}}</p>
+<p><strong>Next:</strong> {{.NextAction}}</p>
+</section>{{end}}
+</div>
+<h3>Current Settings</h3>
+<table><thead><tr><th>Setting</th><th>Current value</th><th>Status</th><th>Next action</th></tr></thead><tbody>
+{{range .Config.Rows}}<tr><td>{{.Label}}</td><td>{{.Value}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+{{if eq .Config.ActiveSection "feeds"}}
+<h3 id="publication-metadata">Publication Metadata</h3>
+<p class="muted">This focused form uses the existing publication bootstrap/update action and derives agency ID from the authenticated admin principal. It stores metadata only; it does not prove feed validation, consumer acceptance, or compliance.</p>
+{{if .PublicationError}}<p class="warning">{{.PublicationError}}. Existing JSON admin API path: <code>/admin/publication/bootstrap</code>.</p>{{end}}
+{{if .IsAdmin}}
+<form method="post" action="/admin/operations/setup#publication-metadata">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="publication_bootstrap">
+<label for="config_public_base_url">Public base URL</label><input id="config_public_base_url" type="url" name="public_base_url" maxlength="2048" required value="{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else}}{{.Discovery.PublicBaseURL}}{{end}}">
+<label for="config_feed_base_url">Feed base URL</label><input id="config_feed_base_url" type="url" name="feed_base_url" maxlength="2048" required value="{{.PublicationConfig.FeedBaseURL}}">
+<label for="config_technical_contact_email">Technical contact email</label><input id="config_technical_contact_email" type="email" name="technical_contact_email" maxlength="320" value="{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else}}{{.Discovery.TechnicalContactEmail}}{{end}}">
+<label for="config_license_name">License name</label><input id="config_license_name" name="license_name" maxlength="160" value="{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else}}{{.Discovery.License.Name}}{{end}}">
+<label for="config_license_url">License URL</label><input id="config_license_url" type="url" name="license_url" maxlength="2048" value="{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else}}{{.Discovery.License.URL}}{{end}}">
+<label for="config_publication_environment">Publication environment</label><input id="config_publication_environment" name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}">
+<button type="submit">Store publication metadata</button>
+</form>
+{{else}}
+<p class="warning">Publication metadata changes require an admin role. This account can review feed URL settings but cannot submit setup forms.</p>
+{{end}}
+{{end}}
+{{if eq .Config.ActiveSection "auth"}}
+<p><a href="/admin/operations/admin/sessions">Open Login &amp; Sessions</a> · <a href="/admin/operations/admin/users">Open Users &amp; Roles</a></p>
+{{end}}
+{{if eq .Config.ActiveSection "advanced"}}
+<details class="support-details" open>
+<summary>Private advanced exports</summary>
+<p><a href="/admin/operations.json">Operations JSON</a> · <a href="/admin/operations/checklist.json">Checklist JSON</a> · <a href="/admin/operations/audit.json">Audit JSON</a></p>
+<p class="muted">{{.Config.ClaimBoundary}}</p>
+</details>
+{{end}}
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "admin-sessions"}}
+{{template "layoutStart" .}}
+<h2>Login &amp; Sessions</h2>
+<p class="warning">{{.AuthStatus.Boundary}}</p>
+<p><a href="/admin/operations/admin/sessions.json">Export private session JSON</a> · <a href="/admin/operations/admin/users">Open Users &amp; Roles</a></p>
+<table><tbody>
+<tr><th>Signed-in subject</th><td><code>{{.AuthStatus.Session.Subject}}</code></td></tr>
+<tr><th>Agency</th><td><code>{{.AuthStatus.Session.Agency}}</code></td></tr>
+<tr><th>Roles</th><td>{{join .AuthStatus.Session.Roles ", "}}</td></tr>
+<tr><th>Current auth mode</th><td>{{.AuthStatus.ActiveAuthMode}}</td></tr>
+<tr><th>Password login</th><td>{{.AuthStatus.PasswordLogin}}</td></tr>
+<tr><th>Local demo login</th><td>{{.AuthStatus.LocalDemoLogin}}</td></tr>
+<tr><th>SSO/OIDC</th><td>{{.AuthStatus.SSOStatus}}</td></tr>
+<tr><th>Session TTL</th><td>{{.AuthStatus.SessionTTL}}</td></tr>
+<tr><th>Cookie policy</th><td>{{.AuthStatus.CookiePolicy}}</td></tr>
+<tr><th>Bearer support</th><td>{{.AuthStatus.BearerSupport}}</td></tr>
+<tr><th>CSRF policy</th><td>{{.AuthStatus.CSRFPolicy}}</td></tr>
+<tr><th>Password reset</th><td>{{.AuthStatus.PasswordReset}}</td></tr>
+<tr><th>Future SSO direction</th><td>{{.AuthStatus.FutureSSODirection}}</td></tr>
+<tr><th>Next action</th><td>{{.AuthStatus.NextAction}}</td></tr>
+<tr><th>Limits</th><td>{{.AuthStatus.DoesNotProve}}</td></tr>
+</tbody></table>
+<form id="logout" method="post" action="/admin/logout">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<button type="submit">Logout</button>
+</form>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "admin-users"}}
+{{template "layoutStart" .}}
+<h2>Users &amp; Roles</h2>
+<p class="warning">{{.AdminUsers.Boundary}}</p>
+<p><a href="/admin/operations/admin/users.json">Export private users JSON</a> · <a href="/admin/operations/access">Open Access &amp; Roles</a></p>
+{{if .AdminUsers.Notice}}<p class="section-note">{{.AdminUsers.Notice}}</p>{{end}}
+{{if .AdminUsers.Error}}<p class="warning" role="alert">{{.AdminUsers.Error}}</p>{{end}}
+{{if .AdminUsers.ResetLink}}<section class="section-note" aria-labelledby="reset-link-heading">
+<h3 id="reset-link-heading">One-time password setup link</h3>
+<p>This link is shown once. Do not paste it into docs/evidence, screenshots, issue comments, tickets, or public logs.</p>
+<p><code>{{.AdminUsers.ResetLink}}</code></p>
+</section>{{end}}
+<table><tbody>
+<tr><th>Agency</th><td><code>{{.AdminUsers.AgencyID}}</code></td></tr>
+<tr><th>Status</th><td><span class="status-chip status-{{statusClass .AdminUsers.Status}}">{{.AdminUsers.Status}}</span></td></tr>
+<tr><th>Password resets</th><td>{{.AdminUsers.PasswordResets}}</td></tr>
+<tr><th>Username/password invitations</th><td>{{.AdminUsers.EmailAllowlist}}</td></tr>
+<tr><th>Future SSO</th><td>{{.AdminUsers.FutureSSO}}</td></tr>
+<tr><th>Next action</th><td>{{.AdminUsers.NextAction}}</td></tr>
+<tr><th>Limits</th><td>{{.AdminUsers.DoesNotProve}}</td></tr>
+</tbody></table>
+<h3>Current Users</h3>
+{{if .AdminUsers.Users}}
+<table><thead><tr><th>Email</th><th>Display name</th><th>Subject</th><th>Roles</th><th>Status</th><th>Password</th><th>Last login</th><th>Password link</th><th>Disable</th></tr></thead><tbody>
+{{range .AdminUsers.Users}}<tr id="admin-user-{{.ID}}">
+<td>{{.Email}}</td><td>{{.DisplayName}}</td><td><code>{{.Subject}}</code></td><td>{{join .Roles ", "}}</td><td>{{.Status}}</td><td>{{.PasswordStatus}}</td><td>{{.LastLoginAt}}</td>
+<td><form method="post" action="/admin/operations/admin/users"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><input type="hidden" name="action" value="password_reset"><input type="hidden" name="user_id" value="{{.ID}}"><button type="submit">Generate</button></form></td>
+<td>{{if .CanDisable}}<form method="post" action="/admin/operations/admin/users"><input type="hidden" name="csrf_token" value="{{$.CSRFToken}}"><input type="hidden" name="agency_id" value="{{$.AgencyID}}"><input type="hidden" name="action" value="disable_user"><input type="hidden" name="user_id" value="{{.ID}}"><input type="hidden" name="reason" value="disabled from admin users page"><button type="submit">Disable</button></form>{{else}}not available{{end}}</td>
+</tr>{{end}}
+</tbody></table>
+{{else}}<p class="muted">No users are visible for this agency.</p>{{end}}
+<h3>Create User</h3>
+<form method="post" action="/admin/operations/admin/users" class="stacked-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="agency_id" value="{{.AgencyID}}">
+<input type="hidden" name="action" value="create_user">
+<label for="admin-user-email">Email</label>
+<input id="admin-user-email" name="email" type="email" autocomplete="off" required>
+<label for="admin-user-display-name">Display name</label>
+<input id="admin-user-display-name" name="display_name" type="text" maxlength="120">
+<label for="admin-user-subject">Auth subject override</label>
+<input id="admin-user-subject" name="auth_subject" type="text" maxlength="180" placeholder="leave blank to use email">
+<fieldset><legend>Roles</legend>
+{{range .AdminUsers.Roles}}<label><input type="checkbox" name="role" value="{{.ID}}"> {{.Label}} — {{.Description}}</label>{{end}}
+</fieldset>
+<button type="submit">Create or update user</button>
+</form>
+<h3>Claim Boundaries</h3>
+<table><thead><tr><th>Area</th><th>Status</th></tr></thead><tbody>
+{{range .AdminUsers.ClaimBoundaries}}<tr><td>{{.Label}}</td><td>{{.Status}}</td></tr>{{end}}
 </tbody></table>
 {{template "layoutEnd" .}}
 {{end}}
@@ -2284,9 +2581,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <section class="workflow-hero" aria-labelledby="workflow-hero-heading">
 <div>
-<h2 id="workflow-hero-heading">Work through this in order</h2>
-<p>Open the first step that is missing, blocked, or needs review. Use the main button in that step before opening secondary tools.</p>
-<p class="compact-actions"><a class="action-link" href="/admin/operations/setup-wizard">Start setup</a><a class="action-link" href="/admin/operations/gtfs-import">Import Schedule</a><a class="action-link" href="/admin/operations/feed-health">Check feeds</a><a class="action-link secondary-action" href="/admin/operations/help">Get help</a></p>
+<h2 id="workflow-hero-heading">Dashboard</h2>
+<p>{{.Dashboard.PrimaryNextAction}}</p>
+<p class="compact-actions"><a class="action-link" href="/admin/operations/setup-wizard">Continue setup</a><a class="action-link" href="/admin/operations/feed-health">Check feeds</a><a class="action-link" href="/admin/operations/realtime">Review realtime</a><a class="action-link secondary-action" href="/admin/operations/help">Get help</a></p>
 </div>
 <aside class="workflow-summary" aria-label="Current local summary">
 <h3>Current snapshot</h3>
@@ -2299,23 +2596,56 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </dl>{{end}}
 </aside>
 </section>
+{{if .Dashboard.SetupReminder.Visible}}<section class="section-note" aria-labelledby="setup-reminder-heading">
+<h2 id="setup-reminder-heading">Setup reminder</h2>
+<p>{{.Dashboard.SetupReminder.Message}}</p>
+<p class="compact-actions"><a class="action-link" href="{{.Dashboard.SetupReminder.ActionLink}}">{{.Dashboard.SetupReminder.ActionLabel}}</a><a class="action-link secondary-action" href="{{.Dashboard.SetupReminder.SkipLink}}">{{.Dashboard.SetupReminder.SkipLabel}}</a><a class="action-link secondary-action" href="{{.Dashboard.SetupReminder.DismissLink}}">{{.Dashboard.SetupReminder.DismissLabel}}</a></p>
+</section>{{end}}
 
 <section class="issue-center" aria-labelledby="issue-center-heading">
-<h2 id="issue-center-heading">Fix These First</h2>
+<h2 id="issue-center-heading">Top Issues</h2>
 <p>{{.IssueCenter.Recommendation.Summary}} <a href="{{.IssueCenter.Recommendation.AdminLink}}">{{.IssueCenter.Recommendation.NextAction}}</a></p>
-<p class="muted">{{.IssueCenter.Boundary}}</p>
+<p class="muted">{{.Dashboard.Boundary}}</p>
+{{if .Dashboard.TopIssues}}
 <table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Current signal</th><th>Why it matters</th><th>Next action</th><th>Source</th><th>Freshness</th></tr></thead><tbody>
-{{range .IssueCenter.VisibleIssues}}<tr id="operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td></tr>{{end}}
+{{range .Dashboard.TopIssues}}<tr id="dashboard-top-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td></tr>{{end}}
 </tbody></table>
-{{if .IssueCenter.Counts.Hidden}}<details id="all-operator-issues"><summary>All issue rows ({{.IssueCenter.Counts.Total}} total)</summary>
+{{else}}<p class="section-note">No blocked, missing, or needs-review issue is visible in the bounded private summary.</p>{{end}}
+{{if .Dashboard.HealthySummaries}}
+<h3>Healthy category summaries</h3>
+<table><thead><tr><th>Category</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .Dashboard.HealthySummaries}}<tr id="dashboard-healthy-{{.ID}}"><td>{{.Label}}</td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.HealthySignal}}</td><td><a href="{{.AdminLink}}">{{.NextAction}}</a></td></tr>{{end}}
+</tbody></table>
+{{end}}
+{{if .Dashboard.HiddenIssueCount}}<details id="all-operator-issues"><summary>All issue rows ({{.IssueCenter.Counts.Total}} total)</summary>
 <table><thead><tr><th>Priority</th><th>Issue</th><th>Owner</th><th>Current signal</th><th>Why it matters</th><th>Next action</th><th>Source</th><th>Freshness</th><th>Dedupe key</th></tr></thead><tbody>
 {{range .IssueCenter.Issues}}<tr id="all-operator-issue-{{.ID}}"><td><span class="status-chip status-{{statusClass .Severity}}">{{.Severity}}</span></td><td>{{if .RouteLink}}<a href="{{.RouteLink}}">{{.Label}}</a>{{else}}{{.Label}}{{end}}</td><td>{{.Owner}}</td><td>{{.CurrentSignal}}</td><td>{{.WhyItMatters}}</td><td>{{.NextAction}}</td><td>{{.Source}}</td><td>{{.Freshness}}</td><td><code>{{.DeduplicationKey}}</code></td></tr>{{end}}
 </tbody></table>
 </details>{{end}}
 </section>
 
-<section aria-labelledby="workflow-heading">
-<h2 id="workflow-heading">Operations workflow</h2>
+<section aria-labelledby="dashboard-categories-heading">
+<h2 id="dashboard-categories-heading">Category Summary</h2>
+<div class="status-grid">
+{{range .Dashboard.Categories}}<section class="status-tile" id="dashboard-category-{{.ID}}">
+<h3>{{.Label}}</h3>
+<p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p>{{.Summary}}</p>
+<p><a href="{{.AdminLink}}">{{.NextAction}}</a></p>
+<p class="muted">{{.DoesNotProve}}</p>
+</section>{{end}}
+</div>
+</section>
+
+<section aria-labelledby="dashboard-tools-heading" class="dashboard-tools">
+<h2 id="dashboard-tools-heading">Tools</h2>
+<p class="compact-actions"><a href="/admin/operations/connectors">Connectors</a><a href="/admin/operations/validation-health">Validators</a><a href="/admin/operations/admin/sessions">Login &amp; Sessions</a><a href="/admin/operations.json">Export JSON</a></p>
+<p class="muted">{{.Cockpit.Boundary}}</p>
+</section>
+
+<details class="dashboard-details">
+<summary>Operations workflow</summary>
+<p>Work through this in order when starting from an empty deployment.</p>
 <ol class="workflow-steps">
 {{range .Cockpit.ActionQueue}}<li class="workflow-step" id="cockpit-action-{{.ID}}">
 <div class="workflow-step-header">
@@ -2334,13 +2664,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </details>
 </li>{{end}}
 </ol>
-</section>
-
-<section aria-labelledby="dashboard-tools-heading" class="dashboard-tools">
-<h2 id="dashboard-tools-heading">Tools when you need them</h2>
-<p class="compact-actions"><a href="/admin/operations/connectors">Connectors</a><a href="/admin/operations/validation-health">Validators</a><a href="/admin/operations/help">Help</a><a href="/admin/operations.json">Export JSON</a></p>
-<p class="muted">{{.Cockpit.Boundary}}</p>
-</section>
+</details>
 
 <details class="dashboard-details">
 <summary>Agency scope and permissions</summary>
@@ -2452,7 +2776,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "layoutStart" .}}
 <h2>Agency Setup</h2>
 <p class="warning">Set up the agency profile, schedule data, feed links, validation, and first telemetry review. This private page helps operators prepare the system; it does not publish feeds, contact outside services, or prove compliance.</p>
-<p><a href="/admin/operations/setup-wizard.json">Export private setup JSON</a> · <a href="/admin/operations/setup">Open advanced setup details</a> · <a href="/admin/operations/checklist">Open private checklist</a></p>
+<p><a href="/admin/operations/setup-wizard.json">Export private setup JSON</a> · <a href="/admin/operations/setup">Open advanced setup details</a> · <a href="/admin/operations/checklist">Open private checklist</a> · <a href="{{.SetupWizard.SkipLink}}">{{.SetupWizard.SkipActionLabel}}</a></p>
 <div class="card-grid" aria-label="Agency setup progress">
 <section class="card">
 <h3>Setup Progress</h3>
@@ -2472,6 +2796,10 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><a href="/admin/operations/setup#publication-metadata">Review publication metadata</a></p>
 </section>
 </div>
+<h3>Completion Model</h3>
+<table><thead><tr><th>Level</th><th>Status</th><th>Complete</th><th>Incomplete</th><th>Meaning</th></tr></thead><tbody>
+{{range .SetupWizard.Completion}}<tr><td>{{.Label}}<br><code>{{.Requirement}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.Complete}} of {{.Total}}</td><td>{{.Incomplete}}</td><td>{{.Meaning}}</td></tr>{{end}}
+</tbody></table>
 {{if .SetupWizard.Blockers}}
 <h3>Review Blocks And Next Actions</h3>
 <table><thead><tr><th>Stage</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Console</th></tr></thead><tbody>
@@ -2501,9 +2829,11 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{range .SetupWizard.Stages}}<section class="card">
 <h3>{{.Label}}</h3>
 <p><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></p>
+<p><strong>Why it matters:</strong> {{.WhyItMatters}}</p>
 <p><strong>What we see:</strong> {{.CurrentSignal}}</p>
 <p><strong>Next step:</strong> {{.PrimaryAction}}</p>
 {{if .AdminLink}}<p><a href="{{.AdminLink}}">{{.ActionLabel}}</a></p>{{end}}
+<p><a href="{{.SkipLink}}">{{.SkipLabel}}</a></p>
 <p class="muted">{{.ClaimBoundary}}</p>
 </section>{{end}}
 </div>
@@ -2513,10 +2843,288 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 {{template "jsonSafetyNote" .}}
 </details>
 <h3>Detailed Setup Signals</h3>
-<table><thead><tr><th>ID</th><th>Stage</th><th>Status</th><th>Current signal</th><th>Primary action</th><th>Console</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
-{{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.ActionLabel}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
+<table><thead><tr><th>ID</th><th>Stage</th><th>Level</th><th>Status</th><th>Current signal</th><th>Primary action</th><th>Console</th><th>Docs</th><th>Boundary</th></tr></thead><tbody>
+{{range .SetupWizard.Stages}}<tr><td><code>{{.ID}}</code></td><td>{{.Label}}</td><td>{{.Requirement}}</td><td>{{.Status}}</td><td>{{.CurrentSignal}}</td><td>{{.PrimaryAction}}</td><td>{{if .AdminLink}}<a href="{{.AdminLink}}">{{.ActionLabel}}</a>{{end}}</td><td>{{range .DocsLinks}}<code>{{.}}</code><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>{{end}}
 </tbody></table>
 <p class="muted">This wizard is GET-only. It does not upload GTFS, mutate setup state, run validators, contact external systems, or create public routes.</p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "vehicle-avl-setup"}}
+{{template "layoutStart" .}}
+<h2>Vehicle / GPS / AVL Setup</h2>
+<p class="warning">{{.VehicleAVLSetup.Boundary}}</p>
+{{if .VehicleAVLSetup.Notice}}<p class="ok">{{.VehicleAVLSetup.Notice}}</p>{{end}}
+{{if .VehicleAVLSetup.Error}}<p class="bad">{{.VehicleAVLSetup.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.VehicleAVLSetup.NextAction}}</p>
+<h3>Current Vehicle Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Source Shape</h3>
+<table><thead><tr><th>Shape</th><th>Use when</th><th>First safe check</th><th>Browser limit</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.SourceShapes}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Summary}}</td><td>{{.FirstCheck}}</td><td>{{.DoesNotRun}}</td></tr>{{end}}
+</tbody></table>
+<h3>Dry-run Review</h3>
+{{if .VehicleAVLSetup.DryRunError}}<p class="warning">{{.VehicleAVLSetup.DryRunError}}</p>{{end}}
+<table><thead><tr><th>Connector</th><th>Status</th><th>Counts</th><th>Redaction scan</th><th>Summary</th><th>Finished</th><th>Retention</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.DryRuns}}<tr><td>{{.Connector}}<br><code>{{.InstanceID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.Counts}}</td><td>{{.Redaction}}</td><td>{{.Summary}}</td><td>{{.FinishedAt}}</td><td>{{.DoesNotKeep}}</td></tr>{{else}}<tr><td colspan="7">No vehicle connector dry-run results recorded yet.</td></tr>{{end}}
+</tbody></table>
+<h3>Activation Gate</h3>
+<p class="muted">The browser can mark a connector ready for deployment-owned activation only after every check passes. It does not start external sidecars or contact AVL sources.</p>
+<table><thead><tr><th>Connector</th><th>Check</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .VehicleAVLSetup.Activation}}<tr><td>{{.Connector}}<br><code>{{.InstanceID}}</code></td><td>{{.Label}}<br><span class="muted">{{.CheckID}}</span></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td></tr>{{else}}<tr><td colspan="5">Save a configured vehicle connector instance before activation checks appear.</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="vehicle-avl-form">Save Vehicle Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_vehicle_avl_connector">
+<label for="vehicle_avl_display_name">Display name</label><input id="vehicle_avl_display_name" name="display_name" maxlength="160" required value="Vehicle AVL source">
+<label for="vehicle_avl_owner">Owner</label><input id="vehicle_avl_owner" name="owner" maxlength="160" placeholder="ops@example.org or operations owner">
+<label for="vehicle_avl_source_shape">Source shape</label><select id="vehicle_avl_source_shape" name="source_shape">{{range .VehicleAVLSetup.SourceShapes}}<option value="{{.ID}}">{{.Label}}</option>{{end}}</select>
+<label for="vehicle_avl_secret_ref">Secret reference label</label><input id="vehicle_avl_secret_ref" name="secret_ref" maxlength="80" placeholder="AVL_HTTP_TOKEN_REF">
+<fieldset><legend>Field mapping</legend>
+{{range .VehicleAVLSetup.FieldMappings}}<label for="vehicle_avl_field_{{.ID}}">{{.Label}}{{if .Required}} *{{end}}</label><input id="vehicle_avl_field_{{.ID}}" name="field_{{.ID}}" maxlength="120" {{if .Required}}required{{end}} value="{{.Example}}">{{end}}
+</fieldset>
+<button type="submit">Save vehicle connector metadata</button>
+</form>
+<h3 id="vehicle-avl-dry-run-form">Record Server-Owned Dry-run Result</h3>
+{{if .VehicleAVLSetup.Configured}}
+<form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-dry-run-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="record_vehicle_avl_dry_run">
+<label for="vehicle_avl_dry_run_instance">Connector instance</label><select id="vehicle_avl_dry_run_instance" name="connector_instance_id">{{range .VehicleAVLSetup.Configured}}<option value="{{.ID}}">{{.DisplayName}} — {{.State}}</option>{{end}}</select>
+<label for="vehicle_avl_dry_run_status">Dry-run status</label><select id="vehicle_avl_dry_run_status" name="dry_run_status"><option value="passed">passed</option><option value="failed">failed</option><option value="blocked">blocked</option></select>
+<label for="vehicle_avl_redaction_scan_status">Redaction scan</label><select id="vehicle_avl_redaction_scan_status" name="redaction_scan_status"><option value="passed">passed</option><option value="failed">failed</option><option value="blocked">blocked</option></select>
+<label for="vehicle_avl_accepted_count">Accepted count</label><input id="vehicle_avl_accepted_count" name="accepted_count" type="number" min="0" max="100000" value="0">
+<label for="vehicle_avl_rejected_count">Rejected count</label><input id="vehicle_avl_rejected_count" name="rejected_count" type="number" min="0" max="100000" value="0">
+<label for="vehicle_avl_dropped_count">Dropped count</label><input id="vehicle_avl_dropped_count" name="dropped_count" type="number" min="0" max="100000" value="0">
+<label for="vehicle_avl_redacted_summary">Redacted summary</label><input id="vehicle_avl_redacted_summary" name="redacted_summary" maxlength="300" required placeholder="Synthetic fixture accepted two rows; no raw payload retained">
+<button type="submit">Record redacted dry-run result</button>
+</form>
+{{else}}
+<p class="warning">Save a vehicle connector instance before recording a dry-run result.</p>
+{{end}}
+<h3 id="vehicle-avl-ready-form">Deployment-Owned Activation Readiness</h3>
+{{if .VehicleAVLSetup.ReadyInstances}}
+<form method="post" action="/admin/operations/connectors/vehicle-avl#vehicle-avl-ready-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="mark_vehicle_avl_ready">
+<label for="vehicle_avl_ready_instance">Connector instance</label><select id="vehicle_avl_ready_instance" name="connector_instance_id">{{range .VehicleAVLSetup.ReadyInstances}}<option value="{{.ID}}">{{.DisplayName}}</option>{{end}}</select>
+<button type="submit">Mark ready for deployment-owned activation</button>
+</form>
+{{else}}
+<p class="warning">No vehicle connector has passed every activation-readiness check yet.</p>
+{{end}}
+{{else}}
+<p class="warning">Vehicle connector metadata changes require an admin role. This account can review field mapping requirements but cannot save connector configuration.</p>
+{{end}}
+<h3>Dry-run And Activation Boundary</h3>
+<table><tbody>
+<tr><th>Dry-run</th><td>{{.VehicleAVLSetup.DryRunBoundary}}</td></tr>
+<tr><th>Activation gate</th><td>{{.VehicleAVLSetup.ActivationGate}}</td></tr>
+<tr><th>Limits</th><td>{{.VehicleAVLSetup.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/connectors/workbench">Open Connector Workbench</a> · <a href="/admin/operations/devices">Open Devices</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "prediction-setup"}}
+{{template "layoutStart" .}}
+<h2>Prediction Setup</h2>
+<p class="warning">{{.PredictionConnector.Boundary}}</p>
+{{if .PredictionConnector.Notice}}<p class="ok">{{.PredictionConnector.Notice}}</p>{{end}}
+{{if .PredictionConnector.Error}}<p class="bad">{{.PredictionConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.PredictionConnector.NextAction}}</p>
+<section class="card">
+<h3>Current Prediction Mode</h3>
+<table><tbody>
+<tr><th>Mode</th><td><code>{{.PredictionConnector.CurrentMode.Mode}}</code></td></tr>
+<tr><th>Adapter</th><td><code>{{.PredictionConnector.CurrentMode.AdapterName}}</code></td></tr>
+<tr><th>State</th><td><span class="status-chip status-{{statusClass .PredictionConnector.CurrentMode.State}}">{{.PredictionConnector.CurrentMode.State}}</span></td></tr>
+<tr><th>Public Trip Updates</th><td>{{.PredictionConnector.CurrentMode.PublicOutput}}</td></tr>
+<tr><th>Vehicle Positions</th><td>{{.PredictionConnector.CurrentMode.VehiclePositions}}</td></tr>
+<tr><th>Withheld signal</th><td>{{.PredictionConnector.CurrentMode.WithheldSignal}}</td></tr>
+<tr><th>Next action</th><td>{{.PredictionConnector.CurrentMode.NextAction}}</td></tr>
+</tbody></table>
+</section>
+<p class="warning">{{.PredictionConnector.VehiclePositionsIndependence}}</p>
+<h3>Configured Prediction Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .PredictionConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Supported Modes</h3>
+<table><thead><tr><th>Mode</th><th>Summary</th><th>Public output</th><th>Failure behavior</th><th>First check</th><th>Browser limit</th></tr></thead><tbody>
+{{range .PredictionConnector.Modes}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Summary}}</td><td>{{.PublicOutput}}</td><td>{{.FailureBehavior}}</td><td><code>{{.FirstCheck}}</code></td><td>{{.DoesNotEnable}}</td></tr>{{end}}
+</tbody></table>
+<h3>External HTTP Rules</h3>
+<table><thead><tr><th>Rule</th><th>Required</th><th>Stored by browser</th></tr></thead><tbody>
+{{range .PredictionConnector.ExternalHTTPRules}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Required}}</td><td>{{.BrowserKeeps}}</td></tr>{{end}}
+</tbody></table>
+<h3>Why Trip Updates May Be Missing</h3>
+<table><thead><tr><th>Reason</th><th>Count</th><th>What it means</th><th>Next action</th></tr></thead><tbody>
+{{range .PredictionConnector.WithheldReasons}}<tr><td><strong>{{.Label}}</strong><br><code>{{.Reason}}</code></td><td>{{.Count}}</td><td>{{.WhatItMeans}}</td><td>{{.NextAction}}</td></tr>{{else}}<tr><td colspan="4">No withheld reason rows are available yet. Review Prediction Lab after fresh telemetry and schedule context exist.</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="prediction-connector-form">Save Prediction Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/prediction#prediction-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_prediction_connector">
+<label for="prediction_display_name">Display name</label><input id="prediction_display_name" name="display_name" maxlength="160" value="External HTTP prediction shadow">
+<label for="prediction_owner">Owner</label><input id="prediction_owner" name="owner" maxlength="160" placeholder="integrations owner">
+<label for="prediction_mode">Mode</label><select id="prediction_mode" name="mode">{{range .PredictionConnector.Modes}}<option value="{{.ID}}"{{if eq .ID "external_http_shadow"}} selected{{end}}>{{.Label}}</option>{{end}}</select>
+<label for="prediction_endpoint_ref">Endpoint URL env ref</label><input id="prediction_endpoint_ref" name="endpoint_url_env_ref" maxlength="80" value="TRIP_UPDATES_EXTERNAL_HTTP_URL">
+<label for="prediction_allowed_hosts_ref">Allowed hosts env ref</label><input id="prediction_allowed_hosts_ref" name="allowed_hosts_env_ref" maxlength="80" value="TRIP_UPDATES_EXTERNAL_HTTP_ALLOWED_HOSTS">
+<label for="prediction_path">Exact sidecar path</label><input id="prediction_path" name="path" maxlength="80" value="/v1/predict/trip-updates">
+<label for="prediction_token_ref">Optional token ref</label><input id="prediction_token_ref" name="token_ref" maxlength="80" placeholder="PREDICTOR_TOKEN">
+<label for="prediction_timeout">Timeout seconds</label><input id="prediction_timeout" name="timeout_seconds" type="number" min="1" max="30" value="2">
+<button type="submit">Save prediction connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Prediction connector metadata changes require an admin role. This account can review the prediction boundary but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>External prediction default</th><td>External HTTP prediction is not enabled by this page. Runtime env must be changed by a deployment owner after review.</td></tr>
+<tr><th>Vehicle Positions</th><td>{{.PredictionConnector.VehiclePositionsIndependence}}</td></tr>
+<tr><th>Limits</th><td>{{.PredictionConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/prediction-lab">Open Prediction Lab</a> · <a href="/admin/operations/realtime">Open Realtime Center</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "validator-setup"}}
+{{template "layoutStart" .}}
+<h2>Validator Setup</h2>
+<p class="warning">{{.ValidatorConnector.Boundary}}</p>
+{{if .ValidatorConnector.Notice}}<p class="ok">{{.ValidatorConnector.Notice}}</p>{{end}}
+{{if .ValidatorConnector.Error}}<p class="bad">{{.ValidatorConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.ValidatorConnector.NextAction}}</p>
+<p class="warning">{{.ValidatorConnector.RawCommandBlocked}}</p>
+<h3>Configured Validator Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .ValidatorConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Allowlisted Validators</h3>
+<table><thead><tr><th>Validator</th><th>Feeds</th><th>Env refs</th><th>First check</th><th>Failure behavior</th><th>Limits</th></tr></thead><tbody>
+{{range .ValidatorConnector.Allowlisted}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{join .FeedTypes ", "}}</td><td><code>{{.PathEnvRef}}</code><br><code>{{.VersionEnvRef}}</code>{{if .ArgsEnvRef}}<br><code>{{.ArgsEnvRef}}</code>{{end}}</td><td><code>{{.FirstCheck}}</code></td><td>{{.FailureBehavior}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+<h3>Validator Health Summary</h3>
+<table><thead><tr><th>Feed</th><th>Validator</th><th>Tooling</th><th>Artifact</th><th>Latest result</th><th>Health</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
+{{range .ValidatorConnector.HealthRows}}<tr><td>{{.FeedType}}</td><td><code>{{.ValidatorID}}</code><br>{{.ValidatorName}}</td><td>{{.ToolingStatus}}</td><td>{{.ArtifactStatus}}</td><td>{{.LatestResultStatus}}<br><span class="muted">{{.LatestResultAt}}</span></td><td><span class="status-chip status-{{statusClass .HealthStatus}}">{{.HealthStatus}}</span></td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{else}}<tr><td colspan="8">No validator health rows are available yet.</td></tr>{{end}}
+</tbody></table>
+<h3>Safety Rules</h3>
+<table><thead><tr><th>Rule</th><th>Required</th><th>Blocked</th></tr></thead><tbody>
+{{range .ValidatorConnector.Rules}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td>{{.Rule}}</td><td>{{.Blocked}}</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="validator-connector-form">Save Validator Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/validators#validator-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_validator_connector">
+<label for="validator_display_name">Display name</label><input id="validator_display_name" name="display_name" maxlength="160" value="Static GTFS validator">
+<label for="validator_owner">Owner</label><input id="validator_owner" name="owner" maxlength="160" placeholder="validation owner">
+<label for="validator_id">Validator</label><select id="validator_id" name="validator_id">{{range .ValidatorConnector.Allowlisted}}<option value="{{.ID}}">{{.Label}}</option>{{end}}</select>
+<label for="validator_tooling_path_env_ref">Tooling path env ref</label><input id="validator_tooling_path_env_ref" name="tooling_path_env_ref" maxlength="80" value="GTFS_VALIDATOR_PATH">
+<label for="validator_version_env_ref">Version env ref</label><input id="validator_version_env_ref" name="version_env_ref" maxlength="80" value="GTFS_VALIDATOR_VERSION">
+<label for="validator_args_env_ref">Optional args env ref</label><input id="validator_args_env_ref" name="args_env_ref" maxlength="80" placeholder="GTFS_RT_VALIDATOR_ARGS">
+<label for="validator_timeout">Timeout seconds</label><input id="validator_timeout" name="timeout_seconds" type="number" min="1" max="600" value="120">
+<button type="submit">Save validator connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Validator connector metadata changes require an admin role. This account can review validator status but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>Execution</th><td>Validator runs stay in Validation Health and use server-owned artifacts and allowlisted IDs.</td></tr>
+<tr><th>Raw commands</th><td>{{.ValidatorConnector.RawCommandBlocked}}</td></tr>
+<tr><th>Limits</th><td>{{.ValidatorConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/validation-health">Open Validation Health</a> · <a href="/admin/operations/validation-center">Open Validation Center</a> · <a href="/admin/operations/gtfs-quality">Open Schedule Quality</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "monitoring-setup"}}
+{{template "layoutStart" .}}
+<h2>Monitoring Setup</h2>
+<p class="warning">{{.MonitoringConnector.Boundary}}</p>
+{{if .MonitoringConnector.Notice}}<p class="ok">{{.MonitoringConnector.Notice}}</p>{{end}}
+{{if .MonitoringConnector.Error}}<p class="bad">{{.MonitoringConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.MonitoringConnector.NextAction}}</p>
+<p class="warning">{{.MonitoringConnector.NoSendDefault}}</p>
+<h3>Configured Monitoring Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .MonitoringConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Health Digest Preview</h3>
+<table><thead><tr><th>Source</th><th>Status</th><th>Current signal</th><th>Next action</th></tr></thead><tbody>
+{{range .MonitoringConnector.DigestPreview}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>No-send Destinations</h3>
+<table><thead><tr><th>Mode</th><th>Reference</th><th>Send state</th><th>First check</th><th>Limits</th></tr></thead><tbody>
+{{range .MonitoringConnector.Destinations}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><code>{{.Reference}}</code></td><td>{{.SendState}}</td><td><code>{{.FirstCheck}}</code></td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="monitoring-connector-form">Save Monitoring Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/monitoring#monitoring-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_monitoring_connector">
+<label for="monitoring_display_name">Display name</label><input id="monitoring_display_name" name="display_name" maxlength="160" value="Health digest preview">
+<label for="monitoring_owner">Owner</label><input id="monitoring_owner" name="owner" maxlength="160" placeholder="monitoring owner">
+<label for="monitoring_mode">Mode</label><select id="monitoring_mode" name="mode"><option value="health_digest_no_send">Health digest no-send</option><option value="redacted_export_no_send">Redacted export no-send</option></select>
+<label for="monitoring_destination_ref">Destination ref label</label><input id="monitoring_destination_ref" name="destination_ref" maxlength="80" value="MONITORING_DIGEST_DESTINATION_REF">
+<button type="submit">Save monitoring connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Monitoring connector metadata changes require an admin role. This account can review no-send digest state but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>No-send default</th><td>{{.MonitoringConnector.NoSendDefault}}</td></tr>
+<tr><th>Redaction</th><td>{{.MonitoringConnector.RedactionBoundary}}</td></tr>
+<tr><th>Limits</th><td>{{.MonitoringConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/reliability">Open Reliability</a> · <a href="/admin/operations/maintenance">Open Maintenance</a> · <a href="/admin/operations/validation-health">Open Validation Health</a></p>
+{{template "layoutEnd" .}}
+{{end}}
+
+{{define "discovery-setup"}}
+{{template "layoutStart" .}}
+<h2>Discovery Setup</h2>
+<p class="warning">{{.DiscoveryConnector.Boundary}}</p>
+{{if .DiscoveryConnector.Notice}}<p class="ok">{{.DiscoveryConnector.Notice}}</p>{{end}}
+{{if .DiscoveryConnector.Error}}<p class="bad">{{.DiscoveryConnector.Error}}</p>{{end}}
+<p><strong>Next:</strong> {{.DiscoveryConnector.NextAction}}</p>
+<p class="warning">{{.DiscoveryConnector.NoAutomation}}</p>
+<h3>Configured Discovery Connector State</h3>
+<table><thead><tr><th>Connector</th><th>State</th><th>Owner</th><th>Config</th><th>Dry-run</th><th>Next action</th></tr></thead><tbody>
+{{range .DiscoveryConnector.Instances}}<tr><td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorKind}}</code></td><td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td><td>{{.Owner}}</td><td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span></td><td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td><td>{{.NextAction}}</td></tr>{{end}}
+</tbody></table>
+<h3>Discovery Readiness</h3>
+<table><thead><tr><th>Item</th><th>Status</th><th>Current signal</th><th>Next action</th><th>Limits</th></tr></thead><tbody>
+{{range .DiscoveryConnector.Readiness}}<tr><td><strong>{{.Label}}</strong><br><code>{{.ID}}</code></td><td><span class="status-chip status-{{statusClass .Status}}">{{.Status}}</span></td><td>{{.CurrentSignal}}</td><td>{{.NextAction}}</td><td>{{.DoesNotProve}}</td></tr>{{end}}
+</tbody></table>
+{{if .IsAdmin}}
+<h3 id="discovery-connector-form">Save Discovery Connector Metadata</h3>
+<form method="post" action="/admin/operations/connectors/discovery#discovery-connector-form">
+<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+<input type="hidden" name="action" value="save_discovery_connector">
+<label for="discovery_display_name">Display name</label><input id="discovery_display_name" name="display_name" maxlength="160" value="Feed discovery readiness">
+<label for="discovery_owner">Owner</label><input id="discovery_owner" name="owner" maxlength="160" placeholder="sharing prep owner">
+<label for="discovery_public_base_ref">Public base URL env ref</label><input id="discovery_public_base_ref" name="public_base_url_env_ref" maxlength="80" value="PUBLIC_FEED_BASE_URL">
+<label for="discovery_license_contact_ref">License/contact owner ref</label><input id="discovery_license_contact_ref" name="license_contact_owner_ref" maxlength="80" value="PUBLIC_FEED_METADATA_OWNER">
+<button type="submit">Save discovery connector metadata</button>
+</form>
+{{else}}
+<p class="warning">Discovery connector metadata changes require an admin role. This account can review sharing prep but cannot save connector configuration.</p>
+{{end}}
+<h3>Boundaries</h3>
+<table><tbody>
+<tr><th>No portal automation</th><td>{{.DiscoveryConnector.NoAutomation}}</td></tr>
+<tr><th>Limits</th><td>{{.DiscoveryConnector.DoesNotProve}}</td></tr>
+</tbody></table>
+<p><a href="/admin/operations/connectors">Back to Connectors</a> · <a href="/admin/operations/feeds">Open Feed URLs</a> · <a href="/admin/operations/consumers">Open External Sharing Prep</a> · <a href="/admin/operations/readiness">Open Readiness</a></p>
 {{template "layoutEnd" .}}
 {{end}}
 
@@ -2534,6 +3142,26 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <p><strong>Limits:</strong> Connector guidance does not show vendor compatibility, hardware certification, consumer acceptance, compliance, hosted operation, SLA coverage, production readiness, or ETA quality.</p>
 </section>
 <details><summary>Safety details</summary><p><strong>Safe plugin definition:</strong> {{.ConnectorHub.PluginDefinition}}</p>{{template "jsonSafetyNote" .}}</details>
+<h3>Configured Connector Instances</h3>
+{{if .ConnectorInstanceError}}<p class="warning">{{.ConnectorInstanceError}}</p>{{end}}
+<p>{{.ConnectorHub.InstanceSummary.Boundary}}</p>
+<table aria-label="Configured connector instances"><thead><tr><th>Connector type</th><th>State</th><th>Owner</th><th>Examples</th><th>Deployment config</th><th>Dry-run / activation</th><th>Last signal</th><th>Next action</th><th>Safe links</th><th>Limits</th></tr></thead><tbody>
+{{range .ConnectorHub.Instances}}
+<tr>
+<td><strong>{{.DisplayName}}</strong><br><code>{{.ConnectorType}}</code><br><span class="muted">{{.ConnectorKind}}</span></td>
+<td><span class="status-chip status-{{statusClass .State}}">{{.State}}</span></td>
+<td>{{.Owner}}</td>
+<td>{{.ExamplesAvailable}} available<br><span class="muted">examples are not configuration</span></td>
+<td>{{.DeploymentConfigExists}}<br><span class="muted">{{.ConfigMetadata}}</span>{{if .SecretRefs}}<br>{{range .SecretRefs}}<code>{{.}}</code><br>{{end}}{{end}}</td>
+<td>{{.DryRunStatus}}<br><span class="muted">{{.ActivationReadiness}}</span></td>
+<td>{{.LastSignal}}</td>
+<td>{{.NextAction}}</td>
+<td>{{range .SafeLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td>
+<td>{{.Limits}}</td>
+</tr>
+{{end}}
+</tbody></table>
+<details class="page-section-details"><summary>Connector health review</summary>
 <h3>Connector Health Review</h3>
 <p>Use these private rows to see which connector category is ready for a local synthetic check, which owner should act next, and which setup checklist is safe to copy. Checklist values are fixed labels only; they do not include endpoints, tokens, payloads, or local paths.</p>
 <table aria-label="Connector health review"><thead><tr><th>Connector area</th><th>Status</th><th>Configured</th><th>Dry-run readiness</th><th>Send state</th><th>Redaction</th><th>Blockers</th><th>Issue links</th><th>Setup checklist</th><th>Limits</th></tr></thead><tbody>
@@ -2552,6 +3180,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tr>
 {{end}}
 </tbody></table>
+</details>
+<details class="page-section-details"><summary>Connector catalog and categories</summary>
 <h3>Connector Catalog</h3>
 <p>Use this catalog to choose a starter shape, copy the matching example or contract, and run the first local check before any deployment-owned integration work.</p>
 <table><thead><tr><th>Category</th><th>Connector</th><th>Status</th><th>Start with</th><th>Browser review</th><th>First safe check</th><th>Limits</th><th>Docs</th></tr></thead><tbody>
@@ -2573,6 +3203,8 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td>{{.Label}}</td><td>{{.Status}}</td><td>{{.Summary}}</td><td>{{.ConnectorShape}}</td><td>Inputs: {{join .Inputs ", "}}<br>Outputs: {{join .Outputs ", "}}</td><td>{{.FailureBehavior}}</td><td>{{range .CommandSuggestions}}<code>{{.}}</code><br>{{end}}{{range .AdminLinks}}<a href="{{.}}">{{.}}</a><br>{{end}}</td><td>{{.ClaimBoundary}}</td></tr>
 {{end}}
 </tbody></table>
+</details>
+<details class="page-section-details"><summary>Manifest registry</summary>
 <h3>Manifest Registry</h3>
 <p>Read-only registry of committed synthetic connector example manifests. It does not accept uploads, load backend plugins, execute manifest commands, contact external systems, create retained evidence, or change consumer status.</p>
 {{if .ConnectorHub.Registry.Diagnostics}}
@@ -2596,6 +3228,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><td colspan="8">No committed connector manifests were loaded. Review diagnostics and run <code>make external-connection-check</code>.</td></tr>
 {{end}}
 </tbody></table>
+</details>
 <p><a href="/admin/operations/connectors/tests">Open connector test instructions</a> for fixed offline checks.</p>
 <p class="muted">Connectors is read-only. It exposes safe integration paths and local checks; it does not run external systems, collect retained evidence, contact vendors or consumers, or change consumer status.</p>
 {{template "layoutEnd" .}}
@@ -4199,7 +4832,7 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 </tbody></table>
 
 <h2 id="publication-metadata">Publication Metadata</h2>
-<p class="muted">Source: publication metadata and feed discovery. This form uses the existing publication bootstrap/update repository behavior and derives agency ID from the authenticated admin principal.</p>
+<p class="muted">Source: publication metadata and feed discovery. Editing moved to focused config so setup diagnostics stay short and review-oriented.</p>
 {{if .PublicationError}}<p class="warning">{{.PublicationError}}. Existing JSON admin API path: <code>/admin/publication/bootstrap</code>.</p>{{end}}
 <table><tbody>
 <tr><th>Agency ID</th><td><code>{{.AgencyID}}</code> (read-only authenticated principal)</td></tr>
@@ -4212,19 +4845,9 @@ var operationsTemplates = template.Must(template.New("operations").Funcs(templat
 <tr><th>Publication environment</th><td>{{if .PublicationConfig.PublicationEnvironment}}{{.PublicationConfig.PublicationEnvironment}}{{else if .Discovery.PublicationEnvironment}}{{.Discovery.PublicationEnvironment}}{{else}}missing{{end}}</td></tr>
 </tbody></table>
 {{if .IsAdmin}}
-<form method="post" action="/admin/operations/setup">
-<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-<input type="hidden" name="action" value="publication_bootstrap">
-<label for="setup_public_base_url">Public base URL</label><input id="setup_public_base_url" type="url" name="public_base_url" maxlength="2048" required value="{{if .PublicationConfig.PublicBaseURL}}{{.PublicationConfig.PublicBaseURL}}{{else}}{{.Discovery.PublicBaseURL}}{{end}}">
-<label for="setup_feed_base_url">Feed base URL</label><input id="setup_feed_base_url" type="url" name="feed_base_url" maxlength="2048" required value="{{.PublicationConfig.FeedBaseURL}}">
-<label for="setup_technical_contact_email">Technical contact email</label><input id="setup_technical_contact_email" type="email" name="technical_contact_email" maxlength="320" value="{{if .PublicationConfig.TechnicalContactEmail}}{{.PublicationConfig.TechnicalContactEmail}}{{else}}{{.Discovery.TechnicalContactEmail}}{{end}}">
-<label for="setup_license_name">License name</label><input id="setup_license_name" name="license_name" maxlength="160" value="{{if .PublicationConfig.LicenseName}}{{.PublicationConfig.LicenseName}}{{else}}{{.Discovery.License.Name}}{{end}}">
-<label for="setup_license_url">License URL</label><input id="setup_license_url" type="url" name="license_url" maxlength="2048" value="{{if .PublicationConfig.LicenseURL}}{{.PublicationConfig.LicenseURL}}{{else}}{{.Discovery.License.URL}}{{end}}">
-<label for="setup_publication_environment">Publication environment</label><input id="setup_publication_environment" name="publication_environment" maxlength="64" value="{{publicationEnvValue .}}">
-<button type="submit">Store publication metadata</button>
-</form>
+<p><a href="/admin/operations/config/feeds">Edit publication metadata in Public Feed URLs</a></p>
 {{else}}
-<p class="warning">Publication metadata changes require an admin role. This account can review setup status but cannot submit setup forms.</p>
+<p class="warning">Publication metadata changes require an admin role. This account can review setup status and open <a href="/admin/operations/config/feeds">Public Feed URLs</a>, but cannot submit setup forms.</p>
 {{end}}
 
 <h2>GTFS Import And Authoring</h2>

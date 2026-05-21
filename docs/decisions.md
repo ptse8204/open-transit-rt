@@ -815,3 +815,131 @@ POSTs still require CSRF through the existing middleware.
 The local reverse proxy binds to `127.0.0.1:8080` for the demo app package.
 Production deployments must keep using deployment-owned admin access controls,
 real secrets, HTTPS/TLS, and network boundaries.
+
+## ADR-0058 -- Use internal password credentials before SSO/OIDC
+
+Phase 162 starts production browser login with database-backed username and
+password credentials plus one-time first-admin setup links. Passwords are
+hashed with Argon2id from `golang.org/x/crypto/argon2`; plaintext passwords
+and plaintext bootstrap/reset tokens are never stored. Bootstrap links are
+generated from the server/operator console, printed once, stored as hashes,
+short-lived, and single-use.
+
+This keeps `/admin/local-login` as local/demo-only while giving self-hosted
+deployments a production browser entry path. SSO/OIDC is deliberately deferred:
+a future provider integration must verify the external identity, map it to an
+internal subject, agency, and roles, then issue the same signed
+`admin_session` cookie used by the current admin middleware.
+
+Phase 165 makes that boundary visible in the private admin UI. The shared
+Operations Console shell shows the current signed-in subject, agency, roles,
+auth method, and a CSRF-protected logout action. The Login & Sessions page
+reports password-login status, local demo-login status, `admin_session` cookie
+policy, Bearer support, session TTL, password-reset guidance, and the explicit
+future SSO/OIDC direction. It does not add OIDC discovery, redirect, callback,
+JWKS, claim mapping, provider configuration, or provider logout endpoints.
+
+## ADR-0059 -- Separate connector examples from configured instances
+
+Phase 169 adds per-agency connector instance records as the product state for
+connector configuration. Committed connector manifests remain example and
+contract material; loading them into the example registry never means an agency
+has configured, dry-run-tested, activation-ready, or active connectors.
+
+Connector instance state is explicit: `example_available`, `not_configured`,
+`configured_not_tested`, `dry_run_passed`, `ready_for_activation`, `active`,
+or `blocked`. Instance records may store redacted/non-secret config metadata
+and secret reference labels, but not secret values or raw payloads. Browser
+pages can review instance state and safe links, but they do not execute
+connector commands, start sidecars, contact vendors or consumers, create
+evidence, or prove compatibility, compliance, acceptance, SLA coverage, AVL
+reliability, or ETA quality.
+
+Phase 170 makes Vehicle / GPS / AVL the first connector setup workflow. The
+browser can save source-shape and field-map metadata for a telemetry-source
+instance, plus deployment-owned secret reference labels. Saving that metadata
+sets the instance to `configured_not_tested`; dry-run, device binding,
+activation, accepted telemetry, and live reliability remain separate signals
+and later gates.
+
+Phase 171 adds server-owned dry-run result records. The browser can record
+bounded redacted summaries, accepted/rejected/dropped counts, and redaction
+scan status for a configured connector instance. The record updates instance
+dry-run state, but it does not store raw payloads, run adapter commands, start
+sidecars, contact external systems, or prove live AVL reliability.
+
+Phase 172 adds an activation-readiness transition for vehicle connectors. The
+browser may mark a telemetry-source connector `ready_for_activation` only after
+metadata, required field mapping, a passed dry-run, device bindings, secret
+reference labels, `/v1/telemetry` target shape, stale/future/quality rules, and
+redaction scan all pass. This transition does not start or supervise an
+external connector process; actual activation remains deployment-owned.
+
+Phase 173 adds prediction connector configuration review while preserving the
+existing `internal/prediction.Adapter` boundary. The browser can save
+deterministic default, external HTTP shadow, or external HTTP fail-closed
+connector metadata, but it stores only deployment-owned env reference labels,
+the fixed `/v1/predict/trip-updates` path, bounded timeout metadata, and
+secret ref labels. It does not store live predictor URLs or token values, does
+not make external prediction the default, and does not let optional prediction
+sidecars block Vehicle Positions.
+
+Phase 174 adds validator connector configuration review for the existing
+server-owned validator boundary. The browser can save only the allowlisted
+`static-mobilitydata` or `realtime-mobilitydata` validator IDs, env reference
+labels, feed coverage, and bounded timeout metadata. It does not accept raw
+validator commands, argv, binary paths, private artifacts, or validator output
+blobs. Actual validator execution remains in Validation Health, and validator
+results remain supporting diagnostics rather than compliance, acceptance,
+final-root, public-launch, production, SLA, or agency-approval proof.
+
+Phase 175 completes the first connector family with monitoring/export and
+consumer-discovery configuration review. Monitoring/export instances store
+no-send destination reference labels and redacted digest metadata only; the
+browser does not send notifications, write exports, or contact destinations.
+Discovery instances store public-base and license/contact owner reference
+labels while reviewing `/public/feeds.json` readiness; portal automation,
+consumer contact, evidence creation, and consumer status mutation remain
+disabled.
+
+Phase 176 collapses the private Operations Console navigation into seven
+top-level categories: Dashboard, Setup, Data, Realtime, Connectors,
+Operations, and Admin. Focused configuration pages remain private routes, but
+the nav no longer exposes separate GTFS, feeds, vehicles, readiness,
+maintenance, and support groupings. The Connectors overview shows configured
+instances first and keeps secondary health, catalog, category, and committed
+manifest registry diagnostics in disclosure sections so the first browser view
+does not become a giant diagnostic page.
+
+Phase 177 treats setup completion as a private product model with required,
+recommended, and optional buckets instead of a blocking gate. The dashboard
+reminder remains visible while setup is incomplete, but operators may dismiss
+the reminder for the current browser session/current next setup blocker using
+a non-auth session cookie under `/admin/operations`; stale dismissals do not
+hide a changed blocker. The reminder does not mutate setup state, create
+evidence, contact external systems, or change consumer status.
+
+Phase 178 makes the public/user-facing docs match the product layer that now
+exists: production-style self-hosting uses one-time first-admin setup links,
+password login at `/admin/login`, and the internal signed `admin_session`.
+Docs and site copy must keep `/admin/local-login` local/demo-only, describe
+SSO/OIDC as deferred, and distinguish configured connector instances from
+committed examples.
+
+Phase 179 folds the new product-layer risks into the release-candidate
+diagnostic instead of leaving them as phase-only checks. The gate now has
+explicit rows for the production auth boundary, password login, first-admin
+bootstrap link handling, logout, cookie CSRF rejection, dashboard issue
+priority, setup wizard reminder behavior, connector examples versus configured
+instances, and connector dry-run redaction. These rows are local diagnostics
+only; passing them is not production readiness, compliance, consumer
+acceptance, agency adoption, hosted SaaS, vendor compatibility, SLA, AVL
+reliability, ETA quality, or final-root proof.
+
+Phase 180 closes the production login, setup, dashboard, and connector
+configuration roadmap without adding stronger claims. The next recommended
+software track is deeper realtime correctness. SSO/OIDC remains future work
+and should reuse the internal signed `admin_session` session model after
+external identity verification and role mapping. Release publication and real
+connector runtime hardening with authorized deployment data remain separate
+maintainer decisions.

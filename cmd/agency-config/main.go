@@ -19,6 +19,7 @@ import (
 	domainalerts "open-transit-rt/internal/alerts"
 	"open-transit-rt/internal/auth"
 	"open-transit-rt/internal/compliance"
+	"open-transit-rt/internal/connectors"
 	appdb "open-transit-rt/internal/db"
 	"open-transit-rt/internal/devices"
 	"open-transit-rt/internal/feed"
@@ -71,27 +72,50 @@ type adminAuth interface {
 	Require(...auth.Role) func(http.Handler) http.Handler
 }
 
+type passwordAuthStore interface {
+	AuthenticatePassword(ctx context.Context, agencyID string, email string, password string, now time.Time) (auth.Principal, error)
+	CompleteBootstrapPassword(ctx context.Context, token string, password string, now time.Time) (auth.Principal, error)
+}
+
+type adminUserStore interface {
+	ListAdminUsers(ctx context.Context, agencyID string) ([]auth.AdminUser, error)
+	CreateAdminUser(ctx context.Context, input auth.AdminUserCreateInput) (auth.AdminUser, error)
+	DisableAdminUser(ctx context.Context, input auth.AdminUserDisableInput) error
+	CreatePasswordResetToken(ctx context.Context, input auth.PasswordResetTokenInput, tokenHash string) (auth.BootstrapResult, error)
+}
+
 type realtimeArtifactSource interface {
 	RealtimePB(ctx context.Context, feedType string) ([]byte, string, error)
 }
 
 type handler struct {
-	agencyID   string
-	schedule   scheduleBuilder
-	store      publicationStore
-	devices    devices.Store
-	telemetry  telemetry.Repository
-	state      state.Repository
-	gtfsImport gtfsImportRunner
-	ready      pinger
-	admin      adminAuth
-	csrfSecret string
-	localLogin *localAdminLogin
-	cache      *scheduleZIPCache
-	realtime   realtimeArtifactSource
+	agencyID           string
+	schedule           scheduleBuilder
+	store              publicationStore
+	devices            devices.Store
+	telemetry          telemetry.Repository
+	state              state.Repository
+	gtfsImport         gtfsImportRunner
+	ready              pinger
+	admin              adminAuth
+	csrfSecret         string
+	localLogin         *localAdminLogin
+	loginFlow          *adminLoginFlow
+	passwords          passwordAuthStore
+	users              adminUserStore
+	connectorInstances connectorInstanceStore
+	cache              *scheduleZIPCache
+	realtime           realtimeArtifactSource
 }
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "bootstrap-admin-link":
+			os.Exit(runBootstrapAdminLink(os.Args[2:], os.Stdout, os.Stderr, os.Getenv))
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -128,26 +152,47 @@ func newHandler(agencyID string, scheduleBuilder scheduleBuilder, store publicat
 }
 
 func newHandlerWithRealtime(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource) http.Handler {
+	return newHandlerWithRealtimeAndPasswordStore(agencyID, scheduleBuilder, store, deviceStore, ready, admin, realtime, nil)
+}
+
+func newHandlerWithRealtimeAndPasswordStore(agencyID string, scheduleBuilder scheduleBuilder, store publicationStore, deviceStore devices.Store, ready pinger, admin adminAuth, realtime realtimeArtifactSource, suppliedPasswordStore passwordAuthStore) http.Handler {
 	var telemetryRepo telemetry.Repository
 	var stateRepo state.Repository
 	var gtfsImporter gtfsImportRunner
+	var connectorInstances connectorInstanceStore
+	passwordStore := suppliedPasswordStore
+	var userStore adminUserStore
 	if pool, ok := ready.(*pgxpool.Pool); ok {
 		telemetryRepo = telemetry.NewPostgresRepository(pool)
 		stateRepo = state.NewPostgresRepository(pool)
 		gtfsImporter = gtfs.NewImportService(pool)
+		connectorInstances = connectors.NewPostgresInstanceStore(pool)
+		if passwordStore == nil {
+			passwordStore = auth.NewPostgresAdminStore(pool)
+		}
+	}
+	if store, ok := passwordStore.(adminUserStore); ok {
+		userStore = store
 	}
 	csrfSecret := os.Getenv("CSRF_SECRET")
-	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: csrfSecret, localLogin: newLocalAdminLoginFromEnv(agencyID, csrfSecret), cache: newScheduleZIPCache(), realtime: realtime}
+	h := &handler{agencyID: agencyID, schedule: scheduleBuilder, store: store, devices: deviceStore, telemetry: telemetryRepo, state: stateRepo, gtfsImport: gtfsImporter, ready: ready, admin: admin, csrfSecret: csrfSecret, localLogin: newLocalAdminLoginFromEnv(agencyID, csrfSecret), loginFlow: newAdminLoginFlow(csrfSecret), passwords: passwordStore, users: userStore, connectorInstances: connectorInstances, cache: newScheduleZIPCache(), realtime: realtime}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", h.healthz)
 	mux.HandleFunc("/readyz", h.readyz)
 	mux.HandleFunc("/public/gtfs/schedule.zip", h.publicScheduleZIP)
 	mux.HandleFunc("/public/feeds.json", h.publicFeedsJSON)
 	mux.HandleFunc("/public/agencies/", h.publicAgencyRoute)
+	mux.HandleFunc("/admin/login", h.adminLogin)
+	mux.HandleFunc("/admin/setup/first-admin", h.firstAdminSetup)
 	mux.HandleFunc("/admin/local-login", h.localAdminLogin)
 	mux.HandleFunc("/admin/local-login/", h.localAdminLogin)
 	adminRead := admin.Require(auth.RoleReadOnly, auth.RoleOperator, auth.RoleEditor, auth.RoleAdmin)
+	mux.Handle("/admin/logout", adminRead(http.HandlerFunc(h.adminLogout)))
 	mux.Handle("/admin/operations/assets/operations.js", adminRead(http.HandlerFunc(h.operationsAsset)))
+	mux.Handle("/admin/operations/admin/sessions", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/admin/sessions.json", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/admin/users", adminRead(http.HandlerFunc(h.operationsRoot)))
+	mux.Handle("/admin/operations/admin/users.json", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations", adminRead(http.HandlerFunc(h.operationsRoot)))
 	mux.Handle("/admin/operations.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")

@@ -41,9 +41,9 @@ Treat it as the single first-run cockpit. It groups the path into:
 Each row shows status, current signal, what it means, next action, UI link,
 docs link, and what the row does not prove.
 
-The current app shell groups private routes as Start Here, Schedule, Realtime,
-Connectors, Health, Maintain, and Learn. GTFS Studio and Alerts Console are
-shown as separate private admin surfaces when linked from the Operations
+The current app shell groups private routes as Dashboard, Setup, Data,
+Realtime, Connectors, Operations, and Admin. GTFS Studio and Alerts Console
+are shown as separate private admin surfaces when linked from the Operations
 Console.
 
 ## Agency Staff Review Without Command-Line Work
@@ -171,14 +171,22 @@ Open:
 
 ```text
 /admin/operations/connectors
+/admin/operations/connectors/vehicle-avl
+/admin/operations/connectors/prediction
+/admin/operations/connectors/validators
+/admin/operations/connectors/monitoring
+/admin/operations/connectors/discovery
 /admin/operations/connectors/workbench
 /admin/operations/connectors/tests
 /admin/operations/maintenance
 ```
 
-Connector Tests show synthetic manifest and conformance guidance. Maintenance
-Center shows active feed, import, five-feed check, validator, backup/restore,
-telemetry freshness, service-health, and support-summary rows where configured.
+Connector pages separate examples from configured instances. Vehicle/GPS/AVL
+setup is the first connector workflow; prediction, validators, monitoring, and
+discovery setup stay explicit and metadata-only. Connector Tests show
+synthetic manifest and conformance guidance. Maintenance Center shows active
+feed, import, five-feed check, validator, backup/restore, telemetry freshness,
+service-health, and support-summary rows where configured.
 
 ## What Needs A Technical Helper
 

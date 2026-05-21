@@ -42,11 +42,20 @@ product routes as the local evaluator:
 
 ```text
 /admin/operations
+/admin/login
+/admin/logout
 /admin/operations/setup-wizard
+/admin/operations/admin/sessions
+/admin/operations/admin/users
 /admin/operations/feed-health
 /admin/operations/gtfs-import
 /admin/operations/gtfs-workbench
 /admin/operations/connectors
+/admin/operations/connectors/vehicle-avl
+/admin/operations/connectors/prediction
+/admin/operations/connectors/validators
+/admin/operations/connectors/monitoring
+/admin/operations/connectors/discovery
 /admin/operations/validation-health
 /admin/operations/readiness
 /admin/operations/maintenance
@@ -229,6 +238,41 @@ DOMAIN=feeds.example.org \
 OCI_REMOTE_DIR=/opt/open-transit-rt \
 scripts/oci-pilot.sh migrate
 ```
+
+## First Admin Bootstrap Link
+
+After migrations are applied, create the first admin user and one-time setup
+link from the server/operator console:
+
+```sh
+sudo -u open-transit sh -lc '
+  set -a
+  . /opt/open-transit-rt/env
+  set +a
+  /opt/open-transit-rt/bin/agency-config bootstrap-admin-link \
+    --agency-id "$AGENCY_ID" \
+    --email admin@example.org \
+    --base-url http://127.0.0.1:8081 \
+    --ttl 30m
+'
+```
+
+The command stores only a token hash, binds the user to the existing `admin`
+role, and prints the setup URL once. Do not paste the generated URL into
+tracked docs, evidence folders, issue comments, screenshots, or public logs.
+Open the link through the deployment-owned admin access path, set the admin
+password, then use `/admin/login` for normal browser sign-in and `/admin/logout`
+to end the session. Successful password login issues the same signed
+`admin_session` cookie used by the admin middleware. `/admin/local-login`
+remains local/demo-only and production-disabled. SSO/OIDC is not implemented in
+this roadmap; a future identity provider would issue the same internal
+`admin_session` cookie after identity verification and role mapping.
+
+Inside the private Operations Console, **Admin -> Login & Sessions** shows the
+current signed-in subject, agency, roles, auth mode, session TTL, password-login
+status, local demo-login status, and the SSO/OIDC future boundary without
+rendering tokens or credential values. **Admin -> Users & Roles** is admin-only
+and is the browser path for role assignments and one-time password reset links.
 
 ## Service Supervision
 

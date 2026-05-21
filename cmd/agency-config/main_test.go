@@ -543,6 +543,128 @@ func TestLocalAdminLoginPreservesBearerAndCookieCSRFBehavior(t *testing.T) {
 	}
 }
 
+func TestProductionAuthBoundaryRegression(t *testing.T) {
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("AGENCY_ID", "demo-agency")
+	t.Setenv("ADMIN_JWT_SECRET", "rotated-admin-secret")
+	t.Setenv("ADMIN_JWT_OLD_SECRETS", "")
+	t.Setenv("ADMIN_JWT_ISSUER", "test-issuer")
+	t.Setenv("ADMIN_JWT_AUDIENCE", "test-audience")
+	t.Setenv("CSRF_SECRET", "rotated-csrf-secret")
+	t.Setenv("LOCAL_ADMIN_LOGIN_ENABLED", "false")
+
+	cfg := auth.JWTConfig{Secrets: []string{"rotated-admin-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour}
+	verifier, err := auth.NewVerifier(cfg)
+	if err != nil {
+		t.Fatalf("verifier: %v", err)
+	}
+	admin := auth.NewMiddleware(verifier, auth.StaticRoleStore{Roles: []auth.Role{auth.RoleAdmin, auth.RoleEditor, auth.RoleOperator, auth.RoleReadOnly}}, "rotated-csrf-secret")
+	handler := newHandlerWithRealtime(
+		"demo-agency",
+		fakeScheduleBuilder{snapshot: schedule.Snapshot{AgencyID: "demo-agency", FeedVersionID: "feed-demo", RevisionTime: time.Now().UTC(), Payload: []byte("schedule zip bytes")}},
+		&fakePublicationStore{},
+		fakeDeviceStore{},
+		fakePinger{},
+		admin,
+		&fakeRealtimeArtifacts{},
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/local-login", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("production local login status = %d, want 404", rr.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("anonymous operations status = %d, want 401", rr.Code)
+	}
+
+	oldSigner, err := auth.NewSigner(auth.JWTConfig{Secrets: []string{"old-admin-secret"}, Issuer: "test-issuer", Audience: "test-audience", TTL: time.Hour})
+	if err != nil {
+		t.Fatalf("old signer: %v", err)
+	}
+	oldToken, _, err := oldSigner.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign old token: %v", err)
+	}
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	req.Header.Set("Authorization", "Bearer "+oldToken)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("old token status = %d, want 401", rr.Code)
+	}
+
+	newSigner, err := auth.NewSigner(cfg)
+	if err != nil {
+		t.Fatalf("new signer: %v", err)
+	}
+	newToken, _, err := newSigner.Sign("admin@example.com", "demo-agency", time.Hour)
+	if err != nil {
+		t.Fatalf("sign new token: %v", err)
+	}
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	req.Header.Set("Authorization", "Bearer "+newToken)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("new bearer status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "http://localhost:18081/admin/operations", nil)
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: newToken})
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("new admin_session cookie status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "http://localhost:18081/admin/operations/validation-health/refresh.json", strings.NewReader("action=refresh"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "admin_session", Value: newToken})
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("cookie unsafe POST without CSRF status = %d, want 403: %s", rr.Code, rr.Body.String())
+	}
+
+	for _, target := range []string{
+		"/public/feeds.json",
+		"/public/gtfs/schedule.zip",
+	} {
+		req = httptest.NewRequest(http.MethodGet, "http://localhost:18081"+target, nil)
+		rr = httptest.NewRecorder()
+		handler.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("public agency-config feed %s status = %d, want 200: %s", target, rr.Code, rr.Body.String())
+		}
+	}
+
+	caddy, err := os.ReadFile(filepath.Join("..", "..", "deploy", "oci", "Caddyfile"))
+	if err != nil {
+		t.Fatalf("read oci Caddyfile: %v", err)
+	}
+	caddyText := string(caddy)
+	for _, publicPath := range []string{
+		"/public/feeds.json",
+		"/public/gtfs/*",
+		"/public/gtfsrt/vehicle_positions.pb",
+		"/public/gtfsrt/trip_updates.pb",
+		"/public/gtfsrt/alerts.pb",
+	} {
+		if !strings.Contains(caddyText, publicPath) {
+			t.Fatalf("production edge config missing public path %s:\n%s", publicPath, caddyText)
+		}
+	}
+	if strings.Contains(caddyText, "handle /admin") || strings.Contains(caddyText, "reverse_proxy 127.0.0.1:8081\n  }\n\n  handle {\n") {
+		t.Fatalf("production edge config appears to expose admin routes:\n%s", caddyText)
+	}
+}
+
 func TestAgencyConfigAdminAgencyBoundaries(t *testing.T) {
 	store := &fakePublicationStore{
 		scorecard: compliance.Scorecard{AgencyID: "agency-a", OverallStatus: compliance.StatusYellow},
@@ -835,7 +957,7 @@ func TestOperationsAuditLogBrowserScopedMetadata(t *testing.T) {
 			t.Fatalf("audit body missing %q: %s", want, body)
 		}
 	}
-	for _, forbidden := range []string{"operator@example.com", "because dispatch requested it", "old_value_json", "new_value_json", "payload_json", "Authorization", "Bearer ", "postgres://", "/Users/", "secret"} {
+	for _, forbidden := range []string{"because dispatch requested it", "old_value_json", "new_value_json", "payload_json", "Authorization", "Bearer ", "postgres://", "/Users/", "secret"} {
 		if strings.Contains(body, forbidden) {
 			t.Fatalf("audit body leaked %q: %s", forbidden, body)
 		}
@@ -920,6 +1042,15 @@ func TestOperationsCockpitJSONShapeStableCardsAndFlags(t *testing.T) {
 	}
 	assertOperationsCockpitShape(t, view)
 	assertOperationsCockpitFlagsFalse(t, view.ClaimFlags)
+	if len(view.Dashboard.TopIssues) > 3 || len(view.Dashboard.Categories) != 9 {
+		t.Fatalf("unexpected dashboard JSON model: top=%d categories=%d view=%+v", len(view.Dashboard.TopIssues), len(view.Dashboard.Categories), view.Dashboard)
+	}
+	if view.Dashboard.Boundary == "" || view.Dashboard.PrimaryNextAction == "" {
+		t.Fatalf("dashboard JSON missing boundary or next action: %+v", view.Dashboard)
+	}
+	if view.Dashboard.SetupReminder.ActionLabel == "" || view.Dashboard.SetupReminder.SkipLink != "/admin/operations" || view.Dashboard.SetupReminder.DismissLink == "" || view.Dashboard.SetupReminder.BlockerKey == "" {
+		t.Fatalf("dashboard JSON missing setup reminder: %+v", view.Dashboard.SetupReminder)
+	}
 	if view.AgencyID != "demo-agency" {
 		t.Fatalf("agency_id = %q, want demo-agency", view.AgencyID)
 	}
@@ -1659,6 +1790,13 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 	}
 	for _, want := range []string{
 		"Start",
+		"Dashboard",
+		"Top Issues",
+		"Category Summary",
+		"Setup reminder",
+		"Continue setup",
+		"Stay on dashboard",
+		"Dismiss for this session",
 		"Work through this in order",
 		"Operations workflow",
 		"Review realtime",
@@ -1703,6 +1841,65 @@ func TestOperationsDashboardFirstRunAcceptanceWorkflow(t *testing.T) {
 		if strings.Contains(strings.ToLower(body), strings.ToLower(forbidden)) {
 			t.Fatalf("dashboard contains forbidden %q: %s", forbidden, body)
 		}
+	}
+}
+
+func TestOperationsDashboardSetupReminderDismissalIsSessionScoped(t *testing.T) {
+	srv := newOperationsTestHandler(&handler{
+		store:   &fakePublicationStore{discoveryErr: errors.New("missing discovery")},
+		devices: fakeDeviceStore{},
+	}, auth.TestAuthenticator{Principal: auth.Principal{
+		Subject: "reader@example.com", AgencyID: "demo-agency", Roles: []auth.Role{auth.RoleReadOnly}, Method: auth.MethodBearer,
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations.json", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("json status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	var view operationsCockpitView
+	if err := json.Unmarshal(rr.Body.Bytes(), &view); err != nil {
+		t.Fatalf("decode cockpit JSON: %v", err)
+	}
+	blocker := view.Dashboard.SetupReminder.BlockerKey
+	if blocker == "" || !view.Dashboard.SetupReminder.Visible || !view.Dashboard.SetupReminder.Incomplete {
+		t.Fatalf("unexpected setup reminder before dismissal: %+v", view.Dashboard.SetupReminder)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations?setup_reminder=dismissed&setup_blocker="+url.QueryEscape(blocker), nil)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("dismiss status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	if strings.Contains(rr.Body.String(), "Setup reminder") {
+		t.Fatalf("setup reminder should be hidden after matching dismissal: %s", rr.Body.String())
+	}
+	var dismissal *http.Cookie
+	for _, cookie := range rr.Result().Cookies() {
+		if cookie.Name == setupReminderDismissedCookieName {
+			dismissal = cookie
+			break
+		}
+	}
+	if dismissal == nil || dismissal.Value != blocker || dismissal.Path != "/admin/operations" || !dismissal.HttpOnly || dismissal.SameSite != http.SameSiteLaxMode {
+		t.Fatalf("dismissal cookie invalid: %+v", dismissal)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	req.AddCookie(dismissal)
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if strings.Contains(rr.Body.String(), "Setup reminder") {
+		t.Fatalf("setup reminder should remain hidden with matching session cookie: %s", rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/admin/operations", nil)
+	req.AddCookie(&http.Cookie{Name: setupReminderDismissedCookieName, Value: "old_blocker"})
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if !strings.Contains(rr.Body.String(), "Setup reminder") {
+		t.Fatalf("stale dismissal must not hide unresolved setup blocker: %s", rr.Body.String())
 	}
 }
 
@@ -1821,7 +2018,7 @@ func TestSetupWizardJSONShapeFlagsAndStages(t *testing.T) {
 	for _, stage := range wizard.Stages {
 		ids = append(ids, stage.ID)
 	}
-	wantIDs := []string{"agency_profile", "publication_metadata", "gtfs", "feeds", "telemetry", "validators", "connectors", "readiness"}
+	wantIDs := []string{"create_sign_in_admin", "agency_profile", "public_feed_urls", "license_contact", "import_schedule", "bind_vehicle_source", "configure_connector", "validate_feeds", "maintenance_backup_owner", "sharing_readiness"}
 	if strings.Join(ids, ",") != strings.Join(wantIDs, ",") {
 		t.Fatalf("stage ids = %v, want %v", ids, wantIDs)
 	}
@@ -1839,7 +2036,7 @@ func TestSetupWizardJSONShapeFlagsAndStages(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &missing); err != nil {
 		t.Fatalf("decode missing setup wizard: %v", err)
 	}
-	for _, id := range []string{"agency_profile", "publication_metadata", "gtfs", "feeds", "telemetry"} {
+	for _, id := range []string{"agency_profile", "public_feed_urls", "license_contact", "import_schedule", "bind_vehicle_source"} {
 		if status := setupWizardStageStatus(missing, id); status == checklistStatusOK {
 			t.Fatalf("missing-data stage %s status = ok, want missing/unknown/review/blocker", id)
 		}
@@ -1865,7 +2062,7 @@ func TestSetupWizardHTMLBoundariesNoFormsAndEscapes(t *testing.T) {
 		t.Fatalf("html status = %d, want 200: %s", rr.Code, rr.Body.String())
 	}
 	body := rr.Body.String()
-	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Administrator Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Agency profile", "Public feed information", "Schedule data", "Feed links", "Vehicle telemetry", "Validation", "Optional connectors", "Readiness review"} {
+	for _, want := range []string{"Agency Setup", "Setup Progress", "Next Best Step", "Completion Model", "Required", "Recommended", "Optional", "Review Blocks And Next Actions", "Setup Diagnostics", "Role Visibility", "Administrator Cards", "Private authenticated setup wizard", "creates no evidence", "changes no state", "Skip to dashboard", "Why it matters", "Skip for now", "Create or sign in admin", "Agency profile", "Public feed URLs", "License and contact", "Import schedule", "Bind vehicle/device source", "Configure connector", "Validate feeds", "Maintenance and backup owner", "Sharing readiness"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("html body missing %q: %s", want, body)
 		}
@@ -3415,16 +3612,17 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	body := rr.Body.String()
 	for _, want := range []string{
 		`aria-label="Operations Console sections"`,
-		"Start",
-		`href="/admin/operations" aria-current="page">Start</a>`,
+		"Dashboard",
+		"Setup",
+		"Data",
+		"Operations",
+		`href="/admin/operations" aria-current="page">Overview</a>`,
 		`href="/admin/operations/devices">Devices</a>`,
 		`href="/admin/operations/telemetry-simulator">Simulator</a>`,
 		"Schedule Review",
 		"Realtime",
 		`href="/admin/operations/prediction-lab">Trip Updates</a>`,
 		"Connectors",
-		"Feeds",
-		"Maintain",
 		"Help",
 		`href="/admin/operations" aria-current="page"`,
 	} {
@@ -3469,7 +3667,7 @@ func TestOperationsConsoleNavigationIsGroupedAndRouteStable(t *testing.T) {
 	if got := strings.Count(body, `aria-current="page"`); got != 1 {
 		t.Fatalf("aria-current count = %d, want 1: %s", got, body)
 	}
-	for _, oldLabel := range []string{">Dashboard</a>", ">Start Here</a>", ">Devices &amp; Tokens</a>", ">Telemetry Simulator</a>"} {
+	for _, oldLabel := range []string{">Start</a>", ">Start Here</a>", ">Devices &amp; Tokens</a>", ">Telemetry Simulator</a>"} {
 		if strings.Contains(body, oldLabel) {
 			t.Fatalf("navigation still contains old label %q: %s", oldLabel, body)
 		}
@@ -3550,15 +3748,21 @@ func TestOperationsRouteRegistryCentralizesCanonicalInventory(t *testing.T) {
 		paths[route.Path] = true
 	}
 
-	if got := len(operationsCanonicalHTMLRoutes()); got != 28 {
-		t.Fatalf("canonical HTML route count = %d, want 28", got)
+	if got := len(operationsCanonicalHTMLRoutes()); got != 41 {
+		t.Fatalf("canonical HTML route count = %d, want 41", got)
 	}
 	jsonRoutes := operationsCanonicalJSONRoutes()
-	if got := len(jsonRoutes); got != 20 {
-		t.Fatalf("canonical JSON route count = %d, want 20: %v", got, jsonRoutes)
+	if got := len(jsonRoutes); got != 27 {
+		t.Fatalf("canonical JSON route count = %d, want 27: %v", got, jsonRoutes)
 	}
 	if !containsString(jsonRoutes, "/admin/operations/checklist.json") {
 		t.Fatalf("registry must include checklist JSON route: %v", jsonRoutes)
+	}
+	if !containsString(jsonRoutes, "/admin/operations/admin/users.json") {
+		t.Fatalf("registry must include admin users JSON route: %v", jsonRoutes)
+	}
+	if !containsString(jsonRoutes, "/admin/operations/admin/sessions.json") {
+		t.Fatalf("registry must include login sessions JSON route: %v", jsonRoutes)
 	}
 	commands := operationsCommandRoutes()
 	if len(commands) != 1 || commands[0].Path != "/admin/operations/validation-health/refresh.json" || commands[0].Method != http.MethodPost || !commands[0].NoStore {
@@ -3968,8 +4172,8 @@ func TestOperationsConsoleSharedLayoutHasAccessibilityAndMobileLandmarks(t *test
 		`<h1 id="operations-page-title">Start</h1>`,
 		`<div class="operations-frame">`,
 		`<nav id="operations-nav" class="operations-nav" aria-label="Operations Console sections">`,
-		`<section class="nav-group" aria-labelledby="nav-group-maintenance">`,
-		`<p id="nav-group-maintenance" class="nav-group-label">Maintain</p>`,
+		`<section class="nav-group" aria-labelledby="nav-group-operations">`,
+		`<p id="nav-group-operations" class="nav-group-label">Operations</p>`,
 		`<main id="operations-main" tabindex="-1" aria-labelledby="operations-page-title">`,
 		`<script src="/admin/operations/assets/operations.js" defer></script>`,
 		`</main>
@@ -4287,25 +4491,32 @@ func TestOperationsConsoleFormsUseLabelsAndSubmitButtonsWithoutChangingContracts
 		{
 			path: "/admin/operations/setup",
 			want: []string{
+				`/admin/operations/config/feeds`,
 				`<form method="post" action="/admin/operations/setup">`,
-				`name="action" value="publication_bootstrap"`,
-				`for="setup_public_base_url"`,
-				`id="setup_public_base_url" type="url" name="public_base_url"`,
-				`for="setup_feed_base_url"`,
-				`id="setup_feed_base_url" type="url" name="feed_base_url"`,
-				`for="setup_technical_contact_email"`,
-				`id="setup_technical_contact_email" type="email" name="technical_contact_email"`,
-				`for="setup_license_name"`,
-				`id="setup_license_name" name="license_name"`,
-				`for="setup_license_url"`,
-				`id="setup_license_url" type="url" name="license_url"`,
-				`for="setup_publication_environment"`,
-				`id="setup_publication_environment" name="publication_environment"`,
-				`<button type="submit">Store publication metadata</button>`,
 				`name="action" value="run_validation"`,
 				`for="setup_validation_feed_type"`,
 				`id="setup_validation_feed_type" name="feed_type"`,
 				`<button type="submit">Run allowlisted validation</button>`,
+			},
+		},
+		{
+			path: "/admin/operations/config/feeds",
+			want: []string{
+				`<form method="post" action="/admin/operations/setup#publication-metadata">`,
+				`name="action" value="publication_bootstrap"`,
+				`for="config_public_base_url"`,
+				`id="config_public_base_url" type="url" name="public_base_url"`,
+				`for="config_feed_base_url"`,
+				`id="config_feed_base_url" type="url" name="feed_base_url"`,
+				`for="config_technical_contact_email"`,
+				`id="config_technical_contact_email" type="email" name="technical_contact_email"`,
+				`for="config_license_name"`,
+				`id="config_license_name" name="license_name"`,
+				`for="config_license_url"`,
+				`id="config_license_url" type="url" name="license_url"`,
+				`for="config_publication_environment"`,
+				`id="config_publication_environment" name="publication_environment"`,
+				`<button type="submit">Store publication metadata</button>`,
 			},
 		},
 	} {
@@ -7615,19 +7826,21 @@ func assertLaunchpadFlagsFalse(t *testing.T, flags agencyLaunchpadClaimFlags) {
 
 func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 	t.Helper()
-	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Blockers) == 0 || len(wizard.Diagnostics) != 8 || len(wizard.RoleVisibility) != 3 || len(wizard.TechnicalHelp) != 4 || len(wizard.Stages) != 8 || wizard.Counts.Stages != len(wizard.Stages) {
+	if wizard.AgencyID == "" || wizard.Boundary == "" || wizard.SkipActionLabel == "" || wizard.SkipLink != "/admin/operations" || wizard.Summary.Status == "" || wizard.Summary.NextStageID == "" || wizard.Summary.NextStageLabel == "" || wizard.Summary.NextAction == "" || wizard.Summary.NextActionLink == "" || wizard.Summary.Meaning == "" || len(wizard.Blockers) == 0 || len(wizard.Diagnostics) != 8 || len(wizard.RoleVisibility) != 3 || len(wizard.TechnicalHelp) != 4 || len(wizard.Stages) != 10 || len(wizard.Completion) != 3 || wizard.Counts.Stages != len(wizard.Stages) {
 		t.Fatalf("invalid setup wizard top-level shape: %+v", wizard)
 	}
 	allowedStatuses := map[string]bool{"ok": true, "needs_review": true, "missing": true, "blocked": true, "unknown": true}
 	seenIDs := map[string]bool{}
+	seenRequirements := map[string]bool{}
 	for _, stage := range wizard.Stages {
-		if stage.ID == "" || stage.Label == "" || stage.Status == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.ActionLabel == "" || stage.AdminLink == "" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
+		if stage.ID == "" || stage.Label == "" || stage.Requirement == "" || stage.Status == "" || stage.WhyItMatters == "" || stage.CurrentSignal == "" || stage.PrimaryAction == "" || stage.ActionLabel == "" || stage.AdminLink == "" || stage.SkipLabel == "" || stage.SkipLink != "/admin/operations" || len(stage.DocsLinks) == 0 || stage.ClaimBoundary == "" {
 			t.Fatalf("invalid setup wizard stage shape: %+v", stage)
 		}
 		if seenIDs[stage.ID] {
 			t.Fatalf("duplicate setup wizard stage id %q", stage.ID)
 		}
 		seenIDs[stage.ID] = true
+		seenRequirements[stage.Requirement] = true
 		if !allowedStatuses[stage.Status] {
 			t.Fatalf("stage %q status = %q, want neutral status", stage.ID, stage.Status)
 		}
@@ -7638,6 +7851,19 @@ func assertSetupWizardShape(t *testing.T, wizard operationsSetupWizardView) {
 			if !strings.HasPrefix(link, "docs/") {
 				t.Fatalf("stage %s has unsafe docs link %q", stage.ID, link)
 			}
+		}
+	}
+	for _, requirement := range []string{"required", "recommended", "optional"} {
+		if !seenRequirements[requirement] {
+			t.Fatalf("setup wizard missing %s stage in completion model: %+v", requirement, wizard.Stages)
+		}
+	}
+	for _, bucket := range wizard.Completion {
+		if bucket.Requirement == "" || bucket.Label == "" || bucket.Status == "" || bucket.Total < bucket.Complete || bucket.Total < bucket.Incomplete || bucket.Meaning == "" {
+			t.Fatalf("invalid setup wizard completion bucket: %+v", bucket)
+		}
+		if !allowedStatuses[bucket.Status] {
+			t.Fatalf("completion bucket %q status = %q, want neutral status", bucket.Requirement, bucket.Status)
 		}
 	}
 	for _, blocker := range wizard.Blockers {

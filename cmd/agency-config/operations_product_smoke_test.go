@@ -120,6 +120,43 @@ func TestOperationsConsoleRenderedPrimaryLayoutDebt(t *testing.T) {
 			}
 		}
 	}
+
+	wantGroups := []string{"Dashboard", "Setup", "Data", "Realtime", "Connectors", "Operations", "Admin"}
+	groups := operationsNavGroups("connectors")
+	if len(groups) != len(wantGroups) {
+		t.Fatalf("nav groups = %d, want %d: %+v", len(groups), len(wantGroups), groups)
+	}
+	for i, want := range wantGroups {
+		if groups[i].Label != want {
+			t.Fatalf("nav group %d = %q, want %q", i, groups[i].Label, want)
+		}
+		if len(groups[i].Items) == 0 {
+			t.Fatalf("nav group %s has no items", groups[i].ID)
+		}
+		if len(groups[i].Items) > 9 {
+			t.Fatalf("nav group %s has %d items, want focused category", groups[i].ID, len(groups[i].Items))
+		}
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/operations/connectors", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("connectors status = %d, want 200: %s", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	for _, want := range []string{
+		`<details class="page-section-details"><summary>Connector health review</summary>`,
+		`<details class="page-section-details"><summary>Connector catalog and categories</summary>`,
+		`<details class="page-section-details"><summary>Manifest registry</summary>`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("connectors page missing collapsed secondary section %q: %s", want, body)
+		}
+	}
+	if strings.Count(body, `<details class="page-section-details">`) < 3 {
+		t.Fatalf("connectors page should keep secondary diagnostics collapsed: %s", body)
+	}
 }
 
 func renderedMainHTML(html string) string {

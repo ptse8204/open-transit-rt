@@ -136,6 +136,51 @@ func TestOperationsReliabilityScriptRejectsUnsafePathsAndSources(t *testing.T) {
 	}
 }
 
+func TestOperationsReliabilityScriptAllowsGeneratedSecretStatusCategory(t *testing.T) {
+	root := operationsReliabilityRepoRoot(t)
+	base := operationsReliabilityTempRel(t, root, "generated-secret-category")
+	validatorRel := filepath.ToSlash(filepath.Join(base, "validator-health", "20260509T120000Z", "summary.json"))
+	doctorRel := filepath.ToSlash(filepath.Join(base, "deployment-doctor", "20260509T120000Z", "summary.json"))
+	notifyRel := filepath.ToSlash(filepath.Join(base, "operations-notify", "20260509T120000Z", "summary.json"))
+	writeOperationsReliabilityJSON(t, root, validatorRel, map[string]any{"overall_status": "recorded"})
+	writeOperationsReliabilityJSON(t, root, doctorRel, map[string]any{
+		"overall_status": "warning",
+		"checks": []map[string]string{{
+			"category": "install_recovery",
+			"name":     "environment_preflight",
+			"status":   "blocker",
+			"detail":   "environment_preflight=blocker; categories=env:blocker,generated_secret:blocker,url:blocker",
+		}},
+	})
+	writeOperationsReliabilityJSON(t, root, notifyRel, map[string]any{"overall_status": "info"})
+	outputRel := filepath.ToSlash(filepath.Join(base, "out"))
+	cmd := operationsReliabilityCommand(root, "--dry-run")
+	cmd.Env = append(os.Environ(),
+		"OUTPUT_DIR="+outputRel,
+		"FORCE=true",
+		"VALIDATOR_HEALTH_SUMMARY="+validatorRel,
+		"DEPLOYMENT_DOCTOR_SUMMARY="+doctorRel,
+		"OPERATIONS_NOTIFY_SUMMARY="+notifyRel,
+	)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("generated_secret category should be accepted: %v\n%s", err, out)
+	}
+
+	unsafeRel := filepath.ToSlash(filepath.Join(base, "deployment-doctor", "20260509T120001Z", "summary.json"))
+	writeOperationsReliabilityJSON(t, root, unsafeRel, map[string]any{"overall_status": "warning", "summary": "secret: inline-value"})
+	cmd = operationsReliabilityCommand(root, "--dry-run")
+	cmd.Env = append(os.Environ(),
+		"OUTPUT_DIR="+outputRel,
+		"FORCE=true",
+		"VALIDATOR_HEALTH_SUMMARY="+validatorRel,
+		"DEPLOYMENT_DOCTOR_SUMMARY="+unsafeRel,
+		"OPERATIONS_NOTIFY_SUMMARY="+notifyRel,
+	)
+	if out, err := cmd.CombinedOutput(); err == nil {
+		t.Fatalf("expected inline secret marker rejection, got success: %s", out)
+	}
+}
+
 func TestOperationsReliabilityScriptRejectsOversizedSource(t *testing.T) {
 	root := operationsReliabilityRepoRoot(t)
 	base := operationsReliabilityTempRel(t, root, "oversized")

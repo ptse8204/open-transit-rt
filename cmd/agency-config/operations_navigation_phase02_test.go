@@ -13,6 +13,7 @@ import (
 
 func TestOperationsPhase02RegisteredRoutesArePrivateReachableAndNoStore(t *testing.T) {
 	handler := phase02OperationsHandler(t, auth.TestAuthenticator{Principal: phase02ReadOnlyPrincipal()})
+	adminHandler := phase02OperationsHandler(t, auth.TestAuthenticator{Principal: phase02AdminPrincipal()})
 	unauthenticated := phase02OperationsHandler(t, authRejectAll{})
 
 	for _, route := range operationsCanonicalHTMLRoutes() {
@@ -22,7 +23,7 @@ func TestOperationsPhase02RegisteredRoutesArePrivateReachableAndNoStore(t *testi
 		t.Run(route.Path, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, route.Path, nil)
 			rr := httptest.NewRecorder()
-			handler.ServeHTTP(rr, req)
+			phase02HandlerForRoute(route, handler, adminHandler).ServeHTTP(rr, req)
 			if rr.Code != http.StatusOK {
 				t.Fatalf("%s status = %d, want 200: %s", route.Path, rr.Code, rr.Body.String())
 			}
@@ -66,7 +67,8 @@ func TestOperationsPhase02RegisteredRoutesArePrivateReachableAndNoStore(t *testi
 		t.Run(path, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			handler.ServeHTTP(rr, req)
+			route, _ := operationsRouteByPath(path)
+			phase02HandlerForRoute(route, handler, adminHandler).ServeHTTP(rr, req)
 			if rr.Code != http.StatusOK {
 				t.Fatalf("%s status = %d, want 200: %s", path, rr.Code, rr.Body.String())
 			}
@@ -185,6 +187,7 @@ func TestOperationsPhase02NavigationMatchesRouteRegistryAndRenderedTemplate(t *t
 
 func TestOperationsPhase02UserFacingLabelsAndActiveStateStayRegistryDriven(t *testing.T) {
 	handler := phase02OperationsHandler(t, auth.TestAuthenticator{Principal: phase02ReadOnlyPrincipal()})
+	adminHandler := phase02OperationsHandler(t, auth.TestAuthenticator{Principal: phase02AdminPrincipal()})
 	for _, route := range operationsCanonicalHTMLRoutes() {
 		if route.PageTitle == "" || route.NavLabel == "" {
 			t.Fatalf("route must keep user-facing title and nav label: %+v", route)
@@ -198,7 +201,7 @@ func TestOperationsPhase02UserFacingLabelsAndActiveStateStayRegistryDriven(t *te
 		t.Run(route.Section, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, route.Path, nil)
 			rr := httptest.NewRecorder()
-			handler.ServeHTTP(rr, req)
+			phase02HandlerForRoute(route, handler, adminHandler).ServeHTTP(rr, req)
 			if rr.Code != http.StatusOK {
 				t.Fatalf("%s status = %d, want 200: %s", route.Path, rr.Code, rr.Body.String())
 			}
@@ -354,6 +357,22 @@ func phase02ReadOnlyPrincipal() auth.Principal {
 		Roles:    []auth.Role{auth.RoleReadOnly},
 		Method:   auth.MethodBearer,
 	}
+}
+
+func phase02AdminPrincipal() auth.Principal {
+	return auth.Principal{
+		Subject:  "admin@example.com",
+		AgencyID: "demo-agency",
+		Roles:    []auth.Role{auth.RoleAdmin},
+		Method:   auth.MethodBearer,
+	}
+}
+
+func phase02HandlerForRoute(route operationsRouteMeta, readOnly http.Handler, admin http.Handler) http.Handler {
+	if route.Section == "admin-users" {
+		return admin
+	}
+	return readOnly
 }
 
 func phase02RouteAllows(methods []string, method string) bool {

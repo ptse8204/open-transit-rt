@@ -10,6 +10,97 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
+Phase 161-180 of the production login, setup, dashboard, and connector
+configuration roadmap is complete as of 2026-05-21. The roadmap is recorded at
+`docs/roadmaps/production-login-setup-connectors-phase-161-180.md`, and the
+closeout is recorded at
+`docs/roadmaps/production-login-setup-connectors-phase-161-180-closeout.md`.
+Phases 161-164 locked the production auth boundary, added Argon2id-backed password
+credentials, first-admin setup links, `/admin/login`, `/admin/logout`, and
+admin-only Users & Roles management. Phase 165 added signed-in user/session
+visibility and a Login & Sessions page. Phase 166 reshaped the Operations
+landing page into a dashboard with top-three issues, compact category
+summaries, and longer workflow details behind disclosures. Phase 167 refactored
+the setup wizard into ten skippable steps with why-it-matters text and a
+persistent dashboard reminder while remaining GET-only. Phase 168 adds focused
+config pages for agency profile, public feed URLs, login settings, deployment
+settings, and advanced review; publication metadata editing moved out of setup
+diagnostics while preserving the existing admin-only setup POST and CSRF
+boundary. Phase 169 adds DB-backed per-agency connector instance records and
+updates the Connectors page so example manifests are separated from configured
+instances with explicit states such as `example_available`,
+`configured_not_tested`, `dry_run_passed`, `ready_for_activation`, `active`,
+and `blocked`. Phase 170 adds the first connector setup workflow at
+`/admin/operations/connectors/vehicle-avl` for Vehicle / GPS / AVL metadata,
+field mapping, source-shape selection, and secret reference labels; saving
+metadata resets the instance to `configured_not_tested` and dry-run remains
+required before activation. Phase 171 adds connector dry-run job records and
+Vehicle / GPS / AVL dry-run review: admins can record bounded redacted
+server-owned dry-run results, counts, and redaction scan status without raw
+payload retention or browser command execution. Phase 172 adds the vehicle
+connector activation gate: mapping, passed dry-run, device bindings, secret
+reference labels, safe `/v1/telemetry` target shape, stale/future/quality
+rules, and redaction scan must pass before an admin can mark the connector
+ready for deployment-owned activation. Phase 173 adds Prediction Setup at
+`/admin/operations/connectors/prediction`: admins can save deterministic,
+external HTTP shadow, or external HTTP fail-closed connector metadata using
+deployment-owned env reference labels and the fixed
+`/v1/predict/trip-updates` sidecar path. Vehicle Positions remain independent,
+external prediction is not enabled by the browser, and the page does not store
+predictor URLs, token values, raw sidecar payloads, or ETA-quality proof.
+Phase 174 adds Validator Setup at
+`/admin/operations/connectors/validators`: admins can save static or realtime
+validator connector metadata using allowlisted validator IDs and
+deployment-owned env reference labels. Validator execution remains in the
+existing server-owned Validation Health flow, raw commands and private artifact
+paths are blocked, and validator status remains supporting diagnostics rather
+than compliance, acceptance, final-root, production, SLA, or public-launch
+proof. Phase 175 adds Monitoring Setup and Discovery Setup at
+`/admin/operations/connectors/monitoring` and
+`/admin/operations/connectors/discovery`. Monitoring/export configuration is
+no-send by default and stores only destination reference labels plus redacted
+digest metadata. Discovery configuration reviews `/public/feeds.json`,
+license/contact, and public-root readiness while keeping portal automation and
+consumer status mutation disabled.
+Phase 176 refines the Operations Console information architecture to the
+shorter top-level groups Dashboard, Setup, Data, Realtime, Connectors,
+Operations, and Admin. The Connectors overview now leaves configured
+instances visible first and moves secondary health, catalog, category, and
+manifest-registry diagnostics behind disclosure sections so the first view is
+not a long audit page.
+Phase 177 adds a setup completion model with required, recommended, and
+optional buckets. The dashboard setup reminder remains visible while setup is
+incomplete, can be dismissed only for the current browser session for the
+current next setup blocker, and reappears when the blocker changes. Dashboard
+top issues still cap at three and fill remaining first-screen space with
+compact healthy/current category summaries.
+Phase 178 refreshes README, docs index, deployment/operator tutorials, and the
+public site around the production username/password login path, one-time
+first-admin setup links, dashboard/setup navigation, and connector
+configuration pages. The docs continue to state that SSO/OIDC is future work
+and that example connector manifests are not configured or active connectors.
+Phase 179 adds release-candidate gate rows for the production auth boundary,
+password login, first-admin bootstrap link behavior, logout, cookie CSRF
+rejection, dashboard issue priority, setup wizard skip/reminder behavior,
+connector examples versus configured instances, and connector dry-run
+redaction. The gate remains a private local diagnostic and does not create
+evidence, contact external parties, mutate consumer status, tag, publish, or
+prove production readiness, compliance, consumer acceptance, agency adoption,
+hosted SaaS, vendor compatibility, SLA coverage, AVL reliability, ETA quality,
+or final-root readiness.
+Phase 180 closes the roadmap with status, handoff, and closeout updates. The
+recommended next software track is deeper realtime correctness. SSO/OIDC,
+release publication, and real connector runtime hardening with authorized data
+remain separate future tracks.
+Local demo sign-in
+stays disabled in production, anonymous private Operations Console access
+stays `401`, rotated
+JWTs are rejected, new Bearer and `admin_session` JWTs are accepted,
+cookie-authenticated unsafe POSTs still require CSRF, and the public edge
+remains feed-only. SSO/OIDC remains deferred; future SSO must issue the same
+internal signed `admin_session` only after external identity verification and
+role mapping.
+
 Phase 141 through Phase 160 of the better-software roadmap are complete. The
 closeout is recorded at
 `docs/roadmaps/better-software-phase-141-160-closeout.md`.
@@ -63,8 +154,8 @@ without auth, cookie-auth unsafe POSTs still require CSRF, Bearer-token API
 auth still works, and the local sign-in handoff is production-disabled and
 localhost-only.
 
-The Operations Console Start page is now action-first with Start, Setup, GTFS,
-Feeds, Realtime, Vehicles, Connectors, Readiness, Maintenance, and Help groups.
+The Operations Console Start page is now action-first with Dashboard, Setup,
+Data, Realtime, Connectors, Operations, and Admin groups.
 Long route lists, feed details, first-run diagnostics, and caveats are kept
 behind details/help panels so normal users see status and next actions first.
 

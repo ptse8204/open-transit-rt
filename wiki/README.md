@@ -32,11 +32,14 @@ http://localhost:8080/admin/local-login
 ```
 
 Choose **Start setup**. The browser opens the private Operations Console and
-shows **Start Here** first.
+shows the Dashboard first.
 
 Self-hosted/reference deployments use the same authenticated
 `/admin/operations*` product routes after the deployment owner configures the
-server, HTTPS root, secrets, validators, backups, and monitoring.
+server, HTTPS root, secrets, validators, backups, and monitoring. Production-
+style browser entry uses a one-time first-admin setup link, password login at
+`/admin/login`, and the internal signed `admin_session`; SSO/OIDC is future
+work, not an implemented login path.
 
 ## Administrator Startup
 
@@ -64,6 +67,7 @@ staff review.
 | Review CAL-ITP-style readiness plainly | [CAL-ITP Readiness Plain English](calitp-readiness-plain-english.md) |
 | Understand readiness and evidence boundaries | [Readiness And Evidence](readiness-and-evidence.md) |
 | Plan a self-hosted evaluator or reference deployment | [Deployment Guide](deployment-guide.md) and [Self-hosted site guide](https://ptse8204.github.io/open-transit-rt/deploy.html) |
+| Create the first admin and configure connectors | [Production Login, Setup, And Connectors](../docs/tutorials/production-login-setup-connectors.md) |
 | Help improve the project | [How Agencies Can Help](how-agencies-can-help.md) |
 | Contribute code or docs | [Support And Contribute](support-and-contribute.md) |
 
