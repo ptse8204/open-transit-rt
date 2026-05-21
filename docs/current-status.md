@@ -10,7 +10,7 @@ A fresh Codex instance should be able to read this file and quickly understand:
 
 ## Current Repository State
 
-Phase 178 of the production login, setup, dashboard, and connector
+Phase 179 of the production login, setup, dashboard, and connector
 configuration roadmap is active on 2026-05-21. The roadmap is recorded at
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`. Phases
 161-164 locked the production auth boundary, added Argon2id-backed password
@@ -77,6 +77,15 @@ public site around the production username/password login path, one-time
 first-admin setup links, dashboard/setup navigation, and connector
 configuration pages. The docs continue to state that SSO/OIDC is future work
 and that example connector manifests are not configured or active connectors.
+Phase 179 adds release-candidate gate rows for the production auth boundary,
+password login, first-admin bootstrap link behavior, logout, cookie CSRF
+rejection, dashboard issue priority, setup wizard skip/reminder behavior,
+connector examples versus configured instances, and connector dry-run
+redaction. The gate remains a private local diagnostic and does not create
+evidence, contact external parties, mutate consumer status, tag, publish, or
+prove production readiness, compliance, consumer acceptance, agency adoption,
+hosted SaaS, vendor compatibility, SLA coverage, AVL reliability, ETA quality,
+or final-root readiness.
 Local demo sign-in
 stays disabled in production, anonymous private Operations Console access
 stays `401`, rotated

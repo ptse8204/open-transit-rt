@@ -54,6 +54,15 @@ func TestReleaseCandidateCheckDryRunExactFilesAndClaimFlags(t *testing.T) {
 	for _, id := range []string{
 		"check_links",
 		"product_ui_smoke",
+		"auth_production_boundary",
+		"auth_password_login",
+		"auth_bootstrap_single_use",
+		"auth_logout_expiry",
+		"auth_cookie_post_csrf",
+		"dashboard_issue_priority",
+		"setup_wizard_skip_reminder",
+		"connector_examples_vs_configured",
+		"connector_dry_run_redaction",
 		"product_acceptance_audit",
 		"product_language_audit",
 		"ui_layout_audit",
@@ -86,6 +95,10 @@ func TestReleaseCandidateCheckDryRunExactFilesAndClaimFlags(t *testing.T) {
 		"pre-tag local diagnostics",
 		"API/feed/extension contract check",
 		"Product UI smoke",
+		"Production auth boundary",
+		"Password login issues admin_session",
+		"Connector examples remain separate",
+		"Connector dry-run records redacted results",
 		"GTFS-RT conformance harness",
 	} {
 		if !strings.Contains(summaryText, want) {
@@ -220,6 +233,10 @@ func TestReleaseCandidateCheckHelpAndDocsBoundary(t *testing.T) {
 		"pre-tag",
 		"local diagnostics",
 		"API/feed/extension contract",
+		"Production auth boundary",
+		"first-admin bootstrap",
+		"dashboard top-three",
+		"Connector examples",
 		"product UI",
 		"GTFS-RT conformance",
 	} {

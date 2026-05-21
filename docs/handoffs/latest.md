@@ -9,7 +9,7 @@ continuation context is indexed from
 
 ## Active Phase
 
-Phase 178 of the production login, setup, dashboard, and connector
+Phase 179 of the production login, setup, dashboard, and connector
 configuration roadmap is active. The roadmap file is
 `docs/roadmaps/production-login-setup-connectors-phase-161-180.md`.
 Phases 161-164 locked the maintainer-confirmed production auth boundary, added
@@ -81,6 +81,15 @@ and connector configuration: README, docs index, self-hosted deployment/trial
 guides, and the public site now point to one-time first-admin setup links,
 `/admin/login`, dashboard/setup navigation, and configured connector pages
 while keeping SSO/OIDC and external acceptance claims deferred.
+Phase 179 adds local release-candidate diagnostic rows for the production auth
+boundary, password login, first-admin bootstrap link behavior, logout, cookie
+CSRF rejection, dashboard issue priority, setup wizard skip/reminder behavior,
+connector examples versus configured instances, and connector dry-run
+redaction. The release-candidate helper remains private local diagnostics
+only: it does not write retained evidence, contact external parties, change
+consumer status, tag, publish, or prove production readiness, compliance,
+consumer acceptance, agency adoption, hosted SaaS, vendor compatibility, SLA
+coverage, AVL reliability, ETA quality, or final-root readiness.
 `/admin/local-login` is still production-disabled, anonymous
 `/admin/operations` is unauthorized, old JWTs fail after secret rotation, new
 Bearer and `admin_session` JWTs work, cookie-authenticated unsafe POSTs without

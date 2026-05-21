@@ -925,3 +925,13 @@ password login at `/admin/login`, and the internal signed `admin_session`.
 Docs and site copy must keep `/admin/local-login` local/demo-only, describe
 SSO/OIDC as deferred, and distinguish configured connector instances from
 committed examples.
+
+Phase 179 folds the new product-layer risks into the release-candidate
+diagnostic instead of leaving them as phase-only checks. The gate now has
+explicit rows for the production auth boundary, password login, first-admin
+bootstrap link handling, logout, cookie CSRF rejection, dashboard issue
+priority, setup wizard reminder behavior, connector examples versus configured
+instances, and connector dry-run redaction. These rows are local diagnostics
+only; passing them is not production readiness, compliance, consumer
+acceptance, agency adoption, hosted SaaS, vendor compatibility, SLA, AVL
+reliability, ETA quality, or final-root proof.

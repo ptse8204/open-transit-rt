@@ -66,6 +66,16 @@ The readiness check summarizes:
 - Docker Compose configuration;
 - internal documentation links;
 - product UI smoke checks for the private Operations Console;
+- Production auth boundary release rows covering disabled local demo login in
+  production, anonymous private admin rejection, rotated JWT rejection, new
+  Bearer and `admin_session` JWT acceptance, cookie-authenticated unsafe POST
+  CSRF rejection, password login, first-admin setup link handling, and logout;
+- dashboard/setup release rows covering dashboard top-three issue priority, healthy
+  fallback summaries, the setup wizard route shape, skip path, and
+  session-scoped incomplete-setup reminder;
+- Connector examples release rows covering example manifests versus
+  configured connector instances, explicit connector states, and redacted
+  dry-run result handling;
 - product acceptance, product-language, UI-layout, and operations-route audits;
 - API/feed/extension contract checks for telemetry, public feeds, admin JSON
   companions, connector manifests, adapter fixtures, and prediction DTOs;
@@ -169,6 +179,9 @@ readiness.
 
    ```sh
    make product-ui-smoke
+   go test ./cmd/agency-config -run 'TestProductionAuthBoundaryRegression$'
+   go test ./cmd/agency-config ./internal/auth -run 'Test(AdminPasswordLoginIssuesProductionSessionCookie|AdminPasswordLoginFailureIsGenericAndStateIsSingleUse|PasswordHashUsesArgon2IDAndDoesNotStorePlaintext|PasswordPolicyRejectsUnsafeValues)$'
+   go test ./cmd/agency-config ./internal/connectors -run 'Test(ConnectorHubSeparatesExamplesFromConfiguredInstances|ConnectorHubShowsConfiguredInstanceStateWithoutSecrets|ConnectorInstanceStatesAreExplicitAndStable|ConnectorInstanceConfigSummaryIsMetadataOnly)$'
    make check-links
    make external-connection-check
    make adapter-conformance
@@ -262,6 +275,15 @@ claims.
 | `make check` | No-network repo validation passes | Fix before continuing |
 | `make release-candidate-check` | `.cache/release-candidate-check/<timestamp>/` with five files | Record blocker rows; do not claim production readiness |
 | `make product-ui-smoke` | Private Operations Console product routes render with reference settings | Fix route, role, or browser-first product drift |
+| `auth_production_boundary` row | Production disables local demo login, private Operations stays authenticated, rotated JWTs fail, new Bearer and `admin_session` JWTs work, cookie unsafe POST without CSRF fails, and public feed paths remain the public edge | Fix auth or edge-route regression before release notes |
+| `auth_password_login` row | Username/password login issues a scoped `admin_session` without token leaks and generic failure copy remains in place | Fix login/session behavior before claiming browser sign-in works |
+| `auth_bootstrap_single_use` row | first-admin bootstrap setup link output is shown once, token hashes stay private, TTL/agency validation holds, and the browser setup flow consumes the supplied token | Fix bootstrap-token handling before documenting first-admin setup |
+| `auth_logout_expiry` row | Logout requires cookie CSRF and expires `admin_session` | Fix logout/session expiry behavior before release notes |
+| `auth_cookie_post_csrf` row | Cookie-authenticated unsafe POSTs remain forbidden without CSRF | Fix CSRF regression before release notes |
+| `dashboard_issue_priority` row | Dashboard caps to top-three issues and fills with compact healthy summaries when fewer blockers exist | Fix dashboard prioritization before calling the console dashboard-first |
+| `setup_wizard_skip_reminder` row | Setup wizard routes remain private GET/no-store with skip/reminder behavior and stable JSON/HTML shape | Fix setup wizard or reminder drift before release notes |
+| `connector_examples_vs_configured` row | Example manifests remain separate from configured connector instances and explicit states remain stable | Fix connector state modeling before release notes |
+| `connector_dry_run_redaction` row | Connector dry-run result storage is redacted and raw payload/secret/endpoint signals are rejected | Fix redaction behavior before release notes |
 | `make check-links` | Internal Markdown/site links resolve locally | Fix broken navigation before release notes |
 | `make api-contract-check` | Telemetry, feed, admin JSON, connector, adapter, and prediction contracts match docs | Fix contract drift or document deliberate changes before release notes |
 | `make check-stable-filter` | Stable branch filtering rules match expected product files | Fix filter drift before propagating product files |

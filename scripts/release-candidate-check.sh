@@ -281,6 +281,15 @@ run_check "compose_config" "Docker Compose config" "docker compose -f deploy/doc
 run_check_final_blocker_detail "validators_check" "Pinned validator install/check" "VALIDATOR_TOOLING_MODE=pinned scripts/check-validators.sh"
 run_check "check_links" "Internal documentation link check" "scripts/check-internal-links.sh"
 run_check "product_ui_smoke" "Product UI smoke" "scripts/product-ui-smoke.sh"
+run_check "auth_production_boundary" "Production auth boundary, disabled local login, rotated JWT rejection, admin_session, CSRF, and public edge feed access" "go test ./cmd/agency-config -run 'TestProductionAuthBoundaryRegression$'"
+run_check "auth_password_login" "Password login issues admin_session cookie without token leaks" "go test ./cmd/agency-config ./internal/auth -run 'Test(AdminPasswordLoginIssuesProductionSessionCookie|AdminPasswordLoginFailureIsGenericAndStateIsSingleUse|PasswordHashUsesArgon2IDAndDoesNotStorePlaintext|PasswordPolicyRejectsUnsafeValues)$'"
+run_check "auth_bootstrap_single_use" "First-admin bootstrap token hash, TTL, one-time output, unsafe agency rejection, and browser setup" "go test ./cmd/agency-config ./internal/auth -run 'Test(FirstAdminSetupConsumesTokenSetsPasswordAndIssuesSession|BootstrapAdminLinkConfigRejectsUnsafeAgencyIDBeforeDB|BootstrapAdminLinkConfigNormalizesTTLAndBaseURL|BootstrapAdminLinkOutputShowsTokenOnceAndNotHash|BootstrapTokenHashIsHashOnlyAndStable|NormalizeBootstrapTTL)'"
+run_check "auth_logout_expiry" "Logout requires cookie CSRF and expires admin_session" "go test ./cmd/agency-config -run 'TestAdminLogoutRequiresExistingCookieCSRFAndExpiresSession$'"
+run_check "auth_cookie_post_csrf" "Cookie-authenticated unsafe POST without CSRF is rejected" "go test ./cmd/agency-config -run 'Test(ProductionAuthBoundaryRegression|OperationsCookiePostRequiresCSRF|OperationsSetupCookiePostRequiresCSRF|GTFSQualityCookiePostRequiresCSRF)$'"
+run_check "dashboard_issue_priority" "Dashboard top-three issue priority and healthy fallback" "go test ./cmd/agency-config -run 'Test(TopDashboardIssuesSkipsHealthyAndCapsAtThree|DashboardHealthyFallbackFillsWhenFewerThanThreeIssues|OperationsDashboardFirstRunAcceptanceWorkflow)$'"
+run_check "setup_wizard_skip_reminder" "Setup wizard skip path and session-scoped incomplete setup reminder" "go test ./cmd/agency-config -run 'Test(OperationsDashboardSetupReminderDismissalIsSessionScoped|SetupWizardRoutesPrivateScopedGETOnlyNoStore|SetupWizardJSONShapeFlagsAndStages|SetupWizardHTMLBoundariesNoFormsAndEscapes)$'"
+run_check "connector_examples_vs_configured" "Connector examples remain separate from configured instances and explicit states" "go test ./cmd/agency-config ./internal/connectors -run 'Test(ConnectorHubSeparatesExamplesFromConfiguredInstances|ConnectorHubShowsConfiguredInstanceStateWithoutSecrets|ConnectorInstanceStatesAreExplicitAndStable|ConnectorInstanceConfigSummaryIsMetadataOnly)$'"
+run_check "connector_dry_run_redaction" "Connector dry-run records redacted results and rejects raw payload signals" "go test ./cmd/agency-config ./internal/connectors -run 'Test(VehicleAVLDryRunPostStoresRedactedResult|VehicleAVLDryRunPostRejectsRawSummary|ConnectorDryRunJobValidationRejectsRawPayloadSignals)$'"
 run_check "product_acceptance_audit" "Product acceptance audit" "scripts/audit-product-acceptance.sh"
 run_check "product_language_audit" "Product language audit" "scripts/audit-product-language.sh"
 run_check "ui_layout_audit" "UI layout audit" "scripts/audit-ui-layout.sh"
@@ -441,6 +450,7 @@ release_note_inputs = {
         "make test-release-package",
         "make check-links",
         "make product-ui-smoke",
+        "auth/setup/connector release-gate rows inside make release-candidate-check",
         "make external-connection-check",
         "make adapter-conformance",
         "make gtfsrt-conformance",
